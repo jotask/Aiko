@@ -11,7 +11,7 @@
 #include "modules/scene_module.h"
 #include "modules/camera_module.h"
 #include "modules/input_module.h"
-#include "modules/render_module.h"
+#include "modules/renderer/render_module.h"
 
 // Systems
 #include "systems/entity_component_system.h"

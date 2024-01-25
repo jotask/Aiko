@@ -1,18 +1,17 @@
 #pragma once
 
 #include "aiko_types.h"
-#include "base_module.h"
+#include "modules/module.h"
 #include "modules/scene_module.h"
+#include "modules/renderer/renderer_component.h"
 
-class RenderModule2D : public BaseModule
+class RenderComponent2D : public RendererComponent
 {
 
 public:
 
-    RenderModule2D() = default;
-    virtual ~RenderModule2D() = default;
-
-    virtual void connect(ModuleConnector*) override;
+    RenderComponent2D() = default;
+    virtual ~RenderComponent2D() = default;
 
     virtual void preInit() override;
     virtual void init() override;
