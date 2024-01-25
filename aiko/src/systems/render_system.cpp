@@ -1,0 +1,58 @@
+#include "entity_component_system.h"
+
+#include <stdexcept>
+#include <memory>
+
+#include "modules/module_connector.h"
+#include "modules/scene_module.h"
+#include "components/transform_component.h"
+#include "components/component_renderer.h"
+#include "render_system.h"
+#include "models/light.h"
+
+aiko::AikoPtr<Mesh> RenderSystem::createMesh()
+{
+    auto mesh = std::make_unique<Mesh>();
+    return mesh;
+}
+
+aiko::AikoPtr<Light> RenderSystem::createLight()
+{
+    auto light = std::make_unique<Light>();
+    return light;
+}
+
+void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
+{
+    m_sceneModule = moduleConnector->find<SceneModule>();
+}
+
+void RenderSystem::add(Light* light)
+{
+    switch (light->m_type)
+    {
+    case Light::Type::Ambient:
+        {
+
+        }
+        break;
+    case Light::Type::Directional:
+        {
+
+        }
+        break;
+    case Light::Type::Point:
+        {
+
+        }
+        break;
+    default:
+        throw new std::exception();
+        break;
+    }
+}
+
+void RenderSystem::render(MeshComponent* mesh)
+{
+
+}
