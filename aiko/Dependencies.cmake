@@ -29,18 +29,23 @@ add_executable("binary_to_compressed_c" "${imgui_CPP_SRC_DIR}/misc/fonts/binary_
 project(rlImGui)
 
 set(rlImGui_CPP_SRC_DIR "${CMAKE_SOURCE_DIR}/submodules/rlImGui")
-
-set(rlImGui_BUILD_SOURCES
-    "${rlImGui_CPP_SRC_DIR}/rlImGui.cpp"
-    )
+set(rlImGui_BUILD_SOURCES "${rlImGui_CPP_SRC_DIR}/rlImGui.cpp" )
 
 add_library(rlImGui STATIC "${rlImGui_BUILD_SOURCES}")
 target_compile_definitions(rlImGui PUBLIC NO_FONT_AWESOME)
 target_include_directories(rlImGui PUBLIC "${rlImGui_CPP_SRC_DIR}")
 target_link_libraries(rlImGui PUBLIC imgui raylib)
 
+# spdlog
+add_subdirectory("${CMAKE_SOURCE_DIR}/submodules/spdlog" spdlog EXCLUDE_FROM_ALL)
+
+# GLM
+add_subdirectory("${CMAKE_SOURCE_DIR}/submodules/glm" GLM EXCLUDE_FROM_ALL)
+target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_SOURCE_DIR}/submodules/glm")
+
 ## Add libraries into folder
-set_property(TARGET raylib PROPERTY FOLDER "External")
-set_property(TARGET imgui PROPERTY FOLDER "External")
-set_property(TARGET rlImGui PROPERTY FOLDER "External")
-set_property(TARGET binary_to_compressed_c PROPERTY FOLDER "External")
+set_property(TARGET raylib PROPERTY FOLDER "Submodules")
+set_property(TARGET spdlog PROPERTY FOLDER "Submodules")
+set_property(TARGET imgui PROPERTY FOLDER "Submodules")
+set_property(TARGET rlImGui PROPERTY FOLDER "Submodules")
+set_property(TARGET binary_to_compressed_c PROPERTY FOLDER "Submodules")
