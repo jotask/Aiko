@@ -3,27 +3,32 @@
 #include "aiko_types.h"
 #include "camera_types.h"
 
-class CameraSystem;
-
-class Camera
+namespace aiko
 {
-public:
-    friend class CameraSystem;
 
-    Camera() = default;
-    ~Camera() = default;
+    class CameraSystem;
 
-    camera::CameraType getCameraType() const;
-    void setCameraType(camera::CameraType);
+    class Camera
+    {
+    public:
+        friend class CameraSystem;
 
-    camera::CameraController getCameraController() const;
-    void setCameraController(camera::CameraController);
+        Camera() = default;
+        ~Camera() = default;
 
-private:
+        camera::CameraType getCameraType() const;
+        void setCameraType(camera::CameraType);
 
-    CameraSystem* cameraSystem;
+        camera::CameraController getCameraController() const;
+        void setCameraController(camera::CameraController);
 
-    camera::CameraType cameraType = camera::CameraType::Perspective;
-    camera::CameraController cameraControler = camera::CameraController::Orbit;
+    private:
 
-};
+        CameraSystem* cameraSystem;
+
+        camera::CameraType cameraType = camera::CameraType::Perspective;
+        camera::CameraController cameraControler = camera::CameraController::Orbit;
+
+    };
+
+}

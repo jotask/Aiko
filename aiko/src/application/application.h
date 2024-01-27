@@ -3,25 +3,30 @@
 #include "aiko_types.h"
 #include "aiko.h"
 
-class Application
+namespace aiko
 {
-public:
 
-    friend class Aiko;
+    class Application
+    {
+    public:
 
-    Application();
-    virtual ~Application() = default;
+        friend class Aiko;
 
-protected:
-    const aiko::AikoUPtr<Aiko> m_aiko;
+        Application();
+        virtual ~Application() = default;
 
-    virtual void init() { initEditor(); }
-    virtual void update() {}
-    virtual void render() {}
+    protected:
+        const aiko::AikoUPtr<Aiko> m_aiko;
 
-private:
+        virtual void init() { initEditor(); }
+        virtual void update() {}
+        virtual void render() {}
 
-    void initEditor();
+    private:
+
+        void initEditor();
 
 
-};
+    };
+
+}

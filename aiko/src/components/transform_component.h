@@ -1,17 +1,22 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include <aiko_types.h>
 
 #include "models/component.h"
 
-class Transform : public Component
+namespace aiko
 {
-public:
-    Transform();
-    virtual ~Transform() = default;
 
-    glm::vec3 position = glm::vec3(0.0f);
-    glm::vec3 rotation = glm::vec3(0.0f);
-    glm::vec3 scale = glm::vec3(1.0f);
+    class Transform : public Component
+    {
+    public:
+        Transform();
+        virtual ~Transform() = default;
 
-};
+        Vector3 position = Vector3(0.0f);
+        Vector3 rotation = Vector3(0.0f);
+        Vector3 scale = Vector3(1.0f);
+
+    };
+
+}

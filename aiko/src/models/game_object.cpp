@@ -2,17 +2,22 @@
 
 #include <stdexcept>
 
-aiko::AikoPtr<Transform> GameObject::transform()
+namespace aiko
 {
-    return getComponent<Transform>();
-}
 
-void GameObject::update()
-{
-    for (auto& cmp : m_components) cmp->update();
-}
+    aiko::AikoPtr<Transform> GameObject::transform()
+    {
+        return getComponent<Transform>();
+    }
 
-void GameObject::render()
-{
-    for (auto& cmp : m_components) cmp->render();
+    void GameObject::update()
+    {
+        for (auto& cmp : m_components) cmp->update();
+    }
+
+    void GameObject::render()
+    {
+        for (auto& cmp : m_components) cmp->render();
+    }
+
 }

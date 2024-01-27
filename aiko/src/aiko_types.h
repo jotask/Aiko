@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <type_traits>
+
 #include <raylib.h>
 #include <glm/glm.hpp>
 
@@ -21,6 +22,7 @@ namespace aiko
 
     // raylib
     // TODO
+    using ColorAiko = Color;
 
     // TODO extract to  utils
 
@@ -28,7 +30,5 @@ namespace aiko
     {
         return output_start + ((output_end - output_start) / (input_end - input_start)) * (input - input_start);
     }
-
-
 
 }
