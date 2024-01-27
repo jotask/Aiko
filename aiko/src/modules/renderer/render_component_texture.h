@@ -44,7 +44,7 @@ namespace aiko
         const int screenWidth = 100;
         const int screenHeight = 100;
     
-        Texture2D m_renderTexture2D;
+        RenderTexture2D m_renderTexture2D;
         std::vector<Color> m_pixels;
     
         // temporal

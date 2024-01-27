@@ -98,7 +98,7 @@ namespace aiko
                 if (intensity > 255) intensity = 255;
     
                 unsigned char newIntensity = (unsigned char)intensity;
-    
+
                 pixels[y * screen.x + x] = { newIntensity, newIntensity, newIntensity, 255 };
     
             }
