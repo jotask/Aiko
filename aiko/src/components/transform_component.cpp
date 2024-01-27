@@ -1,7 +1,12 @@
 #include "transform_component.h"
 
-Transform::Transform()
-    : Component("Transform")
+namespace aiko
 {
+    
+    Transform::Transform()
+        : Component("Transform")
+    {
+    
+    }
 
 }

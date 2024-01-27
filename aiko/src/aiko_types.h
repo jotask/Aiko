@@ -17,12 +17,13 @@ namespace aiko
 
     // Temporal for now
     // Glm
-    using Vector3 = glm::vec3;
-    using Vector2 = glm::vec2;
+    using vec4 = glm::vec4;
+    using vec3 = glm::vec3;
+    using vec2 = glm::vec2;
 
     // raylib
     // TODO
-    using ColorAiko = Color;
+    // using ColorAiko = Color;
 
     // TODO extract to  utils
 

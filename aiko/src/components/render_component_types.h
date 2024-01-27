@@ -1,13 +1,18 @@
 #pragma once
 
-class IRender
+namespace aiko
 {
-public:
-    virtual void render() = 0;
-};
+    
+    class IRender
+    {
+    public:
+        virtual void render() = 0;
+    };
+    
+    class IUpdatable
+    {
+    public:
+        virtual void update() = 0;
+    };
 
-class IUpdatable
-{
-public:
-    virtual void update() = 0;
-};
+    }

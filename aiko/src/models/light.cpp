@@ -1,57 +1,62 @@
 #include "light.h"
 
-Light::Light()
-    : m_light(nullptr)
+namespace aiko
 {
-    reset();
-}
-
-void Light::update()
-{
-
-    switch (m_type)
+    
+    Light::Light()
+        : m_light(nullptr)
     {
-    case Light::Ambient:
-    {
-
+        reset();
     }
-    break;
-    case Light::Directional:
+    
+    void Light::update()
     {
-
-    }
-    break;
-    case Light::Point:
-    {
-
-    }
-    break;
-    default:
-        break;
-    }
-
-}
-
-void Light::reset()
-{
-    switch (m_type)
-    {
-    case Light::Ambient:
+    
+        switch (m_type)
         {
-
+        case Light::Ambient:
+        {
+    
         }
         break;
-    case Light::Directional:
+        case Light::Directional:
         {
-
+    
         }
         break;
-    case Light::Point:
+        case Light::Point:
         {
-
+    
         }
         break;
-    default:
-        break;
+        default:
+            break;
+        }
+    
     }
+    
+    void Light::reset()
+    {
+        switch (m_type)
+        {
+        case Light::Ambient:
+            {
+    
+            }
+            break;
+        case Light::Directional:
+            {
+    
+            }
+            break;
+        case Light::Point:
+            {
+    
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
 }

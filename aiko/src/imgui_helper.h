@@ -11,7 +11,7 @@ namespace aiko
     namespace ImGui
     {
 
-        static void DragFloat3(const char* label, Vector3& vec, float v_speed, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", float power = 1.0f)
+        static void DragFloat3(const char* label, vec3& vec, float v_speed, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", float power = 1.0f)
         {
             static float tmp[3] = { 0.0f, 0.0f, 0.0f };
             tmp[0] = vec.x;
@@ -24,7 +24,7 @@ namespace aiko
 
         }
 
-        static void ColorPicker(const char* label, glm::vec4& color, ImGuiColorEditFlags flags = 0)
+        static void ColorPicker(const char* label, vec4& color, /*ImGuiColorEditFlags*/ int flags = 0)
         {
             static float tmp[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
             tmp[0] = color.r;

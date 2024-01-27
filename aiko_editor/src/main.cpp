@@ -2,6 +2,6 @@
 
 int main()
 {
-	Application app;
+	aiko::Application app;
 	return EXIT_SUCCESS;
 }

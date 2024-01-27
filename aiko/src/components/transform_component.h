@@ -13,9 +13,9 @@ namespace aiko
         Transform();
         virtual ~Transform() = default;
 
-        Vector3 position = Vector3(0.0f);
-        Vector3 rotation = Vector3(0.0f);
-        Vector3 scale = Vector3(1.0f);
+        vec3 position = vec3(0.0f);
+        vec3 rotation = vec3(0.0f);
+        vec3 scale = vec3(1.0f);
 
     };
 

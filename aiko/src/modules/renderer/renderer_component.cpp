@@ -2,8 +2,13 @@
 
 #include "modules/renderer/render_module.h"
 
-RendererComponent::RendererComponent(RenderModule* renderModule)
-    : m_renderModule(renderModule)
+namespace aiko
 {
+    
+    RendererComponent::RendererComponent(RenderModule* renderModule)
+        : m_renderModule(renderModule)
+    {
+    
+    }
 
 }

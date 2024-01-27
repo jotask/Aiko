@@ -1,6 +1,11 @@
 #include "input_module.h"
 
-void InputModule::preUpdate()
+namespace aiko
 {
+    
+    void InputModule::preUpdate()
+    {
+    
+    }
 
 }

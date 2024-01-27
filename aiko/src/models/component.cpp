@@ -2,7 +2,12 @@
 
 #include "aiko.h"
 
-void Component::setup(GameObject* obj)
+namespace aiko
 {
-    this->gameobject = obj;
+    
+    void Component::setup(GameObject* obj)
+    {
+        this->gameobject = obj;
+    }
+
 }

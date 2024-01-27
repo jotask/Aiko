@@ -1,28 +1,33 @@
 #pragma once
 
-class ModuleConnector;
-class SystemConnector;
-
-class System
+namespace aiko
 {
-public:
-
-    friend class Aiko;
-
-protected:
-
-    Aiko* aiko;
-
-    virtual void connect(ModuleConnector*c, SystemConnector*) = 0;
     
-    virtual void init() = 0;
+    class ModuleConnector;
+    class SystemConnector;
     
-    virtual void update() = 0;
+    class System
+    {
+    public:
     
-    virtual void render() = 0;
+        friend class Aiko;
+    
+    protected:
+    
+        Aiko* aiko;
+    
+        virtual void connect(ModuleConnector*c, SystemConnector*) = 0;
+        
+        virtual void init() = 0;
+        
+        virtual void update() = 0;
+        
+        virtual void render() = 0;
+    
+        virtual void dispose() = 0;
+    
+    private:
+    
+    };
 
-    virtual void dispose() = 0;
-
-private:
-
-};
+    }

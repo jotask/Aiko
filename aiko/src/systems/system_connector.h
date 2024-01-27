@@ -5,27 +5,32 @@
 
 #include "systems/sytem.h"
 
-class SystemConnector
+namespace aiko
 {
-public:
-
-    using Systems = std::vector<std::shared_ptr<System>>;
-
-    SystemConnector(Systems& systems)
-        : m_systems(systems)
+    
+    class SystemConnector
     {
+    public:
+    
+        using Systems = std::vector<std::shared_ptr<System>>;
+    
+        SystemConnector(Systems& systems)
+            : m_systems(systems)
+        {
+        };
+        ~SystemConnector() = default;
+    
+        template<class T>
+        std::shared_ptr<T> find()
+        {
+            auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const std::shared_ptr<System>& system) {
+                return dynamic_cast<T*>(system.get()) != nullptr;
+            });
+            return (it != m_systems.end()) ? std::dynamic_pointer_cast<T>(*it) : nullptr;
+        }
+    
+    private:
+        Systems& m_systems;
     };
-    ~SystemConnector() = default;
 
-    template<class T>
-    std::shared_ptr<T> find()
-    {
-        auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const std::shared_ptr<System>& system) {
-            return dynamic_cast<T*>(system.get()) != nullptr;
-        });
-        return (it != m_systems.end()) ? std::dynamic_pointer_cast<T>(*it) : nullptr;
-    }
-
-private:
-    Systems& m_systems;
-};
+}

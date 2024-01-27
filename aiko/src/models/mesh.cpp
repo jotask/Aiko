@@ -2,32 +2,37 @@
 
 #include <stdexcept>
 
-Mesh::Mesh()
+namespace aiko
 {
-
-}
-
-void Mesh::init()
-{
-
-}
-
-void Mesh::setPrimitive(Primitive primitive)
-{
-    constexpr auto SIZE = 256;
-    switch (primitive)
+    
+    Mesh::Mesh()
     {
-    case Primitive::Sphere:
-
-        break;
-    case Primitive::Cone:
-
-        break;
-    case Primitive::Cylinder:
-
-        break;
-    default:
-        throw std::exception();
-        break;
+    
     }
+    
+    void Mesh::init()
+    {
+    
+    }
+    
+    void Mesh::setPrimitive(Primitive primitive)
+    {
+        constexpr auto SIZE = 256;
+        switch (primitive)
+        {
+        case Primitive::Sphere:
+    
+            break;
+        case Primitive::Cone:
+    
+            break;
+        case Primitive::Cylinder:
+    
+            break;
+        default:
+            throw std::exception();
+            break;
+        }
+    }
+
 }
