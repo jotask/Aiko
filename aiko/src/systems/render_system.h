@@ -21,6 +21,15 @@ namespace aiko
     {
     public:
     
+        class Particle
+        {
+        public:
+            vec2 position;
+            vec2 velocity;
+
+            void checkBounds(vec2 bounds);
+        };
+
         friend class Mesh;
         friend class MeshComponent;
     
@@ -30,6 +39,8 @@ namespace aiko
         virtual void init() override;
         virtual void update() override;
     
+        void updatSeeds();
+
         aiko::AikoPtr<Mesh> createMesh();
         aiko::AikoPtr<Light> createLight();
     
@@ -42,13 +53,17 @@ namespace aiko
     
     private:
     
-        const int tileSize = 10;
-    
-        void GenerateCelular();
+        const int nParticles = 100;
+
+        int positionLoc;
+
+        RenderTexture2D m_target;
+        Shader m_shader;
+
         void RegenerateSeeds();
     
         aiko::AikoPtr<RenderModule> m_renderModule;
-        std::vector<vec2> m_seeds;
+        std::vector<Particle> m_seeds;
         RenderComponentTexture* m_rendererComponentTexture;
     
     };

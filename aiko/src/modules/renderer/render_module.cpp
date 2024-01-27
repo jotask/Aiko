@@ -7,6 +7,8 @@
 #include "modules/renderer/render_component_2d.h"
 #include "modules/renderer/render_component_3d.h"
 #include "modules/renderer/render_component_texture.h"
+#include "modules/module_connector.h"
+#include "modules/display_module.h"
 
 namespace aiko
 {
@@ -15,10 +17,16 @@ namespace aiko
         : m_renderType(nullptr)
         , m_currentRenderType(RenderType::Texture)
         , m_isImguiDemoOpen(true)
+        , m_displayModule(nullptr)
     {
     
     }
     
+    void RenderModule::connect(ModuleConnector* moduleConnector)
+    {
+        m_displayModule = moduleConnector->find<DisplayModule>().get();
+    }
+
     void RenderModule::preInit()
     {
         switch (m_currentRenderType)
@@ -106,6 +114,11 @@ namespace aiko
         rlImGuiEnd();
         EndDrawing();
         m_renderType->endFrame();
+    }
+
+    vec2 RenderModule::getDisplaySize()
+    {
+        return m_displayModule->getDisplaySize();
     }
 
 }

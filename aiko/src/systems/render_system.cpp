@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <memory>
+#include <cassert>
 
 // TODO Please delete, temporally as initial code
 #include <raylib.h>
@@ -12,6 +13,7 @@
 #include "components/component_renderer.h"
 #include "render_system.h"
 #include "models/light.h"
+#include "models/vector.h"
 
 //  TODO TMP
 #include "modules/renderer/render_component_texture.h"
@@ -19,6 +21,32 @@
 namespace aiko
 {
     
+    void RenderSystem::Particle::checkBounds(vec2 bounds)
+    {
+        if (position.x < 0)
+        {
+            velocity.x *= -1.0f;
+            position.x = 0;
+        }
+        if (position.x > bounds.x)
+        {
+            velocity.x *= -1.0f;
+            position.x = bounds.x;
+        }
+
+        if (position.y < 0)
+        {
+            velocity.y *= -1.0f;
+            position.y = 0;
+        }
+        if (position.y > bounds.y)
+        {
+            velocity.y *= -1.0f;
+            position.y = bounds.y;
+        }
+
+    }
+
     RenderSystem::RenderSystem()
         : m_seeds()
         , m_rendererComponentTexture(nullptr)
@@ -30,15 +58,59 @@ namespace aiko
         m_rendererComponentTexture = (RenderComponentTexture*)m_renderModule->GetRenderComponent();
         // TODO Again, please delete me
         RegenerateSeeds();
-        GenerateCelular();
+
+        auto size = m_renderModule->getDisplaySize();
+        m_target = LoadRenderTexture(size.x, size.y);
+
+        m_shader = LoadShader(0, "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/aiko_distance.fs");
+
+        positionLoc = GetShaderLocation(m_shader, "particles");
+
+        assert(positionLoc != -1);
+
     }
     
     void RenderSystem::update()
     {
+
+        if ( IsWindowResized() == true && IsWindowFullscreen() == false )
+        {
+            auto screenWidth = GetScreenWidth();
+            auto screenHeight = GetScreenHeight();
+            UnloadRenderTexture(m_target);
+            m_target = LoadRenderTexture(screenWidth, screenHeight);
+            RegenerateSeeds();
+        }
+
         if (IsKeyPressed(KEY_F2))
         {
             RegenerateSeeds();
-            GenerateCelular();
+        }
+        updatSeeds();
+
+        glm::vec2 position;
+        std::vector<glm::vec2> positions;
+        for(auto tmp : m_seeds)
+        {
+            positions.push_back(tmp.position);
+        }
+        SetShaderValueV(m_shader, positionLoc, positions.data(), SHADER_UNIFORM_VEC2, positions.size());
+
+        // We are done, render to the texture
+        BeginTextureMode(m_target);
+        ClearBackground(BLACK);
+        DrawRectangle(0, 0, m_target.texture.width, m_target.texture.height, BLACK);
+        EndTextureMode();
+
+    }
+
+    void RenderSystem::updatSeeds()
+    {
+        const auto frameTime = GetFrameTime();
+        for(auto& p : m_seeds)
+        {
+            p.position += p.velocity * frameTime;
+            p.checkBounds(m_renderModule->getDisplaySize());
         }
     }
     
@@ -59,70 +131,23 @@ namespace aiko
         m_renderModule = moduleConnector->find<RenderModule>();
     }
     
-    void RenderSystem::GenerateCelular()
-    {   
-        auto pixels = m_rendererComponentTexture->getPixels();
-        auto screen = m_rendererComponentTexture->getDisplayViewport();
-        int seedsPerRow = screen.x / tileSize;
-        int seedsPerCol = screen.y / tileSize;
-        int seedCount = seedsPerRow * seedsPerCol;
-    
-        for (int y = 0; y < screen.y; y++)
-        {
-            int tileY = y / tileSize;
-    
-            for (int x = 0; x < screen.x; x++)
-            {
-                int tileX = x / tileSize;
-    
-                float minDistance = 65536.0f; //(float)strtod("Inf", NULL);
-    
-                // Check all adjacent tiles
-                for (int i = -1; i < 2; i++)
-                {
-                    if ((tileX + i < 0) || (tileX + i >= seedsPerRow)) continue;
-    
-                    for (int j = -1; j < 2; j++)
-                    {
-                        if ((tileY + j < 0) || (tileY + j >= seedsPerCol)) continue;
-    
-                        vec2 neighborSeed = m_seeds[(tileY + j) * seedsPerRow + tileX + i];
-    
-                        float dist = (float)hypot(x - (int)neighborSeed.x, y - (int)neighborSeed.y);
-                        minDistance = (float)fmin(minDistance, dist);
-                    }
-                }
-    
-                // I made this up, but it seems to give good results at all tile sizes
-                int intensity = (int)(minDistance * 256.0f / tileSize);
-                if (intensity > 255) intensity = 255;
-    
-                unsigned char newIntensity = (unsigned char)intensity;
-
-                pixels[y * screen.x + x] = { newIntensity, newIntensity, newIntensity, 255 };
-    
-            }
-        }
-        m_rendererComponentTexture->setPixels(pixels);
-    }
-    
     void RenderSystem::RegenerateSeeds()
     {
-        auto screen = m_rendererComponentTexture->getDisplayViewport();
-        int seedsPerRow = screen.x / tileSize;
-        int seedsPerCol = screen.y / tileSize;
-        int seedCount = seedsPerRow * seedsPerCol;
+
+        auto screen = m_renderModule->getDisplaySize();
     
         float deltaTime = GetFrameTime();
     
-        m_seeds = std::vector<vec2>(seedCount);
+        m_seeds = std::vector<Particle>(nParticles);
     
-        for (int i = 0; i < seedCount; i++)
+        constexpr int VELOCITY = 10;
+
+        for (int i = 0; i < nParticles; i++)
         {
-            const int random = GetRandomValue(0, tileSize - 1) + deltaTime;
-            int y = (i / seedsPerRow) * tileSize + random;
-            int x = (i % seedsPerRow) * tileSize + random;
-            m_seeds[i] = { (float)x, (float)y };
+            Particle particle;
+            particle.position = { GetRandomValue(0, screen.x), GetRandomValue(0, screen.y) };
+            particle.velocity = { GetRandomValue(-VELOCITY, VELOCITY), GetRandomValue(-VELOCITY, VELOCITY)};
+            m_seeds[i] = particle;
         }
     }
     
@@ -153,7 +178,9 @@ namespace aiko
     
     void RenderSystem::render(MeshComponent* mesh)
     {
-    
+        BeginShaderMode(m_shader);
+        DrawTextureEx(m_target.texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
+        EndShaderMode();
     }
 
 }

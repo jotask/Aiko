@@ -6,6 +6,8 @@
 
 namespace aiko
 {
+
+    class DisplayModule;
     
     class RenderModule : public BaseModule
     {
@@ -21,6 +23,8 @@ namespace aiko
     
         RenderModule();
         virtual ~RenderModule() = default;
+
+        virtual void connect(ModuleConnector*);
     
         virtual void preInit() override;
         virtual void init() override;
@@ -37,15 +41,14 @@ namespace aiko
         virtual void beginFrame() override;
         virtual void endFrame() override;
     
-        RendererComponent* GetRenderComponent() {
-            return m_renderType.get();
-        };
+        RendererComponent* GetRenderComponent() { return m_renderType.get(); };
+        vec2 getDisplaySize();
     
     private:
-    
+
+        DisplayModule* m_displayModule;
         RenderType m_currentRenderType;
         aiko::AikoUPtr<RendererComponent> m_renderType;
-    
     
         bool m_isImguiDemoOpen;
     

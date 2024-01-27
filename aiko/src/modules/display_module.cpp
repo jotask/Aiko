@@ -15,12 +15,14 @@ namespace aiko
     {
         return !WindowShouldClose();
     }
+
+    vec2 DisplayModule::getDisplaySize()
+    {
+        return {GetScreenWidth(), GetScreenHeight()};
+    }
     
     void DisplayModule::init()
     {
-        // TODO Get this size from config
-        const int screenWidth = 800;
-        const int screenHeight = 450;
         SetConfigFlags(FLAG_WINDOW_RESIZABLE);
         InitWindow(screenWidth, screenHeight, "Aiko");
         rlImGuiSetup(true);

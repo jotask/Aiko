@@ -65,6 +65,7 @@ namespace aiko
     
     void RenderComponentTexture::postRender()
     {
+        /*
         ClearBackground(WHITE);
         
         DrawTexturePro(
@@ -75,6 +76,7 @@ namespace aiko
             0,
             WHITE
         );
+        */
     }
     
     void RenderComponentTexture::setPixels(std::vector<Color> pixels)

@@ -33,7 +33,6 @@ namespace aiko
         void virtual render() override;
         void virtual postRender() override;
     
-    
         virtual aiko::vec2 getDisplayViewport() override { return { screenWidth, screenHeight }; };
     
         std::vector<Color> getPixels() { return m_pixels; };
@@ -41,6 +40,9 @@ namespace aiko
     
     private:
     
+
+        const int resolution = 1;
+
         const int screenWidth = 100;
         const int screenHeight = 100;
     
