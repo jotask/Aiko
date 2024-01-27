@@ -4,10 +4,13 @@
 #include "modules/base_module.h"
 #include "modules/scene_module.h"
 
+class RenderModule;
 class RendererComponent
 {
 
 public:
+
+    RendererComponent(RenderModule* renderModule);
 
     virtual void preInit() { };
     virtual void init() { };
@@ -26,6 +29,12 @@ public:
 
     virtual void dispose() { };
 
+    virtual aiko::Vector2 getDisplayViewport() { return { 0.0f, 0.0f }; };
+
 protected:
+
+    friend class RenderModule;
+
+    RenderModule* m_renderModule;
 
 };

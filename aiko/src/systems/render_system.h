@@ -9,6 +9,7 @@
 #include "models/game_object.h"
 #include "models/mesh.h"
 #include "models/light.h"
+#include "modules/renderer/render_module.h"
 
 class SceneModule;
 
@@ -19,8 +20,11 @@ public:
     friend class Mesh;
     friend class MeshComponent;
 
-    RenderSystem() = default;
+    RenderSystem();
     virtual ~RenderSystem() = default;
+
+    virtual void init() override;
+    virtual void update() override;
 
     aiko::AikoPtr<Mesh> createMesh();
     aiko::AikoPtr<Light> createLight();
@@ -34,6 +38,13 @@ protected:
 
 private:
 
-    aiko::AikoPtr<SceneModule> m_sceneModule;
+    const int tileSize = 10;
+
+    void GenerateCelular();
+    void RegenerateSeeds();
+
+    aiko::AikoPtr<RenderModule> m_renderModule;
+    std::vector<aiko::Vector2> m_seeds;
+    RenderComponentTexture* m_rendererComponentTexture;
 
 };

@@ -6,6 +6,11 @@
 
 #include "modules/module_connector.h"
 
+RenderComponent3D::RenderComponent3D(RenderModule* renderModule)
+    : RendererComponent(renderModule)
+{
+}
+
 void RenderComponent3D::preInit()
 {
 }

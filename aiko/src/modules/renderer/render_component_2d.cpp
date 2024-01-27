@@ -5,6 +5,12 @@
 #include "config.h"
 
 #include "modules/module_connector.h"
+#include "modules/renderer/render_module.h"
+
+RenderComponent2D::RenderComponent2D(RenderModule* renderModule)
+    : RendererComponent(renderModule)
+{
+}
 
 void RenderComponent2D::preInit()
 {

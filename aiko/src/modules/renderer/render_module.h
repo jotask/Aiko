@@ -20,6 +20,12 @@ public:
     virtual ~RenderModule() = default;
 
     virtual void preInit() override;
+    virtual void init() override;
+    virtual void postInit() override;
+
+    void virtual preUpdate() override;
+    void virtual update() override;
+    void virtual postUpdate() override;
 
     virtual void preRender() override;
     virtual void render() override;
@@ -28,9 +34,16 @@ public:
     virtual void beginFrame() override;
     virtual void endFrame() override;
 
+    RendererComponent* GetRenderComponent() {
+        return m_renderType.get();
+    };
+
 private:
 
     RenderType m_currentRenderType;
     aiko::AikoUPtr<RendererComponent> m_renderType;
+
+
+    bool m_isImguiDemoOpen;
 
 };

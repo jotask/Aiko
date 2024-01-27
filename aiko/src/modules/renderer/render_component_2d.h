@@ -5,12 +5,13 @@
 #include "modules/scene_module.h"
 #include "modules/renderer/renderer_component.h"
 
+class RenderModule;
 class RenderComponent2D : public RendererComponent
 {
 
 public:
 
-    RenderComponent2D() = default;
+    RenderComponent2D(RenderModule* renderModule);
     virtual ~RenderComponent2D() = default;
 
     virtual void preInit() override;
@@ -26,7 +27,5 @@ public:
     void virtual postRender() override;
 
 protected:
-
-    aiko::AikoPtr<SceneModule> m_sceneModule;
 
 };
