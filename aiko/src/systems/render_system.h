@@ -24,8 +24,10 @@ namespace aiko
         class Particle
         {
         public:
+            const static int VELOCITY = 1;
             vec2 position;
             vec2 velocity;
+            float speed;
 
             void checkBounds(vec2 bounds);
         };
@@ -53,9 +55,13 @@ namespace aiko
     
     private:
     
-        const int nParticles = 100;
+        const int nMaxParticles = 100;
 
         int positionLoc;
+        int nParticlesLoc;
+
+        int nParticles = nMaxParticles;
+        float all_velocity = 1.0f;
 
         RenderTexture2D m_target;
         Shader m_shader;

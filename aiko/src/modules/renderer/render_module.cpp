@@ -16,7 +16,7 @@ namespace aiko
     RenderModule::RenderModule()
         : m_renderType(nullptr)
         , m_currentRenderType(RenderType::Texture)
-        , m_isImguiDemoOpen(true)
+        , m_isImguiDemoOpen(false)
         , m_displayModule(nullptr)
     {
     

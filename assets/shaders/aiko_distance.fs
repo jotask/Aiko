@@ -3,13 +3,14 @@
 #define FLT_MAX 3.402823466e+38
 #define FLT_MIN 1.175494351e-38
 
-#define MAX_NUM_TOTAL_PARTICLES 100
+#define MAX_NUM_TOTAL_PARTICLES 1000
 
 in vec2 fragTexCoord;
 in vec4 fragColor;
 
 out vec4 finalColor;
 
+uniform int nParticles;
 uniform vec2 particles[MAX_NUM_TOTAL_PARTICLES];
 
 vec3 Hsv2rgb(float hue, float saturation, float value)
@@ -33,7 +34,7 @@ void main()
     float minDistance = FLT_MAX;
     float maxDistance = FLT_MIN;
 
-    for (int i = 0; i < MAX_NUM_TOTAL_PARTICLES; i++)
+    for (int i = 0; i < min(nParticles, MAX_NUM_TOTAL_PARTICLES); i++)
     {
         float distance = distance(pos, particles[i]);
         minDistance = min(minDistance, distance);
