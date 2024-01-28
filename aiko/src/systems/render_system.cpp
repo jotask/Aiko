@@ -51,7 +51,7 @@ namespace aiko
     }
 
     RenderSystem::RenderSystem()
-        : m_seeds()
+        : m_particles()
         , m_rendererComponentTexture(nullptr)
     {
     }
@@ -87,7 +87,7 @@ namespace aiko
 
         glm::vec2 position;
         std::vector<glm::vec2> positions;
-        for(auto tmp : m_seeds)
+        for(auto tmp : m_particles)
         {
             positions.push_back(tmp.position);
         }
@@ -103,11 +103,11 @@ namespace aiko
         DrawTextureEx(m_rendererComponentTexture->GetRendererTexture().texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
         EndShaderMode();
 
-        if (::ImGui::Begin("##RenderSystem"))
+        if (::ImGui::Begin("RenderSystem"))
         {
             if (::ImGui::DragFloat("Velocity", &all_velocity, 0.5f, 0.0f, 1000.0f, "%.3f p/s"))
             {
-                for (auto& p : m_seeds)
+                for (auto& p : m_particles)
                 {
                     p.speed = all_velocity;
                 }
@@ -118,7 +118,7 @@ namespace aiko
             }
             if (::ImGui::Button("Randomize Velocity"))
             {
-                for (auto& p : m_seeds)
+                for (auto& p : m_particles)
                 {
                     p.velocity = { GetRandomValue(-Particle::VELOCITY, Particle::VELOCITY), GetRandomValue(-Particle::VELOCITY, Particle::VELOCITY) };
                 }
@@ -130,7 +130,7 @@ namespace aiko
     void RenderSystem::updatSeeds()
     {
         const auto frameTime = GetFrameTime();
-        for(auto& p : m_seeds)
+        for(auto& p : m_particles)
         {
             p.position += (p.velocity * p.speed) * frameTime;
             p.checkBounds(m_renderModule->getDisplaySize());
@@ -157,13 +157,13 @@ namespace aiko
     void RenderSystem::RegenerateSeeds()
     {
 
-        auto screen = m_renderModule->getDisplaySize();
-    
-        float deltaTime = GetFrameTime();
-    
-        m_seeds = std::vector<Particle>(nParticles);
     
         constexpr int VELOCITY = 1;
+
+        vec2 screen = m_renderModule->getDisplaySize();
+
+        m_particles.clear();
+        m_particles.reserve(nParticles);
 
         for (int i = 0; i < nParticles; i++)
         {
@@ -171,7 +171,7 @@ namespace aiko
             particle.speed = all_velocity;
             particle.position = { GetRandomValue(0, screen.x), GetRandomValue(0, screen.y) };
             particle.velocity = { GetRandomValue(-Particle::VELOCITY, Particle::VELOCITY), GetRandomValue(-Particle::VELOCITY, Particle::VELOCITY)};
-            m_seeds[i] = particle;
+            m_particles.push_back(particle);
         }
     }
     

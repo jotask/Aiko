@@ -69,7 +69,7 @@ namespace aiko
         void RegenerateSeeds();
     
         aiko::AikoPtr<RenderModule> m_renderModule;
-        std::vector<Particle> m_seeds;
+        std::vector<Particle> m_particles;
         RenderComponentTexture* m_rendererComponentTexture;
     
     };

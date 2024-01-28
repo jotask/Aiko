@@ -52,6 +52,8 @@ namespace aiko
         aiko::AikoUPtr<RendererComponent> m_renderType;
     
         bool m_isImguiDemoOpen;
+
+        void updateRenderType(RenderModule::RenderType newRenderType, bool autoInit = true);
     
     };
 

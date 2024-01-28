@@ -1,5 +1,7 @@
 #include "render_module.h"
 
+#include <string>
+
 #include <imgui.h>
 #include <raylib.h>
 #include <rlImGui.h>
@@ -16,7 +18,7 @@ namespace aiko
     
     RenderModule::RenderModule()
         : m_renderType(nullptr)
-        , m_currentRenderType(RenderType::Pixel)
+        , m_currentRenderType(RenderType::Texture)
         , m_isImguiDemoOpen(false)
         , m_displayModule(nullptr)
     {
@@ -30,23 +32,7 @@ namespace aiko
 
     void RenderModule::preInit()
     {
-        switch (m_currentRenderType)
-        {
-        case RenderModule::RenderType::TwoDimensions:
-            m_renderType = std::make_unique<RenderComponent2D>(this);
-            break;
-        case RenderModule::RenderType::ThreeDimensions:
-            m_renderType = std::make_unique<RenderComponent3D>(this);
-            break;
-        case RenderModule::RenderType::Texture:
-            m_renderType = std::make_unique<RenderComponentTexture>(this);
-            break;
-        case RenderModule::RenderType::Pixel:
-            m_renderType = std::make_unique<RenderComponentPixel>(this);
-            break;
-        default:
-            break;
-        }
+        updateRenderType(m_currentRenderType, false);
         m_renderType->preInit();
     }
     
@@ -77,6 +63,58 @@ namespace aiko
     
     void RenderModule::preRender()
     {
+
+        if (::ImGui::Begin("RenderModule"))
+        {
+
+            auto stringToEnum = [](const char* str) -> RenderModule::RenderType
+                {
+                    if (strcmp(str, "TwoDimensions") == 0)      return RenderModule::RenderType::TwoDimensions;
+                    if (strcmp(str, "ThreeDimensions") == 0)    return RenderModule::RenderType::ThreeDimensions;
+                    if (strcmp(str, "Texture") == 0)            return RenderModule::RenderType::Texture;
+                    if (strcmp(str, "Pixel") == 0)              return RenderModule::RenderType::Pixel;
+                };
+
+            auto enumToString = [](RenderModule::RenderType enm) -> const char*
+                {
+                    switch (enm)
+                    {
+                    case RenderModule::RenderType::TwoDimensions:   return "TwoDimensions";  
+                    case RenderModule::RenderType::ThreeDimensions: return "ThreeDimensions";
+                    case RenderModule::RenderType::Texture:         return "Texture";        
+                    case RenderModule::RenderType::Pixel:           return "Pixel";          
+                    default:
+                        // TODO assert
+                        break;
+                    }
+                };
+
+            constexpr char* items[] = { "TwoDimensions" , "ThreeDimensions" , "Texture" , "Pixel" };
+            static const char* current_item = enumToString(m_currentRenderType);
+
+            if (ImGui::BeginCombo("##combo", current_item)) // The second parameter is the label previewed before opening the combo.
+            {
+                for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+                {
+                    bool is_selected = (current_item == items[n]); // You can store your selection however you want, outside or inside your objects
+
+                    if (ImGui::Selectable(items[n], is_selected))
+                    {
+                        current_item = items[n];
+                        RenderModule::RenderType enm = stringToEnum(current_item);
+                        updateRenderType(enm);
+
+                    }
+                    if (is_selected)
+                    {
+                        ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            ::ImGui::End();
+        }
+
         m_renderType->preRender();
     }
     
@@ -123,6 +161,36 @@ namespace aiko
     vec2 RenderModule::getDisplaySize()
     {
         return m_displayModule->getDisplaySize();
+    }
+
+    void RenderModule::updateRenderType(RenderModule::RenderType newRenderType, bool autoInit)
+    {
+        // TODO Do we want to do something with the previous if exists?
+        m_currentRenderType = newRenderType;
+        switch (m_currentRenderType)
+        {
+        case RenderModule::RenderType::TwoDimensions:
+            m_renderType = std::make_unique<RenderComponent2D>(this);
+            break;
+        case RenderModule::RenderType::ThreeDimensions:
+            m_renderType = std::make_unique<RenderComponent3D>(this);
+            break;
+        case RenderModule::RenderType::Texture:
+            m_renderType = std::make_unique<RenderComponentTexture>(this);
+            break;
+        case RenderModule::RenderType::Pixel:
+            m_renderType = std::make_unique<RenderComponentPixel>(this);
+            break;
+        default:
+            // TODO assert
+            break;
+        }
+        if (autoInit ==  true)
+        {
+            m_renderType->preInit();
+            m_renderType->init();
+            m_renderType->postInit();
+        }
     }
 
 }
