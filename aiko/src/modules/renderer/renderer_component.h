@@ -38,7 +38,6 @@ namespace aiko
     protected:
     
         friend class RenderModule;
-    
         RenderModule* m_renderModule;
     
     };

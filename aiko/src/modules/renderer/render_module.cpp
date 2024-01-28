@@ -12,13 +12,14 @@
 #include "modules/renderer/render_component_pixel.h"
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
+#include "modules/camera_module.h"
 
 namespace aiko
 {
     
     RenderModule::RenderModule()
         : m_renderType(nullptr)
-        , m_currentRenderType(RenderType::Texture)
+        , m_currentRenderType(RenderType::ThreeDimensions)
         , m_isImguiDemoOpen(false)
         , m_displayModule(nullptr)
     {
@@ -28,6 +29,7 @@ namespace aiko
     void RenderModule::connect(ModuleConnector* moduleConnector)
     {
         m_displayModule = moduleConnector->find<DisplayModule>().get();
+        m_cameraModule = moduleConnector->find<CameraModule>().get();
     }
 
     void RenderModule::preInit()

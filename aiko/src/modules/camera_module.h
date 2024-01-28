@@ -1,5 +1,7 @@
 #pragma once
 
+#include <raylib.h>
+
 #include "base_module.h"
 
 namespace aiko
@@ -12,9 +14,13 @@ namespace aiko
         CameraModule() = default;
         virtual ~CameraModule() = default;
     
+        Camera& GetMainCamera() { return m_camera; };
+
     protected:
     
         virtual void init() override;
+
+        Camera m_camera;
     
     };
 

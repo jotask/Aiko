@@ -7,6 +7,7 @@
 namespace aiko
 {
 
+    class CameraModule;
     class DisplayModule;
     
     class RenderModule : public BaseModule
@@ -42,11 +43,13 @@ namespace aiko
         virtual void beginFrame() override;
         virtual void endFrame() override;
     
+        CameraModule* getCameraModule() { return m_cameraModule; }
         RendererComponent* GetRenderComponent() { return m_renderType.get(); };
         vec2 getDisplaySize();
     
     private:
 
+        CameraModule* m_cameraModule;
         DisplayModule* m_displayModule;
         RenderType m_currentRenderType;
         aiko::AikoUPtr<RendererComponent> m_renderType;

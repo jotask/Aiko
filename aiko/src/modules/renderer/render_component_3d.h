@@ -7,7 +7,8 @@
 
 namespace aiko
 {
-    
+
+    class CameraModule;
     class RenderModule;
     class RenderComponent3D : public RendererComponent
     {
@@ -31,7 +32,8 @@ namespace aiko
     
     protected:
     
-        // aiko::AikoPtr<SceneModule> m_sceneModule;
+        const int numBlocks = 15;
+        float scale = 1.0f;
     
     };
 
