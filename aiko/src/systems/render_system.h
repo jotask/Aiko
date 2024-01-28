@@ -40,6 +40,7 @@ namespace aiko
     
         virtual void init() override;
         virtual void update() override;
+        virtual void render() override;
     
         void updatSeeds();
 
@@ -63,7 +64,6 @@ namespace aiko
         int nParticles = nMaxParticles;
         float all_velocity = 1.0f;
 
-        RenderTexture2D m_target;
         Shader m_shader;
 
         void RegenerateSeeds();

@@ -17,6 +17,7 @@ namespace aiko
 
     void Application::initEditor()
     {
+        /*
         GameObject* camera = m_aiko->createGameObject();
         auto cam = camera->addComponent<CameraComponent>();
 
@@ -47,6 +48,7 @@ namespace aiko
         cube->transform()->position = {-1.1f, 0.f, 0.f};
         auto cubeMesh = cube->addComponent<MeshComponent>();
         cubeMesh->setPrimitive(Mesh::Cylinder);
+        */
 
 
     }

@@ -13,13 +13,13 @@ namespace aiko
 {
     
     class RenderModule;
-    class RenderComponentTexture : public RendererComponent
+    class RenderComponentPixel : public RendererComponent
     {
     
     public:
     
-        RenderComponentTexture(RenderModule*);
-        virtual ~RenderComponentTexture();
+        RenderComponentPixel(RenderModule*);
+        virtual ~RenderComponentPixel();
     
         virtual void preInit() override;
         virtual void init() override;
@@ -36,17 +36,19 @@ namespace aiko
         virtual aiko::vec2 getDisplayViewport() override { return { screenWidth, screenHeight }; };
     
         RenderTexture2D& GetRendererTexture() { return m_renderTexture2D; };
+
+        std::vector<Color> getPixels() { return m_pixels; };
+        void setPixels(std::vector<Color> pixels);
     
     private:
     
-
         const int resolution = 1;
 
         const int screenWidth = 100;
         const int screenHeight = 100;
     
         RenderTexture2D m_renderTexture2D;
-
+        std::vector<Color> m_pixels;
     
     };
 

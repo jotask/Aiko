@@ -8,6 +8,7 @@
 
 #include "config.h"
 #include "modules/module_connector.h"
+#include "modules/renderer/render_module.h"
 
 namespace aiko
 {
@@ -15,7 +16,6 @@ namespace aiko
     RenderComponentTexture::RenderComponentTexture(RenderModule* renderModule)
         : RendererComponent(renderModule)
         , m_renderTexture2D()
-        , m_pixels( std::vector<Color>(screenWidth * screenHeight * sizeof(Color)) )
     {
     }
     
@@ -31,23 +31,27 @@ namespace aiko
     
     void RenderComponentTexture::init()
     {
+        auto size = m_renderModule->getDisplaySize();
+        m_renderTexture2D = LoadRenderTexture(size.x, size.y);
     }
     
     void RenderComponentTexture::postInit()
     {
-        m_pixels = getPixels();
-        m_renderTexture2D = LoadRenderTexture(screenWidth, screenHeight);
     }
     
     void RenderComponentTexture::preUpdate()
     {
-        deltaTime = GetFrameTime();
-        timer += deltaTime;
     }
     
     void RenderComponentTexture::update()
     {
-
+        if (IsWindowResized() == true && IsWindowFullscreen() == false)
+        {
+            auto screenWidth = GetScreenWidth();
+            auto screenHeight = GetScreenHeight();
+            UnloadRenderTexture(m_renderTexture2D);
+            m_renderTexture2D = LoadRenderTexture(screenWidth, screenHeight);
+        }
     }
     
     void RenderComponentTexture::postUpdate()
@@ -56,32 +60,20 @@ namespace aiko
     
     void RenderComponentTexture::preRender()
     {
+        // We are done, render to the texture
+        BeginTextureMode(m_renderTexture2D);
+        ClearBackground(BLACK);
+        DrawRectangle(0, 0, m_renderTexture2D.texture.width, m_renderTexture2D.texture.height, BLACK);
+        EndTextureMode();
     }
     
     void RenderComponentTexture::render()
     {
-        UpdateTexture(m_renderTexture2D.texture, m_pixels.data());
+
     }
     
     void RenderComponentTexture::postRender()
     {
-        /*
-        ClearBackground(WHITE);
-        
-        DrawTexturePro(
-            m_renderTexture2D.texture,
-            Rectangle{ 0, 0, static_cast<float>(m_renderTexture2D.texture.width), static_cast<float>(-m_renderTexture2D.texture.height) },
-            Rectangle{ 0, 0, static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight()) },
-            Vector2{ 0, 0 },
-            0,
-            WHITE
-        );
-        */
-    }
-    
-    void RenderComponentTexture::setPixels(std::vector<Color> pixels)
-    {
-        m_pixels = pixels;
     }
 
 }

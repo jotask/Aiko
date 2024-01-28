@@ -11,4 +11,9 @@ namespace aiko
     
     }
 
+    vec2 RendererComponent::getDisplaySize()
+    {
+        return m_renderModule->getDisplaySize();
+    }
+
 }

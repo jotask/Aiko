@@ -23,9 +23,6 @@
 
 namespace aiko
 {
-
-    // Silly but render is been called multiple times
-    static bool isDraw = false;
     
     void RenderSystem::Particle::checkBounds(vec2 bounds)
     {
@@ -65,9 +62,6 @@ namespace aiko
         // TODO Again, please delete me
         RegenerateSeeds();
 
-        auto size = m_renderModule->getDisplaySize();
-        m_target = LoadRenderTexture(size.x, size.y);
-
         m_shader = LoadShader(0, "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/aiko_distance.fs");
 
         positionLoc = GetShaderLocation(m_shader, "particles");
@@ -82,10 +76,6 @@ namespace aiko
 
         if ( IsWindowResized() == true && IsWindowFullscreen() == false )
         {
-            auto screenWidth = GetScreenWidth();
-            auto screenHeight = GetScreenHeight();
-            UnloadRenderTexture(m_target);
-            m_target = LoadRenderTexture(screenWidth, screenHeight);
             RegenerateSeeds();
         }
 
@@ -104,15 +94,37 @@ namespace aiko
         SetShaderValueV(m_shader, positionLoc, positions.data(), SHADER_UNIFORM_VEC2, positions.size());
         SetShaderValue(m_shader, nParticlesLoc, &nParticles, SHADER_UNIFORM_INT);
 
-        // We are done, render to the texture
-        BeginTextureMode(m_target);
-        ClearBackground(BLACK);
-        DrawRectangle(0, 0, m_target.texture.width, m_target.texture.height, BLACK);
-        EndTextureMode();
+    }
 
+    void RenderSystem::render()
+    {
 
-        isDraw = false;
+        BeginShaderMode(m_shader);
+        DrawTextureEx(m_rendererComponentTexture->GetRendererTexture().texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
+        EndShaderMode();
 
+        if (::ImGui::Begin("##RenderSystem"))
+        {
+            if (::ImGui::DragFloat("Velocity", &all_velocity, 0.5f, 0.0f, 1000.0f, "%.3f p/s"))
+            {
+                for (auto& p : m_seeds)
+                {
+                    p.speed = all_velocity;
+                }
+            }
+            if (::ImGui::DragInt("Particles", &nParticles, 1, 0, nMaxParticles))
+            {
+                RegenerateSeeds();
+            }
+            if (::ImGui::Button("Randomize Velocity"))
+            {
+                for (auto& p : m_seeds)
+                {
+                    p.velocity = { GetRandomValue(-Particle::VELOCITY, Particle::VELOCITY), GetRandomValue(-Particle::VELOCITY, Particle::VELOCITY) };
+                }
+            }
+            ::ImGui::End();
+        }
     }
 
     void RenderSystem::updatSeeds()
@@ -190,39 +202,6 @@ namespace aiko
    
     void RenderSystem::render(MeshComponent* mesh)
     {
-
-        if (isDraw)
-        {
-            return;
-        }
-        isDraw = true;
-
-        BeginShaderMode(m_shader);
-        DrawTextureEx(m_target.texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
-        EndShaderMode();
-
-        if (::ImGui::Begin("##RenderSystem"))
-        {
-            if(::ImGui::DragFloat("Velocity", &all_velocity, 0.5f, 0.0f, 1000.0f, "%.3f p/s"))
-            {
-                for (auto& p : m_seeds)
-                {
-                    p.speed = all_velocity;
-                }
-            }
-            if (::ImGui::DragInt("Particles", &nParticles, 1, 0, nMaxParticles))
-            {
-                RegenerateSeeds();
-            }
-            if (::ImGui::Button("Randomize Velocity"))
-            {
-                for (auto& p : m_seeds)
-                {
-                    p.velocity = { GetRandomValue(-Particle::VELOCITY, Particle::VELOCITY), GetRandomValue(-Particle::VELOCITY, Particle::VELOCITY) };
-                }
-            }
-            ::ImGui::End();
-        }
 
     }
 

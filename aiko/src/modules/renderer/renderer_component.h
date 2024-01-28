@@ -32,6 +32,7 @@ namespace aiko
     
         virtual void dispose() { };
     
+        vec2 getDisplaySize();
         virtual aiko::vec2 getDisplayViewport() { return { 0.0f, 0.0f }; };
     
     protected:

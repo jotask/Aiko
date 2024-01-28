@@ -18,7 +18,8 @@ namespace aiko
         {
             TwoDimensions,
             ThreeDimensions,
-            Texture
+            Texture,
+            Pixel,
         };
     
         RenderModule();

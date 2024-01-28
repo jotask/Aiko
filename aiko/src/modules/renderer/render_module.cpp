@@ -7,6 +7,7 @@
 #include "modules/renderer/render_component_2d.h"
 #include "modules/renderer/render_component_3d.h"
 #include "modules/renderer/render_component_texture.h"
+#include "modules/renderer/render_component_pixel.h"
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
 
@@ -15,7 +16,7 @@ namespace aiko
     
     RenderModule::RenderModule()
         : m_renderType(nullptr)
-        , m_currentRenderType(RenderType::Texture)
+        , m_currentRenderType(RenderType::Pixel)
         , m_isImguiDemoOpen(false)
         , m_displayModule(nullptr)
     {
@@ -39,6 +40,9 @@ namespace aiko
             break;
         case RenderModule::RenderType::Texture:
             m_renderType = std::make_unique<RenderComponentTexture>(this);
+            break;
+        case RenderModule::RenderType::Pixel:
+            m_renderType = std::make_unique<RenderComponentPixel>(this);
             break;
         default:
             break;
