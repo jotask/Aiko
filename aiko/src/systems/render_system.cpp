@@ -68,50 +68,67 @@ namespace aiko
         RegenerateSeeds();
             
         iTime = 0.0f;
-        currentShader = -1;
 
-        NextShader(true);
+        currentShader = GetRandomValue(0, s_shaders.size());
+        RefreshShader(true);
 
     }
 
-    void RenderSystem::NextShader(bool first )
+    std::vector<std::string> RenderSystem::s_shaders =
     {
-        const std::string GLOBAL_PATH = "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/";
-        const std::string EXTENSION = ".fs";
-        static std::vector<std::string> shaders =
-        {
-            "aiko_shadertoy_sun",
-            "aiko_shadertoy_sun_mandala",
-            "aiko_shadertoy_fractal_lines",
-            "aiko_shadertoy_mandala_art_of_code",
-            "aiko_shadertoy_hexaflower",
-            "aiko_shadertoy_rosaic",
-            "aiko_shadertoy_test_fractal",
-            "aiko_shadertoy_nunu_mandala",
-            "aiko_shadertoy_fractal_mandala_twtich",
-            "aiko_shadertoy_fractal_circles",
-            "aiko_shadertoy_hex_moire_mandala",
-            "aiko_shadertoy_mandala_start_pattern",
-            "aiko_shadertoy_weird_twitch",
-            "aiko_shadertoy_mandala",
-            "aiko_shadertoy_a_nice_mandala",
-            "aiko_shadertoy_mandala_flowers",
-            "aiko_shadertoy_happy_seigaiha_mandala",
-            "aiko_shadertoy",
-            "aiko_shadertoy_fractal",
-            "aiko_shadertoy_fractal_infinite_1",
-            "aiko_shadertoy_fractal_infinite_2",
-            "aiko_shadertoy_fractal_infinite_spheres",
-            "aiko_shadertoy_happy",
-        };
+        "aiko_shadertoy_sun",
+        "aiko_shadertoy_sun_mandala",
+        "aiko_shadertoy_fractal_lines",
+        "aiko_shadertoy_mandala_art_of_code",
+        "aiko_shadertoy_hexaflower",
+        "aiko_shadertoy_rosaic",
+        "aiko_shadertoy_test_fractal",
+        "aiko_shadertoy_nunu_mandala",
+        "aiko_shadertoy_fractal_mandala_twtich",
+        "aiko_shadertoy_fractal_circles",
+        "aiko_shadertoy_mandala_start_pattern",
+        "aiko_shadertoy_weird_twitch",
+        "aiko_shadertoy_mandala",
+        "aiko_shadertoy_a_nice_mandala",
+        "aiko_shadertoy_mandala_flowers",
+        "aiko_shadertoy_happy_seigaiha_mandala",
+        "aiko_shadertoy",
+        "aiko_shadertoy_fractal",
+        "aiko_shadertoy_fractal_infinite_1",
+        "aiko_shadertoy_fractal_infinite_2",
+        "aiko_shadertoy_fractal_infinite_spheres",
+        "aiko_shadertoy_happy",
+    };
+
+    void RenderSystem::NextShader()
+    {
+        currentShader++;
+        currentShader %= s_shaders.size();
+        RefreshShader();
+    }
+
+    void RenderSystem::RandomShader()
+    {
+        currentShader = GetRandomValue(0, s_shaders.size());
+        RefreshShader();
+    }
+
+    void RenderSystem::PrevShader()
+    {
+        currentShader--;
+        currentShader %= s_shaders.size();
+        RefreshShader();
+    }
+
+    void RenderSystem::RefreshShader(bool first)
+    {
         if (first == false)
         {
             UnloadShader(m_shader);
         }
-        currentShader++;
-        currentShader %= shaders.size();
-        const std::string path = GLOBAL_PATH + shaders[currentShader].c_str() + EXTENSION;
-        m_shader = LoadShader(nullptr, path.c_str() );
+       
+        const std::string path = GLOBAL_PATH + s_shaders[currentShader].c_str() + EXTENSION;
+        m_shader = LoadShader(nullptr, path.c_str());
 
         iResolutionLoc = GetShaderLocation(m_shader, "iResolution");
         iTimeLoc = GetShaderLocation(m_shader, "iTime");
@@ -127,9 +144,15 @@ namespace aiko
         // assert(iResolutionLoc != -1 && iTimeLoc != -1 && iTimeDeltaLoc != -1 && iFrameRateLoc != -1 && iFrameLoc != -1 && iChannelTimeLoc != -1 && iChannelResolutionLoc != -1 && iMouseLoc != -1 && iDateLoc != -1);
 
     }
-    
+
     void RenderSystem::update()
     {
+
+        // check for alt + enter
+        if (IsKeyPressed(KEY_ENTER) && (IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT)))
+        {
+            ToggleFullscreen();
+        }
 
         if ( IsWindowResized() == true && IsWindowFullscreen() == false )
         {
@@ -141,9 +164,17 @@ namespace aiko
             RegenerateSeeds();
         }
 
-        if (IsKeyPressed(KEY_SPACE))
+        if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_RIGHT))
         {
             NextShader();
+        }
+        else if (IsKeyPressed(KEY_LEFT))
+        {
+            PrevShader();
+        }
+        else if (IsKeyPressed(KEY_R))
+        {
+            RandomShader();
         }
 
         updatSeeds();

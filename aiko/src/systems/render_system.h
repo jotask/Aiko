@@ -93,11 +93,18 @@ namespace aiko
         void RegenerateSeeds();
 
         int currentShader = 0;
-        void NextShader(bool first = false);
+        void NextShader();
+        void PrevShader();
+        void RandomShader();
+        void RefreshShader(bool first = false);
     
         aiko::AikoPtr<RenderModule> m_renderModule;
         std::vector<Particle> m_particles;
         RenderComponentTexture* m_rendererComponentTexture;
+
+        const std::string GLOBAL_PATH = "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/";
+        const std::string EXTENSION = ".fs";
+        static std::vector<std::string> s_shaders;
     
     };
 
