@@ -3,6 +3,11 @@
 #include <stdexcept>
 #include <memory>
 #include <cassert>
+#include <iostream>
+#include <format>
+#include <chrono>
+#include <chrono>
+#include <iostream>
 
 // TODO Please delete, temporally as initial code
 #include <imgui.h>
@@ -61,13 +66,48 @@ namespace aiko
         m_rendererComponentTexture = (RenderComponentTexture*)m_renderModule->GetRenderComponent();
         // TODO Again, please delete me
         RegenerateSeeds();
+            
+        iTime = 0.0f;
+        currentShader = -1;
 
-        m_shader = LoadShader(0, "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/aiko_distance.fs");
+        NextShader(true);
 
-        positionLoc = GetShaderLocation(m_shader, "particles");
-        nParticlesLoc = GetShaderLocation(m_shader, "nParticles");
+    }
 
-        assert(positionLoc != -1 && nParticlesLoc != -1);
+    void RenderSystem::NextShader(bool first )
+    {
+        const std::string GLOBAL_PATH = "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/";
+        const std::string EXTENSION = ".fs";
+        static std::vector<std::string> shaders =
+        {
+            "aiko_shadertoy",
+            "aiko_shadertoy_fractal",
+            "aiko_shadertoy_fractal_infinite_1",
+            "aiko_shadertoy_fractal_infinite_2",
+            "aiko_shadertoy_fractal_infinite_spheres",
+            "aiko_shadertoy_happy",
+        };
+        if (first == false)
+        {
+            UnloadShader(m_shader);
+        }
+        currentShader++;
+        currentShader %= shaders.size();
+        const std::string path = GLOBAL_PATH + shaders[currentShader].c_str() + EXTENSION;
+        m_shader = LoadShader(nullptr, path.c_str() );
+
+        iResolutionLoc = GetShaderLocation(m_shader, "iResolution");
+        iTimeLoc = GetShaderLocation(m_shader, "iTime");
+        iTimeDeltaLoc = GetShaderLocation(m_shader, "iTimeDelta");
+        iFrameRateLoc = GetShaderLocation(m_shader, "iFrameRate");
+        iFrameLoc = GetShaderLocation(m_shader, "iFrame");
+        iChannelTimeLoc = GetShaderLocation(m_shader, "iChannelTime");
+        iChannelResolutionLoc = GetShaderLocation(m_shader, "iChannelResolution");
+        iMouseLoc = GetShaderLocation(m_shader, "iMouse");
+        iDateLoc = GetShaderLocation(m_shader, "iDate");
+
+        // assert(positionLoc != -1 && nParticlesLoc != -1 && resolutionLoc != -1 && radiusLoc != -1 );
+        // assert(iResolutionLoc != -1 && iTimeLoc != -1 && iTimeDeltaLoc != -1 && iFrameRateLoc != -1 && iFrameLoc != -1 && iChannelTimeLoc != -1 && iChannelResolutionLoc != -1 && iMouseLoc != -1 && iDateLoc != -1);
 
     }
     
@@ -83,6 +123,12 @@ namespace aiko
         {
             RegenerateSeeds();
         }
+
+        if (IsKeyPressed(KEY_SPACE))
+        {
+            NextShader();
+        }
+
         updatSeeds();
 
         glm::vec2 position;
@@ -91,8 +137,44 @@ namespace aiko
         {
             positions.push_back(tmp.position);
         }
+
+        // Please fix me
+        {
+
+            iTime += GetFrameTime();
+
+            iTimeDelta = GetFrameTime();
+            iFrameRate = GetFrameTime();
+
+            iFrame++;                
+
+            // float     iChannelTime[4];       
+            // vec3      iChannelResolution[4]; 
+
+            auto mouse = GetMousePosition();
+            iMouse = vec4(mouse.x, mouse.y, IsMouseButtonPressed(MOUSE_BUTTON_RIGHT), IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) );
+
+            typedef std::chrono::system_clock Clock;
+            auto now = Clock::now();
+            std::time_t now_c = Clock::to_time_t(now);
+            struct tm* parts = std::localtime(&now_c);
+            iDate = vec4( 1900 + parts->tm_year , 1 + parts->tm_mon , parts->tm_mday, time(NULL) );
+        }
+
         SetShaderValueV(m_shader, positionLoc, positions.data(), SHADER_UNIFORM_VEC2, positions.size());
         SetShaderValue(m_shader, nParticlesLoc, &nParticles, SHADER_UNIFORM_INT);
+        SetShaderValue(m_shader, resolutionLoc, &m_renderModule->getDisplaySize(), SHADER_UNIFORM_VEC2);
+        SetShaderValue(m_shader, radiusLoc, &radius, SHADER_UNIFORM_FLOAT);
+
+        SetShaderValue(m_shader, iResolutionLoc, &m_renderModule->getDisplaySize(), SHADER_UNIFORM_VEC3);   // viewport resolution (in pixels)
+        SetShaderValue(m_shader, iTimeLoc, &iTime, SHADER_UNIFORM_FLOAT);                                   // shader playback time (in seconds)
+        SetShaderValue(m_shader, iTimeDeltaLoc, &iTimeDelta, SHADER_UNIFORM_FLOAT);                         // render time (in seconds)
+        SetShaderValue(m_shader, iFrameRateLoc, &iFrameRate, SHADER_UNIFORM_FLOAT);                         // shader frame rate
+        SetShaderValue(m_shader, iFrameLoc, &iFrame, SHADER_UNIFORM_INT);                                   // shader playback frame
+        SetShaderValue(m_shader, iChannelTimeLoc, &iChannelTime, SHADER_UNIFORM_FLOAT);                     // channel playback time (in seconds)
+        SetShaderValue(m_shader, iChannelResolutionLoc, &iChannelResolution, SHADER_UNIFORM_VEC3);          // channel resolution (in pixels)
+        SetShaderValue(m_shader, iMouseLoc, &iMouse, SHADER_UNIFORM_VEC4);                                  // mouse pixel coords. xy: current (if MLB down), zw: click
+        SetShaderValue(m_shader, iDateLoc, &iDate, SHADER_UNIFORM_VEC4);                                    // (year, month, day, time in seconds)
 
     }
 
@@ -103,8 +185,13 @@ namespace aiko
         DrawTextureEx(m_rendererComponentTexture->GetRendererTexture().texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
         EndShaderMode();
 
+        /*
         if (::ImGui::Begin("RenderSystem"))
         {
+            if (::ImGui::DragFloat("Radius", &radius, 0.5f, 0.0f, 100.0f, "%.3f p"))
+            {
+
+            }
             if (::ImGui::DragFloat("Velocity", &all_velocity, 0.5f, 0.0f, 1000.0f, "%.3f p/s"))
             {
                 for (auto& p : m_particles)
@@ -125,6 +212,7 @@ namespace aiko
             }
             ::ImGui::End();
         }
+        */
     }
 
     void RenderSystem::updatSeeds()

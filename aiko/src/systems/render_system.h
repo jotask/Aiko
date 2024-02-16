@@ -58,15 +58,42 @@ namespace aiko
     
         const int nMaxParticles = 100;
 
+        int radiusLoc;
+        int resolutionLoc;
         int positionLoc;
         int nParticlesLoc;
 
+        int iResolutionLoc;
+        int iTimeLoc;
+        int iTimeDeltaLoc;
+        int iFrameRateLoc;
+        int iFrameLoc;
+        int iChannelTimeLoc;
+        int iChannelResolutionLoc;
+        int iMouseLoc;
+        int iDateLoc;
+
+        vec3      iResolution;           // viewport resolution (in pixels)
+        float     iTime;                 // shader playback time (in seconds)
+        float     iTimeDelta;            // render time (in seconds)
+        float     iFrameRate;            // shader frame rate
+        int       iFrame;                // shader playback frame
+        float     iChannelTime[4];       // channel playback time (in seconds)
+        vec3      iChannelResolution[4]; // channel resolution (in pixels)
+        vec4      iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
+        vec4      iDate;                 // (year, month, day, time in seconds)
+
+        float radius = 1.0f;
         int nParticles = nMaxParticles;
         float all_velocity = 1.0f;
 
         Shader m_shader;
 
+
         void RegenerateSeeds();
+
+        int currentShader = 0;
+        void NextShader(bool first = false);
     
         aiko::AikoPtr<RenderModule> m_renderModule;
         std::vector<Particle> m_particles;

@@ -19,7 +19,7 @@ namespace aiko
     
     RenderModule::RenderModule()
         : m_renderType(nullptr)
-        , m_currentRenderType(RenderType::ThreeDimensions)
+        , m_currentRenderType(RenderType::Texture)
         , m_isImguiDemoOpen(false)
         , m_displayModule(nullptr)
     {
@@ -65,7 +65,7 @@ namespace aiko
     
     void RenderModule::preRender()
     {
-
+        /*
         if (::ImGui::Begin("RenderModule"))
         {
 
@@ -116,6 +116,7 @@ namespace aiko
             }
             ::ImGui::End();
         }
+        */
 
         m_renderType->preRender();
     }
