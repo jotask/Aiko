@@ -80,6 +80,20 @@ namespace aiko
         const std::string EXTENSION = ".fs";
         static std::vector<std::string> shaders =
         {
+            "aiko_shadertoy_mandala_art_of_code",
+            "aiko_shadertoy_hexaflower",
+            "aiko_shadertoy_rosaic",
+            "aiko_shadertoy_test_fractal",
+            "aiko_shadertoy_nunu_mandala",
+            "aiko_shadertoy_fractal_mandala_twtich",
+            "aiko_shadertoy_fractal_circles",
+            "aiko_shadertoy_hex_moire_mandala",
+            "aiko_shadertoy_mandala_start_pattern",
+            "aiko_shadertoy_weird_twitch",
+            "aiko_shadertoy_mandala",
+            "aiko_shadertoy_a_nice_mandala",
+            "aiko_shadertoy_mandala_flowers",
+            "aiko_shadertoy_happy_seigaiha_mandala",
             "aiko_shadertoy",
             "aiko_shadertoy_fractal",
             "aiko_shadertoy_fractal_infinite_1",
