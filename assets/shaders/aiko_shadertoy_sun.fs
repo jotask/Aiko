@@ -210,37 +210,61 @@ vec3 hexToRgb(int color)
 
 */
 
-#define t float(iFrame)*0.0025
+float time;
+vec2 m;
 
-float sdBox( in vec2 p, in vec2 b )
+// IQ noise and domain warp
+float hash(float n)
 {
-    vec2 d = abs(p)-b;
-    return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
+    return fract(sin(n)*43758.5453);
 }
 
-float sdCircle( vec2 p, float r )
-{
-    return length(p) - r;
+float iqNoise(vec3 x){
+    vec3 p = floor(x);
+    vec3 f = fract(x);
+    f  = f*f*(3.0-2.0*f);
+    float n = p.x + p.y*57.0 + 113.0*p.z;
+    return mix(mix(mix(hash(n+0.0), hash(n+1.0), f.x),
+    mix(hash(n+57.0), hash(n+58.0), f.x), f.y),
+    mix(mix(hash(n+113.0), hash(n+114.0), f.x),
+    mix(hash(n+170.0), hash(n+171.0), f.x), f.y), f.z);
 }
 
-// Hash without Sine by David Hoskins
-float hash13(vec3 p3)
+
+float fbm(vec2 p){
+    float sum = 0.;
+    float freq = 1.;
+    float amp = 0.5;
+    for (int i = 0; i < 1+int(floor(m.x*4.)); i++){
+        sum += amp*(1.-2.*iqNoise(vec3(p*freq, 0.)));
+        freq *= 2.0;
+        amp *= .5;
+    }
+    return sum;
+}
+
+float pattern( in vec2 p, out vec2 q, out vec2 r )
 {
-    p3  = fract(p3 * .1031);
-    p3 += dot(p3, p3.yzx + 33.33);
-    return fract((p3.x + p3.y) * p3.z);
+    q.x = fbm( p + vec2(0.0+time,0.0-time) );
+    q.y = fbm( p + vec2(5.2-time,1.3) );
+
+    r.x = fbm( p + 4.0*q + vec2(1.7,9.2) );
+    r.y = fbm( p + 4.0*q + vec2(8.3,2.8) );
+
+    return fbm( p + 4.0*r );
 }
 
 float render(vec2 uv){
-    float d = length(uv)*1.5;
-    float angle = cos(16.*atan(uv.y, uv.x));
-    float pct = (d+.01)*angle;
-    float count = 60.;
-    for(float i = 0.; i < count; i++){
-        vec2 size = vec2(i * (1. / count) + t);
-        pct -= .01*sdCircle(uv, size.x);
-    }
- 	return pct;   
+ 	float a = cos(8.*atan(uv.y, uv.x));
+    float d = length(uv*(2.5+m.y*25.))-time*.05;
+    vec2 p = vec2(d, a);
+    vec2 q = vec2(0.);
+    vec2 r = vec2(0.);
+    float n = .25+.75*pattern(p, q, r);
+    n *= length(q*2.);
+    n += r.x;
+    n -= r.y;
+    return n;
 }
 
 float renderAA(vec2 uv){
@@ -255,16 +279,20 @@ float renderAA(vec2 uv){
 
 void main()
 {
-    vec2 uv = (gl_FragCoord.xy - .5* iResolution.xy) / iResolution.y;
+    // https://colorhunt.co/palette/179481
 	colorPoint[colorsPerGradient] gradient = colorPoint[](
-        colorPoint(0.0,  vec4(hexToRgb(0x2d4059), 1.)),
-        colorPoint(0.5,vec4(hexToRgb(0xea5455), 1.)),
-        colorPoint(0.6, vec4(hexToRgb(0xf07b3f), 1.)),
-        colorPoint(0.8,  vec4(hexToRgb(0xffd460), 1.)),
-        colorPoint(1.,  vec4(hexToRgb(0x2d4059), 1.))
+        colorPoint(0., vec4(hexToRgb(0x522d5b)*.5, 1)),
+        colorPoint(0.25,  vec4(hexToRgb(0x522d5b), 1.)),
+        colorPoint(0.5,vec4(hexToRgb(0xd7385e), 1.)),
+        colorPoint(0.75, vec4(hexToRgb(0xfb7b6b), 1.)),
+        colorPoint(1.0,vec4(hexToRgb(0xe7d39f), 1.))
     );
-    float pct = renderAA(uv);
-    pct = mod(pct, 1.);
-    pct += .05 * hash13(vec3(1000. * uv, .01 * t));
-    fragColor = gradientColorAt(pct, gradient, 0);
+    time = float(iFrame)*0.001;
+    m = iMouse.xy / iResolution.xy;
+    if(length(m) < 0.01){
+      m = vec2(.1);   
+    }
+    vec2 uv = (gl_FragCoord.xy - .5*iResolution.xy) / iResolution.y;
+	float n = renderAA(uv);
+    fragColor = gradientColorAt(n, gradient, 0);
 }

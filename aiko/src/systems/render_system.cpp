@@ -69,13 +69,17 @@ namespace aiko
             
         iTime = 0.0f;
 
-        currentShader = GetRandomValue(0, s_shaders.size());
+        currentShader = 0; // GetRandomValue(0, s_shaders.size());
         RefreshShader(true);
 
     }
 
     std::vector<std::string> RenderSystem::s_shaders =
     {
+        "aiko_shadertoy_coastal_fractal",
+        "aiko_shadertoy_cyber_fuji",
+        "aiko_shadertoy_fractal_pyramid",
+        "aiko_shadertoy_phanton_start",
         "aiko_shadertoy_sun",
         "aiko_shadertoy_sun_mandala",
         "aiko_shadertoy_fractal_lines",
