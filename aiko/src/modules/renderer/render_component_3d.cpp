@@ -34,6 +34,16 @@ namespace aiko
     
     void RenderComponent3D::update()
     {
+
+        double time = GetTime();
+
+        auto& camera = m_renderModule->getCameraModule()->GetMainCamera();
+
+        // Move camera around the scene
+        double cameraTime = time * 0.3;
+        camera.position.x = (float)cos(cameraTime) * 40.0f;
+        camera.position.z = (float)sin(cameraTime) * 40.0f;
+
     }
     
     void RenderComponent3D::postUpdate()
@@ -47,12 +57,17 @@ namespace aiko
     
     void RenderComponent3D::render()
     {
+
+        ClearBackground(RAYWHITE);
+
         BeginMode3D(m_renderModule->getCameraModule()->GetMainCamera());
 
         DrawGrid(10, 5.0f);
 
-        static float time = 0.0f;
-        time += GetFrameTime();
+        float time = GetTime();
+
+        // Calculate time scale for cube position and size
+        float scale = (2.0f + (float)sin(time)) * 0.7f;
 
         for (int x = 0; x < numBlocks; x++)
         {

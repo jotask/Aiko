@@ -18,13 +18,11 @@ namespace aiko
     protected:
         const aiko::AikoUPtr<Aiko> m_aiko;
 
-        virtual void init() { initEditor(); }
+        virtual void init()   {}
         virtual void update() {}
         virtual void render() {}
 
     private:
-
-        void initEditor();
 
 
     };

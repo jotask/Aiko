@@ -33,7 +33,6 @@ namespace aiko
     protected:
     
         const int numBlocks = 15;
-        float scale = 1.0f;
     
     };
 

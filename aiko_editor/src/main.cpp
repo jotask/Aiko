@@ -1,7 +1,7 @@
-#include "application/application.h"
+#include "aiko_editor.h"
 
 int main()
 {
-	aiko::Application app;
+	editor::AikoEditor editor;
 	return EXIT_SUCCESS;
 }

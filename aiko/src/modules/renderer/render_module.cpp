@@ -19,7 +19,7 @@ namespace aiko
     
     RenderModule::RenderModule()
         : m_renderType(nullptr)
-        , m_currentRenderType(RenderType::Texture)
+        , m_currentRenderType(RenderType::ThreeDimensions)
         , m_isImguiDemoOpen(false)
         , m_displayModule(nullptr)
     {
