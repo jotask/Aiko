@@ -6,6 +6,8 @@
 namespace aiko
 {
 
+    class Camera;
+
     class Application
     {
     public:
@@ -21,6 +23,8 @@ namespace aiko
         virtual void init()   {}
         virtual void update() {}
         virtual void render() {}
+
+        Camera* getMainCamera();
 
     private:
 

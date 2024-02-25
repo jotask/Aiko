@@ -7,6 +7,7 @@
 #include "modules/module_connector.h"
 #include "modules/renderer/render_module.h"
 #include "modules/camera_module.h"
+#include "core/utils.h"
 
 namespace aiko
 {
@@ -37,12 +38,12 @@ namespace aiko
 
         double time = GetTime();
 
-        auto& camera = m_renderModule->getCameraModule()->GetMainCamera();
+        auto* camera = m_renderModule->getCameraModule()->GetMainCamera();
 
         // Move camera around the scene
         double cameraTime = time * 0.3;
-        camera.position.x = (float)cos(cameraTime) * 40.0f;
-        camera.position.z = (float)sin(cameraTime) * 40.0f;
+        camera->position.x = (float)cos(cameraTime) * 40.0f;
+        camera->position.z = (float)sin(cameraTime) * 40.0f;
 
     }
     
@@ -60,7 +61,29 @@ namespace aiko
 
         ClearBackground(RAYWHITE);
 
-        BeginMode3D(m_renderModule->getCameraModule()->GetMainCamera());
+        auto* camera = m_renderModule->getCameraModule()->GetMainCamera();
+
+        /*
+        typedef struct Camera3D
+        {
+            Vector3 position;       // Camera position
+            Vector3 target;         // Camera target it looks-at
+            Vector3 up;             // Camera up vector (rotation over its axis)
+            float fovy;             // Camera field-of-view aperture in Y (degrees) in perspective, used as near plane width in orthographic
+            int projection;         // Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC
+        } Camera3D;
+        */
+
+        Camera3D cam3D;
+        {
+            cam3D.position = Utils::toV3(camera->position);
+            cam3D.target = Utils::toV3(camera->target);
+            cam3D.up = Utils::toV3(camera->getUp());
+            cam3D.fovy = camera->getFOV();
+            cam3D.projection = camera->getCameraType();
+        }
+
+        BeginMode3D( cam3D );
 
         DrawGrid(10, 5.0f);
 
@@ -68,6 +91,8 @@ namespace aiko
 
         // Calculate time scale for cube position and size
         float scale = (2.0f + (float)sin(time)) * 0.7f;
+
+        constexpr int numBlocks = 15;
 
         for (int x = 0; x < numBlocks; x++)
         {

@@ -32,7 +32,7 @@ namespace processing
         ball->transform()->position = { 0.f, 0.f, 0.f };
         auto ballMesh = ball->addComponent<MeshComponent>();
         ballMesh->setPrimitive(aiko::Mesh::Sphere);
-
+        \
         GameObject* pyramid = m_aiko->createGameObject("Cone");
         pyramid->transform()->position = { 1.1f, 0.f, 0.f };
         auto pyramidMesh = pyramid->addComponent<MeshComponent>();

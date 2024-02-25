@@ -3,7 +3,7 @@
 #include <string>
 
 #include "aiko_types.h"
-#include "uuid.h"
+#include "core/uuid.h"
 
 namespace aiko
 {
