@@ -56,9 +56,7 @@ namespace aiko
         while (m_displayModule->isOpen() == true)
         {
             update();
-            m_application->update();
             render();
-            m_application->render();
         }
         dispose();
     }
@@ -97,6 +95,8 @@ namespace aiko
         for (auto&& system : m_systems) system->connect(&moduleConnector, &systemConnector);
         for (auto&& system : m_systems) system->init();
 
+        m_application->init();
+
     }
 
     void Aiko::update()
@@ -104,6 +104,7 @@ namespace aiko
         for (auto&& module : m_modules) module->preUpdate();
         for (auto&& module : m_modules) module->update();
         for (auto&& system : m_systems) system->update();
+        m_application->update();
         for (auto&& module : m_modules) module->postUpdate();
     }
 
@@ -113,6 +114,7 @@ namespace aiko
         for (auto&& module : m_modules) module->preRender();
         for (auto&& module : m_modules) module->render();
         for (auto&& system : m_systems) system->render();
+        m_application->render();
         for (auto&& module : m_modules) module->postRender();
         for (auto&& module : m_modules) module->endFrame();
     }

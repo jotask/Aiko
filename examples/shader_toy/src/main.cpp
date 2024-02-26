@@ -2,6 +2,7 @@
 
 int main()
 {
-	shadertoy::ShaderToy editor;
+	shadertoy::ShaderToy st;
+	st.run();
 	return EXIT_SUCCESS;
 }

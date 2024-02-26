@@ -10,6 +10,8 @@ namespace sandbox
     void Sandbox::init()
     {
 
+        Application::init();
+
         using namespace aiko;
 
         GameObject* camera = m_aiko->createGameObject();

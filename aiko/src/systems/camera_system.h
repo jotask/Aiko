@@ -11,7 +11,8 @@
 
 namespace aiko
 {
-    
+
+    class RenderModule;
     class SceneModule;
     class Camera;
     
@@ -19,11 +20,15 @@ namespace aiko
     {
     public:
     
+        using CameraPtr = std::shared_ptr<Camera>;
+
         CameraSystem() = default;
         virtual ~CameraSystem() = default;
     
-        std::shared_ptr<Camera> createCamera(bool setMain = false);
+        Camera* createCamera(bool setMain = false);
         void setMainCamera(Camera* camera);
+        Camera* getMainCamera();
+        vec2 getDisplaySize();
     
     protected:
     
@@ -36,8 +41,11 @@ namespace aiko
         virtual void render() override;
     
     private:
-    
+
+        aiko::AikoPtr<RenderModule> m_renderModule;
         aiko::AikoPtr<SceneModule> m_sceneModule;
+
+        std::vector<Camera> m_cameras;
     
         void setCameraType(camera::CameraType cameraType);
         void setCameraController(camera::CameraController cameraController);

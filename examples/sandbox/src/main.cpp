@@ -2,6 +2,7 @@
 
 int main()
 {
-	sandbox::Sandbox sandbox;
+	sandbox::Sandbox sb;
+	sb.run();
 	return EXIT_SUCCESS;
 }

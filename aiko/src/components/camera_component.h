@@ -27,7 +27,7 @@ namespace aiko
     
     private:
     
-        aiko::AikoPtr<Camera> m_camera;
+        Camera* m_camera;
     
     };
 

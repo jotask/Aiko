@@ -2,6 +2,7 @@
 
 int main()
 {
-	processing::Processing processing;
+	processing::Processing p5;
+	p5.run();
 	return EXIT_SUCCESS;
 }

@@ -4,7 +4,7 @@
 #include <cmath>
 #include <limits>
 
-#include <raylib.h>
+#include "core/libs.h"
 
 #include "config.h"
 #include "modules/module_connector.h"
@@ -15,13 +15,12 @@ namespace aiko
     
     RenderComponentTexture::RenderComponentTexture(RenderModule* renderModule)
         : RendererComponent(renderModule)
-        , m_renderTexture2D()
     {
     }
     
     RenderComponentTexture::~RenderComponentTexture()
     {
-        UnloadRenderTexture(m_renderTexture2D);
+
     }
     
     void RenderComponentTexture::preInit()
@@ -31,8 +30,6 @@ namespace aiko
     
     void RenderComponentTexture::init()
     {
-        auto size = m_renderModule->getDisplaySize();
-        m_renderTexture2D = LoadRenderTexture(size.x, size.y);
     }
     
     void RenderComponentTexture::postInit()
@@ -45,13 +42,7 @@ namespace aiko
     
     void RenderComponentTexture::update()
     {
-        if (IsWindowResized() == true && IsWindowFullscreen() == false)
-        {
-            auto screenWidth = GetScreenWidth();
-            auto screenHeight = GetScreenHeight();
-            UnloadRenderTexture(m_renderTexture2D);
-            m_renderTexture2D = LoadRenderTexture(screenWidth, screenHeight);
-        }
+
     }
     
     void RenderComponentTexture::postUpdate()
@@ -60,11 +51,7 @@ namespace aiko
     
     void RenderComponentTexture::preRender()
     {
-        // We are done, render to the texture
-        BeginTextureMode(m_renderTexture2D);
-        ClearBackground(BLACK);
-        DrawRectangle(0, 0, m_renderTexture2D.texture.width, m_renderTexture2D.texture.height, BLACK);
-        EndTextureMode();
+
     }
     
     void RenderComponentTexture::render()

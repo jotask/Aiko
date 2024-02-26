@@ -7,7 +7,7 @@ namespace aiko
     
     void InputModule::preUpdate()
     {
-        // auto &io = Input::it();
+        auto &io = Input::it();
     }
 
 }

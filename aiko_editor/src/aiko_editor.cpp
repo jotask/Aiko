@@ -10,6 +10,8 @@ namespace editor
     void AikoEditor::init()
     {
 
+        Application::init();
+
         using namespace aiko;
 
         GameObject* camera = m_aiko->createGameObject();

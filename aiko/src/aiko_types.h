@@ -3,7 +3,7 @@
 #include <memory>
 #include <type_traits>
 
-#include <raylib.h>
+#include "core/libs.h"
 #include <glm/glm.hpp>
 
 namespace aiko

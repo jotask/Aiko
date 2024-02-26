@@ -1,7 +1,6 @@
 #include "display_module.h"
 
-#include <raylib.h>
-#include <rlImGui.h>
+#include "core/libs.h"
 
 namespace aiko
 {
@@ -18,7 +17,7 @@ namespace aiko
 
     vec2 DisplayModule::getDisplaySize()
     {
-        return {GetScreenWidth(), GetScreenHeight()};
+        return { GetScreenWidth(), GetScreenHeight()};
     }
     
     void DisplayModule::init()

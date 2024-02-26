@@ -3,5 +3,6 @@
 int main()
 {
 	editor::AikoEditor editor;
+	editor.run();
 	return EXIT_SUCCESS;
 }

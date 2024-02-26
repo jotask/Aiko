@@ -17,12 +17,19 @@ namespace aiko
         Application();
         virtual ~Application() = default;
 
-    protected:
-        const aiko::AikoUPtr<Aiko> m_aiko;
+        void run();
 
-        virtual void init()   {}
+    protected:
+
+        virtual void init() {};
         virtual void update() {}
         virtual void render() {}
+
+        vec2 getDisplaySize() const;
+        RenderTexture2D* getTargetTexture() const;
+
+    protected:
+        aiko::AikoUPtr<Aiko> m_aiko;
 
         Camera* getMainCamera();
 

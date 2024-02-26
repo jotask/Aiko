@@ -8,15 +8,16 @@ namespace aiko
     template<typename T>
     class Singleton {
     public:
-        static T& it();
-
-        Singleton(const Singleton&) = delete;
-        Singleton& operator= (const Singleton) = delete;
+        static T& it() {
+            static T instance;
+            return instance;
+        }
 
     protected:
-        struct token {};
-        Singleton() {}
+        Singleton() = default;
+        virtual ~Singleton() = default;
+        Singleton(const Singleton&) = delete;
+        Singleton& operator=(const Singleton&) = delete;
     };
-
 
 }

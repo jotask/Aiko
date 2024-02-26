@@ -1,0 +1,26 @@
+Thanks it worked, let's jump to other problem.
+I have one header file and ...
+# header.h
+class Utils
+{
+public:
+    virtual void init() = {};
+}
+
+# main.cpp
+
+namespace h {
+    #include "header.h"
+}
+
+namespace editor
+{
+
+    int main()
+    {
+        h::Utils ed;
+        ed->init();
+        return EXIT_SUCCESS;
+    }
+
+}

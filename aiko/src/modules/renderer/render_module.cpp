@@ -2,9 +2,7 @@
 
 #include <string>
 
-#include <imgui.h>
-#include <raylib.h>
-#include <rlImGui.h>
+#include "core/libs.h"
 
 #include "modules/renderer/render_component_2d.h"
 #include "modules/renderer/render_component_3d.h"
@@ -22,8 +20,14 @@ namespace aiko
         , m_currentRenderType(RenderType::ThreeDimensions)
         , m_isImguiDemoOpen(false)
         , m_displayModule(nullptr)
+        , m_renderTexture2D()
     {
     
+    }
+
+    RenderModule::~RenderModule()
+    {
+        UnloadRenderTexture(m_renderTexture2D);
     }
     
     void RenderModule::connect(ModuleConnector* moduleConnector)
@@ -40,6 +44,10 @@ namespace aiko
     
     void RenderModule::init()
     {
+
+        auto size = getDisplaySize();
+        m_renderTexture2D = LoadRenderTexture(size.x, size.y);
+
         m_renderType->init();
     }
     
@@ -50,6 +58,13 @@ namespace aiko
     
     void RenderModule::preUpdate()
     {
+        if (IsWindowResized() == true && IsWindowFullscreen() == false)
+        {
+            auto screenWidth = GetScreenWidth();
+            auto screenHeight = GetScreenHeight();
+            UnloadRenderTexture(m_renderTexture2D);
+            m_renderTexture2D = LoadRenderTexture(screenWidth, screenHeight);
+        }
         m_renderType->preUpdate();
     }
     
@@ -118,6 +133,12 @@ namespace aiko
         }
         */
 
+        // We are done, render to the texture
+        BeginTextureMode(m_renderTexture2D);
+        ClearBackground(BLACK);
+        DrawRectangle(0, 0, m_renderTexture2D.texture.width, m_renderTexture2D.texture.height, BLACK);
+        EndTextureMode();
+
         m_renderType->preRender();
     }
     
@@ -164,6 +185,11 @@ namespace aiko
     vec2 RenderModule::getDisplaySize()
     {
         return m_displayModule->getDisplaySize();
+    }
+
+    RenderTexture2D* RenderModule::getRenderTexture()
+    {
+        return &m_renderTexture2D;
     }
 
     void RenderModule::updateRenderType(RenderModule::RenderType newRenderType, bool autoInit)

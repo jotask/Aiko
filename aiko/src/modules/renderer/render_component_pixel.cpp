@@ -4,7 +4,7 @@
 #include <cmath>
 #include <limits>
 
-#include <raylib.h>
+#include "core/libs.h"
 
 #include "config.h"
 #include "modules/module_connector.h"

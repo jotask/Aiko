@@ -10,6 +10,8 @@ namespace processing
     void Processing::init()
     {
 
+        Application::init();
+
         using namespace aiko;
 
         GameObject* camera = m_aiko->createGameObject();

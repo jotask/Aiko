@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "raylib.h"
+
 
 #include "aiko_types.h"
 #include "modules/base_module.h"
@@ -35,8 +35,6 @@ namespace aiko
     
         virtual aiko::vec2 getDisplayViewport() override { return { screenWidth, screenHeight }; };
     
-        RenderTexture2D& GetRendererTexture() { return m_renderTexture2D; };
-    
     private:
     
 
@@ -44,9 +42,6 @@ namespace aiko
 
         const int screenWidth = 100;
         const int screenHeight = 100;
-    
-        RenderTexture2D m_renderTexture2D;
-
     
     };
 

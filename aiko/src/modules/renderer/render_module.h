@@ -24,7 +24,7 @@ namespace aiko
         };
     
         RenderModule();
-        virtual ~RenderModule() = default;
+        virtual ~RenderModule();
 
         virtual void connect(ModuleConnector*);
     
@@ -46,6 +46,8 @@ namespace aiko
         CameraModule* getCameraModule() { return m_cameraModule; }
         RendererComponent* GetRenderComponent() { return m_renderType.get(); };
         vec2 getDisplaySize();
+
+        RenderTexture2D* getRenderTexture();
     
     private:
 
@@ -53,7 +55,9 @@ namespace aiko
         DisplayModule* m_displayModule;
         RenderType m_currentRenderType;
         aiko::AikoUPtr<RendererComponent> m_renderType;
-    
+
+        RenderTexture2D m_renderTexture2D;
+
         bool m_isImguiDemoOpen;
 
         void updateRenderType(RenderModule::RenderType newRenderType, bool autoInit = true);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "application/application.h"
+#include "models/shader.h"
 
 namespace shadertoy
 {
@@ -9,6 +10,66 @@ namespace shadertoy
     {
     protected:
         virtual void init() override;
+        virtual void update() override;
+        virtual void render() override;
+
+        class Particle
+        {
+        public:
+            const static int VELOCITY = 1;
+            aiko::vec2 position;
+            aiko::vec2 velocity;
+            float speed;
+
+            void checkBounds(aiko::vec2 bounds);
+        };
+
+        const int nMaxParticles = 100;
+
+        int radiusLoc;
+        int resolutionLoc;
+        int positionLoc;
+        int nParticlesLoc;
+
+        int iResolutionLoc;
+        int iTimeLoc;
+        int iTimeDeltaLoc;
+        int iFrameRateLoc;
+        int iFrameLoc;
+        int iChannelTimeLoc;
+        int iChannelResolutionLoc;
+        int iMouseLoc;
+        int iDateLoc;
+
+        const std::string GLOBAL_PATH = "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/";
+        const std::string EXTENSION = ".fs";
+        static std::vector<std::string> s_shaders;
+
+        aiko::vec3      iResolution;           // viewport resolution (in pixels)
+        float           iTime;                 // shader playback time (in seconds)
+        float           iTimeDelta;            // render time (in seconds)
+        float           iFrameRate;            // shader frame rate
+        int             iFrame;                // shader playback frame
+        float           iChannelTime[4];       // channel playback time (in seconds)
+        aiko::vec3      iChannelResolution[4]; // channel resolution (in pixels)
+        aiko::vec4      iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
+        aiko::vec4      iDate;                 // (year, month, day, time in seconds)
+
+        float radius = 1.0f;
+        int nParticles = nMaxParticles;
+        float all_velocity = 1.0f;
+
+        aiko::ShaderPtr m_shader;
+
+        void regenerateSeeds();
+        std::vector<Particle> m_particles;
+
+        int currentShader = 0;
+        void updatSeeds();
+        void nextShader();
+        void prevShader();
+        void randomShader();
+        void refreshShader(bool first = false);
 
     };
 
