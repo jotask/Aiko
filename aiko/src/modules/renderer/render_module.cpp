@@ -11,6 +11,7 @@
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
 #include "modules/camera_module.h"
+#include "models/camera.h"
 
 namespace aiko
 {
@@ -220,6 +221,54 @@ namespace aiko
             m_renderType->init();
             m_renderType->postInit();
         }
+    }
+
+    void RenderModule::clearBackground()
+    {
+        ClearBackground(WHITE);
+    }
+
+    void RenderModule::beginMode2D()
+    {
+        // TODO We should pass the camera
+        // auto* camera = m_cameraModule->GetMainCamera();
+        // BeginMode2D( camera. );
+    }
+
+    void RenderModule::endMode2D()
+    {
+    }
+
+    void RenderModule::beginMode3D()
+    {
+    }
+
+    void RenderModule::endMode3D()
+    {
+    }
+
+    void RenderModule::beginTextureMode(RenderTexture2D* target)
+    {
+    }
+
+    void RenderModule::endTextureMode(void)
+    {
+    }
+
+    void RenderModule::beginShaderMode(Shader* shader)
+    {
+    }
+
+    void RenderModule::endShaderMode(void)
+    {
+    }
+
+    void RenderModule::beginBlendMode(int mode)
+    {
+    }
+
+    void RenderModule::endBlendMode(void)
+    {
     }
 
 }

@@ -61,6 +61,18 @@ namespace aiko
         bool m_isImguiDemoOpen;
 
         void updateRenderType(RenderModule::RenderType newRenderType, bool autoInit = true);
+
+        void clearBackground();
+        void beginMode2D();
+        void endMode2D();
+        void beginMode3D();
+        void endMode3D();
+        void beginTextureMode(RenderTexture2D* target);
+        void endTextureMode(void);
+        void beginShaderMode(Shader* shader);
+        void endShaderMode(void);
+        void beginBlendMode(int mode);
+        void endBlendMode(void);
     
     };
 
