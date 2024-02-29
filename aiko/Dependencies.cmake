@@ -39,6 +39,9 @@ target_link_libraries(rlImGui PUBLIC imgui raylib)
 # spdlog
 add_subdirectory("${CMAKE_SOURCE_DIR}/submodules/spdlog" spdlog EXCLUDE_FROM_ALL)
 
+# entt
+add_subdirectory("${CMAKE_SOURCE_DIR}/submodules/entt" Entt)
+
 # GLM
 add_subdirectory("${CMAKE_SOURCE_DIR}/submodules/glm" GLM EXCLUDE_FROM_ALL)
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_SOURCE_DIR}/submodules/glm")
@@ -46,6 +49,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_SOURCE_DIR}/submodule
 ## Add libraries into folder
 set_property(TARGET raylib PROPERTY FOLDER "Submodules")
 set_property(TARGET spdlog PROPERTY FOLDER "Submodules")
+set_property(TARGET EnTT PROPERTY FOLDER "Submodules")
 set_property(TARGET imgui PROPERTY FOLDER "Submodules")
 set_property(TARGET rlImGui PROPERTY FOLDER "Submodules")
 set_property(TARGET binary_to_compressed_c PROPERTY FOLDER "Submodules")

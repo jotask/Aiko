@@ -17,5 +17,5 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${AIKO_SRC})
 
 # Main Library
 add_library(Aiko STATIC ${AIKO_SRC})
-target_link_libraries(Aiko PUBLIC raylib imgui rlImGui spdlog)
+target_link_libraries(Aiko PUBLIC raylib imgui rlImGui spdlog EnTT)
 target_include_directories(Aiko PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
