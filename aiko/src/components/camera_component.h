@@ -21,6 +21,9 @@ namespace aiko
     
         camera::CameraController getCameraController() const;
         void setCameraController(camera::CameraController);
+
+        virtual void update() override { };
+        virtual void render() override { };
     
     protected:
         virtual void init() override;
