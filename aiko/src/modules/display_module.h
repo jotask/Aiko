@@ -3,6 +3,7 @@
 #include "aiko_types.h"
 #include "base_module.h"
 #include "shared/math.h"
+#include "models/display.h"
 
 namespace aiko
 {
@@ -15,15 +16,7 @@ namespace aiko
         DisplayModule() = default;
         virtual ~DisplayModule();
 
-
-
-        bool isOpen();
-
-        ivec2 getDisplaySize();
-
-        void setWindowTitle(const char* title);                     // Set title for window (only PLATFORM_DESKTOP and PLATFORM_WEB)
-        void setWindowPosition(int x, int y);                       // Set window position on screen (only PLATFORM_DESKTOP)
-        void setWindowSize(int width, int height);                  // Set window dimensions
+        Display& getCurrentDisplay() { return m_curent; };
 
     protected:
 
@@ -33,6 +26,8 @@ namespace aiko
     
         virtual void init() override;
         virtual void preUpdate() override;
+
+        Display m_curent;
     
     };
 

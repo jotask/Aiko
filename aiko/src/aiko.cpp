@@ -5,6 +5,7 @@
 #include "systems/system_connector.h"
 
 #include "application/application.h"
+#include "events/events.hpp"
 
 // Modules
 #include "modules/display_module.h"
@@ -32,10 +33,12 @@ namespace aiko
 
     Aiko::Aiko(Application * app,  AikoConfig cfg)
         : m_application(app)
+        , m_shouldStop(false)
         , cfg(cfg)
         , m_displayModule(nullptr)
     {
 
+        EventSystem::it().bind<WindowCloseEvent>(this, &Aiko::onWindowClose);
     }
 
     Aiko::~Aiko()
@@ -49,11 +52,17 @@ namespace aiko
         return obj;
     }
 
+    void Aiko::onWindowClose(Event& event)
+    {
+        const auto& msg = static_cast<const WindowCloseEvent&>(event);
+        m_shouldStop = true;
+    }
+
     void Aiko::run()
     {
         init();
         m_application->init();
-        while (m_displayModule->isOpen() == true)
+        while (m_shouldStop == false)
         {
             update();
             render();

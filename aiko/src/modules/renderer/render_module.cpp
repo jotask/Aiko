@@ -187,7 +187,7 @@ namespace aiko
 
     ivec2 RenderModule::getDisplaySize()
     {
-        return m_displayModule->getDisplaySize();
+        return m_displayModule->getCurrentDisplay().getDisplaySize();
     }
 
     texture::RenderTexture2D* RenderModule::getRenderTexture()

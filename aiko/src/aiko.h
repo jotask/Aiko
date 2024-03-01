@@ -8,6 +8,7 @@
 #include "aiko_config.h" 
 #include "modules/module.h"
 #include "systems/sytem.h"
+#include "events/event.hpp"
 
 namespace aiko
 {
@@ -38,10 +39,14 @@ namespace aiko
 
         void run();
 
+        void onWindowClose(Event&);
+
         void init();
         void update();
         void render();
         void dispose();
+
+        bool m_shouldStop;
 
         std::vector<std::shared_ptr<Module>> m_modules;
         std::vector<std::shared_ptr<System>> m_systems;
