@@ -3,6 +3,7 @@
 #include "aiko_types.h"
 #include "modules/base_module.h"
 #include "modules/scene_module.h"
+#include "shared/math.h"
 
 namespace aiko
 {

@@ -2,6 +2,7 @@
 
 #include "aiko_types.h"
 #include "base_module.h"
+#include "shared/math.h"
 
 namespace aiko
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/math.h"
+#include "shared/math.h"
 
 namespace aiko
 {

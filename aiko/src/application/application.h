@@ -4,6 +4,7 @@
 #include "aiko.h"
 #include "core/textures.h"
 #include "core/inputs.h"
+#include "shared/math.h"
 
 namespace aiko
 {

@@ -8,6 +8,7 @@
 #include "models/game_object.h"
 #include "models/camera.h"
 #include "models/camera_types.h"
+#include "shared/math.h"
 
 namespace aiko
 {

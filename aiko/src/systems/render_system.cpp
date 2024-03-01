@@ -17,7 +17,6 @@
 #include "components/component_renderer.h"
 #include "render_system.h"
 #include "models/light.h"
-#include "models/vector.h"
 
 //  TODO TMP
 #include "modules/renderer/render_component_texture.h"

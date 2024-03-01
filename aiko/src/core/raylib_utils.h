@@ -1,7 +1,7 @@
 #pragma once
 
 #include "aiko_types.h"
-#include "core/math.h"
+#include "shared/math.h"
 #include "core/render_types.h"
 #include "core/textures.h"
 #include "models/shader.h"

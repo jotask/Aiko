@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/singleton.h"
+#include "shared/singleton.h"
 #include "events/event.hpp"
 
 #include <memory>

@@ -3,8 +3,6 @@
 #include <memory>
 #include <type_traits>
 
-#include "core/math.h"
-
 namespace aiko
 {
 

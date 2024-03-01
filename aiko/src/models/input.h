@@ -1,7 +1,7 @@
 #pragma once
 
 #include "aiko_types.h"
-#include "core/singleton.h"
+#include "shared/singleton.h"
 #include "core/inputs.h"
 
 namespace aiko

@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-#include "core/math.h"
+#include "shared/math.h"
 #include "models/game_object.h"
 #include "components/camera_component.h"
 #include "components/mesh_component.h"
