@@ -28,9 +28,4 @@ namespace aiko
         m_renderSystem->render(this);
     }
 
-    void MeshComponent::setPrimitive(Mesh::Primitive prm)
-    {
-        m_mesh->setPrimitive(prm);
-    }
-
 }

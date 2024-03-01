@@ -15,20 +15,16 @@
 #include "render_system.h"
 #include "models/light.h"
 
-//  TODO TMP
-#include "modules/renderer/render_component_texture.h"
-
 namespace aiko
 {
 
     RenderSystem::RenderSystem()
-        : m_rendererComponentTexture(nullptr)
     {
     }
     
     void RenderSystem::init()
     {
-        m_rendererComponentTexture = (RenderComponentTexture*)m_renderModule->GetRenderComponent();
+
     }
 
     void RenderSystem::update()

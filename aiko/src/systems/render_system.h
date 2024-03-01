@@ -14,10 +14,9 @@
 
 namespace aiko
 {
-    
+
     class SceneModule;
-    class RenderComponentTexture;
-    
+
     class RenderSystem : public BaseSystem
     {
     public:
@@ -48,7 +47,6 @@ namespace aiko
     private:
     
         aiko::AikoPtr<RenderModule> m_renderModule;
-        RenderComponentTexture* m_rendererComponentTexture;
     
     };
 

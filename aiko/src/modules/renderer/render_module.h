@@ -2,11 +2,11 @@
 
 #include "aiko_types.h"
 #include "modules/base_module.h"
-#include "modules/renderer/renderer_component.h"
 #include "core/textures.h"
 #include "models/shader.h"
 #include "events/event.hpp"
 #include "core/color.h"
+#include "core/textures.h"
 
 namespace aiko
 {
@@ -23,15 +23,7 @@ namespace aiko
     {
     
     public:
-    
-        enum class RenderType
-        {
-            TwoDimensions,
-            ThreeDimensions,
-            Texture,
-            Pixel,
-        };
-    
+
         RenderModule();
         virtual ~RenderModule();
 
@@ -53,10 +45,16 @@ namespace aiko
         virtual void endFrame() override;
     
         CameraModule* getCameraModule() { return m_cameraModule; }
-        RendererComponent* GetRenderComponent() { return m_renderType.get(); };
         ivec2 getDisplaySize();
 
         texture::RenderTexture2D* getRenderTexture();
+
+        // Texture
+        void drawTexture(texture::Texture texture, int posX, int posY, Color tint);
+        void drawTextureV(texture::Texture texture, vec2 position, Color tint);
+        void drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint);
+        void drawTextureRec(texture::Texture texture, Rectangle source, vec2 position, Color tint);
+        void drawTexturePro(texture::Texture texture, Rectangle source, Rectangle dest, vec2 origin, float rotation, Color tint);
 
         // 2d Context
         void drawPixel(int x, int y, Color);
@@ -95,14 +93,10 @@ namespace aiko
 
         CameraModule* m_cameraModule;
         DisplayModule* m_displayModule;
-        RenderType m_currentRenderType;
-        AikoUPtr<RendererComponent> m_renderType;
 
         texture::RenderTexture2D m_renderTexture2D;
 
         bool m_isImguiDemoOpen;
-
-        void updateRenderType(RenderModule::RenderType newRenderType, bool autoInit = true);
 
         void onWindowResize(Event&);
 

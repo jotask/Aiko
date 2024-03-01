@@ -18,8 +18,6 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
 
-        void setPrimitive(Mesh::Primitive);
-
     private:
         RenderSystem* m_renderSystem;
         aiko::AikoPtr<Mesh> m_mesh;
