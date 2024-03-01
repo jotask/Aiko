@@ -30,6 +30,12 @@ namespace aiko
         return rs->getTargetTexture();
     }
 
+    RenderSystem* Application::getRenderSystem()
+    {
+        static auto rs = m_aiko->getSystem<RenderSystem>();
+        return rs.get();
+    }
+
     Camera* Application::getMainCamera()
     {
         static auto cs = m_aiko->getSystem<CameraSystem>();

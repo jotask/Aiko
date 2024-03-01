@@ -4,9 +4,12 @@
 
 #include "application/application.h"
 #include "models/shader.h"
+#include "types/textures.h"
 
 namespace shadertoy
 {
+
+    class RenderSystem;
 
     class ShaderToy : public aiko::Application
     {
@@ -46,6 +49,7 @@ namespace shadertoy
         void prevShader();
         void randomShader();
         void refreshShader(bool first = false);
+        void draw(aiko::shader::Shader&);
 
     };
 

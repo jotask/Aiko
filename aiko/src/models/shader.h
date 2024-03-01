@@ -34,13 +34,13 @@ namespace aiko::shader
         void setShaderValue(int locIndex, const int& value);
         void setShaderValue(int locIndex, const float& value);
 
-        void draw(texture::RenderTexture2D* texture);
-
     //private:
+
+        using Locs = std::vector<int>;
 
         // Shader m_shader;
         unsigned int            m_id;
-        std::vector<int>        m_locs;
+        Locs                    m_locs;
     
     };
 

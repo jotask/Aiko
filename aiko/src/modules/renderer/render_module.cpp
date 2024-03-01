@@ -18,6 +18,7 @@ namespace aiko
 
     RenderModule::RenderModule()
         : m_displayModule(nullptr)
+        , m_scale(false)
         , m_renderTexture2D()
     {
     
@@ -164,11 +165,14 @@ namespace aiko
         endTextureMode();
         */
 
-        auto screenSize = getDisplaySize();
+        ivec2 screenSize = getDisplaySize();
+        vec2 targetSize = { static_cast<float>(m_renderTexture2D.texture.width), static_cast<float>(-m_renderTexture2D.texture.height) };
+        vec2 targScreen = { static_cast<float>(screenSize.x), static_cast<float>(screenSize.y) };
+
         drawTexturePro(
             m_renderTexture2D.texture,
-            Rectangle{ 0, 0, static_cast<float>(m_renderTexture2D.texture.width), static_cast<float>(-m_renderTexture2D.texture.height) },
-            Rectangle{ 0, 0, static_cast<float>(screenSize.x), static_cast<float>(screenSize.y) },
+            Rectangle{ 0, 0, targetSize.x, targetSize.y },
+            Rectangle{ 0, 0, targScreen.x, targScreen.y },
             vec2{ 0, 0 },
             0,
             WHITE
@@ -194,6 +198,11 @@ namespace aiko
     {
         const auto& msg = static_cast<const WindowResizeEvent&>(event);
         //resizeViewport(msg.width, msg.height);
+
+        if (m_scale == true)
+        {
+            return;
+        }
 
         auto screenWidth = msg.width;
         auto screenHeight = msg.height;

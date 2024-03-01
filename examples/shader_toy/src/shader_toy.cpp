@@ -7,6 +7,7 @@
 #include "components/camera_component.h"
 #include "components/mesh_component.h"
 #include "components/light_component.h"
+#include "systems/render_system.h"
 #include "core/utils.h"
 #include "types/inputs.h"
 
@@ -105,8 +106,7 @@ namespace shadertoy
 
     void ShaderToy::render()
     {
-        auto* texture = getTargetTexture();
-        m_shader.draw(texture);
+        draw(m_shader);
     }
 
     void ShaderToy::nextShader()
@@ -152,6 +152,13 @@ namespace shadertoy
         // assert(positionLoc != -1 && nParticlesLoc != -1 && resolutionLoc != -1 && radiusLoc != -1 );
         // assert(iResolutionLoc != -1 && iTimeLoc != -1 && iTimeDeltaLoc != -1 && iFrameRateLoc != -1 && iFrameLoc != -1 && iChannelTimeLoc != -1 && iChannelResolutionLoc != -1 && iMouseLoc != -1 && iDateLoc != -1);
 
+    }
+
+    void ShaderToy::draw(aiko::shader::Shader& shader)
+    {
+        auto* texture = getTargetTexture();
+        auto* renderer = getRenderSystem();
+        renderer->render( *texture, shader);
     }
 
 }

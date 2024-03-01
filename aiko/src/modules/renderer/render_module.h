@@ -27,6 +27,8 @@ namespace aiko
         RenderModule();
         virtual ~RenderModule();
 
+    protected:
+
         virtual void connect(ModuleConnector*);
     
         virtual void preInit() override;
@@ -44,10 +46,24 @@ namespace aiko
         virtual void beginFrame() override;
         virtual void endFrame() override;
     
+    public:
+
         CameraModule* getCameraModule() { return m_cameraModule; }
         ivec2 getDisplaySize();
 
         texture::RenderTexture2D* getRenderTexture();
+
+        void clearBackground(Color);
+        void beginMode2D(Camera*);
+        void endMode2D();
+        void beginMode3D(Camera*);
+        void endMode3D();
+        void beginTextureMode(texture::RenderTexture2D& target);
+        void endTextureMode(void);
+        void beginShaderMode(shader::Shader* shader);
+        void endShaderMode(void);
+        void beginBlendMode(BlendMode);
+        void endBlendMode(void);
 
         // Texture
         void drawTexture(texture::Texture texture, int posX, int posY, Color tint);
@@ -91,24 +107,14 @@ namespace aiko
     
     private:
 
+        bool m_scale;
+
         CameraModule* m_cameraModule;
         DisplayModule* m_displayModule;
 
         texture::RenderTexture2D m_renderTexture2D;
 
         void onWindowResize(Event&);
-
-        void clearBackground(Color);
-        void beginMode2D(Camera*);
-        void endMode2D();
-        void beginMode3D(Camera*);
-        void endMode3D();
-        void beginTextureMode(texture::RenderTexture2D& target);
-        void endTextureMode(void);
-        void beginShaderMode(shader::Shader* shader);
-        void endShaderMode(void);
-        void beginBlendMode(BlendMode);
-        void endBlendMode(void);
     
     };
 

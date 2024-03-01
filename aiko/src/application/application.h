@@ -10,6 +10,7 @@ namespace aiko
 {
 
     class Camera;
+    class RenderSystem;
 
     class Application
     {
@@ -33,13 +34,12 @@ namespace aiko
         virtual void update() {}
         virtual void render() {}
 
+        RenderSystem* getRenderSystem();
+        Camera* getMainCamera();
         ivec2 getDisplaySize() const;
         texture::RenderTexture2D* getTargetTexture() const;
 
-    protected:
         aiko::AikoUPtr<Aiko> m_aiko;
-
-        Camera* getMainCamera();
 
     private:
 

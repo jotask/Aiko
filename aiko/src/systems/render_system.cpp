@@ -54,7 +54,6 @@ namespace aiko
         m_renderModule = moduleConnector->find<RenderModule>();
     }
     
-    
     void RenderSystem::add(Light* light)
     {
         switch (light->m_type)
@@ -88,6 +87,28 @@ namespace aiko
     texture::RenderTexture2D* RenderSystem::getTargetTexture() const
     {
         return m_renderModule->getRenderTexture();
+    }
+
+    void RenderSystem::render(texture::RenderTexture2D& target, shader::Shader& shader)
+    {
+        {
+            m_renderModule->beginShaderMode(&shader);
+            m_renderModule->drawTexture(target.texture, 0, 0, WHITE);
+            m_renderModule->endShaderMode();
+        }
+
+        {
+            m_renderModule->beginTextureMode(target);
+            m_renderModule->drawRectangle(0.0f, 0.0f, 100.f, 100.f, RED);
+            m_renderModule->endTextureMode();
+        }
+
+        {
+            m_renderModule->beginTextureMode(target);
+            m_renderModule->drawCircle(300.f, 250.f, 100.f, SKYBLUE);
+            m_renderModule->endTextureMode();
+        }
+
     }
 
 }

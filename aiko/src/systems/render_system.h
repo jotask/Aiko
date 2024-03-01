@@ -10,6 +10,7 @@
 #include "models/mesh.h"
 #include "models/light.h"
 #include "models/shader.h"
+#include "types/textures.h"
 #include "modules/renderer/render_module.h"
 
 namespace aiko
@@ -39,6 +40,8 @@ namespace aiko
         void render(MeshComponent*);
     
         texture::RenderTexture2D* getTargetTexture() const;
+
+        void render(texture::RenderTexture2D&, shader::Shader&);
 
     protected:
     
