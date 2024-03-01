@@ -8,7 +8,7 @@
 #include "modules/display_module.h"
 #include "modules/camera_module.h"
 #include "models/camera.h"
-#include "core/textures.h"
+#include "types/textures.h"
 #include "events/events.hpp"
 
 #include "core/raylib_utils.h"
@@ -124,29 +124,11 @@ namespace aiko
             ::ImGui::End();
         }
         */
-
-        // We are done, render to the texture
-        auto rt = raylib::utils::toRaylibRenderTexture2D(m_renderTexture2D);
-        BeginTextureMode(rt);
-        ClearBackground(::BLACK);
-        DrawRectangle(0, 0, m_renderTexture2D.texture.width, m_renderTexture2D.texture.height, ::BLACK);
-        EndTextureMode();
     }
     
     void RenderModule::render()
     {
-    
-        if (IsKeyPressed(KEY_F1))
-        {
-            m_isImguiDemoOpen = !m_isImguiDemoOpen;
-            DrawText("Pressed", 0, 20, 20, ::GREEN);
-        }
-    
-        if (m_isImguiDemoOpen)
-        {
-            ImGui::ShowDemoWindow(&m_isImguiDemoOpen);
-        }
-   
+
     }
     
     void RenderModule::postRender()
@@ -162,7 +144,21 @@ namespace aiko
     
     void RenderModule::endFrame()
     {
+
+
+        ClearBackground(::RAYWHITE);
         DrawFPS(0, 0);
+
+        // We are done, render to the texture
+
+        auto rt = raylib::utils::toRaylibRenderTexture2D(m_renderTexture2D);
+        BeginTextureMode(rt);
+        ClearBackground(::BLACK);
+        // This likelly needs to be removed, for now draw the entire screen
+        auto screenSize = getDisplaySize();
+        DrawRectangle(0, 0, 100, 100, ::BLACK);
+        EndTextureMode();
+
         rlImGuiEnd();
         EndDrawing();
     }

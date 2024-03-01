@@ -3,7 +3,7 @@
 #include <string>
 
 #include <aiko_types.h>
-#include <core/color.h>
+#include "types/color.h"
 
 namespace aiko
 {

@@ -14,7 +14,7 @@
 #include "components/mesh_component.h"
 #include "components/light_component.h"
 #include "models/camera.h"
-#include "models/camera_types.h"
+#include "types/camera_types.h"
 
 namespace aiko
 {

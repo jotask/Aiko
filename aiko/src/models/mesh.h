@@ -3,9 +3,9 @@
 #include <vector>
 
 #include "aiko_types.h"
-#include "camera_types.h"
+#include "types/camera_types.h"
+#include "types/color.h"
 #include "shared/math.h"
-#include "core/color.h"
 
 namespace aiko
 {

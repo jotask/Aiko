@@ -3,9 +3,9 @@
 #include <vector>
 
 #include "aiko_types.h"
-#include "camera_types.h"
-#include "core/render_types.h"
-#include "core/textures.h"
+#include "types/camera_types.h"
+#include "types/render_types.h"
+#include "types/textures.h"
 
 namespace aiko::shader
 {

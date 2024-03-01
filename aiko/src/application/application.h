@@ -2,8 +2,8 @@
 
 #include "aiko_types.h"
 #include "aiko.h"
-#include "core/textures.h"
-#include "core/inputs.h"
+#include "types/textures.h"
+#include "types/inputs.h"
 #include "shared/math.h"
 
 namespace aiko

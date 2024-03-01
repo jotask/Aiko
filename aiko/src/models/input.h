@@ -2,7 +2,7 @@
 
 #include "aiko_types.h"
 #include "shared/singleton.h"
-#include "core/inputs.h"
+#include "types/inputs.h"
 
 namespace aiko
 {

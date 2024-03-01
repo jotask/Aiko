@@ -2,7 +2,7 @@
 
 #include "models/component.h"
 #include "models/light.h"
-#include "core/render_types.h"
+#include "types/render_types.h"
 
 namespace aiko
 {

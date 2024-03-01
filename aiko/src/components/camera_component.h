@@ -1,7 +1,7 @@
 #pragma once
 
 #include "models/component.h"
-#include "models/camera_types.h"
+#include "types/camera_types.h"
 
 namespace aiko
 {

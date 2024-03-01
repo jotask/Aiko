@@ -2,11 +2,11 @@
 
 #include "aiko_types.h"
 #include "modules/base_module.h"
-#include "core/textures.h"
+#include "types/textures.h"
 #include "models/shader.h"
 #include "events/event.hpp"
-#include "core/color.h"
-#include "core/textures.h"
+#include "types/color.h"
+#include "types/textures.h"
 
 namespace aiko
 {

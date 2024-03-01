@@ -8,7 +8,7 @@
 #include "components/mesh_component.h"
 #include "components/light_component.h"
 #include "core/utils.h"
-#include "core/inputs.h"
+#include "types/inputs.h"
 
 namespace shadertoy
 {

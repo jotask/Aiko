@@ -6,7 +6,7 @@
 #include "modules/scene_module.h"
 #include "components/transform_component.h"
 #include "components/camera_component.h"
-#include "models/camera_types.h"
+#include "types/camera_types.h"
 #include "models/camera.h"
 
 namespace aiko

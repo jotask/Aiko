@@ -2,11 +2,11 @@
 
 #include "aiko_types.h"
 #include "shared/math.h"
-#include "core/render_types.h"
-#include "core/textures.h"
+#include "types/render_types.h"
+#include "types/textures.h"
 #include "models/shader.h"
 #include "models/camera.h"
-#include "core/color.h"
+#include "types/color.h"
 #include "models/mesh.h"
 
 // Last as all above is not dependent of this, this is a temporal include
