@@ -2,8 +2,6 @@
 
 #include <vector>
 
-
-
 #include "aiko_types.h"
 #include "modules/base_module.h"
 #include "modules/scene_module.h"
@@ -33,7 +31,7 @@ namespace aiko
         void virtual render() override;
         void virtual postRender() override;
     
-        virtual aiko::vec2 getDisplayViewport() override { return { screenWidth, screenHeight }; };
+        virtual aiko::ivec2 getDisplayViewport() override { return { screenWidth, screenHeight }; };
     
     private:
     

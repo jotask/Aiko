@@ -1,6 +1,6 @@
 #include "display_module.h"
 
-#include "core/libs.h"
+#include <core/libs.h>
 
 namespace aiko
 {
@@ -15,7 +15,7 @@ namespace aiko
         return !WindowShouldClose();
     }
 
-    vec2 DisplayModule::getDisplaySize()
+    ivec2 DisplayModule::getDisplaySize()
     {
         return { GetScreenWidth(), GetScreenHeight()};
     }

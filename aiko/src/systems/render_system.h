@@ -39,7 +39,7 @@ namespace aiko
         void add(Light*);
         void render(MeshComponent*);
     
-        RenderTexture2D* getTargetTexture() const;
+        texture::RenderTexture2D* getTargetTexture() const;
 
     protected:
     

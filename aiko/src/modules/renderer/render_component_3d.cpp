@@ -1,6 +1,6 @@
 #include "render_component_3d.h"
 
-#include "core/libs.h"
+#include <core/libs.h>
 
 #include "config.h"
 
@@ -8,6 +8,10 @@
 #include "modules/renderer/render_module.h"
 #include "modules/camera_module.h"
 #include "core/utils.h"
+#include "core/raylib_utils.h"
+#include "core/color.h"
+
+#include <core/libs.h>
 
 namespace aiko
 {
@@ -59,29 +63,10 @@ namespace aiko
     void RenderComponent3D::render()
     {
 
-        ClearBackground(RAYWHITE);
+        ClearBackground(::RAYWHITE);
 
         auto* camera = m_renderModule->getCameraModule()->GetMainCamera();
-
-        /*
-        typedef struct Camera3D
-        {
-            Vector3 position;       // Camera position
-            Vector3 target;         // Camera target it looks-at
-            Vector3 up;             // Camera up vector (rotation over its axis)
-            float fovy;             // Camera field-of-view aperture in Y (degrees) in perspective, used as near plane width in orthographic
-            int projection;         // Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC
-        } Camera3D;
-        */
-
-        Camera3D cam3D;
-        {
-            cam3D.position = Utils::toV3(camera->position);
-            cam3D.target = Utils::toV3(camera->target);
-            cam3D.up = Utils::toV3(camera->getUp());
-            cam3D.fovy = camera->getFOV();
-            cam3D.projection = camera->getCameraType();
-        }
+        Camera3D cam3D = raylib::utils::toRaylibCamera3D( *camera );
 
         BeginMode3D( cam3D );
 
@@ -114,7 +99,7 @@ namespace aiko
                     };
 
                     // Pick a color with a hue depending on cube position for the rainbow color effect
-                    Color cubeColor = ColorFromHSV((float)(((x + y + z) * 18) % 360), 0.75f, 0.9f);
+                    ::Color cubeColor = ColorFromHSV((float)(((x + y + z) * 18) % 360), 0.75f, 0.9f);
 
                     // Calculate cube size
                     float cubeSize = (2.4f - scale) * blockScale;

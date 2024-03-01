@@ -2,53 +2,65 @@
 
 #include <stdexcept>
 
-namespace aiko
+#include "core/libs.h"
+#include "core/raylib_utils.h"
+
+namespace aiko::shader
 {
     
-    ShaderPtr::ShaderPtr()
+    Shader::Shader()
     {
     
     }
 
-    void ShaderPtr::load(const char* vs, const char* fs)
+    void Shader::load(const char* vs, const char* fs)
     {
-        m_shader = LoadShader(vs, fs);
+        auto data = LoadShader(vs, fs);
+        m_id = data.id;
+        m_locs = std::vector<int>( data.locs, data.locs + RL_MAX_SHADER_LOCATIONS);
     }
 
-    void ShaderPtr::unload()
+    void Shader::unload()
     {
+        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
         UnloadShader(m_shader);
     }
 
-    int ShaderPtr::getShaderLocation(const char* locName)
+    int Shader::getShaderLocation(const char* locName)
     {
+        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
         return GetShaderLocation(m_shader, locName);
     }
 
-    void ShaderPtr::setShaderValueV(int locIndex, const void* value, SUDT uniformType, int count)
+    void Shader::setShaderValueV(int locIndex, const void* value, SUDT uniformType, int count)
     {
+        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
         SetShaderValueV(m_shader, locIndex, value, uniformType, count);
     }
 
-    void ShaderPtr::setShaderValue(int locIndex, const void* value, SUDT uniformType)
+    void Shader::setShaderValue(int locIndex, const void* value, SUDT uniformType)
     {
+        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
         SetShaderValue(m_shader, locIndex, &value, uniformType);
     }
 
-    void ShaderPtr::setShaderValue(int locIndex, const int& value)
+    void Shader::setShaderValue(int locIndex, const int& value)
     {
+        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
         SetShaderValue(m_shader, locIndex, &value, SHADER_UNIFORM_INT);
     }
 
-    void ShaderPtr::setShaderValue(int locIndex, const float& value)
+    void Shader::setShaderValue(int locIndex, const float& value)
     {
+        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
         SetShaderValue(m_shader, locIndex, &value, SHADER_UNIFORM_FLOAT);
     }
 
-    void ShaderPtr::draw(RenderTexture2D* text)
+    void Shader::draw(texture::RenderTexture2D* text)
     {
+        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
         BeginShaderMode(m_shader);
-        DrawTextureEx( text->texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
+        DrawTextureEx(raylib::utils::toRaylibTexture(text->texture), {0.0f, 0.0f}, 0.0f, 1.0f, ::WHITE);
         EndShaderMode();
     }
 

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
 #include "aiko_types.h"
+#include <core/color.h>
 
 namespace aiko
 {
@@ -21,13 +20,13 @@ namespace aiko
         Light();
         ~Light() = default;
     
-        glm::vec3 vector;
-        glm::vec4 color;
+        vec3 vector;
+        Color color;
         float intensity;
     
         Type m_type = Type::Ambient;
     
-        aiko::AikoPtr<glm::vec3> m_light;
+        aiko::AikoPtr<vec3> m_light;
     
         void update();
     

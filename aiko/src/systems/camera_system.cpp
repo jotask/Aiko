@@ -1,6 +1,6 @@
 #include "camera_system.h"
 
-#include "core/libs.h"
+#include <core/libs.h>
 #include "modules/module_connector.h"
 
 #include "modules/renderer/render_module.h"
@@ -61,7 +61,7 @@ namespace aiko
         return nullptr;
     }
 
-    vec2 CameraSystem::getDisplaySize()
+    ivec2 CameraSystem::getDisplaySize()
     {
         return m_renderModule->getDisplaySize();
     }

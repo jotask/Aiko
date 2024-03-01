@@ -3,12 +3,15 @@
 #include "aiko_types.h"
 #include "modules/base_module.h"
 #include "modules/renderer/renderer_component.h"
+#include "core/textures.h"
+#include "models/shader.h"
 
 namespace aiko
 {
 
     class CameraModule;
     class DisplayModule;
+    class Shader;
     
     class RenderModule : public BaseModule
     {
@@ -45,9 +48,9 @@ namespace aiko
     
         CameraModule* getCameraModule() { return m_cameraModule; }
         RendererComponent* GetRenderComponent() { return m_renderType.get(); };
-        vec2 getDisplaySize();
+        ivec2 getDisplaySize();
 
-        RenderTexture2D* getRenderTexture();
+        texture::RenderTexture2D* getRenderTexture();
     
     private:
 
@@ -56,7 +59,7 @@ namespace aiko
         RenderType m_currentRenderType;
         aiko::AikoUPtr<RendererComponent> m_renderType;
 
-        RenderTexture2D m_renderTexture2D;
+        texture::RenderTexture2D m_renderTexture2D;
 
         bool m_isImguiDemoOpen;
 
@@ -67,7 +70,7 @@ namespace aiko
         void endMode2D();
         void beginMode3D();
         void endMode3D();
-        void beginTextureMode(RenderTexture2D* target);
+        void beginTextureMode(texture::RenderTexture2D* target);
         void endTextureMode(void);
         void beginShaderMode(Shader* shader);
         void endShaderMode(void);

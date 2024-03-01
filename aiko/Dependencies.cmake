@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.19)
 
 #raylib
 add_subdirectory("${CMAKE_SOURCE_DIR}/submodules/raylib" raylib EXCLUDE_FROM_ALL)
+add_library(rb::raylib ALIAS raylib)
 
 #imgui
 

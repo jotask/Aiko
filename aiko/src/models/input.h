@@ -3,6 +3,8 @@
 #include "aiko_types.h"
 #include "core/singleton.h"
 
+#include <raylib.h>
+
 namespace aiko
 {
     

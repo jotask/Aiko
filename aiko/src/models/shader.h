@@ -1,21 +1,25 @@
 #pragma once
 
-#include "core/libs.h"
+#include <any>
+#include <vector>
+
 #include "aiko_types.h"
 #include "camera_types.h"
+#include "core/render_types.h"
+#include "core/textures.h"
 
-namespace aiko
+namespace aiko::shader
 {
 
-    class ShaderPtr
+    class Shader
     {
     public:
         friend class RenderSystem;
 
         using SUDT = ShaderUniformDataType;
 
-        ShaderPtr();
-        ~ShaderPtr() = default;
+        Shader();
+        ~Shader() = default;
 
         void load(const char* vs, const char* fs);
         void unload();
@@ -31,11 +35,13 @@ namespace aiko
         void setShaderValue(int locIndex, const int& value);
         void setShaderValue(int locIndex, const float& value);
 
-        void draw(RenderTexture2D* texture);
+        void draw(texture::RenderTexture2D* texture);
 
-    private:
+    //private:
 
-        Shader m_shader;
+        // Shader m_shader;
+        unsigned int            m_id;
+        std::vector<int>        m_locs;
     
     };
 

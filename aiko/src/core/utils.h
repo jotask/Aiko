@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/libs.h"
+#include <core/libs.h>
 #include "aiko_types.h"
 
 namespace aiko
@@ -10,9 +10,9 @@ namespace aiko
     {
     public:
 
-        static Vector3 toV3(vec3 v)
+        static float map(float input, float input_start, float input_end, float output_start, float output_end)
         {
-            return { v.x, v.y, v.z };
+            return output_start + ((output_end - output_start) / (input_end - input_start)) * (input - input_start);
         }
 
     };

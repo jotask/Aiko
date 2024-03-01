@@ -14,13 +14,13 @@ namespace aiko
     }
 
 
-    vec2 Application::getDisplaySize() const
+    ivec2 Application::getDisplaySize() const
     {
         static auto cs = m_aiko->getSystem<CameraSystem>();
         return cs->getDisplaySize();
     }
 
-    RenderTexture2D* Application::getTargetTexture() const
+    texture::RenderTexture2D* Application::getTargetTexture() const
     {
         static auto rs = m_aiko->getSystem<RenderSystem>();
         return rs->getTargetTexture();

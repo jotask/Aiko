@@ -2,8 +2,9 @@
 
 #include <memory>
 
+#include <entt/entt.hpp>
+
 #include "base_module.h"
-#include "core/libs.h"
 
 namespace aiko
 {

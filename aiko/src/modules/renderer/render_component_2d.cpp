@@ -1,6 +1,6 @@
 #include "render_component_2d.h"
 
-#include "core/libs.h"
+#include <core/libs.h>
 
 #include "config.h"
 

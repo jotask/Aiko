@@ -2,7 +2,7 @@
 
 #include <math.h>
 
-#include "core/libs.h"
+#include <core/libs.h>
 
 #include "aiko_types.h"
 

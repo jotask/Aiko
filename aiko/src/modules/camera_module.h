@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/libs.h"
+#include <core/libs.h>
 
 #include "base_module.h"
 #include "models/camera.h"

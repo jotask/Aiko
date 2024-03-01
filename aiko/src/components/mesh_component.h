@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
 #include "models/component.h"
 #include "models/mesh.h"
 

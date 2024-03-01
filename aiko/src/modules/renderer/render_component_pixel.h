@@ -2,12 +2,13 @@
 
 #include <vector>
 
-
-
 #include "aiko_types.h"
+#include "core/textures.h"
+#include "core/render_types.h"
 #include "modules/base_module.h"
 #include "modules/scene_module.h"
 #include "modules/renderer/renderer_component.h"
+#include "core/color.h"
 
 namespace aiko
 {
@@ -33,9 +34,9 @@ namespace aiko
         void virtual render() override;
         void virtual postRender() override;
     
-        virtual aiko::vec2 getDisplayViewport() override { return { screenWidth, screenHeight }; };
+        virtual aiko::ivec2 getDisplayViewport() override { return { screenWidth, screenHeight }; };
     
-        RenderTexture2D& GetRendererTexture() { return m_renderTexture2D; };
+        texture::RenderTexture2D& GetRendererTexture() { return m_renderTexture2D; };
 
         std::vector<Color> getPixels() { return m_pixels; };
         void setPixels(std::vector<Color> pixels);
@@ -47,7 +48,7 @@ namespace aiko
         const int screenWidth = 100;
         const int screenHeight = 100;
     
-        RenderTexture2D m_renderTexture2D;
+        texture::RenderTexture2D m_renderTexture2D;
         std::vector<Color> m_pixels;
     
     };

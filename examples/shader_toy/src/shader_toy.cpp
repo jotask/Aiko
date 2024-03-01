@@ -2,6 +2,7 @@
 
 #include <chrono>
 
+#include "core/math.h"
 #include "models/game_object.h"
 #include "components/camera_component.h"
 #include "components/mesh_component.h"
@@ -78,8 +79,8 @@ namespace shadertoy
 
         updatSeeds();
 
-        glm::vec2 position;
-        std::vector<glm::vec2> positions;
+        aiko::vec2 position;
+        std::vector<aiko::vec2> positions;
         for (auto tmp : m_particles)
         {
             positions.push_back(tmp.position);

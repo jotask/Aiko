@@ -8,7 +8,7 @@
 #include <iostream>
 
 // TODO Please delete, temporally as initial code
-#include "core/libs.h"
+#include <core/libs.h>
 
 #include "aiko_types.h"
 #include "modules/module_connector.h"
@@ -125,7 +125,7 @@ namespace aiko
 
     }
 
-    RenderTexture2D* RenderSystem::getTargetTexture() const
+    texture::RenderTexture2D* RenderSystem::getTargetTexture() const
     {
         return m_renderModule->getRenderTexture();
     }

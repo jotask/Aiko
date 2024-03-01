@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "core/libs.h"
+#include <core/libs.h>
 
 #include "modules/renderer/render_component_2d.h"
 #include "modules/renderer/render_component_3d.h"
@@ -12,10 +12,13 @@
 #include "modules/display_module.h"
 #include "modules/camera_module.h"
 #include "models/camera.h"
+#include "core/textures.h"
+
+#include "core/raylib_utils.h"
 
 namespace aiko
 {
-    
+
     RenderModule::RenderModule()
         : m_renderType(nullptr)
         , m_currentRenderType(RenderType::ThreeDimensions)
@@ -28,7 +31,8 @@ namespace aiko
 
     RenderModule::~RenderModule()
     {
-        UnloadRenderTexture(m_renderTexture2D);
+        auto rt = raylib::utils::toRaylibRenderTexture2D(m_renderTexture2D);
+        UnloadRenderTexture(rt);
     }
     
     void RenderModule::connect(ModuleConnector* moduleConnector)
@@ -47,8 +51,8 @@ namespace aiko
     {
 
         auto size = getDisplaySize();
-        m_renderTexture2D = LoadRenderTexture(size.x, size.y);
-
+        auto data = LoadRenderTexture(size.x, size.y);
+        m_renderTexture2D = raylib::utils::toRenderTexture2D(data);
         m_renderType->init();
     }
     
@@ -63,8 +67,14 @@ namespace aiko
         {
             auto screenWidth = GetScreenWidth();
             auto screenHeight = GetScreenHeight();
-            UnloadRenderTexture(m_renderTexture2D);
-            m_renderTexture2D = LoadRenderTexture(screenWidth, screenHeight);
+            {
+                auto rt = raylib::utils::toRaylibRenderTexture2D(m_renderTexture2D);
+                UnloadRenderTexture(rt);
+            }
+            {
+                auto texture = LoadRenderTexture(screenWidth, screenHeight);
+                m_renderTexture2D = raylib::utils::toRenderTexture2D(texture);
+            }
         }
         m_renderType->preUpdate();
     }
@@ -135,9 +145,10 @@ namespace aiko
         */
 
         // We are done, render to the texture
-        BeginTextureMode(m_renderTexture2D);
-        ClearBackground(BLACK);
-        DrawRectangle(0, 0, m_renderTexture2D.texture.width, m_renderTexture2D.texture.height, BLACK);
+        auto rt = raylib::utils::toRaylibRenderTexture2D(m_renderTexture2D);
+        BeginTextureMode(rt);
+        ClearBackground(::BLACK);
+        DrawRectangle(0, 0, m_renderTexture2D.texture.width, m_renderTexture2D.texture.height, ::BLACK);
         EndTextureMode();
 
         m_renderType->preRender();
@@ -149,7 +160,7 @@ namespace aiko
         if (IsKeyPressed(KEY_F1))
         {
             m_isImguiDemoOpen = !m_isImguiDemoOpen;
-            DrawText("Presse", 0, 20, 20, GREEN);
+            DrawText("Presse", 0, 20, 20, ::GREEN);
         }
     
         if (m_isImguiDemoOpen)
@@ -157,7 +168,7 @@ namespace aiko
             ImGui::ShowDemoWindow(&m_isImguiDemoOpen);
         }
     
-        DrawText("Imgui Debug : " + m_isImguiDemoOpen ? "true" : "false", 0, 20, 20, GREEN);
+        DrawText("Imgui Debug : " + m_isImguiDemoOpen ? "true" : "false", 0, 20, 20, ::GREEN);
     
         m_renderType->render();
     }
@@ -183,12 +194,12 @@ namespace aiko
         m_renderType->endFrame();
     }
 
-    vec2 RenderModule::getDisplaySize()
+    ivec2 RenderModule::getDisplaySize()
     {
         return m_displayModule->getDisplaySize();
     }
 
-    RenderTexture2D* RenderModule::getRenderTexture()
+    texture::RenderTexture2D* RenderModule::getRenderTexture()
     {
         return &m_renderTexture2D;
     }
@@ -225,7 +236,7 @@ namespace aiko
 
     void RenderModule::clearBackground()
     {
-        ClearBackground(WHITE);
+        ClearBackground(::WHITE);
     }
 
     void RenderModule::beginMode2D()
@@ -247,7 +258,7 @@ namespace aiko
     {
     }
 
-    void RenderModule::beginTextureMode(RenderTexture2D* target)
+    void RenderModule::beginTextureMode(texture::RenderTexture2D* target)
     {
     }
 

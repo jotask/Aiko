@@ -2,6 +2,7 @@
 
 #include "aiko_types.h"
 #include "aiko.h"
+#include "core/textures.h"
 
 namespace aiko
 {
@@ -25,8 +26,8 @@ namespace aiko
         virtual void update() {}
         virtual void render() {}
 
-        vec2 getDisplaySize() const;
-        RenderTexture2D* getTargetTexture() const;
+        ivec2 getDisplaySize() const;
+        texture::RenderTexture2D* getTargetTexture() const;
 
     protected:
         aiko::AikoUPtr<Aiko> m_aiko;

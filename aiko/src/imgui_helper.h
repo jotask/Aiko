@@ -3,7 +3,7 @@
 #include <string>
 
 #include <aiko_types.h>
-#include <core/libs.h>
+#include <core/color.h>
 
 namespace aiko
 {
@@ -24,7 +24,7 @@ namespace aiko
 
         }
 
-        static void ColorPicker(const char* label, vec4& color, /*ImGuiColorEditFlags*/ int flags = 0)
+        static void ColorPicker(const char* label, Color& color, /*ImGuiColorEditFlags*/ int flags = 0)
         {
             static float tmp[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
             tmp[0] = color.r;

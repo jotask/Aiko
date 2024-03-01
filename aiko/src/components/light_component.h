@@ -1,9 +1,8 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
 #include "models/component.h"
 #include "models/light.h"
+#include "core/render_types.h"
 
 namespace aiko
 {
@@ -22,7 +21,7 @@ namespace aiko
     
         void setPrimitive(Light::Type);
     
-        glm::vec4 color;
+        Color color;
         float intensity;
     
     // private:

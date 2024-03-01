@@ -28,7 +28,7 @@ namespace aiko
         Camera* createCamera(bool setMain = false);
         void setMainCamera(Camera* camera);
         Camera* getMainCamera();
-        vec2 getDisplaySize();
+        ivec2 getDisplaySize();
     
     protected:
     
