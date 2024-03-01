@@ -15,24 +15,6 @@ namespace shadertoy
         virtual void update() override;
         virtual void render() override;
 
-        class Particle
-        {
-        public:
-            const static int VELOCITY = 1;
-            aiko::vec2 position;
-            aiko::vec2 velocity;
-            float speed;
-
-            void checkBounds(aiko::vec2 bounds);
-        };
-
-        const int nMaxParticles = 100;
-
-        int radiusLoc;
-        int resolutionLoc;
-        int positionLoc;
-        int nParticlesLoc;
-
         int iResolutionLoc;
         int iTimeLoc;
         int iTimeDeltaLoc;
@@ -57,17 +39,9 @@ namespace shadertoy
         aiko::vec4      iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
         aiko::vec4      iDate;                 // (year, month, day, time in seconds)
 
-        float radius = 1.0f;
-        int nParticles = nMaxParticles;
-        float all_velocity = 1.0f;
-
-        aiko::ShaderPtr m_shader;
-
-        void regenerateSeeds();
-        std::vector<Particle> m_particles;
+        aiko::shader::Shader m_shader;
 
         int currentShader = 0;
-        void updatSeeds();
         void nextShader();
         void prevShader();
         void randomShader();

@@ -2,8 +2,7 @@
 
 #include "aiko_types.h"
 #include "core/singleton.h"
-
-#include <raylib.h>
+#include "core/inputs.h"
 
 namespace aiko
 {
@@ -12,8 +11,6 @@ namespace aiko
     {
         friend class Aiko;
     public:
-
-        using Key = KeyboardKey;
     
         bool isKeyPressed(Key);
 

@@ -3,6 +3,7 @@
 #include "aiko_types.h"
 #include "aiko.h"
 #include "core/textures.h"
+#include "core/inputs.h"
 
 namespace aiko
 {
@@ -21,6 +22,11 @@ namespace aiko
         void run();
 
     protected:
+
+        float getlDeltaTime() const;
+        bool isKeyPressed(Key) const;
+        vec2 getMousePosition() const;
+        bool isMouseButtonPressed(MouseButton) const;
 
         virtual void init() {};
         virtual void update() {}

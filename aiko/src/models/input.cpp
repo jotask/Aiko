@@ -1,5 +1,7 @@
 #include "input.h"
 
+#include "core/libs.h"
+
 namespace aiko
 {
     
@@ -15,7 +17,7 @@ namespace aiko
 
     bool Input::isKeyPressed(Key key)
     {
-        return IsKeyPressed(key);
+        return IsKeyPressed((KeyboardKey)key);
     }
 
 }

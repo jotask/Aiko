@@ -21,6 +21,11 @@ namespace aiko
         vec2(float x, float y) : x(x), y(y) { };
         float x;
         float y;
+
+        vec2 operator*(const float& scalar) const { return { x * scalar, y * scalar }; }
+        vec2 operator+(vec2& other) const { return { x + other.x, y + other.y }; }
+        vec2 operator+=(vec2& other) const { return { x + other.x, y + other.y }; }
+
     };
 
     class vec3

@@ -23,6 +23,11 @@ namespace raylib::utils
         return aiko::Color(c.r, c.g, c.b, c.a);
     }
 
+    static aiko::vec2 toVec2(Vector2& v)
+    {
+        return { v.x, v.y };
+    }
+
     static aiko::vec3 toVec3(Vector3& v)
     {
         return { v.x, v.y, v.z };

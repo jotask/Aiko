@@ -7,42 +7,15 @@
 #include "components/camera_component.h"
 #include "components/mesh_component.h"
 #include "components/light_component.h"
+#include "core/utils.h"
+#include "core/inputs.h"
 
 namespace shadertoy
 {
 
-    void ShaderToy::Particle::checkBounds(aiko::vec2 bounds)
-    {
-        if (position.x < 0)
-        {
-            velocity.x *= -1.0f;
-            position.x = 0;
-        }
-        if (position.x > bounds.x)
-        {
-            velocity.x *= -1.0f;
-            position.x = bounds.x;
-        }
-
-        if (position.y < 0)
-        {
-            velocity.y *= -1.0f;
-            position.y = 0;
-        }
-        if (position.y > bounds.y)
-        {
-            velocity.y *= -1.0f;
-            position.y = bounds.y;
-        }
-
-    }
-
     void ShaderToy::init()
     {
         Application::init();
-
-        // TODO Again, please delete me
-        regenerateSeeds();
 
         iTime = 0.0f;
 
@@ -54,53 +27,31 @@ namespace shadertoy
     void ShaderToy::update()
     {
 
-        if (IsWindowResized() == true && IsWindowFullscreen() == false)
-        {
-            regenerateSeeds();
-        }
-
-        if (IsKeyPressed(KEY_F2))
-        {
-            regenerateSeeds();
-        }
-
-        if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_RIGHT))
+        if (isKeyPressed(aiko::KEY_SPACE) || isKeyPressed(aiko::KEY_RIGHT))
         {
             nextShader();
         }
-        else if (IsKeyPressed(KEY_LEFT))
+        else if (isKeyPressed(aiko::KEY_LEFT))
         {
             prevShader();
         }
-        else if (IsKeyPressed(KEY_R))
+        else if (isKeyPressed(aiko::KEY_R))
         {
             randomShader();
-        }
-
-        updatSeeds();
-
-        aiko::vec2 position;
-        std::vector<aiko::vec2> positions;
-        for (auto tmp : m_particles)
-        {
-            positions.push_back(tmp.position);
         }
 
         // Please fix me
         {
 
-            iTime += GetFrameTime();
+            iTime += getlDeltaTime();
 
-            iTimeDelta = GetFrameTime();
-            iFrameRate = GetFrameTime();
+            iTimeDelta = getlDeltaTime();
+            iFrameRate = getlDeltaTime();
 
             iFrame++;
 
-            // float     iChannelTime[4];       
-            // vec3      iChannelResolution[4]; 
-
-            auto mouse = GetMousePosition();
-            iMouse = aiko::vec4(mouse.x, mouse.y, IsMouseButtonPressed(MOUSE_BUTTON_RIGHT), IsMouseButtonPressed(MOUSE_BUTTON_RIGHT));
+            auto mouse = getMousePosition();
+            iMouse = aiko::vec4(mouse.x, mouse.y, isMouseButtonPressed(aiko::MOUSE_BUTTON_RIGHT), isMouseButtonPressed(aiko::MOUSE_BUTTON_RIGHT));
 
             typedef std::chrono::system_clock Clock;
             auto now = Clock::now();
@@ -109,21 +60,16 @@ namespace shadertoy
             iDate = aiko::vec4(1900 + parts->tm_year, 1 + parts->tm_mon, parts->tm_mday, time(NULL));
         }
 
-        m_shader.setShaderValueV(positionLoc, positions.data(), SHADER_UNIFORM_VEC2, positions.size());
-        m_shader.setShaderValue(nParticlesLoc, nParticles);
-        m_shader.setShaderValue(resolutionLoc, &getDisplaySize(), SHADER_UNIFORM_VEC2);
-        m_shader.setShaderValue(radiusLoc, radius);
-
-        m_shader.setShaderValue(iResolutionLoc, &getDisplaySize(), SHADER_UNIFORM_VEC3);   // viewport resolution (in pixels)
+        m_shader.setShaderValue(iResolutionLoc, &getDisplaySize(), aiko::SHADER_UNIFORM_VEC3);   // viewport resolution (in pixels)
         m_shader.setShaderValue(iTimeLoc, iTime);                                   // shader playback time (in seconds)
         m_shader.setShaderValue(iTimeDeltaLoc, iTimeDelta);                         // render time (in seconds)
         m_shader.setShaderValue(iFrameRateLoc, iFrameRate);                         // shader frame rate
         m_shader.setShaderValue(iFrameLoc, iFrame);                                   // shader playback frame
 
-        m_shader.setShaderValueV(iChannelTimeLoc, iChannelTime, aiko::ShaderPtr::SUDT::SHADER_UNIFORM_FLOAT, 4);                     // channel playback time (in seconds)
-        m_shader.setShaderValue(iChannelResolutionLoc, &iChannelResolution, SHADER_UNIFORM_VEC3);          // channel resolution (in pixels)
-        m_shader.setShaderValue(iMouseLoc, &iMouse, SHADER_UNIFORM_VEC4);                                  // mouse pixel coords. xy: current (if MLB down), zw: click
-        m_shader.setShaderValue(iDateLoc, &iDate, SHADER_UNIFORM_VEC4);                                    // (year, month, day, time in seconds)
+        m_shader.setShaderValueV(iChannelTimeLoc, iChannelTime, aiko::shader::Shader::SUDT::SHADER_UNIFORM_FLOAT, 4);                     // channel playback time (in seconds)
+        m_shader.setShaderValue(iChannelResolutionLoc, &iChannelResolution, aiko::SHADER_UNIFORM_VEC3);          // channel resolution (in pixels)
+        m_shader.setShaderValue(iMouseLoc, &iMouse, aiko::SHADER_UNIFORM_VEC4);                                  // mouse pixel coords. xy: current (if MLB down), zw: click
+        m_shader.setShaderValue(iDateLoc, &iDate, aiko::SHADER_UNIFORM_VEC4);                                    // (year, month, day, time in seconds)
 
     }
 
@@ -131,36 +77,6 @@ namespace shadertoy
     {
         auto* texture = getTargetTexture();
         m_shader.draw(texture);
-    }
-
-    void ShaderToy::updatSeeds()
-    {
-        const auto frameTime = GetFrameTime();
-        for (auto& p : m_particles)
-        {
-            p.position += (p.velocity * p.speed) * frameTime;
-            p.checkBounds(getDisplaySize());
-        }
-    }
-
-    void ShaderToy::regenerateSeeds()
-    {
-
-        constexpr int VELOCITY = 1;
-
-        aiko::vec2 screen = getDisplaySize();
-
-        m_particles.clear();
-        m_particles.reserve(nParticles);
-
-        for (int i = 0; i < nParticles; i++)
-        {
-            Particle particle;
-            particle.speed = all_velocity;
-            particle.position = { GetRandomValue(0, screen.x), GetRandomValue(0, screen.y) };
-            particle.velocity = { GetRandomValue(-Particle::VELOCITY, Particle::VELOCITY), GetRandomValue(-Particle::VELOCITY, Particle::VELOCITY) };
-            m_particles.push_back(particle);
-        }
     }
 
     std::vector<std::string> ShaderToy::s_shaders =
@@ -202,7 +118,7 @@ namespace shadertoy
 
     void ShaderToy::randomShader()
     {
-        currentShader = GetRandomValue(0, s_shaders.size());
+        currentShader = aiko::utils::getRandomValue(0, s_shaders.size());
         refreshShader();
     }
 

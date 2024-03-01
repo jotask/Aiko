@@ -1,6 +1,5 @@
 #pragma once
 
-#include <any>
 #include <vector>
 
 #include "aiko_types.h"

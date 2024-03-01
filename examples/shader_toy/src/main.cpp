@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "shader_toy.h"
 
 int main()

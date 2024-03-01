@@ -1,10 +1,10 @@
 #include <stdlib.h>
 
-#include "sandbox.h"
+#include "raylib.h"
 
 int main()
 {
-	sandbox::Sandbox sb;
-	sb.run();
+	raylib::Raylib rb;
+	rb.run();
 	return EXIT_SUCCESS;
 }

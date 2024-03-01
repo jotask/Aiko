@@ -1,7 +1,5 @@
 #pragma once
 
-#include "core/math.h"
-
 namespace aiko
 {
 

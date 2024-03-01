@@ -4,6 +4,10 @@
 #include "systems/camera_system.h"
 #include "systems/render_system.h"
 
+#include "core/raylib_utils.h"
+
+#include <core/libs.h>
+
 namespace aiko
 {
 
@@ -35,6 +39,26 @@ namespace aiko
     void Application::run()
     {
         m_aiko->run();
+    }
+
+    float Application::getlDeltaTime() const
+    {
+        return ::GetFrameTime();
+    }
+
+    bool Application::isKeyPressed(Key key) const
+    {
+        return ::IsKeyPressed((KeyboardKey)key);
+    }
+
+    vec2 Application::getMousePosition() const
+    {
+        return raylib::utils::toVec2(::GetMousePosition());
+    }
+
+    bool Application::isMouseButtonPressed(MouseButton button) const
+    {
+        return ::IsMouseButtonPressed((::MouseButton)button);
     }
 
 }
