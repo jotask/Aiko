@@ -61,7 +61,6 @@ namespace aiko
     void Aiko::run()
     {
         init();
-        m_application->init();
         while (m_shouldStop == false)
         {
             update();
