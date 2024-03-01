@@ -33,6 +33,11 @@ namespace raylib::utils
         return { v.x, v.y, v.z };
     }
 
+    static aiko::Rectangle toRectangle(::Rectangle& ptr)
+    {
+        return { ptr.x, ptr.y, ptr.width, ptr.height };
+    }
+
     static aiko::texture::Texture toTexture2D(Texture& texture)
     {
         return { texture.id, texture.width, texture.height, texture.mipmaps, texture.format };
@@ -45,16 +50,26 @@ namespace raylib::utils
 
     // To Raylib
 
-    static Color toRaylibColor(aiko::Color& ptr)
+    static ::Color toRaylibColor(aiko::Color& ptr)
     {
         // FIXME :: Baaad! But it compiles
         using UC = unsigned char;
         return { (UC)ptr.r, (UC)ptr.g, (UC)ptr.b, (UC)ptr.a };
     }
 
-    static Vector3 toRayliVector3(aiko::vec3& ptr)
+    static Vector2 toRaylibVector2(aiko::vec2& ptr)
+    {
+        return { ptr.x, ptr.y };
+    }
+
+    static Vector3 toRaylibVector3(aiko::vec3& ptr)
     {
         return { ptr.x, ptr.y, ptr.z };
+    }
+
+    static ::Rectangle toRaylibRectangle(aiko::Rectangle& ptr)
+    {
+        return { ptr.x, ptr.y, ptr.width, ptr.height };
     }
 
     static Shader toRaylibShader(aiko::shader::Shader& ptr)
@@ -74,7 +89,7 @@ namespace raylib::utils
 
     static Camera3D toRaylibCamera3D(aiko::Camera& ptr)
     {
-        return { toRayliVector3(ptr.position), toRayliVector3(ptr.target), toRayliVector3(ptr.getUp()), ptr.getFOV(), ptr.getCameraType()};
+        return { toRaylibVector3(ptr.position), toRaylibVector3(ptr.target), toRaylibVector3(ptr.getUp()), ptr.getFOV(), ptr.getCameraType()};
     }
 
 }

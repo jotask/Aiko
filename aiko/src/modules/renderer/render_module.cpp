@@ -151,7 +151,7 @@ namespace aiko
         if (IsKeyPressed(KEY_F1))
         {
             m_isImguiDemoOpen = !m_isImguiDemoOpen;
-            DrawText("Presse", 0, 20, 20, ::GREEN);
+            DrawText("Pressed", 0, 20, 20, ::GREEN);
         }
     
         if (m_isImguiDemoOpen)
@@ -159,14 +159,11 @@ namespace aiko
             ImGui::ShowDemoWindow(&m_isImguiDemoOpen);
         }
     
-        DrawText("Imgui Debug : " + m_isImguiDemoOpen ? "true" : "false", 0, 20, 20, ::GREEN);
-    
         m_renderType->render();
     }
     
     void RenderModule::postRender()
     {
-    
         m_renderType->postRender();
     }
     
@@ -248,47 +245,58 @@ namespace aiko
         ClearBackground(::WHITE);
     }
 
-    void RenderModule::beginMode2D()
+    void RenderModule::beginMode2D(Camera* cam)
     {
-        // TODO We should pass the camera
-        // auto* camera = m_cameraModule->GetMainCamera();
-        // BeginMode2D( camera. );
+        auto c = raylib::utils::toRaylibCamera3D(*cam);
+        ::BeginMode3D(c);
     }
 
     void RenderModule::endMode2D()
     {
+        ::EndMode2D();
     }
 
-    void RenderModule::beginMode3D()
+    void RenderModule::beginMode3D(Camera* cam)
     {
+        auto c = raylib::utils::toRaylibCamera3D(*cam);
+        ::BeginMode3D(c);
     }
 
     void RenderModule::endMode3D()
     {
+        ::EndMode3D();
     }
 
     void RenderModule::beginTextureMode(texture::RenderTexture2D* target)
     {
+        auto t = raylib::utils::toRaylibRenderTexture2D(*target);
+        ::BeginTextureMode(t);
     }
 
     void RenderModule::endTextureMode(void)
     {
+        ::EndTextureMode();
     }
 
-    void RenderModule::beginShaderMode(Shader* shader)
+    void RenderModule::beginShaderMode(aiko::shader::Shader* shader)
     {
+        auto s = raylib::utils::toRaylibShader( *shader );
+        ::BeginShaderMode(s);
     }
 
     void RenderModule::endShaderMode(void)
     {
+        ::EndShaderMode();
     }
 
-    void RenderModule::beginBlendMode(int mode)
+    void RenderModule::beginBlendMode(BlendMode mode)
     {
+        ::BeginBlendMode(mode);
     }
 
     void RenderModule::endBlendMode(void)
     {
+        ::EndBlendMode();
     }
 
 }
