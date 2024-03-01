@@ -13,6 +13,36 @@
 namespace shadertoy
 {
 
+    std::vector<std::string> ShaderToy::s_shaders =
+    {
+        "aiko_shadertoy_coastal_fractal",
+        "aiko_shadertoy_cyber_fuji",
+        "aiko_shadertoy_fractal_pyramid",
+        "aiko_shadertoy_phanton_start",
+        "aiko_shadertoy_sun",
+        "aiko_shadertoy_sun_mandala",
+        "aiko_shadertoy_fractal_lines",
+        "aiko_shadertoy_mandala_art_of_code",
+        "aiko_shadertoy_hexaflower",
+        "aiko_shadertoy_rosaic",
+        "aiko_shadertoy_test_fractal",
+        "aiko_shadertoy_nunu_mandala",
+        "aiko_shadertoy_fractal_mandala_twtich",
+        "aiko_shadertoy_fractal_circles",
+        "aiko_shadertoy_mandala_start_pattern",
+        "aiko_shadertoy_weird_twitch",
+        "aiko_shadertoy_mandala",
+        "aiko_shadertoy_a_nice_mandala",
+        "aiko_shadertoy_mandala_flowers",
+        "aiko_shadertoy_happy_seigaiha_mandala",
+        "aiko_shadertoy",
+        "aiko_shadertoy_fractal",
+        "aiko_shadertoy_fractal_infinite_1",
+        "aiko_shadertoy_fractal_infinite_2",
+        "aiko_shadertoy_fractal_infinite_spheres",
+        "aiko_shadertoy_happy",
+    };
+
     void ShaderToy::init()
     {
         Application::init();
@@ -78,36 +108,6 @@ namespace shadertoy
         auto* texture = getTargetTexture();
         m_shader.draw(texture);
     }
-
-    std::vector<std::string> ShaderToy::s_shaders =
-    {
-        "aiko_shadertoy_coastal_fractal",
-        "aiko_shadertoy_cyber_fuji",
-        "aiko_shadertoy_fractal_pyramid",
-        "aiko_shadertoy_phanton_start",
-        "aiko_shadertoy_sun",
-        "aiko_shadertoy_sun_mandala",
-        "aiko_shadertoy_fractal_lines",
-        "aiko_shadertoy_mandala_art_of_code",
-        "aiko_shadertoy_hexaflower",
-        "aiko_shadertoy_rosaic",
-        "aiko_shadertoy_test_fractal",
-        "aiko_shadertoy_nunu_mandala",
-        "aiko_shadertoy_fractal_mandala_twtich",
-        "aiko_shadertoy_fractal_circles",
-        "aiko_shadertoy_mandala_start_pattern",
-        "aiko_shadertoy_weird_twitch",
-        "aiko_shadertoy_mandala",
-        "aiko_shadertoy_a_nice_mandala",
-        "aiko_shadertoy_mandala_flowers",
-        "aiko_shadertoy_happy_seigaiha_mandala",
-        "aiko_shadertoy",
-        "aiko_shadertoy_fractal",
-        "aiko_shadertoy_fractal_infinite_1",
-        "aiko_shadertoy_fractal_infinite_2",
-        "aiko_shadertoy_fractal_infinite_spheres",
-        "aiko_shadertoy_happy",
-    };
 
     void ShaderToy::nextShader()
     {

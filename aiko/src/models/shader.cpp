@@ -58,10 +58,19 @@ namespace aiko::shader
 
     void Shader::draw(texture::RenderTexture2D* text)
     {
-        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
-        BeginShaderMode(m_shader);
-        DrawTextureEx(raylib::utils::toRaylibTexture(text->texture), {0.0f, 0.0f}, 0.0f, 1.0f, ::WHITE);
-        EndShaderMode();
+        ::RenderTexture2D target = raylib::utils::toRaylibRenderTexture2D(*text);
+        {
+            BeginTextureMode(target);
+            DrawRectangle(0.0f, 0.0f, 100.f, 100.f, ::RED);
+            EndTextureMode();
+        }
+        {
+            ::Shader shader = raylib::utils::toRaylibShader(*this);
+            ::Texture texture = raylib::utils::toRaylibTexture(text->texture);
+            BeginShaderMode(shader);
+            DrawTextureEx(texture, {0.0f, 0.0f}, 0.0f, 1.0f, ::WHITE);
+            EndTextureMode();
+        }
     }
 
 }

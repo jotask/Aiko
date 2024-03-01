@@ -17,8 +17,7 @@ namespace aiko
 {
 
     RenderModule::RenderModule()
-        : m_isImguiDemoOpen(false)
-        , m_displayModule(nullptr)
+        : m_displayModule(nullptr)
         , m_renderTexture2D()
     {
     
@@ -140,24 +139,42 @@ namespace aiko
     {
         BeginDrawing();
         rlImGuiBegin();
+
+        beginTextureMode(m_renderTexture2D);
+        clearBackground(WHITE);
+        // This likelly needs to be removed, for now draw the entire screen
+        auto screenSize = getDisplaySize();
+        drawRectangle(screenSize.x * 0.5f, 0, 100, 100, BLACK);
+        endTextureMode();
+
     }
     
     void RenderModule::endFrame()
     {
 
+        clearBackground(RAYWHITE);
 
-        ClearBackground(::RAYWHITE);
-        DrawFPS(0, 0);
-
-        // We are done, render to the texture
-
-        auto rt = raylib::utils::toRaylibRenderTexture2D(m_renderTexture2D);
-        BeginTextureMode(rt);
-        ClearBackground(::BLACK);
+        // Test Render
+        /*
+        beginTextureMode(m_renderTexture2D);
+        clearBackground(WHITE);
         // This likelly needs to be removed, for now draw the entire screen
         auto screenSize = getDisplaySize();
-        DrawRectangle(0, 0, 100, 100, ::BLACK);
-        EndTextureMode();
+        drawRectangle(screenSize.x * 0.5f, 0, 100, 100, BLACK);
+        endTextureMode();
+        */
+
+        auto screenSize = getDisplaySize();
+        drawTexturePro(
+            m_renderTexture2D.texture,
+            Rectangle{ 0, 0, static_cast<float>(m_renderTexture2D.texture.width), static_cast<float>(-m_renderTexture2D.texture.height) },
+            Rectangle{ 0, 0, static_cast<float>(screenSize.x), static_cast<float>(screenSize.y) },
+            vec2{ 0, 0 },
+            0,
+            WHITE
+        );
+
+        DrawFPS(0, 0);
 
         rlImGuiEnd();
         EndDrawing();
@@ -191,9 +208,10 @@ namespace aiko
 
     }
 
-    void RenderModule::clearBackground()
+    void RenderModule::clearBackground(Color color)
     {
-        ClearBackground(::WHITE);
+        auto c = raylib::utils::toRaylibColor(color);
+        ClearBackground(c);
     }
 
     void RenderModule::beginMode2D(Camera* cam)
@@ -218,9 +236,9 @@ namespace aiko
         ::EndMode3D();
     }
 
-    void RenderModule::beginTextureMode(texture::RenderTexture2D* target)
+    void RenderModule::beginTextureMode(texture::RenderTexture2D& target)
     {
-        auto t = raylib::utils::toRaylibRenderTexture2D(*target);
+        auto t = raylib::utils::toRaylibRenderTexture2D(target);
         ::BeginTextureMode(t);
     }
 

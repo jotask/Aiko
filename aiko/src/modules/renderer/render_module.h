@@ -96,16 +96,14 @@ namespace aiko
 
         texture::RenderTexture2D m_renderTexture2D;
 
-        bool m_isImguiDemoOpen;
-
         void onWindowResize(Event&);
 
-        void clearBackground();
+        void clearBackground(Color);
         void beginMode2D(Camera*);
         void endMode2D();
         void beginMode3D(Camera*);
         void endMode3D();
-        void beginTextureMode(texture::RenderTexture2D* target);
+        void beginTextureMode(texture::RenderTexture2D& target);
         void endTextureMode(void);
         void beginShaderMode(shader::Shader* shader);
         void endShaderMode(void);
