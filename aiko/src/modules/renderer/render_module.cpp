@@ -13,6 +13,7 @@
 #include "modules/camera_module.h"
 #include "models/camera.h"
 #include "core/textures.h"
+#include "events/events.hpp"
 
 #include "core/raylib_utils.h"
 
@@ -54,6 +55,9 @@ namespace aiko
         auto data = LoadRenderTexture(size.x, size.y);
         m_renderTexture2D = raylib::utils::toRenderTexture2D(data);
         m_renderType->init();
+
+        EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);
+
     }
     
     void RenderModule::postInit()
@@ -63,19 +67,6 @@ namespace aiko
     
     void RenderModule::preUpdate()
     {
-        if (IsWindowResized() == true && IsWindowFullscreen() == false)
-        {
-            auto screenWidth = GetScreenWidth();
-            auto screenHeight = GetScreenHeight();
-            {
-                auto rt = raylib::utils::toRaylibRenderTexture2D(m_renderTexture2D);
-                UnloadRenderTexture(rt);
-            }
-            {
-                auto texture = LoadRenderTexture(screenWidth, screenHeight);
-                m_renderTexture2D = raylib::utils::toRenderTexture2D(texture);
-            }
-        }
         m_renderType->preUpdate();
     }
     
@@ -232,6 +223,24 @@ namespace aiko
             m_renderType->init();
             m_renderType->postInit();
         }
+    }
+
+    void RenderModule::onWindowResize(Event& event)
+    {
+        const auto& msg = static_cast<const WindowResizeEvent&>(event);
+        //resizeViewport(msg.width, msg.height);
+
+        auto screenWidth = msg.width;
+        auto screenHeight = msg.height;
+        {
+            auto rt = raylib::utils::toRaylibRenderTexture2D(m_renderTexture2D);
+            UnloadRenderTexture(rt);
+        }
+        {
+            auto texture = LoadRenderTexture(screenWidth, screenHeight);
+            m_renderTexture2D = raylib::utils::toRenderTexture2D(texture);
+        }
+
     }
 
     void RenderModule::clearBackground()

@@ -2,6 +2,8 @@
 
 #include <core/libs.h>
 
+#include "events/events.hpp"
+
 namespace aiko
 {
     
@@ -41,7 +43,14 @@ namespace aiko
         InitWindow(screenWidth, screenHeight, "Aiko");
         rlImGuiSetup(true);
     }
-    
-    
+
+    void DisplayModule::preUpdate()
+    {
+        if (::IsWindowResized())
+        {
+            WindowResizeEvent even(::GetScreenWidth(), GetScreenHeight());
+            aiko::EventSystem::it().sendEvent(even);
+        }
+    }
 
 }

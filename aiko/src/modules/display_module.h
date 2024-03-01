@@ -13,7 +13,9 @@ namespace aiko
     
         DisplayModule() = default;
         virtual ~DisplayModule();
-    
+
+
+
         bool isOpen();
 
         ivec2 getDisplaySize();
@@ -29,6 +31,7 @@ namespace aiko
         const int screenHeight = 450;
     
         virtual void init() override;
+        virtual void preUpdate() override;
     
     };
 

@@ -5,6 +5,7 @@
 #include "modules/renderer/renderer_component.h"
 #include "core/textures.h"
 #include "models/shader.h"
+#include "events/event.hpp"
 
 namespace aiko
 {
@@ -64,6 +65,8 @@ namespace aiko
         bool m_isImguiDemoOpen;
 
         void updateRenderType(RenderModule::RenderType newRenderType, bool autoInit = true);
+
+        void onWindowResize(Event&);
 
         void clearBackground();
         void beginMode2D();
