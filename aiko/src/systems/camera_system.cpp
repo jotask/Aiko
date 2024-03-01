@@ -1,6 +1,5 @@
 #include "camera_system.h"
 
-#include <core/libs.h>
 #include "modules/module_connector.h"
 
 #include "modules/renderer/render_module.h"
