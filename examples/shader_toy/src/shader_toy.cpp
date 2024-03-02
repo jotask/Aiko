@@ -10,6 +10,7 @@
 #include "systems/render_system.h"
 #include "core/utils.h"
 #include "types/inputs.h"
+#include "shared/math.h"
 
 namespace shadertoy
 {
@@ -95,11 +96,14 @@ namespace shadertoy
             iDate = aiko::vec4(1900 + parts->tm_year, 1 + parts->tm_mon, parts->tm_mday, time(NULL));
         }
 
-        m_shader.setShaderValue(iResolutionLoc, &getDisplaySize(), aiko::SHADER_UNIFORM_VEC3);   // viewport resolution (in pixels)
+        // TODO :: Extract this from here, we dont' need to update each frame only when viewport/display changes
+        aiko::vec3 iResolution = { (aiko::vec2)getDisplaySize(), getAspectRatio() }; // vec3 becasue { width, height, pixel aspect ratio }
+        m_shader.setShaderValue(iResolutionLoc, iResolution);
+
         m_shader.setShaderValue(iTimeLoc, iTime);                                   // shader playback time (in seconds)
         m_shader.setShaderValue(iTimeDeltaLoc, iTimeDelta);                         // render time (in seconds)
         m_shader.setShaderValue(iFrameRateLoc, iFrameRate);                         // shader frame rate
-        m_shader.setShaderValue(iFrameLoc, iFrame);                                   // shader playback frame
+        m_shader.setShaderValue(iFrameLoc, iFrame);                                 // shader playback frame
 
         m_shader.setShaderValueV(iChannelTimeLoc, iChannelTime, aiko::shader::Shader::SUDT::SHADER_UNIFORM_FLOAT, 4);                     // channel playback time (in seconds)
         m_shader.setShaderValue(iChannelResolutionLoc, &iChannelResolution, aiko::SHADER_UNIFORM_VEC3);          // channel resolution (in pixels)
