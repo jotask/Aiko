@@ -87,8 +87,16 @@ namespace raylib::utils
         return { ptr.x, ptr.y, ptr.width, ptr.height };
     }
 
-    static ::Shader toRaylibShader(aiko::shader::Shader& ptr)
+    static ::Shader toRaylibShader(aiko::shader::Shader& ptr, bool maloc = false )
     {
+        if (maloc == true)
+        {
+            // FIXME :: UnloadShader RL_FREE memory. Create a safe copy so can delete it.
+            // If not, we are just adding the stack m_locs;
+            int* locsCopy = new int[ptr.m_locs.size()];
+            std::copy(ptr.m_locs.begin(), ptr.m_locs.end(), locsCopy);
+            return { ptr.m_id, locsCopy };
+        }
         return { ptr.m_id, ptr.m_locs.data() };
     }
 

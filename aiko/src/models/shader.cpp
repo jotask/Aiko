@@ -12,6 +12,7 @@ namespace aiko::shader
 #define AIKO_RETURN_NO_LOC if(locIndex< 0) return;
 
     Shader::Shader()
+        : m_locs( RL_MAX_SHADER_LOCATIONS, -1 )
     {
     
     }
@@ -21,18 +22,13 @@ namespace aiko::shader
         auto data = LoadShader(vs, fs);
         m_id = data.id;
         m_locs.clear();
-        m_locs.reserve( RL_MAX_SHADER_LOCATIONS);
-        const int* end = data.locs + sizeof(data.locs);
-        for (int* it = data.locs; it < end ; ++it)
-        {
-            int value = *it ;
-            m_locs.push_back(value);
-        }
+        m_locs.resize(RL_MAX_SHADER_LOCATIONS);
+        std::copy(data.locs, data.locs + RL_MAX_SHADER_LOCATIONS, m_locs.begin());
     }
 
     void Shader::unload()
     {
-        ::Shader shader = raylib::utils::toRaylibShader(*this);
+        ::Shader shader = raylib::utils::toRaylibShader(*this, true);
         UnloadShader(shader);
     }
 
