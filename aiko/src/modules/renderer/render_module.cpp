@@ -2,28 +2,32 @@
 
 #include <string>
 
-#include <imgui.h>
-#include <raylib.h>
-#include <rlImGui.h>
+#include <core/libs.h>
 
-#include "modules/renderer/render_component_2d.h"
-#include "modules/renderer/render_component_3d.h"
-#include "modules/renderer/render_component_texture.h"
-#include "modules/renderer/render_component_pixel.h"
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
 #include "modules/camera_module.h"
+#include "models/camera.h"
+#include "types/textures.h"
+#include "events/events.hpp"
+
+#include "core/raylib_utils.h"
 
 namespace aiko
 {
-    
+
     RenderModule::RenderModule()
-        : m_renderType(nullptr)
-        , m_currentRenderType(RenderType::Texture)
-        , m_isImguiDemoOpen(false)
-        , m_displayModule(nullptr)
+        : m_displayModule(nullptr)
+        , m_scale(false)
+        , m_renderTexture2D()
     {
     
+    }
+
+    RenderModule::~RenderModule()
+    {
+        auto rt = raylib::utils::toRaylibRenderTexture2D(m_renderTexture2D);
+        UnloadRenderTexture(rt);
     }
     
     void RenderModule::connect(ModuleConnector* moduleConnector)
@@ -34,33 +38,35 @@ namespace aiko
 
     void RenderModule::preInit()
     {
-        updateRenderType(m_currentRenderType, false);
-        m_renderType->preInit();
+
     }
     
     void RenderModule::init()
     {
-        m_renderType->init();
+        auto size = getDisplaySize();
+        auto data = LoadRenderTexture(size.x, size.y);
+        m_renderTexture2D = raylib::utils::toRenderTexture2D(data);
+        EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);
     }
     
     void RenderModule::postInit()
     {
-        m_renderType->postInit();
+
     }
     
     void RenderModule::preUpdate()
     {
-        m_renderType->preUpdate();
+
     }
     
     void RenderModule::update()
     {
-        m_renderType->update();
+
     }
     
     void RenderModule::postUpdate()
     {
-        m_renderType->postUpdate();
+
     }
     
     void RenderModule::preRender()
@@ -117,83 +123,138 @@ namespace aiko
             ::ImGui::End();
         }
         */
-
-        m_renderType->preRender();
     }
     
     void RenderModule::render()
     {
-    
-        if (IsKeyPressed(KEY_F1))
-        {
-            m_isImguiDemoOpen = !m_isImguiDemoOpen;
-            DrawText("Presse", 0, 20, 20, GREEN);
-        }
-    
-        if (m_isImguiDemoOpen)
-        {
-            ImGui::ShowDemoWindow(&m_isImguiDemoOpen);
-        }
-    
-        DrawText("Imgui Debug : " + m_isImguiDemoOpen ? "true" : "false", 0, 20, 20, GREEN);
-    
-        m_renderType->render();
+
     }
     
     void RenderModule::postRender()
     {
-    
-        m_renderType->postRender();
+
     }
     
     void RenderModule::beginFrame()
     {
         BeginDrawing();
         rlImGuiBegin();
-        m_renderType->beginFrame();
+        clearBackground(WHITE);
     }
     
     void RenderModule::endFrame()
     {
+
+        ivec2 screenSize = getDisplaySize();
+        vec2 targetSize = { static_cast<float>(m_renderTexture2D.texture.width), static_cast<float>(-m_renderTexture2D.texture.height) };
+        vec2 targScreen = { static_cast<float>(screenSize.x), static_cast<float>(screenSize.y) };
+
+        drawTexturePro(
+            m_renderTexture2D.texture,
+            Rectangle{ 0, 0, targetSize.x, targetSize.y },
+            Rectangle{ 0, 0, targScreen.x, targScreen.y },
+            vec2{ 0, 0 },
+            0,
+            WHITE
+        );
+
         DrawFPS(0, 0);
+
         rlImGuiEnd();
         EndDrawing();
-        m_renderType->endFrame();
     }
 
-    vec2 RenderModule::getDisplaySize()
+    ivec2 RenderModule::getDisplaySize()
     {
-        return m_displayModule->getDisplaySize();
+        return m_displayModule->getCurrentDisplay().getDisplaySize();
     }
 
-    void RenderModule::updateRenderType(RenderModule::RenderType newRenderType, bool autoInit)
+    texture::RenderTexture2D* RenderModule::getRenderTexture()
     {
-        // TODO Do we want to do something with the previous if exists?
-        m_currentRenderType = newRenderType;
-        switch (m_currentRenderType)
+        return &m_renderTexture2D;
+    }
+
+    void RenderModule::onWindowResize(Event& event)
+    {
+        const auto& msg = static_cast<const WindowResizeEvent&>(event);
+        //resizeViewport(msg.width, msg.height);
+
+        if (m_scale == true)
         {
-        case RenderModule::RenderType::TwoDimensions:
-            m_renderType = std::make_unique<RenderComponent2D>(this);
-            break;
-        case RenderModule::RenderType::ThreeDimensions:
-            m_renderType = std::make_unique<RenderComponent3D>(this);
-            break;
-        case RenderModule::RenderType::Texture:
-            m_renderType = std::make_unique<RenderComponentTexture>(this);
-            break;
-        case RenderModule::RenderType::Pixel:
-            m_renderType = std::make_unique<RenderComponentPixel>(this);
-            break;
-        default:
-            // TODO assert
-            break;
+            return;
         }
-        if (autoInit ==  true)
+
+        auto screenWidth = msg.width;
+        auto screenHeight = msg.height;
         {
-            m_renderType->preInit();
-            m_renderType->init();
-            m_renderType->postInit();
+            auto rt = raylib::utils::toRaylibRenderTexture2D(m_renderTexture2D);
+            UnloadRenderTexture(rt);
         }
+        {
+            auto texture = LoadRenderTexture(screenWidth, screenHeight);
+            m_renderTexture2D = raylib::utils::toRenderTexture2D(texture);
+        }
+
+    }
+
+    void RenderModule::clearBackground(Color color)
+    {
+        auto c = raylib::utils::toRaylibColor(color);
+        ClearBackground(c);
+    }
+
+    void RenderModule::beginMode2D(Camera* cam)
+    {
+        auto c = raylib::utils::toRaylibCamera3D(*cam);
+        ::BeginMode3D(c);
+    }
+
+    void RenderModule::endMode2D()
+    {
+        ::EndMode2D();
+    }
+
+    void RenderModule::beginMode3D(Camera* cam)
+    {
+        auto c = raylib::utils::toRaylibCamera3D(*cam);
+        ::BeginMode3D(c);
+    }
+
+    void RenderModule::endMode3D()
+    {
+        ::EndMode3D();
+    }
+
+    void RenderModule::beginTextureMode(texture::RenderTexture2D& target)
+    {
+        auto t = raylib::utils::toRaylibRenderTexture2D(target);
+        ::BeginTextureMode(t);
+    }
+
+    void RenderModule::endTextureMode(void)
+    {
+        ::EndTextureMode();
+    }
+
+    void RenderModule::beginShaderMode(aiko::shader::Shader* shader)
+    {
+        auto s = raylib::utils::toRaylibShader( *shader );
+        ::BeginShaderMode(s);
+    }
+
+    void RenderModule::endShaderMode(void)
+    {
+        ::EndShaderMode();
+    }
+
+    void RenderModule::beginBlendMode(BlendMode mode)
+    {
+        ::BeginBlendMode(mode);
+    }
+
+    void RenderModule::endBlendMode(void)
+    {
+        ::EndBlendMode();
     }
 
 }

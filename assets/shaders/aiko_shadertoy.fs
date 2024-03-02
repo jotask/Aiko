@@ -16,25 +16,19 @@ uniform int       iFrame;                // shader playback frame
 uniform vec4      iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
 uniform vec4      iDate;                 // (year, month, day, time in seconds)
 
-float r(float n)
-{
- 	return fract(abs(sin(n*55.753)*367.34));   
-}
-float r(vec2 n)
-{
-    return r(dot(n,vec2(2.46,-1.21)));
-}
-float cycle(float n)
-{
- 	return cos(fract(n)*2.0*3.141592653)*0.5+0.5;
-}
-
 void main()
 {
-    float a = (radians(60.0));
-    float zoom = 96.0;
-	vec2 c = (gl_FragCoord.xy+vec2(iTime*zoom,0.0))*vec2(sin(a),1.0);
-    c = ((c+vec2(c.y,0.0)*cos(a))/zoom)+vec2(floor(4.*(c.x-c.y*cos(a))/zoom),0.0);
-    float n = cycle(r(floor(c*4.0))*0.2+r(floor(c*2.0))*0.3+r(floor(c))*0.5+iTime*0.125);
-	fragColor = vec4(n*2.0,pow(n,2.0),0.0,1.0);
+    // Normalized time value, will cycle from 0 to 1
+    float time = mod(iTime, 1.0);
+
+    // Create a dynamic RGB color using the time variable
+    // This will cycle through colors in a smooth manner
+    vec3 dynamicColor = vec3(
+        sin(time * 2.0 * 3.1415926) * 0.5 + 0.5, // Red channel, cycles from 0 to 1
+        cos(time * 2.0 * 3.1415926) * 0.5 + 0.5, // Green channel, cycles from 0 to 1
+        sin(time * 4.0 * 3.1415926) * 0.5 + 0.5  // Blue channel, cycles at a different rate
+    );
+
+	fragColor = vec4(dynamicColor, 1.0); // Output the color with full alpha
+
 }

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.19)
 
 #raylib
 add_subdirectory("${CMAKE_SOURCE_DIR}/submodules/raylib" raylib EXCLUDE_FROM_ALL)
+add_library(rb::raylib ALIAS raylib)
 
 #imgui
 
@@ -39,6 +40,9 @@ target_link_libraries(rlImGui PUBLIC imgui raylib)
 # spdlog
 add_subdirectory("${CMAKE_SOURCE_DIR}/submodules/spdlog" spdlog EXCLUDE_FROM_ALL)
 
+# entt
+add_subdirectory("${CMAKE_SOURCE_DIR}/submodules/entt" Entt)
+
 # GLM
 add_subdirectory("${CMAKE_SOURCE_DIR}/submodules/glm" GLM EXCLUDE_FROM_ALL)
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_SOURCE_DIR}/submodules/glm")
@@ -46,6 +50,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_SOURCE_DIR}/submodule
 ## Add libraries into folder
 set_property(TARGET raylib PROPERTY FOLDER "Submodules")
 set_property(TARGET spdlog PROPERTY FOLDER "Submodules")
+set_property(TARGET EnTT PROPERTY FOLDER "Submodules")
 set_property(TARGET imgui PROPERTY FOLDER "Submodules")
 set_property(TARGET rlImGui PROPERTY FOLDER "Submodules")
 set_property(TARGET binary_to_compressed_c PROPERTY FOLDER "Submodules")

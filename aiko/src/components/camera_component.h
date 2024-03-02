@@ -1,9 +1,7 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
 #include "models/component.h"
-#include "models/camera_types.h"
+#include "types/camera_types.h"
 
 namespace aiko
 {
@@ -21,13 +19,16 @@ namespace aiko
     
         camera::CameraController getCameraController() const;
         void setCameraController(camera::CameraController);
+
+        virtual void update() override { };
+        virtual void render() override { };
     
     protected:
         virtual void init() override;
     
     private:
     
-        aiko::AikoPtr<Camera> m_camera;
+        Camera* m_camera;
     
     };
 

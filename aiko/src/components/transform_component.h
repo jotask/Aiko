@@ -1,8 +1,8 @@
 #pragma once
 
-#include <aiko_types.h>
-
+#include "aiko_types.h"
 #include "models/component.h"
+#include "shared/math.h"
 
 namespace aiko
 {
@@ -16,6 +16,10 @@ namespace aiko
         vec3 position = vec3(0.0f);
         vec3 rotation = vec3(0.0f);
         vec3 scale = vec3(1.0f);
+
+        // FIXME temporary as component now has all interfaces
+        virtual void update() override { };
+        virtual void render() override { };
 
     };
 

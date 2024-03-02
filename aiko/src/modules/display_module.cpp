@@ -1,7 +1,8 @@
 #include "display_module.h"
 
-#include <raylib.h>
-#include <rlImGui.h>
+#include <core/libs.h>
+
+#include "events/events.hpp"
 
 namespace aiko
 {
@@ -11,23 +12,25 @@ namespace aiko
         CloseWindow();
     }
     
-    bool DisplayModule::isOpen()
-    {
-        return !WindowShouldClose();
-    }
-
-    vec2 DisplayModule::getDisplaySize()
-    {
-        return {GetScreenWidth(), GetScreenHeight()};
-    }
-    
     void DisplayModule::init()
     {
         SetConfigFlags(FLAG_WINDOW_RESIZABLE);
         InitWindow(screenWidth, screenHeight, "Aiko");
         rlImGuiSetup(true);
     }
-    
-    
+
+    void DisplayModule::preUpdate()
+    {
+        if (::IsWindowResized())
+        {
+            WindowResizeEvent even(::GetScreenWidth(), GetScreenHeight());
+            aiko::EventSystem::it().sendEvent(even);
+        }
+        if (::WindowShouldClose())
+        {
+            WindowCloseEvent even;
+            aiko::EventSystem::it().sendEvent(even);
+        }
+    }
 
 }

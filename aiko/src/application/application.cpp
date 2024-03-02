@@ -1,10 +1,12 @@
 #include "application/application.h"
 
-#include "models/game_object.h"
-#include "components/camera_component.h"
-#include "components/mesh_component.h"
-#include "components/light_component.h"
+#include <aiko.h>
+#include "systems/camera_system.h"
+#include "systems/render_system.h"
 
+#include "core/raylib_utils.h"
+
+#include <core/libs.h>
 
 namespace aiko
 {
@@ -12,45 +14,62 @@ namespace aiko
     Application::Application()
         : m_aiko( std::make_unique<Aiko>( this ) )
     {
+
+    }
+
+    ivec2 Application::getDisplaySize() const
+    {
+        static auto cs = m_aiko->getSystem<CameraSystem>();
+        return cs->getDisplaySize();
+    }
+
+    float Application::getAspectRatio() const
+    {
+        auto size = getDisplaySize();
+        return static_cast<float>(size.x) / static_cast<float>(size.y);
+    }
+
+    texture::RenderTexture2D* Application::getTargetTexture() const
+    {
+        static auto rs = m_aiko->getSystem<RenderSystem>();
+        return rs->getTargetTexture();
+    }
+
+    RenderSystem* Application::getRenderSystem()
+    {
+        static auto rs = m_aiko->getSystem<RenderSystem>();
+        return rs.get();
+    }
+
+    Camera* Application::getMainCamera()
+    {
+        static auto cs = m_aiko->getSystem<CameraSystem>();
+        return cs->getMainCamera();
+    }
+
+    void Application::run()
+    {
         m_aiko->run();
     }
 
-    void Application::initEditor()
+    float Application::getlDeltaTime() const
     {
-        /*
-        GameObject* camera = m_aiko->createGameObject();
-        auto cam = camera->addComponent<CameraComponent>();
+        return ::GetFrameTime();
+    }
 
-        GameObject* lights = m_aiko->createGameObject("Lights");
-        auto light1 = lights->addComponent<LightComponent>();
-        light1->setPrimitive(Light::Type::Ambient);
-        light1->color = { 1.f, 1.f, 1.f, 1.f };
+    bool Application::isKeyPressed(Key key) const
+    {
+        return ::IsKeyPressed((KeyboardKey)key);
+    }
 
-        auto light2 = lights->addComponent<LightComponent>();
-        light2->setPrimitive(Light::Type::Point);
-        light2->color = { 0.25f, 0.5f, 0.75f, 1.f };
+    vec2 Application::getMousePosition() const
+    {
+        return raylib::utils::toVec2(::GetMousePosition());
+    }
 
-        auto light3 = lights->addComponent<LightComponent>();
-        light3->setPrimitive(Light::Type::Directional);
-        light3->color = { 0.25f, 0.5f, 0.75f, 1.f };
-
-        GameObject* ball = m_aiko->createGameObject("Sphere");
-        ball->transform()->position = { 0.f, 0.f, 0.f };
-        auto ballMesh = ball->addComponent<MeshComponent>();
-        ballMesh->setPrimitive(Mesh::Sphere);
-    
-        GameObject* pyramid = m_aiko->createGameObject("Cone");
-        pyramid->transform()->position = {1.1f, 0.f, 0.f};
-        auto pyramidMesh = pyramid->addComponent<MeshComponent>();
-        pyramidMesh->setPrimitive(Mesh::Cone);
-
-        GameObject* cube = m_aiko->createGameObject("Cylinder");
-        cube->transform()->position = {-1.1f, 0.f, 0.f};
-        auto cubeMesh = cube->addComponent<MeshComponent>();
-        cubeMesh->setPrimitive(Mesh::Cylinder);
-        */
-
-
+    bool Application::isMouseButtonPressed(MouseButton button) const
+    {
+        return ::IsMouseButtonPressed((::MouseButton)button);
     }
 
 }

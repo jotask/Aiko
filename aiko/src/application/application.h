@@ -2,9 +2,15 @@
 
 #include "aiko_types.h"
 #include "aiko.h"
+#include "types/textures.h"
+#include "types/inputs.h"
+#include "shared/math.h"
 
 namespace aiko
 {
+
+    class Camera;
+    class RenderSystem;
 
     class Application
     {
@@ -15,16 +21,28 @@ namespace aiko
         Application();
         virtual ~Application() = default;
 
-    protected:
-        const aiko::AikoUPtr<Aiko> m_aiko;
+        void run();
 
-        virtual void init() { initEditor(); }
+    protected:
+
+        float getlDeltaTime() const;
+        bool isKeyPressed(Key) const;
+        vec2 getMousePosition() const;
+        bool isMouseButtonPressed(MouseButton) const;
+
+        virtual void init() {};
         virtual void update() {}
         virtual void render() {}
 
-    private:
+        RenderSystem* getRenderSystem();
+        Camera* getMainCamera();
+        ivec2 getDisplaySize() const;
+        float getAspectRatio() const;
+        texture::RenderTexture2D* getTargetTexture() const;
 
-        void initEditor();
+        aiko::AikoUPtr<Aiko> m_aiko;
+
+    private:
 
 
     };

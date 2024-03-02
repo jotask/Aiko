@@ -2,6 +2,8 @@
 
 #include "aiko_types.h"
 #include "base_module.h"
+#include "shared/math.h"
+#include "models/display.h"
 
 namespace aiko
 {
@@ -13,11 +15,9 @@ namespace aiko
     
         DisplayModule() = default;
         virtual ~DisplayModule();
-    
-        bool isOpen();
 
-        vec2 getDisplaySize();
-    
+        Display& getCurrentDisplay() { return m_curent; };
+
     protected:
 
         // TODO Get this size from config
@@ -25,6 +25,9 @@ namespace aiko
         const int screenHeight = 450;
     
         virtual void init() override;
+        virtual void preUpdate() override;
+
+        Display m_curent;
     
     };
 

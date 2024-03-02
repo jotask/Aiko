@@ -5,6 +5,7 @@
 #include "systems/system_connector.h"
 
 #include "application/application.h"
+#include "events/events.hpp"
 
 // Modules
 #include "modules/display_module.h"
@@ -32,10 +33,12 @@ namespace aiko
 
     Aiko::Aiko(Application * app,  AikoConfig cfg)
         : m_application(app)
+        , m_shouldStop(false)
         , cfg(cfg)
         , m_displayModule(nullptr)
     {
 
+        EventSystem::it().bind<WindowCloseEvent>(this, &Aiko::onWindowClose);
     }
 
     Aiko::~Aiko()
@@ -49,16 +52,19 @@ namespace aiko
         return obj;
     }
 
+    void Aiko::onWindowClose(Event& event)
+    {
+        const auto& msg = static_cast<const WindowCloseEvent&>(event);
+        m_shouldStop = true;
+    }
+
     void Aiko::run()
     {
         init();
-        m_application->init();
-        while (m_displayModule->isOpen() == true)
+        while (m_shouldStop == false)
         {
             update();
-            m_application->update();
             render();
-            m_application->render();
         }
         dispose();
     }
@@ -97,6 +103,8 @@ namespace aiko
         for (auto&& system : m_systems) system->connect(&moduleConnector, &systemConnector);
         for (auto&& system : m_systems) system->init();
 
+        m_application->init();
+
     }
 
     void Aiko::update()
@@ -104,6 +112,7 @@ namespace aiko
         for (auto&& module : m_modules) module->preUpdate();
         for (auto&& module : m_modules) module->update();
         for (auto&& system : m_systems) system->update();
+        m_application->update();
         for (auto&& module : m_modules) module->postUpdate();
     }
 
@@ -113,6 +122,7 @@ namespace aiko
         for (auto&& module : m_modules) module->preRender();
         for (auto&& module : m_modules) module->render();
         for (auto&& system : m_systems) system->render();
+        m_application->render();
         for (auto&& module : m_modules) module->postRender();
         for (auto&& module : m_modules) module->endFrame();
     }

@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <entt/entt.hpp>
+
 #include "base_module.h"
 
 namespace aiko
@@ -19,6 +21,7 @@ namespace aiko
         virtual void init() override;
     
         virtual void update() override;
+        virtual void postUpdate() override;
     
         virtual void preRender() override;
         virtual void render() override;
@@ -26,6 +29,8 @@ namespace aiko
     
     private:
     
+        entt::registry m_registry;
+
     };
 
 }

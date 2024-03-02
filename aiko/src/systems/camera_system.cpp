@@ -2,10 +2,11 @@
 
 #include "modules/module_connector.h"
 
+#include "modules/renderer/render_module.h"
 #include "modules/scene_module.h"
 #include "components/transform_component.h"
 #include "components/camera_component.h"
-#include "models/camera_types.h"
+#include "types/camera_types.h"
 #include "models/camera.h"
 
 namespace aiko
@@ -53,20 +54,31 @@ namespace aiko
         setCameraType(camera->cameraType);
         setCameraController(camera->cameraControler);
     }
-    
-    std::shared_ptr<Camera> CameraSystem::createCamera(bool setMain)
+
+    Camera* CameraSystem::getMainCamera()
     {
-        auto cam = std::make_shared<Camera>();
-        cam->cameraSystem = this;
+        return nullptr;
+    }
+
+    ivec2 CameraSystem::getDisplaySize()
+    {
+        return m_renderModule->getDisplaySize();
+    }
+    
+    Camera* CameraSystem::createCamera(bool setMain)
+    {  
+        Camera& cam = m_cameras.emplace_back();
+        cam.cameraSystem = this;
         if (setMain == true)
         {
-            setMainCamera(cam.get());
+            setMainCamera(&cam);
         }
-        return cam;
+        return &cam;
     }
     
     void CameraSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
+        m_renderModule = moduleConnector->find<RenderModule>();
         m_sceneModule = moduleConnector->find<SceneModule>();
     }
     

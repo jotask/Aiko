@@ -3,14 +3,16 @@
 #include <string>
 
 #include "aiko_types.h"
-#include "uuid.h"
+#include "core/uuid.h"
+#include "components/component_entity.h"
 
 namespace aiko
 {
     
     class GameObject;
     
-    class Component
+    // TODO extract this from the base class
+    class Component: public IUpdate, public IRender
     {
         friend class GameObject;
         friend class EntityComponentSystem;
@@ -28,8 +30,6 @@ namespace aiko
     protected:
         GameObject* gameobject;
         virtual void init() { }
-        virtual void update() { };
-        virtual void render() { };
     private:
         const std::string m_name;
         void setup(GameObject* obj);
