@@ -92,7 +92,7 @@ namespace aiko
     void RenderSystem::render(texture::RenderTexture2D& target, shader::Shader& shader)
     {
         m_renderModule->beginShaderMode(&shader);
-        m_renderModule->drawTexture(target.texture, 0, 0, WHITE);
+        m_renderModule->drawTextureEx(target.texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
         m_renderModule->endShaderMode();
     }
 
