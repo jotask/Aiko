@@ -50,6 +50,7 @@ namespace shadertoy
         Application::init();
 
         iTime = 0.0f;
+        iFrame = 0;
 
         currentShader = 0; // GetRandomValue(0, s_shaders.size());
         refreshShader(true);
