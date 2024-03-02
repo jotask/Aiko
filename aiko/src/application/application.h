@@ -37,6 +37,7 @@ namespace aiko
         RenderSystem* getRenderSystem();
         Camera* getMainCamera();
         ivec2 getDisplaySize() const;
+        float getAspectRatio() const;
         texture::RenderTexture2D* getTargetTexture() const;
 
         aiko::AikoUPtr<Aiko> m_aiko;
