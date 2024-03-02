@@ -17,6 +17,7 @@ namespace aiko
     {
     public:
         vec2() : vec2(0.0f) { };
+        vec2(ivec2 other) : vec2(other.x, other.y) { };
         vec2(float xyz) : vec2(xyz, xyz) { };
         vec2(float x, float y) : x(x), y(y) { };
         float x;
@@ -32,6 +33,9 @@ namespace aiko
     {
     public:
         vec3() : vec3(0.0f) { };
+        vec3(ivec2 other) : vec3(other.x, other.y, 0) { };
+        vec3(vec2 other) : vec3(other, 0) { };
+        vec3(vec2 other, float z) : vec3(other.x, other.y, z) { };
         vec3(float xyz) : vec3(xyz, xyz, xyz) { };
         vec3(float x, float y, float z) : x(x), y(y), z(z) { };
         float x;
