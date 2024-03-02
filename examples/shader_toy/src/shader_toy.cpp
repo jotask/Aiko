@@ -16,6 +16,7 @@ namespace shadertoy
 
     std::vector<std::string> ShaderToy::s_shaders =
     {
+        "aiko_shadertoy",
         "aiko_shadertoy_coastal_fractal",
         "aiko_shadertoy_cyber_fuji",
         "aiko_shadertoy_fractal_pyramid",
@@ -36,7 +37,6 @@ namespace shadertoy
         "aiko_shadertoy_a_nice_mandala",
         "aiko_shadertoy_mandala_flowers",
         "aiko_shadertoy_happy_seigaiha_mandala",
-        "aiko_shadertoy",
         "aiko_shadertoy_fractal",
         "aiko_shadertoy_fractal_infinite_1",
         "aiko_shadertoy_fractal_infinite_2",

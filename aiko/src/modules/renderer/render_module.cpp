@@ -47,7 +47,6 @@ namespace aiko
         auto data = LoadRenderTexture(size.x, size.y);
         m_renderTexture2D = raylib::utils::toRenderTexture2D(data);
         EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);
-
     }
     
     void RenderModule::postInit()
@@ -140,30 +139,11 @@ namespace aiko
     {
         BeginDrawing();
         rlImGuiBegin();
-
-        beginTextureMode(m_renderTexture2D);
         clearBackground(WHITE);
-        // This likelly needs to be removed, for now draw the entire screen
-        auto screenSize = getDisplaySize();
-        drawRectangle(screenSize.x * 0.5f, 0, 100, 100, BLACK);
-        endTextureMode();
-
     }
     
     void RenderModule::endFrame()
     {
-
-        clearBackground(RAYWHITE);
-
-        // Test Render
-        /*
-        beginTextureMode(m_renderTexture2D);
-        clearBackground(WHITE);
-        // This likelly needs to be removed, for now draw the entire screen
-        auto screenSize = getDisplaySize();
-        drawRectangle(screenSize.x * 0.5f, 0, 100, 100, BLACK);
-        endTextureMode();
-        */
 
         ivec2 screenSize = getDisplaySize();
         vec2 targetSize = { static_cast<float>(m_renderTexture2D.texture.width), static_cast<float>(-m_renderTexture2D.texture.height) };
