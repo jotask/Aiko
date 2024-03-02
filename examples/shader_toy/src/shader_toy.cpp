@@ -97,7 +97,7 @@ namespace shadertoy
         }
 
         // TODO :: Extract this from here, we dont' need to update each frame only when viewport/display changes
-        aiko::vec3 iResolution = { (aiko::vec2)getDisplaySize(), getAspectRatio() }; // vec3 becasue { width, height, pixel aspect ratio }
+        aiko::vec3 iResolution = { getViewportSize(), getAspectRatio() }; // vec3 becasue { width, height, pixel aspect ratio }
         m_shader.setShaderValue(iResolutionLoc, iResolution);
 
         m_shader.setShaderValue(iTimeLoc, iTime);                                   // shader playback time (in seconds)
@@ -126,7 +126,7 @@ namespace shadertoy
 
     void ShaderToy::randomShader()
     {
-        currentShader = aiko::utils::getRandomValue(0, s_shaders.size());
+        currentShader = aiko::utils::getRandomValue(0, s_shaders.size() - 1);
         refreshShader();
     }
 

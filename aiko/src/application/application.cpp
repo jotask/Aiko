@@ -17,16 +17,16 @@ namespace aiko
 
     }
 
-    ivec2 Application::getDisplaySize() const
+    vec2 Application::getViewportSize() const
     {
-        static auto cs = m_aiko->getSystem<CameraSystem>();
-        return cs->getDisplaySize();
+        auto target = getTargetTexture()->texture;
+        return { static_cast<float>(target.width) , static_cast<float>(target.height) };
     }
 
     float Application::getAspectRatio() const
     {
-        auto size = getDisplaySize();
-        return static_cast<float>(size.x) / static_cast<float>(size.y);
+        auto target = getTargetTexture()->texture;
+        return static_cast<float>(target.width) / static_cast<float>(target.height);
     }
 
     texture::RenderTexture2D* Application::getTargetTexture() const

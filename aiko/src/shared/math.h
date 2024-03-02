@@ -17,7 +17,7 @@ namespace aiko
     {
     public:
         vec2() : vec2(0.0f) { };
-        vec2(ivec2 other) : vec2(other.x, other.y) { };
+        vec2(ivec2 other) : vec2( static_cast<float>(other.x), static_cast<float>(other.y)) { };
         vec2(float xyz) : vec2(xyz, xyz) { };
         vec2(float x, float y) : x(x), y(y) { };
         float x;
