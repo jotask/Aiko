@@ -9,7 +9,7 @@
 namespace aiko::shader
 {
 
-#define AIKO_RETURN_NO_LOC if(locIndex< 0) return;
+#define AIKO_RETURN_NO_LOC if(locIndex < 0) return;
 
     Shader::Shader()
         : m_locs( RL_MAX_SHADER_LOCATIONS, -1 )
@@ -49,7 +49,7 @@ namespace aiko::shader
     {
         AIKO_RETURN_NO_LOC
         ::Shader m_shader = raylib::utils::toRaylibShader(*this);
-        SetShaderValue(m_shader, locIndex, &value, uniformType);
+        SetShaderValue(m_shader, locIndex, value, uniformType);
     }
 
     void Shader::setShaderValue(int locIndex, const int& value)
@@ -62,8 +62,24 @@ namespace aiko::shader
     void Shader::setShaderValue(int locIndex, const float& value)
     {
         AIKO_RETURN_NO_LOC
-        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
+            ::Shader m_shader = raylib::utils::toRaylibShader(*this);
         SetShaderValue(m_shader, locIndex, &value, SHADER_UNIFORM_FLOAT);
+    }
+
+    void Shader::setShaderValue(int locIndex, const ivec2& value)
+    {
+        AIKO_RETURN_NO_LOC
+            ::Shader m_shader = raylib::utils::toRaylibShader(*this);
+        std::array<float, 2> loc = { static_cast<float>(value.x), static_cast<float>(value.y) };
+        SetShaderValue(m_shader, locIndex, loc.data(), SHADER_UNIFORM_VEC2);
+    }
+
+    void Shader::setShaderValue(int locIndex, const vec3& value)
+    {
+        AIKO_RETURN_NO_LOC
+        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
+        std::array<float, 3> loc = { value.x, value.y ,value.z };
+        SetShaderValue(m_shader, locIndex, loc.data(), SHADER_UNIFORM_VEC3);
     }
 
 }

@@ -6,6 +6,7 @@
 #include "types/camera_types.h"
 #include "types/render_types.h"
 #include "types/textures.h"
+#include "shared/math.h"
 
 namespace aiko::shader
 {
@@ -33,6 +34,8 @@ namespace aiko::shader
 
         void setShaderValue(int locIndex, const int& value);
         void setShaderValue(int locIndex, const float& value);
+        void setShaderValue(int locIndex, const ivec2& value);
+        void setShaderValue(int locIndex, const vec3& value);
 
     //private:
 
