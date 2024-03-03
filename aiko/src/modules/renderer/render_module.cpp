@@ -153,7 +153,7 @@ namespace aiko
             m_renderTexture2D.texture,
             Rectangle{ 0, 0, targetSize.x, targetSize.y },
             Rectangle{ 0, 0, targScreen.x, targScreen.y },
-            vec2{ 0, 0 },
+            { 0, 0 },
             0,
             WHITE
         );
