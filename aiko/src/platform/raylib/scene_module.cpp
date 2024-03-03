@@ -1,4 +1,4 @@
-#ifdef AIKO_BUILD_LIB
+#ifdef AIKO_BUILD_RAYLIB
 #include "modules/scene_module.h"
 
 #include "components/component_entity.h"
@@ -18,14 +18,11 @@ namespace aiko
 
     void SceneModule::postUpdate()
     {
-
         auto view = m_registry.view<IUpdate>();
-
         for (auto [entity, cmp] : view.each())
         {
             cmp.update();
         }
-
     }
 
     void SceneModule::preRender()

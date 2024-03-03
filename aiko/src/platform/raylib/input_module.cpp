@@ -1,4 +1,4 @@
-#ifdef AIKO_BUILD_LIB
+#ifdef AIKO_BUILD_RAYLIB
 #include "modules/input_module.h"
 
 #include "models/input.h"
