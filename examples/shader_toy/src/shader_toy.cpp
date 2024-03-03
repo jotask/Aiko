@@ -17,11 +17,12 @@ namespace shadertoy
 
     std::vector<std::string> ShaderToy::s_shaders =
     {
+        "aiko_shadertoy_mandelbulb",
+        "aiko_shadertoy_coastal_fractal",
         "aiko_shadertoy_circle",
         "aiko_shadertoy_uv",
         "aiko_shadertoy",
         "aiko_shadertoy_old",
-        "aiko_shadertoy_coastal_fractal",
         "aiko_shadertoy_cyber_fuji",
         "aiko_shadertoy_fractal_pyramid",
         "aiko_shadertoy_phanton_start",

@@ -139,7 +139,7 @@ namespace aiko
     {
         BeginDrawing();
         rlImGuiBegin();
-        clearBackground(WHITE);
+        clearBackground(BLACK);
     }
     
     void RenderModule::endFrame()
