@@ -30,8 +30,7 @@ namespace aiko
     
     void AssetSystem::render()
     {
-        
+
     }
-    
 
 }

@@ -33,7 +33,7 @@ namespace aiko
         virtual void update() override;
     
         virtual void render() override;
-    
+
     private:
 
         AssetModule* m_assetModule;
