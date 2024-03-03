@@ -4,8 +4,8 @@
 #include "systems/camera_system.h"
 #include "systems/render_system.h"
 
-#include "core/raylib_utils.h"
-
+// FIXME Delete me
+#include "platform/raylib/raylib_utils.h"
 #include <core/libs.h>
 
 namespace aiko

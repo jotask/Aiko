@@ -1,3 +1,5 @@
+#ifdef AIKO_BUILD_RAYLIB
+
 #pragma once
 
 #include "aiko_types.h"
@@ -138,3 +140,4 @@ namespace raylib::utils
     }
 
 }
+#endif

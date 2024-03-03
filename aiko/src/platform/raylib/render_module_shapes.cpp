@@ -2,7 +2,7 @@
 #include "modules/render_module.h"
 
 #include "core/libs.h"
-#include "core/raylib_utils.h"
+#include "raylib_utils.h"
 
 namespace aiko
 {
@@ -171,6 +171,18 @@ namespace aiko
         ::Vector2 p = raylib::utils::toRaylibVector2(center);
         ::Color c = raylib::utils::toRaylibColor(color);
         ::DrawPolyLinesEx(p, sides, radius, rotation, lineThick, c);
+    }
+
+    int RenderModule::getShaderLocation(shader::Shader& shader, const char* uniformName)
+    {
+        ::Shader m_shader = raylib::utils::toRaylibShader(shader);
+        return ::GetShaderLocation(m_shader, uniformName);
+    }
+
+    void RenderModule::setShaderUniformValue(shader::Shader& shader, int locIndex, const void* value, shader::Shader::SUDT uniformType)
+    {
+        ::Shader m_shader = raylib::utils::toRaylibShader(shader);
+        SetShaderValue(m_shader, locIndex, value, uniformType);
     }
 
 }

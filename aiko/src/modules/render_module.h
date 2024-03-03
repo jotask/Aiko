@@ -75,25 +75,18 @@ namespace aiko
         // 2d Context
         void drawPixel(int x, int y, Color);
         void drawPixel(vec2 pos, Color);
-
         void drawLine(int startPosX, int startPosY, int endPosX, int endPosY, Color color);
         void drawLine(vec2 startPos, vec2 endPos, Color color);
-
         void drawCircle(int centerX, int centerY, float radius, Color color);
         void drawCircle(vec2 center, float radius, Color color);
-
         void drawCircleLines(int centerX, int centerY, float radius, Color color);
         void drawCircleLines(vec2 center, float radius, Color color);
-
         void drawEllipse(int centerX, int centerY, float radiusH, float radiusV, Color color);
         void drawEllipseLines(int centerX, int centerY, float radiusH, float radiusV, Color color);
-
         void drawRing(vec2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, int segments, Color color);
         void drawRingLines(vec2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, int segments, Color color);
-
         void drawRectangle(int posX, int posY, int width, int height, Color color);
         void drawRectangle(vec2 position, vec2 size, Color color);
-
         void drawRectangleRec(Rectangle rec, Color color);
         void drawRectangleLines(int posX, int posY, int width, int height, Color color);
         void drawRectangleLinesEx(Rectangle rec, float lineThick, Color color);
@@ -105,6 +98,10 @@ namespace aiko
         void drawPolyLines(vec2 center, int sides, float radius, float rotation, Color color);
         void drawPolyLinesEx(vec2 center, int sides, float radius, float rotation, float lineThick, Color color);
     
+        // Shader
+        int getShaderLocation(shader::Shader&, const char* uniformName );
+        void setShaderUniformValue(shader::Shader&, int, const void*, shader::Shader::SUDT);
+
     private:
 
         bool m_scale;

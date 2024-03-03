@@ -12,7 +12,7 @@
 #include "types/textures.h"
 #include "events/events.hpp"
 
-#include "core/raylib_utils.h"
+#include "raylib_utils.h"
 
 namespace aiko
 {

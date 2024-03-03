@@ -18,6 +18,11 @@ namespace aiko
     {
         const char* data = ::LoadFileText(filePath);
         auto shared = std::make_unique<asset::TextAsset>(data);
+        // FIXME But it works
+        {
+            asset::Asset* base = shared.get();
+            base->m_assetModule = this;
+        }
         asset::ID uuid = shared->getID();
         m_assets[uuid] = std::move( shared );
         return (asset::TextAsset*) m_assets[uuid].get();

@@ -3,8 +3,9 @@
 #include <stdexcept>
 #include <algorithm>
 
+// FIXME Delete me
+#include "platform/raylib/raylib_utils.h"
 #include "core/libs.h"
-#include "core/raylib_utils.h"
 
 namespace aiko::shader
 {
