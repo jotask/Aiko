@@ -15,7 +15,7 @@ namespace aiko
 
     void AssetSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
-        m_assetModule = moduleConnector->find<AssetModule>();
+        BIND_MODULE_REQUIRED(AssetModule, moduleConnector, m_assetModule)
     }
     
     void AssetSystem::init()

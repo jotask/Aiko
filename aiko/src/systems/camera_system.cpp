@@ -78,8 +78,8 @@ namespace aiko
     
     void CameraSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
-        m_renderModule = moduleConnector->find<RenderModule>();
-        m_sceneModule = moduleConnector->find<SceneModule>();
+        BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
+        BIND_MODULE_REQUIRED(SceneModule, moduleConnector, m_sceneModule)
     }
     
     void CameraSystem::init()

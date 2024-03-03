@@ -22,7 +22,7 @@ namespace aiko
     
     void EntityComponentSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
-        m_sceneModule = moduleConnector->find<SceneModule>();
+        BIND_MODULE_REQUIRED(SceneModule, moduleConnector, m_sceneModule)
     }
     
     void EntityComponentSystem::init()

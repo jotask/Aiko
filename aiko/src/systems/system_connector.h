@@ -8,7 +8,16 @@
 
 namespace aiko
 {
-    
+
+#define BIND_SYSTEM_REQUIRED(ModuleType, Connector, VariableName) \
+    VariableName = Connector->find<ModuleType>(); \
+    if (VariableName == nullptr) { \
+        throw std::runtime_error("Required module " #ModuleType " not found"); \
+    }
+
+#define BIND_SYSTEM_OPTIONAL(ModuleType, Connector, VariableName) \
+    VariableName = Connector->find<ModuleType>(); \
+
     class SystemConnector
     {
     public:
@@ -20,7 +29,7 @@ namespace aiko
         {
         };
         ~SystemConnector() = default;
-    
+
         template<class T>
         T* find()
         {

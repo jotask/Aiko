@@ -32,8 +32,8 @@ namespace aiko
     
     void RenderModule::connect(ModuleConnector* moduleConnector)
     {
-        m_displayModule = moduleConnector->find<DisplayModule>();
-        m_cameraModule = moduleConnector->find<CameraModule>();
+        BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule)
+        BIND_MODULE_REQUIRED(CameraModule, moduleConnector, m_cameraModule)
     }
 
     void RenderModule::preInit()

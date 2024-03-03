@@ -51,7 +51,7 @@ namespace aiko
     
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
-        m_renderModule = moduleConnector->find<RenderModule>();
+        BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
     }
     
     void RenderSystem::add(Light* light)
