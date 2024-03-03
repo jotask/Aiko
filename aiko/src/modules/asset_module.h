@@ -4,7 +4,7 @@
 
 #include "aiko_types.h"
 #include "modules/base_module.h"
-#include "modules/assets/asset_type.h"
+#include "types/asset_type.h"
 
 namespace aiko
 {

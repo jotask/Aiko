@@ -1,4 +1,5 @@
-#include "asset_module.h"
+#ifdef AIKO_BUILD_LIB
+#include "modules/asset_module.h"
 
 #include <memory>
 
@@ -23,3 +24,4 @@ namespace aiko
     }
 
 }
+#endif

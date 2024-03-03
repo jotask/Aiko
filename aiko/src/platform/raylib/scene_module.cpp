@@ -1,4 +1,5 @@
-#include "scene_module.h"
+#ifdef AIKO_BUILD_LIB
+#include "modules/scene_module.h"
 
 #include "components/component_entity.h"
 
@@ -50,4 +51,4 @@ namespace aiko
     }
 
 }
-
+#endif

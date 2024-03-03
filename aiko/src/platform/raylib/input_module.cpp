@@ -1,4 +1,5 @@
-#include "input_module.h"
+#ifdef AIKO_BUILD_LIB
+#include "modules/input_module.h"
 
 #include "models/input.h"
 
@@ -11,3 +12,4 @@ namespace aiko
     }
 
 }
+#endif

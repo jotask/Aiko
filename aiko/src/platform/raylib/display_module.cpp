@@ -1,4 +1,5 @@
-#include "display_module.h"
+#ifdef AIKO_BUILD_LIB
+#include "modules/display_module.h"
 
 #include <core/libs.h>
 
@@ -34,3 +35,4 @@ namespace aiko
     }
 
 }
+#endif

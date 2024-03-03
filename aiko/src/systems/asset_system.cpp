@@ -2,8 +2,8 @@
 
 #include "modules/module_connector.h"
 
-#include "modules/assets/asset_module.h"
-#include "modules/renderer/render_module.h"
+#include "modules/asset_module.h"
+#include "modules/render_module.h"
 #include "modules/scene_module.h"
 #include "components/transform_component.h"
 #include "components/camera_component.h"

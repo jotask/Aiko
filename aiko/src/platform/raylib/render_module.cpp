@@ -1,4 +1,5 @@
-#include "render_module.h"
+#ifdef AIKO_BUILD_LIB
+#include "modules/render_module.h"
 
 #include <string>
 
@@ -258,3 +259,4 @@ namespace aiko
     }
 
 }
+#endif

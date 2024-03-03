@@ -1,4 +1,5 @@
-#include "render_module.h"
+#ifdef AIKO_BUILD_LIB
+#include "modules/render_module.h"
 
 #include "core/libs.h"
 #include "core/raylib_utils.h"
@@ -173,3 +174,4 @@ namespace aiko
     }
 
 }
+#endif

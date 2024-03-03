@@ -11,7 +11,7 @@
 #include "models/light.h"
 #include "models/shader.h"
 #include "types/textures.h"
-#include "modules/renderer/render_module.h"
+#include "modules/render_module.h"
 
 namespace aiko
 {

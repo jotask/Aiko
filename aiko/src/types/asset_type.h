@@ -1,5 +1,7 @@
 #pragma once
 
+#include <random>
+
 namespace aiko::asset
 {
 
@@ -9,9 +11,15 @@ namespace aiko::asset
     {
     private:
         ID m_id;
-        static ID generateID();
+        static ID generateID()
+        {
+            std::random_device rd;
+            std::mt19937_64 gen(rd()); // Generator initialized with random_device
+            std::uniform_int_distribution<ID> dis;
+            return dis(gen); // Generate a random 64-bit number
+        }
     public:
-        Asset();
+        Asset() : m_id(generateID()) { }
         ~Asset() = default;
         ID getID() const { return m_id; }
     };

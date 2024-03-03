@@ -7,13 +7,7 @@
 #include "application/application.h"
 #include "events/events.hpp"
 
-// Modules
-#include "modules/display_module.h"
-#include "modules/scene_module.h"
-#include "modules/camera_module.h"
-#include "modules/input_module.h"
-#include "modules/assets/asset_module.h"
-#include "modules/renderer/render_module.h"
+#include "platform/platform_builder.hpp"
 
 // Systems
 #include "systems/entity_component_system.h"
@@ -74,12 +68,7 @@ namespace aiko
     {
 
         // Modules
-        m_modules.emplace_back(std::make_unique<DisplayModule>());
-        m_modules.emplace_back(std::make_unique<SceneModule>());
-        m_modules.emplace_back(std::make_unique<RenderModule>());
-        m_modules.emplace_back(std::make_unique<AssetModule>());
-        m_modules.emplace_back(std::make_unique<InputModule>());
-        m_modules.emplace_back(std::make_unique<CameraModule>());
+        aiko::modules::builder::initModules( m_modules );
 
         ModuleConnector moduleConnector(m_modules);
 

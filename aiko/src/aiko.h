@@ -22,6 +22,9 @@ namespace aiko
 
         friend class Application;
 
+        using Modules = std::vector<AikoUPtr<Module>>;
+        using Systems = std::vector<AikoUPtr<System>>;
+
         Aiko(Application* app);
         Aiko(Application* app, AikoConfig cfg);
         ~Aiko();
@@ -47,8 +50,8 @@ namespace aiko
 
         bool m_shouldStop;
 
-        std::vector<AikoUPtr<Module>> m_modules;
-        std::vector<AikoUPtr<System>> m_systems;
+         Modules m_modules;
+         Systems m_systems;
 
         AikoConfig cfg;
 
