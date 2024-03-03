@@ -49,7 +49,7 @@ namespace aiko
     
     private:
     
-        aiko::AikoPtr<RenderModule> m_renderModule;
+        RenderModule* m_renderModule;
     
     };
 

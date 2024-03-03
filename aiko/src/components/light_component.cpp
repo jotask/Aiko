@@ -16,7 +16,7 @@ namespace aiko
     
     void LightComponent::init()
     {
-        m_renderSystem = gameobject->getSystem<RenderSystem>().get();
+        m_renderSystem = gameobject->getSystem<RenderSystem>();
         m_light = m_renderSystem->createLight();
     }
     

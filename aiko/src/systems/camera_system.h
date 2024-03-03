@@ -43,8 +43,8 @@ namespace aiko
     
     private:
 
-        aiko::AikoPtr<RenderModule> m_renderModule;
-        aiko::AikoPtr<SceneModule> m_sceneModule;
+        RenderModule* m_renderModule;
+        SceneModule* m_sceneModule;
 
         std::vector<Camera> m_cameras;
     

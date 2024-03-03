@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "aiko_types.h"
 #include <modules/module.h>
 
 namespace aiko
@@ -12,7 +13,7 @@ namespace aiko
     {
     public:
     
-        using Modules = std::vector<std::shared_ptr<Module>>;
+        using Modules = std::vector<AikoUPtr<Module>>;
     
         ModuleConnector(Modules& modules)
             : m_modules(modules)
@@ -21,12 +22,12 @@ namespace aiko
         ~ModuleConnector() = default;
     
         template<class T>
-        std::shared_ptr<T> find()
+        T* find()
         {
-            auto it = std::find_if(m_modules.begin(), m_modules.end(), [](const std::shared_ptr<Module>& module) {
+            auto it = std::find_if(m_modules.begin(), m_modules.end(), [](const aiko::AikoUPtr<Module>& module) {
                 return dynamic_cast<T*>(module.get()) != nullptr;
             });
-            return (it != m_modules.end()) ? std::dynamic_pointer_cast<T>(*it) : nullptr;
+            return (it != m_modules.end()) ? dynamic_cast<T*>(it->get()) : nullptr;
         }
     
     private:

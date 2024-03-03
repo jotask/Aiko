@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "aiko_types.h"
 #include "systems/sytem.h"
 
 namespace aiko
@@ -12,7 +13,7 @@ namespace aiko
     {
     public:
     
-        using Systems = std::vector<std::shared_ptr<System>>;
+        using Systems = std::vector<aiko::AikoUPtr<System>>;
     
         SystemConnector(Systems& systems)
             : m_systems(systems)
@@ -21,9 +22,9 @@ namespace aiko
         ~SystemConnector() = default;
     
         template<class T>
-        std::shared_ptr<T> find()
+        T* find()
         {
-            auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const std::shared_ptr<System>& system) {
+            auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const aiko::AikoUPtr<System>& system) {
                 return dynamic_cast<T*>(system.get()) != nullptr;
             });
             return (it != m_systems.end()) ? std::dynamic_pointer_cast<T>(*it) : nullptr;

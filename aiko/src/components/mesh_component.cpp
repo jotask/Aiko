@@ -14,7 +14,7 @@ namespace aiko
 
     void MeshComponent::init()
     {
-        m_renderSystem = gameobject->getSystem<RenderSystem>().get();
+        m_renderSystem = gameobject->getSystem<RenderSystem>();
         m_mesh = m_renderSystem->createMesh();
     }
 

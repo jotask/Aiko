@@ -12,12 +12,14 @@
 #include "modules/scene_module.h"
 #include "modules/camera_module.h"
 #include "modules/input_module.h"
+#include "modules/assets/asset_module.h"
 #include "modules/renderer/render_module.h"
 
 // Systems
 #include "systems/entity_component_system.h"
 #include "systems/camera_system.h"
 #include "systems/render_system.h"
+#include "systems/asset_system.h"
 
 
 namespace aiko
@@ -35,7 +37,6 @@ namespace aiko
         : m_application(app)
         , m_shouldStop(false)
         , cfg(cfg)
-        , m_displayModule(nullptr)
     {
 
         EventSystem::it().bind<WindowCloseEvent>(this, &Aiko::onWindowClose);
@@ -47,7 +48,7 @@ namespace aiko
 
     GameObject* Aiko::createGameObject(std::string name)
     {
-        static EntityComponentSystem* ecs = getSystem<EntityComponentSystem>().get();
+        static EntityComponentSystem* ecs = getSystem<EntityComponentSystem>();
         GameObject* obj = ecs->createGameObject(name).get();
         return obj;
     }
@@ -73,19 +74,14 @@ namespace aiko
     {
 
         // Modules
-        m_modules.emplace_back(std::make_shared<DisplayModule>());
-        m_modules.emplace_back(std::make_shared<SceneModule>());
-        m_modules.emplace_back(std::make_shared<RenderModule>());
-        m_modules.emplace_back(std::make_shared<InputModule>());
-        m_modules.emplace_back(std::make_shared<CameraModule>());
+        m_modules.emplace_back(std::make_unique<DisplayModule>());
+        m_modules.emplace_back(std::make_unique<SceneModule>());
+        m_modules.emplace_back(std::make_unique<RenderModule>());
+        m_modules.emplace_back(std::make_unique<AssetModule>());
+        m_modules.emplace_back(std::make_unique<InputModule>());
+        m_modules.emplace_back(std::make_unique<CameraModule>());
 
         ModuleConnector moduleConnector(m_modules);
-
-        // Temporal code
-        {
-            auto ptr = moduleConnector.find<DisplayModule>();
-            m_displayModule = ptr.get();
-        }
 
         for (auto&& module : m_modules) module->connect(&moduleConnector);
 
@@ -94,9 +90,10 @@ namespace aiko
         for (auto&& module : m_modules) module->postInit();
 
         // Systems
-        m_systems.emplace_back(std::make_shared<EntityComponentSystem>());
-        m_systems.emplace_back(std::make_shared<RenderSystem>());
-        m_systems.emplace_back(std::make_shared<CameraSystem>());
+        m_systems.emplace_back(std::make_unique<EntityComponentSystem>());
+        m_systems.emplace_back(std::make_unique<RenderSystem>());
+        m_systems.emplace_back(std::make_unique<CameraSystem>());
+        m_systems.emplace_back(std::make_unique<AssetSystem>());
 
         SystemConnector systemConnector(m_systems);
         for (auto&& system : m_systems) system->aiko = this;

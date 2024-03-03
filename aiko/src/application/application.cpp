@@ -37,8 +37,8 @@ namespace aiko
 
     RenderSystem* Application::getRenderSystem()
     {
-        static auto rs = m_aiko->getSystem<RenderSystem>();
-        return rs.get();
+        static auto* rs = m_aiko->getSystem<RenderSystem>();
+        return rs;
     }
 
     Camera* Application::getMainCamera()
