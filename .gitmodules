@@ -16,3 +16,6 @@
 [submodule "submodules/entt"]
 	path = submodules/entt
 	url = https://github.com/skypjack/entt.git
+[submodule "submodules/assimp"]
+	path = submodules/assimp
+	url = https://github.com/assimp/assimp.git
