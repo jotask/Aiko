@@ -1,7 +1,6 @@
 #ifdef AIKO_BUILD_RAYLIB
 #include "modules/input_module.h"
 
-#include "models/input.h"
 #include "models/time.h"
 
 #include "aiko_types.h"

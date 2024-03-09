@@ -6,6 +6,7 @@
 #include "aiko_types.h"
 #include "systems/base_system.h"
 #include "models/game_object.h"
+#include "types/camera_types.h"
 #include "models/camera.h"
 #include "types/camera_types.h"
 #include "shared/math.h"
@@ -20,6 +21,7 @@ namespace aiko
 
     class InputSystem : public BaseSystem
     {
+        typedef EnumIterator<aiko::Key, aiko::Key::KEY_NULL, aiko::Key::KEY_VOLUME_DOWN> KeyIterator;
     public:
     
         using CameraPtr = std::shared_ptr<Camera>;
@@ -34,9 +36,6 @@ namespace aiko
     protected:
     
         virtual void connect(ModuleConnector*, SystemConnector*) override;
-    
-        virtual void init() override;
-        virtual void update() override;
 
     private:
 
