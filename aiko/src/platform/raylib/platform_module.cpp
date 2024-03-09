@@ -8,6 +8,7 @@
 
 #include "platform/raylib/raylib_utils.h"
 #include "core/libs.h"
+#include "models/time.h"
 
 namespace aiko
 {
@@ -16,6 +17,19 @@ namespace aiko
     {
         const char* data = ::LoadFileText(filePath);
         return data;
+    }
+
+    void PlatformModule::preUpdate()
+    {
+        updateTime();
+    }
+
+    void PlatformModule::updateTime()
+    {
+        auto& time = Time::it();
+        time.deltaTime = ::GetFrameTime();
+        time.fps = ::GetFPS();
+        time.frames++;
     }
 
 }

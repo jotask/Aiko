@@ -18,6 +18,11 @@ namespace aiko
 
         const char* loadTextContent(char* filePath);
 
+    private:
+
+        virtual void preUpdate() override;
+        void updateTime();
+
     };
 
 }

@@ -22,10 +22,6 @@ namespace aiko
 
         virtual void init() override;
         virtual void preUpdate() override;
-
-        virtual void beginFrame() override;
-        virtual void endFrame() override;
-    
     };
 
 }

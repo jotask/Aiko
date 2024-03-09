@@ -35,18 +35,5 @@ namespace aiko
 
     }
 
-    void InputModule::beginFrame()
-    {
-
-    }
-
-    void InputModule::endFrame()
-    {
-        auto& time = Time::it();
-        time.deltaTime = ::GetFrameTime();
-        time.fps = ::GetFPS();
-        time.frames++;
-    }
-
 }
 #endif

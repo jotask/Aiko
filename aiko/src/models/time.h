@@ -6,7 +6,7 @@ namespace aiko
 {
     class Time : public Singleton<Time>
     {
-        friend class InputModule;
+        friend class PlatformModule;
         friend class Aiko;
     public:
 
