@@ -173,13 +173,25 @@ namespace aiko
         ::DrawPolyLinesEx(p, sides, radius, rotation, lineThick, c);
     }
 
-    int RenderModule::getShaderLocation(shader::Shader& shader, const char* uniformName)
+    aiko::ShaderData RenderModule::loadShaderData(const char* vs, const char* fs)
+    {
+        ::Shader shader = LoadShader(vs, fs);
+        return raylib::utils::toShader(shader);
+    }
+
+    void RenderModule::unloadShader(aiko::ShaderData& data)
+    {
+        ::Shader shader = raylib::utils::toRaylibShader(data);
+        ::UnloadShader(shader);
+    }
+
+    int RenderModule::getShaderLocation(aiko::ShaderData& shader, const char* uniformName)
     {
         ::Shader m_shader = raylib::utils::toRaylibShader(shader);
         return ::GetShaderLocation(m_shader, uniformName);
     }
 
-    void RenderModule::setShaderUniformValue(shader::Shader& shader, int locIndex, const void* value, shader::Shader::SUDT uniformType)
+    void RenderModule::setShaderUniformValue(aiko::ShaderData& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType)
     {
         ::Shader m_shader = raylib::utils::toRaylibShader(shader);
         SetShaderValue(m_shader, locIndex, value, uniformType);

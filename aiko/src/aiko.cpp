@@ -14,6 +14,7 @@
 #include "systems/camera_system.h"
 #include "systems/render_system.h"
 #include "systems/asset_system.h"
+#include "systems/input_system.h"
 
 
 namespace aiko
@@ -83,6 +84,7 @@ namespace aiko
         m_systems.emplace_back(std::make_unique<RenderSystem>());
         m_systems.emplace_back(std::make_unique<CameraSystem>());
         m_systems.emplace_back(std::make_unique<AssetSystem>());
+        m_systems.emplace_back(std::make_unique<InputSystem>());
 
         SystemConnector systemConnector(m_systems);
         for (auto&& system : m_systems) system->aiko = this;

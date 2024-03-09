@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <algorithm>
+
 #include "aiko_types.h"
 #include "shared/math.h"
 #include "types/render_types.h"
@@ -9,6 +11,7 @@
 #include "models/shader.h"
 #include "models/camera.h"
 #include "types/color.h"
+#include "types/render_types.h"
 #include "models/mesh.h"
 
 // Last as all above is not dependent of this, this is a temporal include
@@ -40,6 +43,17 @@ namespace raylib::utils
     {
         return { ptr.x, ptr.y, ptr.width, ptr.height };
     }
+
+    static aiko::ShaderData toShader(::Shader& ptr)
+    {
+        aiko::ShaderData data = { 0 };
+        data.id = ptr.id;
+        data.locs.clear();
+        data.locs.resize(RL_MAX_SHADER_LOCATIONS);
+        std::copy(ptr.locs, ptr.locs + RL_MAX_SHADER_LOCATIONS, data.locs.begin());
+        return data;
+    }
+
 
     static aiko::texture::Texture toTexture2D(Texture& texture)
     {
@@ -89,17 +103,17 @@ namespace raylib::utils
         return { ptr.x, ptr.y, ptr.width, ptr.height };
     }
 
-    static ::Shader toRaylibShader(aiko::shader::Shader& ptr, bool maloc = false )
+    static ::Shader toRaylibShader(aiko::ShaderData& ptr, bool maloc = false )
     {
         if (maloc == true)
         {
             // FIXME :: UnloadShader RL_FREE memory. Create a safe copy so can delete it.
             // If not, we are just adding the stack m_locs;
-            int* locsCopy = new int[ptr.m_locs.size()];
-            std::copy(ptr.m_locs.begin(), ptr.m_locs.end(), locsCopy);
-            return { ptr.m_id, locsCopy };
+            int* locsCopy = new int[ptr.locs.size()];
+            std::copy(ptr.locs.begin(), ptr.locs.end(), locsCopy);
+            return { ptr.id, locsCopy };
         }
-        return { ptr.m_id, ptr.m_locs.data() };
+        return { ptr.id, ptr.locs.data() };
     }
 
     static ::Texture toRaylibTexture(aiko::texture::Texture& ptr)

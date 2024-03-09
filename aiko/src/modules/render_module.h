@@ -14,11 +14,7 @@ namespace aiko
     class CameraModule;
     class Camera;
     class DisplayModule;
-    namespace shader
-    {
-        class Shader;
-    }
-    
+
     class RenderModule : public BaseModule
     {
     
@@ -60,7 +56,7 @@ namespace aiko
         void endMode3D();
         void beginTextureMode(texture::RenderTexture2D& target);
         void endTextureMode(void);
-        void beginShaderMode(shader::Shader* shader);
+        void beginShaderMode(aiko::ShaderData* shader);
         void endShaderMode(void);
         void beginBlendMode(BlendMode);
         void endBlendMode(void);
@@ -99,8 +95,10 @@ namespace aiko
         void drawPolyLinesEx(vec2 center, int sides, float radius, float rotation, float lineThick, Color color);
     
         // Shader
-        int getShaderLocation(shader::Shader&, const char* uniformName );
-        void setShaderUniformValue(shader::Shader&, int, const void*, shader::Shader::SUDT);
+        aiko::ShaderData loadShaderData(const char*, const char*);
+        void unloadShader( aiko::ShaderData& );
+        int getShaderLocation(aiko::ShaderData&, const char* uniformName );
+        void setShaderUniformValue(aiko::ShaderData&, int, const void*, aiko::ShaderUniformDataType);
 
     private:
 

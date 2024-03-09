@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace aiko
 {
 
@@ -39,6 +41,13 @@ namespace aiko
         float y;
         float width;
         float height;
+    };
+
+    class ShaderData
+    {
+    public:
+        unsigned int id;
+        std::vector<int> locs;
     };
 
 }

@@ -9,11 +9,12 @@ namespace aiko
     {
 
         using ID = unsigned long long;
+        constexpr ID INVALID_ID = (ID) -1;
 
         class Asset
         {
         private:
-            ID m_id;
+            ID m_id = INVALID_ID;
             static ID generateID()
             {
                 std::random_device rd;
@@ -21,8 +22,8 @@ namespace aiko
                 std::uniform_int_distribution<ID> dis;
                 return dis(gen); // Generate a random 64-bit number
             }
-        protected:
         public:
+            virtual void unload() { };
             // TODO Find better way to connect asset to assets
             AssetModule* m_assetModule;
             Asset() : m_id(generateID()) { }
@@ -38,13 +39,6 @@ namespace aiko
             TextAsset(const char* d) : Asset(), data(d) {} // Correctly initializing `data`
             ~TextAsset() = default;
             const char* getData() const { return data; } // Getter for `data`
-        };
-
-        class TextureAsset : public Asset
-        {
-        public:
-            TextureAsset() = default;
-            ~TextureAsset() = default;
         };
 
     }

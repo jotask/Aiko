@@ -6,29 +6,29 @@
 #include "types/camera_types.h"
 #include "types/render_types.h"
 #include "types/textures.h"
+#include "types/asset_type.h"
 #include "shared/math.h"
+#include "types/render_types.h"
 
-namespace aiko::shader
+namespace aiko::asset
 {
 
-    class Shader
+    class Shader : public Asset
     {
     public:
         friend class RenderSystem;
-
-        using SUDT = ShaderUniformDataType;
 
         Shader();
         ~Shader() = default;
 
         void load(const char* vs, const char* fs);
-        void unload();
+        virtual void unload() override;
 
         int getShaderLocation(const char* locName);
 
-        void setShaderValueV(int locIndex, const void* value, SUDT uniformType, int count);
+        void setShaderValueV(int locIndex, const void* value, ShaderUniformDataType uniformType, int count);
 
-        void setShaderValue(int locIndex, const void* value, SUDT uniformType);
+        void setShaderValue(int locIndex, const void* value, ShaderUniformDataType uniformType);
 
         // Type Helpers
 
@@ -37,14 +37,8 @@ namespace aiko::shader
         void setShaderValue(int locIndex, const ivec2& value);
         void setShaderValue(int locIndex, const vec3& value);
 
-    //private:
+        aiko::ShaderData m_shaderData;
 
-        using Locs = std::vector<int>;
-
-        // Shader m_shader;
-        unsigned int            m_id;
-        Locs                    m_locs;
-    
     };
 
 }

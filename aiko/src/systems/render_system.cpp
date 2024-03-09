@@ -89,9 +89,9 @@ namespace aiko
         return m_renderModule->getRenderTexture();
     }
 
-    void RenderSystem::render(texture::RenderTexture2D& target, shader::Shader& shader)
+    void RenderSystem::render(texture::RenderTexture2D& target, aiko::asset::Shader* shader)
     {
-        m_renderModule->beginShaderMode(&shader);
+        m_renderModule->beginShaderMode(&shader->m_shaderData);
         m_renderModule->drawTextureEx(target.texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
         m_renderModule->endShaderMode();
     }

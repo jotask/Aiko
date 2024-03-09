@@ -3,9 +3,33 @@
 
 #include "models/input.h"
 
+#include "core/libs.h"
+#include "platform/raylib/raylib_utils.h"
+
 namespace aiko
 {
-    
+
+    bool InputModule::isKeyPressed(Key key) const
+    {
+        return ::IsKeyPressed((::KeyboardKey)key);
+    }
+
+    vec2 InputModule::getMousePosition() const
+    {
+        auto tmp = ::GetMousePosition();
+        return raylib::utils::toVec2(tmp);
+    }
+
+    bool InputModule::isMouseButtonPressed(MouseButton button) const
+    {
+        return ::IsMouseButtonPressed((::MouseButton)button);
+    }
+
+    void InputModule::init()
+    {
+
+    }
+
     void InputModule::preUpdate()
     {
         auto &io = Input::it();

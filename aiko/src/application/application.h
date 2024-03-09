@@ -9,8 +9,15 @@
 namespace aiko
 {
 
+    namespace asset
+    {
+        class Shader;
+    }
+
     class Camera;
     class RenderSystem;
+    class InputSystem;
+    class AssetSystem;
 
     class Application
     {
@@ -34,7 +41,10 @@ namespace aiko
         virtual void update() {}
         virtual void render() {}
 
-        RenderSystem* getRenderSystem();
+        AssetSystem* getAssetSystem() const;
+        InputSystem* getInputSystem() const;
+        RenderSystem* getRenderSystem() const;
+
         Camera* getMainCamera();
         vec2 getViewportSize() const;
         float getAspectRatio() const;
@@ -42,8 +52,10 @@ namespace aiko
 
         aiko::AikoUPtr<Aiko> m_aiko;
 
-    private:
+        aiko::asset::Shader* loadShader(const char* vs, const char* fs);
+        void unloadShader(aiko::asset::Shader*);
 
+    private:
 
     };
 

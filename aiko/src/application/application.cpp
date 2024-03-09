@@ -1,12 +1,11 @@
 #include "application/application.h"
 
-#include <aiko.h>
+#include "aiko.h"
 #include "systems/camera_system.h"
+#include "systems/asset_system.h"
 #include "systems/render_system.h"
-
-// FIXME Delete me
-#include "platform/raylib/raylib_utils.h"
-#include <core/libs.h>
+#include "systems/input_system.h"
+#include "models/shader.h"
 
 namespace aiko
 {
@@ -35,7 +34,19 @@ namespace aiko
         return rs->getTargetTexture();
     }
 
-    RenderSystem* Application::getRenderSystem()
+    AssetSystem* Application::getAssetSystem() const
+    {
+        static auto* as = m_aiko->getSystem<AssetSystem>();
+        return as;
+    }
+
+    InputSystem* Application::getInputSystem() const
+    {
+        static auto* is = m_aiko->getSystem<InputSystem>();
+        return is;
+    }
+
+    RenderSystem* Application::getRenderSystem() const
     {
         static auto* rs = m_aiko->getSystem<RenderSystem>();
         return rs;
@@ -54,22 +65,38 @@ namespace aiko
 
     float Application::getlDeltaTime() const
     {
-        return ::GetFrameTime();
+        // return ::GetFrameTime();
+        return 1.f;
     }
 
     bool Application::isKeyPressed(Key key) const
     {
-        return ::IsKeyPressed((KeyboardKey)key);
+        InputSystem* inputSystem = getInputSystem();
+        return inputSystem->isKeyPressed(key);
     }
 
     vec2 Application::getMousePosition() const
     {
-        return raylib::utils::toVec2(::GetMousePosition());
+        InputSystem* inputSystem = getInputSystem();
+        return inputSystem->getMousePosition();
     }
 
     bool Application::isMouseButtonPressed(MouseButton button) const
     {
-        return ::IsMouseButtonPressed((::MouseButton)button);
+        InputSystem* inputSystem = getInputSystem();
+        return inputSystem->isMouseButtonPressed(button);
+    }
+
+    aiko::asset::Shader* Application::loadShader(const char* vs, const char* fs)
+    {
+        auto* assetSystem = getAssetSystem();
+        return assetSystem->loadShader(vs, fs);
+    }
+
+    void Application::unloadShader(aiko::asset::Shader* shader)
+    {
+        auto* assetSystem = getAssetSystem();
+        assetSystem->unload(shader->getID());
     }
 
 }

@@ -12,6 +12,7 @@
 #include "models/shader.h"
 #include "types/textures.h"
 #include "modules/render_module.h"
+#include "types/asset_type.h"
 
 namespace aiko
 {
@@ -41,7 +42,7 @@ namespace aiko
     
         texture::RenderTexture2D* getTargetTexture() const;
 
-        void render(texture::RenderTexture2D&, shader::Shader&);
+        void render(texture::RenderTexture2D&, aiko::asset::Shader*);
 
     protected:
     

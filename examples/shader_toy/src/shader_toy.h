@@ -5,6 +5,7 @@
 #include "application/application.h"
 #include "models/shader.h"
 #include "types/textures.h"
+#include "types/asset_type.h"
 
 namespace shadertoy
 {
@@ -42,14 +43,14 @@ namespace shadertoy
         aiko::vec4      iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
         aiko::vec4      iDate;                 // (year, month, day, time in seconds)
 
-        aiko::shader::Shader m_shader;
+        aiko::asset::Shader* m_shader = nullptr;
 
         int currentShader = 0;
         void nextShader();
         void prevShader();
         void randomShader();
-        void refreshShader(bool first = false);
-        void draw(aiko::shader::Shader&);
+        void refreshShader();
+        void draw(aiko::asset::Shader*);
 
     };
 

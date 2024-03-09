@@ -178,7 +178,6 @@ namespace aiko
     void RenderModule::onWindowResize(Event& event)
     {
         const auto& msg = static_cast<const WindowResizeEvent&>(event);
-        //resizeViewport(msg.width, msg.height);
 
         if (m_scale == true)
         {
@@ -237,7 +236,7 @@ namespace aiko
         ::EndTextureMode();
     }
 
-    void RenderModule::beginShaderMode(aiko::shader::Shader* shader)
+    void RenderModule::beginShaderMode(aiko::ShaderData* shader)
     {
         auto s = raylib::utils::toRaylibShader( *shader );
         ::BeginShaderMode(s);
