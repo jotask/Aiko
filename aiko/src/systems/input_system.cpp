@@ -9,6 +9,7 @@
 #include "types/camera_types.h"
 #include "models/camera.h"
 #include "modules/input_module.h"
+#include "models/input.h"
 
 namespace aiko
 {
@@ -30,12 +31,12 @@ namespace aiko
 
     vec2 InputSystem::getMousePosition() const
     {
-        return vec2();
+        return Input::it().getMousePosition();
     }
 
     bool InputSystem::isMouseButtonPressed(MouseButton button) const
     {
-        return false;
+        return m_inputModule->isMouseButtonPressed(button);
     }
 
 }

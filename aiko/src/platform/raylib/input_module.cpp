@@ -34,7 +34,8 @@ namespace aiko
 
     void InputModule::preUpdate()
     {
-
+        auto& in = Input::it();
+        in.mousePosition = raylib::utils::toVec2(::GetMousePosition());
     }
 
     void InputModule::beginFrame()

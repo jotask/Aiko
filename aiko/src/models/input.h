@@ -1,6 +1,7 @@
 #pragma once
 
 #include "aiko_types.h"
+#include "shared/math.h"
 #include "shared/singleton.h"
 #include "types/inputs.h"
 
@@ -9,16 +10,15 @@ namespace aiko
     
     class Input : public Singleton<Input>
     {
-        friend class Aiko;
+        friend class InputModule;
     public:
     
         bool isKeyPressed(Key);
+        vec2 getMousePosition();
 
     private:
 
-        void update();
-    
-        void reset();
+        vec2 mousePosition;
     
     };
 
