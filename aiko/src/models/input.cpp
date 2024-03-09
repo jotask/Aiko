@@ -7,7 +7,7 @@ namespace aiko
 
     bool Input::isKeyPressed(Key key)
     {
-        return IsKeyPressed((KeyboardKey)key);
+        return pressedKeys[key];
     }
 
     vec2 Input::getMousePosition()

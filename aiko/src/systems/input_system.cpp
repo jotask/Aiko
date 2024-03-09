@@ -10,6 +10,7 @@
 #include "models/camera.h"
 #include "modules/input_module.h"
 #include "models/input.h"
+#include "types/inputs.h"
 
 namespace aiko
 {
@@ -21,7 +22,25 @@ namespace aiko
     
     void InputSystem::init()
     {
-    
+        typedef EnumIterator<aiko::Key, aiko::Key::KEY_NULL, aiko::Key::KEY_VOLUME_DOWN> keyIterator;
+        auto& in = Input::it();
+        for (aiko::Key i : keyIterator())
+        {
+            bool pressed = m_inputModule->isKeyPressed(i);
+            in.pressedKeys.emplace(i, pressed);
+        }
+    }
+
+    void InputSystem::update()
+    {
+        typedef EnumIterator<aiko::Key, aiko::Key::KEY_NULL, aiko::Key::KEY_VOLUME_DOWN> keyIterator;
+        auto& in = Input::it();
+        for (aiko::Key i : keyIterator())
+        {
+            bool pressed = m_inputModule->isKeyPressed(i);
+            in.pressedKeys[i] = pressed;
+        }
+        in.mousePosition = m_inputModule->getMousePosition();
     }
 
     bool InputSystem::isKeyPressed(Key key) const

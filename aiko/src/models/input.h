@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include "aiko_types.h"
 #include "shared/math.h"
 #include "shared/singleton.h"
@@ -10,7 +12,7 @@ namespace aiko
     
     class Input : public Singleton<Input>
     {
-        friend class InputModule;
+        friend class InputSystem;
     public:
     
         bool isKeyPressed(Key);
@@ -19,7 +21,8 @@ namespace aiko
     private:
 
         vec2 mousePosition;
-    
+        std::map<Key, bool> pressedKeys;
+
     };
 
 }

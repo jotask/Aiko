@@ -4,10 +4,9 @@
 #include "models/input.h"
 #include "models/time.h"
 
+#include "aiko_types.h"
 #include "core/libs.h"
 #include "platform/raylib/raylib_utils.h"
-
-#include <raylib.h>
 
 namespace aiko
 {
@@ -34,8 +33,7 @@ namespace aiko
 
     void InputModule::preUpdate()
     {
-        auto& in = Input::it();
-        in.mousePosition = raylib::utils::toVec2(::GetMousePosition());
+
     }
 
     void InputModule::beginFrame()

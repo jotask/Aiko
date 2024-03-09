@@ -36,6 +36,7 @@ namespace aiko
         virtual void connect(ModuleConnector*, SystemConnector*) override;
     
         virtual void init() override;
+        virtual void update() override;
 
     private:
 
