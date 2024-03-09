@@ -5,6 +5,11 @@
 
 #include "events/events.hpp"
 
+#ifdef AIKO_BUILD_RAYLIB
+#include <raylib.h>
+#include <rlImGui.h>
+#endif
+
 namespace aiko
 {
     

@@ -14,13 +14,14 @@
 #include "types/render_types.h"
 #include "models/mesh.h"
 
-// Last as all above is not dependent of this, this is a temporal include
-#include <core/libs.h>
+#ifdef AIKO_BUILD_RAYLIB
+#include <config.h>
+#include <raylib.h>
+#include <rlImGui.h>
+#endif
 
 namespace raylib::utils
 {
-
-    // This class is temporary for now. As I want someting working then improve later!
 
     // To Aiko
 

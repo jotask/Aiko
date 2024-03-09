@@ -6,6 +6,10 @@
 
 #include "core/libs.h"
 
+#ifdef AIKO_BUILD_RAYLIB
+#include <raylib.h>
+#endif
+
 namespace aiko
 {
 

@@ -34,6 +34,7 @@ namespace aiko
 
         GameObject* createGameObject(std::string name = "Game Object");
     
+        void close();
 
     private:
 

@@ -54,6 +54,11 @@ namespace aiko
         m_shouldStop = true;
     }
 
+    void Aiko::close()
+    {
+        m_shouldStop = true;
+    }
+
     void Aiko::run()
     {
         init();
