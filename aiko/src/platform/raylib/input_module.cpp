@@ -2,9 +2,12 @@
 #include "modules/input_module.h"
 
 #include "models/input.h"
+#include "models/time.h"
 
 #include "core/libs.h"
 #include "platform/raylib/raylib_utils.h"
+
+#include <raylib.h>
 
 namespace aiko
 {
@@ -27,12 +30,24 @@ namespace aiko
 
     void InputModule::init()
     {
-
     }
 
     void InputModule::preUpdate()
     {
-        auto &io = Input::it();
+
+    }
+
+    void InputModule::beginFrame()
+    {
+
+    }
+
+    void InputModule::endFrame()
+    {
+        auto& time = Time::it();
+        time.deltaTime = ::GetFrameTime();
+        time.fps = ::GetFPS();
+        time.frames++;
     }
 
 }

@@ -4,7 +4,9 @@
 
 namespace aiko
 {
-    class AssetModule;
+
+    class Aiko;
+    class AssetSystem;
     namespace asset
     {
 
@@ -23,12 +25,17 @@ namespace aiko
                 return dis(gen); // Generate a random 64-bit number
             }
         public:
+            friend class AssetSystem;
             virtual void unload() { };
-            // TODO Find better way to connect asset to assets
-            AssetModule* m_assetModule;
             Asset() : m_id(generateID()) { }
             ~Asset() = default;
             ID getID() const { return m_id; }
+
+        protected:
+            // TODO REMOVE and find better way to link asset to systesm
+            // Maybe something like the modules?
+            virtual void connect() { };
+            AssetSystem* m_assetSystem;
         };
 
         class TextAsset : public Asset

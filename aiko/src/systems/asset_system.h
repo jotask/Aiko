@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <map>
 
 #include "aiko_types.h"
 #include "systems/base_system.h"
@@ -15,8 +16,7 @@
 namespace aiko
 {
 
-    class AssetModule;
-    class RenderModule;
+    class RenderSystem;
     
     class AssetSystem : public BaseSystem
     {
@@ -32,6 +32,8 @@ namespace aiko
         void unload(asset::Asset&);
         void unload(asset::ID);
 
+        RenderSystem* getRenderSystem() const { return m_renderSystem; }
+
     protected:
     
         virtual void connect(ModuleConnector*, SystemConnector*) override;
@@ -44,8 +46,12 @@ namespace aiko
 
     private:
 
-        AssetModule* m_assetModule;
-        RenderModule* m_renderModule;
+        void initAsset(asset::Asset*);
+
+        using Assets = std::map<asset::ID, AikoUPtr<asset::Asset>>;
+        Assets m_assets;
+
+        RenderSystem* m_renderSystem;
 
     };
 

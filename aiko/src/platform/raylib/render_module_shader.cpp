@@ -7,46 +7,28 @@
 namespace aiko
 {
 
-    void RenderModule::drawTexture(texture::Texture texture, int posX, int posY, Color tint)
+    aiko::ShaderData RenderModule::loadShaderData(const char* vs, const char* fs)
     {
-        ::Texture2D t = raylib::utils::toRaylibTexture(texture);
-        ::Color c = raylib::utils::toRaylibColor(tint);
-        ::DrawTexture(t, posX, posY, c);
+        ::Shader shader = LoadShader(vs, fs);
+        return raylib::utils::toShader(shader);
     }
 
-    void RenderModule::drawTextureV(texture::Texture texture, vec2 position, Color tint)
+    void RenderModule::unloadShader(aiko::ShaderData& data)
     {
-        ::Texture2D t = raylib::utils::toRaylibTexture(texture);
-        ::Vector2 p = raylib::utils::toRaylibVector2(position);
-        ::Color c = raylib::utils::toRaylibColor(tint);
-        ::DrawTextureV(t, p, c);
+        ::Shader shader = raylib::utils::toRaylibShader(data);
+        ::UnloadShader(shader);
     }
 
-    void RenderModule::drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint)
+    int RenderModule::getShaderLocation(aiko::ShaderData& shader, const char* uniformName)
     {
-        ::Texture2D t = raylib::utils::toRaylibTexture(texture);
-        ::Vector2 p = raylib::utils::toRaylibVector2(position);
-        ::Color c = raylib::utils::toRaylibColor(tint);
-        ::DrawTextureEx(t, p, rotation, scale, c);
+        ::Shader m_shader = raylib::utils::toRaylibShader(shader);
+        return ::GetShaderLocation(m_shader, uniformName);
     }
 
-    void RenderModule::drawTextureRec(texture::Texture texture, Rectangle source, vec2 position, Color tint)
+    void RenderModule::setShaderUniformValue(aiko::ShaderData& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType)
     {
-        ::Texture2D t = raylib::utils::toRaylibTexture(texture);
-        ::Rectangle r = raylib::utils::toRaylibRectangle(source);
-        ::Vector2 p = raylib::utils::toRaylibVector2(position);
-        ::Color c = raylib::utils::toRaylibColor(tint);
-        ::DrawTextureRec(t, r, p ,c);
-    }
-
-    void RenderModule::drawTexturePro(texture::Texture texture, Rectangle source, Rectangle dest, vec2 origin, float rotation, Color tint)
-    {
-        ::Texture2D t = raylib::utils::toRaylibTexture(texture);
-        ::Rectangle r = raylib::utils::toRaylibRectangle(source);
-        ::Rectangle d = raylib::utils::toRaylibRectangle(dest);
-        ::Vector2 p = raylib::utils::toRaylibVector2(origin);
-        ::Color c = raylib::utils::toRaylibColor(tint);
-        ::DrawTexturePro(t, r, d, p, rotation, c);
+        ::Shader m_shader = raylib::utils::toRaylibShader(shader);
+        SetShaderValue(m_shader, locIndex, value, uniformType);
     }
 
 }

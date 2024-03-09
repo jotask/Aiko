@@ -44,6 +44,12 @@ namespace aiko
 
         void render(texture::RenderTexture2D&, aiko::asset::Shader*);
 
+        // Proxy Shader for now
+        aiko::ShaderData loadShaderData(const char* vs, const char* fs);
+        void unloadShader(asset::Shader& data);
+        int getShaderLocation(asset::Shader& shader, const char* uniformName);
+        void setShaderUniformValue(asset::Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType);
+
     protected:
     
         virtual void connect(ModuleConnector*, SystemConnector*) override;

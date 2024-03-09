@@ -6,6 +6,9 @@
 #include "systems/render_system.h"
 #include "systems/input_system.h"
 #include "models/shader.h"
+#include "models/time.h"
+
+#include "core/libs.h"
 
 namespace aiko
 {
@@ -65,8 +68,7 @@ namespace aiko
 
     float Application::getlDeltaTime() const
     {
-        // return ::GetFrameTime();
-        return 1.f;
+        return Time::it().getDeltaTime();
     }
 
     bool Application::isKeyPressed(Key key) const

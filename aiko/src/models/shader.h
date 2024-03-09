@@ -10,32 +10,39 @@
 #include "shared/math.h"
 #include "types/render_types.h"
 
-namespace aiko::asset
+namespace aiko
 {
-
-    class Shader : public Asset
+    class RenderSystem;
+    namespace asset
     {
-    public:
-        friend class RenderSystem;
+        class Shader : public Asset
+        {
+        public:
+            friend class RenderSystem;
 
-        Shader();
-        ~Shader() = default;
+            Shader();
+            ~Shader() = default;
 
-        void load(const char* vs, const char* fs);
-        virtual void unload() override;
+            void load(const char* vs, const char* fs);
+            virtual void unload() override;
 
-        int getShaderLocation(const char* locName);
+            int getShaderLocation(const char* locName);
 
-        // Type Helpers
+            // Type Helpers
 
-        void setShaderValue(int locIndex, const int& value);
-        void setShaderValue(int locIndex, const float& value);
-        void setShaderValue(int locIndex, const ivec2& value);
-        void setShaderValue(int locIndex, const vec3& value);
-        void setShaderValue(int locIndex, const vec4& value);
+            void setShaderValue(int locIndex, const int& value);
+            void setShaderValue(int locIndex, const float& value);
+            void setShaderValue(int locIndex, const ivec2& value);
+            void setShaderValue(int locIndex, const vec3& value);
+            void setShaderValue(int locIndex, const vec4& value);
 
-        aiko::ShaderData m_shaderData;
+        protected:
+            virtual void connect();
 
-    };
+        private:
+            RenderSystem* m_renderSystem;
+            aiko::ShaderData m_shaderData;
 
+        };
+    }
 }

@@ -9,14 +9,14 @@
 namespace aiko
 {
 
-#define BIND_SYSTEM_REQUIRED(ModuleType, Connector, VariableName) \
-    VariableName = Connector->find<ModuleType>(); \
+#define BIND_SYSTEM_REQUIRED(SystemType, Connector, VariableName) \
+    VariableName = Connector->find<SystemType>(); \
     if (VariableName == nullptr) { \
-        throw std::runtime_error("Required module " #ModuleType " not found"); \
+        throw std::runtime_error("Required system " #SystemType " not found"); \
     }
 
-#define BIND_SYSTEM_OPTIONAL(ModuleType, Connector, VariableName) \
-    VariableName = Connector->find<ModuleType>(); \
+#define BIND_SYSTEM_OPTIONAL(SystemType, Connector, VariableName) \
+    VariableName = Connector->find<SystemType>(); \
 
     class SystemConnector
     {
@@ -36,7 +36,7 @@ namespace aiko
             auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const aiko::AikoUPtr<System>& system) {
                 return dynamic_cast<T*>(system.get()) != nullptr;
             });
-            return (it != m_systems.end()) ? std::dynamic_pointer_cast<T>(*it) : nullptr;
+            return (it != m_systems.end()) ? dynamic_cast<T*>(it->get()) : nullptr;
         }
     
     private:

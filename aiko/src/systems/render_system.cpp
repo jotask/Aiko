@@ -96,4 +96,24 @@ namespace aiko
         m_renderModule->endShaderMode();
     }
 
+    aiko::ShaderData RenderSystem::loadShaderData(const char* vs, const char* fs)
+    {
+        return m_renderModule->loadShaderData(vs, fs);
+    }
+
+    void RenderSystem::unloadShader(asset::Shader& data)
+    {
+        m_renderModule->unloadShader(data.m_shaderData);
+    }
+
+    int RenderSystem::getShaderLocation(asset::Shader& shader, const char* uniformName)
+    {
+        return m_renderModule->getShaderLocation( shader.m_shaderData, uniformName );
+    }
+
+    void RenderSystem::setShaderUniformValue(asset::Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType)
+    {
+        m_renderModule->setShaderUniformValue(shader.m_shaderData, locIndex, value, uniformType);
+    }
+
 }
