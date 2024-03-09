@@ -26,16 +26,13 @@ namespace aiko::asset
 
         int getShaderLocation(const char* locName);
 
-        void setShaderValueV(int locIndex, const void* value, ShaderUniformDataType uniformType, int count);
-
-        void setShaderValue(int locIndex, const void* value, ShaderUniformDataType uniformType);
-
         // Type Helpers
 
         void setShaderValue(int locIndex, const int& value);
         void setShaderValue(int locIndex, const float& value);
         void setShaderValue(int locIndex, const ivec2& value);
         void setShaderValue(int locIndex, const vec3& value);
+        void setShaderValue(int locIndex, const vec4& value);
 
         aiko::ShaderData m_shaderData;
 

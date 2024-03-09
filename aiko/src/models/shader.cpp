@@ -34,21 +34,6 @@ namespace aiko::asset
         return rs->getShaderLocation( this->m_shaderData ,locName);
     }
 
-    void Shader::setShaderValueV(int locIndex, const void* value, ShaderUniformDataType uniformType, int count)
-    {
-        AIKO_RETURN_NO_LOC
-        // TODO count?
-        auto* rs = m_assetModule->getRenderModule();
-        rs->setShaderUniformValue(this->m_shaderData, locIndex, value, uniformType);
-    }
-
-    void Shader::setShaderValue(int locIndex, const void* value, ShaderUniformDataType uniformType)
-    {
-        AIKO_RETURN_NO_LOC
-        auto* rs = m_assetModule->getRenderModule();
-        rs->setShaderUniformValue(this->m_shaderData, locIndex, value, uniformType);
-    }
-
     void Shader::setShaderValue(int locIndex, const int& value)
     {
         AIKO_RETURN_NO_LOC
@@ -79,6 +64,15 @@ namespace aiko::asset
         static std::array<float, 3> loc;
         loc = { value.x, value.y ,value.z };
         rs->setShaderUniformValue(this->m_shaderData, locIndex, loc.data(), SHADER_UNIFORM_VEC3);
+    }
+
+    void Shader::setShaderValue(int locIndex, const vec4& value)
+    {
+        AIKO_RETURN_NO_LOC
+        auto* rs = m_assetModule->getRenderModule();
+        static std::array<float, 4> loc;
+        loc = { value.x, value.y ,value.z, value.w };
+        rs->setShaderUniformValue(this->m_shaderData, locIndex, loc.data(), SHADER_UNIFORM_VEC4);
     }
 
 }

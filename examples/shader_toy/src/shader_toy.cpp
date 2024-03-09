@@ -111,10 +111,10 @@ namespace shadertoy
         m_shader->setShaderValue(iFrameRateLoc, iFrameRate);                         // shader frame rate
         m_shader->setShaderValue(iFrameLoc, iFrame);                                 // shader playback frame
 
-        m_shader->setShaderValueV(iChannelTimeLoc, iChannelTime, aiko::ShaderUniformDataType::SHADER_UNIFORM_FLOAT, 4);                     // channel playback time (in seconds)
-        m_shader->setShaderValue(iChannelResolutionLoc, &iChannelResolution, aiko::SHADER_UNIFORM_VEC3);          // channel resolution (in pixels)
-        m_shader->setShaderValue(iMouseLoc, &iMouse, aiko::SHADER_UNIFORM_VEC4);                                  // mouse pixel coords. xy: current (if MLB down), zw: click
-        m_shader->setShaderValue(iDateLoc, &iDate, aiko::SHADER_UNIFORM_VEC4);                                    // (year, month, day, time in seconds)
+        // m_shader->setShaderValueV(iChannelTimeLoc, iChannelTime, aiko::ShaderUniformDataType::SHADER_UNIFORM_FLOAT, 4);                     // channel playback time (in seconds)
+        // m_shader->setShaderValue(iChannelResolutionLoc, &iChannelResolution, aiko::SHADER_UNIFORM_VEC3);          // channel resolution (in pixels)
+        m_shader->setShaderValue(iMouseLoc, iMouse);                                  // mouse pixel coords. xy: current (if MLB down), zw: click
+        m_shader->setShaderValue(iDateLoc, iDate);                                    // (year, month, day, time in seconds)
 
     }
 
