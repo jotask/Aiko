@@ -116,4 +116,9 @@ namespace aiko
         m_renderModule->setShaderUniformValue(shader.m_shaderData, locIndex, value, uniformType);
     }
 
+    void RenderSystem::setShaderUniformValueV(asset::Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count)
+    {
+        m_renderModule->setShaderUniformValueV(shader.m_shaderData, locIndex, value, uniformType, count);
+    }
+
 }

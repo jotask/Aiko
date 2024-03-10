@@ -21,5 +21,10 @@ namespace aiko
             return ::GetRandomValue(min, max);
         }
 
+        float getRandomValue(float min, float max)
+        {
+            return ::GetRandomValue(min, max);
+        }
+
     }
 }

@@ -99,6 +99,7 @@ namespace aiko
         void unloadShader( aiko::ShaderData& );
         int getShaderLocation(aiko::ShaderData&, const char* uniformName );
         void setShaderUniformValue(aiko::ShaderData&, int, const void*, aiko::ShaderUniformDataType);
+        void setShaderUniformValueV(aiko::ShaderData&, int, const void*, aiko::ShaderUniformDataType, int);
 
     private:
 

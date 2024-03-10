@@ -50,7 +50,15 @@ namespace aiko::asset
     void Shader::setShaderValue(int locIndex, const ivec2& value)
     {
         AIKO_RETURN_NO_LOC
-        std::array<float, 2> loc;
+            std::array<float, 2> loc;
+        loc = { static_cast<float>(value.x), static_cast<float>(value.y) };
+        m_renderSystem->setShaderUniformValue(*this, locIndex, loc.data(), SHADER_UNIFORM_VEC2);
+    }
+
+    void Shader::setShaderValue(int locIndex, const vec2& value)
+    {
+        AIKO_RETURN_NO_LOC
+            std::array<float, 2> loc;
         loc = { static_cast<float>(value.x), static_cast<float>(value.y) };
         m_renderSystem->setShaderUniformValue(*this, locIndex, loc.data(), SHADER_UNIFORM_VEC2);
     }
@@ -66,9 +74,15 @@ namespace aiko::asset
     void Shader::setShaderValue(int locIndex, const vec4& value)
     {
         AIKO_RETURN_NO_LOC
-        static std::array<float, 4> loc;
+            static std::array<float, 4> loc;
         loc = { value.x, value.y ,value.z, value.w };
         m_renderSystem->setShaderUniformValue(*this, locIndex, loc.data(), SHADER_UNIFORM_VEC4);
+    }
+
+    void Shader::setShaderValue(int locIndex, const std::vector<vec2>& value)
+    {
+        AIKO_RETURN_NO_LOC;
+        m_renderSystem->setShaderUniformValueV(*this, locIndex, value.data(), SHADER_UNIFORM_VEC2, value.size());
     }
 
     void Shader::connect()

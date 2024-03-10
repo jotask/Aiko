@@ -33,8 +33,10 @@ namespace aiko
             void setShaderValue(int locIndex, const int& value);
             void setShaderValue(int locIndex, const float& value);
             void setShaderValue(int locIndex, const ivec2& value);
+            void setShaderValue(int locIndex, const vec2& value);
             void setShaderValue(int locIndex, const vec3& value);
             void setShaderValue(int locIndex, const vec4& value);
+            void setShaderValue(int locIndex, const std::vector<vec2>& value);
 
         protected:
             virtual void connect();

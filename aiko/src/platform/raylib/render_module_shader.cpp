@@ -31,5 +31,11 @@ namespace aiko
         SetShaderValue(m_shader, locIndex, value, uniformType);
     }
 
+    void RenderModule::setShaderUniformValueV(aiko::ShaderData& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count)
+    {
+        ::Shader m_shader = raylib::utils::toRaylibShader(shader);
+        SetShaderValueV(m_shader, locIndex, value, uniformType, count);
+    }
+
 }
 #endif

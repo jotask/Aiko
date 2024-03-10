@@ -49,6 +49,7 @@ namespace aiko
         void unloadShader(asset::Shader& data);
         int getShaderLocation(asset::Shader& shader, const char* uniformName);
         void setShaderUniformValue(asset::Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType);
+        void setShaderUniformValueV(asset::Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count);
 
     protected:
     
