@@ -1,12 +1,6 @@
 [submodule "submodules/spdlog"]
 	path = submodules/spdlog
 	url = https://github.com/gabime/spdlog
-[submodule "submodules/rlImGui"]
-	path = submodules/rlImGui
-	url = https://github.com/raylib-extras/rlImGui.git
-[submodule "submodules/raylib"]
-	path = submodules/raylib
-	url = https://github.com/raysan5/raylib.git
 [submodule "submodules/imgui"]
 	path = submodules/imgui
 	url = https://github.com/ocornut/imgui.git
@@ -19,3 +13,9 @@
 [submodule "submodules/assimp"]
 	path = submodules/assimp
 	url = https://github.com/assimp/assimp.git
+[submodule "submodules/glew"]
+	path = submodules/glew
+	url = https://github.com/nigels-com/glew.git
+[submodule "submodules/glad"]
+	path = submodules/glad
+	url = https://github.com/Dav1dde/glad.git
