@@ -50,6 +50,7 @@ namespace aiko
         Aiko* aiko;
         void setup(Aiko* aiko) { this->aiko = aiko; };
 
+        std::uint32_t m_id;
         std::string name;
         std::vector<aiko::AikoPtr<Component>> m_components;
 

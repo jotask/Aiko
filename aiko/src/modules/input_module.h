@@ -6,7 +6,7 @@
 
 namespace aiko
 {
-    
+    class DisplayModule;
     class InputModule : public BaseModule
     {
     public:
@@ -20,8 +20,14 @@ namespace aiko
 
     protected:
 
+        virtual void connect(ModuleConnector*);
+
         virtual void init() override;
         virtual void preUpdate() override;
+
+    private:
+
+        DisplayModule* m_displayModule;
     };
 
 }

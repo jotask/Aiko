@@ -14,6 +14,8 @@ namespace aiko
     class CameraModule;
     class Camera;
     class DisplayModule;
+    class Mesh;
+    class Shader;
 
     class RenderModule : public BaseModule
     {
@@ -44,6 +46,13 @@ namespace aiko
     
     public:
 
+        void initMesh(Mesh*);
+        void refreshMesh(Mesh*);
+        void renderMesh(Mesh*, Shader*);
+
+        void initShader(Shader*);
+        void refreshShader(Mesh*);
+
         CameraModule* getCameraModule() { return m_cameraModule; }
         ivec2 getDisplaySize();
 
@@ -61,6 +70,7 @@ namespace aiko
         void beginBlendMode(BlendMode);
         void endBlendMode(void);
 
+        /*
         // Texture
         void drawTexture(texture::Texture texture, int posX, int posY, Color tint);
         void drawTextureV(texture::Texture texture, vec2 position, Color tint);
@@ -93,13 +103,14 @@ namespace aiko
         void drawPoly(vec2 center, int sides, float radius, float rotation, Color color);
         void drawPolyLines(vec2 center, int sides, float radius, float rotation, Color color);
         void drawPolyLinesEx(vec2 center, int sides, float radius, float rotation, float lineThick, Color color);
-    
+
         // Shader
         aiko::ShaderData loadShaderData(const char*, const char*);
         void unloadShader( aiko::ShaderData& );
         int getShaderLocation(aiko::ShaderData&, const char* uniformName );
         void setShaderUniformValue(aiko::ShaderData&, int, const void*, aiko::ShaderUniformDataType);
         void setShaderUniformValueV(aiko::ShaderData&, int, const void*, aiko::ShaderUniformDataType, int);
+        */
 
     private:
 

@@ -6,6 +6,8 @@ namespace aiko
 {
     namespace mesh
     {
+
+        /*
         Mesh generateMeshPoly(int sides, float radius)
         {
             ::Mesh m = ::GenMeshPoly(sides, radius);
@@ -53,6 +55,7 @@ namespace aiko
             ::Mesh m = ::GenMeshKnot( radius, size, radSeg, sides);
             return raylib::utils::toMesh(m);
         }
+        */
     }
 
 }

@@ -6,13 +6,19 @@
 #include "types/camera_types.h"
 #include "types/color.h"
 #include "shared/math.h"
+#include "models/shader.h"
+#include "models/shader.h"
 
 namespace aiko
 {
     
+    class Shader;
     class Mesh
     {
     public:
+
+        friend class RenderModule;
+        friend class RenderSystem;
     
         Mesh();
         ~Mesh() = default;
@@ -33,10 +39,9 @@ namespace aiko
         Colors m_colors;
         Indices m_indices;
 
-        // OpenGL identifiers
-        unsigned int vaoId;     // OpenGL Vertex Array Object id
-        unsigned int* vboId;    // OpenGL Vertex Buffer Objects id (default vertex data)
-    
+        MeshData m_data;
+        Shader* m_shader;
+
     };
 
 }

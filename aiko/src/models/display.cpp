@@ -15,22 +15,22 @@ namespace aiko
 
     ivec2 Display::getDisplaySize()
     {
-        return { GetScreenWidth(), GetScreenHeight() };
+        return m_size;
     }
 
     void Display::setWindowTitle(const char* title)
     {
-        SetWindowTitle(title);
+        // SetWindowTitle(title);
     }
 
     void Display::setWindowPosition(int x, int y)
     {
-        SetWindowPosition(x, y);
+        // SetWindowPosition(x, y);
     }
 
     void Display::setWindowSize(int width, int height)
     {
-        SetWindowSize(width, height);
+        // SetWindowSize(width, height);
     }
 
 }

@@ -50,5 +50,13 @@ namespace aiko
         std::vector<int> locs;
     };
 
+    class MeshData
+    {
+    public:
+        // OpenGL identifiers
+        unsigned int vbo;    // OpenGL Vertex Buffer Objects id (default vertex data)
+        unsigned int vao;     // OpenGL Vertex Array Object id
+    };
+
 }
 

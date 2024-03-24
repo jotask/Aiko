@@ -1,4 +1,3 @@
-#ifdef AIKO_BUILD_RAYLIB
 #include "modules/scene_module.h"
 
 #include "components/component_entity.h"
@@ -47,5 +46,9 @@ namespace aiko
 
     }
 
+    void SceneModule::createEntity()
+    {
+        entt::entity e = m_registry.create();
+    }
+
 }
-#endif

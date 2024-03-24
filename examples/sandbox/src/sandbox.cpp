@@ -4,8 +4,7 @@
 #include "components/camera_component.h"
 #include "components/mesh_component.h"
 #include "components/light_component.h"
-
-#include "particle_component.hpp"
+#include "models/mesh.h"
 
 namespace sandbox
 {
@@ -13,7 +12,7 @@ namespace sandbox
     {
         Application::init();
         m_go = this->createGameObject("SandBox");
-        m_go->addComponent<sandbox::ParticlesComponent>();
+        auto mesh = m_go->addComponent<aiko::MeshComponent>();
     }
 
     void Sandbox::update()

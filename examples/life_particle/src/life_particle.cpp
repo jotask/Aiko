@@ -12,6 +12,7 @@ namespace life
     void LifeParticle::init()
     {
         Application::init();
+        /*
         for (size_t i = 0 ; i < MAX_NUM_TOTAL_PARTICLES; ++i)
         {
             m_particles.emplace_back(Particle());
@@ -38,11 +39,13 @@ namespace life
             iResolutionLoc = m_shader->getShaderLocation("iResolution");
 
         }
+        */
     }
 
     void LifeParticle::update()
     {
         Application::update();
+        /*
         for (auto& p : m_particles)
         {
             p.update();
@@ -60,10 +63,12 @@ namespace life
         m_shader->setShaderValue(iResolutionLoc, size);
         // m_shader->setShaderValue(iRadiusLoc, particleRadius);
         // m_shader->setShaderValue(iParticlesLoc, pos );
+        */
     }
 
     void LifeParticle::render()
     {
+        /*
         Application::render();
         static aiko::RenderSystem* rs = m_aiko->getSystem<aiko::RenderSystem>();
         for (auto& p : m_particles)
@@ -73,6 +78,7 @@ namespace life
         auto* texture = rs->getTargetTexture();
         auto* renderer = getRenderSystem();
         rs->render(*texture, m_shader);
+        */
     }
 
 }

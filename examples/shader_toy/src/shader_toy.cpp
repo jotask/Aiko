@@ -63,7 +63,7 @@ namespace shadertoy
 
     void ShaderToy::update()
     {
-
+        /*
         if (isKeyPressed(aiko::KEY_SPACE) || isKeyPressed(aiko::KEY_RIGHT))
         {
             nextShader();
@@ -116,14 +116,17 @@ namespace shadertoy
         m_shader->setShaderValue(iMouseLoc, iMouse);                                  // mouse pixel coords. xy: current (if MLB down), zw: click
         m_shader->setShaderValue(iDateLoc, iDate);                                    // (year, month, day, time in seconds)
 
+        */
     }
 
     void ShaderToy::render()
     {
+        /*
         if (m_shader != nullptr)
         {
             draw(m_shader);
         }
+        */
     }
 
     void ShaderToy::nextShader()
@@ -148,6 +151,7 @@ namespace shadertoy
 
     void ShaderToy::refreshShader()
     {
+        /*
         if (m_shader != nullptr)
         {
             unloadShader(m_shader);
@@ -169,6 +173,7 @@ namespace shadertoy
 
         // assert(positionLoc != -1 && nParticlesLoc != -1 && resolutionLoc != -1 && radiusLoc != -1 );
         // assert(iResolutionLoc != -1 && iTimeLoc != -1 && iTimeDeltaLoc != -1 && iFrameRateLoc != -1 && iFrameLoc != -1 && iChannelTimeLoc != -1 && iChannelResolutionLoc != -1 && iMouseLoc != -1 && iDateLoc != -1);
+        */
 
     }
 

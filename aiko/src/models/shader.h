@@ -12,12 +12,14 @@
 
 namespace aiko
 {
+    class RenderModule;
     class RenderSystem;
     namespace asset
     {
         class Shader : public Asset
         {
         public:
+            friend class RenderModule;
             friend class RenderSystem;
 
             Shader();

@@ -27,8 +27,10 @@ namespace aiko
         virtual void render() override;
         virtual void postRender() override;
     
+        void createEntity();
+
     private:
-    
+
         entt::registry m_registry;
 
     };

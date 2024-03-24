@@ -36,10 +36,16 @@ namespace aiko
     {
 
     }
-    
+
     aiko::AikoPtr<Mesh> RenderSystem::createMesh()
     {
         auto mesh = std::make_unique<Mesh>();
+        mesh->m_vertices = {
+            -0.5f, -0.5f, 0.0f,
+             0.5f, -0.5f, 0.0f,
+             0.0f,  0.5f, 0.0f
+        };
+        m_renderModule->initMesh(mesh.get());
         return mesh;
     }
     
@@ -91,34 +97,36 @@ namespace aiko
 
     void RenderSystem::render(texture::RenderTexture2D& target, aiko::asset::Shader* shader)
     {
-        m_renderModule->beginShaderMode(&shader->m_shaderData);
-        m_renderModule->drawTextureEx(target.texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
-        m_renderModule->endShaderMode();
+        // m_renderModule->beginShaderMode(&shader->m_shaderData);
+        // m_renderModule->drawTextureEx(target.texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
+        // m_renderModule->endShaderMode();
     }
 
     aiko::ShaderData RenderSystem::loadShaderData(const char* vs, const char* fs)
     {
-        return m_renderModule->loadShaderData(vs, fs);
+        // return m_renderModule->loadShaderData(vs, fs);
+        return {};
     }
 
     void RenderSystem::unloadShader(asset::Shader& data)
     {
-        m_renderModule->unloadShader(data.m_shaderData);
+        // m_renderModule->unloadShader(data.m_shaderData);
     }
 
     int RenderSystem::getShaderLocation(asset::Shader& shader, const char* uniformName)
     {
-        return m_renderModule->getShaderLocation( shader.m_shaderData, uniformName );
+        // return m_renderModule->getShaderLocation( shader.m_shaderData, uniformName );
+        return -1;
     }
 
     void RenderSystem::setShaderUniformValue(asset::Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType)
     {
-        m_renderModule->setShaderUniformValue(shader.m_shaderData, locIndex, value, uniformType);
+        // m_renderModule->setShaderUniformValue(shader.m_shaderData, locIndex, value, uniformType);
     }
 
     void RenderSystem::setShaderUniformValueV(asset::Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count)
     {
-        m_renderModule->setShaderUniformValueV(shader.m_shaderData, locIndex, value, uniformType, count);
+        // m_renderModule->setShaderUniformValueV(shader.m_shaderData, locIndex, value, uniformType, count);
     }
 
 }

@@ -12,12 +12,12 @@ namespace aiko
 
     void GameObject::update()
     {
-        for (auto& cmp : m_components) cmp->update();
+
     }
 
     void GameObject::render()
     {
-        for (auto& cmp : m_components) cmp->render();
+
     }
 
 }

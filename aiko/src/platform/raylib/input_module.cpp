@@ -35,5 +35,9 @@ namespace aiko
 
     }
 
+    void InputModule::connect(ModuleConnector*)
+    {
+    }
+
 }
 #endif
