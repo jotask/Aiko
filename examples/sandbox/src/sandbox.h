@@ -9,7 +9,10 @@ namespace sandbox
     {
     protected:
         virtual void init() override;
-
+        virtual void update() override;
+        virtual void render() override;
+    private:
+        aiko::GameObject* m_go;
     };
 
 }

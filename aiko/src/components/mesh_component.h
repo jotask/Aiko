@@ -8,7 +8,7 @@ namespace aiko
 
     class RenderSystem;
 
-    class MeshComponent : public Component
+    class MeshComponent : public Component, public IUpdate, public IRender
     {
     public:
         MeshComponent();

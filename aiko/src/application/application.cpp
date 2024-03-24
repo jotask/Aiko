@@ -101,4 +101,9 @@ namespace aiko
         assetSystem->unload(shader->getID());
     }
 
+    GameObject* Application::createGameObject(char* name)
+    {
+        return m_aiko->createGameObject(name);
+    }
+
 }

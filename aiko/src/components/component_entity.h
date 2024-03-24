@@ -16,4 +16,14 @@ namespace aiko
 
     };
 
+    class IRender2D
+    {
+        public:
+    };
+
+    class IRender3D
+    {
+        public:
+    };
+
 }

@@ -37,7 +37,7 @@ namespace aiko
         vec2 getMousePosition() const;
         bool isMouseButtonPressed(MouseButton) const;
 
-        virtual void init() {};
+        virtual void init() {}
         virtual void update() {}
         virtual void render() {}
 
@@ -54,6 +54,8 @@ namespace aiko
 
         aiko::asset::Shader* loadShader(const char* vs, const char* fs);
         void unloadShader(aiko::asset::Shader*);
+
+        GameObject* createGameObject(char* name);
 
     private:
 

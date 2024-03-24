@@ -11,8 +11,7 @@ namespace aiko
     
     class GameObject;
     
-    // TODO extract this from the base class
-    class Component: public IUpdate, public IRender
+    class Component
     {
         friend class GameObject;
         friend class EntityComponentSystem;
