@@ -1,7 +1,9 @@
 #pragma once
 
+#include "aiko_types.h"
 #include "models/component.h"
 #include "models/mesh.h"
+#include "models/shader.h"
 
 namespace aiko
 {
@@ -11,6 +13,9 @@ namespace aiko
     class MeshComponent : public Component, public IUpdate, public IRender
     {
     public:
+
+        friend class RenderSystem;
+
         MeshComponent();
         virtual ~MeshComponent() = default;
 
@@ -20,7 +25,8 @@ namespace aiko
 
     private:
         RenderSystem* m_renderSystem;
-        aiko::AikoPtr<Mesh> m_mesh;
+        AikoPtr<Mesh> m_mesh;
+        AikoPtr<Shader> m_shader;
 
     };
 

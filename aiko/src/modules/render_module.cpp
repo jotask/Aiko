@@ -71,9 +71,6 @@ namespace aiko
         glGenBuffers(1, &mesh->m_data.vbo);
         // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
         glBindVertexArray(mesh->m_data.vao);
-
-
-
     }
 
     void RenderModule::refreshMesh(Mesh* mesh)
@@ -108,7 +105,7 @@ namespace aiko
         glDrawArrays(GL_TRIANGLES, 0, 3);
     }
 
-    void RenderModule::initShader(Shader*)
+    void RenderModule::initShader(Shader* shader, const char* vsPath, const char* fsPath)
     {
 
         auto loadFile = [](std::string filename) -> std::string
@@ -128,13 +125,15 @@ namespace aiko
         };
 
         // build and compile our shader program
-       // ------------------------------------
-       // vertex shader
-        auto vertexShaderSource = loadFile("C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko.vs");
+        // ------------------------------------
+
+        // vertex shader
+        auto vertexShaderSource = loadFile(vsPath);
         char* tmp1 = vertexShaderSource.data();
         unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertexShader, 1, &tmp1, NULL);
         glCompileShader(vertexShader);
+
         // check for shader compile errors
         int success;
         char infoLog[512];
@@ -144,33 +143,39 @@ namespace aiko
             glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
             std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
         }
-        // fragment shader
 
-        auto fragmentShaderSource = loadFile("C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko.fs");
+        // fragment shader
+        auto fragmentShaderSource = loadFile(fsPath);
         char* tmp2 = fragmentShaderSource.data();
         unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragmentShader, 1, &tmp2, NULL);
         glCompileShader(fragmentShader);
+
         // check for shader compile errors
         glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-        if (!success)
+        if (success == false)
         {
             glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
             std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
         }
+
         // link shaders
         unsigned int shaderProgram = glCreateProgram();
         glAttachShader(shaderProgram, vertexShader);
         glAttachShader(shaderProgram, fragmentShader);
         glLinkProgram(shaderProgram);
+
         // check for linking errors
         glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-        if (!success) {
+        if (success == false) {
             glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
             std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
         }
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
+
+        shader->m_shaderData.id = shaderProgram;
+
     }
 
     void RenderModule::refreshShader(Mesh*)
@@ -221,9 +226,9 @@ namespace aiko
     void RenderModule::endFrame()
     {
 
-        ivec2 screenSize = getDisplaySize();
-        vec2 targetSize = { static_cast<float>(m_renderTexture2D.texture.width), static_cast<float>(-m_renderTexture2D.texture.height) };
-        vec2 targScreen = { static_cast<float>(screenSize.x), static_cast<float>(screenSize.y) };
+        // ivec2 screenSize = getDisplaySize();
+        // vec2 targetSize = { static_cast<float>(m_renderTexture2D.texture.width), static_cast<float>(-m_renderTexture2D.texture.height) };
+        // vec2 targScreen = { static_cast<float>(screenSize.x), static_cast<float>(screenSize.y) };
 
         /*
         drawTexturePro(
@@ -316,6 +321,31 @@ namespace aiko
     }
 
     void RenderModule::endBlendMode(void)
+    {
+
+    }
+
+    aiko::ShaderData RenderModule::loadShaderData(const char* vs, const char* fs)
+    {
+        return {};
+    }
+
+    void RenderModule::unloadShader(aiko::ShaderData& data)
+    {
+
+    }
+
+    int RenderModule::getShaderLocation(aiko::ShaderData& shader, const char* uniformName)
+    {
+        return -1;
+    }
+
+    void RenderModule::setShaderUniformValue(aiko::ShaderData& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType)
+    {
+
+    }
+
+    void RenderModule::setShaderUniformValueV(aiko::ShaderData& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count)
     {
 
     }

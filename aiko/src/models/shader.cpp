@@ -8,10 +8,10 @@
 #include "systems/render_system.h"
 #include "systems/asset_system.h"
 
-namespace aiko::asset
+namespace aiko
 {
 
-#define AIKO_RETURN_NO_LOC if(locIndex < 0) return;
+    #define AIKO_RETURN_NO_LOC if(locIndex < 0) return;
 
     Shader::Shader()
         : m_renderSystem(nullptr)
@@ -22,13 +22,13 @@ namespace aiko::asset
     void Shader::load(const char* vs, const char* fs)
     {
         // TODO unload if we have a shader loaded?
-        m_shaderData = m_assetSystem->getRenderSystem()->loadShaderData(vs, fs);
+        // m_shaderData = m_assetSystem->getRenderSystem()->loadShaderData(vs, fs);
     }
 
-    void Shader::unload()
-    {
-        m_assetSystem->getRenderSystem()->unloadShader(*this);
-    }
+    // void Shader::unload()
+    // {
+    //     // m_assetSystem->getRenderSystem()->unloadShader(*this);
+    // }
 
     int Shader::getShaderLocation(const char* locName)
     {
@@ -87,7 +87,7 @@ namespace aiko::asset
 
     void Shader::connect()
     {
-        m_renderSystem = m_assetSystem->getRenderSystem();
+        // m_renderSystem = m_assetSystem->getRenderSystem();
     }
 
 }

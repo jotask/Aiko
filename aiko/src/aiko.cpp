@@ -12,7 +12,6 @@
 // Modules
 #include "modules/platform_module.h"
 #include "modules/display_module.h"
-#include "modules/scene_module.h"
 #include "modules/render_module.h"
 #include "modules/input_module.h"
 #include "modules/camera_module.h"
@@ -85,7 +84,6 @@ namespace aiko
         m_modules.emplace_back(std::make_unique<PlatformModule>());
         m_modules.emplace_back(std::make_unique<DisplayModule>());
         m_modules.emplace_back(std::make_unique<RenderModule>());
-        m_modules.emplace_back(std::make_unique<SceneModule>());
         m_modules.emplace_back(std::make_unique<InputModule>());
         m_modules.emplace_back(std::make_unique<CameraModule>());
 

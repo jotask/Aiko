@@ -14,39 +14,37 @@ namespace aiko
 {
     class RenderModule;
     class RenderSystem;
-    namespace asset
+
+    class Shader
     {
-        class Shader : public Asset
-        {
-        public:
-            friend class RenderModule;
-            friend class RenderSystem;
+    public:
+        friend class RenderModule;
+        friend class RenderSystem;
 
-            Shader();
-            ~Shader() = default;
+        Shader();
+        ~Shader() = default;
 
-            void load(const char* vs, const char* fs);
-            virtual void unload() override;
+        void load(const char* vs, const char* fs);
+        virtual void unload() {};
 
-            int getShaderLocation(const char* locName);
+        int getShaderLocation(const char* locName);
 
-            // Type Helpers
+        // Type Helpers
 
-            void setShaderValue(int locIndex, const int& value);
-            void setShaderValue(int locIndex, const float& value);
-            void setShaderValue(int locIndex, const ivec2& value);
-            void setShaderValue(int locIndex, const vec2& value);
-            void setShaderValue(int locIndex, const vec3& value);
-            void setShaderValue(int locIndex, const vec4& value);
-            void setShaderValue(int locIndex, const std::vector<vec2>& value);
+        void setShaderValue(int locIndex, const int& value);
+        void setShaderValue(int locIndex, const float& value);
+        void setShaderValue(int locIndex, const ivec2& value);
+        void setShaderValue(int locIndex, const vec2& value);
+        void setShaderValue(int locIndex, const vec3& value);
+        void setShaderValue(int locIndex, const vec4& value);
+        void setShaderValue(int locIndex, const std::vector<vec2>& value);
 
-        protected:
-            virtual void connect();
+    protected:
+        virtual void connect();
 
-        private:
-            RenderSystem* m_renderSystem;
-            aiko::ShaderData m_shaderData;
+    private:
+        RenderSystem* m_renderSystem;
+        aiko::ShaderData m_shaderData;
 
-        };
-    }
+    };
 }

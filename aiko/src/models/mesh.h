@@ -7,12 +7,10 @@
 #include "types/color.h"
 #include "shared/math.h"
 #include "models/shader.h"
-#include "models/shader.h"
 
 namespace aiko
 {
-    
-    class Shader;
+
     class Mesh
     {
     public:

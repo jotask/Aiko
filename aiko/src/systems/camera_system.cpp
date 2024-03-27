@@ -3,7 +3,6 @@
 #include "modules/module_connector.h"
 
 #include "modules/render_module.h"
-#include "modules/scene_module.h"
 #include "components/transform_component.h"
 #include "components/camera_component.h"
 #include "types/camera_types.h"
@@ -79,7 +78,6 @@ namespace aiko
     void CameraSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
-        BIND_MODULE_REQUIRED(SceneModule, moduleConnector, m_sceneModule)
     }
     
     void CameraSystem::init()

@@ -181,7 +181,7 @@ namespace shadertoy
     {
         auto* texture = getTargetTexture();
         auto* renderer = getRenderSystem();
-        renderer->render( *texture, shader);
+        // renderer->render( *texture, shader);
     }
 
 }

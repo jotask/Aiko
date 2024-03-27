@@ -50,7 +50,7 @@ namespace aiko
         void refreshMesh(Mesh*);
         void renderMesh(Mesh*, Shader*);
 
-        void initShader(Shader*);
+        void initShader(Shader*, const char*, const char*);
         void refreshShader(Mesh*);
 
         CameraModule* getCameraModule() { return m_cameraModule; }
@@ -103,6 +103,7 @@ namespace aiko
         void drawPoly(vec2 center, int sides, float radius, float rotation, Color color);
         void drawPolyLines(vec2 center, int sides, float radius, float rotation, Color color);
         void drawPolyLinesEx(vec2 center, int sides, float radius, float rotation, float lineThick, Color color);
+        */
 
         // Shader
         aiko::ShaderData loadShaderData(const char*, const char*);
@@ -110,7 +111,6 @@ namespace aiko
         int getShaderLocation(aiko::ShaderData&, const char* uniformName );
         void setShaderUniformValue(aiko::ShaderData&, int, const void*, aiko::ShaderUniformDataType);
         void setShaderUniformValueV(aiko::ShaderData&, int, const void*, aiko::ShaderUniformDataType, int);
-        */
 
     private:
 

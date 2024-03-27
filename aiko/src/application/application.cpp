@@ -92,13 +92,14 @@ namespace aiko
     aiko::asset::Shader* Application::loadShader(const char* vs, const char* fs)
     {
         auto* assetSystem = getAssetSystem();
-        return assetSystem->loadShader(vs, fs);
+        // return assetSystem->loadShader(vs, fs);
+        return nullptr;
     }
 
     void Application::unloadShader(aiko::asset::Shader* shader)
     {
-        auto* assetSystem = getAssetSystem();
-        assetSystem->unload(shader->getID());
+        // auto* assetSystem = getAssetSystem();
+        // assetSystem->unload(shader->getID());
     }
 
     GameObject* Application::createGameObject(char* name)

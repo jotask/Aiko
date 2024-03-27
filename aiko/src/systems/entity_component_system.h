@@ -6,15 +6,18 @@
 
 #include "aiko_types.h"
 #include "systems/base_system.h"
-#include "models/game_object.h"
+// #include "models/game_object.h"
+#include "types/scene_types.h"
 
 namespace aiko
 {
     
     class SceneModule;
+    class GameObject;
     
     class EntityComponentSystem : public BaseSystem
     {
+        friend class GameObject;
     public:
     
         EntityComponentSystem() = default;
@@ -33,11 +36,19 @@ namespace aiko
         virtual void render() override;
     
     private:
+
+        template<class T>
+        void onComponentAdded(GameObject*, T*);
+
+        template<class T>
+        void onComponentRemoved(GameObject*, T*);
+
+        SceneObject createEntity();
     
         SceneModule* m_sceneModule;
     
         std::vector<aiko::AikoPtr<GameObject>> m_gameObjects;
-    
+
     };
 
 }

@@ -1,7 +1,5 @@
 #include "mesh_factory.h"
 
-#include "platform/raylib/raylib_utils.h"
-
 namespace aiko
 {
     namespace mesh

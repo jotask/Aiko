@@ -4,7 +4,6 @@
 #include "systems/system_connector.h"
 
 #include "modules/render_module.h"
-#include "modules/scene_module.h"
 #include "components/transform_component.h"
 #include "components/camera_component.h"
 #include "types/camera_types.h"
@@ -14,15 +13,16 @@
 
 namespace aiko
 {
-    asset::Shader* AssetSystem::loadShader(const char* vs, const char* fs)
+    Shader* AssetSystem::loadShader(const char* vs, const char* fs)
     {
-        auto shared = std::make_unique<asset::Shader>();
-        initAsset(shared.get());
-        ((asset::Asset*)shared.get())->connect();
-        shared->load(vs, fs);
-        asset::ID uuid = shared->getID();
-        m_assets[uuid] = std::move(shared);
-        return (asset::Shader*)m_assets[uuid].get();
+        // auto shared = std::make_unique<asset::Shader>();
+        // initAsset(shared.get());
+        // ((asset::Asset*)shared.get())->connect();
+        // shared->load(vs, fs);
+        // asset::ID uuid = shared->getID();
+        // m_assets[uuid] = std::move(shared);
+        // return (asset::Shader*)m_assets[uuid].get();
+        return nullptr;
     }
 
     void AssetSystem::unload(asset::Asset& asset)

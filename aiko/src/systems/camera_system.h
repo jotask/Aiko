@@ -14,7 +14,6 @@ namespace aiko
 {
 
     class RenderModule;
-    class SceneModule;
     class Camera;
     
     class CameraSystem : public BaseSystem
@@ -44,7 +43,6 @@ namespace aiko
     private:
 
         RenderModule* m_renderModule;
-        SceneModule* m_sceneModule;
 
         std::vector<Camera> m_cameras;
     
