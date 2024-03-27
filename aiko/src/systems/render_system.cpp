@@ -40,10 +40,17 @@ namespace aiko
     aiko::AikoPtr<Mesh> RenderSystem::createMesh()
     {
         auto mesh = std::make_unique<Mesh>();
-        mesh->m_vertices = {
-            -0.5f, -0.5f, 0.0f,
-             0.5f, -0.5f, 0.0f,
-             0.0f,  0.5f, 0.0f
+        mesh->m_vertices =
+        {
+             0.5f,  0.5f, 0.0f,  // top right
+             0.5f, -0.5f, 0.0f,  // bottom right
+            -0.5f, -0.5f, 0.0f,  // bottom left
+            -0.5f,  0.5f, 0.0f   // top left 
+        };
+        mesh->m_indices =
+        {   // note that we start from 0!
+            0, 1, 3,  // first Triangle
+            1, 2, 3   // second Triangle
         };
         m_renderModule->initMesh(mesh.get());
         return mesh;
