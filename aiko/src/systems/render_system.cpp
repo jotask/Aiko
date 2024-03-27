@@ -42,15 +42,17 @@ namespace aiko
         auto mesh = std::make_unique<Mesh>();
         mesh->m_vertices =
         {
-             0.5f,  0.5f, 0.0f,  // top right
-             0.5f, -0.5f, 0.0f,  // bottom right
-            -0.5f, -0.5f, 0.0f,  // bottom left
-            -0.5f,  0.5f, 0.0f   // top left 
+            // positions                // texture coords
+             0.5f,  0.5f, 0.0f,         1.0f, 1.0f,         // top right
+             0.5f, -0.5f, 0.0f,         1.0f, 0.0f,         // bottom right
+            -0.5f, -0.5f, 0.0f,         0.0f, 0.0f,         // bottom left
+            -0.5f,  0.5f, 0.0f,         0.0f, 1.0f          // top left 
         };
+
         mesh->m_indices =
-        {   // note that we start from 0!
-            0, 1, 3,  // first Triangle
-            1, 2, 3   // second Triangle
+        {
+            0, 1, 3, // first triangle
+            1, 2, 3  // second triangle
         };
         m_renderModule->initMesh(mesh.get());
         return mesh;
@@ -94,7 +96,7 @@ namespace aiko
    
     void RenderSystem::render(MeshComponent* mesh)
     {
-        m_renderModule->renderMesh(mesh->m_mesh.get(), mesh->m_shader.get());
+        m_renderModule->renderMesh( mesh->gameobject->transform().get(), mesh->m_mesh.get(), mesh->m_shader.get());
     }
 
     texture::RenderTexture2D* RenderSystem::getTargetTexture() const

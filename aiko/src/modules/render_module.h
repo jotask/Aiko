@@ -16,6 +16,7 @@ namespace aiko
     class DisplayModule;
     class Mesh;
     class Shader;
+    class Transform;
 
     class RenderModule : public BaseModule
     {
@@ -48,7 +49,7 @@ namespace aiko
 
         void initMesh(Mesh*);
         void refreshMesh(Mesh*);
-        void renderMesh(Mesh*, Shader*);
+        void renderMesh(Transform*, Mesh*, Shader*);
 
         void initShader(Shader*, const char*, const char*);
         void refreshShader(Mesh*);

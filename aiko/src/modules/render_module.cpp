@@ -14,9 +14,14 @@
 #include "types/render_types.h"
 #include "models/mesh.h"
 #include "models/shader.h"
+#include "components/transform_component.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace aiko
 {
@@ -84,8 +89,13 @@ namespace aiko
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->m_data.ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->m_indices.size() * sizeof(unsigned int), mesh->m_indices.data(), GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        // position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
+
+        // texture coord attribute
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -93,7 +103,7 @@ namespace aiko
 
     }
 
-    void RenderModule::renderMesh(Mesh* mesh, Shader* shader)
+    void RenderModule::renderMesh(Transform* transform, Mesh* mesh, Shader* shader)
     {
 
         // Can be removed?
@@ -104,6 +114,11 @@ namespace aiko
 
         // draw our first triangle
         glUseProgram(shader->m_shaderData.id);
+
+        unsigned int transformLoc = glGetUniformLocation(shader->m_shaderData.id, "transform");
+        glm::mat4 matrix = glm::mat4(1.0f); // transform->getMatrix();
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
+
         glBindVertexArray(mesh->m_data.vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
