@@ -45,6 +45,27 @@ namespace aiko
         float x;
         float y;
         float z;
+
+        // Addition
+        vec3 operator+(const vec3& other) const {
+            return vec3(x + other.x, y + other.y, z + other.z);
+        }
+
+        // Subtraction
+        vec3 operator-(const vec3& other) const {
+            return vec3(x - other.x, y - other.y, z - other.z);
+        }
+
+        // Multiplication
+        vec3 operator*(float scalar) const {
+            return vec3(x * scalar, y * scalar, z * scalar);
+        }
+
+        // Division
+        vec3 operator/(float scalar) const {
+            return vec3(x / scalar, y / scalar, z / scalar);
+        }
+
     };
 
     class vec4
@@ -65,8 +86,17 @@ namespace aiko
         // Constructor
         mat4()
         {
-            // Initialize all elements to 0
-            memset(elements, 0, sizeof(elements));
+            // Initialize all elements to 0.0f
+            memset(elements, 0.0f, sizeof(elements));
+        }
+
+        // Identity matrix constructor
+        mat4(float identity) {
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    elements[i][j] = (i == j) ? identity : 0.0f;
+                }
+            }
         }
 
         mat4(const float(&data)[16]) {
