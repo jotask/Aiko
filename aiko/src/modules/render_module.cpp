@@ -116,8 +116,9 @@ namespace aiko
         glUseProgram(shader->m_shaderData.id);
 
         unsigned int transformLoc = glGetUniformLocation(shader->m_shaderData.id, "transform");
-        glm::mat4 matrix = glm::mat4(1.0f); // transform->getMatrix();
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
+        // &(m[0].x)
+        mat4 matrix = transform->getMatrix();
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &(matrix.elements[0][0]) );
 
         glBindVertexArray(mesh->m_data.vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

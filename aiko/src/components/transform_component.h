@@ -17,7 +17,7 @@ namespace aiko
         vec3 rotation = vec3(0.0f);
         vec3 scale = vec3(1.0f);
 
-        auto getMatrix();
+        mat4 getMatrix();
 
     };
 

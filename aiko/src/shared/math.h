@@ -1,5 +1,9 @@
 #pragma once
 
+#include <iostream> //  For std::cout
+#include <iomanip> // For std::setw
+#include <cstring> // For std::memcpy
+
 namespace aiko
 {
 
@@ -53,6 +57,62 @@ namespace aiko
         float y;
         float z;
         float w;
+    };
+
+    class mat4
+    {
+    public:
+        // Constructor
+        mat4()
+        {
+            // Initialize all elements to 0
+            memset(elements, 0, sizeof(elements));
+        }
+
+        mat4(const float(&data)[16]) {
+            int index = 0;
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    elements[i][j] = data[index++];
+                }
+            }
+        }
+
+        // Accessors
+        float& operator()(int row, int col)
+        {
+            return elements[row][col];
+        }
+
+        const float& operator()(int row, int col) const
+        {
+            return elements[row][col];
+        }
+
+        // Print matrix
+        void print() const
+        {
+            for (int i = 0; i < 4; ++i)
+            {
+                for (int j = 0; j < 4; ++j)
+                {
+                    std::cout << std::setw(8) << std::setprecision(3) << elements[i][j] << " ";
+                }
+                std::cout << std::endl;
+            }
+        }
+
+        // Copy assignment operator
+        mat4& operator=(const mat4& other)
+        {
+            if (this != &other) {
+                std::memcpy(elements, other.elements, sizeof(elements));
+            }
+            return *this;
+        }
+
+    // private:
+        float elements[4][4];
     };
 
 }
