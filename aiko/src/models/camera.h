@@ -32,6 +32,9 @@ namespace aiko
         vec3 getUp() const { return { 0.0f, 1.0f, 0.0f }; }
         float getFOV() const { return m_fov; }
 
+        mat4 getViewMatrix();
+        mat4 getProjectionMatrix();
+
     private:
 
         CameraSystem* cameraSystem;

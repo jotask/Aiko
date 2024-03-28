@@ -43,6 +43,26 @@ namespace aiko
             return { m.x, m.y, m.z };
         };
 
+        float radians(float angle)
+        {
+            return glm::radians(angle);
+        }
+
+        vec3 cross(vec3 a, vec3 b)
+        {
+            glm::vec3 aa = toGlm(a);
+            glm::vec3 bb = toGlm(b);
+            glm::vec3 n = glm::cross(aa, bb);
+            return toAiko(n);
+        }
+
+        vec3 normalize(vec3 vec)
+        {
+            glm::vec3 v = toGlm(vec);
+            glm::vec3 n = glm::normalize(v);
+            return toAiko(n);
+        }
+
         mat4 translate(mat4 matrix , vec3 position )
         {
             glm::mat4 m = toGlm(matrix);
@@ -57,11 +77,17 @@ namespace aiko
             return toAiko(m);
         }
 
-        vec3 normalize( vec3 vec )
+        mat4 lookAt(vec3 position, vec3 target, vec3 up)
         {
-            glm::vec3 v = toGlm(vec);
-            glm::vec3 n = glm::normalize(v);
-            return toAiko(n);
+            glm::mat4 mat = glm::mat4(1.0f);
+            mat = glm::lookAt( toGlm(position), toGlm(target), toGlm(up));
+            return toAiko(mat);
+        }
+
+        mat4 perspective( float angle, float width, float height, float min, float max)
+        {
+            glm::mat4 projection = glm::perspective( radians(angle), width / height, min, max);
+            return toAiko(projection);
         }
 
     }

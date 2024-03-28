@@ -141,6 +141,10 @@ namespace aiko
             return *this;
         }
 
+        const float* data() const {
+            return &elements[0][0];
+        }
+
     // private:
         float elements[4][4];
     };

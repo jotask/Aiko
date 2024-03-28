@@ -9,6 +9,7 @@
 
 #include "aiko_types.h"
 #include "modules/module_connector.h"
+#include "modules/camera_module.h"
 #include "components/transform_component.h"
 #include "components/component_renderer.h"
 #include "components/mesh_component.h"
@@ -67,6 +68,7 @@ namespace aiko
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
+        BIND_MODULE_REQUIRED(CameraModule, moduleConnector, m_cameraModule)
     }
     
     void RenderSystem::add(Light* light)
@@ -96,7 +98,8 @@ namespace aiko
    
     void RenderSystem::render(MeshComponent* mesh)
     {
-        m_renderModule->renderMesh( mesh->gameobject->transform().get(), mesh->m_mesh.get(), mesh->m_shader.get());
+        auto* cam = m_cameraModule->GetMainCamera();
+        m_renderModule->renderMesh(cam, mesh->gameobject->transform().get(), mesh->m_mesh.get(), mesh->m_shader.get());
     }
 
     texture::RenderTexture2D* RenderSystem::getTargetTexture() const

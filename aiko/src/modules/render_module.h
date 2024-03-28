@@ -49,7 +49,7 @@ namespace aiko
 
         void initMesh(Mesh*);
         void refreshMesh(Mesh*);
-        void renderMesh(Transform*, Mesh*, Shader*);
+        void renderMesh(Camera*, Transform*, Mesh*, Shader*);
 
         void initShader(Shader*, const char*, const char*);
         void refreshShader(Mesh*);
