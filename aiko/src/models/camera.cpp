@@ -44,10 +44,10 @@ namespace aiko
     mat4 Camera::getViewMatrix()
     {
         mat4 view = mat4(1.0f);
-        float radius = 10.0f;
+        float radius = 3.5f;
         float camX = static_cast<float>(sin(glfwGetTime()) * radius);
         float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
-        view = math::lookAt(vec3(camX, 0.0f, camZ), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+        view = math::lookAt(vec3(camX, 0.0f, camZ), target, getUp());
         return view;
     }
 

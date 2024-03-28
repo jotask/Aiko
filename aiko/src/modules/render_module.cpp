@@ -63,6 +63,7 @@ namespace aiko
         }
 
         glViewport(0, 0, 800, 600);
+        glEnable(GL_CULL_FACE);
 
         auto size = getDisplaySize();
         EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);

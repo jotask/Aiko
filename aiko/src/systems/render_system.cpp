@@ -43,17 +43,51 @@ namespace aiko
         auto mesh = std::make_unique<Mesh>();
         mesh->m_vertices =
         {
-            // positions                // texture coords
-             0.5f,  0.5f, 0.0f,         1.0f, 1.0f,         // top right
-             0.5f, -0.5f, 0.0f,         1.0f, 0.0f,         // bottom right
-            -0.5f, -0.5f, 0.0f,         0.0f, 0.0f,         // bottom left
-            -0.5f,  0.5f, 0.0f,         0.0f, 1.0f          // top left 
+            // positions              // texture coords   // Color
+            -0.5f,  0.5f,  0.5f,       0.0f, 1.0f,        1.0f, 0.0f, 0.0f, // Top-left
+            -0.5f, -0.5f,  0.5f,       0.0f, 0.0f,        1.0f, 0.0f, 0.0f, // Bottom-left
+             0.5f, -0.5f,  0.5f,       1.0f, 0.0f,        1.0f, 0.0f, 0.0f, // Bottom-right
+             0.5f,  0.5f,  0.5f,       1.0f, 1.0f,        1.0f, 0.0f, 0.0f, // Top-right
+
+            // Back face                                  
+            -0.5f, -0.5f, -0.5f,       0.0f, 0.0f,         0.0f, 1.0f, 0.0f, // Bottom-left
+            -0.5f,  0.5f, -0.5f,       0.0f, 1.0f,         0.0f, 1.0f, 0.0f, // Top-left
+             0.5f,  0.5f, -0.5f,       1.0f, 1.0f,         0.0f, 1.0f, 0.0f, // Top-right
+             0.5f, -0.5f, -0.5f,       1.0f, 0.0f,         0.0f, 1.0f, 0.0f, // Bottom-right
+
+            // Top face                                   
+            0.5f,  0.5f,  0.5f,       1.0f, 0.0f,         0.0f, 0.0f, 1.0f, // Front-top-right
+            0.5f,  0.5f, -0.5f,       1.0f, 1.0f,         0.0f, 0.0f, 1.0f, // Back-top-right
+            -0.5f,  0.5f, -0.5f,      0.0f, 1.0f,         0.0f, 0.0f, 1.0f, // Back-top-left
+            -0.5f,  0.5f,  0.5f,      0.0f, 0.0f,         0.0f, 0.0f, 1.0f, // Front-top-left
+
+            // Bottom face                                
+            -0.5f, -0.5f, -0.5f,      0.0f, 1.0f,         1.0f, 1.0f, 0.0f, // Back-bottom- left
+            0.5f, -0.5f, -0.5f,       1.0f, 1.0f,         1.0f, 1.0f, 0.0f, // Back-bottom-right
+            0.5f, -0.5f,  0.5f,       1.0f, 0.0f,         1.0f, 1.0f, 0.0f, // Front-bottom-right
+            -0.5f, -0.5f,  0.5f,      0.0f, 0.0f,         1.0f, 1.0f, 0.0f, // Front-bottom-left
+
+            // Right face                                 
+            0.5f, -0.5f,  0.5f,      1.0f, 0.0f,         1.0f, 0.0f, 1.0f, // Front-bottom-right
+            0.5f, -0.5f, -0.5f,      1.0f, 1.0f,         1.0f, 0.0f, 1.0f, // Back-bottom-right
+            0.5f,  0.5f, -0.5f,      0.0f, 1.0f,         1.0f, 0.0f, 1.0f, // Back-top-right
+            0.5f,  0.5f,  0.5f,      0.0f, 0.0f,         1.0f, 0.0f, 1.0f, // Front-top-right
+
+            // Left face                                  
+            -0.5f,  0.5f,  0.5f,      0.0f, 1.0f,         0.0f, 1.0f, 1.0f, // Front-top-left
+            -0.5f,  0.5f, -0.5f,      1.0f, 1.0f,         0.0f, 1.0f, 1.0f, // Back-top-left
+            -0.5f, -0.5f, -0.5f,      1.0f, 0.0f,         0.0f, 1.0f, 1.0f, // Back-bottom-left
+            -0.5f, -0.5f,  0.5f,      0.0f, 0.0f,         0.0f, 1.0f, 1.0f, // Front-bottom-left
         };
 
         mesh->m_indices =
         {
-            0, 1, 3, // first triangle
-            1, 2, 3  // second triangle
+0, 1, 2, 2, 3, 0,       // Front face
+    4, 5, 6, 6, 7, 4,       // Back face
+    8, 9, 10, 10, 11, 8,    // Top face
+    12, 13, 14, 14, 15, 12, // Bottom face
+    16, 17, 18, 18, 19, 16, // Right face
+    20, 21, 22, 22, 23, 20  // Left face
         };
         m_renderModule->initMesh(mesh.get());
         return mesh;
