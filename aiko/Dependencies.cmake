@@ -1,6 +1,7 @@
 include(FetchContent)
 
 set(FETCHCONTENT_BASE_DIR ${PROJECT_SOURCE_DIR}/libs CACHE PATH "Missing description." FORCE)
+Set(FETCHCONTENT_QUIET FALSE)
 
 #----------------------------------------------------------------------
 
