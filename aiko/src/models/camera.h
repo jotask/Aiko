@@ -17,6 +17,8 @@ namespace aiko
         Camera();
         ~Camera() = default;
 
+        void update();
+
         camera::CameraType getCameraType() const;
         void setCameraType(camera::CameraType);
 

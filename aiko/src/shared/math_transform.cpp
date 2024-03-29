@@ -63,6 +63,14 @@ namespace aiko
             return toAiko(n);
         }
 
+        mat4 scale(mat4 mat, vec3 scale)
+        {
+            glm::mat4 m = toGlm(mat);
+            glm::vec3 s = toGlm(scale);
+            glm::mat4 result = glm::scale(m, s);
+            return toAiko(result);
+        }
+
         mat4 translate(mat4 matrix , vec3 position )
         {
             glm::mat4 m = toGlm(matrix);

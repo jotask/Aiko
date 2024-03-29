@@ -19,6 +19,14 @@ namespace aiko
         cameraUp = math::cross(cameraDirection, right);
     }
 
+    void Camera::update()
+    {
+        float radius = 3.5f;
+        float camX = static_cast<float>(sin(glfwGetTime()) * radius);
+        float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
+        position = { camX, 0.0f, camZ };
+    }
+
     camera::CameraType Camera::getCameraType() const
     {
         return cameraType;
@@ -44,10 +52,7 @@ namespace aiko
     mat4 Camera::getViewMatrix()
     {
         mat4 view = mat4(1.0f);
-        float radius = 3.5f;
-        float camX = static_cast<float>(sin(glfwGetTime()) * radius);
-        float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
-        view = math::lookAt(vec3(camX, 0.0f, camZ), target, getUp());
+        view = math::lookAt(position, target, getUp());
         return view;
     }
 

@@ -119,6 +119,22 @@ namespace aiko
             return elements[row][col];
         }
 
+        mat4 operator*(const mat4& other) const {
+            mat4 result;
+
+            // Perform matrix multiplication
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    result.elements[i][j] = 0;
+                    for (int k = 0; k < 4; ++k) {
+                        result.elements[i][j] += elements[i][k] * other.elements[k][j];
+                    }
+                }
+            }
+
+            return result;
+        }
+
         // Print matrix
         void print() const
         {

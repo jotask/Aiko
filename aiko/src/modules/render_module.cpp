@@ -158,12 +158,13 @@ namespace aiko
     void RenderModule::clearBackground(Color color)
     {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        beginMode3D();
     }
 
-    void RenderModule::beginMode2D(Camera* cam)
+    void RenderModule::beginMode2D()
     {
-
+        glDisable(GL_DEPTH_TEST);
     }
 
     void RenderModule::endMode2D()
@@ -171,9 +172,9 @@ namespace aiko
 
     }
 
-    void RenderModule::beginMode3D(Camera* cam)
+    void RenderModule::beginMode3D()
     {
-
+        glEnable(GL_DEPTH_TEST);
     }
 
     void RenderModule::endMode3D()

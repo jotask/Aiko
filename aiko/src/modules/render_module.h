@@ -60,9 +60,9 @@ namespace aiko
         texture::RenderTexture2D* getRenderTexture();
 
         void clearBackground(Color);
-        void beginMode2D(Camera*);
+        void beginMode2D();
         void endMode2D();
-        void beginMode3D(Camera*);
+        void beginMode3D();
         void endMode3D();
         void beginTextureMode(texture::RenderTexture2D& target);
         void endTextureMode(void);

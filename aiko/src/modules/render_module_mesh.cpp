@@ -73,9 +73,6 @@ namespace aiko
         auto projection = cam->getProjectionMatrix();
         shader->setMat4("projection", projection);
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
         glUseProgram(shader->m_shaderData.id);
 
         mat4 model = transform->getMatrix();

@@ -12,7 +12,8 @@ namespace sandbox
         virtual void update() override;
         virtual void render() override;
     private:
-        aiko::GameObject* m_go;
+        aiko::GameObject* m_go1;
+        aiko::GameObject* m_go2;
     };
 
 }
