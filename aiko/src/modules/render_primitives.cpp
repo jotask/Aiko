@@ -1,6 +1,8 @@
 #include "render_primitives.h"
 
 #include "shared/math.h"
+#include "systems/render_system.h"
+#include "models/camera.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -8,7 +10,16 @@
 namespace aiko
 {
 
-    AikoPtr<Shader> Primitives::shader = nullptr;; //its a definition
+    AikoPtr<Shader> Primitives::shader = nullptr;
+    RenderSystem* Primitives::renderSystem = nullptr;
+
+    void Primitives::init(RenderSystem* system)
+    {
+        constexpr const char* vsFile = "C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko_primitives.vs";
+        constexpr const char* fsFile = "C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko_primitives.fs";
+        shader = system->createShader(vsFile, fsFile);
+        renderSystem = system;
+    }
 
     void Primitives::use()
     {

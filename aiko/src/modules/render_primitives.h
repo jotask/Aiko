@@ -6,11 +6,15 @@
 namespace aiko
 {
     class Shader;
+    class RenderSystem;
     class Primitives
     {
         friend class RenderSystem;
     private:
         static AikoPtr<Shader> shader;
+        static RenderSystem* renderSystem;
+
+        static void init(RenderSystem*);
 
         static void use();
         static void unuse();
