@@ -14,7 +14,9 @@ namespace aiko
     
         CameraModule() = default;
         virtual ~CameraModule() = default;
-    
+
+        virtual void update() override;
+
         Camera* GetMainCamera() { return &m_camera; };
 
     protected:
