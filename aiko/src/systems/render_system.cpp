@@ -17,6 +17,7 @@
 #include "models/light.h"
 #include "models/mesh_factory.h"
 
+#include "modules/render_primitives.h"
 
 namespace aiko
 {
@@ -27,7 +28,7 @@ namespace aiko
     
     void RenderSystem::init()
     {
-
+        Primitives::shader = this->createShader("C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko_primitives.vs", "C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko_primitives.fs");
     }
 
     void RenderSystem::update()
@@ -37,7 +38,12 @@ namespace aiko
 
     void RenderSystem::render()
     {
-
+        // Primitives::renderLine(vec3(-1, 0, 0), vec3(1, 0, 0));
+        // Primitives::renderCircle(vec3(0, 0, 0), 0.1);
+        // Primitives::drawPoint({0, 0.5, 0});
+        // Primitives::drawTriangle({ 0.0f, -0.5f, 0.0f }, 0.25f);
+        // Primitives::renderNgon(vec3(0.5f, 0.0f, 0.0f), 0.25f, 6);
+        Primitives::drawRectangle(vec3(-0.5f, 0.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f));
     }
 
     aiko::AikoPtr<Mesh> RenderSystem::createMesh()

@@ -140,6 +140,11 @@ namespace aiko
         m_renderSystem->setShaderUniformValueV(*this, locIndex, value.data(), SHADER_UNIFORM_VEC2, value.size());
     }
 
+    aiko::ShaderData* Shader::getData()
+    {
+        return &m_shaderData;
+    }
+
     void Shader::connect()
     {
         // m_renderSystem = m_assetSystem->getRenderSystem();

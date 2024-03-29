@@ -50,6 +50,8 @@ namespace aiko
         void setShaderValue(int locIndex, const vec4& value);
         void setShaderValue(int locIndex, const std::vector<vec2>& value);
 
+        aiko::ShaderData* getData();
+
     protected:
         virtual void connect();
 
