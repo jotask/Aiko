@@ -29,7 +29,7 @@ namespace aiko
         // Combine translation, rotation, and scale matrices to get the final transformation matrix
         mat4 transformMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
-        return translationMatrix;
+        return transformMatrix;
     }
 
 }
