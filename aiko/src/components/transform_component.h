@@ -6,7 +6,7 @@
 
 namespace aiko
 {
-
+    class Camera;
     class Transform : public Component
     {
     public:
@@ -18,6 +18,7 @@ namespace aiko
         vec3 scale = vec3(1.0f);
 
         mat4 getMatrix();
+        mat4 getBillboard(Camera*);
 
     };
 

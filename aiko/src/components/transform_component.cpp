@@ -2,6 +2,7 @@
 
 #include <GLFW/glfw3.h>
 
+#include "models/camera.h"
 #include "shared/math_transform.h"
 
 namespace aiko
@@ -30,6 +31,12 @@ namespace aiko
         mat4 transformMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
         return transformMatrix;
+    }
+
+    mat4 Transform::getBillboard(Camera*)
+    {
+        // TODO
+        return getMatrix();
     }
 
 }

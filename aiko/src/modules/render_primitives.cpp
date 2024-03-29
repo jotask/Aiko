@@ -23,13 +23,14 @@ namespace aiko
 
     void Primitives::use()
     {
-        // Use shader program
+        glDisable(GL_CULL_FACE);
         glUseProgram(shader->getData()->id);
     }
 
     void Primitives::unuse()
     {
         glUseProgram(0);
+        glEnable(GL_CULL_FACE);
     }
 
     void Primitives::bindShaderAttributes()
@@ -39,6 +40,17 @@ namespace aiko
         glEnableVertexAttribArray(0);
 
         shader->setVec4("color", { 1.,0.686,0.8, 1.0f});
+
+        Camera* cam = renderSystem->getMainCamera();
+        
+        auto projection = cam->getProjectionMatrix();
+        shader->setMat4("projection", projection);
+        
+        auto view = cam->getViewMatrix();
+        shader->setMat4("view", view);
+        
+        Transform trans;
+        shader->setMat4("model", trans.getMatrix());
 
     }
 
