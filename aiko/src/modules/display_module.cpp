@@ -23,6 +23,7 @@ namespace aiko
             return;
         }
         glfwMakeContextCurrent(window);
+        glfwSwapInterval(0);
 
         auto lamba = [](GLFWwindow* window, int width, int height)
         {
