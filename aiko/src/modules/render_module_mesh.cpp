@@ -67,11 +67,11 @@ namespace aiko
     void RenderModule::renderMesh(Camera* cam,  Transform* transform, Mesh* mesh, Shader* shader)
     {
 
-        auto view = cam->getViewMatrix();
-        shader->setMat4( "view", view);
-
         auto projection = cam->getProjectionMatrix();
         shader->setMat4("projection", projection);
+
+        auto view = cam->getViewMatrix();
+        shader->setMat4( "view", view);
 
         glUseProgram(shader->m_shaderData.id);
 
