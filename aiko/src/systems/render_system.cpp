@@ -93,8 +93,7 @@ namespace aiko
    
     void RenderSystem::render(MeshComponent* mesh)
     {
-        auto* cam = m_cameraModule->GetMainCamera();
-        m_renderModule->renderMesh(cam, mesh->gameobject->transform().get(), mesh->m_mesh.get(), mesh->m_shader.get());
+        m_renderModule->renderMesh(getMainCamera() , mesh->gameobject->transform().get(), mesh->m_mesh.get(), mesh->m_shader.get());
     }
 
     texture::RenderTexture2D* RenderSystem::getTargetTexture() const
@@ -134,6 +133,11 @@ namespace aiko
     void RenderSystem::setShaderUniformValueV(Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count)
     {
         m_renderModule->setShaderUniformValueV(shader.m_shaderData, locIndex, value, uniformType, count);
+    }
+
+    Camera* RenderSystem::getMainCamera()
+    {
+        return m_cameraModule->GetMainCamera();
     }
 
 }

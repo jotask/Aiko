@@ -50,6 +50,8 @@ namespace aiko
         void setShaderUniformValue(Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType);
         void setShaderUniformValueV(Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count);
 
+        Camera* getMainCamera();
+
     protected:
     
         virtual void connect(ModuleConnector*, SystemConnector*) override;
