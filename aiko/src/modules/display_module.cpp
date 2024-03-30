@@ -25,14 +25,32 @@ namespace aiko
         glfwMakeContextCurrent(window);
         glfwSwapInterval(0);
 
+        // window resize
         auto lamba = [](GLFWwindow* window, int width, int height)
         {
             // m_curent.m_size = {width, height};
             WindowResizeEvent even(width, height);
             aiko::EventSystem::it().sendEvent(even);
         };
-
         glfwSetFramebufferSizeCallback(window, lamba );
+
+        // keyboard
+        auto key_callback = [](GLFWwindow* window, int key, int scancode, int action, int mods)
+            {
+                OnKeyPressedEvent even(key, scancode, action, mods);
+                aiko::EventSystem::it().sendEvent(even);
+            };
+
+        glfwSetKeyCallback(window, key_callback);
+
+        // Mouse position
+        auto cursor_position_callback = [](GLFWwindow* window, double xpos, double ypos)
+            {
+                OnMouseMoveEvent even(xpos, ypos);
+                aiko::EventSystem::it().sendEvent(even);
+            };
+
+        glfwSetCursorPosCallback(window, cursor_position_callback);
         m_curent.native = window;
 
     }

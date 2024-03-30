@@ -25,7 +25,6 @@ namespace aiko
         static void bindShaderAttributes();
         static void setUniforms(vec4 color);
 
-
     public:
         static void drawPoint(vec3, vec4 = DEFAULT_COLOR);
         static void drawTriangle(vec3, float, vec4 = DEFAULT_COLOR);

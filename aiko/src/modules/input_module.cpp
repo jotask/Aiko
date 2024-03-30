@@ -27,7 +27,6 @@ namespace aiko
         return false;
     }
 
-
     void InputModule::connect(ModuleConnector* moduleConnector)
     {
         BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule)
