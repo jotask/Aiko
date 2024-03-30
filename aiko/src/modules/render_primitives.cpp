@@ -39,22 +39,26 @@ namespace aiko
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
         glEnableVertexAttribArray(0);
 
-        shader->setVec4("color", { 1.,0.686,0.8, 1.0f});
-
-        Camera* cam = renderSystem->getMainCamera();
-        
-        auto projection = cam->getProjectionMatrix();
-        shader->setMat4("projection", projection);
-        
-        auto view = cam->getViewMatrix();
-        shader->setMat4("view", view);
-        
-        Transform trans;
-        shader->setMat4("model", trans.getMatrix());
-
     }
 
-    void Primitives::drawPoint(vec3 pos)
+    void Primitives::setUniforms(vec4 color)
+    {
+
+        shader->setVec4("color", color );
+
+        Camera* cam = renderSystem->getMainCamera();
+
+        auto projection = cam->getProjectionMatrix();
+        shader->setMat4("projection", projection);
+
+        auto view = cam->getViewMatrix();
+        shader->setMat4("view", view);
+
+        Transform trans;
+        shader->setMat4("model", trans.getMatrix());
+    }
+
+    void Primitives::drawPoint(vec3 pos, vec4 color)
     {
 
         use();
@@ -75,6 +79,7 @@ namespace aiko
         glBufferData(GL_ARRAY_BUFFER, sizeof(pointVertex), pointVertex, GL_STATIC_DRAW);
 
         bindShaderAttributes();
+        setUniforms(color);
 
         // Draw point
         glDrawArrays(GL_POINTS, 0, 1);
@@ -90,7 +95,7 @@ namespace aiko
         unuse();
     }
 
-    void Primitives::drawTriangle(vec3 pos, float radius)
+    void Primitives::drawTriangle(vec3 pos, float radius, vec4 color)
     {
         float height = sqrt(3.0f) * radius / 2.0f;
         vec3 a = { pos.x, pos.y + height / 2.0f, pos.z };
@@ -99,7 +104,7 @@ namespace aiko
         drawTriangle(a, b, c);
     }
 
-    void Primitives::drawTriangle(vec3 a, vec3 b, vec3 c)
+    void Primitives::drawTriangle(vec3 a, vec3 b, vec3 c, vec4 color)
     {
         use();
 
@@ -119,6 +124,7 @@ namespace aiko
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
         bindShaderAttributes();
+        setUniforms(color);
 
         // Draw triangle
         glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -134,7 +140,7 @@ namespace aiko
         unuse();
     }
 
-    void Primitives::drawRectangle(vec3 pos, vec3 size)
+    void Primitives::drawRectangle(vec3 pos, vec3 size, vec4 color)
     {
 
         use();
@@ -161,6 +167,7 @@ namespace aiko
 
         // Bind shader attributes
         bindShaderAttributes();
+        setUniforms(color);
 
         // Draw rectangle
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -177,7 +184,7 @@ namespace aiko
 
     }
 
-    void Primitives::renderLine(vec3 start, vec3 end)
+    void Primitives::renderLine(vec3 start, vec3 end, vec4 color)
     {
 
         use();
@@ -196,6 +203,7 @@ namespace aiko
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
         bindShaderAttributes();
+        setUniforms(color);
 
         // Draw line
         glDrawArrays(GL_LINES, 0, 2);
@@ -208,7 +216,7 @@ namespace aiko
 
     }
 
-    void Primitives::renderCircle(vec3 pos, float radius, int numSegments)
+    void Primitives::renderCircle(vec3 pos, float radius, int numSegments, vec4 color)
     {
 
         use();
@@ -240,6 +248,7 @@ namespace aiko
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_STATIC_DRAW);
 
         bindShaderAttributes();
+        setUniforms(color);
 
         // Draw circle
         glDrawArrays(GL_TRIANGLE_FAN, 0, numSegments + 2);
@@ -252,7 +261,7 @@ namespace aiko
 
     }
 
-    void Primitives::renderNgon(vec3 pos, float size, unsigned int ngon)
+    void Primitives::renderNgon(vec3 pos, float size, unsigned int ngon, vec4 color)
     {
         use();
 
@@ -285,6 +294,7 @@ namespace aiko
 
         // Bind shader attributes
         bindShaderAttributes();
+        setUniforms(color);
 
         // Draw ngon
         glDrawArrays(GL_TRIANGLE_FAN, 0, ngon);
