@@ -38,12 +38,20 @@ namespace aiko
 
     void RenderSystem::render()
     {
+        // 2D
         Primitives::renderLine(vec3(-1, 0, 0), vec3(1, 0, 0));
         Primitives::renderCircle(vec3(0, 0, 0), 0.1);
         Primitives::drawPoint({0, 0.5, 0});
         Primitives::drawTriangle({ 0.0f, -0.5f, 0.0f }, 0.25f);
         Primitives::renderNgon(vec3(0.5f, 0.0f, 0.0f), 0.25f, 6);
         Primitives::drawRectangle(vec3(-0.5f, 0.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f));
+
+        // 3D
+        Primitives::drawCube(vec3(-0.5f, 0.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f));
+        Primitives::renderSphere(vec3(0, 0, 1), 0.1);
+        Primitives::drawPyramid({ 0.0f, -0.5f, 0.0f }, 0.25f, 0.25f);
+        Primitives::renderCylinder({ -1.5f, -0.5f, 0.0f }, 0.25f, 0.5f, 10);
+
     }
 
     aiko::AikoPtr<Mesh> RenderSystem::createMesh()
@@ -93,7 +101,7 @@ namespace aiko
    
     void RenderSystem::render(MeshComponent* mesh)
     {
-        m_renderModule->renderMesh(getMainCamera() , mesh->gameobject->transform().get(), mesh->m_mesh.get(), mesh->m_shader.get());
+        // m_renderModule->renderMesh(getMainCamera() , mesh->gameobject->transform().get(), mesh->m_mesh.get(), mesh->m_shader.get());
     }
 
     texture::RenderTexture2D* RenderSystem::getTargetTexture() const
