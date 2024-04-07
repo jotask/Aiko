@@ -17,6 +17,7 @@ namespace aiko
         m_renderSystem = gameobject->getSystem<RenderSystem>();
         m_mesh = m_renderSystem->createMesh();
         m_shader = m_renderSystem->createShader("C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko.vs", "C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko.fs");
+
     }
 
     void MeshComponent::update()

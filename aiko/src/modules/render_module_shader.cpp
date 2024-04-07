@@ -26,29 +26,32 @@
 namespace aiko
 {
 
-    static Shader* shader;
+    void RenderModule::refreshShader(Mesh*)
+    {
 
-    void RenderModule::initShader(Shader* shader, const char* vsPath, const char* fsPath)
+    }
+
+    aiko::ShaderData RenderModule::loadShaderData(const char* vsPath, const char* fsPath)
     {
 
         auto loadFile = [](std::string filename) -> std::string
-        {
-            try
             {
-                std::ifstream vShaderFile;
-                vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-                vShaderFile.open(filename);
-                std::stringstream vShaderStream;
-                vShaderStream << vShaderFile.rdbuf();
-                vShaderFile.close();
-                return vShaderStream.str();
-            }
-            catch (std::ifstream::failure& e)
-            {
-                std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
-            }
-            return "";
-        };
+                try
+                {
+                    std::ifstream vShaderFile;
+                    vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+                    vShaderFile.open(filename);
+                    std::stringstream vShaderStream;
+                    vShaderStream << vShaderFile.rdbuf();
+                    vShaderFile.close();
+                    return vShaderStream.str();
+                }
+                catch (std::ifstream::failure& e)
+                {
+                    std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+                }
+                return "";
+            };
 
         // build and compile our shader program
         // ------------------------------------
@@ -103,18 +106,37 @@ namespace aiko
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
 
-        shader->m_shaderData.id = shaderProgram;
+        aiko::ShaderData data;
 
-    }
+        data.id = shaderProgram;
 
-    void RenderModule::refreshShader(Mesh*)
-    {
+        // Set Uniforms
+        {
 
-    }
+            GLint i;
+            GLint count;
 
-    aiko::ShaderData RenderModule::loadShaderData(const char* vs, const char* fs)
-    {
-        return {};
+            GLint size; // size of the variable
+            GLenum type; // type of the variable (float, vec3 or mat4, etc)
+
+            const GLsizei bufSize = 128; // maximum name length
+            GLchar name[bufSize]; // variable name in GLSL
+            GLsizei length; // name length
+
+            glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORMS, &count);
+            printf("Active Uniforms: %d\n", count);
+
+            for (i = 0; i < count; i++)
+            {
+                glGetActiveUniform(shaderProgram, (GLuint)i, bufSize, &length, &size, &type, name);
+
+                data.locs.emplace(name, i);
+
+                printf("Uniform #%d Type: %u Name: %s\n", i, type, name);
+            }
+        }
+
+        return data;
     }
 
     void RenderModule::unloadShader(aiko::ShaderData& data)

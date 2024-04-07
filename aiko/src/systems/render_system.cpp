@@ -134,10 +134,18 @@ namespace aiko
         // m_renderModule->endShaderMode();
     }
 
-    aiko::AikoPtr<Shader> RenderSystem::createShader(const char* vsPath, const char* fsPath)
+    AikoUPtr<Shader> RenderSystem::createShader()
     {
-        auto shader = std::make_unique<Shader>();
-        m_renderModule->initShader(shader.get(), vsPath, fsPath);
+        AikoUPtr<Shader> shader = std::make_unique<Shader>();
+        shader->loadShaderData = std::bind(&RenderModule::loadShaderData, m_renderModule, std::placeholders::_1, std::placeholders::_2);
+        shader->unloadShaderData = std::bind(&RenderModule::unloadShader, m_renderModule, std::placeholders::_1 );
+        return shader;
+    }
+
+    AikoUPtr<Shader> RenderSystem::createShader(const char* vsPath, const char* fsPath)
+    {
+        auto shader = createShader();
+        shader->load( vsPath, fsPath );
         return shader;
     }
 

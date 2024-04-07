@@ -24,8 +24,8 @@ namespace aiko
         virtual void render() override;
 
     private:
-        RenderSystem* m_renderSystem;
-        AikoPtr<Mesh> m_mesh;
+        RenderSystem*   m_renderSystem;
+        AikoPtr<Mesh>   m_mesh;
         AikoPtr<Shader> m_shader;
 
     };

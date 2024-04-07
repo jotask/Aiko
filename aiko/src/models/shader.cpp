@@ -7,6 +7,7 @@
 #include "aiko.h"
 #include "systems/render_system.h"
 #include "systems/asset_system.h"
+#include "modules/render_module.h"
 
 // FIXME
 #include <glad/glad.h>
@@ -19,24 +20,39 @@ namespace aiko
     #define AIKO_RETURN_NO_LOC if(locIndex < 0) return;
 
     Shader::Shader()
-        : m_renderSystem(nullptr)
     {
     
     }
 
     void Shader::load(const char* vs, const char* fs)
     {
-        // TODO unload if we have a shader loaded?
-        // m_shaderData = m_assetSystem->getRenderSystem()->loadShaderData(vs, fs);
+        if (isValid == true)
+        {
+            unload();
+        }
+        isValid = true;
+        m_shaderData = loadShaderData(vs, fs);
     }
 
-    // void Shader::unload()
-    // {
-    //     // m_assetSystem->getRenderSystem()->unloadShader(*this);
-    // }
+    void Shader::unload()
+    {
+        if (isValid == false)
+        {
+            return;
+        }
+        unloadShaderData(m_shaderData);
+        isValid = false;
+    }
 
     int Shader::getUniformLocation(const std::string& name) const
     {
+
+        auto found = m_shaderData.locs.find(name.c_str());
+        if (found != m_shaderData.locs.end())
+        {
+            return found->second;
+        }
+
         int loc = glGetUniformLocation(m_shaderData.id, name.c_str());
         if (loc == -1)
         {
@@ -94,6 +110,7 @@ namespace aiko
         glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, mat.data());
     }
 
+    /*
     void Shader::setShaderValue(int locIndex, const int& value)
     {
         AIKO_RETURN_NO_LOC
@@ -143,6 +160,7 @@ namespace aiko
         AIKO_RETURN_NO_LOC;
         m_renderSystem->setShaderUniformValueV(*this, locIndex, value.data(), SHADER_UNIFORM_VEC2, value.size());
     }
+    */
 
     aiko::ShaderData* Shader::getData()
     {
@@ -151,7 +169,7 @@ namespace aiko
 
     void Shader::connect()
     {
-        // m_renderSystem = m_assetSystem->getRenderSystem();
+
     }
 
 }

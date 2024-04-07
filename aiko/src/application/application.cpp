@@ -89,17 +89,10 @@ namespace aiko
         return inputSystem->isMouseButtonPressed(button);
     }
 
-    aiko::asset::Shader* Application::loadShader(const char* vs, const char* fs)
+    aiko::AikoPtr<aiko::Shader> Application::getShader()
     {
-        auto* assetSystem = getAssetSystem();
-        // return assetSystem->loadShader(vs, fs);
-        return nullptr;
-    }
-
-    void Application::unloadShader(aiko::asset::Shader* shader)
-    {
-        // auto* assetSystem = getAssetSystem();
-        // assetSystem->unload(shader->getID());
+        auto* assetSystem = getRenderSystem();
+        return assetSystem->createShader();
     }
 
     GameObject* Application::createGameObject(char* name)

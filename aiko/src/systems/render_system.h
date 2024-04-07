@@ -44,7 +44,8 @@ namespace aiko
 
         void render(texture::RenderTexture2D&, Shader*);
 
-        aiko::AikoPtr<Shader> createShader(const char* vs, const char* fs);
+        AikoUPtr<Shader> createShader();
+        AikoUPtr<Shader> createShader(const char* vs, const char* fs);
         void unloadShader(Shader& data);
         int getShaderLocation(Shader& shader, const char* uniformName);
         void setShaderUniformValue(Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType);

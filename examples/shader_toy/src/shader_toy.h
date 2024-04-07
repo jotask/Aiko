@@ -43,14 +43,13 @@ namespace shadertoy
         aiko::vec4      iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
         aiko::vec4      iDate;                 // (year, month, day, time in seconds)
 
-        aiko::asset::Shader* m_shader = nullptr;
+        aiko::AikoPtr<aiko::Shader> m_shader;
 
         int currentShader = 0;
         void nextShader();
         void prevShader();
         void randomShader();
         void refreshShader();
-        void draw(aiko::asset::Shader*);
 
     };
 

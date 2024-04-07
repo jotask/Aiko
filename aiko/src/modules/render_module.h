@@ -51,7 +51,6 @@ namespace aiko
         void refreshMesh(Mesh*);
         void renderMesh(Camera*, Transform*, Mesh*, Shader*);
 
-        void initShader(Shader*, const char*, const char*);
         void refreshShader(Mesh*);
 
         CameraModule* getCameraModule() { return m_cameraModule; }
@@ -78,32 +77,6 @@ namespace aiko
         void drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint);
         void drawTextureRec(texture::Texture texture, Rectangle source, vec2 position, Color tint);
         void drawTexturePro(texture::Texture texture, Rectangle source, Rectangle dest, vec2 origin, float rotation, Color tint);
-
-        // 2d Context
-        void drawPixel(int x, int y, Color);
-        void drawPixel(vec2 pos, Color);
-        void drawLine(int startPosX, int startPosY, int endPosX, int endPosY, Color color);
-        void drawLine(vec2 startPos, vec2 endPos, Color color);
-        void drawCircle(int centerX, int centerY, float radius, Color color);
-        void drawCircle(vec2 center, float radius, Color color);
-        void drawCircleLines(int centerX, int centerY, float radius, Color color);
-        void drawCircleLines(vec2 center, float radius, Color color);
-        void drawEllipse(int centerX, int centerY, float radiusH, float radiusV, Color color);
-        void drawEllipseLines(int centerX, int centerY, float radiusH, float radiusV, Color color);
-        void drawRing(vec2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, int segments, Color color);
-        void drawRingLines(vec2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, int segments, Color color);
-        void drawRectangle(int posX, int posY, int width, int height, Color color);
-        void drawRectangle(vec2 position, vec2 size, Color color);
-        void drawRectangleRec(Rectangle rec, Color color);
-        void drawRectangleLines(int posX, int posY, int width, int height, Color color);
-        void drawRectangleLinesEx(Rectangle rec, float lineThick, Color color);
-        void drawRectangleRounded(Rectangle rec, float roundness, int segments, Color color);
-        void drawRectangleRoundedLines(Rectangle rec, float roundness, int segments, float lineThick, Color color);
-        void drawTriangle(vec2 v1, vec2 v2, vec2 v3, Color color);
-        void drawTriangleLines(vec2 v1, vec2 v2, vec2 v3, Color color);
-        void drawPoly(vec2 center, int sides, float radius, float rotation, Color color);
-        void drawPolyLines(vec2 center, int sides, float radius, float rotation, Color color);
-        void drawPolyLinesEx(vec2 center, int sides, float radius, float rotation, float lineThick, Color color);
         */
 
         // Shader
