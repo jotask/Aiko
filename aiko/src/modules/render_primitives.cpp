@@ -1,17 +1,68 @@
 #include "render_primitives.h"
 
 #include "shared/math.h"
+#include "shared/math_transform.h"
 #include "systems/render_system.h"
 #include "models/camera.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 namespace aiko
 {
 
     AikoPtr<Shader> Primitives::shader = nullptr;
     RenderSystem* Primitives::renderSystem = nullptr;
+
+    unsigned int loadTexture(char const* path)
+    {
+        unsigned int textureID;
+        glGenTextures(1, &textureID);
+
+        int width, height, nrComponents;
+        unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+        if (data == nullptr)
+        {
+            std::cout << "Texture failed to load at path: " << path << std::endl;
+            stbi_image_free(data);
+            return 0;
+        }
+
+        GLenum format = GL_RGBA;
+        if (nrComponents == 1)
+        {
+            format = GL_RED;
+        }
+        else if (nrComponents == 3)
+        {
+            format = GL_RGB;
+        }
+        else if (nrComponents == 4)
+        {
+            format = GL_RGBA;
+        }
+        else
+        {
+            std::cout << "Imaget at path can't be find the texture color format: " << path << std::endl;
+            return -1;
+        }
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+        
+        return textureID;
+    }
 
     void Primitives::init(RenderSystem* system)
     {
@@ -33,20 +84,226 @@ namespace aiko
         glEnable(GL_CULL_FACE);
     }
 
+    void Primitives::bindData(std::vector<float>& verts)
+    {
+
+        std::vector<Data::Vertex> vertices;
+        for (size_t idx = 0; idx < verts.size(); idx += 3)
+        {
+            float x = verts[idx + 0];
+            float y = verts[idx + 1];
+            float z = verts[idx + 2];
+            vec3 position = { x, y, z };
+            vec3 normal = { 0, 0, 0 };
+            vec2 uv = { 0, 0 };
+            vertices.push_back({ position, normal, uv });
+        }
+        Data data = { vertices };
+        calculateNormals(data);
+        calculateUvs(data);
+
+        std::vector<GLfloat> flattenedVertices;
+        for (const auto& vertex : data.vertices)
+        {
+            flattenedVertices.push_back(vertex.position.x);
+            flattenedVertices.push_back(vertex.position.y);
+            flattenedVertices.push_back(vertex.position.z);
+
+            flattenedVertices.push_back(vertex.normal.x);
+            flattenedVertices.push_back(vertex.normal.y);
+            flattenedVertices.push_back(vertex.normal.z);
+
+            flattenedVertices.push_back(vertex.texCoords.x);
+            flattenedVertices.push_back(vertex.texCoords.y);
+        }
+        glBufferData(GL_ARRAY_BUFFER, flattenedVertices.size() * sizeof(GLfloat), flattenedVertices.data(), GL_STATIC_DRAW);
+    }
+
+    void Primitives::calculateNormals(Data& data)
+    {
+
+        if (data.vertices.size() < 3)
+        {
+            return;
+        }
+
+        for (size_t i = 0; i + 2 < data.vertices.size(); i += 3)
+        {
+
+            size_t a = (i + 0);
+            size_t b = (i + 1);
+            size_t c = (i + 2);
+
+            vec3 v0 = data.vertices[a].position;
+            vec3 v1 = data.vertices[b].position;
+            vec3 v2 = data.vertices[c].position;
+
+            vec3 edge1 = v1 - v0;
+            vec3 edge2 = v2 - v0;
+            auto cross = math::cross(edge1, edge2);
+            vec3 normal = math::normalize( cross );
+
+            data.vertices[a].normal = data.vertices[a].normal + normal;
+            data.vertices[b].normal = data.vertices[b].normal + normal;
+            data.vertices[c].normal = data.vertices[c].normal + normal;
+
+        }
+
+        for (size_t i = 0; i < data.vertices.size(); ++i)
+        {
+            data.vertices[i].normal = math::normalize(data.vertices[i].normal);
+        }
+    }
+
+    void Primitives::calculateUvs(Data& data)
+    {
+        for (size_t i = 0; i < data.vertices.size(); ++i)
+        {
+            // For planar mapping, use XY coordinates of the position as texture coordinates
+            data.vertices[i].texCoords = vec2(data.vertices[i].position.x, data.vertices[i].position.y);
+        }
+    }
+
     void Primitives::bindShaderAttributes()
     {
-        // Set vertex attribute pointers
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+    }
+
+    namespace light
+    {
+        enum LightType
+        {
+            Dir,
+            Point,
+            Spot,
+        };
+
+        struct Light
+        {
+
+            LightType type;
+
+            vec3 position;
+            vec3 direction;
+            vec3 color;
+            float intensity;
+
+            float cutOff;
+            float outerCutOff;
+
+            vec3 ambient;
+            vec3 diffuse;
+            vec3 specular;
+
+            float constant;
+            float linear;
+            float quadratic;
+
+        };
+
+        Light directionalLight()
+        {
+            Light light = {};
+            light.type = LightType::Dir;
+            light.intensity = 1.0f;
+            light.color = { 1.0f };
+            light.direction = { -0.2f, -1.0f, -0.3f };
+            light.ambient = { 0.05f, 0.05f, 0.05f };
+            light.diffuse = { 0.4f, 0.4f, 0.4f };
+            light.specular = { 0.5f, 0.5f, 0.5f };
+            return light;
+        };
+
+        Light pointLight()
+        {
+            Light light = {};
+            light.type = LightType::Point;
+            light.intensity = 1.0f;
+            light.color = { 1.0f };
+            light.position = { 0.0f, 0.0f, 0.0f };
+            light.ambient = { 0.05f, 0.05f, 0.05f };
+            light.diffuse = { 0.4f, 0.4f, 0.4f };
+            light.specular = { 0.5f, 0.5f, 0.5f };
+            light.constant = 1.0f;
+            light.linear = 0.09f;
+            light.quadratic = 0.032f;
+            return light;
+        };
+
+        Light spotLight()
+        {
+            Light light = {};
+            light.type = LightType::Spot;
+            light.intensity = 1.0f;
+            light.color = { 1.0f };
+            light.position = { 0.0f, 0.0f, 0.0f };
+            light.direction = { -0.2f, 1.0f, -0.3f };
+            light.ambient = { 0.0f, 0.0f, 0.0f };
+            light.diffuse = { 1.0f, 1.0f, 1.0f };
+            light.specular = { 1.0f, 1.0f, 1.0f };
+            light.constant = 1.0f;
+            light.linear = 0.09f;
+            light.quadratic = 0.032f;
+            light.cutOff = math::cos(math::radians(12.5f));
+            light.outerCutOff = math::cos(math::radians(15.0f));
+            return light;
+        };
 
     }
 
     void Primitives::setUniforms(vec4 color)
     {
 
-        shader->setVec4("color", color );
+        static std::vector<light::Light> s_lights =
+        {
+            light::directionalLight(),
+            light::pointLight(),
+            light::spotLight(),
+        };
 
         Camera* cam = renderSystem->getMainCamera();
+
+        shader->setFloat("ambientStrength", 1.0f);
+        shader->setVec3("ambientColor", { 1.0f, 1.0f, 1.0f });
+        shader->setInt("numLights", s_lights.size());
+
+        shader->setVec3("camPos", cam->position);
+
+        shader->setVec4("material.color", color);
+        shader->setFloat("material.shininess", 32.0f);
+        // shader->setInt("material.diffuse", 0);
+        // shader->setInt("material.specular", 1);
+
+        for (int i = 0; i < s_lights.size(); i++)
+        {
+
+            light::Light& light = s_lights[i];
+
+            const auto l = string_format("lights[%s].", std::to_string(i).c_str());
+
+            shader->setVec3(l + "type", light.type);
+            shader->setVec3(l + "position", light.position);
+            shader->setVec3(l + "direction", light.direction);
+            shader->setVec3(l + "color", light.color);
+            shader->setFloat(l + "intensity", light.intensity);
+
+            shader->setVec3(l + "ambient", light.ambient);
+            shader->setVec3(l + "diffuse", light.diffuse);
+            shader->setVec3(l + "specular", light.specular);
+
+            shader->setFloat(l + "constant", light.constant);
+            shader->setFloat(l + "linear", light.linear);
+            shader->setFloat(l + "quadratic", light.quadratic);
+
+            shader->setFloat(l + "cutOff", light.cutOff);
+            shader->setFloat(l + "outerCutOff", light.outerCutOff);
+
+        }
 
         auto projection = cam->getProjectionMatrix();
         shader->setMat4("projection", projection);
@@ -66,7 +323,7 @@ namespace aiko
         use();
 
         // Define point vertices
-        GLfloat pointVertex[] =
+        std::vector<GLfloat> pointVertex =
         {
             pos.x, pos.y, pos.z
         };
@@ -78,8 +335,8 @@ namespace aiko
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(pointVertex), pointVertex, GL_STATIC_DRAW);
 
+        bindData(pointVertex);
         bindShaderAttributes();
         setUniforms(color);
 
@@ -110,7 +367,8 @@ namespace aiko
     {
         use();
 
-        GLfloat vertices[] = {
+        std::vector<GLfloat> vertices =
+        {
             a.x, a.y, a.z,
             b.x, b.y, b.z,
             c.x, c.y, c.z,
@@ -123,8 +381,8 @@ namespace aiko
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+        bindData(vertices);
         bindShaderAttributes();
         setUniforms(color);
 
@@ -147,8 +405,7 @@ namespace aiko
 
         use();
 
-        // Define rectangle vertices
-        GLfloat rectangleVertices[] =
+        std::vector<GLfloat> rectangleVertices =
         {
             pos.x + size.x, pos.y + size.y, pos.z,
             pos.x, pos.y + size.y, pos.z,
@@ -165,9 +422,8 @@ namespace aiko
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(rectangleVertices), rectangleVertices, GL_STATIC_DRAW);
 
-        // Bind shader attributes
+        bindData(rectangleVertices);
         bindShaderAttributes();
         setUniforms(color);
 
@@ -201,8 +457,8 @@ namespace aiko
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
         // Upload vertex data to VBO
-        GLfloat vertices[] = { start.x, start.y, start.z, end.x, end.y, end.z };
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        std::vector<GLfloat> cubeVertices = { start.x, start.y, start.z, end.x, end.y, end.z };
+        bindData(cubeVertices);
 
         bindShaderAttributes();
         setUniforms(color);
@@ -246,9 +502,7 @@ namespace aiko
             vertices.push_back(pos.z); // z
         }
 
-        // Upload vertex data to VBO
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_STATIC_DRAW);
-
+        bindData(vertices);
         bindShaderAttributes();
         setUniforms(color);
 
@@ -292,9 +546,8 @@ namespace aiko
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_STATIC_DRAW);
 
-        // Bind shader attributes
+        bindData(vertices);
         bindShaderAttributes();
         setUniforms(color);
 
@@ -322,7 +575,9 @@ namespace aiko
         float halfBaseWidth = baseWidth / 2.0f;
 
         // Define pyramid vertices
-        GLfloat pyramidVertices[] = {
+
+        std::vector<GLfloat> pyramidVertices =
+        {
             // Base vertices (in a counterclockwise order)
             pos.x - halfBaseWidth, pos.y, pos.z - halfBaseWidth,  // Bottom left
             pos.x + halfBaseWidth, pos.y, pos.z - halfBaseWidth,  // Bottom right
@@ -357,9 +612,8 @@ namespace aiko
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(pyramidVertices), pyramidVertices, GL_STATIC_DRAW);
 
-        // Bind shader attributes
+        bindData(pyramidVertices);
         bindShaderAttributes();
         setUniforms(color);
 
@@ -385,7 +639,8 @@ namespace aiko
         vec3 halfSize = size / 2.0f;
 
         // Define cube vertices
-        GLfloat cubeVertices[] = {
+        std::vector<GLfloat> cubeVertices =
+        {
             // Front face
             pos.x - halfSize.x, pos.y - halfSize.y, pos.z + halfSize.z,
             pos.x + halfSize.x, pos.y - halfSize.y, pos.z + halfSize.z,
@@ -437,7 +692,8 @@ namespace aiko
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+
+        bindData(cubeVertices);
 
         // Bind shader attributes
         bindShaderAttributes();
@@ -527,7 +783,8 @@ namespace aiko
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sphereVertices.size() * sizeof(GLfloat), sphereVertices.data(), GL_STATIC_DRAW);
+
+        bindData(sphereVertices);
 
         // Bind shader attributes
         bindShaderAttributes();
@@ -619,7 +876,8 @@ namespace aiko
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sphereVertices.size() * sizeof(GLfloat), sphereVertices.data(), GL_STATIC_DRAW);
+
+        bindData(sphereVertices);
 
         // Bind shader attributes
         bindShaderAttributes();
@@ -669,7 +927,8 @@ namespace aiko
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, cylinderVertices.size() * sizeof(GLfloat), cylinderVertices.data(), GL_STATIC_DRAW);
+
+        bindData(cylinderVertices);
 
         // Bind shader attributes
         bindShaderAttributes();

@@ -11,6 +11,7 @@
 // FIXME
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <spdlog/spdlog.h>
 
 namespace aiko
 {
@@ -34,60 +35,63 @@ namespace aiko
     //     // m_assetSystem->getRenderSystem()->unloadShader(*this);
     // }
 
-    int Shader::getShaderLocation(const char* locName)
+    int Shader::getUniformLocation(const std::string& name) const
     {
-        return m_renderSystem->getShaderLocation( *this ,locName);
+        int loc = glGetUniformLocation(m_shaderData.id, name.c_str());
+        if (loc == -1)
+        {
+            std::cout << "ERROR::SHADER::LOCALISATION NOT FOUND :: " << name.c_str() << std::endl;
+        }
+        return loc;
     }
 
     // utility uniform functions
 // ------------------------------------------------------------------------
     void Shader::setBool(const std::string& name, bool value) const
     {
-        auto ID = m_shaderData.id;
-        glUniform1i(glGetUniformLocation(m_shaderData.id, name.c_str()), (int)value);
+        glUniform1i(getUniformLocation(name), (int)value);
     }
     // ------------------------------------------------------------------------
     void Shader::setInt(const std::string& name, int value) const
     {
-        glUniform1i(glGetUniformLocation(m_shaderData.id, name.c_str()), value);
+        glUniform1i(getUniformLocation(name), value);
     }
     // ------------------------------------------------------------------------
     void Shader::setFloat(const std::string& name, float value) const
     {
-        glUniform1f(glGetUniformLocation(m_shaderData.id, name.c_str()), value);
+        glUniform1f(getUniformLocation(name), value);
     }
     // ------------------------------------------------------------------------
     void Shader::setVec2(const std::string& name, const vec2& value) const
     {
-        glUniform2fv(glGetUniformLocation(m_shaderData.id, name.c_str()), 1, &value.x);
+        glUniform2fv(getUniformLocation(name), 1, &value.x);
     }
     void Shader::setVec2(const std::string& name, float x, float y) const
     {
-        glUniform2f(glGetUniformLocation(m_shaderData.id, name.c_str()), x, y);
+        glUniform2f(getUniformLocation(name), x, y);
     }
     // ------------------------------------------------------------------------
     void Shader::setVec3(const std::string& name, const vec3& value) const
     {
-        glUniform3fv(glGetUniformLocation(m_shaderData.id, name.c_str()), 1, &value.x);
+        glUniform3fv(getUniformLocation(name), 1, &value.x);
     }
     void Shader::setVec3(const std::string& name, float x, float y, float z) const
     {
-        glUniform3f(glGetUniformLocation(m_shaderData.id, name.c_str()), x, y, z);
+        glUniform3f(getUniformLocation(name), x, y, z);
     }
     // ------------------------------------------------------------------------
     void Shader::setVec4(const std::string& name, const vec4& value) const
     {
-        glUniform4fv(glGetUniformLocation(m_shaderData.id, name.c_str()), 1, &value.x);
+        glUniform4fv(getUniformLocation(name), 1, &value.x);
     }
 
     void Shader::setVec4(const std::string& name, float x, float y, float z, float w) const
     {
-        glUniform4f(glGetUniformLocation(m_shaderData.id, name.c_str()), x, y, z, w);
+        glUniform4f(getUniformLocation(name), x, y, z, w);
     }
     void Shader::setMat4(const std::string& name, const mat4& mat) const
     {
-        auto loc = glGetUniformLocation(m_shaderData.id, name.c_str());
-        glUniformMatrix4fv( loc, 1, GL_FALSE, mat.data());
+        glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, mat.data());
     }
 
     void Shader::setShaderValue(int locIndex, const int& value)

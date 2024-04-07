@@ -24,6 +24,20 @@ namespace aiko
         static void use();
         static void unuse();
 
+        struct Data
+        {
+            struct Vertex {
+                vec3 position;
+                vec3 normal;
+                vec2 texCoords;
+            };
+            std::vector<Vertex>& vertices;
+        };
+
+        static void bindData(std::vector<float>& verts);
+        static void calculateNormals(Data& data);
+        static void calculateUvs(Data& data);
+
         static void bindShaderAttributes();
         static void setUniforms(vec4 color);
 

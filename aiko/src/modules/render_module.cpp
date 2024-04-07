@@ -50,11 +50,44 @@ namespace aiko
     void RenderModule::preInit()
     {
         glfwInit();
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
     }
-    
+
+    namespace opengl
+    {
+        void onGlError(GLenum source,
+            GLenum type,
+            GLuint id,
+            GLenum severity,
+            GLsizei length,
+            const GLchar* message,
+            const void* userParam)
+        {
+            /*
+            Regarding the warning (not error). It just warns you that your buffer will be put in video
+            memory since you're using GL_STATIC_DRAW for your buffer. It's actually more of a log and
+            you can safely ignore it. 
+            */
+            constexpr GLuint error_131185 = 131185;
+
+            if (id == error_131185)
+            {
+                return;
+            }
+
+            // fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+            //     (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+            //     type, severity, message);
+            // std::cout << "ERROR::GL::ERROR:: " << message << std::endl;
+
+            int a = 0;
+
+        }
+    }
+
     void RenderModule::init()
     {
 
@@ -66,6 +99,12 @@ namespace aiko
 
         glViewport(0, 0, 800, 600);
         glEnable(GL_CULL_FACE);
+
+        // During init, enable debug output
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(opengl::onGlError, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 
         auto size = getDisplaySize();
         EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);

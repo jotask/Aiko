@@ -27,8 +27,6 @@ namespace aiko
         void load(const char* vs, const char* fs);
         virtual void unload() {};
 
-        int getShaderLocation(const char* locName);
-
         // Type Helpers
 
         void setBool(const std::string& name, bool value) const;
@@ -58,6 +56,8 @@ namespace aiko
     private:
         RenderSystem* m_renderSystem;
         aiko::ShaderData m_shaderData;
+
+        int getUniformLocation(const std::string& name) const;
 
     };
 }

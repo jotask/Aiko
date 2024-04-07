@@ -6,6 +6,8 @@ namespace aiko
 {
     namespace math
     {
+        float cos(float);
+        float sin(float);
         float radians(float);
 
         vec3 cross(vec3, vec3);

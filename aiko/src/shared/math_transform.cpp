@@ -43,6 +43,16 @@ namespace aiko
             return { m.x, m.y, m.z };
         };
 
+        float cos(float delta)
+        {
+            return glm::cos(delta);
+        }
+
+        float sin(float delta)
+        {
+            return glm::sin(delta);
+        }
+
         float radians(float angle)
         {
             return glm::radians(angle);
@@ -59,6 +69,12 @@ namespace aiko
         vec3 normalize(vec3 vec)
         {
             glm::vec3 v = toGlm(vec);
+            float lenSq = glm::dot(v, v);
+            if (lenSq < glm::epsilon<float>())
+            {
+                // Return the input vector if it's already a zero vector
+                return vec;
+            }
             glm::vec3 n = glm::normalize(v);
             return toAiko(n);
         }
