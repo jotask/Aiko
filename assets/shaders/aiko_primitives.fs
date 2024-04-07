@@ -2,9 +2,11 @@
 
 struct Material
 {
-    vec4 color;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
     float shininess;
-}; 
+};
 
 struct Light
 {
@@ -53,9 +55,9 @@ vec3 CalcDirLight(vec3 direction, vec3 ambient, vec3 diffuse, vec3 specular, vec
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     // combine results
-    vec3 a = ambient * material.color.xyz;
-    vec3 d = diffuse * diff * material.color.xyz;
-    vec3 s = specular * spec * material.color.xyz;
+    vec3 a = ambient * material.ambient;
+    vec3 d = diffuse * diff * material.diffuse;
+    vec3 s = specular * spec * material.specular;
     return (a + d + s);
 }
 
@@ -72,9 +74,9 @@ vec3 CalcPointLight(vec3 position, float constant, float linear, float quadratic
     float distance = length(position - fragPos);
     float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));    
     // combine results
-    vec3 a = ambient * material.color.xyz;
-    vec3 d = diffuse * diff * material.color.xyz;
-    vec3 s = specular * spec * material.color.xyz;
+    vec3 a = ambient * material.ambient;
+    vec3 d = diffuse * diff * material.diffuse;
+    vec3 s = specular * spec * material.specular;
     ambient *= attenuation;
     diffuse *= attenuation;
     specular *= attenuation;
@@ -98,9 +100,9 @@ vec3 CalcSpotLight(vec3 position, vec3 direction, float cutOff, float outerCutOf
     float epsilon = cutOff - outerCutOff;
     float intensity = clamp((theta - outerCutOff) / epsilon, 0.0, 1.0);
     // combine results
-    vec3 a = ambient * material.color.xyz;
-    vec3 d = diffuse * diff * material.color.xyz;
-    vec3 s = specular * spec * material.color.xyz;
+    vec3 a = ambient * material.ambient;
+    vec3 d = diffuse * diff * material.diffuse;
+    vec3 s = specular * spec * material.specular;
     ambient *= attenuation * intensity;
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
@@ -144,7 +146,7 @@ void main()
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(camPos - FragPos);
 
-    vec3 ambientLight = ambientStrength * ambientColor;
+    vec3 ambientLight = material.ambient * ambientColor;
     vec3 lighting = calculateLighting(FragPos, norm, viewDir);
 
     vec3 finalColor = ambientLight * lighting;

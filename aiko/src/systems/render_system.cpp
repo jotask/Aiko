@@ -40,7 +40,7 @@ namespace aiko
     void RenderSystem::render()
     {
 
-        static vec3 circlePosition =   { 0.0f,  0.0f, 0.0f };
+        static vec3 circlePosition =   { -0.5f,  0.0f, 0.0f };
         static vec3 trianglePosition = { 0.0f, -0.5f, 0.0f };
         static vec3 rectanglePosition = { 0.5f, 0.0f, 0.0f };
 

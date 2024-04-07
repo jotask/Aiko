@@ -240,14 +240,18 @@ namespace aiko
 
         Camera* cam = renderSystem->getMainCamera();
 
-        shader->setFloat("ambientStrength", 1.0f);
         shader->setVec3("ambientColor", { 1.0f, 1.0f, 1.0f });
         shader->setInt("numLights", s_lights.size());
 
         shader->setVec3("camPos", cam->position);
 
-        shader->setVec4("material.color", color);
+        shader->setVec3("material.ambient", { 1.0f, 0.5f, 0.31f });
+        shader->setVec3("material.diffuse", {1.0f, 0.5f, 0.31f});
+        shader->setVec3("material.specular", { 0.5f, 0.5f, 0.5f });
         shader->setFloat("material.shininess", 32.0f);
+
+        // shader->setVec4("material.ambient", color);
+        // shader->setFloat("material.shininess", 32.0f);
         // shader->setInt("material.diffuse", 0);
         // shader->setInt("material.specular", 1);
 
