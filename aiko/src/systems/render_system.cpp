@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "aiko_types.h"
+#include "shared/math.h"
 #include "modules/module_connector.h"
 #include "modules/camera_module.h"
 #include "components/transform_component.h"
@@ -38,18 +39,35 @@ namespace aiko
 
     void RenderSystem::render()
     {
+
+        static vec3 circlePosition =   { 0.0f,  0.0f, 0.0f };
+        static vec3 trianglePosition = { 0.0f, -0.5f, 0.0f };
+        static vec3 rectanglePosition = { 0.5f, 0.0f, 0.0f };
+
         // 2D
-        Primitives::renderLine(vec3(-1, 0, 0), vec3(1, 0, 0));
-        Primitives::renderCircle(vec3(0, 0, 0), 0.1);
         Primitives::drawPoint({0, 0.5, 0});
-        Primitives::drawTriangle({ 0.0f, -0.5f, 0.0f }, 0.25f);
+        Primitives::renderLine(vec3(-1, 0, 0), vec3(1, 0, 0));
+        Primitives::renderCircle(circlePosition, 0.1);
+        Primitives::drawTriangle(trianglePosition, 0.25f);
+        Primitives::drawRectangle(rectanglePosition, vec3(0.5f, 0.5f, 0.5f));
         Primitives::renderNgon(vec3(0.5f, 0.0f, 0.0f), 0.25f, 6);
-        Primitives::drawRectangle(vec3(-0.5f, 0.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f));
 
         // 3D
-        Primitives::drawCube(vec3(-0.5f, 0.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f));
-        Primitives::renderSphere(vec3(0, 0, 1), 0.1);
-        Primitives::drawPyramid({ 0.0f, -0.5f, 0.0f }, 0.25f, 0.25f);
+        {
+            auto tmp = circlePosition;
+            tmp.z = 1.0f;
+            Primitives::renderSphere(tmp, 0.1);
+        }
+        {
+            auto tmp = trianglePosition;
+            tmp.z = 1.0f;
+            Primitives::drawPyramid(tmp, 0.25f, 0.25f);
+        }
+        {
+            auto tmp = rectanglePosition;
+            tmp.z = 1.0f;
+            Primitives::drawCube(tmp, vec3(0.5f, 0.5f, 0.5f));
+        }
         Primitives::renderCylinder({ -1.5f, -0.5f, 0.0f }, 0.25f, 0.5f, 10);
 
     }

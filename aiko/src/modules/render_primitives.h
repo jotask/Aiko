@@ -12,8 +12,7 @@ namespace aiko
         friend class RenderSystem;
     private:
 
-        // #define DEFAULT_2D_COLOR { 1.0f   , 0.686f , 0.8f    , 1.0f }
-        #define DEFAULT_2D_COLOR { 1.0f   , 0.0f   , 0.0f    , 1.0f }
+        #define DEFAULT_2D_COLOR { 1.0f   , 0.686f , 0.8f    , 1.0f }
         #define DEFAULT_3D_COLOR { 1.0f   , 1.0f   , 1.0f    , 1.0f }
 
         static AikoPtr<Shader> shader;
@@ -54,7 +53,7 @@ namespace aiko
         // 3d
         static void drawPyramid(vec3, float baseWidth, float height, vec4 = DEFAULT_3D_COLOR);
         static void drawCube(vec3, vec3, vec4 = DEFAULT_3D_COLOR);
-        static void renderSphere(vec3, float, int = 50, vec4 = DEFAULT_3D_COLOR);
+        static void renderSphere(vec3, float, int = 25, vec4 = DEFAULT_3D_COLOR);
         static void renderPolygon(vec3, float, int rings, int sectors, vec4 = DEFAULT_3D_COLOR);
         static void renderCylinder(vec3 pos, float radius, float height, int sectors, vec4 = DEFAULT_3D_COLOR);
 

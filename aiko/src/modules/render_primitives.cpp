@@ -1,5 +1,6 @@
 #include "render_primitives.h"
 
+#include "types/light_types.h"
 #include "shared/math.h"
 #include "shared/math_transform.h"
 #include "systems/render_system.h"
@@ -176,39 +177,10 @@ namespace aiko
 
     namespace light
     {
-        enum LightType
+
+        LightData directionalLight()
         {
-            Dir,
-            Point,
-            Spot,
-        };
-
-        struct Light
-        {
-
-            LightType type;
-
-            vec3 position;
-            vec3 direction;
-            vec3 color;
-            float intensity;
-
-            float cutOff;
-            float outerCutOff;
-
-            vec3 ambient;
-            vec3 diffuse;
-            vec3 specular;
-
-            float constant;
-            float linear;
-            float quadratic;
-
-        };
-
-        Light directionalLight()
-        {
-            Light light = {};
+            LightData light = {};
             light.type = LightType::Dir;
             light.intensity = 1.0f;
             light.color = { 1.0f };
@@ -219,9 +191,9 @@ namespace aiko
             return light;
         };
 
-        Light pointLight()
+        LightData pointLight()
         {
-            Light light = {};
+            LightData light = {};
             light.type = LightType::Point;
             light.intensity = 1.0f;
             light.color = { 1.0f };
@@ -235,9 +207,9 @@ namespace aiko
             return light;
         };
 
-        Light spotLight()
+        LightData spotLight()
         {
-            Light light = {};
+            LightData light = {};
             light.type = LightType::Spot;
             light.intensity = 1.0f;
             light.color = { 1.0f };
@@ -259,7 +231,7 @@ namespace aiko
     void Primitives::setUniforms(vec4 color)
     {
 
-        static std::vector<light::Light> s_lights =
+        static std::vector<LightData> s_lights =
         {
             light::directionalLight(),
             light::pointLight(),
@@ -282,7 +254,7 @@ namespace aiko
         for (int i = 0; i < s_lights.size(); i++)
         {
 
-            light::Light& light = s_lights[i];
+            LightData& light = s_lights[i];
 
             const auto l = string_format("lights[%s].", std::to_string(i).c_str());
 
@@ -405,14 +377,17 @@ namespace aiko
 
         use();
 
+        float halfWidth = size.x / 2.0f;
+        float halfHeight = size.y / 2.0f;
+
         std::vector<GLfloat> rectangleVertices =
         {
-            pos.x + size.x, pos.y + size.y, pos.z,
-            pos.x, pos.y + size.y, pos.z,
-            pos.x, pos.y, pos.z,
-            pos.x, pos.y, pos.z,
-            pos.x + size.x, pos.y, pos.z,
-            pos.x + size.x, pos.y + size.y, pos.z,
+            pos.x + halfWidth, pos.y + halfHeight, pos.z,
+            pos.x - halfWidth, pos.y + halfHeight, pos.z,
+            pos.x - halfWidth, pos.y - halfHeight, pos.z,
+            pos.x - halfWidth, pos.y - halfHeight, pos.z,
+            pos.x + halfWidth, pos.y - halfHeight, pos.z,
+            pos.x + halfWidth, pos.y + halfHeight, pos.z,
         };
 
         // Create and bind VAO and VBO
