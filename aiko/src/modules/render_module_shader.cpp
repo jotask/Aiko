@@ -34,8 +34,14 @@ namespace aiko
     aiko::ShaderData RenderModule::loadShaderData(const char* vsPath, const char* fsPath)
     {
 
-        auto loadFile = [](std::string filename) -> std::string
+        auto loadFile = [](const char* filename) -> std::string
             {
+
+                if (filename == nullptr)
+                {
+                    return "";
+                }
+
                 try
                 {
                     std::ifstream vShaderFile;
@@ -56,6 +62,9 @@ namespace aiko
         // build and compile our shader program
         // ------------------------------------
 
+        int success;
+        char infoLog[512];
+
         // vertex shader
         auto vertexShaderSource = loadFile(vsPath);
         char* tmp1 = vertexShaderSource.data();
@@ -64,8 +73,6 @@ namespace aiko
         glCompileShader(vertexShader);
 
         // check for shader compile errors
-        int success;
-        char infoLog[512];
         glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
         if (!success)
         {
@@ -110,10 +117,12 @@ namespace aiko
 
         data.id = shaderProgram;
 
+        // TODO Do I need to store the other attributeS?
+        // https://stackoverflow.com/questions/440144/in-opengl-is-there-a-way-to-get-a-list-of-all-uniforms-attribs-used-by-a-shade
+        // 
         // Set Uniforms
         {
 
-            GLint i;
             GLint count;
 
             GLint size; // size of the variable
@@ -124,15 +133,13 @@ namespace aiko
             GLsizei length; // name length
 
             glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORMS, &count);
-            printf("Active Uniforms: %d\n", count);
+            // printf("Active Uniforms: %d\n", count);
 
-            for (i = 0; i < count; i++)
+            for (GLint i = 0; i < count; i++)
             {
                 glGetActiveUniform(shaderProgram, (GLuint)i, bufSize, &length, &size, &type, name);
-
                 data.locs.emplace(name, i);
-
-                printf("Uniform #%d Type: %u Name: %s\n", i, type, name);
+                // printf("Uniform #%d Type: %u Name: %s\n", i, type, name);
             }
         }
 

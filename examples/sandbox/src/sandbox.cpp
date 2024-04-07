@@ -7,6 +7,7 @@
 #include "components/mesh_component.h"
 #include "components/light_component.h"
 #include "models/mesh.h"
+#include "modules/render_primitives.h"
 
 namespace sandbox
 {
@@ -40,6 +41,37 @@ namespace sandbox
     void Sandbox::render()
     {
         Application::render();
+
+        static aiko::vec3 circlePosition = { -0.5f,  0.0f, 0.0f };
+        static aiko::vec3 trianglePosition = { 0.0f, -0.5f, 0.0f };
+        static aiko::vec3 rectanglePosition = { 0.5f, 0.0f, 0.0f };
+
+        // 2D
+        aiko::Primitives::drawPoint({ 0, 0.5, 0 });
+        aiko::Primitives::renderLine(aiko::vec3(-1, 0, 0), aiko::vec3(1, 0, 0));
+        aiko::Primitives::renderCircle(circlePosition, 0.1);
+        aiko::Primitives::drawTriangle(trianglePosition, 0.25f);
+        aiko::Primitives::drawRectangle(rectanglePosition, aiko::vec3(0.5f, 0.5f, 0.5f));
+        aiko::Primitives::renderNgon(aiko::vec3(0.5f, 0.0f, 0.0f), 0.25f, 6);
+
+        // 3D
+        {
+            auto tmp = circlePosition;
+            tmp.z = 1.0f;
+            aiko::Primitives::renderSphere(tmp, 0.1);
+        }
+        {
+            auto tmp = trianglePosition;
+            tmp.z = 1.0f;
+            aiko::Primitives::drawPyramid(tmp, 0.25f, 0.25f);
+        }
+        {
+            auto tmp = rectanglePosition;
+            tmp.z = 1.0f;
+            aiko::Primitives::drawCube(tmp, aiko::vec3(0.5f, 0.5f, 0.5f));
+        }
+        aiko::Primitives::renderCylinder({ -1.5f, -0.5f, 0.0f }, 0.25f, 0.5f, 10);
+
     }
 }
 

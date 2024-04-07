@@ -61,7 +61,7 @@ namespace shadertoy
 
         assert( m_shader != nullptr, "shader not init");
 
-        currentShader = aiko::utils::getRandomValue(0, s_shaders.size());
+        currentShader = 0; // aiko::utils::getRandomValue(0, s_shaders.size());
         refreshShader();
 
     }
@@ -155,8 +155,10 @@ namespace shadertoy
 
     void ShaderToy::refreshShader()
     {
-        const std::string path = GLOBAL_PATH + s_shaders[currentShader].c_str() + EXTENSION;
-        m_shader->load(nullptr, path.c_str());
+        const std::string GLOBAL_PATH = "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/";
+        const std::string vs = GLOBAL_PATH + "aiko_shadertoy" + std::string(".vs");
+        const std::string fs = GLOBAL_PATH + s_shaders[currentShader].c_str() + std::string(".fs");
+        m_shader->load(vs.c_str(), fs.c_str());
     }
 
 }

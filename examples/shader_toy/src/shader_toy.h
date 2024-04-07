@@ -29,8 +29,6 @@ namespace shadertoy
         int iMouseLoc;
         int iDateLoc;
 
-        const std::string GLOBAL_PATH = "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/";
-        const std::string EXTENSION = ".fs";
         static std::vector<std::string> s_shaders;
 
         aiko::vec3      iResolution;           // viewport resolution (in pixels)
