@@ -106,6 +106,8 @@ namespace aiko
         glDebugMessageCallback(opengl::onGlError, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 
+        m_renderTexture2D = createScreenTexture();
+
         auto size = getDisplaySize();
         EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);
     }
@@ -177,7 +179,7 @@ namespace aiko
 
     texture::RenderTexture2D* RenderModule::getRenderTexture()
     {
-        return &m_renderTexture2D;
+        return &m_renderTexture2D.renderTexture;
     }
 
     void RenderModule::onWindowResize(Event& event)

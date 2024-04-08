@@ -21,5 +21,13 @@ namespace aiko::texture
         Texture depth;                    // Depth buffer attachment texture
     };
 
+    class ScreenTexture2D
+    {
+    public:
+        RenderTexture2D renderTexture;
+        unsigned int vao;
+        unsigned int vbo;
+    };
+
 }
 

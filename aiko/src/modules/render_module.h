@@ -70,14 +70,15 @@ namespace aiko
         void beginBlendMode(BlendMode);
         void endBlendMode(void);
 
-        /*
         // Texture
-        void drawTexture(texture::Texture texture, int posX, int posY, Color tint);
-        void drawTextureV(texture::Texture texture, vec2 position, Color tint);
+        texture::ScreenTexture2D createScreenTexture();
+        texture::RenderTexture2D createRenderTexture();
+        texture::Texture createTexture();
         void drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint);
-        void drawTextureRec(texture::Texture texture, Rectangle source, vec2 position, Color tint);
-        void drawTexturePro(texture::Texture texture, Rectangle source, Rectangle dest, vec2 origin, float rotation, Color tint);
-        */
+        // void drawTexture(texture::Texture texture, int posX, int posY, Color tint);
+        // void drawTextureV(texture::Texture texture, vec2 position, Color tint);
+        // void drawTextureRec(texture::Texture texture, Rectangle source, vec2 position, Color tint);
+        // void drawTexturePro(texture::Texture texture, Rectangle source, Rectangle dest, vec2 origin, float rotation, Color tint);
 
         // Shader
         aiko::ShaderData loadShaderData(const char*, const char*);
@@ -93,7 +94,7 @@ namespace aiko
         CameraModule* m_cameraModule;
         DisplayModule* m_displayModule;
 
-        texture::RenderTexture2D m_renderTexture2D;
+        texture::ScreenTexture2D m_renderTexture2D;
 
         void onWindowResize(Event&);
     
