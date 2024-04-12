@@ -29,6 +29,8 @@
 namespace aiko
 {
 
+    constexpr bool s_enableDebugLogs = false;
+
     RenderModule::RenderModule()
         : m_displayModule(nullptr)
         , m_scale(false)
@@ -67,6 +69,12 @@ namespace aiko
             const GLchar* message,
             const void* userParam)
         {
+
+            if (s_enableDebugLogs == false)
+            {
+                return;
+            }
+
             /*
             Regarding the warning (not error). It just warns you that your buffer will be put in video
             memory since you're using GL_STATIC_DRAW for your buffer. It's actually more of a log and
@@ -95,6 +103,8 @@ namespace aiko
             // fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
             //     (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
             //     type, severity, message);
+            
+
             std::cout << "ERROR::GL::ERROR:: " << message << std::endl;
 
             int a = 0;
@@ -173,35 +183,22 @@ namespace aiko
     
     void RenderModule::beginFrame()
     {
-        // clearBackground(BLACK);
-        // glBindFramebuffer(GL_FRAMEBUFFER, m_renderTexture2D.renderTexture.framebuffer);
-        // glEnable(GL_DEPTH_TEST);
-        // clearBackground(BLACK);
 
-        // begin
-        {
+        // bind to framebuffer and draw scene as we normally would to color texture 
+        glBindFramebuffer(GL_FRAMEBUFFER, m_renderTexture2D.renderTexture.framebuffer);
+        glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
-            // render
-            // ------
-            // bind to framebuffer and draw scene as we normally would to color texture 
-            glBindFramebuffer(GL_FRAMEBUFFER, m_renderTexture2D.renderTexture.framebuffer);
-            glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+        clearBackground(BLACK);
 
-            // make sure we clear the framebuffer's content
-            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            // Set depth buffer to write mode
-            glDepthMask(GL_TRUE);
-
-        }
+        // Set depth buffer to write mode
+        glDepthMask(GL_TRUE);
 
     }
     
     void RenderModule::endFrame()
     {
 
-        aiko::Primitives::drawRectangle(aiko::vec3(0.0f), aiko::vec3(4.0f));
+        // aiko::Primitives::drawRectangle(aiko::vec3(0.0f), aiko::vec3(4.0f));
 
         // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
