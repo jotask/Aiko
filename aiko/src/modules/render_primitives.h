@@ -10,7 +10,7 @@ namespace aiko
     class Primitives
     {
         friend class RenderSystem;
-    private:
+    public:
 
         #define DEFAULT_2D_COLOR { 1.0f   , 0.686f , 0.8f    , 1.0f }
         #define DEFAULT_3D_COLOR { 1.0f   , 1.0f   , 1.0f    , 1.0f }

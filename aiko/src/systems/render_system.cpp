@@ -21,6 +21,9 @@
 #include "modules/render_primitives.h"
 #include "modules/render_primitives.h"
 
+// DELETEME
+#include <GLFW/glfw3.h>
+
 namespace aiko
 {
 
@@ -101,45 +104,106 @@ namespace aiko
     void RenderSystem::render(texture::RenderTexture2D& target, Shader* shader)
     {
 
-        static GLuint VBO, VAO;
+        m_renderModule->beginShaderMode(shader);
+
+        auto pos = vec3(0.0f);
+        auto size = vec2(2.0f);
+
+        float halfWidth = size.x / 2.0f;
+        float halfHeight = size.y / 2.0f;
+
+        std::vector<GLfloat> rectangleVertices =
         {
-            static bool first = true;
-            if (first)
+            pos.x + halfWidth, pos.y + halfHeight, pos.z,
+            pos.x - halfWidth, pos.y + halfHeight, pos.z,
+            pos.x - halfWidth, pos.y - halfHeight, pos.z,
+            pos.x - halfWidth, pos.y - halfHeight, pos.z,
+            pos.x + halfWidth, pos.y - halfHeight, pos.z,
+            pos.x + halfWidth, pos.y + halfHeight, pos.z,
+        };
+
+        // Create and bind VAO and VBO
+        GLuint VAO, VBO;
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+        // bindData(rectangleVertices);
+        {
+            std::vector<Primitives::Data::Vertex> vertices;
+            for (size_t idx = 0; idx < rectangleVertices.size(); idx += 3)
             {
-                first = false;
-                glViewport(0, 0, 800, 600);
-
-                // Draw a quad covering the viewport
-                GLfloat vertices[] = {
-                    -1.0f, -1.0f, 0.0f,
-                    1.0f, -1.0f, 0.0f,
-                    -1.0f,  1.0f, 0.0f,
-                    1.0f,  1.0f, 0.0f,
-                };
-                
-                glGenBuffers(1, &VBO);
-                glGenVertexArrays(1, &VAO);
-                glBindVertexArray(VAO);
-                glBindBuffer(GL_ARRAY_BUFFER, VBO);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-                glEnableVertexAttribArray(0);
-                glBindBuffer(GL_ARRAY_BUFFER, 0);
-                glBindVertexArray(0);
-
+                float x = rectangleVertices[idx + 0];
+                float y = rectangleVertices[idx + 1];
+                float z = rectangleVertices[idx + 2];
+                vec3 position = { x, y, z };
+                vec3 normal = { 0, 0, 0 };
+                vec2 uv = { 0, 0 };
+                vertices.push_back({ position, normal, uv });
             }
+
+            Primitives::Data data = { vertices };
+            Primitives::calculateNormals(data);
+            Primitives::calculateUvs(data);
+
+            std::vector<GLfloat> flattenedVertices;
+            for (const auto& vertex : data.vertices)
+            {
+                flattenedVertices.push_back(vertex.position.x);
+                flattenedVertices.push_back(vertex.position.y);
+                flattenedVertices.push_back(vertex.position.z);
+
+                flattenedVertices.push_back(vertex.normal.x);
+                flattenedVertices.push_back(vertex.normal.y);
+                flattenedVertices.push_back(vertex.normal.z);
+
+                flattenedVertices.push_back(vertex.texCoords.x);
+                flattenedVertices.push_back(vertex.texCoords.y);
+            }
+            glBufferData(GL_ARRAY_BUFFER, flattenedVertices.size() * sizeof(GLfloat), flattenedVertices.data(), GL_STATIC_DRAW);
+        }
+
+        // bindShaderAttributes();
+        {
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+            glEnableVertexAttribArray(2);
+        }
+
+        // setUniforms(color);
+        {
+
+            Camera* cam = this->getMainCamera();
+
+            auto projection = cam->getProjectionMatrix();
+            shader->setMat4("projection", projection);
+
+            auto view = cam->getViewMatrix();
+            shader->setMat4("view", view);
+
+            Transform trans;
+            shader->setMat4("model", trans.getMatrix());
 
         }
 
-        m_renderModule->beginShaderMode(shader);
+        // Draw rectangle
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        // Unbind VAO and VBO
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
 
-        // Primitives::drawRectangle(vec3(0.0f), vec3(1.0f), vec4(1.0f));
+        // Delete VAO and VBO
+        glDeleteBuffers(1, &VBO);
+        glDeleteVertexArrays(1, &VAO);
 
         m_renderModule->endShaderMode();
+        glEnable(GL_CULL_FACE);
 
     }
 

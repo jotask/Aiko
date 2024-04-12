@@ -1,8 +1,11 @@
 #pragma once
 
+#include <map>
+
 #include "base_module.h"
 #include "types/inputs.h"
 #include "shared/math.h"
+#include "events/event.hpp"
 
 namespace aiko
 {
@@ -26,6 +29,17 @@ namespace aiko
         virtual void preUpdate() override;
 
     private:
+
+        enum class PressedType
+        {
+            RELEASE, // The key or mouse button was released.
+            PRESS, // The key or mouse button was pressed.
+            REPEAT, // The key was held down until it repeated.
+        };
+
+        std::map<Key, PressedType> m_inputs;
+
+        void onKeyPressed(Event& event);
 
         DisplayModule* m_displayModule;
     };

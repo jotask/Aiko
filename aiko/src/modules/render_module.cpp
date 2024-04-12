@@ -295,6 +295,7 @@ namespace aiko
 
     void RenderModule::beginShaderMode(aiko::Shader* shader)
     {
+        glDisable(GL_CULL_FACE);
         shader->use();
     }
 

@@ -21,7 +21,7 @@ namespace aiko
 
     class InputSystem : public BaseSystem
     {
-        typedef EnumIterator<aiko::Key, aiko::Key::KEY_NULL, aiko::Key::KEY_VOLUME_DOWN> KeyIterator;
+        typedef EnumIterator<aiko::Key, aiko::Key::KEY_UNKNOWN, aiko::Key::KEY_MENU> KeyIterator;
     public:
     
         using CameraPtr = std::shared_ptr<Camera>;
