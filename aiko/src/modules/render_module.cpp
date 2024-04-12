@@ -285,22 +285,22 @@ namespace aiko
 
     void RenderModule::beginTextureMode(texture::RenderTexture2D& target)
     {
-
+        glBindTexture(GL_TEXTURE_2D, target.texture);
     }
 
     void RenderModule::endTextureMode(void)
     {
-
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    void RenderModule::beginShaderMode(aiko::ShaderData* shader)
+    void RenderModule::beginShaderMode(aiko::Shader* shader)
     {
-
+        shader->use();
     }
 
     void RenderModule::endShaderMode(void)
     {
-
+        glUseProgram(0);
     }
 
     void RenderModule::beginBlendMode(BlendMode mode)

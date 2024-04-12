@@ -19,6 +19,7 @@
 #include "models/mesh_factory.h"
 
 #include "modules/render_primitives.h"
+#include "modules/render_primitives.h"
 
 namespace aiko
 {
@@ -99,10 +100,47 @@ namespace aiko
 
     void RenderSystem::render(texture::RenderTexture2D& target, Shader* shader)
     {
-        // TODO
-        m_renderModule->beginShaderMode(&shader->m_shaderData);
-        // m_renderModule->drawTextureEx(target.texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
+
+        static GLuint VBO, VAO;
+        {
+            static bool first = true;
+            if (first)
+            {
+                first = false;
+                glViewport(0, 0, 800, 600);
+
+                // Draw a quad covering the viewport
+                GLfloat vertices[] = {
+                    -1.0f, -1.0f, 0.0f,
+                    1.0f, -1.0f, 0.0f,
+                    -1.0f,  1.0f, 0.0f,
+                    1.0f,  1.0f, 0.0f,
+                };
+                
+                glGenBuffers(1, &VBO);
+                glGenVertexArrays(1, &VAO);
+                glBindVertexArray(VAO);
+                glBindBuffer(GL_ARRAY_BUFFER, VBO);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+                glEnableVertexAttribArray(0);
+                glBindBuffer(GL_ARRAY_BUFFER, 0);
+                glBindVertexArray(0);
+
+            }
+
+        }
+
+        m_renderModule->beginShaderMode(shader);
+
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+
+        // Primitives::drawRectangle(vec3(0.0f), vec3(1.0f), vec4(1.0f));
+
         m_renderModule->endShaderMode();
+
     }
 
     AikoUPtr<Shader> RenderSystem::createShader()

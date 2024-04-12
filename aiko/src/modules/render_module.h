@@ -65,7 +65,7 @@ namespace aiko
         void endMode3D();
         void beginTextureMode(texture::RenderTexture2D& target);
         void endTextureMode(void);
-        void beginShaderMode(aiko::ShaderData* shader);
+        void beginShaderMode(aiko::Shader* shader);
         void endShaderMode(void);
         void beginBlendMode(BlendMode);
         void endBlendMode(void);
@@ -75,6 +75,7 @@ namespace aiko
         texture::RenderTexture2D createRenderTexture();
         texture::Texture createTexture();
         void drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint);
+        void drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint);
         // void drawTexture(texture::Texture texture, int posX, int posY, Color tint);
         // void drawTextureV(texture::Texture texture, vec2 position, Color tint);
         // void drawTextureRec(texture::Texture texture, Rectangle source, vec2 position, Color tint);

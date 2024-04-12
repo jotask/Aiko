@@ -156,5 +156,12 @@ namespace aiko
         int a = 10;
     }
 
+    void RenderModule::drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint)
+    {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture.texture);
+        // glUniform1i(m_textureUniformID, 0);
+    }
+
 }
 
