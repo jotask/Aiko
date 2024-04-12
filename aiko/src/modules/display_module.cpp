@@ -14,7 +14,9 @@ namespace aiko
 
     void DisplayModule::init()
     {
-        GLFWwindow* window = glfwCreateWindow(800, 600, "Aiko", NULL, NULL);
+        // TODO Initial window size from config
+        const ivec2 size = { 800, 600 };
+        GLFWwindow* window = glfwCreateWindow(size.x, size.y, "Aiko", NULL, NULL);
         if (window == NULL)
         {
             std::cout << "Failed to create GLFW window" << std::endl;
@@ -52,6 +54,7 @@ namespace aiko
 
         glfwSetCursorPosCallback(window, cursor_position_callback);
         m_curent.native = window;
+        m_curent.m_size = size;
 
     }
 

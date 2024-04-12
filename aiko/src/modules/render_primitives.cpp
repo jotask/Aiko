@@ -76,12 +76,12 @@ namespace aiko
     void Primitives::use()
     {
         glDisable(GL_CULL_FACE);
-        glUseProgram(shader->getData()->id);
+        shader->use();
     }
 
     void Primitives::unuse()
     {
-        glUseProgram(0);
+        shader->unuse();
         glEnable(GL_CULL_FACE);
     }
 

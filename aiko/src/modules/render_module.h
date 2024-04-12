@@ -81,6 +81,7 @@ namespace aiko
         // void drawTexturePro(texture::Texture texture, Rectangle source, Rectangle dest, vec2 origin, float rotation, Color tint);
 
         // Shader
+        AikoUPtr<Shader> createShader();
         aiko::ShaderData loadShaderData(const char*, const char*);
         void unloadShader( aiko::ShaderData& );
         int getShaderLocation(aiko::ShaderData&, const char* uniformName );
@@ -95,8 +96,12 @@ namespace aiko
         DisplayModule* m_displayModule;
 
         texture::ScreenTexture2D m_renderTexture2D;
+        texture::Texture m_texture;
+
+        AikoUPtr<Shader> m_passthrought;
 
         void onWindowResize(Event&);
+        void renderToTargetTexture();
     
     };
 

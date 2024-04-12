@@ -99,17 +99,15 @@ namespace aiko
 
     void RenderSystem::render(texture::RenderTexture2D& target, Shader* shader)
     {
+        // TODO
         m_renderModule->beginShaderMode(&shader->m_shaderData);
-        m_renderModule->drawTextureEx(target.texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
+        // m_renderModule->drawTextureEx(target.texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
         m_renderModule->endShaderMode();
     }
 
     AikoUPtr<Shader> RenderSystem::createShader()
     {
-        AikoUPtr<Shader> shader = std::make_unique<Shader>();
-        shader->loadShaderData = std::bind(&RenderModule::loadShaderData, m_renderModule, std::placeholders::_1, std::placeholders::_2);
-        shader->unloadShaderData = std::bind(&RenderModule::unloadShader, m_renderModule, std::placeholders::_1 );
-        return shader;
+        return m_renderModule->createShader();
     }
 
     AikoUPtr<Shader> RenderSystem::createShader(const char* vsPath, const char* fsPath)

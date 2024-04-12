@@ -46,6 +46,8 @@ namespace sandbox
         static aiko::vec3 trianglePosition = { 0.0f, -0.5f, 0.0f };
         static aiko::vec3 rectanglePosition = { 0.5f, 0.0f, 0.0f };
 
+
+        /*
         // 2D
         aiko::Primitives::drawPoint({ 0, 0.5, 0 });
         aiko::Primitives::renderLine(aiko::vec3(-1, 0, 0), aiko::vec3(1, 0, 0));
@@ -71,6 +73,10 @@ namespace sandbox
             aiko::Primitives::drawCube(tmp, aiko::vec3(0.5f, 0.5f, 0.5f));
         }
         aiko::Primitives::renderCylinder({ -1.5f, -0.5f, 0.0f }, 0.25f, 0.5f, 10);
+        */
+
+        // Overlay?
+        // aiko::Primitives::drawRectangle(aiko::vec3(0.0f), aiko::vec3(4.0f));
 
     }
 }

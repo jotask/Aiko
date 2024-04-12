@@ -41,6 +41,9 @@ namespace aiko
         void setVec4(const std::string& name, float x, float y, float z, float w) const;
         void setMat4(const std::string& name, const mat4& mat) const;
 
+        void use();
+        void unuse();
+
         // void setShaderValue(int locIndex, const int& value);
         // void setShaderValue(int locIndex, const float& value);
         // void setShaderValue(int locIndex, const ivec2& value);

@@ -31,6 +31,14 @@ namespace aiko
 
     }
 
+    AikoUPtr<Shader> RenderModule::createShader()
+    {
+        AikoUPtr<Shader> shader = std::make_unique<Shader>();
+        shader->loadShaderData = std::bind(&RenderModule::loadShaderData, this, std::placeholders::_1, std::placeholders::_2);
+        shader->unloadShaderData = std::bind(&RenderModule::unloadShader, this, std::placeholders::_1);
+        return shader;
+    }
+
     aiko::ShaderData RenderModule::loadShaderData(const char* vsPath, const char* fsPath)
     {
 

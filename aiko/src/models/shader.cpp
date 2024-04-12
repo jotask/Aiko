@@ -110,6 +110,16 @@ namespace aiko
         glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, mat.data());
     }
 
+    void Shader::use()
+    {
+        glUseProgram(this->getData()->id);
+    }
+
+    void Shader::unuse()
+    {
+        glUseProgram(0);
+    }
+
     /*
     void Shader::setShaderValue(int locIndex, const int& value)
     {

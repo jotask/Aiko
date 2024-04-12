@@ -21,14 +21,14 @@ namespace aiko
 
     vec2 Application::getViewportSize() const
     {
-        auto target = getTargetTexture()->texture;
-        return { static_cast<float>(target.width) , static_cast<float>(target.height) };
+        auto target = getTargetTexture();
+        return { static_cast<float>(target->width) , static_cast<float>(target->height) };
     }
 
     float Application::getAspectRatio() const
     {
-        auto target = getTargetTexture()->texture;
-        return static_cast<float>(target.width) / static_cast<float>(target.height);
+        auto target = getTargetTexture();
+        return static_cast<float>(target->width) / static_cast<float>(target->height);
     }
 
     texture::RenderTexture2D* Application::getTargetTexture() const
