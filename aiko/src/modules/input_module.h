@@ -18,6 +18,7 @@ namespace aiko
         virtual ~InputModule() = default;
 
         bool isKeyPressed(Key) const;
+        bool isKeyJustPressed(Key) const;
         vec2 getMousePosition() const;
         bool isMouseButtonPressed(MouseButton button) const;
 
@@ -26,18 +27,23 @@ namespace aiko
         virtual void connect(ModuleConnector*);
 
         virtual void init() override;
-        virtual void preUpdate() override;
+        virtual void endFrame() override;
 
     private:
 
-        enum class PressedType
+        struct InputType
         {
-            RELEASE, // The key or mouse button was released.
-            PRESS, // The key or mouse button was pressed.
-            REPEAT, // The key was held down until it repeated.
+            enum class PressedType
+            {
+                RELEASE, // The key or mouse button was released.
+                PRESS, // The key or mouse button was pressed.
+                REPEAT, // The key was held down until it repeated.
+            };
+            PressedType Type;
+            bool justPressed;
         };
 
-        std::map<Key, PressedType> m_inputs;
+        std::map<Key, InputType> m_inputs;
 
         void onKeyPressed(Event& event);
 

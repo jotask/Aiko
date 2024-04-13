@@ -69,15 +69,15 @@ namespace shadertoy
     void ShaderToy::update()
     {
 
-        if (isKeyPressed(aiko::KEY_SPACE) || isKeyPressed(aiko::KEY_RIGHT))
+        if (isKeyJustPressed(aiko::KEY_SPACE) || isKeyJustPressed(aiko::KEY_RIGHT))
         {
             nextShader();
         }
-        else if (isKeyPressed(aiko::KEY_LEFT))
+        else if (isKeyJustPressed(aiko::KEY_LEFT))
         {
             prevShader();
         }
-        else if (isKeyPressed(aiko::KEY_R))
+        else if (isKeyJustPressed(aiko::KEY_R))
         {
             randomShader();
         }

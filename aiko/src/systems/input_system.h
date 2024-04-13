@@ -30,6 +30,7 @@ namespace aiko
         virtual ~InputSystem() = default;
 
         bool isKeyPressed(Key) const;
+        bool isKeyJustPressed(Key) const;
         vec2 getMousePosition() const;
         bool isMouseButtonPressed(MouseButton button) const;
 

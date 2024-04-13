@@ -15,9 +15,18 @@ namespace aiko
 
     bool InputModule::isKeyPressed(Key key) const
     {
-        if ( m_inputs.find( key ) != m_inputs.end() )
+        if (m_inputs.find(key) != m_inputs.end())
         {
-            return m_inputs.at(key) == PressedType::PRESS;
+            return m_inputs.at(key).Type == InputType::PressedType::PRESS;
+        }
+        return false;
+    }
+
+    bool InputModule::isKeyJustPressed(Key key) const
+    {
+        if (m_inputs.find(key) != m_inputs.end())
+        {
+            return m_inputs.at(key).justPressed;
         }
         return false;
     }
@@ -42,12 +51,16 @@ namespace aiko
         EventSystem::it().bind<OnKeyPressedEvent>(this, &InputModule::onKeyPressed);
     }
 
-    void InputModule::preUpdate()
+    void InputModule::endFrame()
     {
         GLFWwindow* window = (GLFWwindow*)m_displayModule->getNativeDisplay();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
             glfwSetWindowShouldClose(window, true);
+        }
+        for (auto it = m_inputs.begin(); it != m_inputs.end(); it++)
+        {
+            it->second.justPressed = false;
         }
     }
 
@@ -57,20 +70,20 @@ namespace aiko
 
         bool final = false;
 
-        static auto toAction = [](int action)->PressedType
+        static auto toAction = [](int action) -> InputType::PressedType
             {
 
                 if (action == GLFW_RELEASE)
                 {
-                    return PressedType::RELEASE;
+                    return InputType::PressedType::RELEASE;
                 }
                 else if (action == GLFW_PRESS)
                 {
-                    return PressedType::PRESS;
+                    return InputType::PressedType::PRESS;
                 }
                 else if (action == GLFW_REPEAT)
                 {
-                    return PressedType::REPEAT;
+                    return InputType::PressedType::REPEAT;
                 }
                 else
                 {
@@ -83,9 +96,16 @@ namespace aiko
                 return (Key)key;
             };
 
-        m_inputs[toKey(msg.key)] = toAction(msg.action);
+        const auto key = toKey(msg.key);
+        const auto action = toAction(msg.action);
 
-        int a = 0;
+        m_inputs[key].Type = action;
+        m_inputs[key].justPressed = action == InputType::PressedType::PRESS;
+
+        if (m_inputs[key].justPressed)
+        {
+            int a = 0;
+        }
 
     }
 

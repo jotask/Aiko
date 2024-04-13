@@ -30,6 +30,7 @@ namespace aiko
 
         float getlDeltaTime() const;
         bool isKeyPressed(Key) const;
+        bool isKeyJustPressed(Key) const;
         vec2 getMousePosition() const;
         bool isMouseButtonPressed(MouseButton) const;
 

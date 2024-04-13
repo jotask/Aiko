@@ -22,6 +22,11 @@ namespace aiko
         return m_inputModule->isKeyPressed(key);
     }
 
+    bool InputSystem::isKeyJustPressed(Key key) const
+    {
+        return m_inputModule->isKeyJustPressed(key);
+    }
+
     vec2 InputSystem::getMousePosition() const
     {
         return m_inputModule->getMousePosition();

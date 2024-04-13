@@ -65,12 +65,12 @@ namespace aiko
 
     void DisplayModule::endFrame()
     {
-        glfwPollEvents();
         glfwSwapBuffers((GLFWwindow*)m_curent.native);
     }
 
     void DisplayModule::preUpdate()
     {
+        glfwPollEvents();
         if ( glfwWindowShouldClose((GLFWwindow*) m_curent.native) == true )
         {
             WindowCloseEvent even;
