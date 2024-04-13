@@ -11,6 +11,7 @@
 #include "systems/render_system.h"
 #include "core/utils.h"
 #include "types/inputs.h"
+#include "models/camera.h"
 #include "shared/math.h"
 
 namespace shadertoy
@@ -58,6 +59,8 @@ namespace shadertoy
         iFrame = 0;
 
         m_shader = getShader();
+
+        getMainCamera()->setCameraController(camera::CameraController::Orbit);
 
         assert( m_shader != nullptr, "shader not init");
 
@@ -127,9 +130,8 @@ namespace shadertoy
     {
         if (m_shader->isvalid() == true)
         {
-            auto* texture = getTargetTexture();
             auto* renderer = getRenderSystem();
-            renderer->render(*texture, m_shader.get());
+            renderer->renderToFullScreen(m_shader.get());
         }
     }
 

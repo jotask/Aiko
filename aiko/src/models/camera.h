@@ -39,6 +39,8 @@ namespace aiko
 
     private:
 
+        bool isMainCamera = false;
+
         CameraSystem* cameraSystem;
 
         float m_fov = 0.0f;

@@ -11,6 +11,7 @@
 namespace aiko
 {
     Camera::Camera()
+        : cameraSystem(nullptr)
     {
         position = { 0.0f, 0.0f, 3.0f };
         target = { 0.0f, 0.0f, 0.0f };
@@ -21,10 +22,36 @@ namespace aiko
 
     void Camera::update()
     {
-        float radius = 3.5f;
-        float camX = static_cast<float>(sin(glfwGetTime()) * radius);
-        float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
-        position = { camX, 0.0f, camZ };
+        switch (cameraControler)
+        {
+        case camera::CameraController::Orbit:
+        {
+            float radius = 3.5f;
+            float camX = static_cast<float>(sin(glfwGetTime()) * radius);
+            float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
+            position = { camX, 0.0f, camZ };
+        }
+        break;
+        case camera::CameraController::Fly:
+        {
+
+        }
+        break;
+        case camera::CameraController::Drag:
+        {
+
+        }
+        break;
+        case camera::CameraController::Static:
+        {
+
+        }
+        break;
+        default:
+            std::cout << "CAMERA :: UPDATE :: UNKNOW CONTROLLER" << std::endl;
+            break;
+        }
+        
     }
 
     camera::CameraType Camera::getCameraType() const
@@ -58,7 +85,14 @@ namespace aiko
 
     mat4 Camera::getProjectionMatrix()
     {
-        return math::perspective( 45.0f, (float)800, (float)600, 0.1f, 100.0f);
+        switch (cameraType)
+            {
+            case camera::CameraType::Perspective:
+                return math::perspective( 45.0f, (float)800, (float)600, 0.1f, 100.0f);
+            default:
+                std::exception("Not Implemented");
+                return mat4(1.0f);
+        }
     }
 
 }

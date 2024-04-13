@@ -7,7 +7,6 @@
 
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
-#include "modules/camera_module.h"
 #include "models/camera.h"
 #include "types/textures.h"
 #include "events/events.hpp"

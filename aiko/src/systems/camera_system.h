@@ -9,6 +9,7 @@
 #include "models/camera.h"
 #include "types/camera_types.h"
 #include "shared/math.h"
+#include "core/uuid.h"
 
 namespace aiko
 {
@@ -43,11 +44,7 @@ namespace aiko
     private:
 
         RenderModule* m_renderModule;
-
         std::vector<Camera> m_cameras;
-    
-        void setCameraType(camera::CameraType cameraType);
-        void setCameraController(camera::CameraController cameraController);
     
     };
 

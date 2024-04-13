@@ -11,52 +11,22 @@
 namespace aiko
 {
     
-    void CameraSystem::setCameraType(camera::CameraType cameraType)
-    {
-        // This needs to delegate to module
-        switch (cameraType)
-        {
-        case camera::CameraType::Orthographic:
-    
-            break;
-        case camera::CameraType::Perspective:
-    
-            break;
-        default:
-            throw std::exception();
-            break;
-        }
-    }
-    
-    void CameraSystem::setCameraController(camera::CameraController cameraController)
-    {
-        // This needs to delegate to module
-        switch (cameraController)
-        {
-        case camera::CameraController::Orbit:
-    
-            break;
-        case camera::CameraController::Fly:
-    
-            break;
-        case camera::CameraController::Drag:
-    
-            break;
-        default:
-            throw std::exception();
-            break;
-        }
-    }
-    
     void CameraSystem::setMainCamera(Camera* camera)
     {
-        setCameraType(camera->cameraType);
-        setCameraController(camera->cameraControler);
+        for (auto& c : m_cameras)
+        {
+            c.isMainCamera = false;
+        }
+        camera->isMainCamera = true;
     }
 
     Camera* CameraSystem::getMainCamera()
     {
-        return nullptr;
+        if (m_cameras.size() == 0)
+        {
+            return nullptr;
+        }
+        return &m_cameras[0];
     }
 
     ivec2 CameraSystem::getDisplaySize()
@@ -82,7 +52,7 @@ namespace aiko
     
     void CameraSystem::init()
     {
-    
+        createCamera(true);
     }
     
     void CameraSystem::update()

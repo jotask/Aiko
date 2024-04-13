@@ -30,7 +30,6 @@ namespace aiko
         // window resize
         auto lamba = [](GLFWwindow* window, int width, int height)
         {
-            // m_curent.m_size = {width, height};
             WindowResizeEvent even(width, height);
             aiko::EventSystem::it().sendEvent(even);
         };

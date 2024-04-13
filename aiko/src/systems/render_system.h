@@ -17,7 +17,7 @@
 namespace aiko
 {
 
-    class CameraModule;
+    class CameraSystem;
 
     class RenderSystem : public BaseSystem
     {
@@ -42,6 +42,8 @@ namespace aiko
 
         texture::RenderTexture2D* getTargetTexture() const;
 
+        void renderToFullScreen(Shader*);
+
         void render(texture::RenderTexture2D&, Shader*);
 
         AikoUPtr<Shader> createShader();
@@ -60,7 +62,7 @@ namespace aiko
     private:
     
         RenderModule* m_renderModule;
-        CameraModule* m_cameraModule;
+        CameraSystem* m_cameraSystem;
     
     };
 

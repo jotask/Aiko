@@ -14,7 +14,6 @@
 #include "modules/display_module.h"
 #include "modules/render_module.h"
 #include "modules/input_module.h"
-#include "modules/camera_module.h"
 #include "modules/asset_module.h"
 
 // Systems
@@ -86,7 +85,6 @@ namespace aiko
         m_modules.emplace_back(std::make_unique<DisplayModule>());
         m_modules.emplace_back(std::make_unique<RenderModule>());
         m_modules.emplace_back(std::make_unique<InputModule>());
-        m_modules.emplace_back(std::make_unique<CameraModule>());
         m_modules.emplace_back(std::make_unique<AssetModule>());
 
         ModuleConnector moduleConnector(m_modules);

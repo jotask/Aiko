@@ -11,7 +11,6 @@
 namespace aiko
 {
 
-    class CameraModule;
     class Camera;
     class DisplayModule;
     class Mesh;
@@ -53,9 +52,9 @@ namespace aiko
 
         void refreshShader(Mesh*);
 
-        CameraModule* getCameraModule() { return m_cameraModule; }
         ivec2 getDisplaySize();
 
+        texture::ScreenTexture2D* getScreenTexture();
         texture::RenderTexture2D* getRenderTexture();
 
         void clearBackground(Color);
@@ -93,7 +92,6 @@ namespace aiko
 
         bool m_scale;
 
-        CameraModule* m_cameraModule;
         DisplayModule* m_displayModule;
 
         texture::ScreenTexture2D m_renderTexture2D;

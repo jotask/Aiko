@@ -10,10 +10,11 @@
 #include "aiko_types.h"
 #include "shared/math.h"
 #include "modules/module_connector.h"
-#include "modules/camera_module.h"
+#include "systems/system_connector.h"
 #include "components/transform_component.h"
 #include "components/component_renderer.h"
 #include "components/mesh_component.h"
+#include "systems/camera_system.h"
 #include "render_system.h"
 #include "models/light.h"
 #include "models/mesh_factory.h"
@@ -63,7 +64,7 @@ namespace aiko
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
-        BIND_MODULE_REQUIRED(CameraModule, moduleConnector, m_cameraModule)
+        BIND_SYSTEM_REQUIRED(CameraSystem, systemConnector, m_cameraSystem)
     }
     
     void RenderSystem::add(Light* light)
@@ -101,8 +102,16 @@ namespace aiko
         return m_renderModule->getRenderTexture();
     }
 
+    void RenderSystem::renderToFullScreen(Shader* shader)
+    {
+        auto target = getTargetTexture();
+        render(*target, shader);
+    }
+
     void RenderSystem::render(texture::RenderTexture2D& target, Shader* shader)
     {
+
+        auto target = m_renderModule->getScreenTexture();
 
         m_renderModule->beginShaderMode(shader);
 
@@ -241,7 +250,7 @@ namespace aiko
 
     Camera* RenderSystem::getMainCamera()
     {
-        return m_cameraModule->GetMainCamera();
+        return m_cameraSystem->getMainCamera();
     }
 
 }

@@ -7,7 +7,6 @@
 
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
-#include "modules/camera_module.h"
 #include "models/camera.h"
 #include "types/textures.h"
 #include "events/events.hpp"
@@ -47,7 +46,6 @@ namespace aiko
     void RenderModule::connect(ModuleConnector* moduleConnector)
     {
         BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule)
-        BIND_MODULE_REQUIRED(CameraModule, moduleConnector, m_cameraModule)
     }
 
     void RenderModule::preInit()
@@ -223,6 +221,11 @@ namespace aiko
     ivec2 RenderModule::getDisplaySize()
     {
         return m_displayModule->getCurrentDisplay().getDisplaySize();
+    }
+
+    texture::ScreenTexture2D* RenderModule::getScreenTexture()
+    {
+        return &m_renderTexture2D;
     }
 
     texture::RenderTexture2D* RenderModule::getRenderTexture()

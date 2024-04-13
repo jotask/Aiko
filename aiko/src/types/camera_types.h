@@ -5,6 +5,6 @@
 namespace camera
 {
     enum CameraType { Perspective = 0, Orthographic };
-    enum CameraController { Orbit, Fly, Drag };
+    enum CameraController { Static, Orbit, Fly, Drag };
 
 }
