@@ -8,12 +8,15 @@
 #include "components/light_component.h"
 #include "models/mesh.h"
 #include "modules/render_primitives.h"
+#include "models/camera.h"
 
 namespace sandbox
 {
     void Sandbox::init()
     {
         Application::init();
+
+        getMainCamera()->setCameraController(camera::CameraController::Orbit);
 
         m_go1 = this->createGameObject("Cube1");
         m_go1->transform()->position = { 1.0f, 0.0f, 0.0f };

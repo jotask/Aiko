@@ -10,7 +10,7 @@
 
 namespace aiko
 {
-    
+
     void CameraSystem::setMainCamera(Camera* camera)
     {
         for (auto& c : m_cameras)
@@ -57,7 +57,10 @@ namespace aiko
     
     void CameraSystem::update()
     {
-    
+        for (auto& tmp : m_cameras)
+        {
+            tmp.update();
+        }
     }
     
     void CameraSystem::render()
