@@ -14,6 +14,10 @@ namespace aiko
 
     void DisplayModule::init()
     {
+
+
+        EventSystem::it().bind<WindowResizeEvent>(this, &DisplayModule::onWindowResize);
+
         // TODO Initial window size from config
         const ivec2 size = { 800, 600 };
         GLFWwindow* window = glfwCreateWindow(size.x, size.y, "Aiko", NULL, NULL);
@@ -55,6 +59,12 @@ namespace aiko
         m_curent.native = window;
         m_curent.m_size = size;
 
+    }
+
+    void DisplayModule::onWindowResize(Event& event)
+    {
+        const auto& msg = static_cast<const WindowResizeEvent&>(event);
+        m_curent.m_size = { msg.width, msg.height };
     }
 
     void* DisplayModule::getNativeDisplay()

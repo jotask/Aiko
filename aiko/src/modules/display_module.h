@@ -4,6 +4,7 @@
 #include "base_module.h"
 #include "shared/math.h"
 #include "models/display.h"
+#include "events/event.hpp"
 
 namespace aiko
 {
@@ -31,6 +32,8 @@ namespace aiko
         virtual void endFrame() override;
 
         Display m_curent;
+
+        void onWindowResize(Event&);
     
     };
 

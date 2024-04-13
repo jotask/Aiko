@@ -140,7 +140,6 @@ namespace aiko
         m_texture = createTexture();
         m_renderTexture2D = createScreenTexture();
 
-        auto size = getDisplaySize();
         EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);
     }
 

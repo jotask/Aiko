@@ -85,10 +85,14 @@ namespace aiko
 
     mat4 Camera::getProjectionMatrix()
     {
+        // TODO Get display size
         switch (cameraType)
             {
             case camera::CameraType::Perspective:
-                return math::perspective( 45.0f, (float)800, (float)600, 0.1f, 100.0f);
+            {
+                auto size = cameraSystem->getDisplaySize();
+                return math::perspective( 45.0f, (float)size.x, (float)size.y, 0.1f, 100.0f);
+            }
             default:
                 std::exception("Not Implemented");
                 return mat4(1.0f);
