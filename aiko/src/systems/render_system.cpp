@@ -95,7 +95,7 @@ namespace aiko
    
     void RenderSystem::render(MeshComponent* mesh)
     {
-        // m_renderModule->renderMesh(getMainCamera() , mesh->gameobject->transform().get(), mesh->m_mesh.get(), mesh->m_shader.get());
+        m_renderModule->renderMesh(getMainCamera() , mesh->gameobject->transform().get(), mesh->m_mesh.get(), mesh->m_shader.get());
     }
 
     texture::RenderTexture2D* RenderSystem::getTargetTexture() const
