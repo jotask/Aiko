@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 #include <functional>
 
 #include "aiko_types.h"
@@ -60,6 +61,9 @@ namespace aiko
         virtual void connect();
 
     private:
+
+        std::string vs;
+        std::string fs;
 
         bool isValid = false;
         aiko::ShaderData m_shaderData;

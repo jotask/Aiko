@@ -206,7 +206,7 @@ namespace aiko
         // Bind the output texture from the previous shader program.
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_renderTexture2D.texture);
-        m_passthrought->setInt("", 0);
+        m_passthrought->setInt("screenTexture", 0);
 
         // Draw three "vertices" as a triangle. (no buffers required)
         // At this point you should look at the contents of the vertex and fragment shaders.
@@ -282,6 +282,7 @@ namespace aiko
 
     void RenderModule::beginTextureMode()
     {
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_renderTexture2D.texture);
     }
 

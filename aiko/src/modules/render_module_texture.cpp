@@ -133,87 +133,53 @@ namespace aiko
 
     void RenderModule::drawToScreenTexture()
     {
-        auto pos = vec3(0.0f);
-        auto size = vec2(2.0f);
 
-        float halfWidth = size.x / 2.0f;
-        float halfHeight = size.y / 2.0f;
+        auto texture = m_renderTexture2D.texture;
 
-        std::vector<GLfloat> rectangleVertices =
-        {
-            pos.x + halfWidth, pos.y + halfHeight, pos.z,
-            pos.x - halfWidth, pos.y + halfHeight, pos.z,
-            pos.x - halfWidth, pos.y - halfHeight, pos.z,
-            pos.x - halfWidth, pos.y - halfHeight, pos.z,
-            pos.x + halfWidth, pos.y - halfHeight, pos.z,
-            pos.x + halfWidth, pos.y + halfHeight, pos.z,
+        // Set up vertex data and buffers for a fullscreen quad
+        float vertices[] = {
+            // Positions    // Texture coordinates
+            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, // bottom-left corner
+             1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // bottom-right corner
+             1.0f,  1.0f, 0.0f, 1.0f, 1.0f, // top-right corner
+            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f  // top-left corner
+        };
+        unsigned int indices[] = {
+            0, 1, 2, // first triangle
+            0, 2, 3  // second triangle
         };
 
-        // Create and bind VAO and VBO
-        GLuint VAO, VBO;
+        GLuint VAO, VBO, EBO;
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-        // bindData(rectangleVertices);
-        {
-            std::vector<Primitives::Data::Vertex> vertices;
-            for (size_t idx = 0; idx < rectangleVertices.size(); idx += 3)
-            {
-                float x = rectangleVertices[idx + 0];
-                float y = rectangleVertices[idx + 1];
-                float z = rectangleVertices[idx + 2];
-                vec3 position = { x, y, z };
-                vec3 normal = { 0, 0, 0 };
-                vec2 uv = { 0, 0 };
-                vertices.push_back({ position, normal, uv });
-            }
+        // Position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+        // Texture coordinate attribute
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
 
-            Primitives::Data data = { vertices };
-            Primitives::calculateNormals(data);
-            Primitives::calculateUvs(data);
-
-            std::vector<GLfloat> flattenedVertices;
-            for (const auto& vertex : data.vertices)
-            {
-                flattenedVertices.push_back(vertex.position.x);
-                flattenedVertices.push_back(vertex.position.y);
-                flattenedVertices.push_back(vertex.position.z);
-
-                flattenedVertices.push_back(vertex.normal.x);
-                flattenedVertices.push_back(vertex.normal.y);
-                flattenedVertices.push_back(vertex.normal.z);
-
-                flattenedVertices.push_back(vertex.texCoords.x);
-                flattenedVertices.push_back(vertex.texCoords.y);
-            }
-            glBufferData(GL_ARRAY_BUFFER, flattenedVertices.size() * sizeof(GLfloat), flattenedVertices.data(), GL_STATIC_DRAW);
-        }
-
-        // bindShaderAttributes();
-        {
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-            glEnableVertexAttribArray(2);
-        }
-
-        // setUniforms(color);
-
-        // Draw rectangle
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        // Unbind VAO and VBO
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        // Unbind VAO
         glBindVertexArray(0);
 
-        // Delete VAO and VBO
-        glDeleteBuffers(1, &VBO);
+        // Render fullscreen quad
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+
+        // Cleanup
         glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
 
         glEnable(GL_CULL_FACE);
     }

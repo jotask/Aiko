@@ -32,6 +32,8 @@ namespace aiko
         }
         isValid = true;
         m_shaderData = loadShaderData(vs, fs);
+        this->vs = vs;
+        this->fs = fs;
     }
 
     void Shader::unload()
