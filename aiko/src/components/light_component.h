@@ -9,7 +9,7 @@ namespace aiko
     
     class RenderSystem;
     
-    class LightComponent : public Component, public IUpdate, public IRender
+    class LightComponent : public Component, public IUpdate, public IRender3D
     {
     public:
         LightComponent();

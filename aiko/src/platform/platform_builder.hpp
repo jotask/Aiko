@@ -4,5 +4,5 @@
 
 namespace aiko::modules::builder
 {
-    void initModules(aiko::Aiko::Modules& modules);
+    void initModules(aiko::Aiko::Modules& modules) { };
 }

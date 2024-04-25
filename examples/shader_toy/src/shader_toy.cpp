@@ -1,6 +1,7 @@
 #include "shader_toy.h"
 
 #include <chrono>
+#include <cassert>
 
 #include "shared/math.h"
 #include "models/game_object.h"
@@ -10,6 +11,7 @@
 #include "systems/render_system.h"
 #include "core/utils.h"
 #include "types/inputs.h"
+#include "models/camera.h"
 #include "shared/math.h"
 
 namespace shadertoy
@@ -56,7 +58,13 @@ namespace shadertoy
         iTime = 0.0f;
         iFrame = 0;
 
-        currentShader = 0; // GetRandomValue(0, s_shaders.size());
+        m_shader = getShader();
+
+        getMainCamera()->setCameraController(camera::CameraController::Static);
+
+        assert( m_shader != nullptr, "shader not init");
+
+        currentShader = 0; // aiko::utils::getRandomValue(0, s_shaders.size());
         refreshShader();
 
     }
@@ -64,15 +72,15 @@ namespace shadertoy
     void ShaderToy::update()
     {
 
-        if (isKeyPressed(aiko::KEY_SPACE) || isKeyPressed(aiko::KEY_RIGHT))
+        if (isKeyJustPressed(aiko::KEY_SPACE) || isKeyJustPressed(aiko::KEY_RIGHT))
         {
             nextShader();
         }
-        else if (isKeyPressed(aiko::KEY_LEFT))
+        else if (isKeyJustPressed(aiko::KEY_LEFT))
         {
             prevShader();
         }
-        else if (isKeyPressed(aiko::KEY_R))
+        else if (isKeyJustPressed(aiko::KEY_R))
         {
             randomShader();
         }
@@ -97,32 +105,33 @@ namespace shadertoy
             iDate = aiko::vec4(1900 + parts->tm_year, 1 + parts->tm_mon, parts->tm_mday, time(NULL));
         }
 
-        if (m_shader == nullptr)
+        if (m_shader->isvalid() == false)
         {
             return;
         }
 
         // TODO :: Extract this from here, we dont' need to update each frame only when viewport/display changes
         aiko::vec3 iResolution = { getViewportSize(), getAspectRatio() }; // vec3 becasue { width, height, pixel aspect ratio }
-        m_shader->setShaderValue(iResolutionLoc, iResolution);
 
-        m_shader->setShaderValue(iTimeLoc, iTime);                                   // shader playback time (in seconds)
-        m_shader->setShaderValue(iTimeDeltaLoc, iTimeDelta);                         // render time (in seconds)
-        m_shader->setShaderValue(iFrameRateLoc, iFrameRate);                         // shader frame rate
-        m_shader->setShaderValue(iFrameLoc, iFrame);                                 // shader playback frame
+        m_shader->setVec3("iResolution", iResolution);
+        m_shader->setFloat("iTime", iTime);                                   // shader playback time (in seconds)
+        m_shader->setFloat("iTimeDelta", iTimeDelta);                         // render time (in seconds)
+        m_shader->setFloat("iFrameRate", iFrameRate);                         // shader frame rate
+        m_shader->setInt("iFrame", iFrame);                                 // shader playback frame
 
         // m_shader->setShaderValueV(iChannelTimeLoc, iChannelTime, aiko::ShaderUniformDataType::SHADER_UNIFORM_FLOAT, 4);                     // channel playback time (in seconds)
         // m_shader->setShaderValue(iChannelResolutionLoc, &iChannelResolution, aiko::SHADER_UNIFORM_VEC3);          // channel resolution (in pixels)
-        m_shader->setShaderValue(iMouseLoc, iMouse);                                  // mouse pixel coords. xy: current (if MLB down), zw: click
-        m_shader->setShaderValue(iDateLoc, iDate);                                    // (year, month, day, time in seconds)
+        m_shader->setVec4("iMouse", iMouse);                                  // mouse pixel coords. xy: current (if MLB down), zw: click
+        m_shader->setVec4("iDate", iDate);                                    // (year, month, day, time in seconds)
 
     }
 
     void ShaderToy::render()
     {
-        if (m_shader != nullptr)
+        if (m_shader->isvalid() == true)
         {
-            draw(m_shader);
+            auto* renderer = getRenderSystem();
+            renderer->renderToFullScreen(m_shader.get());
         }
     }
 
@@ -148,35 +157,10 @@ namespace shadertoy
 
     void ShaderToy::refreshShader()
     {
-        if (m_shader != nullptr)
-        {
-            unloadShader(m_shader);
-            m_shader = nullptr;
-        }
-
-        const std::string path = GLOBAL_PATH + s_shaders[currentShader].c_str() + EXTENSION;
-        m_shader = loadShader(nullptr, path.c_str());
-
-        iResolutionLoc = m_shader->getShaderLocation("iResolution");
-        iTimeLoc = m_shader->getShaderLocation("iTime");
-        iTimeDeltaLoc = m_shader->getShaderLocation("iTimeDelta");
-        iFrameRateLoc = m_shader->getShaderLocation("iFrameRate");
-        iFrameLoc = m_shader->getShaderLocation("iFrame");
-        iChannelTimeLoc = m_shader->getShaderLocation("iChannelTime");
-        iChannelResolutionLoc = m_shader->getShaderLocation("iChannelResolution");
-        iMouseLoc = m_shader->getShaderLocation("iMouse");
-        iDateLoc = m_shader->getShaderLocation("iDate");
-
-        // assert(positionLoc != -1 && nParticlesLoc != -1 && resolutionLoc != -1 && radiusLoc != -1 );
-        // assert(iResolutionLoc != -1 && iTimeLoc != -1 && iTimeDeltaLoc != -1 && iFrameRateLoc != -1 && iFrameLoc != -1 && iChannelTimeLoc != -1 && iChannelResolutionLoc != -1 && iMouseLoc != -1 && iDateLoc != -1);
-
-    }
-
-    void ShaderToy::draw(aiko::asset::Shader* shader)
-    {
-        auto* texture = getTargetTexture();
-        auto* renderer = getRenderSystem();
-        renderer->render( *texture, shader);
+        const std::string GLOBAL_PATH = "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/";
+        const std::string vs = GLOBAL_PATH + "aiko_shadertoy" + std::string(".vs");
+        const std::string fs = GLOBAL_PATH + s_shaders[currentShader].c_str() + std::string(".fs");
+        m_shader->load(vs.c_str(), fs.c_str());
     }
 
 }

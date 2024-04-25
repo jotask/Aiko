@@ -17,6 +17,5 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${AIKO_EDITOR_SRC})
 add_executable(AikoEditor ${AIKO_EDITOR_SRC})
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT AikoEditor)
 
-target_link_libraries(AikoEditor PRIVATE Aiko imgui rlImGui)
-target_compile_definitions(AikoEditor PRIVATE AIKO_BUILD_RAYLIB)
+target_link_libraries(AikoEditor PRIVATE Aiko)
 target_include_directories(AikoEditor PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

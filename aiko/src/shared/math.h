@@ -1,7 +1,14 @@
 #pragma once
 
+#include <iostream> //  For std::cout
+#include <iomanip> // For std::setw
+#include <cstring> // For std::memcpy
+
 namespace aiko
 {
+
+    constexpr double PI = 3.14159265358979323846;
+    constexpr double TWO_PI = 6.28318530717958647692528676655900576;
 
     class ivec2
     {
@@ -41,6 +48,27 @@ namespace aiko
         float x;
         float y;
         float z;
+
+        // Addition
+        vec3 operator+(const vec3& other) const {
+            return vec3(x + other.x, y + other.y, z + other.z);
+        }
+
+        // Subtraction
+        vec3 operator-(const vec3& other) const {
+            return vec3(x - other.x, y - other.y, z - other.z);
+        }
+
+        // Multiplication
+        vec3 operator*(float scalar) const {
+            return vec3(x * scalar, y * scalar, z * scalar);
+        }
+
+        // Division
+        vec3 operator/(float scalar) const {
+            return vec3(x / scalar, y / scalar, z / scalar);
+        }
+
     };
 
     class vec4
@@ -53,6 +81,91 @@ namespace aiko
         float y;
         float z;
         float w;
+    };
+
+    class mat4
+    {
+    public:
+        // Constructor
+        mat4()
+        {
+            // Initialize all elements to 0.0f
+            memset(elements, 0.0f, sizeof(elements));
+        }
+
+        // Identity matrix constructor
+        mat4(float identity) {
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    elements[i][j] = (i == j) ? identity : 0.0f;
+                }
+            }
+        }
+
+        mat4(const float(&data)[16]) {
+            int index = 0;
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    elements[i][j] = data[index++];
+                }
+            }
+        }
+
+        // Accessors
+        float& operator()(int row, int col)
+        {
+            return elements[row][col];
+        }
+
+        const float& operator()(int row, int col) const
+        {
+            return elements[row][col];
+        }
+
+        mat4 operator*(const mat4& other) const {
+            mat4 result;
+
+            // Perform matrix multiplication
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    result.elements[i][j] = 0;
+                    for (int k = 0; k < 4; ++k) {
+                        result.elements[i][j] += elements[i][k] * other.elements[k][j];
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        // Print matrix
+        void print() const
+        {
+            for (int i = 0; i < 4; ++i)
+            {
+                for (int j = 0; j < 4; ++j)
+                {
+                    std::cout << std::setw(8) << std::setprecision(3) << elements[i][j] << " ";
+                }
+                std::cout << std::endl;
+            }
+        }
+
+        // Copy assignment operator
+        mat4& operator=(const mat4& other)
+        {
+            if (this != &other) {
+                std::memcpy(elements, other.elements, sizeof(elements));
+            }
+            return *this;
+        }
+
+        const float* data() const {
+            return &elements[0][0];
+        }
+
+    // private:
+        float elements[4][4];
     };
 
 }

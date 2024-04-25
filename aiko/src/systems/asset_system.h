@@ -27,7 +27,7 @@ namespace aiko
         AssetSystem() = default;
         virtual ~AssetSystem() = default;
     
-        asset::Shader* loadShader(const char*, const char*);
+        Shader* loadShader(const char*, const char*);
 
         void unload(asset::Asset&);
         void unload(asset::ID);

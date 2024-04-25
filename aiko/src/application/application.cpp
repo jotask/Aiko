@@ -21,14 +21,14 @@ namespace aiko
 
     vec2 Application::getViewportSize() const
     {
-        auto target = getTargetTexture()->texture;
-        return { static_cast<float>(target.width) , static_cast<float>(target.height) };
+        auto target = getTargetTexture();
+        return { static_cast<float>(target->width) , static_cast<float>(target->height) };
     }
 
     float Application::getAspectRatio() const
     {
-        auto target = getTargetTexture()->texture;
-        return static_cast<float>(target.width) / static_cast<float>(target.height);
+        auto target = getTargetTexture();
+        return static_cast<float>(target->width) / static_cast<float>(target->height);
     }
 
     texture::RenderTexture2D* Application::getTargetTexture() const
@@ -77,6 +77,12 @@ namespace aiko
         return inputSystem->isKeyPressed(key);
     }
 
+    bool Application::isKeyJustPressed(Key key) const
+    {
+        InputSystem* inputSystem = getInputSystem();
+        return inputSystem->isKeyJustPressed(key);
+    }
+
     vec2 Application::getMousePosition() const
     {
         InputSystem* inputSystem = getInputSystem();
@@ -89,16 +95,10 @@ namespace aiko
         return inputSystem->isMouseButtonPressed(button);
     }
 
-    aiko::asset::Shader* Application::loadShader(const char* vs, const char* fs)
+    aiko::AikoPtr<aiko::Shader> Application::getShader()
     {
-        auto* assetSystem = getAssetSystem();
-        return assetSystem->loadShader(vs, fs);
-    }
-
-    void Application::unloadShader(aiko::asset::Shader* shader)
-    {
-        auto* assetSystem = getAssetSystem();
-        assetSystem->unload(shader->getID());
+        auto* assetSystem = getRenderSystem();
+        return assetSystem->createShader();
     }
 
     GameObject* Application::createGameObject(char* name)

@@ -9,11 +9,7 @@
 namespace aiko
 {
 
-    namespace asset
-    {
-        class Shader;
-    }
-
+    class Shader;
     class Camera;
     class RenderSystem;
     class InputSystem;
@@ -34,6 +30,7 @@ namespace aiko
 
         float getlDeltaTime() const;
         bool isKeyPressed(Key) const;
+        bool isKeyJustPressed(Key) const;
         vec2 getMousePosition() const;
         bool isMouseButtonPressed(MouseButton) const;
 
@@ -52,8 +49,7 @@ namespace aiko
 
         aiko::AikoUPtr<Aiko> m_aiko;
 
-        aiko::asset::Shader* loadShader(const char* vs, const char* fs);
-        void unloadShader(aiko::asset::Shader*);
+        aiko::AikoPtr<aiko::Shader> getShader();
 
         GameObject* createGameObject(char* name);
 

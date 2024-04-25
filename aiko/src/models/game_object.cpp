@@ -12,12 +12,25 @@ namespace aiko
 
     void GameObject::update()
     {
-        for (auto& cmp : m_components) cmp->update();
+        for (auto& go : m_components)
+        {
+            Component* c = go.get();
+            if (IUpdate* updateComponent = dynamic_cast<IUpdate*>(c))
+            {
+                updateComponent->update();
+            }
+        }
     }
 
     void GameObject::render()
     {
-        for (auto& cmp : m_components) cmp->render();
+        for (auto& go : m_components)
+        {
+            if (IRender3D* renderComponent = dynamic_cast<IRender3D*>(go.get()))
+            {
+                renderComponent->render();
+            }
+        }
     }
 
 }

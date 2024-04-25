@@ -6,13 +6,17 @@
 #include "types/camera_types.h"
 #include "types/color.h"
 #include "shared/math.h"
+#include "models/shader.h"
 
 namespace aiko
 {
-    
+
     class Mesh
     {
     public:
+
+        friend class RenderModule;
+        friend class RenderSystem;
     
         Mesh();
         ~Mesh() = default;
@@ -24,7 +28,7 @@ namespace aiko
         using TeexCoords2 = std::vector<float>;
         using Normals = std::vector<float>;
         using Colors = std::vector<unsigned char>;
-        using Indices = std::vector<unsigned short>;
+        using Indices = std::vector<unsigned int>;
 
         Vertices m_vertices;
         TeexCoords m_teexCoord;
@@ -33,10 +37,9 @@ namespace aiko
         Colors m_colors;
         Indices m_indices;
 
-        // OpenGL identifiers
-        unsigned int vaoId;     // OpenGL Vertex Array Object id
-        unsigned int* vboId;    // OpenGL Vertex Buffer Objects id (default vertex data)
-    
+        MeshData m_data;
+        Shader* m_shader;
+
     };
 
 }

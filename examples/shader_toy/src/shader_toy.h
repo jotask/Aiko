@@ -29,8 +29,6 @@ namespace shadertoy
         int iMouseLoc;
         int iDateLoc;
 
-        const std::string GLOBAL_PATH = "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/";
-        const std::string EXTENSION = ".fs";
         static std::vector<std::string> s_shaders;
 
         aiko::vec3      iResolution;           // viewport resolution (in pixels)
@@ -43,14 +41,13 @@ namespace shadertoy
         aiko::vec4      iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
         aiko::vec4      iDate;                 // (year, month, day, time in seconds)
 
-        aiko::asset::Shader* m_shader = nullptr;
+        aiko::AikoPtr<aiko::Shader> m_shader;
 
         int currentShader = 0;
         void nextShader();
         void prevShader();
         void randomShader();
         void refreshShader();
-        void draw(aiko::asset::Shader*);
 
     };
 

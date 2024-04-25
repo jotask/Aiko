@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <string>
+#include <functional>
 
 #include "aiko_types.h"
 #include "types/camera_types.h"
@@ -12,39 +14,67 @@
 
 namespace aiko
 {
+    class RenderModule;
     class RenderSystem;
-    namespace asset
+
+    class Shader
     {
-        class Shader : public Asset
-        {
-        public:
-            friend class RenderSystem;
+    public:
+        friend class RenderModule;
+        friend class RenderSystem;
 
-            Shader();
-            ~Shader() = default;
+        Shader();
+        ~Shader() = default;
 
-            void load(const char* vs, const char* fs);
-            virtual void unload() override;
+        void load(const char* vs, const char* fs);
+        virtual void unload();
 
-            int getShaderLocation(const char* locName);
+        // Type Helpers
 
-            // Type Helpers
+        void setBool(const std::string& name, bool value);
+        void setInt(const std::string& name, int value);
+        void setFloat(const std::string& name, float value);
+        void setVec2(const std::string& name, const vec2& value);
+        void setVec2(const std::string& name, float x, float y);
+        void setVec3(const std::string& name, const vec3& value);
+        void setVec3(const std::string& name, float x, float y, float z);
+        void setVec4(const std::string& name, const vec4& value);
+        void setVec4(const std::string& name, float x, float y, float z, float w);
+        void setMat4(const std::string& name, const mat4& mat);
 
-            void setShaderValue(int locIndex, const int& value);
-            void setShaderValue(int locIndex, const float& value);
-            void setShaderValue(int locIndex, const ivec2& value);
-            void setShaderValue(int locIndex, const vec2& value);
-            void setShaderValue(int locIndex, const vec3& value);
-            void setShaderValue(int locIndex, const vec4& value);
-            void setShaderValue(int locIndex, const std::vector<vec2>& value);
+        void use();
+        void unuse();
 
-        protected:
-            virtual void connect();
+        // void setShaderValue(int locIndex, const int& value);
+        // void setShaderValue(int locIndex, const float& value);
+        // void setShaderValue(int locIndex, const ivec2& value);
+        // void setShaderValue(int locIndex, const vec2& value);
+        // void setShaderValue(int locIndex, const vec3& value);
+        // void setShaderValue(int locIndex, const vec4& value);
+        // void setShaderValue(int locIndex, const std::vector<vec2>& value);
 
-        private:
-            RenderSystem* m_renderSystem;
-            aiko::ShaderData m_shaderData;
+        aiko::ShaderData* getData();
 
-        };
-    }
+        bool isvalid() const { return isValid; }
+
+    protected:
+        virtual void connect();
+
+    private:
+
+        std::string vs;
+        std::string fs;
+
+        bool isValid = false;
+        aiko::ShaderData m_shaderData;
+
+        using LoadShaderData = std::function<aiko::ShaderData(const char*, const char*)>;//  aiko::ShaderData(RenderModule::*)(const char*, const char*);
+        using UnloadShaderData = std::function<void(aiko::ShaderData)>;
+
+        LoadShaderData loadShaderData = nullptr;
+        UnloadShaderData unloadShaderData = nullptr;
+
+        int getUniformLocation(const std::string& name);
+
+    };
 }

@@ -8,7 +8,7 @@
 #include "windows/game_window.h"
 #include "windows/hirearchy_window.h"
 
-#include <imgui.h>
+// #include <imgui.h>
 
 namespace aiko::editor
 {
@@ -21,17 +21,19 @@ namespace aiko::editor
     void AikoEditor::init()
     {
         Application::init();
+        /*
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         m_windows.emplace_back(std::make_unique<GameWindow>(this));
         m_windows.emplace_back(std::make_unique<HirearchyWindow>(this));
+        */
 
     }
 
     void AikoEditor::render()
     {
-
+        /*
         // Menu Bar
         if (ImGui::BeginMainMenuBar())
         {
@@ -69,6 +71,7 @@ namespace aiko::editor
         {
             tmp->render();
         }
+        */
 
     }
 }

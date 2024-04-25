@@ -17,7 +17,7 @@
 namespace aiko
 {
 
-    class SceneModule;
+    class CameraSystem;
 
     class RenderSystem : public BaseSystem
     {
@@ -26,30 +26,34 @@ namespace aiko
         friend class Mesh;
         friend class Shader;
         friend class MeshComponent;
-    
+
         RenderSystem();
         virtual ~RenderSystem() = default;
-    
+
         virtual void init() override;
         virtual void update() override;
         virtual void render() override;
 
         aiko::AikoPtr<Mesh> createMesh();
         aiko::AikoPtr<Light> createLight();
-    
+
         void add(Light*);
         void render(MeshComponent*);
-    
+
         texture::RenderTexture2D* getTargetTexture() const;
 
-        void render(texture::RenderTexture2D&, aiko::asset::Shader*);
+        void renderToFullScreen(Shader*);
 
-        // Proxy Shader for now
-        aiko::ShaderData loadShaderData(const char* vs, const char* fs);
-        void unloadShader(asset::Shader& data);
-        int getShaderLocation(asset::Shader& shader, const char* uniformName);
-        void setShaderUniformValue(asset::Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType);
-        void setShaderUniformValueV(asset::Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count);
+        void render(texture::RenderTexture2D&, Shader*);
+
+        AikoUPtr<Shader> createShader();
+        AikoUPtr<Shader> createShader(const char* vs, const char* fs);
+        void unloadShader(Shader& data);
+        int getShaderLocation(Shader& shader, const char* uniformName);
+        void setShaderUniformValue(Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType);
+        void setShaderUniformValueV(Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count);
+
+        Camera* getMainCamera();
 
     protected:
     
@@ -58,6 +62,7 @@ namespace aiko
     private:
     
         RenderModule* m_renderModule;
+        CameraSystem* m_cameraSystem;
     
     };
 

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <vector>
+#include <map>
+#include <string>
 
 namespace aiko
 {
@@ -47,7 +48,16 @@ namespace aiko
     {
     public:
         unsigned int id;
-        std::vector<int> locs;
+        std::map<std::string, int> locs;
+    };
+
+    class MeshData
+    {
+    public:
+        // OpenGL identifiers
+        unsigned int vbo;
+        unsigned int vao;
+        unsigned int ebo;
     };
 
 }

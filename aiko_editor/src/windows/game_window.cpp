@@ -6,11 +6,6 @@
 
 #include "window.h"
 
-#include <imgui.h>
-#include <rlImGui.h>
-
-#include "platform/raylib/raylib_utils.h"
-
 namespace aiko
 {
     namespace editor
@@ -27,6 +22,7 @@ namespace aiko
 
             static auto* renderSystem = m_editor->getAiko()->getSystem<aiko::RenderSystem>();
 
+            /*
             if(ImGui::Begin("Game"))
             {
                 auto* aikoTarget = renderSystem->getTargetTexture();  // Get the size of the child (i.e. the whole draw size of the windows).
@@ -35,6 +31,7 @@ namespace aiko
                 rlImGuiImageRect(&target.texture, target.texture.width, target.texture.height, ::Rectangle{ 0,0, lastSize.x, -lastSize.y });
                 ImGui::End();
             }
+            */
         }
 
     }

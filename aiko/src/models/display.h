@@ -10,12 +10,15 @@ namespace aiko
 
     class Display
     {
+        friend class DisplayModule;
     public:
         ivec2 getDisplaySize();
         void setWindowTitle(const char* title);                     // Set title for window (only PLATFORM_DESKTOP and PLATFORM_WEB)
         void setWindowPosition(int x, int y);                       // Set window position on screen (only PLATFORM_DESKTOP)
         void setWindowSize(int width, int height);                  // Set window dimensions
-
+    private:
+        void* native;
+        ivec2 m_size;
     };
 
 }

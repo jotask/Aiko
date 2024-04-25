@@ -3,7 +3,6 @@
 #include "modules/module_connector.h"
 
 #include "modules/render_module.h"
-#include "modules/scene_module.h"
 #include "components/transform_component.h"
 #include "components/camera_component.h"
 #include "models/camera.h"
@@ -21,6 +20,11 @@ namespace aiko
     bool InputSystem::isKeyPressed(Key key) const
     {
         return m_inputModule->isKeyPressed(key);
+    }
+
+    bool InputSystem::isKeyJustPressed(Key key) const
+    {
+        return m_inputModule->isKeyJustPressed(key);
     }
 
     vec2 InputSystem::getMousePosition() const

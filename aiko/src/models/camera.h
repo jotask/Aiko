@@ -14,8 +14,10 @@ namespace aiko
     public:
         friend class CameraSystem;
 
-        Camera() = default;
+        Camera();
         ~Camera() = default;
+
+        void update();
 
         camera::CameraType getCameraType() const;
         void setCameraType(camera::CameraType);
@@ -23,13 +25,21 @@ namespace aiko
         camera::CameraController getCameraController() const;
         void setCameraController(camera::CameraController);
 
-        vec3 position = { 30.0f, 20.0f, 30.0f };
-        vec3 target = { 0.0f, 0.0f, 0.0f };
+        vec3 position;
+        vec3 target;
+        vec3 cameraDirection;
+        vec3 right;
+        vec3 cameraUp;
 
         vec3 getUp() const { return { 0.0f, 1.0f, 0.0f }; }
         float getFOV() const { return m_fov; }
 
+        mat4 getViewMatrix();
+        mat4 getProjectionMatrix();
+
     private:
+
+        bool isMainCamera = false;
 
         CameraSystem* cameraSystem;
 

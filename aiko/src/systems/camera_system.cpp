@@ -3,7 +3,6 @@
 #include "modules/module_connector.h"
 
 #include "modules/render_module.h"
-#include "modules/scene_module.h"
 #include "components/transform_component.h"
 #include "components/camera_component.h"
 #include "types/camera_types.h"
@@ -11,53 +10,23 @@
 
 namespace aiko
 {
-    
-    void CameraSystem::setCameraType(camera::CameraType cameraType)
-    {
-        // This needs to delegate to module
-        switch (cameraType)
-        {
-        case camera::CameraType::Orthographic:
-    
-            break;
-        case camera::CameraType::Perspective:
-    
-            break;
-        default:
-            throw std::exception();
-            break;
-        }
-    }
-    
-    void CameraSystem::setCameraController(camera::CameraController cameraController)
-    {
-        // This needs to delegate to module
-        switch (cameraController)
-        {
-        case camera::CameraController::Orbit:
-    
-            break;
-        case camera::CameraController::Fly:
-    
-            break;
-        case camera::CameraController::Drag:
-    
-            break;
-        default:
-            throw std::exception();
-            break;
-        }
-    }
-    
+
     void CameraSystem::setMainCamera(Camera* camera)
     {
-        setCameraType(camera->cameraType);
-        setCameraController(camera->cameraControler);
+        for (auto& c : m_cameras)
+        {
+            c.isMainCamera = false;
+        }
+        camera->isMainCamera = true;
     }
 
     Camera* CameraSystem::getMainCamera()
     {
-        return nullptr;
+        if (m_cameras.size() == 0)
+        {
+            return nullptr;
+        }
+        return &m_cameras[0];
     }
 
     ivec2 CameraSystem::getDisplaySize()
@@ -79,17 +48,19 @@ namespace aiko
     void CameraSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
-        BIND_MODULE_REQUIRED(SceneModule, moduleConnector, m_sceneModule)
     }
     
     void CameraSystem::init()
     {
-    
+        createCamera(true);
     }
     
     void CameraSystem::update()
     {
-    
+        for (auto& tmp : m_cameras)
+        {
+            tmp.update();
+        }
     }
     
     void CameraSystem::render()

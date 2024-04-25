@@ -3,11 +3,14 @@
 #include <vector>
 #include <stdexcept>
 #include <string>
+#include <functional>
 
 #include "aiko.h"
 #include "aiko_types.h"
 #include "component.h"
 #include "components/transform_component.h"
+#include "types/scene_types.h"
+#include "systems/entity_component_system.h"
 
 namespace aiko
 {
@@ -24,7 +27,7 @@ namespace aiko
         ~GameObject() = default;
 
         template<class T>
-        aiko::AikoPtr<T> addComponent();
+        inline aiko::AikoPtr<T> addComponent();
 
         template<class T>
         bool hasComponent();
@@ -48,8 +51,8 @@ namespace aiko
 
         // FIXME: For now, so we can esily create components
         Aiko* aiko;
-        void setup(Aiko* aiko) { this->aiko = aiko; };
 
+        SceneObject m_entity;
         std::string name;
         std::vector<aiko::AikoPtr<Component>> m_components;
 
@@ -100,6 +103,12 @@ namespace aiko
         if (hasComponent<T>() == false)
         {
             throw std::exception();
+        }
+        if (onComponentRemoved)
+        {
+            // TODO
+            throw std::exception();
+            // onComponentRemoved(this, back.get());
         }
         return m_components.erase(std::remove(m_components.begin(), m_components.end(), [](const std::shared_ptr<Component>& component) {
             return dynamic_cast<T*>(component.get()) != nullptr;

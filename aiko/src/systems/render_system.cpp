@@ -8,12 +8,23 @@
 #include <iostream>
 
 #include "aiko_types.h"
+#include "shared/math.h"
 #include "modules/module_connector.h"
-#include "modules/scene_module.h"
+#include "systems/system_connector.h"
 #include "components/transform_component.h"
 #include "components/component_renderer.h"
+#include "components/mesh_component.h"
+#include "systems/camera_system.h"
 #include "render_system.h"
 #include "models/light.h"
+#include "models/mesh_factory.h"
+#include "types/color.h"
+
+#include "modules/render_primitives.h"
+#include "modules/render_primitives.h"
+
+// DELETEME
+#include <GLFW/glfw3.h>
 
 namespace aiko
 {
@@ -24,7 +35,7 @@ namespace aiko
     
     void RenderSystem::init()
     {
-
+        Primitives::init(this);
     }
 
     void RenderSystem::update()
@@ -36,10 +47,12 @@ namespace aiko
     {
 
     }
-    
+
     aiko::AikoPtr<Mesh> RenderSystem::createMesh()
     {
         auto mesh = std::make_unique<Mesh>();
+        mesh::generatTest(*mesh.get());
+        m_renderModule->initMesh(mesh.get());
         return mesh;
     }
     
@@ -52,6 +65,7 @@ namespace aiko
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
+        BIND_SYSTEM_REQUIRED(CameraSystem, systemConnector, m_cameraSystem)
     }
     
     void RenderSystem::add(Light* light)
@@ -81,7 +95,9 @@ namespace aiko
    
     void RenderSystem::render(MeshComponent* mesh)
     {
-
+        m_renderModule->beginMode3D();
+        m_renderModule->renderMesh(getMainCamera() , mesh->gameobject->transform().get(), mesh->m_mesh.get(), mesh->m_shader.get());
+        m_renderModule->endMode3D();
     }
 
     texture::RenderTexture2D* RenderSystem::getTargetTexture() const
@@ -89,36 +105,72 @@ namespace aiko
         return m_renderModule->getRenderTexture();
     }
 
-    void RenderSystem::render(texture::RenderTexture2D& target, aiko::asset::Shader* shader)
+    void RenderSystem::renderToFullScreen(Shader* shader)
     {
-        m_renderModule->beginShaderMode(&shader->m_shaderData);
-        m_renderModule->drawTextureEx(target.texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
+        m_renderModule->beginShaderMode(shader);
+        m_renderModule->beginTextureMode();
+        m_renderModule->beginMode2D();
+        m_renderModule->endMode2D();
+        m_renderModule->endTextureMode();
+        m_renderModule->endShaderMode();
+
+    }
+
+    void RenderSystem::render(texture::RenderTexture2D& target, Shader* shader)
+    {
+        m_renderModule->beginShaderMode(shader);
+
+        Camera* cam = this->getMainCamera();
+
+        auto projection = cam->getProjectionMatrix();
+        shader->setMat4("projection", projection);
+
+        auto view = cam->getViewMatrix();
+        shader->setMat4("view", view);
+
+        Transform trans;
+        shader->setMat4("model", trans.getMatrix());
+
+        m_renderModule->drawRenderTextureEx(target, vec2(), 0.0f, 1.0f, WHITE );
+
         m_renderModule->endShaderMode();
     }
 
-    aiko::ShaderData RenderSystem::loadShaderData(const char* vs, const char* fs)
+    AikoUPtr<Shader> RenderSystem::createShader()
     {
-        return m_renderModule->loadShaderData(vs, fs);
+        return m_renderModule->createShader();
     }
 
-    void RenderSystem::unloadShader(asset::Shader& data)
+    AikoUPtr<Shader> RenderSystem::createShader(const char* vsPath, const char* fsPath)
+    {
+        auto shader = createShader();
+        shader->load( vsPath, fsPath );
+        return shader;
+    }
+
+    void RenderSystem::unloadShader(Shader& data)
     {
         m_renderModule->unloadShader(data.m_shaderData);
     }
 
-    int RenderSystem::getShaderLocation(asset::Shader& shader, const char* uniformName)
+    int RenderSystem::getShaderLocation(Shader& shader, const char* uniformName)
     {
         return m_renderModule->getShaderLocation( shader.m_shaderData, uniformName );
     }
 
-    void RenderSystem::setShaderUniformValue(asset::Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType)
+    void RenderSystem::setShaderUniformValue(Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType)
     {
         m_renderModule->setShaderUniformValue(shader.m_shaderData, locIndex, value, uniformType);
     }
 
-    void RenderSystem::setShaderUniformValueV(asset::Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count)
+    void RenderSystem::setShaderUniformValueV(Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count)
     {
         m_renderModule->setShaderUniformValueV(shader.m_shaderData, locIndex, value, uniformType, count);
+    }
+
+    Camera* RenderSystem::getMainCamera()
+    {
+        return m_cameraSystem->getMainCamera();
     }
 
 }
