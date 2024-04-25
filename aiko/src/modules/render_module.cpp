@@ -138,7 +138,7 @@ namespace aiko
         m_passthrought->setInt("screenTexture", 0);
 
         m_texture = createTexture();
-        m_renderTexture2D = createScreenTexture();
+        m_renderTexture2D = createRenderTexture();
 
         EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);
     }
@@ -182,7 +182,7 @@ namespace aiko
     {
 
         // bind to framebuffer and draw scene as we normally would to color texture 
-        glBindFramebuffer(GL_FRAMEBUFFER, m_renderTexture2D.renderTexture.framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_renderTexture2D.framebuffer);
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
         clearBackground(BLACK);
@@ -200,14 +200,20 @@ namespace aiko
         clearBackground(BLACK);
         glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
+        // Render using our full screen shader program
         m_passthrought->use();
-        glBindTexture(GL_TEXTURE_2D, m_renderTexture2D.renderTexture.texture);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
 
-        glBindVertexArray(m_renderTexture2D.vao);
-        glBindTexture(GL_TEXTURE_2D, m_renderTexture2D.renderTexture.texture);	// use the color attachment texture as the texture of the quad plane
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        // Bind the output texture from the previous shader program.
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_renderTexture2D.texture);
+        m_passthrought->setInt("", 0);
+
+        // Draw three "vertices" as a triangle. (no buffers required)
+        // At this point you should look at the contents of the vertex and fragment shaders.
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        // Unbind everything we were using.
+        glBindTexture(GL_TEXTURE_2D, 0);
         m_passthrought->unuse();
 
     }
@@ -216,15 +222,9 @@ namespace aiko
     {
         return m_displayModule->getCurrentDisplay().getDisplaySize();
     }
-
-    texture::ScreenTexture2D* RenderModule::getScreenTexture()
-    {
-        return &m_renderTexture2D;
-    }
-
     texture::RenderTexture2D* RenderModule::getRenderTexture()
     {
-        return &m_renderTexture2D.renderTexture;
+        return &m_renderTexture2D;
     }
 
     void RenderModule::onWindowResize(Event& event)
@@ -243,8 +243,8 @@ namespace aiko
 
         // resize render texture
         {
-            m_renderTexture2D.renderTexture.width = screenWidth;
-            m_renderTexture2D.renderTexture.height = screenHeight;
+            m_renderTexture2D.width = screenWidth;
+            m_renderTexture2D.height = screenHeight;
             // color buffer attachment here
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
             // and depth buffer attachment
@@ -278,6 +278,11 @@ namespace aiko
     void RenderModule::endMode3D()
     {
 
+    }
+
+    void RenderModule::beginTextureMode()
+    {
+        glBindTexture(GL_TEXTURE_2D, m_renderTexture2D.texture);
     }
 
     void RenderModule::beginTextureMode(texture::RenderTexture2D& target)

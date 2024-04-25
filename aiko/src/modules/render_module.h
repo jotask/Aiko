@@ -54,7 +54,6 @@ namespace aiko
 
         ivec2 getDisplaySize();
 
-        texture::ScreenTexture2D* getScreenTexture();
         texture::RenderTexture2D* getRenderTexture();
 
         void clearBackground(Color);
@@ -62,6 +61,7 @@ namespace aiko
         void endMode2D();
         void beginMode3D();
         void endMode3D();
+        void beginTextureMode();
         void beginTextureMode(texture::RenderTexture2D& target);
         void endTextureMode(void);
         void beginShaderMode(aiko::Shader* shader);
@@ -70,7 +70,6 @@ namespace aiko
         void endBlendMode(void);
 
         // Texture
-        texture::ScreenTexture2D createScreenTexture();
         texture::RenderTexture2D createRenderTexture();
         texture::Texture createTexture();
         void drawToScreenTexture();
@@ -95,7 +94,7 @@ namespace aiko
 
         DisplayModule* m_displayModule;
 
-        texture::ScreenTexture2D m_renderTexture2D;
+        texture::RenderTexture2D m_renderTexture2D;
         texture::Texture m_texture;
 
         AikoUPtr<Shader> m_passthrought;

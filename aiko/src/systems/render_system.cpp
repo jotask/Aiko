@@ -106,23 +106,42 @@ namespace aiko
     void RenderSystem::renderToFullScreen(Shader* shader)
     {
 
-        auto target = m_renderModule->getScreenTexture();
-        m_renderModule->beginShaderMode(shader);
+        // auto target = m_renderModule->getRenderTexture();
+        // m_renderModule->beginShaderMode(shader);
+        // 
+        // Camera* cam = this->getMainCamera();
+        // 
+        // auto projection = cam->getProjectionMatrix();
+        // shader->setMat4("projection", projection);
+        // 
+        // auto view = cam->getViewMatrix();
+        // shader->setMat4("view", view);
+        // 
+        // Transform trans;
+        // shader->setMat4("model", trans.getMatrix());
+        // 
+        // m_renderModule->drawToScreenTexture();
+        // 
+        // m_renderModule->endShaderMode();
 
-        Camera* cam = this->getMainCamera();
+        // Set the current shader program.
+        shader->use();
 
-        auto projection = cam->getProjectionMatrix();
-        shader->setMat4("projection", projection);
+        // auto target = m_renderModule->getRenderTexture();
+        // 
+        // // Bind Texture
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, target->texture);
+        // 
+        // // This function call sets the texture uniform for our shader program to use the texture at GL_TEXTURE0
+        // glUniform1i(textureUniform, 0);
+        // 
+        // // Draw to our offscreen texture.
+        // square->Draw(transform.GetMatrix(), worldMatrixUniform);
+        // 
+        // // Unbind the texture used to render.
+        // glBindTexture(GL_TEXTURE_2D, 0);
 
-        auto view = cam->getViewMatrix();
-        shader->setMat4("view", view);
-
-        Transform trans;
-        shader->setMat4("model", trans.getMatrix());
-
-        m_renderModule->drawToScreenTexture();
-
-        m_renderModule->endShaderMode();
     }
 
     void RenderSystem::render(texture::RenderTexture2D& target, Shader* shader)

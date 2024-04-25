@@ -20,18 +20,10 @@ namespace aiko::texture
     {
     public:
         unsigned int framebuffer;       // OpenGL framebuffer object id
-        unsigned int texture;                // Color buffer attachment texture
+        unsigned int texture;           // Color buffer attachment texture
         unsigned int depth;             // Depth buffer attachment texture
         unsigned int width;
         unsigned int height;
-    };
-
-    class ScreenTexture2D
-    {
-    public:
-        RenderTexture2D renderTexture;
-        unsigned int vao;
-        unsigned int vbo;
     };
 
 }
