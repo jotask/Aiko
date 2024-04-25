@@ -95,7 +95,9 @@ namespace aiko
    
     void RenderSystem::render(MeshComponent* mesh)
     {
+        m_renderModule->beginMode3D();
         m_renderModule->renderMesh(getMainCamera() , mesh->gameobject->transform().get(), mesh->m_mesh.get(), mesh->m_shader.get());
+        m_renderModule->endMode3D();
     }
 
     texture::RenderTexture2D* RenderSystem::getTargetTexture() const
@@ -105,26 +107,10 @@ namespace aiko
 
     void RenderSystem::renderToFullScreen(Shader* shader)
     {
-
-        // Set the current shader program.
         m_renderModule->beginShaderMode(shader);
         m_renderModule->beginTextureMode();
-
-        auto target = m_renderModule->getRenderTexture();
-
-        Camera* cam = this->getMainCamera();
-        
-        auto projection = cam->getProjectionMatrix();
-        shader->setMat4("projection", projection);
-        
-        auto view = cam->getViewMatrix();
-        shader->setMat4("view", view);
-        
-        Transform trans;
-        shader->setMat4("model", trans.getMatrix());
-
-        m_renderModule->drawToScreenTexture();
-
+        m_renderModule->beginMode2D();
+        m_renderModule->endMode2D();
         m_renderModule->endTextureMode();
         m_renderModule->endShaderMode();
 

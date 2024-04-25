@@ -33,6 +33,8 @@ namespace aiko
 
         Display m_curent;
 
+        std::string m_displayName;
+
         void onWindowResize(Event&);
     
     };

@@ -72,7 +72,6 @@ namespace aiko
         // Texture
         texture::RenderTexture2D createRenderTexture();
         texture::Texture createTexture();
-        void drawToScreenTexture();
         void drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint);
         void drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint);
         // void drawTexture(texture::Texture texture, int posX, int posY, Color tint);

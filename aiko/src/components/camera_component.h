@@ -8,7 +8,7 @@ namespace aiko
     
     class Camera;
     
-    class CameraComponent : public Component, public IUpdate, public IRender
+    class CameraComponent : public Component, public IUpdate, public IRender3D
     {
     public:
         CameraComponent();

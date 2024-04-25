@@ -20,7 +20,8 @@ namespace aiko
 
         // TODO Initial window size from config
         const ivec2 size = { 800, 600 };
-        GLFWwindow* window = glfwCreateWindow(size.x, size.y, "Aiko", NULL, NULL);
+        m_displayName = "Aiko";
+        GLFWwindow* window = glfwCreateWindow(size.x, size.y, m_displayName.c_str(), NULL, NULL);
         if (window == NULL)
         {
             std::cout << "Failed to create GLFW window" << std::endl;
@@ -79,6 +80,31 @@ namespace aiko
 
     void DisplayModule::preUpdate()
     {
+
+        static float lastTime;
+        static long nbFrames;
+
+        // Measure speed
+        double currentTime = glfwGetTime();
+        double delta = currentTime - lastTime;
+        nbFrames++;
+        if (delta >= 0.15)
+        {
+
+            // If last cout was more than 1 sec ago
+            std::cout << 1000.0 / double(nbFrames) << std::endl;
+
+            double fps = double(nbFrames) / delta;
+
+            std::stringstream ss;
+            ss << m_displayName.c_str() << " [" << fps << " FPS]";
+
+            glfwSetWindowTitle((GLFWwindow*)m_curent.native, ss.str().c_str());
+
+            nbFrames = 0;
+            lastTime = currentTime;
+        }
+
         glfwPollEvents();
         if ( glfwWindowShouldClose((GLFWwindow*) m_curent.native) == true )
         {

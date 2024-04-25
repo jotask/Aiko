@@ -26,8 +26,7 @@ namespace aiko
     {
         for (auto& go : m_components)
         {
-            Component* c = go.get();
-            if (IRender* renderComponent = dynamic_cast<IRender*>(c))
+            if (IRender3D* renderComponent = dynamic_cast<IRender3D*>(go.get()))
             {
                 renderComponent->render();
             }

@@ -45,6 +45,7 @@ namespace sandbox
     {
         Application::render();
 
+#if 0
         static aiko::vec3 circlePosition = { -0.5f,  0.0f, 0.0f };
         static aiko::vec3 trianglePosition = { 0.0f, -0.5f, 0.0f };
         static aiko::vec3 rectanglePosition = { 0.5f, 0.0f, 0.0f };
@@ -74,6 +75,8 @@ namespace sandbox
             aiko::Primitives::drawCube(tmp, aiko::vec3(0.5f, 0.5f, 0.5f));
         }
         aiko::Primitives::renderCylinder({ -1.5f, -0.5f, 0.0f }, 0.25f, 0.5f, 10);
+
+#endif
 
     }
 }
