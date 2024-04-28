@@ -139,6 +139,19 @@ target_compile_definitions(glm INTERFACE GLM_FORCE_SILENT_WARNINGS)
 #----------------------------------------------------------------------
 
 FetchContent_Declare(
+    gltext
+    GIT_REPOSITORY https://github.com/vallentin/glText.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+    GIT_PROGRESS   TRUE
+)
+
+message("Fetching gltext")
+FetchContent_MakeAvailable(gltext)
+
+#----------------------------------------------------------------------
+
+FetchContent_Declare(
     cgltf
     GIT_REPOSITORY  https://github.com/jkuhlmann/cgltf.git
     GIT_TAG         master
