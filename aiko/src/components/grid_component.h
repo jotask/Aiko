@@ -10,14 +10,14 @@ namespace aiko
 
     class RenderSystem;
 
-    class MeshComponent : public Component, public IUpdate, public IRender3D
+    class GridComponent : public Component, public IUpdate, public IRender3D
     {
     public:
 
         friend class RenderSystem;
 
-        MeshComponent();
-        virtual ~MeshComponent() = default;
+        GridComponent();
+        virtual ~GridComponent() = default;
 
         virtual void init() override;
         virtual void update() override;
@@ -25,8 +25,6 @@ namespace aiko
 
     private:
         RenderSystem*   m_renderSystem;
-        AikoPtr<Mesh>   m_mesh;
-        AikoPtr<Shader> m_shader;
 
     };
 

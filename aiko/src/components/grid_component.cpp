@@ -1,4 +1,4 @@
-#include "mesh_component.h"
+#include "grid_component.h"
 
 #include "models/game_object.h"
 #include "systems/render_system.h"
@@ -6,28 +6,25 @@
 namespace aiko
 {
 
-    MeshComponent::MeshComponent()
-        : Component("Mesh")
+    GridComponent::GridComponent()
+        : Component("Grid")
     {
 
     }
 
-    void MeshComponent::init()
+    void GridComponent::init()
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
-        m_mesh = m_renderSystem->createMesh();
-        m_shader = m_renderSystem->createShader("C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko.vs", "C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko.fs");
-
     }
 
-    void MeshComponent::update()
+    void GridComponent::update()
     {
-        aiko::AikoPtr<Transform> transform = gameobject->transform();
+        // aiko::AikoPtr<Transform> transform = gameobject->transform();
     }
 
-    void MeshComponent::render()
+    void GridComponent::render()
     {
-        m_renderSystem->render(this);
+        // m_renderSystem->render(this);
     }
 
 }
