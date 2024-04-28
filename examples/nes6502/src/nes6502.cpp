@@ -13,6 +13,7 @@
 #include "types/inputs.h"
 #include "models/camera.h"
 #include "shared/math.h"
+#include "core/log.h"
 
 namespace nes
 {
@@ -72,7 +73,7 @@ namespace nes
             cpu.clock();
             std::this_thread::sleep_until(target_time);
             target_time += wait_time;
-            std::cout << "[6502] clock tick" << std::endl;
+            aiko::Log::info("[6502] clock tick");
         }
 
     }
