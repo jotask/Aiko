@@ -22,6 +22,7 @@
 #include "systems/render_system.h"
 #include "systems/asset_system.h"
 #include "systems/input_system.h"
+#include "systems/particle_system/particle_system.h"
 
 
 namespace aiko
@@ -101,6 +102,7 @@ namespace aiko
         m_systems.emplace_back(std::make_unique<CameraSystem>());
         m_systems.emplace_back(std::make_unique<AssetSystem>());
         m_systems.emplace_back(std::make_unique<InputSystem>());
+        m_systems.emplace_back(std::make_unique<ParticleSystem>());
 
         SystemConnector systemConnector(m_systems);
         for (auto&& system : m_systems) system->aiko = this;
