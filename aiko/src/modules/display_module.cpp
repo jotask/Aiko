@@ -1,8 +1,8 @@
 #include "modules/display_module.h"
 
 #include "events/events.hpp"
-
-#include <GLFW/glfw3.h>
+#include "core/libs.h"
+#include "core/log.h"
 
 namespace aiko
 {
@@ -24,7 +24,7 @@ namespace aiko
         GLFWwindow* window = glfwCreateWindow(size.x, size.y, m_displayName.c_str(), NULL, NULL);
         if (window == NULL)
         {
-            std::cout << "Failed to create GLFW window" << std::endl;
+            Log::critical("Failed to create GLFW window");
             glfwTerminate();
             // Throw exception and/or exit
             return;

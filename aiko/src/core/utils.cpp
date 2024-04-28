@@ -34,6 +34,15 @@ namespace aiko
             return uni(*getRandomDevice());
         }
 
+        const char* join(const char* one, const char* two)
+        {
+            static std::string buf;
+            buf.clear();
+            buf.append(one);
+            buf.append(two);
+            return buf.c_str();
+        }
+
         float getRandomValue(float min, float max)
         {
             std::uniform_real_distribution<float> uni(min, max);

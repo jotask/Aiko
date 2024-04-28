@@ -3,6 +3,8 @@
 #include "shared/singleton.h"
 #include "events/event.hpp"
 
+#include "core/log.h"
+
 #include <memory>
 #include <vector>
 #include <functional>
@@ -93,7 +95,7 @@ namespace aiko
         auto it = std::remove_if(m_callbacks.begin(), m_callbacks.end(), found);
         if (it == m_callbacks.end())
         {
-            std::cout << "unbind error" << std::endl;
+            Log::error("unbind error");
             return;
         }
         m_callbacks.erase(it);

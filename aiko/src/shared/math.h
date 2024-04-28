@@ -1,8 +1,10 @@
 #pragma once
 
-#include <iostream> //  For std::cout
+#include <iostream> //  For Log::error
 #include <iomanip> // For std::setw
 #include <cstring> // For std::memcpy
+
+#include "core/log.h"
 
 namespace aiko
 {
@@ -141,14 +143,16 @@ namespace aiko
         // Print matrix
         void print() const
         {
+            static std::stringstream buffer;
             for (int i = 0; i < 4; ++i)
             {
                 for (int j = 0; j < 4; ++j)
                 {
-                    std::cout << std::setw(8) << std::setprecision(3) << elements[i][j] << " ";
+                    buffer << std::setw(8) << std::setprecision(3) << elements[i][j] << " ";
                 }
-                std::cout << std::endl;
+                buffer << std::endl;
             }
+            Log::info(buffer.str());
         }
 
         // Copy assignment operator

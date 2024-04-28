@@ -11,5 +11,7 @@ namespace aiko
 
         int getRandomValue(int min, int max);
 
+        const char* join(const char*, const char*);
+
     }
 }

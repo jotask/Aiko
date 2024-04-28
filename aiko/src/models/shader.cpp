@@ -8,11 +8,8 @@
 #include "systems/render_system.h"
 #include "systems/asset_system.h"
 #include "modules/render_module.h"
-
-// FIXME
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <spdlog/spdlog.h>
+#include "core/libs.h"
+#include "core/log.h"
 
 namespace aiko
 {
@@ -58,7 +55,7 @@ namespace aiko
         int loc = glGetUniformLocation(m_shaderData.id, name.c_str());
         if (loc == -1)
         {
-            std::cout << "ERROR::SHADER::LOCALISATION NOT FOUND :: " << name.c_str() << std::endl;
+            Log::error( "SHADER::LOCALISATION NOT FOUND :: ", name.c_str() );
         }
         return loc;
     }

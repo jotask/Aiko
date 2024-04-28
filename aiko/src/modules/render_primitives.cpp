@@ -27,7 +27,7 @@ namespace aiko
         unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
         if (data == nullptr)
         {
-            std::cout << "Texture failed to load at path: " << path << std::endl;
+            Log::error("Texture failed to load at path: ", path);
             stbi_image_free(data);
             return 0;
         }
@@ -47,7 +47,7 @@ namespace aiko
         }
         else
         {
-            std::cout << "Imaget at path can't be find the texture color format: " << path << std::endl;
+            Log::error("Imaget at path can't be find the texture color format: ", path);
             return -1;
         }
 

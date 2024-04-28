@@ -4,11 +4,10 @@
 
 #include "aiko_types.h"
 #include "core/libs.h"
+#include "core/log.h"
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
 #include "events/events.hpp"
-
-#include <GLFW/glfw3.h>
 
 namespace aiko
 {
@@ -87,7 +86,7 @@ namespace aiko
                 }
                 else
                 {
-                    std::cout << "KEY :: ACTION :: Not Implemented" << std::endl;
+                    Log::error("KEY :: ACTION :: Not Implemented");
                 }
             };
 

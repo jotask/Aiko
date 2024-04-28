@@ -1,0 +1,29 @@
+#include "log.h"
+
+#include <iostream>
+#include <cstdarg>
+#include <cstring>
+#include <iostream>
+#include <sstream>
+
+#include "spdlog/spdlog.h"
+
+namespace aiko
+{
+
+    void Log::log(Type type, const char* msg)
+    {
+        switch (type)
+        {
+            case aiko::Log::Type::Trace:        spdlog::trace(msg);    return;
+            case aiko::Log::Type::Debug:        spdlog::debug(msg);    return;
+            case aiko::Log::Type::Info:         spdlog::info(msg);     return;
+            case aiko::Log::Type::Warning:      spdlog::warn(msg);     return;
+            case aiko::Log::Type::Error:        spdlog::error(msg);    return;
+            case aiko::Log::Type::Critical:     spdlog::critical(msg); return;
+            default:
+                break;
+        }
+    }
+
+}

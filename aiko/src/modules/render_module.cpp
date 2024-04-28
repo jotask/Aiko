@@ -3,8 +3,6 @@
 #include <string>
 #include <fstream>
 
-#include <core/libs.h>
-
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
 #include "models/camera.h"
@@ -15,13 +13,8 @@
 #include "models/shader.h"
 #include "components/transform_component.h"
 #include "render_primitives.h"
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "core/libs.h"
+#include "core/log.h"
 
 #include "modules/render_primitives.h"
 
@@ -87,23 +80,23 @@ namespace aiko
 
             switch (type)
             {
-                case GL_DEBUG_TYPE_ERROR:               std::cout << "Type: Error"; break;
-                case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: std::cout << "Type: Deprecated Behaviour"; break;
-                case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  std::cout << "Type: Undefined Behaviour"; break;
-                case GL_DEBUG_TYPE_PORTABILITY:         std::cout << "Type: Portability"; break;
-                case GL_DEBUG_TYPE_PERFORMANCE:         std::cout << "Type: Performance"; break;
-                case GL_DEBUG_TYPE_MARKER:              std::cout << "Type: Marker"; break;
-                case GL_DEBUG_TYPE_PUSH_GROUP:          std::cout << "Type: Push Group"; break;
-                case GL_DEBUG_TYPE_POP_GROUP:           std::cout << "Type: Pop Group"; break;
-                case GL_DEBUG_TYPE_OTHER:               return; // std::cout << "Type: Other"; break;
-            } std::cout << std::endl;
+                case GL_DEBUG_TYPE_ERROR:               Log::error( "Type: Error" ); break;
+                case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: Log::error( "Type: Deprecated Behaviour" ); break;
+                case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  Log::error( "Type: Undefined Behaviour" ); break;
+                case GL_DEBUG_TYPE_PORTABILITY:         Log::error( "Type: Portability" ); break;
+                case GL_DEBUG_TYPE_PERFORMANCE:         Log::error( "Type: Performance" ); break;
+                case GL_DEBUG_TYPE_MARKER:              Log::error( "Type: Marker" ); break;
+                case GL_DEBUG_TYPE_PUSH_GROUP:          Log::error( "Type: Push Group" ); break;
+                case GL_DEBUG_TYPE_POP_GROUP:           Log::error( "Type: Pop Group" ); break;
+                case GL_DEBUG_TYPE_OTHER:               return; // Log::error << "Type: Other"; break;
+            }
 
             // fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
             //     (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
             //     type, severity, message);
             
 
-            std::cout << "ERROR::GL::ERROR:: " << message << std::endl;
+            Log::error("GL::ERROR::", message);
 
             int a = 0;
 
@@ -115,7 +108,7 @@ namespace aiko
 
         if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == false)
         {
-            std::cout << "Failed to initialize GLAD" << std::endl;
+            Log::error("Failed to initialize GLAD");
             return;
         }
 

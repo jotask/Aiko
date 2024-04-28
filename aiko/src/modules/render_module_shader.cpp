@@ -61,7 +61,7 @@ namespace aiko
                 }
                 catch (std::ifstream::failure& e)
                 {
-                    std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+                    Log::error("SHADER::FILE_NOT_SUCCESSFULLY_READ: ", e.what());
                 }
                 return "";
             };
@@ -84,7 +84,7 @@ namespace aiko
         if (!success)
         {
             glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+            Log::error("SHADER::VERTEX::COMPILATION_FAILED", infoLog);
             int error = -1;
         }
 
@@ -100,7 +100,7 @@ namespace aiko
         if (success == false)
         {
             glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+            Log::error("SHADER::FRAGMENT::COMPILATION_FAILED", infoLog);
             int error = -1;
         }
 
@@ -114,7 +114,7 @@ namespace aiko
         glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
         if (success == false) {
             glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+            Log::error("SHADER::PROGRAM::LINKING_FAILED" , infoLog);
             int error = -1;
         }
         glDeleteShader(vertexShader);

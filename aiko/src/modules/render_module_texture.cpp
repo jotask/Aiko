@@ -124,7 +124,7 @@ namespace aiko
         }
         else
         {
-            std::cout << "Failed to load texture" << std::endl;
+            Log::error("Failed to load texture");
         }
         stbi_image_free(data);
 

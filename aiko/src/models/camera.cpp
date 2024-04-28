@@ -3,10 +3,9 @@
 #include <stdexcept>
 
 #include "systems/camera_system.h"
-
 #include "shared/math_transform.h"
-
-#include <GLFW/glfw3.h>
+#include "core/libs.h"
+#include "core/log.h"
 
 namespace aiko
 {
@@ -48,7 +47,7 @@ namespace aiko
         }
         break;
         default:
-            std::cout << "CAMERA :: UPDATE :: UNKNOW CONTROLLER" << std::endl;
+            Log::error( "CAMERA :: UPDATE :: UNKNOW CONTROLLER");
             break;
         }
         
