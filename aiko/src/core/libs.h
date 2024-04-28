@@ -10,4 +10,5 @@
 #include <entt/entity/registry.hpp>
 
 #define GLT_IMPLEMENTATION
+#define GLT_MANUAL_VIEWPORT
 #include <gltext.h>

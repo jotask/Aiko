@@ -218,6 +218,10 @@ namespace aiko
 
     }
 
+    void RenderModule::dispose()
+    {
+    }
+
     ivec2 RenderModule::getDisplaySize()
     {
         return m_displayModule->getCurrentDisplay().getDisplaySize();

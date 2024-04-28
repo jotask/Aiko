@@ -43,6 +43,8 @@ namespace aiko
     
         virtual void beginFrame() override;
         virtual void endFrame() override;
+
+        virtual void dispose() override;
     
     public:
 
@@ -68,6 +70,9 @@ namespace aiko
         void endShaderMode(void);
         void beginBlendMode(BlendMode);
         void endBlendMode(void);
+
+        // Font
+        void drawText(const char*);
 
         // Texture
         texture::RenderTexture2D createRenderTexture();
