@@ -91,9 +91,6 @@ namespace aiko
         if (delta >= 0.15)
         {
 
-            // If last cout was more than 1 sec ago
-            std::cout << 1000.0 / double(nbFrames) << std::endl;
-
             double fps = double(nbFrames) / delta;
 
             std::stringstream ss;
