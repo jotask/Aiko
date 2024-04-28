@@ -23,12 +23,13 @@ namespace nes
     template<class T>
     inline T* Bus::getMicroprocesor()
     {
+        static_assert(std::is_base_of<Microprocessor, T>::value, "T must derive from Microprocessor");
         auto find = [](Microprocessor* micro)
         {
             return dynamic_cast<T*>(micro) != nullptr;
         };
         auto it = std::find_if(microprocessors.begin(), microprocessors.end(), find );
-        return (it != microprocessors.end()) ? dynamic_cast<T*>(it) : nullptr;
+        return (it != microprocessors.end()) ? dynamic_cast<T*>(*it) : nullptr;
     }
 
 }
