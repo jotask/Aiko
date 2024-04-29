@@ -145,6 +145,7 @@ namespace aiko
         {
             Log::error("glInit failed");
         }
+        gltViewport(800, 600);
     }
     
     void RenderModule::preUpdate()
@@ -245,6 +246,7 @@ namespace aiko
         auto screenHeight = msg.height;
 
         glViewport(0, 0, screenWidth, screenHeight);
+        gltViewport(screenWidth, screenHeight);
 
         // resize render texture
         {
