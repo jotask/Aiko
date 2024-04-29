@@ -72,7 +72,7 @@ namespace aiko
         void endBlendMode(void);
 
         // Font
-        void drawText(const char*);
+        void drawText(std::string, float, float, float = 1.0f, Color = WHITE);
 
         // Texture
         texture::RenderTexture2D createRenderTexture();

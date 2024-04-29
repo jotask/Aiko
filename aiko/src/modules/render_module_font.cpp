@@ -3,14 +3,12 @@
 #include <string>
 
 #include "core/libs.h"
+#include "models/time.h"
 
 namespace aiko
 {
 
-    void RenderModule::drawText(const char* texto)
-    {
 
-    }
 
 }
 

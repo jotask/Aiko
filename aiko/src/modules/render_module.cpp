@@ -3,6 +3,12 @@
 #include <string>
 #include <fstream>
 
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
 #include "models/camera.h"
@@ -215,6 +221,49 @@ namespace aiko
         // Unbind everything we were using.
         glBindTexture(GL_TEXTURE_2D, 0);
         m_passthrought->unuse();
+
+    }
+
+    void RenderModule::drawText(std::string texto, float x, float y , float scale, Color color)
+    {
+        gltBeginDraw();
+
+        GLTtext* text1 = gltCreateText();
+        if (gltSetText(text1, texto.c_str()) == GL_FALSE)
+        {
+            Log::error("glText can't set text");
+            return;
+        }
+
+        auto size = getDisplaySize();
+
+        gltColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+        {
+
+            auto allCharSupported = [](std::string str) -> bool
+            {
+                for (char c : str)
+                {
+                    if (gltIsCharacterDrawable(c) == GL_FALSE)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            };
+
+            if (allCharSupported(texto) == false)
+            {
+                Log::warning("char not supported by font");
+            }
+        }
+
+        gltDrawText2D(text1, x, y, scale );
+
+        gltEndDraw();
+
+        gltDeleteText(text1);
 
     }
 

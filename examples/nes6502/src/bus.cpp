@@ -1,6 +1,10 @@
 #include "bus.h"
 namespace nes
 {
+    Bus::Bus()
+    {
+    }
+
     void Bus::reset()
     {
         microprocessors.clear();

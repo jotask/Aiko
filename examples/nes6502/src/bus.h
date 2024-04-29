@@ -6,9 +6,12 @@
 
 namespace nes
 {
+    class nes6502;
     class Bus : public Microprocessor
     {
     public:
+        friend class nes6502;
+        Bus();
         virtual void reset() override;
         void addMicroprocesor(Microprocessor*);
 
@@ -17,6 +20,7 @@ namespace nes
 
     private:
         std::vector<Microprocessor*> microprocessors;
+        nes6502* m_nes;
 
     };
 

@@ -169,4 +169,9 @@ namespace aiko
         return m_cameraSystem->getMainCamera();
     }
 
+    void RenderSystem::renderText(std::string str, float x, float y)
+    {
+        m_renderModule->drawText(str, x, y);
+    }
+
 }

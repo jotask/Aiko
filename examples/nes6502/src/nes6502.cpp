@@ -35,6 +35,8 @@ namespace nes
 
         reset();
 
+        bus.m_nes = this;
+
         bus.addMicroprocesor(&cpu);
         bus.addMicroprocesor(&memory);
         bus.addMicroprocesor(&ppu);
@@ -50,8 +52,9 @@ namespace nes
 
     void nes6502::render()
     {
-
-    }
+        constexpr float space = 15.0f;
+        float y = 0.0f;
+        drawText("nes6502", 0.0f, space * y++);
 
     void nes6502::reset()
     {

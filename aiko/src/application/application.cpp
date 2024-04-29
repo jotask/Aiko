@@ -106,4 +106,10 @@ namespace aiko
         return m_aiko->createGameObject(name);
     }
 
+    void Application::drawText(std::string str, float x, float y)
+    {
+        RenderSystem* renderSystem = getRenderSystem();
+        renderSystem->renderText(str, x, y);
+    }
+
 }

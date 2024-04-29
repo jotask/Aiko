@@ -55,6 +55,9 @@ namespace aiko
 
         Camera* getMainCamera();
 
+        // Font
+        void renderText(std::string, float, float);
+
     protected:
     
         virtual void connect(ModuleConnector*, SystemConnector*) override;
