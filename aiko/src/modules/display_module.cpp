@@ -72,6 +72,10 @@ namespace aiko
         return m_curent.native;
     }
 
+    void DisplayModule::beginFrame()
+    {
+    }
+
     void DisplayModule::endFrame()
     {
         glfwSwapBuffers((GLFWwindow*)m_curent.native);
