@@ -15,7 +15,6 @@ namespace aiko
     void DisplayModule::init()
     {
 
-
         EventSystem::it().bind<WindowResizeEvent>(this, &DisplayModule::onWindowResize);
 
         // TODO Initial window size from config
@@ -76,6 +75,11 @@ namespace aiko
     void DisplayModule::endFrame()
     {
         glfwSwapBuffers((GLFWwindow*)m_curent.native);
+    }
+
+    void DisplayModule::dispose()
+    {
+        glfwDestroyWindow((GLFWwindow*)m_curent.native);
     }
 
     void DisplayModule::preUpdate()

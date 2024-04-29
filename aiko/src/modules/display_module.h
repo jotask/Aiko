@@ -31,6 +31,8 @@ namespace aiko
         virtual void preUpdate() override;
         virtual void endFrame() override;
 
+        virtual void dispose() override;
+
         Display m_curent;
 
         std::string m_displayName;
