@@ -184,7 +184,7 @@ namespace aiko
         glBindFramebuffer(GL_FRAMEBUFFER, m_renderTexture2D.framebuffer);
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
-        clearBackground(BLACK);
+        clearBackground({0.2f, 0.3f, 0.3f, 1.0f});
 
         // Set depth buffer to write mode
         glDepthMask(GL_TRUE);
@@ -260,7 +260,7 @@ namespace aiko
 
     void RenderModule::clearBackground(Color color)
     {
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(color.r, color.g, color.b, color.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
