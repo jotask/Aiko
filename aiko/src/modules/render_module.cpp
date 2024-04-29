@@ -33,7 +33,7 @@ namespace aiko
 
     RenderModule::~RenderModule()
     {
-        glfwTerminate();
+        
     }
 
     void RenderModule::connect(ModuleConnector* moduleConnector)
@@ -43,7 +43,10 @@ namespace aiko
 
     void RenderModule::preInit()
     {
-        glfwInit();
+        if (glfwInit() == false)
+        {
+            Log::error("Couldn't init GLFW");
+        }
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -138,7 +141,10 @@ namespace aiko
 
     void RenderModule::postInit()
     {
-
+        if (gltInit() == false)
+        {
+            Log::error("glInit failed");
+        }
     }
     
     void RenderModule::preUpdate()
@@ -213,6 +219,8 @@ namespace aiko
 
     void RenderModule::dispose()
     {
+        gltTerminate();
+        glfwTerminate();
     }
 
     ivec2 RenderModule::getDisplaySize()
