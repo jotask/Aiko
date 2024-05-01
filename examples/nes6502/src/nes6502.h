@@ -44,6 +44,8 @@ namespace nes
         std::atomic<double> runClock;
         std::thread clock;
 
+        std::size_t nOfcycles;
+
     };
 
 }

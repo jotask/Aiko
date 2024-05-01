@@ -19,6 +19,7 @@ namespace nes
 {
     nes6502::nes6502()
         : runClock(true)
+        , nOfcycles(0)
     {
 
     }
@@ -75,6 +76,7 @@ namespace nes
         while(runClock)
         {
             cpu.clock();
+            nOfcycles++;
             std::this_thread::sleep_until(target_time);
             target_time += wait_time;
             aiko::Log::info("[6502] clock tick");
