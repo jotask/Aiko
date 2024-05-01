@@ -18,7 +18,7 @@ namespace nes
         Byte data[MAX_MEM];
 
         // read 1 byte
-        Byte operator[] (u32 address) const
+        Byte operator[] (Byte address) const
         {
             assert(address < MAX_MEM);
             return data[address];
