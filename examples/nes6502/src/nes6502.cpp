@@ -85,7 +85,7 @@ namespace nes
         auto target_time = when_started + wait_time;
         while(runClock)
         {
-            cpu.clock();
+            bus.clock();
             nOfcycles++;
             std::this_thread::sleep_until(target_time);
             target_time += wait_time;
