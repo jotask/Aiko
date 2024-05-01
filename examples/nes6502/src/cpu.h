@@ -101,6 +101,8 @@ namespace nes
         Byte V : 1;
         Byte N : 1;
 
+        Byte waitForCycles;
+
     };
 
 }
