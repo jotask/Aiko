@@ -14,6 +14,76 @@ namespace nes
         virtual void reset() override;
         void clock();
     private:
+
+        // Addressing modes
+        void inmediate();
+        void zeroPage();
+        void zeroPageX();
+        void zeroPageY();
+        void absolute();
+        void absoluteX();
+        void absoluteY();
+        void indirectX();
+        void indirectY();
+
+        // Instructions
+        void adc(); // Add with carry
+        void and(); // Logical AND
+        void asl(); // Arithmetic Shift Left
+        void bbc(); // branch if carry clear
+        void bcs(); // Branch if carry set
+        void beq(); // Branch if equal
+        void bit(); // bit test
+        void bmi(); // Branch if Minus
+        void bne(); // Branch if not equal
+        void bpl(); // Branch if positive
+        void brk(); // Force interrup
+        void bvc(); // Branch if overflow clear
+        void bvs(); // Branch if overflow set
+        void clc(); // Clear carry flag
+        void cld(); // Clear decimal mode
+        void cli(); // clear interrupt disable
+        void clv(); // Clear overflow
+        void cmp(); // Compare
+        void cpx(); // Compare X register
+        void cpy(); // Compare Y register
+        void dec(); // Decrement memory
+        void dex(); // Decrement X register
+        void dey(); // Decrement Y register
+        void eor(); // Exclusive OR
+        void inc(); // Increment memory
+        void inx(); // Increment X register
+        void iny(); // Increment Y register
+        void jmp(); // Jumo
+        void jsr(); // Jumo to subroutine
+        void lda(); // Load accumulator
+        void ldx(); // Load X register
+        void ldy(); // Load Y register
+        void lsr(); // Logical shift right
+        void nop(); // No operation
+        void ora(); // Logical inclusive OR
+        void pha(); // Push accumulator
+        void php(); // Push processor status
+        void pla(); // Pull accumulator
+        void plp(); // Pull processor status
+        void rol(); // Rotate left
+        void ror(); // Rotate right
+        void rti(); // Return from interrupt
+        void rts(); // Return from subroutine
+        void sbc(); // Substract with carry
+        void sec(); // Set carry flag
+        void sed(); // Set decimal flag
+        void sei(); // Set interrupt disable
+        void sta(); // Store accumulator
+        void stx(); // Store X register
+        void sty(); // Store Y register
+        void tax(); // Transfer accumulator to X
+        void tay(); // Transfer accumulator to Y
+        void tsx(); // Transfer stack pointer to X
+        void tsa(); // Transfer X to accumulator
+        void txs(); // Transfer X to stack pointer
+        void tya(); // Tranfer Y to accumulator
+
         Byte fetchByte();
         void execute(Byte opCode);
 
