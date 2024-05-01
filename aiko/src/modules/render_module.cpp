@@ -245,6 +245,10 @@ namespace aiko
             {
                 for (char c : str)
                 {
+                    if (isspace(c))
+                    {
+                        return true;
+                    }
                     if (gltIsCharacterDrawable(c) == GL_FALSE)
                     {
                         return false;
