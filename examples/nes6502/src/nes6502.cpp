@@ -65,8 +65,11 @@ namespace nes
 
     void nes6502::reset()
     {
+        bus.reset();
+        cartridge.reset();
         cpu.reset();
         memory.reset();
+        ppu.reset();
     }
 
     void nes6502::onCycle()

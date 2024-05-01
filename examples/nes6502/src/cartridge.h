@@ -14,7 +14,6 @@ namespace nes
     {
     public:
         void load(const char*);
-    protected:
         virtual void reset() override;
     private:
     };
