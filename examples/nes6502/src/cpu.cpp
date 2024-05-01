@@ -27,7 +27,7 @@ namespace nes
         return data;
     }
 
-    void Cpu::execute(Instruction instruction)
+    void Cpu::execute(Byte opCode)
     {
 
     }

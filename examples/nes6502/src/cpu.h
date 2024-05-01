@@ -15,7 +15,7 @@ namespace nes
         void clock();
     private:
         Byte fetchByte();
-        void execute(Instruction instruction);
+        void execute(Byte opCode);
 
         Word program_counter;
         Word stack_pointer;
