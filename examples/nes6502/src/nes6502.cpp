@@ -44,6 +44,8 @@ namespace nes
         bus.addMicroprocesor(&memory);
         bus.addMicroprocesor(&ppu);
 
+        cartridge.load("C:/Users/j.iznardo/Documents/Aiko/examples/nes6502/tests/6502_functional_test.bin");
+
         runClock = true;
         clock = std::thread(&nes6502::onCycle, this);
 
