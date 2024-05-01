@@ -84,7 +84,6 @@ namespace nes
         void txs(); // Transfer X to stack pointer
         void tya(); // Tranfer Y to accumulator
 
-        Byte fetchByte();
         void execute(Byte opCode);
 
         Word program_counter;

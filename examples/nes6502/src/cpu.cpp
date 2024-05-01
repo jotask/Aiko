@@ -19,12 +19,7 @@ namespace nes
 
     }
 
-    Byte Cpu::fetchByte()
-    {
-        Memory* mem = bus->getMicroprocesor<Memory>();
-        Byte data;// = mem[program_counter];
         program_counter++;
-        return data;
     }
 
 }
