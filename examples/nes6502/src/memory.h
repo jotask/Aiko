@@ -17,8 +17,11 @@ namespace nes
 
         virtual void reset() override;
 
-        Byte readByte(Byte);
-        void writeByte(Byte, Byte);
+        Byte read(Byte);
+        void write(Byte, Byte);
+
+        Byte read(Word);
+        void write(Word, Word);
 
     private:
         Byte data[MAX_MEM];
