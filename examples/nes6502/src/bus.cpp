@@ -15,4 +15,12 @@ namespace nes
         m->bus = this;
         microprocessors.push_back(m);
     }
+
+    void Bus::clock()
+    {
+        for(auto& m : microprocessors )
+        {
+            m->clock();
+        }
+    }
 }

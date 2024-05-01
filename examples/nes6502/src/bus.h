@@ -18,6 +18,8 @@ namespace nes
         template<class T>
         T* getMicroprocesor();
 
+        virtual void clock() override;
+
     private:
         std::vector<Microprocessor*> microprocessors;
         nes6502* m_nes;
