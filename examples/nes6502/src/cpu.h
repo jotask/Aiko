@@ -16,6 +16,10 @@ namespace nes
     private:
 
         // Addressing modes
+        void relative();
+        void implicit();
+        void implied();
+        void accumulator();
         void inmediate();
         void zeroPage();
         void zeroPageX();
@@ -23,6 +27,7 @@ namespace nes
         void absolute();
         void absoluteX();
         void absoluteY();
+        void indirect();
         void indirectX();
         void indirectY();
 
@@ -30,7 +35,7 @@ namespace nes
         void adc(); // Add with carry
         void and(); // Logical AND
         void asl(); // Arithmetic Shift Left
-        void bbc(); // branch if carry clear
+        void bcc(); // branch if carry clear
         void bcs(); // Branch if carry set
         void beq(); // Branch if equal
         void bit(); // bit test
@@ -80,7 +85,7 @@ namespace nes
         void tax(); // Transfer accumulator to X
         void tay(); // Transfer accumulator to Y
         void tsx(); // Transfer stack pointer to X
-        void tsa(); // Transfer X to accumulator
+        void txa(); // Transfer X to accumulator
         void txs(); // Transfer X to stack pointer
         void tya(); // Tranfer Y to accumulator
 

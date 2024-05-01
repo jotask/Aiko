@@ -18,7 +18,7 @@ namespace nes
     {
     }
 
-    void Cpu::bbc()
+    void Cpu::bcc()
     {
     }
 
@@ -218,7 +218,7 @@ namespace nes
     {
     }
 
-    void Cpu::tsa()
+    void Cpu::txa()
     {
     }
 

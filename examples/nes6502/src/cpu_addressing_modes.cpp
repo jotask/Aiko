@@ -5,6 +5,21 @@
 
 namespace nes
 {
+    void Cpu::relative()
+    {
+    }
+
+    void Cpu::implicit()
+    {
+    }
+
+    void Cpu::implied()
+    {
+    }
+
+    void Cpu::accumulator()
+    {
+    }
 
     void Cpu::inmediate()
     {
@@ -31,6 +46,10 @@ namespace nes
     }
 
     void Cpu::absoluteY()
+    {
+    }
+
+    void Cpu::indirect()
     {
     }
 
