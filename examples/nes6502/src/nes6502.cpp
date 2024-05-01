@@ -79,7 +79,7 @@ namespace nes
         using namespace std::literals;
         using clock_type = std::chrono::high_resolution_clock;
 
-        constexpr auto wait_time = 1000ms;
+        constexpr auto wait_time = 1ms;// 1000ms;
 
         auto when_started = clock_type::now();
         auto target_time = when_started + wait_time;
