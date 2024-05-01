@@ -12,6 +12,7 @@ namespace nes
 
     class Memory : public Microprocessor
     {
+        friend class Cartridge;
     public:
         static constexpr u32 MAX_MEM = 1024 * 64; // 64KB
 
