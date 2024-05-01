@@ -17,4 +17,14 @@ namespace nes
         return ss.str();
     }
 
+    Byte getHigh(Word value)
+    {
+        return (value >> 8) & 0xFF;
+    }
+
+    Byte getLow(Word value)
+    {
+        return value & 0xFF;
+    }
+
 }

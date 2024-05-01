@@ -1,4 +1,7 @@
 #include "memory.h"
+
+#include "nes_utils.h"
+
 namespace nes
 {
 
@@ -9,7 +12,6 @@ namespace nes
             data[i] = 0;
         }
     }
-
 
     Byte Memory::read(Byte address)
     {
@@ -32,11 +34,9 @@ namespace nes
 
     void Memory::write(Word address, Word value)
     {
-        Byte high = (value >> 8) & 0xFF;
-        Byte low = value & 0xFF;
         assert(address < MAX_MEM);
-        data[address + 0] = high;
-        data[address + 1] = low;
+        data[address + 0] = getHigh(value);
+        data[address + 1] = getLow(value);
     }
 
 }
