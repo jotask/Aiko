@@ -12,12 +12,6 @@ namespace nes
     void Cpu::execute(Byte opCode)
     {
 
-        if (opCode == 0xFF)
-        {
-            // temp
-            return;
-        }
-
         Byte& cycles = this->waitForCycles;
         switch (opCode)
         {
