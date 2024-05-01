@@ -9,6 +9,7 @@
 #include "types/asset_type.h"
 
 #include "cpu.h"
+#include "cartridge.h"
 #include "bus.h"
 #include "ppu.h"
 #include "memory.h"
@@ -34,6 +35,7 @@ namespace nes
 
         void onCycle();
 
+        nes::Cartridge cartridge;
         nes::Cpu cpu;
         nes::Memory memory;
         nes::Bus bus;

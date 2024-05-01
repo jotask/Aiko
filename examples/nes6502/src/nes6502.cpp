@@ -37,6 +37,7 @@ namespace nes
 
         bus.m_nes = this;
 
+        bus.addMicroprocesor(&cartridge);
         bus.addMicroprocesor(&cpu);
         bus.addMicroprocesor(&memory);
         bus.addMicroprocesor(&ppu);
