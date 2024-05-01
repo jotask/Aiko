@@ -12,7 +12,7 @@ namespace nes
     public:
 
         virtual void reset() override;
-        void clock();
+        virtual void clock() override;
     private:
 
         // Addressing modes
