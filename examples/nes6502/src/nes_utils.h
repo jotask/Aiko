@@ -8,7 +8,7 @@
 
 namespace nes
 {
-    std::string toString(Byte value)
+    static std::string toString(Byte value)
     {
         static std::string buffer;
         static std::stringstream ss;
@@ -17,12 +17,12 @@ namespace nes
         return ss.str();
     }
 
-    Byte getHigh(Word value)
+    inline Byte getHigh(Word value)
     {
         return (value >> 8) & 0xFF;
     }
 
-    Byte getLow(Word value)
+    inline Byte getLow(Word value)
     {
         return value & 0xFF;
     }
