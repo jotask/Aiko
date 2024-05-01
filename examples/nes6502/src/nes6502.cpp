@@ -1,6 +1,7 @@
 #include "nes6502.h"
 
 #include <chrono>
+#include <sstream>
 #include <cassert>
 
 #include "shared/math.h"
@@ -54,9 +55,13 @@ namespace nes
 
     void nes6502::render()
     {
+        static std::stringstream fmt;
         constexpr float space = 15.0f;
         float y = 0.0f;
         drawText("nes6502", 0.0f, space * y++);
+        fmt.str("");    fmt << "Cycles: " << nOfcycles;
+        drawText( fmt.str(), 0.0f, space * y++);
+    }
 
     void nes6502::reset()
     {
