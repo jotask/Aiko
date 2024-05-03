@@ -6,14 +6,14 @@ Set(FETCHCONTENT_QUIET FALSE)
 #----------------------------------------------------------------------
 
 FetchContent_Declare(
-    catch
-    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG        v1.10.0
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG        v1.14.0
     GIT_SHALLOW    TRUE
     GIT_PROGRESS   TRUE
 )
 
-message("Fetching catch")
-FetchContent_MakeAvailable(catch)
+message("Fetching googletest")
+FetchContent_MakeAvailable(googletest)
 
 #----------------------------------------------------------------------
