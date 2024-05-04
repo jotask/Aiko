@@ -18,10 +18,12 @@ namespace nes
         virtual void clock() override;
 
         AddressModes currentAddressMode() const;
+        Instruction currentInstruction() const;
 
     private:
 
         AddressModes m_currentAddressMode;
+        Instruction m_currentInstruction;
 
         // Addressing modes
         void relative();

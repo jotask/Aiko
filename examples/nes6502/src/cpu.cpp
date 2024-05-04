@@ -37,6 +37,11 @@ namespace nes
         return m_currentAddressMode;
     }
 
+    Instruction Cpu::currentInstruction() const
+    {
+        return m_currentInstruction;
+    }
+
     Memory* Cpu::getMemory()
     {
         Memory* mem = bus->getMicroprocesor<Memory>();
