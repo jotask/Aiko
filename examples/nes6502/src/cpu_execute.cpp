@@ -55,7 +55,7 @@ namespace nes
             // bpl
         case 0x10:      cycles = 2;     relative();         bpl();      break;
             // brk
-        case 0x00:      cycles = 7;     implicit();         brk();      break;
+        case 0x00:      cycles = 7;     implied();          brk();      break;
             // bvc
         case 0x50:      cycles = 2;     relative();         bvc();      break;
             // bvs
