@@ -33,7 +33,7 @@ namespace aiko
     Aiko::Aiko(Application* app)
         : Aiko(app, default_aiko_cfg)
     {
-
+        Log::init();
     }
 
     Aiko::Aiko(Application * app,  AikoConfig cfg)

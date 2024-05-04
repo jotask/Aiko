@@ -11,6 +11,8 @@ namespace aiko
     class Log
     {
     private:
+        friend class Aiko;
+        static void init();
 
         #define Expand_ARGS(TYPE)                                       \
             constexpr auto concatenate = [](auto&&... xs) constexpr     \

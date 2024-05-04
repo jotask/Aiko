@@ -10,6 +10,11 @@
 
 namespace aiko
 {
+    void Log::init()
+    {
+        // Create a color console logger
+        auto console = spdlog::stdout_color_mt("console");
+    }
 
     void Log::log(Type type, const char* msg)
     {
