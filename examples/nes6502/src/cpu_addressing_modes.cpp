@@ -53,7 +53,8 @@ namespace nes
         // page number and the low-byte a location inside this page.
         m_currentAddressMode = AddressModes::ZeroPage;
         Memory* mem = getMemory(bus);
-        memoryFetched = mem->read(program_counter++);
+        Byte memoryAddress = mem->read(program_counter++);
+        memoryFetched = mem->read(memoryAddress);
     }
 
     void Cpu::zeroPageX()
