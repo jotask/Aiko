@@ -108,13 +108,13 @@ namespace nes
         Byte A, X, Y;
 
         // StatusFlags
-        Byte C : 1;
-        Byte Z : 1;
-        Byte I : 1;
-        Byte D : 1;
-        Byte B : 1;
-        Byte V : 1;
-        Byte N : 1;
+        Byte C : 1; // Carry register
+        Byte Z : 1; // Zero register
+        Byte I : 1; // Interrup register
+        Byte D : 1; // Decimal register
+        Byte B : 1; // Break register
+        Byte V : 1; // Overflow register
+        Byte N : 1; // Negative register
 
         Byte waitForCycles;
 
