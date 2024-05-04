@@ -17,6 +17,7 @@ namespace test
         RUN_TEST(test_lda_inmediate);
         RUN_TEST(test_lda_absolute);
         RUN_TEST(test_lda_zeroPage);
+        RUN_TEST(test_lda_zeroPageX);
         return result;
     }
 
@@ -78,7 +79,30 @@ namespace test
 
     TestResult CPUTest::test_lda_zeroPageX()
     {
-        return TestResult();
+        TestResult result;
+        nes::nes6502 nes;
+        nes::Bus* bus = nes.getBus();
+        nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
+        nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
+        assert(cpu != nullptr, "Couldnt' get cpu from bus");
+        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
+        nes::Byte memoryAddress = 0x13;
+        nes::Byte memoryValue = 0xaa;
+        std::vector<nes::Byte> dump;
+        insertBytes(dump, { 0xb5 , memoryAddress }); // lda zeroPageX
+        cart->load(dump);
+
+        cpu->X = 1;
+        mem->write(nes::Word(memoryAddress + cpu->X), memoryValue);
+
+        for (std::size_t i = 0; i < dump.size(); i += 2)
+        {
+            bus->clock();
+        }
+
+        TEST_TRUE(cpu->A == memoryValue, "lda zeroPage not working");
+
+        return result;
     }
 
     TestResult CPUTest::test_lda_absolute()

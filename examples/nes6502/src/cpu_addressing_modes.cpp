@@ -59,12 +59,23 @@ namespace nes
 
     void Cpu::zeroPageX()
     {
+        // Indexed addressing adds the contents of either the X-register or the Y-register to the
+        // provided address to give the effective address, which provides the operand.
         m_currentAddressMode = AddressModes::ZeroPageX;
+        Memory* mem = getMemory(bus);
+        Byte memoryAddress = mem->read(program_counter++);
+        Word tmp = memoryAddress + X;
+        memoryFetched = mem->read(tmp);
     }
 
     void Cpu::zeroPageY()
     {
+        // Indexed addressing adds the contents of either the X-register or the Y-register to the
+        // provided address to give the effective address, which provides the operand.
         m_currentAddressMode = AddressModes::ZeroPageY;
+        Memory* mem = getMemory(bus);
+        Byte memoryAddress = mem->read(program_counter++);
+        memoryFetched = mem->read(memoryAddress) + Y;
     }
 
     void Cpu::absolute()
