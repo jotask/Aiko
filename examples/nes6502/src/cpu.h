@@ -4,11 +4,14 @@
 #include "microprocessor.h"
 #include "instructions.h"
 
+namespace test { class CPUTest; }
+
 namespace nes
 {
 
     class Cpu : public Microprocessor
     {
+        friend class test::CPUTest;
     public:
 
         virtual void reset() override;

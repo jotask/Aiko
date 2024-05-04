@@ -7,12 +7,15 @@
 #include "nes_types.h"
 #include "microprocessor.h"
 
+namespace test { class MemoryTest; }
+
 namespace nes
 {
 
     class Memory : public Microprocessor
     {
         friend class Cartridge;
+        friend class test::MemoryTest;
     public:
         static constexpr u32 MAX_MEM = 1024 * 64; // 64KB
 
