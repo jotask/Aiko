@@ -17,6 +17,10 @@
 #include "core/log.h"
 
 #include "tests/test_manager.h"
+#include "bus.h"
+#include "memory.h"
+#include "nes_utils.h"
+#include "instructions.h"
 
 #define NES_ENABLE_TESTS
 
@@ -60,8 +64,18 @@ namespace nes
         constexpr float space = 15.0f;
         float y = 0.0f;
         drawText("nes6502", 0.0f, space * y++);
+
         fmt.str("");    fmt << "Cycles: " << m_nes.getNofCycles();
         drawText(fmt.str(), 0.0f, space * y++);
+
+        nes::Cpu* cpu = m_nes.getBus()->getMicroprocesor<Cpu>();
+
+        fmt.str("");    fmt << "AddressingMode: " << nes::to_string(cpu->currentAddressMode());
+        drawText(fmt.str(), 0.0f, space * y++);
+
+        fmt.str("");    fmt << "Instruction: " << nes::to_string(cpu->currentInstruction());
+        drawText(fmt.str(), 0.0f, space * y++);
+
     }
 
 }
