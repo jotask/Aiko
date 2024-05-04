@@ -66,10 +66,13 @@ namespace test
         nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
         nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
         nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
-        // mem->write(0x13FF, 0xAA );
+        nes::Word memoryAddress = 0x013ff;
+        nes::Byte memoryValue = 0xaa;
         std::vector<nes::Byte> dump;
-        insertBytes(dump, { 0xad , 0x13, 0xFF }); // lda absolute
+        insertBytes(dump, { 0xad , 0x13, 0xff }); // lda absolute
         cart->load(dump);
+
+        mem->write(memoryAddress, memoryValue);
 
         for (std::size_t i = 0; i < dump.size(); i += 3)
         {
@@ -78,7 +81,7 @@ namespace test
 
         assert(cpu != nullptr, "Couldnt' get cpu from bus");
 
-        TEST_TRUE(cpu->A == 0x13, "lda absolute not working");
+        TEST_TRUE(cpu->A == memoryValue, "lda absolute not working");
 
         return result;
     }
