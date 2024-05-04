@@ -6,11 +6,15 @@
 namespace nes
 {
 
+#define SET_N(REGISTER) (REGISTER & 0x80) ? N = 1 : N = 0;
+#define SET_Z(REGISTER) (REGISTER == 0)   ? Z = 1 : Z = 0;
+
+
     void Cpu::adc()
     {
     }
 
-    void Cpu:: and ()
+    void Cpu:: and()
     {
     }
 
@@ -125,16 +129,22 @@ namespace nes
     void Cpu::lda()
     {
         A = memoryFetched;
+        SET_N(A);
+        SET_Z(A);
     }
 
     void Cpu::ldx()
     {
         X = memoryFetched;
+        SET_N(X);
+        SET_Z(X);
     }
 
     void Cpu::ldy()
     {
         Y = memoryFetched;
+        SET_N(X);
+        SET_Z(X);
     }
 
     void Cpu::lsr()
