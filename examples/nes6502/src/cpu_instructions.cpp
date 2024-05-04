@@ -257,16 +257,22 @@ namespace nes
     void Cpu::sta()
     {
         m_currentInstruction = Instruction::sta;
+        Memory* mem = getMemory();
+        mem->write(memoryFetched, A);
     }
 
     void Cpu::stx()
     {
         m_currentInstruction = Instruction::stx;
+        Memory* mem = getMemory();
+        mem->write(memoryFetched, X);
     }
 
     void Cpu::sty()
     {
         m_currentInstruction = Instruction::sty;
+        Memory* mem = getMemory();
+        mem->write(memoryFetched, Y);
     }
 
     void Cpu::tax()
