@@ -19,12 +19,20 @@ namespace nes
 
     inline Byte getHigh(Word value)
     {
+        // Little endian
         return (value >> 8) & 0xFF;
     }
 
     inline Byte getLow(Word value)
     {
+        // Little endian
         return value & 0xFF;
+    }
+
+    inline Word toWord(Byte high, Byte low)
+    {
+        // Little endian
+        return (static_cast<Word>(low) | (static_cast<Word>(high) << 8));
     }
 
 }
