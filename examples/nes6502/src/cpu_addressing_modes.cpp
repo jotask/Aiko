@@ -48,7 +48,12 @@ namespace nes
 
     void Cpu::zeroPage()
     {
+        // The 16-bit address space available to the 6502 is thought to consist of 256 "pages" of
+        // 256 memory locations each ($00…$FF). In this model the high-byte of an address gives the
+        // page number and the low-byte a location inside this page.
         m_currentAddressMode = AddressModes::ZeroPage;
+        Memory* mem = getMemory(bus);
+        memoryFetched = mem->read(program_counter++);
     }
 
     void Cpu::zeroPageX()
