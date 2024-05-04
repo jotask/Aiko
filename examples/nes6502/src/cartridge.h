@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <vector>
 #include <stdlib.h>
 
 #include "nes_types.h"

@@ -23,6 +23,8 @@ namespace nes
 
         Memory* memory = bus->getMicroprocesor<Memory>();
 
+        assert(memory != nullptr, "Couldnt' get Memory connected to the bus");
+
         // Get the size of the file
         stream.seekg(0, std::ios::end);
         std::streampos fileSize = stream.tellg();
