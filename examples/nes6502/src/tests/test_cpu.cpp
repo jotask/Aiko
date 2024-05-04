@@ -135,22 +135,126 @@ namespace test
 
     TestResult CPUTest::test_lda_absoluteX()
     {
-        return TestResult();
+        TestResult result;
+        nes::nes6502 nes;
+        nes::Bus* bus = nes.getBus();
+        nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
+        nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
+        assert(cpu != nullptr, "Couldnt' get cpu from bus");
+        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
+        nes::Word memoryAddress = 0x13ff;
+        nes::Byte memoryValue = 0xaa;
+        std::vector<nes::Byte> dump;
+        insertBytes(dump, { 0xbd , nes::getHigh(memoryAddress), nes::getLow(memoryAddress)}); // lda zeroPageX
+        cart->load(dump);
+
+        cpu->X = 1;
+        mem->write(nes::Word(memoryAddress + cpu->X), memoryValue);
+
+        for (std::size_t i = 0; i < dump.size(); i += 2)
+        {
+            bus->clock();
+        }
+
+        TEST_TRUE(cpu->A == memoryValue, "lda absolute X not working");
+
+        return result;
     }
 
     TestResult CPUTest::test_lda_absoluteY()
     {
-        return TestResult();
+        TestResult result;
+        nes::nes6502 nes;
+        nes::Bus* bus = nes.getBus();
+        nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
+        nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
+        assert(cpu != nullptr, "Couldnt' get cpu from bus");
+        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
+        nes::Word memoryAddress = 0x13ff;
+        nes::Byte memoryValue = 0xaa;
+        std::vector<nes::Byte> dump;
+        insertBytes(dump, { 0xb9 , nes::getHigh(memoryAddress), nes::getLow(memoryAddress) }); // lda zeroPageX
+        cart->load(dump);
+
+        cpu->Y = 1;
+        mem->write(nes::Word(memoryAddress + cpu->Y), memoryValue);
+
+        for (std::size_t i = 0; i < dump.size(); i += 2)
+        {
+            bus->clock();
+        }
+
+        TEST_TRUE(cpu->A == memoryValue, "lda absolute Y not working");
+
+        return result;
     }
 
     TestResult CPUTest::test_lda_indirectX()
     {
-        return TestResult();
+        TestResult result;
+        nes::nes6502 nes;
+        nes::Bus* bus = nes.getBus();
+        nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
+        nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
+        assert(cpu != nullptr, "Couldnt' get cpu from bus");
+        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
+        nes::Byte zeropageAddress = 0x13;
+        nes::Byte memoryValue = 0xaa;
+        nes::Byte high = nes::getHigh(memoryValue);
+        nes::Byte low = nes::getLow(memoryValue);
+        std::vector<nes::Byte> dump;
+        insertBytes(dump, { 0xa1 , zeropageAddress }); // lda zeroPageX
+        cart->load(dump);
+        cpu->X = 1;
+        nes::Word effectiveAddress = nes::Word(zeropageAddress + cpu->X);
+        mem->write(effectiveAddress, high);
+        effectiveAddress++; // TODO ensure correct wrap-around for zero page addressing (?)
+        mem->write(effectiveAddress, low);
+        nes::Word targetAddress = nes::toWord(high, low);
+        mem->write(targetAddress, memoryValue);
+
+        for (std::size_t i = 0; i < dump.size(); i += 2)
+        {
+            bus->clock();
+        }
+
+        TEST_TRUE(cpu->A == memoryValue, "lda indirect X not working");
+
+        return result;
     }
 
     TestResult CPUTest::test_lda_indirectY()
     {
-        return TestResult();
+        TestResult result;
+        nes::nes6502 nes;
+        nes::Bus* bus = nes.getBus();
+        nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
+        nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
+        assert(cpu != nullptr, "Couldnt' get cpu from bus");
+        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
+        nes::Byte zeropageAddress = 0x13;
+        nes::Byte memoryValue = 0xaa;
+        nes::Byte high = nes::getHigh(memoryValue);
+        nes::Byte low = nes::getLow(memoryValue);
+        std::vector<nes::Byte> dump;
+        insertBytes(dump, { 0xb1 , zeropageAddress }); // lda zeroPageX
+        cart->load(dump);
+        cpu->Y = 1;
+        nes::Word effectiveAddress = nes::Word(zeropageAddress + cpu->Y);
+        mem->write(effectiveAddress, high);
+        effectiveAddress++; // TODO ensure correct wrap-around for zero page addressing (?)
+        mem->write(effectiveAddress, low);
+        nes::Word targetAddress = nes::toWord(high, low);
+        mem->write(targetAddress, memoryValue);
+
+        for (std::size_t i = 0; i < dump.size(); i += 2)
+        {
+            bus->clock();
+        }
+
+        TEST_TRUE(cpu->A == memoryValue, "lda indirect X not working");
+
+        return result;
     }
 
 }
