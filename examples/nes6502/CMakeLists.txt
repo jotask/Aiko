@@ -4,8 +4,6 @@ project(Nes6502 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include(Dependencies.cmake)
-
 # It is always easier to navigate in an IDE when projects are organized in folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
