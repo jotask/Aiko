@@ -14,6 +14,7 @@ namespace nes
     {
     public:
         void load(const char*);
+        void load(std::vector<Byte>&);
         virtual void reset() override;
     private:
     };
