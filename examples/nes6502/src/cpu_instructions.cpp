@@ -124,6 +124,7 @@ namespace nes
 
     void Cpu::lda()
     {
+        A = memoryFetched;
     }
 
     void Cpu::ldx()
