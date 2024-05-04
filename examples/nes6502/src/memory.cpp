@@ -28,13 +28,17 @@ namespace nes
     Byte Memory::read(Word address)
     {
         assert(address < MAX_MEM);
-        Byte index = address & 0xFFFF;
-        return read(index);
+        return data[address];
+    }
+
+    void Memory::write(Word address, Byte value)
+    {
+        assert(address < MAX_MEM);
+        data[address] = value;
     }
 
     void Memory::write(Word address, Word value)
     {
-        assert(address < MAX_MEM);
         data[address + 0] = getHigh(value);
         data[address + 1] = getLow(value);
     }

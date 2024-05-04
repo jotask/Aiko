@@ -22,6 +22,7 @@ namespace nes
         void write(Byte, Byte);
 
         Byte read(Word);
+        void write(Word, Byte);
         void write(Word, Word);
 
     private:
