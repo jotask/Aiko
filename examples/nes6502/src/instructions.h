@@ -25,6 +25,66 @@ namespace nes
         Inmediate
     };
 
+    enum class Instruction
+    {
+        adc,
+        and,
+        asl,
+        bcc,
+        bcs,
+        beq,
+        bit,
+        bmi,
+        bne,
+        bpl,
+        brk,
+        bvc,
+        bvs,
+        clc,
+        cld,
+        cli,
+        clv,
+        cmp,
+        cpx,
+        cpy,
+        dec,
+        dex,
+        dey,
+        eor,
+        inc,
+        inx,
+        iny,
+        jmp,
+        jsr,
+        lda,
+        ldx,
+        ldy,
+        lsr,
+        nop,
+        ora,
+        pha,
+        php,
+        pla,
+        plp,
+        rol,
+        ror,
+        rti,
+        rts,
+        sbc,
+        sec,
+        sed,
+        sei,
+        sta,
+        stx,
+        sty,
+        tax,
+        tay,
+        tsx,
+        txa,
+        txs,
+        tya,
+    };
+
     static const char* to_string(AddressModes mode)
     {
         switch (mode)
@@ -44,5 +104,13 @@ namespace nes
         default:                        std::exception("Addressing Mode Unknow");
         }
     }
+
+    struct OpCode
+    {
+        Byte opCode;
+        Byte cycles;
+        AddressModes mode;
+        Instruction instruction;
+    };
 
 }
