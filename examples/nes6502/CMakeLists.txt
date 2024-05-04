@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(Nes6502 LANGUAGES CXX)
+project(NesEmulator LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -8,12 +8,13 @@ set(CMAKE_CXX_STANDARD 17)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Files
-file(GLOB_RECURSE EXAMPLE_NES6502_SRC "src/*.h" "src/*.cpp" "src/*.hpp")
+file(GLOB_RECURSE EXAMPLE_NESEMULATOR_SRC "src/*.h" "src/*.cpp" "src/*.hpp")
 
 # Organize source files into folders
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${EXAMPLE_NES6502_SRC})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${EXAMPLE_NESEMULATOR_SRC})
 
 # Main executable
-add_executable(Nes6502 ${EXAMPLE_NES6502_SRC})
+add_executable(NesEmulator ${EXAMPLE_NESEMULATOR_SRC})
 
-target_link_libraries(Nes6502 PRIVATE Aiko catch)
+target_link_libraries(NesEmulator PRIVATE Aiko)
+target_include_directories(NesEmulator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

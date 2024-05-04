@@ -19,19 +19,22 @@ namespace nes
 
     class RenderSystem;
 
-    class nes6502 : public aiko::Application
+    class nes6502
     {
     public:
         nes6502();
         ~nes6502();
-    protected:
-        virtual void init() override;
-        virtual void update() override;
-        virtual void render() override;
-
+        void start();
+        void stop();
+        void init();
         void reset();
+        void insertCartridge(const char*);
 
-    private:
+        std::size_t getNofCycles() const;
+
+        nes::Bus* getBus();
+
+    // private:
 
         void onCycle();
 

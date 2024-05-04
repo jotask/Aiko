@@ -1,10 +1,10 @@
 #include <stdlib.h>
 
-#include "nes6502.h"
+#include "nes_emulator.h"
 
 int main()
 {
-	nes::nes6502 nes;
+	nes::NesEmulator nes;
 	nes.run();
 	return EXIT_SUCCESS;
 }
