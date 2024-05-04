@@ -8,7 +8,7 @@ namespace test { class CPUTest; }
 
 namespace nes
 {
-
+    class Memory;
     class Cpu : public Microprocessor
     {
         friend class test::CPUTest;
@@ -117,6 +117,9 @@ namespace nes
         Byte N : 1; // Negative register
 
         Byte waitForCycles;
+
+        // helpers
+        Memory* getMemory();
 
     };
 

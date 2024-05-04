@@ -7,13 +7,6 @@
 namespace nes
 {
 
-    inline Memory* getMemory(Bus* bus)
-    {
-        Memory* mem = bus->getMicroprocesor<Memory>();
-        assert( mem != nullptr , "Memory not found in buffer");
-        return mem;
-    }
-
     void Cpu::relative()
     {
         m_currentAddressMode = AddressModes::Relative;
@@ -42,7 +35,7 @@ namespace nes
         // A literal operand is given immediately after the instruction.The operand is always
         // an 8 - bit value and the total instruction length is always 2 bytes.
         m_currentAddressMode = AddressModes::Inmediate;
-        Memory* mem = getMemory(bus);
+        Memory* mem = getMemory();
         memoryFetched = mem->read(program_counter++);
     }
 
@@ -52,7 +45,7 @@ namespace nes
         // 256 memory locations each ($00…$FF). In this model the high-byte of an address gives the
         // page number and the low-byte a location inside this page.
         m_currentAddressMode = AddressModes::ZeroPage;
-        Memory* mem = getMemory(bus);
+        Memory* mem = getMemory();
         Byte memoryAddress = mem->read(program_counter++);
         memoryFetched = mem->read(memoryAddress);
     }
@@ -62,7 +55,7 @@ namespace nes
         // Indexed addressing adds the contents of either the X-register or the Y-register to the
         // provided address to give the effective address, which provides the operand.
         m_currentAddressMode = AddressModes::ZeroPageX;
-        Memory* mem = getMemory(bus);
+        Memory* mem = getMemory();
         Byte memoryAddress = mem->read(program_counter++);
         Word tmp = memoryAddress + X;
         memoryFetched = mem->read(tmp);
@@ -73,7 +66,7 @@ namespace nes
         // Indexed addressing adds the contents of either the X-register or the Y-register to the
         // provided address to give the effective address, which provides the operand.
         m_currentAddressMode = AddressModes::ZeroPageY;
-        Memory* mem = getMemory(bus);
+        Memory* mem = getMemory();
         Byte memoryAddress = mem->read(program_counter++);
         memoryFetched = mem->read(memoryAddress) + Y;
     }
@@ -83,7 +76,7 @@ namespace nes
         // Absolute addressing modes provides the 16-bit address of a memory location, the contents
         // of which used as the operand to the instruction.
         m_currentAddressMode = AddressModes::Absolute;
-        Memory* mem = getMemory(bus);
+        Memory* mem = getMemory();
         Byte high = mem->read(program_counter++);
         Byte low  = mem->read(program_counter++);
         Word absoluteMemory = toWord(high, low);
@@ -93,7 +86,7 @@ namespace nes
     void Cpu::absoluteX()
     {
         m_currentAddressMode = AddressModes::AbsoluteX;
-        Memory* mem = getMemory(bus);
+        Memory* mem = getMemory();
         Byte high = mem->read(program_counter++);
         Byte low = mem->read(program_counter++);
         Word absoluteMemory = toWord(high, low) + X;
@@ -104,7 +97,7 @@ namespace nes
     void Cpu::absoluteY()
     {
         m_currentAddressMode = AddressModes::AbsoluteY;
-        Memory* mem = getMemory(bus);
+        Memory* mem = getMemory();
         Byte high = mem->read(program_counter++);
         Byte low = mem->read(program_counter++);
         Word absoluteMemory = toWord(high, low) + Y;
@@ -119,7 +112,7 @@ namespace nes
     void Cpu::indirectX()
     {
         m_currentAddressMode = AddressModes::IndirectX;
-        Memory* mem = getMemory(bus);
+        Memory* mem = getMemory();
         // Fetch the zero page address from memory and increment the program counter
         Byte zeropageAddress = mem->read(program_counter++);
         // Calculate the effective address by adding the X register to the zero page address
@@ -149,7 +142,7 @@ namespace nes
     void Cpu::indirectY()
     {
         m_currentAddressMode = AddressModes::IndirectY;
-        Memory* mem = getMemory(bus);
+        Memory* mem = getMemory();
         // Fetch the zero page address from memory and increment the program counter
         Byte zeropageAddress = mem->read(program_counter++);
         // Calculate the effective address by adding the X register to the zero page address

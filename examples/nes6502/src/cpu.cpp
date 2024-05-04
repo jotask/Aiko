@@ -37,4 +37,11 @@ namespace nes
         return m_currentAddressMode;
     }
 
+    Memory* Cpu::getMemory()
+    {
+        Memory* mem = bus->getMicroprocesor<Memory>();
+        assert(mem != nullptr, "Memory not found in buffer");
+        return mem;
+    }
+
 }
