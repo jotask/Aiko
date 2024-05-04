@@ -7,6 +7,7 @@
 #include "memory.h"
 #include "cartridge.h"
 #include "test_type.h"
+#include "nes_utils.h"
 
 namespace test
 {
@@ -18,6 +19,10 @@ namespace test
         RUN_TEST(test_lda_absolute);
         RUN_TEST(test_lda_zeroPage);
         RUN_TEST(test_lda_zeroPageX);
+        RUN_TEST(test_lda_absoluteX);
+        RUN_TEST(test_lda_absoluteY);
+        RUN_TEST(test_lda_indirectX);
+        RUN_TEST(test_lda_indirectY);
         return result;
     }
 
@@ -58,14 +63,14 @@ namespace test
         nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
         nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
         assert(cpu != nullptr, "Couldnt' get cpu from bus");
-        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
-        nes::Byte memoryAddress = 0x13;
-        nes::Byte memoryValue = 0xaa;
         std::vector<nes::Byte> dump;
+
+        constexpr nes::Byte memoryAddress = 0x13;
+        constexpr nes::Byte memoryValue = 0xaa;
         insertBytes(dump, { 0xa5 , memoryAddress }); // lda zeroPage
         cart->load(dump);
 
-        mem->write(memoryAddress, memoryValue);
+        set_memory_address_zero_page(&nes, memoryAddress, memoryValue);
 
         for (std::size_t i = 0; i < dump.size(); i += 2)
         {
@@ -85,22 +90,21 @@ namespace test
         nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
         nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
         assert(cpu != nullptr, "Couldnt' get cpu from bus");
-        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
-        nes::Byte memoryAddress = 0x13;
-        nes::Byte memoryValue = 0xaa;
+        constexpr nes::Byte memoryAddress = 0x13;
+        constexpr nes::Byte memoryValue = 0xaa;
         std::vector<nes::Byte> dump;
         insertBytes(dump, { 0xb5 , memoryAddress }); // lda zeroPageX
         cart->load(dump);
 
         cpu->X = 1;
-        mem->write(nes::Word(memoryAddress + cpu->X), memoryValue);
+        set_memory_address_zero_page_x(&nes, memoryAddress, memoryValue);
 
         for (std::size_t i = 0; i < dump.size(); i += 2)
         {
             bus->clock();
         }
 
-        TEST_TRUE(cpu->A == memoryValue, "lda zeroPage not working");
+        TEST_TRUE(cpu->A == memoryValue, "lda zeroPage x not working");
 
         return result;
     }
@@ -112,21 +116,19 @@ namespace test
         nes::Bus* bus = nes.getBus();
         nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
         nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
-        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
-        nes::Word memoryAddress = 0x013ff;
-        nes::Byte memoryValue = 0xaa;
+        assert(cpu != nullptr, "Couldnt' get cpu from bus");
+        constexpr nes::Word memoryAddress = 0x013ff;
+        constexpr nes::Byte memoryValue = 0xaa;
         std::vector<nes::Byte> dump;
-        insertBytes(dump, { 0xad , 0x13, 0xff }); // lda absolute
+        insertBytes(dump, { 0xad , nes::getHigh(memoryAddress) , nes::getLow(memoryAddress)}); // lda absolute
         cart->load(dump);
 
-        mem->write(memoryAddress, memoryValue);
+        set_memory_address_absolute(&nes, memoryAddress, memoryValue);
 
-        for (std::size_t i = 0; i < dump.size(); i += 3)
+        for (std::size_t i = 0; i < dump.size(); i += 4)
         {
             bus->clock();
         }
-
-        assert(cpu != nullptr, "Couldnt' get cpu from bus");
 
         TEST_TRUE(cpu->A == memoryValue, "lda absolute not working");
 
@@ -141,15 +143,14 @@ namespace test
         nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
         nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
         assert(cpu != nullptr, "Couldnt' get cpu from bus");
-        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
-        nes::Word memoryAddress = 0x13ff;
-        nes::Byte memoryValue = 0xaa;
+        constexpr nes::Word memoryAddress = 0x13ff;
+        constexpr nes::Byte memoryValue = 0xaa;
         std::vector<nes::Byte> dump;
         insertBytes(dump, { 0xbd , nes::getHigh(memoryAddress), nes::getLow(memoryAddress)}); // lda zeroPageX
         cart->load(dump);
 
         cpu->X = 1;
-        mem->write(nes::Word(memoryAddress + cpu->X), memoryValue);
+        set_memory_address_absolute_x(&nes, memoryAddress, memoryValue);
 
         for (std::size_t i = 0; i < dump.size(); i += 2)
         {
@@ -169,15 +170,14 @@ namespace test
         nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
         nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
         assert(cpu != nullptr, "Couldnt' get cpu from bus");
-        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
-        nes::Word memoryAddress = 0x13ff;
-        nes::Byte memoryValue = 0xaa;
+        constexpr nes::Word memoryAddress = 0x13ff;
+        constexpr nes::Byte memoryValue = 0xaa;
         std::vector<nes::Byte> dump;
         insertBytes(dump, { 0xb9 , nes::getHigh(memoryAddress), nes::getLow(memoryAddress) }); // lda zeroPageX
         cart->load(dump);
 
         cpu->Y = 1;
-        mem->write(nes::Word(memoryAddress + cpu->Y), memoryValue);
+        set_memory_address_absolute_y(&nes, memoryAddress, memoryValue);
 
         for (std::size_t i = 0; i < dump.size(); i += 2)
         {
@@ -197,21 +197,15 @@ namespace test
         nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
         nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
         assert(cpu != nullptr, "Couldnt' get cpu from bus");
-        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
-        nes::Byte zeropageAddress = 0x13;
+        nes::Byte memoryAddress = 0x13;
         nes::Byte memoryValue = 0xaa;
-        nes::Byte high = nes::getHigh(memoryValue);
-        nes::Byte low = nes::getLow(memoryValue);
+
         std::vector<nes::Byte> dump;
-        insertBytes(dump, { 0xa1 , zeropageAddress }); // lda zeroPageX
+        insertBytes(dump, { 0xa1 , memoryAddress }); // lda zeroPageX
         cart->load(dump);
+
         cpu->X = 1;
-        nes::Word effectiveAddress = nes::Word(zeropageAddress + cpu->X);
-        mem->write(effectiveAddress, high);
-        effectiveAddress++; // TODO ensure correct wrap-around for zero page addressing (?)
-        mem->write(effectiveAddress, low);
-        nes::Word targetAddress = nes::toWord(high, low);
-        mem->write(targetAddress, memoryValue);
+        set_memory_address_indirect_x(&nes, memoryAddress, memoryValue);
 
         for (std::size_t i = 0; i < dump.size(); i += 2)
         {
@@ -231,21 +225,13 @@ namespace test
         nes::Cartridge* cart = bus->getMicroprocesor<nes::Cartridge>();
         nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
         assert(cpu != nullptr, "Couldnt' get cpu from bus");
-        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
-        nes::Byte zeropageAddress = 0x13;
-        nes::Byte memoryValue = 0xaa;
-        nes::Byte high = nes::getHigh(memoryValue);
-        nes::Byte low = nes::getLow(memoryValue);
+        constexpr nes::Byte memoryAddress = 0x13;
+        constexpr nes::Byte memoryValue = 0xaa;
         std::vector<nes::Byte> dump;
-        insertBytes(dump, { 0xb1 , zeropageAddress }); // lda zeroPageX
+        insertBytes(dump, { 0xb1 , memoryAddress }); // lda zeroPageX
         cart->load(dump);
         cpu->Y = 1;
-        nes::Word effectiveAddress = nes::Word(zeropageAddress + cpu->Y);
-        mem->write(effectiveAddress, high);
-        effectiveAddress++; // TODO ensure correct wrap-around for zero page addressing (?)
-        mem->write(effectiveAddress, low);
-        nes::Word targetAddress = nes::toWord(high, low);
-        mem->write(targetAddress, memoryValue);
+        set_memory_address_indirect_y(&nes, memoryAddress, memoryValue);
 
         for (std::size_t i = 0; i < dump.size(); i += 2)
         {

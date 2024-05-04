@@ -26,6 +26,15 @@ namespace test
         TestResult test_lda_absoluteY();
         TestResult test_lda_indirectX();
         TestResult test_lda_indirectY();
+
+    private:
+        void set_memory_address_zero_page(nes::nes6502*, nes::Byte, nes::Byte);
+        void set_memory_address_zero_page_x(nes::nes6502*, nes::Byte, nes::Byte);
+        void set_memory_address_absolute(nes::nes6502*, nes::Word, nes::Byte);
+        void set_memory_address_absolute_x(nes::nes6502*, nes::Word, nes::Byte);
+        void set_memory_address_absolute_y(nes::nes6502*, nes::Word, nes::Byte);
+        void set_memory_address_indirect_x(nes::nes6502*, nes::Word, nes::Byte);
+        void set_memory_address_indirect_y(nes::nes6502*, nes::Word, nes::Byte);
     };
 
 }
