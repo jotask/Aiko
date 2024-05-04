@@ -129,10 +129,12 @@ namespace nes
 
     void Cpu::ldx()
     {
+        X = memoryFetched;
     }
 
     void Cpu::ldy()
     {
+        Y = memoryFetched;
     }
 
     void Cpu::lsr()
