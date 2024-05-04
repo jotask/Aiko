@@ -13,7 +13,12 @@ namespace nes
 
         virtual void reset() override;
         virtual void clock() override;
+
+        AddressModes currentAddressMode() const;
+
     private:
+
+        AddressModes m_currentAddressMode;
 
         // Addressing modes
         void relative();
@@ -90,6 +95,8 @@ namespace nes
         void tya(); // Tranfer Y to accumulator
 
         void execute(Byte opCode);
+
+        Byte memoryFetched;
 
         Word program_counter;
         Word stack_pointer;

@@ -32,4 +32,9 @@ namespace nes
 
     }
 
+    AddressModes Cpu::currentAddressMode() const
+    {
+        return m_currentAddressMode;
+    }
+
 }
