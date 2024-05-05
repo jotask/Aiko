@@ -6,8 +6,9 @@
 namespace nes
 {
 
-    #define SET_N(REGISTER) (REGISTER & 0x80) ? N = 1 : N = 0;
-    #define SET_Z(REGISTER) (REGISTER == 0)   ? Z = 1 : Z = 0;
+    #define SET_N(REGISTER) (REGISTER & 0x80)               ? N = 1 : N = 0;
+    #define SET_Z(REGISTER) (REGISTER == 0)                 ? Z = 1 : Z = 0;
+    #define SET_C(REGISTER) (REGISTER >= memoryFetched )    ? C = 1 : C = 0;
 
     void Cpu::adc()
     {
