@@ -18,6 +18,9 @@ namespace nes
     void Cpu:: and()
     {
         m_currentInstruction = Instruction:: and;
+        A &= memoryFetched;
+        SET_N(A);
+        SET_Z(A);
     }
 
     void Cpu::asl()
@@ -78,21 +81,25 @@ namespace nes
     void Cpu::clc()
     {
         m_currentInstruction = Instruction::clc;
+        C = 0;
     }
 
     void Cpu::cld()
     {
         m_currentInstruction = Instruction::cld;
+        D = 0;
     }
 
     void Cpu::cli()
     {
         m_currentInstruction = Instruction::cli;
+        I = 0;
     }
 
     void Cpu::clv()
     {
         m_currentInstruction = Instruction::clv;
+        V = 0;
     }
 
     void Cpu::cmp()
@@ -103,46 +110,75 @@ namespace nes
     void Cpu::cpx()
     {
         m_currentInstruction = Instruction::cpx;
+        X -= memoryFetched;
+        SET_Z(X);
+        SET_C(X);
+        SET_N(X);
     }
 
     void Cpu::cpy()
     {
         m_currentInstruction = Instruction::cpy;
+        Y -= memoryFetched;
+        SET_Z(Y);
+        SET_C(Y);
+        SET_N(Y);
     }
 
     void Cpu::dec()
     {
         m_currentInstruction = Instruction::dec;
+        memoryFetched--;
+        SET_Z(memoryFetched);
+        SET_N(memoryFetched);
     }
 
     void Cpu::dex()
     {
         m_currentInstruction = Instruction::dex;
+        X--;
+        SET_Z(memoryFetched);
+        SET_N(memoryFetched);
     }
 
     void Cpu::dey()
     {
         m_currentInstruction = Instruction::dey;
+        Y--;
+        SET_Z(memoryFetched);
+        SET_N(memoryFetched);
     }
 
     void Cpu::eor()
     {
         m_currentInstruction = Instruction::eor;
+        A ^= memoryFetched;
+        SET_N(A);
+        SET_Z(A);
     }
 
     void Cpu::inc()
     {
         m_currentInstruction = Instruction::inc;
+        memoryFetched++;
+        SET_Z(memoryFetched);
+        SET_N(memoryFetched);
     }
 
     void Cpu::inx()
     {
         m_currentInstruction = Instruction::inx;
+        memoryFetched++;
+        SET_Z(memoryFetched);
+        SET_N(memoryFetched);
     }
 
     void Cpu::iny()
     {
         m_currentInstruction = Instruction::iny;
+        memoryFetched++;
+        SET_Z(memoryFetched);
+        SET_N(memoryFetched);
     }
 
     void Cpu::jmp()
@@ -182,16 +218,21 @@ namespace nes
     void Cpu::lsr()
     {
         m_currentInstruction = Instruction::lsr;
+        program_counter = memoryFetched;
     }
 
     void Cpu::nop()
     {
         m_currentInstruction = Instruction::nop;
+        program_counter++;
     }
 
     void Cpu::ora()
     {
         m_currentInstruction = Instruction::ora;
+        A |= memoryFetched;
+        SET_N(A);
+        SET_Z(A);
     }
 
     void Cpu::pha()
@@ -272,16 +313,19 @@ namespace nes
     void Cpu::sec()
     {
         m_currentInstruction = Instruction::sec;
+        C = 1;
     }
 
     void Cpu::sed()
     {
         m_currentInstruction = Instruction::sed;
+        D = 1;
     }
 
     void Cpu::sei()
     {
         m_currentInstruction = Instruction::sei;
+        I = 1;
     }
 
     void Cpu::sta()
