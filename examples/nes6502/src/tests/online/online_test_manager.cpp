@@ -48,7 +48,7 @@ namespace test::online
             }
         }
 #else 
-        std::string path = "C:/Users/j.iznardo/Documents/Aiko/examples/nes6502/assets/tests/test.json";
+        std::string path = "C:/Users/j.iznardo/Documents/Aiko/examples/nes6502/assets/tests/_test.json";
         std::ifstream t(path);
         std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
         parse(str);
