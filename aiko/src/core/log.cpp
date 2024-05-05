@@ -15,6 +15,7 @@ namespace aiko
     {
         // Create a color console logger
         auto console = spdlog::stdout_color_mt("console");
+        spdlog::set_level(spdlog::level::level_enum::trace);
     }
 
     void Log::log(Type type, const char* msg)
