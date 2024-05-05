@@ -6,6 +6,19 @@
 
 namespace nes
 {
+    void Cpu::pushStack(Byte value)
+    {
+        stack_pointer--;
+        assert( stack_pointer >= std::get<0>(Memory::STACK_PAGE), "Stack Overflow!");
+        getMemory()->write(stack_pointer, value);
+    }
+
+    Byte Cpu::popStack()
+    {
+        stack_pointer++;
+        assert(stack_pointer <= std::get<1>(Memory::STACK_PAGE), "Stack Underflow!");
+        return getMemory()->read(stack_pointer);
+    }
 
     void Cpu::relative()
     {

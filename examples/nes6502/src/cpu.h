@@ -27,6 +27,9 @@ namespace nes
         AddressModes m_currentAddressMode;
         Instruction m_currentInstruction;
 
+        void pushStack(Byte);
+        Byte popStack();
+
         // Addressing modes
         void relative();
         void implicit();
