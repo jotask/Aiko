@@ -1,6 +1,7 @@
 #include "online_test.h"
 
 #include <json/json.h>
+#include <tuple>
 
 #include "bus.h"
 #include "cpu.h"
@@ -9,6 +10,8 @@
 #include "tests/test_type.h"
 #include "nes_utils.h"
 #include "nes6502.h"
+
+#include "tests/test_type.h"
 
 namespace test::online
 {
@@ -63,14 +66,47 @@ namespace test::online
         nes::nes6502 nes;
         nes::Bus* bus = nes.getBus();
         nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
+        nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
         {
-            // 2. Set the nest state tot he initial data
+            // 2. Set the cpu state to the initial data
+            cpu->program_counter = initial.pc;
+            cpu->stack_pointer = initial.s;
+            cpu->A = initial.a;
+            cpu->X = initial.x;
+            cpu->Y = initial.y;
+
+            // SET FLAGS
+
+            for ( auto& r : initial.ram )
+            {
+                nes::Word address = std::get<0>(r);
+                nes::Byte value = std::get<1>(r);
+                mem->write(address, value);
+            }
+
         }
         {
             // 3. Execute run
+            while (cpu->program_counter != final.pc)
+            {
+                // Execute next instruction
+                cpu->clock();
+            }
         }
         {
             // 4. Check if final status it's the same as the final status
+            assert(cpu->program_counter == final.pc, "program_counter not the same");
+            assert(cpu->stack_pointer == final.s, "stack_pointer not the same");
+            assert(cpu->A == final.a, "A not the same");
+            assert(cpu->X == final.x, "X not the same");
+            assert(cpu->Y == final.y, "Y not the same");
+            for (auto& r : final.ram)
+            {
+                nes::Word address = std::get<0>(r);
+                nes::Byte value = std::get<1>(r);
+                nes::Byte readed = mem->read(address);
+                assert(readed == value, "Memory not the same");
+            }
         }
     }
 

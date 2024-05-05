@@ -5,6 +5,7 @@
 #include "instructions.h"
 
 namespace test { class CPUTest; }
+namespace test { namespace online { class OnlinesTest; } }
 
 namespace nes
 {
@@ -12,6 +13,7 @@ namespace nes
     class Cpu : public Microprocessor
     {
         friend class test::CPUTest;
+        friend class test::online::OnlinesTest;
     public:
 
         virtual void reset() override;
