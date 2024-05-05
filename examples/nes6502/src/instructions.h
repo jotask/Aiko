@@ -11,7 +11,7 @@ namespace nes
     enum class AddressModes
     {
         Implied,
-        Immediate,
+        Inmediate,
         ZeroPage,
         ZeroPageX,
         ZeroPageY,
@@ -22,7 +22,6 @@ namespace nes
         IndirectX,
         IndirectY,
         Relative,
-        Inmediate
     };
 
     enum class Instruction
