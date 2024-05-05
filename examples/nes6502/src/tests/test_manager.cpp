@@ -9,6 +9,8 @@
 #include "test_core.h"
 #include "test_memory.h"
 
+#include "online/online_test_manager.h"
+
 namespace test
 {
     void TestManager::init()
@@ -39,6 +41,11 @@ namespace test
             aiko::Log::error("Not all test passed. Please fix above fails");
         }
         assert(result.success, "Tests not passed");
+
+
+        online::TestManager tests;
+        tests.run();
+
     }
 
 }
