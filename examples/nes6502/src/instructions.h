@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exception>
+#include <assert.h>
 
 #include "nes_types.h"
 #include "microprocessor.h"
@@ -88,19 +89,19 @@ namespace nes
     {
         switch (mode)
         {
-        case AddressModes::Implied:     return"Implied";
-        case AddressModes::Immediate:   return"Immediate";
-        case AddressModes::ZeroPage:    return"ZeroPage";
-        case AddressModes::ZeroPageX:   return"ZeroPageX";
-        case AddressModes::ZeroPageY:   return"ZeroPageY";
-        case AddressModes::Absolute:    return"Absolute";
-        case AddressModes::AbsoluteX:   return"AbsoluteX";
-        case AddressModes::AbsoluteY:   return"AbsoluteY";
-        case AddressModes::Indirect:    return"Indirect";
-        case AddressModes::IndirectX:   return"IndirectX";
-        case AddressModes::IndirectY:   return"IndirectY";
-        case AddressModes::Relative:    return"Relative";
-        default:                        std::exception("Addressing Mode Unknow");
+        case AddressModes::Implied:     return "Implied";
+        case AddressModes::Inmediate:   return "Immediate";
+        case AddressModes::ZeroPage:    return "ZeroPage";
+        case AddressModes::ZeroPageX:   return "ZeroPageX";
+        case AddressModes::ZeroPageY:   return "ZeroPageY";
+        case AddressModes::Absolute:    return "Absolute";
+        case AddressModes::AbsoluteX:   return "AbsoluteX";
+        case AddressModes::AbsoluteY:   return "AbsoluteY";
+        case AddressModes::Indirect:    return "Indirect";
+        case AddressModes::IndirectX:   return "IndirectX";
+        case AddressModes::IndirectY:   return "IndirectY";
+        case AddressModes::Relative:    return "Relative";
+        default:                        assert(false, "Addressing Mode Unknow");
         }
     }
 
@@ -164,7 +165,7 @@ namespace nes
             case Instruction::txa:      return "txa";
             case Instruction::txs:      return "txs";
             case Instruction::tya:      return "tya";
-            default:                    std::exception("Addressing Mode Unknow");
+            default:                    assert(false, "Instruction Unknow");
         }
     }
 
