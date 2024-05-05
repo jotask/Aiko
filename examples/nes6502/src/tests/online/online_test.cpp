@@ -93,10 +93,14 @@ namespace test::online
         }
         // 3. Execute run
         {
+            constexpr nes::Word MAX_ITERATIONS = 0xFFFF;
+            nes::Word iteration = 0x0000;
             while (cpu->program_counter != final.pc)
             {
                 // Execute next instruction
                 cpu->clock();
+                iteration++;
+                assert(iteration < MAX_ITERATIONS, "Max number of iterations reached");
             }
         }
         // 4. Check if final status it's the same as the final status
