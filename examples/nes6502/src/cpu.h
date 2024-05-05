@@ -96,10 +96,10 @@ namespace nes
         void sty(); // Store Y register
         void tax(); // Transfer accumulator to X
         void tay(); // Transfer accumulator to Y
-        void tsx(); // Transfer stack pointer to X
         void txa(); // Transfer X to accumulator
-        void txs(); // Transfer X to stack pointer
         void tya(); // Tranfer Y to accumulator
+        void tsx(); // Transfer stack pointer to X
+        void txs(); // Transfer X to stack pointer
 
         void execute(Byte opCode);
 
@@ -112,18 +112,19 @@ namespace nes
         Byte A, X, Y;
 
         // StatusFlags
-        Byte C : 1; // Carry register
-        Byte Z : 1; // Zero register
-        Byte I : 1; // Interrup register
-        Byte D : 1; // Decimal register
-        Byte B : 1; // Break register
-        Byte V : 1; // Overflow register
-        Byte N : 1; // Negative register
+        Byte C : 1; // Carry Status
+        Byte Z : 1; // Zero Status
+        Byte I : 1; // Interrup Status
+        Byte D : 1; // Decimal Status
+        Byte B : 1; // Break Status
+        Byte V : 1; // Overflow Status
+        Byte N : 1; // Negative Status
 
         Byte waitForCycles;
 
         // helpers
         Memory* getMemory();
+        inline constexpr Byte getP() { return (C << 7) | (Z << 6) | (I << 5) | (D << 4) | (B << 3) | (V << 2) | (N << 1); }
 
     };
 

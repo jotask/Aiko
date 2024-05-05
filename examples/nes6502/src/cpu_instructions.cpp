@@ -6,9 +6,8 @@
 namespace nes
 {
 
-#define SET_N(REGISTER) (REGISTER & 0x80) ? N = 1 : N = 0;
-#define SET_Z(REGISTER) (REGISTER == 0)   ? Z = 1 : Z = 0;
-
+    #define SET_N(REGISTER) (REGISTER & 0x80) ? N = 1 : N = 0;
+    #define SET_Z(REGISTER) (REGISTER == 0)   ? Z = 1 : Z = 0;
 
     void Cpu::adc()
     {
@@ -197,21 +196,51 @@ namespace nes
     void Cpu::pha()
     {
         m_currentInstruction = Instruction::pha;
+        stack_pointer--;
+        Memory* mem = getMemory();
+        mem->write(stack_pointer, A);
     }
 
     void Cpu::php()
     {
         m_currentInstruction = Instruction::php;
+        stack_pointer--;
+        Memory* mem = getMemory();
+        Byte address = 0x0100 + stack_pointer;
+        Byte value = getP();
+        mem->write(address, value);
     }
 
     void Cpu::pla()
     {
         m_currentInstruction = Instruction::pla;
+        stack_pointer++;
+        Memory* mem = getMemory();
+        Byte address = 0x0100 + stack_pointer;
+        A = mem->read(address);
+        SET_N(A);
+        SET_Z(A);
     }
 
     void Cpu::plp()
     {
         m_currentInstruction = Instruction::plp;
+        stack_pointer++;
+
+        // Read processor status value from stack
+        Memory* mem = getMemory();
+        Byte address = 0x0100 + stack_pointer;
+        Byte status = mem->read(address);
+
+        // Update processor status flags
+        C = (status >> 0) & 0x01; // Carry flag
+        Z = (status >> 1) & 0x01; // Zero flag
+        I = (status >> 2) & 0x01; // Interrupt disable flag
+        D = (status >> 3) & 0x01; // Decimal mode flag
+        B = (status >> 4) & 0x01; // Break command flag
+        // Bit 5 is unused and is typically set to 1
+        V = (status >> 6) & 0x01; // Overflow flag
+        N = (status >> 7) & 0x01; // Negative flag
     }
 
     void Cpu::rol()
@@ -278,31 +307,46 @@ namespace nes
     void Cpu::tax()
     {
         m_currentInstruction = Instruction::tax;
+        X = A;
+        SET_N(X);
+        SET_Z(X);
     }
 
     void Cpu::tay()
     {
         m_currentInstruction = Instruction::tay;
+        Y = A;
+        SET_N(Y);
+        SET_Z(Y);
     }
-
-    void Cpu::tsx()
-    {
-        m_currentInstruction = Instruction::tsx;
-    }
-
+    
     void Cpu::txa()
     {
         m_currentInstruction = Instruction::txa;
-    }
-
-    void Cpu::txs()
-    {
-        m_currentInstruction = Instruction::txs;
+        A = X;
+        SET_N(A);
+        SET_Z(A);
     }
 
     void Cpu::tya()
     {
         m_currentInstruction = Instruction::tya;
+        A = Y;
+        SET_N(A);
+        SET_Z(A);
     }
+
+    void Cpu::tsx()
+    {
+        m_currentInstruction = Instruction::tsx;
+        X = stack_pointer;
+    }
+
+    void Cpu::txs()
+    {
+        m_currentInstruction = Instruction::txs;
+        stack_pointer = X;
+    }
+
 
 }
