@@ -7,9 +7,14 @@ namespace nes
 
     void Memory::reset()
     {
-        for (u32 i = 0 ; i < MAX_MEM ; i++)
+        for (u32 i = 0; i < MAX_MEM; i++)
         {
             data[i] = 0;
+        }
+        // It is common practice on a 6502 to initialize the stack pointer to $FF at reset time.
+        for (Word i = std::get<0>(STACK_PAGE); i < std::get<1>(STACK_PAGE); i++)
+        {
+            data[i] = 0xFF;
         }
     }
 
