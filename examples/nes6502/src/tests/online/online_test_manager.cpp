@@ -16,6 +16,25 @@ namespace test::online
 {
     TestManager::TestManager()
     {
+
+        // #define LOAD_ALL_FILES
+
+        auto parse = [&](std::string str)
+        {
+            Json::Reader reader;
+            Json::Value root;
+            reader.parse(str, root);
+
+            for (Json::Value::ArrayIndex i = 0; i != root.size(); i++)
+            {
+                Json::Value tmp = root[i];
+                Json::FastWriter fastWriter;
+                std::string output = fastWriter.write(tmp);
+                tests.push_back(OnlinesTest(output));
+            }
+        };
+
+#ifdef LOAD_ALL_FILES
         std::string path = "C:/Users/j.iznardo/Documents/Aiko/examples/nes6502/assets/tests";
         for (const auto& entry : fs::directory_iterator(path))
         {
@@ -23,23 +42,17 @@ namespace test::online
             {
                 std::ifstream t(entry.path());
                 std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-                Json::Reader reader;
-
-                Json::Value root;
-                reader.parse(str, root);
-
-                for (Json::Value::ArrayIndex i = 0; i != root.size(); i++)
-                {
-                    Json::Value tmp = root[i];
-                    Json::FastWriter fastWriter;
-                    std::string output = fastWriter.write(tmp);
-                    tests.push_back(OnlinesTest(output));
-                    int a = 0;
-                }
+                parse(str);
                 // FIXME Only do one for now
                 return;
             }
         }
+#else 
+        std::string path = "C:/Users/j.iznardo/Documents/Aiko/examples/nes6502/assets/tests/test.json";
+        std::ifstream t(path);
+        std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+        parse(str);
+#endif
     }
 
     void TestManager::run()
