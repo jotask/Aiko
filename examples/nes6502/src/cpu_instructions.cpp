@@ -31,21 +31,25 @@ namespace nes
     void Cpu::bcc()
     {
         m_currentInstruction = Instruction::bcc;
+        aiko::Log::error("Not Implemented: ", to_string(m_currentInstruction));
     }
 
     void Cpu::bcs()
     {
         m_currentInstruction = Instruction::bcs;
+        aiko::Log::error("Not Implemented: ", to_string(m_currentInstruction));
     }
 
     void Cpu::beq()
     {
         m_currentInstruction = Instruction::beq;
+        aiko::Log::error("Not Implemented: ", to_string(m_currentInstruction));
     }
 
     void Cpu::bit()
     {
         m_currentInstruction = Instruction::bit;
+        aiko::Log::error("Not Implemented: ", to_string(m_currentInstruction));
     }
 
     void Cpu::bmi()
@@ -71,11 +75,13 @@ namespace nes
     void Cpu::bvc()
     {
         m_currentInstruction = Instruction::bvc;
+        aiko::Log::error("Not Implemented: ", to_string(m_currentInstruction));
     }
 
     void Cpu::bvs()
     {
         m_currentInstruction = Instruction::bvs;
+        aiko::Log::error("Not Implemented: ", to_string(m_currentInstruction));
     }
 
     void Cpu::clc()
@@ -190,6 +196,7 @@ namespace nes
     void Cpu::jsr()
     {
         m_currentInstruction = Instruction::jsr;
+        aiko::Log::error("Not Implemented: ", to_string(m_currentInstruction));
     }
 
     void Cpu::lda()
@@ -305,21 +312,25 @@ namespace nes
     void Cpu::rol()
     {
         m_currentInstruction = Instruction::rol;
+        aiko::Log::error("Not Implemented: ", to_string(m_currentInstruction));
     }
 
     void Cpu::ror()
     {
         m_currentInstruction = Instruction::ror;
+        aiko::Log::error("Not Implemented: ", to_string(m_currentInstruction));
     }
 
     void Cpu::rti()
     {
         m_currentInstruction = Instruction::rti;
+        aiko::Log::error("Not Implemented: ", to_string(m_currentInstruction));
     }
 
     void Cpu::rts()
     {
         m_currentInstruction = Instruction::rts;
+        aiko::Log::error("Not Implemented: ", to_string(m_currentInstruction));
     }
 
     void Cpu::sbc()

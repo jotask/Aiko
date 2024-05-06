@@ -13,6 +13,7 @@ namespace nes
     {
 
         Byte& cycles = this->waitForCycles;
+        aiko::Log::trace("Executing [", toString(opCode), "] OpCode");
         switch (opCode)
         {
             // adc
@@ -230,6 +231,8 @@ namespace nes
             aiko::Log::warning("OpCode Not Implemented ", toString(opCode));
             break;
         }
+
+        aiko::Log::trace("  OpCode: ", toString(opCode), " Addressing Modes: ", to_string(m_currentAddressMode), " Instruction: ", to_string(m_currentInstruction) );
 
         assert(this->waitForCycles == cycles);
 
