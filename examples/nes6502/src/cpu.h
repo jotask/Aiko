@@ -34,7 +34,6 @@ namespace nes
         void relative();
         void implicit();
         void implied();
-        void accumulator();
         void inmediate();
         void zeroPage();
         void zeroPageX();

@@ -41,11 +41,6 @@ namespace nes
         m_currentAddressMode = AddressModes::Implied;
     }
 
-    void Cpu::accumulator()
-    {
-        // m_currentAddressMode = AddressModes::;
-    }
-
     void Cpu::inmediate()
     {
         // A literal operand is given immediately after the instruction.The operand is always

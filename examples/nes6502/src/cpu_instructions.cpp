@@ -2,17 +2,26 @@
 
 #include "bus.h"
 #include "memory.h"
+#include "nes_utils.h"
+
+#include <aiko_includes.h>
 
 namespace nes
 {
 
-    #define SET_N(REGISTER) (REGISTER & 0x80)               ? N = 1 : N = 0;
-    #define SET_Z(REGISTER) (REGISTER == 0)                 ? Z = 1 : Z = 0;
-    #define SET_C(REGISTER) (REGISTER >= memoryFetched )    ? C = 1 : C = 0;
+    #define SET_N(REGISTER) (REGISTER & 0x80)                                               ? N = 1 : N = 0;
+    #define SET_Z(REGISTER) (REGISTER == 0x00)                                              ? Z = 1 : Z = 0;
+    #define SET_V(REGISTER, RESULT) ((REGISTER ^ memoryFetched) & (A ^ RESULT) & 0x80)      ? V = 1 : V = 0;
+    #define SET_C(REGISTER) (REGISTER < 0x100)                                              ? C = 1 : C = 0;
 
     void Cpu::adc()
     {
         m_currentInstruction = Instruction::adc;
+        Word address = A + memoryFetched + C;
+        A = address;
+        SET_Z(A);
+        SET_C(address);
+        SET_V(A, address);
     }
 
     void Cpu:: and()
@@ -26,6 +35,21 @@ namespace nes
     void Cpu::asl()
     {
         m_currentInstruction = Instruction::asl;
+        if (m_currentAddressMode != AddressModes::Implied)
+        {
+            SET_C(memoryFetched);
+            memoryFetched <<= 1;
+            SET_N(memoryFetched);
+            SET_Z(memoryFetched);
+        }
+        else
+        {
+            SET_C(A);
+            A <<= 1;
+            SET_N(A);
+            SET_Z(A);
+        }
+        program_counter++;
     }
 
     void Cpu::bcc()
@@ -55,21 +79,65 @@ namespace nes
     void Cpu::bmi()
     {
         m_currentInstruction = Instruction::bmi;
+        if (N == 1)
+        {
+            waitForCycles++;
+            Word targetAddress = program_counter + memoryFetched;
+            if ((targetAddress & 0xFF00) != (program_counter & 0xFF00))
+            {
+                waitForCycles++;
+            }
+            program_counter = targetAddress;
+        }
     }
 
     void Cpu::bne()
     {
         m_currentInstruction = Instruction::bne;
+        if (Z == 0)
+        {
+            waitForCycles++;
+            Word targetAddress = program_counter + memoryFetched;
+            if ((targetAddress & 0xFF00) != (program_counter & 0xFF00))
+            {
+                waitForCycles++;
+            }
+            program_counter = targetAddress;
+        }
     }
 
     void Cpu::bpl()
     {
         m_currentInstruction = Instruction::bpl;
+        if (N == 0)
+        {
+            waitForCycles++;
+            Word targetAddress = program_counter + memoryFetched;
+            if ((targetAddress & 0xFF00) != (program_counter & 0xFF00))
+            {
+                waitForCycles++;
+            }
+            program_counter = targetAddress;
+        }
     }
 
     void Cpu::brk()
     {
         m_currentInstruction = Instruction::brk;
+        // 1. Push the address of the next instruction onto the stack.
+        program_counter++;
+        pushStack(getHigh(program_counter));
+        pushStack(getLow(program_counter));
+        // 2. Set the Break (B) flag in the status register.
+        B = 1;
+        // 3. Push the status register onto the stack.
+        pushStack(getP());
+        // 4. Set the Interrupt Disable (I) flag in the status register.
+        I = 1;
+        // 5. Load the interrupt vector from addresses $FFFE and $FFFF.
+        Word interruptVectorAddress = (getMemory()->read(Word(0xFFFF)) << 8) | getMemory()->read(Word(0xFFFE));
+        // 6. Jump to the interrupt service routine specified by the interrupt vector.
+        program_counter = interruptVectorAddress;
     }
 
     void Cpu::bvc()
@@ -111,6 +179,10 @@ namespace nes
     void Cpu::cmp()
     {
         m_currentInstruction = Instruction::cmp;
+        Word result = A - memoryFetched;
+        SET_C(result);
+        SET_Z(result);
+        SET_N(result);
     }
 
     void Cpu::cpx()
@@ -283,7 +355,7 @@ namespace nes
         stack_pointer++;
         Memory* mem = getMemory();
         Byte address = 0x0100 + stack_pointer;
-        A = mem->read(address);
+        Y = mem->read(address);
         SET_N(A);
         SET_Z(A);
     }
@@ -336,6 +408,13 @@ namespace nes
     void Cpu::sbc()
     {
         m_currentInstruction = Instruction::sbc;
+        Word address = static_cast<Word>(A) - memoryFetched - (1 - C);
+        A = address;
+        SET_N(A);
+        SET_V(A, address);
+        SET_C(address);
+        SET_Z(A);
+        program_counter++;
     }
 
     void Cpu::sec()

@@ -35,7 +35,7 @@ namespace nes
         case 0x21:      cycles = 6;     indirectX();        and();      break;
         case 0x31:      cycles = 5;     indirectY();        and();      break;
             // asl
-        case 0x0a:      cycles = 2;     accumulator();      asl();      break;
+        case 0x0a:      cycles = 2;     implied();          asl();      break;
         case 0x06:      cycles = 5;     zeroPage();         asl();      break;
         case 0x16:      cycles = 6;     zeroPageX();        asl();      break;
         case 0x0e:      cycles = 6;     absolute();         asl();      break;
@@ -140,7 +140,7 @@ namespace nes
         case 0xac:      cycles = 4;     absolute();         ldy();      break;
         case 0xbc:      cycles = 4;     absoluteX();        ldy();      break;
             // lsr
-        case 0x4a:      cycles = 2;     accumulator();      lsr();      break;
+        case 0x4a:      cycles = 2;     implied();          lsr();      break;
         case 0x46:      cycles = 5;     zeroPage();         lsr();      break;
         case 0x56:      cycles = 6;     zeroPageX();        lsr();      break;
         case 0x4e:      cycles = 6;     absolute();         lsr();      break;
@@ -169,13 +169,13 @@ namespace nes
             // ply
         case 0xfa:      cycles = 4;     implied();          plx();      break;
             // rol
-        case 0x2a:      cycles = 2;     accumulator();      rol();      break;
+        case 0x2a:      cycles = 2;     implied();          rol();      break;
         case 0x26:      cycles = 5;     zeroPage();         rol();      break;
         case 0x36:      cycles = 6;     zeroPageX();        rol();      break;
         case 0x2e:      cycles = 6;     absolute();         rol();      break;
         case 0x3e:      cycles = 7;     absoluteX();        rol();      break;
             // ror
-        case 0x6a:      cycles = 2;     accumulator();      ror();      break;
+        case 0x6a:      cycles = 2;     implied();          ror();      break;
         case 0x66:      cycles = 5;     zeroPage();         ror();      break;
         case 0x76:      cycles = 6;     zeroPageX();        ror();      break;
         case 0x6e:      cycles = 6;     absolute();         ror();      break;

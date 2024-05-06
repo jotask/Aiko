@@ -12,7 +12,6 @@ namespace nes
     enum class AddressModes
     {
         Implied,
-        Accumulator,
         Inmediate,
         ZeroPage,
         ZeroPageX,
@@ -93,7 +92,6 @@ namespace nes
         switch (mode)
         {
         case AddressModes::Implied:     return "Implied";
-        case AddressModes::Accumulator: return "Accumulator";
         case AddressModes::Inmediate:   return "Immediate";
         case AddressModes::ZeroPage:    return "ZeroPage";
         case AddressModes::ZeroPageX:   return "ZeroPageX";
