@@ -53,13 +53,18 @@ namespace test::online
         std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
         parse(str);
 #endif
+
+        // std::shuffle(tests.begin(), tests.end(), std::default_random_engine{});
+
     }
 
     void TestManager::run()
     {
         for (OnlinesTest& t : tests)
         {
+            aiko::Log::info("RUN ", t.name);
             t.run();
+            aiko::Log::info("   Test passed ", t.name );
         }
     }
 
