@@ -22,6 +22,8 @@ namespace test
 
     void TestManager::runAll()
     {
+
+#if 0
         TestResult result;
         for (auto& t : tests)
         {
@@ -41,10 +43,12 @@ namespace test
             aiko::Log::error("Not all test passed. Please fix above fails");
         }
         assert(result.success, "Tests not passed");
+#endif
 
-
+#if 1
         online::TestManager tests;
         tests.run();
+#endif
 
     }
 
