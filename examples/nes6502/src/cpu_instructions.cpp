@@ -184,6 +184,7 @@ namespace nes
     void Cpu::jmp()
     {
         m_currentInstruction = Instruction::jmp;
+        program_counter = memoryFetched;
     }
 
     void Cpu::jsr()
