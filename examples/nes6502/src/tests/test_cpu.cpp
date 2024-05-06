@@ -42,7 +42,7 @@ namespace test
         insertBytes(dump, { 0xa9 , 0x13 }); // lda inmediate
         cart->load(dump);
 
-        for (std::size_t i = 0 ; i < dump.size(); i += 2)
+        for (std::size_t i = 0 ; i < 1; i ++)
         {
             bus->clock();
         }
@@ -72,7 +72,7 @@ namespace test
 
         set_memory_address_zero_page(&nes, memoryAddress, memoryValue);
 
-        for (std::size_t i = 0; i < dump.size(); i += 2)
+        for (std::size_t i = 0; i < 1; i++)
         {
             bus->clock();
         }
@@ -99,7 +99,7 @@ namespace test
         cpu->X = 1;
         set_memory_address_zero_page_x(&nes, memoryAddress, memoryValue);
 
-        for (std::size_t i = 0; i < dump.size(); i += 2)
+        for (std::size_t i = 0; i < 1; i++)
         {
             bus->clock();
         }
@@ -125,7 +125,7 @@ namespace test
 
         set_memory_address_absolute(&nes, memoryAddress, memoryValue);
 
-        for (std::size_t i = 0; i < dump.size(); i += 4)
+        for (std::size_t i = 0; i < 1; i++)
         {
             bus->clock();
         }
@@ -152,7 +152,7 @@ namespace test
         cpu->X = 1;
         set_memory_address_absolute_x(&nes, memoryAddress, memoryValue);
 
-        for (std::size_t i = 0; i < dump.size(); i += 2)
+        for (std::size_t i = 0; i < 1; i++)
         {
             bus->clock();
         }
@@ -179,7 +179,7 @@ namespace test
         cpu->Y = 1;
         set_memory_address_absolute_y(&nes, memoryAddress, memoryValue);
 
-        for (std::size_t i = 0; i < dump.size(); i += 2)
+        for (std::size_t i = 0; i < 1; i++)
         {
             bus->clock();
         }
@@ -207,7 +207,7 @@ namespace test
         cpu->X = 1;
         set_memory_address_indirect_x(&nes, memoryAddress, memoryValue);
 
-        for (std::size_t i = 0; i < dump.size(); i += 2)
+        for (std::size_t i = 0; i < 1; i++)
         {
             bus->clock();
         }
@@ -233,7 +233,7 @@ namespace test
         cpu->Y = 1;
         set_memory_address_indirect_y(&nes, memoryAddress, memoryValue);
 
-        for (std::size_t i = 0; i < dump.size(); i += 2)
+        for (std::size_t i = 0; i < 1; i++)
         {
             bus->clock();
         }

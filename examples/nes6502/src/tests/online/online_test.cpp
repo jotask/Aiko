@@ -35,8 +35,9 @@ namespace test::online
             Json::Value var_ram = root["ram"];
             for (Json::Value::ArrayIndex i = 0; i != var_ram.size(); i++)
             {
-                nes::Word one = var_ram[i][0].asInt();
-                nes::Byte two = var_ram[i][1].asInt();
+                auto entry = var_ram[i];
+                const nes::Word one = entry[0].asUInt();
+                const nes::Byte two = entry[1].asUInt();
                 state.ram.push_back({ one, two });
             }
 
@@ -49,8 +50,8 @@ namespace test::online
             Json::Value var_cycles = root["cycles"];
             for (Json::Value::ArrayIndex i = 0; i != var_cycles.size(); i++)
             {
-                nes::Word one = var_cycles[i][0].asInt();
-                nes::Byte two = var_cycles[i][1].asInt();
+                const nes::Word one = var_cycles[i][0].asInt();
+                const nes::Byte two = var_cycles[i][1].asInt();
                 std::string thre = var_cycles[i][2].asString();
                 cycles.push_back({ one, two, thre });
             }
@@ -85,8 +86,8 @@ namespace test::online
 
             for ( auto& r : initial.ram )
             {
-                nes::Word address = std::get<0>(r);
-                nes::Byte value = std::get<1>(r);
+                const nes::Word address = std::get<0>(r);
+                const nes::Byte value = std::get<1>(r);
                 mem->write(address, value);
             }
 

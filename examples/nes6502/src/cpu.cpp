@@ -25,8 +25,7 @@ namespace nes
 
         auto memory = bus->getMicroprocesor<Memory>();
 
-        Byte opCode = memory->read( program_counter );
-        program_counter++;
+        Byte opCode = memory->read( program_counter++ );
 
         execute(opCode);
 
