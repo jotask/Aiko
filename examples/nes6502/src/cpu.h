@@ -127,7 +127,18 @@ namespace nes
 
         // helpers
         Memory* getMemory();
-        inline constexpr Byte getP() { return (C << 7) | (Z << 6) | (I << 5) | (D << 4) | (B << 3) | (V << 2) | (N << 1); }
+        inline constexpr Byte getP() { return (C << 7) | (Z << 6) | (I << 5) | (D << 4) | (B << 3) | (V << 1) | (N << 0); }
+        inline constexpr void setP(Byte p)
+        {
+            C = (p >> 0) & 0x01; // Carry flag (bit 0)
+            Z = (p >> 1) & 0x01; // Zero flag (bit 1)
+            I = (p >> 2) & 0x01; // Interrupt disable flag (bit 2)
+            D = (p >> 3) & 0x01; // Decimal mode flag (bit 3)
+            B = (p >> 4) & 0x01; // Break command flag (bit 4)
+            // Bit 5 is unused and is typically set to 1
+            V = (p >> 6) & 0x01; // Overflow flag (bit 6)
+            N = (p >> 7) & 0x01; // Negative flag (bit 7)
+        }
 
     };
 
