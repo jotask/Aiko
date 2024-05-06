@@ -163,6 +163,10 @@ namespace nes
         case 0x68:      cycles = 4;     implied();          pla();      break;
             // plp
         case 0x28:      cycles = 4;     implied();          plp();      break;
+            // plx
+        case 0x7a:      cycles = 4;     implied();          plx();      break;
+            // ply
+        case 0xfa:      cycles = 4;     implied();          plx();      break;
             // rol
         case 0x2a:      cycles = 2;     accumulator();      rol();      break;
         case 0x26:      cycles = 5;     zeroPage();         rol();      break;

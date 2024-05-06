@@ -257,6 +257,22 @@ namespace nes
     void Cpu::pla()
     {
         m_currentInstruction = Instruction::pla;
+        A = popStack();
+        SET_N(A);
+        SET_Z(A);
+    }
+
+    void Cpu::plx()
+    {
+        m_currentInstruction = Instruction::plx;
+        X = popStack();
+        SET_N(A);
+        SET_Z(A);
+    }
+
+    void Cpu::ply()
+    {
+        m_currentInstruction = Instruction::ply;
         stack_pointer++;
         Memory* mem = getMemory();
         Byte address = 0x0100 + stack_pointer;

@@ -85,6 +85,8 @@ namespace nes
         void pha(); // Push accumulator
         void php(); // Push processor status
         void pla(); // Pull accumulator
+        void plx(); // Pull accumulator
+        void ply(); // Pull accumulator
         void plp(); // Pull processor status
         void rol(); // Rotate left
         void ror(); // Rotate right
