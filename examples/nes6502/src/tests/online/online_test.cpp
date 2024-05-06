@@ -86,14 +86,16 @@ namespace test::online
         }
         // 3. Execute run
         {
-            constexpr nes::Word MAX_ITERATIONS = 0xFFFF;
-            nes::Word iteration = 0x0000;
-            while (cpu->program_counter != final.pc)
+            for (size_t i = 0 ; i < cycles.size(); i++)
             {
-                // Execute next instruction
                 cpu->clock();
-                iteration++;
-                assert(iteration < MAX_ITERATIONS, "Max number of iterations reached");
+                auto& cycle = cycles[i];
+                nes::Word address = std::get<0>(cycle);
+                nes::Word value = std::get<1>(cycle);
+                std::string name = std::get<2>(cycle);
+                cpu->waitForCycles = 0;
+                nes::Byte memoryAddressValue = mem->read(address);
+                assert(memoryAddressValue == value, "Memory is not the expected" );
             }
         }
         // 4. Check if final status it's the same as the final status
@@ -103,7 +105,7 @@ namespace test::online
             assert(cpu->A == final.a, "A not the same");
             assert(cpu->X == final.x, "X not the same");
             assert(cpu->Y == final.y, "Y not the same");
-            // assert(cpu->getP() == final.p, "P not the same");
+            assert(cpu->getP() == final.p, "P not the same");
             for (auto& r : final.ram)
             {
                 nes::Word address = std::get<0>(r);
