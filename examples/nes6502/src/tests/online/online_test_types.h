@@ -12,8 +12,8 @@ namespace test::online
 
     struct CpuState
     {
-        nes::Byte pc;
-        nes::Byte s;
+        nes::Word pc;
+        nes::Word s;
         nes::Byte a;
         nes::Byte x;
         nes::Byte y;
