@@ -74,8 +74,8 @@ namespace nes
         void inc(); // Increment memory
         void inx(); // Increment X register
         void iny(); // Increment Y register
-        void jmp(); // Jumo
-        void jsr(); // Jumo to subroutine
+        void jmp(); // Jump
+        void jsr(); // Jump to subroutine
         void lda(); // Load accumulator
         void ldx(); // Load X register
         void ldy(); // Load Y register
