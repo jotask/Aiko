@@ -74,15 +74,7 @@ namespace test::online
             cpu->X = initial.x;
             cpu->Y = initial.y;
 
-            // Extract individual status flags
-            cpu->C = (initial.p >> 0) & 0x01; // Carry flag (bit 0)
-            cpu->Z = (initial.p >> 1) & 0x01; // Zero flag (bit 1)
-            cpu->I = (initial.p >> 2) & 0x01; // Interrupt disable flag (bit 2)
-            cpu->D = (initial.p >> 3) & 0x01; // Decimal mode flag (bit 3)
-            cpu->B = (initial.p >> 4) & 0x01; // Break command flag (bit 4)
-            // Bit 5 is unused and is typically set to 1
-            cpu->V = (initial.p >> 6) & 0x01; // Overflow flag (bit 6)
-            cpu->N = (initial.p >> 7) & 0x01; // Negative flag (bit 7)
+            cpu->setP(initial.p);
 
             for ( auto& r : initial.ram )
             {
