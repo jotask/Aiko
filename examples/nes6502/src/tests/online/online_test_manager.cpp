@@ -7,6 +7,10 @@
 #include <string>
 #include <fstream>
 #include <streambuf>
+#include <algorithm>
+#include <random>
+
+#include <core/log.h>
 
 #include <json/json.h>
 
