@@ -9,7 +9,7 @@ namespace nes
     void Cpu::reset()
     {
         program_counter = 0xFFFC;
-        stack_pointer = 0x0100;
+        stack_pointer = std::get<0>(Memory::STACK_PAGE);
         C = Z = I = D = B = V = N = 0;
         A = X = Y = 0;
         waitForCycles = 0;
