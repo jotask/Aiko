@@ -3,21 +3,24 @@
 #include "bus.h"
 #include "memory.h"
 #include "nes_utils.h"
+#include <aiko_includes.h>
 
 namespace nes
 {
     void Cpu::pushStack(Byte value)
     {
+        aiko::Log::trace("Push to stack ", toString(value));
         stack_pointer--;
-        assert( stack_pointer >= std::get<0>(Memory::STACK_PAGE), "Stack Overflow!");
-        getMemory()->write(stack_pointer, value);
+        assert(stack_pointer <= std::get<1>(Memory::STACK_PAGE), "TODO Stack Overflow!");
+        getMemory()->write(Word(stack_pointer), value);
     }
 
     Byte Cpu::popStack()
     {
+        aiko::Log::trace("Pop to stack");
         stack_pointer++;
-        assert(stack_pointer <= std::get<1>(Memory::STACK_PAGE), "Stack Underflow!");
-        return getMemory()->read(stack_pointer);
+        assert(stack_pointer >=std::get<0>(Memory::STACK_PAGE), "Stack Underflow!");
+        return getMemory()->read( Word(0x01 + stack_pointer));
     }
 
     void Cpu::relative()
@@ -104,7 +107,6 @@ namespace nes
         Byte low = mem->read(program_counter++);
         Word absoluteMemory = toWord(high, low) + X;
         memoryFetched = mem->read(absoluteMemory);
-        int a = 0;
     }
 
     void Cpu::absoluteY()
