@@ -12,6 +12,7 @@ namespace nes
     enum class AddressModes
     {
         Implied,
+        Accumulator,
         Inmediate,
         ZeroPage,
         ZeroPageX,
@@ -65,6 +66,8 @@ namespace nes
         pha,
         php,
         pla,
+        plx,
+        ply,
         plp,
         rol,
         ror,
@@ -90,6 +93,7 @@ namespace nes
         switch (mode)
         {
         case AddressModes::Implied:     return "Implied";
+        case AddressModes::Accumulator: return "Accumulator";
         case AddressModes::Inmediate:   return "Immediate";
         case AddressModes::ZeroPage:    return "ZeroPage";
         case AddressModes::ZeroPageX:   return "ZeroPageX";
@@ -148,6 +152,8 @@ namespace nes
             case Instruction::php:      return "php";
             case Instruction::pla:      return "pla";
             case Instruction::plp:      return "plp";
+            case Instruction::plx:      return "plx";
+            case Instruction::ply:      return "ply";
             case Instruction::rol:      return "rol";
             case Instruction::ror:      return "ror";
             case Instruction::rti:      return "rti";
