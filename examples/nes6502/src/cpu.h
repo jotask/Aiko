@@ -27,12 +27,8 @@ namespace nes
         AddressModes m_currentAddressMode;
         Instruction m_currentInstruction;
 
-        void pushStack(Byte);
-        Byte popStack();
-
         // Addressing modes
         void relative();
-        void implicit();
         void implied();
         void inmediate();
         void zeroPage();
@@ -84,8 +80,6 @@ namespace nes
         void pha(); // Push accumulator
         void php(); // Push processor status
         void pla(); // Pull accumulator
-        void plx(); // Pull accumulator
-        void ply(); // Pull accumulator
         void plp(); // Pull processor status
         void rol(); // Rotate left
         void ror(); // Rotate right
@@ -104,42 +98,44 @@ namespace nes
         void tya(); // Tranfer Y to accumulator
         void tsx(); // Transfer stack pointer to X
         void txs(); // Transfer X to stack pointer
+        void xxx(); // Unofficial OpCode
 
         void execute(Byte opCode);
 
+        Word addr_abs; // All used memory addresses end up in here
+        Word addr_rel;   // Represents absolute address following a branch
         Byte memoryFetched;
 
         Word program_counter;
-        Word stack_pointer;
+        Byte stack_pointer;
 
         // Registers
         Byte A, X, Y;
 
-        // StatusFlags
-        Byte C : 1; // Carry Status
-        Byte Z : 1; // Zero Status
-        Byte I : 1; // Interrup Status
-        Byte D : 1; // Decimal Status
-        Byte B : 1; // Break Status
-        Byte V : 1; // Overflow Status
-        Byte N : 1; // Negative Status
+        enum StatusFlags
+        {
+            C = (1 << 0),   // Carry Bit
+            Z = (1 << 1),   // Zero
+            I = (1 << 2),   // Disable Interrupts
+            D = (1 << 3),   // Decimal Mode (unused in this implementation)
+            B = (1 << 4),   // Break
+            U = (1 << 5),   // Unused
+            V = (1 << 6),   // Overflow
+            N = (1 << 7),   // Negative
+        };
+
+        Byte P;
 
         Byte waitForCycles;
 
         // helpers
         Memory* getMemory();
-        inline constexpr Byte getP() { return (C << 7) | (Z << 6) | (I << 5) | (D << 4) | (B << 3) | (V << 1) | (N << 0); }
-        inline constexpr void setP(Byte p)
-        {
-            C = (p >> 0) & 0x01; // Carry flag (bit 0)
-            Z = (p >> 1) & 0x01; // Zero flag (bit 1)
-            I = (p >> 2) & 0x01; // Interrupt disable flag (bit 2)
-            D = (p >> 3) & 0x01; // Decimal mode flag (bit 3)
-            B = (p >> 4) & 0x01; // Break command flag (bit 4)
-            // Bit 5 is unused and is typically set to 1
-            V = (p >> 6) & 0x01; // Overflow flag (bit 6)
-            N = (p >> 7) & 0x01; // Negative flag (bit 7)
-        }
+        void pushStack(Byte);
+        Byte popStack();
+        uint8_t getFlag(StatusFlags p);
+        void    setFlag(StatusFlags p, bool v);
+        inline constexpr Byte getP() { return P; }
+        inline constexpr void setP(Byte p) { P = p; }
 
     };
 

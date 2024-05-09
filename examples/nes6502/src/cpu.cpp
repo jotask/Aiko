@@ -8,11 +8,31 @@ namespace nes
 
     void Cpu::reset()
     {
-        program_counter = 0xFFFC;
-        stack_pointer = std::get<0>(Memory::STACK_PAGE);
-        C = Z = I = D = B = V = N = 0;
-        A = X = Y = 0;
-        waitForCycles = 0;
+
+        // Get address to set program counter to
+        addr_abs = 0xFFFC;
+
+        Word lo = getMemory()->read(Word(addr_abs + 0));
+        Word hi = getMemory()->read(Word(addr_abs + 1));
+
+        // Set it
+        program_counter = (hi << 8) | lo;
+
+        // Reset internal registers
+        A = 0;
+        X = 0;
+        Y = 0;
+        stack_pointer = 0xFD;
+        P = 0x00 | U;
+
+        // Clear internal helper variables
+        addr_rel = 0x0000;
+        addr_abs = 0x0000;
+        memoryFetched = 0x00;
+
+        // Reset takes time
+        waitForCycles = 8;
+
     }
 
     void Cpu::clock()
@@ -25,9 +45,13 @@ namespace nes
 
         auto memory = bus->getMicroprocesor<Memory>();
 
-        Byte opCode = memory->read( program_counter++ );
+        Byte opCode = memory->read( program_counter );
+        setFlag(U, true);
+        program_counter++;
 
         execute(opCode);
+
+        setFlag(U, true);
 
     }
 
@@ -46,6 +70,23 @@ namespace nes
         Memory* mem = bus->getMicroprocesor<Memory>();
         assert(mem != nullptr, "Memory not found in buffer");
         return mem;
+    }
+
+    uint8_t Cpu::getFlag(StatusFlags p)
+    {
+        return ((P & p) > 0) ? 1 : 0;
+    }
+
+    void Cpu::setFlag(StatusFlags p, bool v)
+    {
+        if (v)
+        {
+            P |= p;
+        }
+        else
+        {
+            P &= ~p;
+        }
     }
 
 }

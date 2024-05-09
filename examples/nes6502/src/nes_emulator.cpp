@@ -16,13 +16,10 @@
 #include "shared/math.h"
 #include "core/log.h"
 
-#include "tests/test_manager.h"
 #include "bus.h"
 #include "memory.h"
 #include "nes_utils.h"
 #include "instructions.h"
-
-#define NES_ENABLE_TESTS
 
 namespace nes
 {
@@ -38,19 +35,9 @@ namespace nes
 
     void NesEmulator::init()
     {
-
-#ifdef NES_ENABLE_TESTS
-        test::TestManager manager;
-        manager.init();
-        manager.runAll();
-#endif
-
         m_nes.reset();
-        m_nes.init();
-
         m_nes.insertCartridge("C:/Users/j.iznardo/Documents/Aiko/examples/nes6502/assets/6502_functional_test.bin");
         m_nes.start();
-
     }
 
     void NesEmulator::update()

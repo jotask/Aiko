@@ -7,7 +7,10 @@ namespace nes
 
     void Bus::reset()
     {
-        microprocessors.clear();
+        for (auto& m : microprocessors)
+        {
+            m->reset();
+        }
     }
 
     void Bus::addMicroprocesor(Microprocessor* m)

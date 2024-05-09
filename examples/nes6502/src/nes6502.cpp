@@ -22,26 +22,16 @@ namespace nes
         : runClock(true)
         , nOfcycles(0)
     {
-        init();
+        bus.m_nes = this;
+        bus.addMicroprocesor(&cartridge);
+        bus.addMicroprocesor(&cpu);
+        bus.addMicroprocesor(&memory);
+        bus.addMicroprocesor(&ppu);
     }
 
     nes6502::~nes6502()
     {
         stop();
-    }
-
-    void nes6502::init()
-    {
-
-        reset();
-
-        bus.m_nes = this;
-
-        bus.addMicroprocesor(&cartridge);
-        bus.addMicroprocesor(&cpu);
-        bus.addMicroprocesor(&memory);
-        bus.addMicroprocesor(&ppu);
-
     }
 
     void nes6502::start()
@@ -62,10 +52,6 @@ namespace nes
     void nes6502::reset()
     {
         bus.reset();
-        cartridge.reset();
-        cpu.reset();
-        memory.reset();
-        ppu.reset();
     }
 
     void nes6502::onCycle()

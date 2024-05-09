@@ -11,8 +11,9 @@ namespace nes
     {
         aiko::Log::trace("Push to stack ", toString(value));
         stack_pointer--;
-        assert(stack_pointer <= std::get<1>(Memory::STACK_PAGE), "TODO Stack Overflow!");
-        getMemory()->write(Word(stack_pointer), value);
+        Word stack_address = 0x0100 + stack_pointer;
+        assert(stack_address <= std::get<1>(Memory::STACK_PAGE), "TODO Stack Overflow!");
+        getMemory()->write(stack_address, value);
     }
 
     Byte Cpu::popStack()
@@ -26,11 +27,12 @@ namespace nes
     void Cpu::relative()
     {
         m_currentAddressMode = AddressModes::Relative;
-    }
-
-    void Cpu::implicit()
-    {
-        // m_currentAddressMode = AddressModes::Implicit;
+        addr_rel = getMemory()->read(program_counter);
+        program_counter++;
+        if (addr_rel & 0x80)
+        {
+            addr_rel |= 0xFF00;
+        }
     }
 
     void Cpu::implied()
@@ -39,6 +41,7 @@ namespace nes
         // Therefor, these instructions are principally single-byte instructions, lacking an
         // explicit operand. The operand is implied, as it is already provided by the very instruction.
         m_currentAddressMode = AddressModes::Implied;
+        memoryFetched = A;
     }
 
     void Cpu::inmediate()
@@ -46,8 +49,7 @@ namespace nes
         // A literal operand is given immediately after the instruction.The operand is always
         // an 8 - bit value and the total instruction length is always 2 bytes.
         m_currentAddressMode = AddressModes::Inmediate;
-        Memory* mem = getMemory();
-        memoryFetched = mem->read(program_counter++);
+        addr_abs = program_counter++;
     }
 
     void Cpu::zeroPage()
@@ -56,9 +58,9 @@ namespace nes
         // 256 memory locations each ($00…$FF). In this model the high-byte of an address gives the
         // page number and the low-byte a location inside this page.
         m_currentAddressMode = AddressModes::ZeroPage;
-        Memory* mem = getMemory();
-        Byte memoryAddress = mem->read(program_counter++);
-        memoryFetched = mem->read(memoryAddress);
+        addr_abs = getMemory()->read(program_counter);
+        program_counter++;
+        addr_abs &= 0x00FF;
     }
 
     void Cpu::zeroPageX()
@@ -66,10 +68,9 @@ namespace nes
         // Indexed addressing adds the contents of either the X-register or the Y-register to the
         // provided address to give the effective address, which provides the operand.
         m_currentAddressMode = AddressModes::ZeroPageX;
-        Memory* mem = getMemory();
-        Byte memoryAddress = mem->read(program_counter++);
-        Word tmp = memoryAddress + X;
-        memoryFetched = mem->read(tmp);
+        addr_abs = (getMemory()->read(program_counter) + X);
+        program_counter++;
+        addr_abs &= 0x00FF;
     }
 
     void Cpu::zeroPageY()
@@ -77,9 +78,9 @@ namespace nes
         // Indexed addressing adds the contents of either the X-register or the Y-register to the
         // provided address to give the effective address, which provides the operand.
         m_currentAddressMode = AddressModes::ZeroPageY;
-        Memory* mem = getMemory();
-        Byte memoryAddress = mem->read(program_counter++);
-        memoryFetched = mem->read(memoryAddress) + Y;
+        addr_abs = (getMemory()->read(program_counter) + Y);
+        program_counter++;
+        addr_abs &= 0x00FF;
     }
 
     void Cpu::absolute()
@@ -87,95 +88,101 @@ namespace nes
         // Absolute addressing modes provides the 16-bit address of a memory location, the contents
         // of which used as the operand to the instruction.
         m_currentAddressMode = AddressModes::Absolute;
-        Memory* mem = getMemory();
-        Byte high = mem->read(program_counter++);
-        Byte low  = mem->read(program_counter++);
-        Word absoluteMemory = toWord(high, low);
-        memoryFetched = mem->read(absoluteMemory);
+        Word lo = getMemory()->read(program_counter);
+        program_counter++;
+        Word hi = getMemory()->read(program_counter);
+        program_counter++;
+
+        addr_abs = (hi << 8) | lo;
+
     }
 
     void Cpu::absoluteX()
     {
         m_currentAddressMode = AddressModes::AbsoluteX;
-        Memory* mem = getMemory();
-        Byte high = mem->read(program_counter++);
-        Byte low = mem->read(program_counter++);
-        Word absoluteMemory = toWord(high, low) + X;
-        memoryFetched = mem->read(absoluteMemory);
+        Word lo = getMemory()->read(program_counter);
+        program_counter++;
+        Word hi = getMemory()->read(program_counter);
+        program_counter++;
+
+        addr_abs = (hi << 8) | lo;
+        addr_abs += X;
+
+        if ((addr_abs & 0xFF00) != (hi << 8))
+        {
+            aiko::Log::error("Not Implemented");
+            waitForCycles++;
+        }
     }
 
     void Cpu::absoluteY()
     {
         m_currentAddressMode = AddressModes::AbsoluteY;
-        Memory* mem = getMemory();
-        Byte high = mem->read(program_counter++);
-        Byte low = mem->read(program_counter++);
-        Word absoluteMemory = toWord(high, low) + Y;
-        memoryFetched = mem->read(absoluteMemory);
+        uint16_t lo = getMemory()->read(program_counter);
+        program_counter++;
+        uint16_t hi = getMemory()->read(program_counter);
+        program_counter++;
+
+        addr_abs = (hi << 8) | lo;
+        addr_abs += Y;
+
+        if ((addr_abs & 0xFF00) != (hi << 8))
+        {
+            waitForCycles++;
+        }
+
     }
 
     void Cpu::indirect()
     {
         m_currentAddressMode = AddressModes::Indirect;
+        Word ptr_lo = getMemory()->read(program_counter);
+        program_counter++;
+        Word ptr_hi = getMemory()->read(program_counter);
+        program_counter++;
+
+        Word ptr = (ptr_hi << 8) | ptr_lo;
+
+        if (ptr_lo == 0x00FF) // Simulate page boundary hardware bug
+        {
+            addr_abs = (getMemory()->read(Word(ptr & 0xFF00)) << 8) | getMemory()->read(Word(ptr + 0));
+        }
+        else // Behave normally
+        {
+            addr_abs = (getMemory()->read(Word(ptr + 1)) << 8) | getMemory()->read(Word(ptr + 0));
+        }
+
     }
 
     void Cpu::indirectX()
     {
         m_currentAddressMode = AddressModes::IndirectX;
-        Memory* mem = getMemory();
-        // Fetch the zero page address from memory and increment the program counter
-        Byte zeropageAddress = mem->read(program_counter++);
-        // Calculate the effective address by adding the X register to the zero page address
-        Word effectiveAddress = zeropageAddress + X;
-        // Read the low of the target address from the effective address
-        Byte msb = mem->read(effectiveAddress);
+        Word t = getMemory()->read(program_counter);
+        program_counter++;
 
-        // Increment the effective address to read the MSB of the target address
-        effectiveAddress++;
+        Word lo = getMemory()->read(Word((Word)(t + (Word)X) & 0x00FF));
+        Word hi = getMemory()->read(Word((Word)(t + (Word)X + 1) & 0x00FF));
 
-        // Ensure correct wrap-around for zero page addressing
-        if ((effectiveAddress & 0xFF) == 0) {
-            effectiveAddress = (effectiveAddress & 0xFF00) | (zeropageAddress & 0xFF);
-        }
-
-        // Read the MSB of the target address from the adjusted effective address
-        Byte lsb = mem->read(effectiveAddress);
-
-        // Combine the LSB and MSB to form the target address
-        Word targetAddress = nes::toWord(msb, lsb);;
-
-        // Read the byte from memory at the target address
-        memoryFetched = mem->read(targetAddress);
+        addr_abs = (hi << 8) | lo;
 
     }
 
     void Cpu::indirectY()
     {
         m_currentAddressMode = AddressModes::IndirectY;
-        Memory* mem = getMemory();
-        // Fetch the zero page address from memory and increment the program counter
-        Byte zeropageAddress = mem->read(program_counter++);
-        // Calculate the effective address by adding the X register to the zero page address
-        Word effectiveAddress = zeropageAddress + Y;
-        // Read the low of the target address from the effective address
-        Byte msb = mem->read(effectiveAddress);
+        uint16_t t = getMemory()->read(program_counter);
+        program_counter++;
 
-        // Increment the effective address to read the MSB of the target address
-        effectiveAddress++;
+        uint16_t lo = getMemory()->read(Word(t & 0x00FF));
+        uint16_t hi = getMemory()->read(Word((t + 1) & 0x00FF));
 
-        // Ensure correct wrap-around for zero page addressing
-        if ((effectiveAddress & 0xFF) == 0) {
-            effectiveAddress = (effectiveAddress & 0xFF00) | (zeropageAddress & 0xFF);
+        addr_abs = (hi << 8) | lo;
+        addr_abs += Y;
+
+        if ((addr_abs & 0xFF00) != (hi << 8))
+        {
+            waitForCycles++;
         }
-
-        // Read the MSB of the target address from the adjusted effective address
-        Byte lsb = mem->read(effectiveAddress);
-
-        // Combine the LSB and MSB to form the target address
-        Word targetAddress = nes::toWord(msb, lsb);;
-
-        // Read the byte from memory at the target address
-        memoryFetched = mem->read(targetAddress);
     }
 
 }

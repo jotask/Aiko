@@ -26,7 +26,6 @@ namespace nes
         ~nes6502();
         void start();
         void stop();
-        void init();
         void reset();
         void insertCartridge(const char*);
 
