@@ -13,6 +13,10 @@ namespace nes
 
     void Cartridge::load(const char* file)
     {
+
+        constexpr size_t skipBytes = 0x0010; // Header NES data
+        constexpr size_t loadBytes = 0x4000; // Number of bytes to load from the file
+
         std::ifstream stream;
         stream.open(file, std::ios::binary);
         if (stream.is_open() == false)
@@ -21,27 +25,29 @@ namespace nes
             return;
         }
 
-        Memory* memory = bus->getMicroprocesor<Memory>();
-
-        assert(memory != nullptr, "Couldnt' get Memory connected to the bus");
-
         // Get the size of the file
         stream.seekg(0, std::ios::end);
         std::streampos fileSize = stream.tellg();
         stream.seekg(0, std::ios::beg);
 
-        assert(Memory::MAX_MEM == fileSize, "Oh dear, this doesn't match");
-
-        // Read the file into the memory
-        stream.read(reinterpret_cast<char*>(memory->data), fileSize);
-
+        std::vector<char> buffer(fileSize);
+        stream.read(buffer.data(), fileSize);
         if (!stream)
         {
             aiko::Log::error("Error reading binary file: ", file);
             return;
         }
 
+        buffer.resize(buffer.size() - loadBytes);
+        buffer.erase(buffer.begin(), buffer.begin() + skipBytes);
+
         stream.close();
+
+        Memory* memory = bus->getMicroprocesor<Memory>();
+        assert(memory != nullptr, "Couldn't get Memory connected to the bus");
+
+        std::copy(buffer.begin(), buffer.end(), memory->data + 0x8000);
+        std::copy(buffer.begin(), buffer.end(), memory->data + 0xC000);
 
     }
 
