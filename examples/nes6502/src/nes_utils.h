@@ -17,6 +17,15 @@ namespace nes
         return ss.str();
     }
 
+    static std::string toString(Word value)
+    {
+        static std::string buffer;
+        static std::stringstream ss;
+        ss.str("");
+        ss << "0x" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(value);
+        return ss.str();
+    }
+
     inline Byte getHigh(Word value)
     {
         // Little endian
@@ -33,6 +42,13 @@ namespace nes
     {
         // Little endian
         return (static_cast<Word>(low) | (static_cast<Word>(high) << 8));
+    }
+
+    inline Byte toByte(Word word)
+    {
+        Byte low = static_cast<Byte>(word & 0xFF);
+        Byte high = static_cast<Byte>((word >> 8) & 0xFF);
+        return high;
     }
 
 }
