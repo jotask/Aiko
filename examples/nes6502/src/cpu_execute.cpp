@@ -16,7 +16,9 @@ namespace nes
         Byte& cycles = this->waitForCycles;
         aiko::Log::trace("Executing [", toString(opCode), "] OpCode");
 
-        OpCode op = instruction_tables[opCode];
+        OpCode op  = instruction_tables[opCode];
+
+        cycles += op.cycles;
 
         switch (op.mode)
         {

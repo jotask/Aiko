@@ -29,9 +29,8 @@ namespace nes
         void setCurrentAddressMode(AddressModes);
         void setCurrentInstruction(Instruction);
 
-
-        std::mutex m_currentAddressMode_mutex;
-        std::mutex m_currentInstruction_mutex;
+        std::mutex      m_currentAddressMode_mutex;
+        std::mutex      m_currentInstruction_mutex;
         AddressModes    m_currentAddressMode;
         Instruction     m_currentInstruction;
 
