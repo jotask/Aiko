@@ -7,20 +7,21 @@
 
 namespace nes
 {
-    void Cpu::pushStack(Byte value)
+    void Cpu::pushStack(Byte value, bool late)
     {
-        stack_pointer--;
+        if (late == false) stack_pointer--;
         Word stack_address = 0x0100 + stack_pointer;
         assert(stack_address <= std::get<1>(Memory::STACK_PAGE), "TODO Stack Overflow!");
         getMemory()->write(stack_address, value);
+        if (late == true) stack_pointer--;
     }
 
-    void Cpu::pushWordStack(Word value)
+    void Cpu::pushWordStack(Word value, bool late)
     {
         const Byte high = getHigh(value);
         const Byte low  = getLow(value);
-        pushStack(high);
-        pushStack(low);
+        pushStack(high, late);
+        pushStack(low), late;
     }
 
     Byte Cpu::popStack()

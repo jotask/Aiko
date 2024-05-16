@@ -139,8 +139,8 @@ namespace nes
 
         // helpers
         Memory* getMemory();
-        void pushStack(Byte);
-        void pushWordStack(Word);
+        void pushStack(Byte, bool = false);
+        void pushWordStack(Word, bool = false);
         Byte popStack();
         Word popWordStack();
         uint8_t getFlag(StatusFlags p);

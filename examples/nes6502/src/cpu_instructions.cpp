@@ -153,23 +153,16 @@ namespace nes
     void Cpu::brk()
     {
         setCurrentInstruction(Instruction::brk);
-
-        // TODO extract this into the push/pop stack functions
-
         program_counter++;
         setFlag(I, 1);
-        Memory* mem = getMemory();
-        mem->write(Word(0x0100 + stack_pointer), Byte((program_counter >> 8) & 0x00FF));
-        stack_pointer--;
-        mem->write(Word(0x0100 + stack_pointer), Byte(program_counter & 0x00FF));
-        stack_pointer--;
-
+        pushWordStack(program_counter);
+        pushWordStack(program_counter, true);
         setFlag(B, 1);
-        mem->write(Word(0x0100 + stack_pointer), P);
-        stack_pointer--;
+        pushStack(P, true);
         setFlag(B, 0);
-
-        program_counter = (Word)mem->read(Word(0xFFFE)) | ((Word)mem->read(Word(0xFFFF)) << 8);
+        Byte high = getMemory()->read(Word(0xFFFE));
+        Byte low  = getMemory()->read(Word(0xFFFF));
+        program_counter = toWord(high, low);
     }
 
     void Cpu::bvc()
@@ -392,24 +385,21 @@ namespace nes
     void Cpu::pha()
     {
         setCurrentInstruction(Instruction::pha);
-        getMemory()->write(Word(0x0100 + stack_pointer), A);
-        stack_pointer--;
+        pushStack(A, true);
     }
 
     void Cpu::php()
     {
         setCurrentInstruction(Instruction::php);
-        getMemory()->write(Word(0x0100 + stack_pointer), Byte(P | B | U));
+        pushStack(Byte(P | B | U), true);
         setFlag(B, 0);
         setFlag(U, 0);
-        stack_pointer--;
     }
 
     void Cpu::pla()
     {
         setCurrentInstruction(Instruction::pla);
-        stack_pointer++;
-        A = getMemory()->read(Word(0x0100 + stack_pointer));
+        A = popStack();
         setFlag(Z, A == 0x00);
         setFlag(N, A & 0x80);
     }
@@ -417,8 +407,7 @@ namespace nes
     void Cpu::plp()
     {
         setCurrentInstruction(Instruction::plp);
-        stack_pointer++;
-        P = getMemory()->read(Word(0x0100 + stack_pointer));
+        P = popStack();
         setFlag(U, 1);
     }
 
@@ -461,15 +450,10 @@ namespace nes
     void Cpu::rti()
     {
         setCurrentInstruction(Instruction::rti);
-        stack_pointer++;
-        P = getMemory()->read(Word(0x0100 + stack_pointer));
+        P = popStack();
         P &= ~B;
         P &= ~U;
-
-        stack_pointer++;
-        program_counter = (Word)getMemory()->read(Word(0x0100 + stack_pointer));
-        stack_pointer++;
-        program_counter |= (Word)getMemory()->read(Word((0x0100 + stack_pointer) << 8));
+        program_counter = popWordStack();
     }
 
     void Cpu::rts()
