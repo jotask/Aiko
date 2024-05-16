@@ -27,8 +27,7 @@ namespace nes
     void Cpu::relative()
     {
         setCurrentAddressMode(AddressModes::Relative);
-        addr_rel = getMemory()->read(program_counter);
-        program_counter++;
+        addr_rel = getMemory()->read(program_counter++);
         if (addr_rel & 0x80)
         {
             addr_rel |= 0xFF00;
@@ -58,9 +57,8 @@ namespace nes
         // 256 memory locations each ($00…$FF). In this model the high-byte of an address gives the
         // page number and the low-byte a location inside this page.
         setCurrentAddressMode(AddressModes::ZeroPage);
-        addr_abs = getMemory()->read(program_counter);
-        program_counter++;
-        addr_abs &= 0x00FF;
+        addr_abs = getMemory()->read(program_counter++);
+        addr_abs = getLow(addr_abs);
     }
 
     void Cpu::zeroPageX()
