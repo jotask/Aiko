@@ -8,6 +8,27 @@
 
 namespace nes
 {
+
+    static Byte toByte(std::string value)
+    {
+        std::stringstream ss;
+        ss << std::hex << value;
+        int temp;
+        ss >> temp;
+        Byte result = static_cast<Byte>(temp);
+        return result;
+    }
+
+    static Word toWord(std::string value)
+    {
+        std::stringstream ss;
+        ss << std::hex << value;
+        int temp;
+        ss >> temp;
+        Word result = static_cast<Word>(temp);
+        return result;
+    }
+
     static std::string toString(Byte value)
     {
         static std::string buffer;
