@@ -37,21 +37,22 @@ namespace nes
 
     void Cpu::clock()
     {
+
         if (waitForCycles > 0)
         {
             waitForCycles--;
             return;
         }
 
-        auto memory = bus->getMicroprocesor<Memory>();
+        Memory* memory = bus->getMicroprocesor<Memory>();
 
-        Byte opCode = memory->read( program_counter );
+        Byte opCode = memory->read( program_counter++ );
+
         setFlag(U, true);
-        program_counter++;
-
         execute(opCode);
-
         setFlag(U, true);
+
+        aiko::Log::info("A:", toString(A), " X:", toString(X), " Y:", toString(Y), " P: ", unsigned(P), " SP:", toString(stack_pointer), " PC:", toString(program_counter) );
 
     }
 
