@@ -73,7 +73,7 @@ namespace nes
             {
                 waitForCycles++;
             }
-            waitForCycles = addr_abs;
+            program_counter = addr_abs;
         }
     }
 
@@ -370,7 +370,6 @@ namespace nes
     void Cpu::nop()
     {
         setCurrentInstruction(Instruction::nop);
-        // TODO
     }
 
     void Cpu::ora()
