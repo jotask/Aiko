@@ -480,11 +480,9 @@ namespace nes
     void Cpu::rts()
     {
         setCurrentInstruction(Instruction::rts);
-        stack_pointer++;
-        program_counter = (Word)getMemory()->read(Word(0x0100 + stack_pointer));
-        stack_pointer++;
-        program_counter |= (Word)getMemory()->read(Word((0x0100 + stack_pointer) << 8));
-
+        Byte low = popStack();
+        Byte hig = popStack();
+        program_counter = toWord(hig, low);
         program_counter++;
     }
 

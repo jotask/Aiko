@@ -21,7 +21,8 @@ namespace nes
         aiko::Log::trace("Pop to stack");
         stack_pointer++;
         assert(stack_pointer >=std::get<0>(Memory::STACK_PAGE), "Stack Underflow!");
-        return getMemory()->read( Word(0x01 + stack_pointer));
+        Word stack_address = 0x0100 + stack_pointer;
+        return getMemory()->read(stack_address);
     }
 
     void Cpu::relative()
