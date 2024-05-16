@@ -104,7 +104,7 @@ namespace nes
         case AddressModes::IndirectX:   return "IndirectX";
         case AddressModes::IndirectY:   return "IndirectY";
         case AddressModes::Relative:    return "Relative";
-        default:                        assert(false, "Addressing Mode Unknow");
+        default:                        return "xxx";       // assert(false, "Addressing Mode Unknow");
         }
     }
 
@@ -169,7 +169,7 @@ namespace nes
             case Instruction::txs:      return "txs";
             case Instruction::tya:      return "tya";
             case Instruction::xxx:      return "xxx";
-            default:                    assert(false, "Instruction Unknow");
+            default:                    return "???"; //assert(false, "Instruction Unknow");
         }
     }
 
