@@ -39,7 +39,7 @@ namespace nes
         // Addressing modes
         void relative();
         void implied();
-        void inmediate();
+        void immediate();
         void zeroPage();
         void zeroPageX();
         void zeroPageY();
@@ -61,7 +61,7 @@ namespace nes
         void bmi(); // Branch if Minus
         void bne(); // Branch if not equal
         void bpl(); // Branch if positive
-        void brk(); // Force interrup
+        void brk(); // Force interrupt
         void bvc(); // Branch if overflow clear
         void bvs(); // Branch if overflow set
         void clc(); // Clear carry flag
@@ -104,7 +104,7 @@ namespace nes
         void tax(); // Transfer accumulator to X
         void tay(); // Transfer accumulator to Y
         void txa(); // Transfer X to accumulator
-        void tya(); // Tranfer Y to accumulator
+        void tya(); // Transfer Y to accumulator
         void tsx(); // Transfer stack pointer to X
         void txs(); // Transfer X to stack pointer
         void xxx(); // Unofficial OpCode

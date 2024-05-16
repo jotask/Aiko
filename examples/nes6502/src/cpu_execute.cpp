@@ -23,7 +23,7 @@ namespace nes
         switch (op.mode)
         {
             case AddressModes::Implied:     implied();      break;
-            case AddressModes::Inmediate:   inmediate();    break;
+            case AddressModes::Immediate:   immediate();    break;
             case AddressModes::ZeroPage:    zeroPage();     break;
             case AddressModes::ZeroPageX:   zeroPageX();    break;
             case AddressModes::ZeroPageY:   zeroPageY();    break;

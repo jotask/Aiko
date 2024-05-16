@@ -59,11 +59,11 @@ namespace nes
         memoryFetched = A;
     }
 
-    void Cpu::inmediate()
+    void Cpu::immediate()
     {
         // A literal operand is given immediately after the instruction.The operand is always
         // an 8 - bit value and the total instruction length is always 2 bytes.
-        setCurrentAddressMode(AddressModes::Inmediate);
+        setCurrentAddressMode(AddressModes::Immediate);
         addr_abs = program_counter++;
     }
 
