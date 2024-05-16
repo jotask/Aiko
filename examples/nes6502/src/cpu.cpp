@@ -3,20 +3,25 @@
 #include "bus.h"
 #include "memory.h"
 
+#include <aiko_includes.h>
+#include "nes_utils.h"
+
 namespace nes
 {
 
     void Cpu::reset()
     {
 
+#if false
         // Get address to set program counter to
-        addr_abs = 0xFFFC;
-
+        addr_abs = 0xC000;
         Word lo = getMemory()->read(Word(addr_abs + 0));
         Word hi = getMemory()->read(Word(addr_abs + 1));
-
         // Set it
-        program_counter = (hi << 8) | lo;
+        program_counter = toWord(hi, lo);
+#else
+        program_counter = 0xC000;
+#endif
 
         // Reset internal registers
         A = 0;
