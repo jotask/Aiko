@@ -69,7 +69,7 @@ namespace nes
             nOfcycles++;
             std::this_thread::sleep_until(target_time);
             target_time += wait_time;
-            aiko::Log::info("[6502] clock tick");
+            // aiko::Log::info("[6502] clock tick");
         }
 
     }
