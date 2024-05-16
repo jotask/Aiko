@@ -57,7 +57,6 @@ namespace nes
         execute(opCode);
         setFlag(U, true);
 
-        aiko::Log::info("A:", toString(A), " X:", toString(X), " Y:", toString(Y), " P: ", unsigned(P), " SP:", toString(stack_pointer), " PC:", toString(program_counter) );
 
     }
 
