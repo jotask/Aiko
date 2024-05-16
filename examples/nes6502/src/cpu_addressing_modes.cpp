@@ -26,7 +26,7 @@ namespace nes
 
     void Cpu::relative()
     {
-        m_currentAddressMode = AddressModes::Relative;
+        setCurrentAddressMode(AddressModes::Relative);
         addr_rel = getMemory()->read(program_counter);
         program_counter++;
         if (addr_rel & 0x80)
@@ -40,7 +40,7 @@ namespace nes
         // These instructions act directly on one or more registers or flags internal to the CPU.
         // Therefor, these instructions are principally single-byte instructions, lacking an
         // explicit operand. The operand is implied, as it is already provided by the very instruction.
-        m_currentAddressMode = AddressModes::Implied;
+        setCurrentAddressMode(AddressModes::Implied);
         memoryFetched = A;
     }
 
@@ -48,7 +48,7 @@ namespace nes
     {
         // A literal operand is given immediately after the instruction.The operand is always
         // an 8 - bit value and the total instruction length is always 2 bytes.
-        m_currentAddressMode = AddressModes::Inmediate;
+        setCurrentAddressMode(AddressModes::Inmediate);
         addr_abs = program_counter++;
     }
 
@@ -57,7 +57,7 @@ namespace nes
         // The 16-bit address space available to the 6502 is thought to consist of 256 "pages" of
         // 256 memory locations each ($00…$FF). In this model the high-byte of an address gives the
         // page number and the low-byte a location inside this page.
-        m_currentAddressMode = AddressModes::ZeroPage;
+        setCurrentAddressMode(AddressModes::ZeroPage);
         addr_abs = getMemory()->read(program_counter);
         program_counter++;
         addr_abs &= 0x00FF;
@@ -67,7 +67,7 @@ namespace nes
     {
         // Indexed addressing adds the contents of either the X-register or the Y-register to the
         // provided address to give the effective address, which provides the operand.
-        m_currentAddressMode = AddressModes::ZeroPageX;
+        setCurrentAddressMode(AddressModes::ZeroPageX);
         addr_abs = (getMemory()->read(program_counter) + X);
         program_counter++;
         addr_abs &= 0x00FF;
@@ -77,7 +77,7 @@ namespace nes
     {
         // Indexed addressing adds the contents of either the X-register or the Y-register to the
         // provided address to give the effective address, which provides the operand.
-        m_currentAddressMode = AddressModes::ZeroPageY;
+        setCurrentAddressMode(AddressModes::ZeroPageY);
         addr_abs = (getMemory()->read(program_counter) + Y);
         program_counter++;
         addr_abs &= 0x00FF;
@@ -99,7 +99,7 @@ namespace nes
 
     void Cpu::absoluteX()
     {
-        m_currentAddressMode = AddressModes::AbsoluteX;
+        setCurrentAddressMode(AddressModes::AbsoluteX);
         Word lo = getMemory()->read(program_counter);
         program_counter++;
         Word hi = getMemory()->read(program_counter);
@@ -117,7 +117,7 @@ namespace nes
 
     void Cpu::absoluteY()
     {
-        m_currentAddressMode = AddressModes::AbsoluteY;
+        setCurrentAddressMode(AddressModes::AbsoluteY);
         uint16_t lo = getMemory()->read(program_counter);
         program_counter++;
         uint16_t hi = getMemory()->read(program_counter);
@@ -135,7 +135,7 @@ namespace nes
 
     void Cpu::indirect()
     {
-        m_currentAddressMode = AddressModes::Indirect;
+        setCurrentAddressMode(AddressModes::Indirect);
         Word ptr_lo = getMemory()->read(program_counter);
         program_counter++;
         Word ptr_hi = getMemory()->read(program_counter);
@@ -156,7 +156,7 @@ namespace nes
 
     void Cpu::indirectX()
     {
-        m_currentAddressMode = AddressModes::IndirectX;
+        setCurrentAddressMode(AddressModes::IndirectX);
         Word t = getMemory()->read(program_counter);
         program_counter++;
 
@@ -169,7 +169,7 @@ namespace nes
 
     void Cpu::indirectY()
     {
-        m_currentAddressMode = AddressModes::IndirectY;
+        setCurrentAddressMode(AddressModes::IndirectY);
         uint16_t t = getMemory()->read(program_counter);
         program_counter++;
 

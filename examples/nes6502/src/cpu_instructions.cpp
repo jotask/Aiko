@@ -11,7 +11,7 @@ namespace nes
 
     void Cpu::adc()
     {
-        m_currentInstruction = Instruction::adc;
+        setCurrentInstruction(Instruction::adc);
         Word address = A + memoryFetched + getFlag(C);
         setFlag(C, address > 255);
         setFlag(Z, (address & 0x00FF) == 0);
@@ -23,7 +23,7 @@ namespace nes
 
     void Cpu:: and()
     {
-        m_currentInstruction = Instruction:: and;
+        setCurrentInstruction(Instruction:: and);
         A = A & memoryFetched;
         setFlag(Z, A == 0x00);
         setFlag(N, A & 0x80);
@@ -32,7 +32,7 @@ namespace nes
 
     void Cpu::asl()
     {
-        m_currentInstruction = Instruction::asl;
+        setCurrentInstruction(Instruction::asl);
         Word temp = (Word)memoryFetched << 1;
         setFlag(C, (temp & 0xFF00) > 0);
         setFlag(Z, (temp & 0x00FF) == 0x00);
@@ -49,7 +49,7 @@ namespace nes
 
     void Cpu::bcc()
     {
-        m_currentInstruction = Instruction::bcc;
+        setCurrentInstruction(Instruction::bcc);
         if (getFlag(C) == 0)
         {
             waitForCycles++;
@@ -64,7 +64,7 @@ namespace nes
 
     void Cpu::bcs()
     {
-        m_currentInstruction = Instruction::bcs;
+        setCurrentInstruction(Instruction::bcs);
         if (getFlag(C) == 1)
         {
             waitForCycles++;
@@ -79,7 +79,7 @@ namespace nes
 
     void Cpu::beq()
     {
-        m_currentInstruction = Instruction::beq;
+        setCurrentInstruction(Instruction::beq);
         if (getFlag(Z) == 1)
         {
             waitForCycles++;
@@ -94,7 +94,7 @@ namespace nes
 
     void Cpu::bit()
     {
-        m_currentInstruction = Instruction::bit;
+        setCurrentInstruction(Instruction::bit);
         Word temp = A & memoryFetched;
         setFlag(Z, (temp & 0x00FF) == 0x00);
         setFlag(N, memoryFetched & (1 << 7));
@@ -103,7 +103,7 @@ namespace nes
 
     void Cpu::bmi()
     {
-        m_currentInstruction = Instruction::bmi;
+        setCurrentInstruction(Instruction::bmi);
         if (getFlag(N) == 1)
         {
             waitForCycles++;
@@ -118,7 +118,7 @@ namespace nes
 
     void Cpu::bne()
     {
-        m_currentInstruction = Instruction::bne;
+        setCurrentInstruction(Instruction::bne);
         if (getFlag(Z) == 0)
         {
             waitForCycles++;
@@ -133,7 +133,7 @@ namespace nes
 
     void Cpu::bpl()
     {
-        m_currentInstruction = Instruction::bpl;
+        setCurrentInstruction(Instruction::bpl);
         if (getFlag(N) == 0)
         {
             waitForCycles++;
@@ -148,6 +148,7 @@ namespace nes
 
     void Cpu::brk()
     {
+        setCurrentInstruction(Instruction::brk);
 
         // TODO extract this into the push/pop stack functions
 
@@ -169,7 +170,7 @@ namespace nes
 
     void Cpu::bvc()
     {
-        m_currentInstruction = Instruction::bvc;
+        setCurrentInstruction(Instruction::bvc);
         if (getFlag(V) == 0)
         {
             waitForCycles++;
@@ -184,7 +185,7 @@ namespace nes
 
     void Cpu::bvs()
     {
-        m_currentInstruction = Instruction::bvs;
+        setCurrentInstruction(Instruction::bvs);
         if (getFlag(V) == 1)
         {
             waitForCycles++;
@@ -199,31 +200,31 @@ namespace nes
 
     void Cpu::clc()
     {
-        m_currentInstruction = Instruction::clc;
+        setCurrentInstruction(Instruction::clc);
         setFlag(C, false);
     }
 
     void Cpu::cld()
     {
-        m_currentInstruction = Instruction::cld;
+        setCurrentInstruction(Instruction::cld);
         setFlag(D, false);
     }
 
     void Cpu::cli()
     {
-        m_currentInstruction = Instruction::cli;
+        setCurrentInstruction(Instruction::cli);
         setFlag(I, false);
     }
 
     void Cpu::clv()
     {
-        m_currentInstruction = Instruction::clv;
+        setCurrentInstruction(Instruction::clv);
         setFlag(V, false);
     }
 
     void Cpu::cmp()
     {
-        m_currentInstruction = Instruction::cmp;
+        setCurrentInstruction(Instruction::cmp);
         Word temp = (Word)A - (Word)memoryFetched;
         setFlag(C, A >= memoryFetched);
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -232,7 +233,7 @@ namespace nes
 
     void Cpu::cpx()
     {
-        m_currentInstruction = Instruction::cpx;
+        setCurrentInstruction(Instruction::cpx);
         Word temp = (Word)X - (Word)memoryFetched;
         setFlag(C, X >= memoryFetched);
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -241,7 +242,7 @@ namespace nes
 
     void Cpu::cpy()
     {
-        m_currentInstruction = Instruction::cpy;
+        setCurrentInstruction(Instruction::cpy);
         Word temp = (Word)Y - (Word)memoryFetched;
         setFlag(C, Y >= memoryFetched);
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -250,7 +251,7 @@ namespace nes
 
     void Cpu::dec()
     {
-        m_currentInstruction = Instruction::dec;
+        setCurrentInstruction(Instruction::dec);
         Word temp = memoryFetched - 1;
         getMemory()->write(addr_abs, Byte(temp & 0x00FF));
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -259,7 +260,7 @@ namespace nes
 
     void Cpu::dex()
     {
-        m_currentInstruction = Instruction::dex;
+        setCurrentInstruction(Instruction::dex);
         X--;
         setFlag(Z, X == 0x00);
         setFlag(N, X & 0x80);
@@ -267,7 +268,7 @@ namespace nes
 
     void Cpu::dey()
     {
-        m_currentInstruction = Instruction::dey;
+        setCurrentInstruction(Instruction::dey);
         Y--;
         setFlag(Z, Y == 0x00);
         setFlag(N, Y & 0x80);
@@ -275,7 +276,7 @@ namespace nes
 
     void Cpu::eor()
     {
-        m_currentInstruction = Instruction::eor;
+        setCurrentInstruction(Instruction::eor);
         A = A ^ memoryFetched;
         setFlag(Z, A == 0x00);
         setFlag(N, A & 0x80);
@@ -283,7 +284,7 @@ namespace nes
 
     void Cpu::inc()
     {
-        m_currentInstruction = Instruction::inc;
+        setCurrentInstruction(Instruction::inc);
         Word temp = memoryFetched + 1;
         getMemory()->write(addr_abs, Byte(temp & 0x00FF));
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -292,7 +293,7 @@ namespace nes
 
     void Cpu::inx()
     {
-        m_currentInstruction = Instruction::inx;
+        setCurrentInstruction(Instruction::inx);
         X++;
         setFlag(Z, X == 0x00);
         setFlag(N, X & 0x80);
@@ -300,7 +301,7 @@ namespace nes
 
     void Cpu::iny()
     {
-        m_currentInstruction = Instruction::iny;
+        setCurrentInstruction(Instruction::iny);
         Y++;
         setFlag(Z, Y == 0x00);
         setFlag(N, Y & 0x80);
@@ -308,13 +309,13 @@ namespace nes
 
     void Cpu::jmp()
     {
-        m_currentInstruction = Instruction::jmp;
+        setCurrentInstruction(Instruction::jmp);
         program_counter = addr_abs;
     }
 
     void Cpu::jsr()
     {
-        m_currentInstruction = Instruction::jsr;
+        setCurrentInstruction(Instruction::jsr);
         program_counter--;
 
         getMemory()->write(Word(0x0100 + stack_pointer), Byte((program_counter >> 8) & 0x00FF));
@@ -327,7 +328,7 @@ namespace nes
 
     void Cpu::lda()
     {
-        m_currentInstruction = Instruction::lda;
+        setCurrentInstruction(Instruction::lda);
         A = memoryFetched;
         setFlag(Z, A == 0x00);
         setFlag(N, A & 0x80);
@@ -335,7 +336,7 @@ namespace nes
 
     void Cpu::ldx()
     {
-        m_currentInstruction = Instruction::ldx;
+        setCurrentInstruction(Instruction::ldx);
         X = memoryFetched;
         setFlag(Z, X == 0x00);
         setFlag(N, X & 0x80);
@@ -343,7 +344,7 @@ namespace nes
 
     void Cpu::ldy()
     {
-        m_currentInstruction = Instruction::ldy;
+        setCurrentInstruction(Instruction::ldy);
         Y = memoryFetched;
         setFlag(Z, Y == 0x00);
         setFlag(N, Y & 0x80);
@@ -351,7 +352,7 @@ namespace nes
 
     void Cpu::lsr()
     {
-        m_currentInstruction = Instruction::lsr;
+        setCurrentInstruction(Instruction::lsr);
         setFlag(C, memoryFetched & 0x0001);
         Word temp = memoryFetched >> 1;
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -368,13 +369,13 @@ namespace nes
 
     void Cpu::nop()
     {
-        m_currentInstruction = Instruction::nop;
+        setCurrentInstruction(Instruction::nop);
         // TODO
     }
 
     void Cpu::ora()
     {
-        m_currentInstruction = Instruction::ora;
+        setCurrentInstruction(Instruction::ora);
         A = A | memoryFetched;
         setFlag(Z, A == 0x00);
         setFlag(N, A & 0x80);
@@ -382,14 +383,14 @@ namespace nes
 
     void Cpu::pha()
     {
-        m_currentInstruction = Instruction::pha;
+        setCurrentInstruction(Instruction::pha);
         getMemory()->write(Word(0x0100 + stack_pointer), A);
         stack_pointer--;
     }
 
     void Cpu::php()
     {
-        m_currentInstruction = Instruction::php;
+        setCurrentInstruction(Instruction::php);
         getMemory()->write(Word(0x0100 + stack_pointer), Byte(P | B | U));
         setFlag(B, 0);
         setFlag(U, 0);
@@ -398,7 +399,7 @@ namespace nes
 
     void Cpu::pla()
     {
-        m_currentInstruction = Instruction::pla;
+        setCurrentInstruction(Instruction::pla);
         stack_pointer++;
         A = getMemory()->read(Word(0x0100 + stack_pointer));
         setFlag(Z, A == 0x00);
@@ -407,7 +408,7 @@ namespace nes
 
     void Cpu::plp()
     {
-        m_currentInstruction = Instruction::plp;
+        setCurrentInstruction(Instruction::plp);
         stack_pointer++;
         P = getMemory()->read(Word(0x0100 + stack_pointer));
         setFlag(U, 1);
@@ -415,7 +416,7 @@ namespace nes
 
     void Cpu::rol()
     {
-        m_currentInstruction = Instruction::rol;
+        setCurrentInstruction(Instruction::rol);
         Word temp = (Word)(memoryFetched << 1) | getFlag(C);
         setFlag(C, temp & 0xFF00);
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -432,7 +433,7 @@ namespace nes
 
     void Cpu::ror()
     {
-        m_currentInstruction = Instruction::ror;
+        setCurrentInstruction(Instruction::ror);
         Word temp = (Word)(getFlag(C) << 7) | (memoryFetched >> 1);
         setFlag(C, memoryFetched & 0x01);
         setFlag(Z, (temp & 0x00FF) == 0x00);
@@ -449,7 +450,7 @@ namespace nes
 
     void Cpu::rti()
     {
-        m_currentInstruction = Instruction::rti;
+        setCurrentInstruction(Instruction::rti);
         stack_pointer++;
         P = getMemory()->read(Word(0x0100 + stack_pointer));
         P &= ~B;
@@ -463,7 +464,7 @@ namespace nes
 
     void Cpu::rts()
     {
-        m_currentInstruction = Instruction::rts;
+        setCurrentInstruction(Instruction::rts);
         stack_pointer++;
         program_counter = (Word)getMemory()->read(Word(0x0100 + stack_pointer));
         stack_pointer++;
@@ -474,7 +475,7 @@ namespace nes
 
     void Cpu::sbc()
     {
-        m_currentInstruction = Instruction::sbc;
+        setCurrentInstruction(Instruction::sbc);
         uint16_t value = ((Word)memoryFetched) ^ 0x00FF;
         Word temp = (Word)A + value + (Word)getFlag(C);
         setFlag(C, temp & 0xFF00);
@@ -487,43 +488,43 @@ namespace nes
 
     void Cpu::sec()
     {
-        m_currentInstruction = Instruction::sec;
+        setCurrentInstruction(Instruction::sec);
         setFlag(C, true);
     }
 
     void Cpu::sed()
     {
-        m_currentInstruction = Instruction::sed;
+        setCurrentInstruction(Instruction::sed);
         setFlag(D, true);
     }
 
     void Cpu::sei()
     {
-        m_currentInstruction = Instruction::sei;
+        setCurrentInstruction(Instruction::sei);
         setFlag(I, true);
     }
 
     void Cpu::sta()
     {
-        m_currentInstruction = Instruction::sta;
+        setCurrentInstruction(Instruction::sta);
         getMemory()->write(addr_abs, A);
     }
 
     void Cpu::stx()
     {
-        m_currentInstruction = Instruction::stx;
+        setCurrentInstruction(Instruction::stx);
         getMemory()->write(addr_abs, X);
     }
 
     void Cpu::sty()
     {
-        m_currentInstruction = Instruction::sty;
+        setCurrentInstruction(Instruction::sty);
         getMemory()->write(addr_abs, Y);
     }
 
     void Cpu::tax()
     {
-        m_currentInstruction = Instruction::tax;
+        setCurrentInstruction(Instruction::tax);
         X = A;
         setFlag(Z, X == 0x00);
         setFlag(N, X & 0x80);
@@ -531,7 +532,7 @@ namespace nes
 
     void Cpu::tay()
     {
-        m_currentInstruction = Instruction::tay;
+        setCurrentInstruction(Instruction::tay);
         Y = A;
         setFlag(Z, Y == 0x00);
         setFlag(N, Y & 0x80);
@@ -539,7 +540,7 @@ namespace nes
     
     void Cpu::txa()
     {
-        m_currentInstruction = Instruction::txa;
+        setCurrentInstruction(Instruction::txa);
         A = X;
         setFlag(Z, A == 0x00);
         setFlag(N, A & 0x80);
@@ -547,7 +548,7 @@ namespace nes
 
     void Cpu::tya()
     {
-        m_currentInstruction = Instruction::tya;
+        setCurrentInstruction(Instruction::tya);
         A = Y;
         setFlag(Z, A == 0x00);
         setFlag(N, A & 0x80);
@@ -555,7 +556,7 @@ namespace nes
 
     void Cpu::tsx()
     {
-        m_currentInstruction = Instruction::tsx;
+        setCurrentInstruction(Instruction::tsx);
         X = stack_pointer;
         setFlag(Z, X == 0x00);
         setFlag(N, X & 0x80);
@@ -563,13 +564,13 @@ namespace nes
 
     void Cpu::txs()
     {
-        m_currentInstruction = Instruction::txs;
+        setCurrentInstruction(Instruction::txs);
         stack_pointer = X;
     }
 
     void Cpu::xxx()
     {
-        m_currentInstruction = Instruction::xxx;
+        setCurrentInstruction(Instruction::xxx);
     }
 
 

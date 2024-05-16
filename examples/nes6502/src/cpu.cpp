@@ -55,14 +55,34 @@ namespace nes
 
     }
 
-    AddressModes Cpu::currentAddressMode() const
+    AddressModes Cpu::currentAddressMode()
     {
-        return m_currentAddressMode;
+        m_currentAddressMode_mutex.lock();
+        auto tmp = m_currentAddressMode;
+        m_currentAddressMode_mutex.unlock();
+        return tmp;
     }
 
-    Instruction Cpu::currentInstruction() const
+    Instruction Cpu::currentInstruction()
     {
-        return m_currentInstruction;
+        m_currentInstruction_mutex.lock();
+        auto tmp =  m_currentInstruction;
+        m_currentInstruction_mutex.unlock();
+        return tmp;
+    }
+
+    void Cpu::setCurrentAddressMode(AddressModes address )
+    {
+        m_currentAddressMode_mutex.lock();
+        m_currentAddressMode = address;
+        m_currentAddressMode_mutex.unlock();
+    }
+
+    void Cpu::setCurrentInstruction(Instruction instruction)
+    {
+        m_currentInstruction_mutex.lock();
+        m_currentInstruction = instruction;
+        m_currentInstruction_mutex.unlock();
     }
 
     Memory* Cpu::getMemory()

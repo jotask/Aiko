@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "nes_types.h"
 #include "microprocessor.h"
 #include "instructions.h"
@@ -19,13 +21,19 @@ namespace nes
         virtual void reset() override;
         virtual void clock() override;
 
-        AddressModes currentAddressMode() const;
-        Instruction currentInstruction() const;
+        AddressModes currentAddressMode();
+        Instruction currentInstruction();
 
     private:
 
-        AddressModes m_currentAddressMode;
-        Instruction m_currentInstruction;
+        void setCurrentAddressMode(AddressModes);
+        void setCurrentInstruction(Instruction);
+
+
+        std::mutex m_currentAddressMode_mutex;
+        std::mutex m_currentInstruction_mutex;
+        AddressModes    m_currentAddressMode;
+        Instruction     m_currentInstruction;
 
         // Addressing modes
         void relative();
