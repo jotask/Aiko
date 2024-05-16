@@ -72,6 +72,14 @@ namespace nes
         return tmp;
     }
 
+    void Cpu::fetchData()
+    {
+        if (currentAddressMode() != AddressModes::Implied)
+        {
+            memoryFetched = getMemory()->read(addr_abs);
+        }
+    }
+
     void Cpu::setCurrentAddressMode(AddressModes address )
     {
         m_currentAddressMode_mutex.lock();

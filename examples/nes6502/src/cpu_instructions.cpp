@@ -12,6 +12,7 @@ namespace nes
     void Cpu::adc()
     {
         setCurrentInstruction(Instruction::adc);
+        fetchData();
         Word address = A + memoryFetched + getFlag(C);
         setFlag(C, address > 255);
         setFlag(Z, (address & 0x00FF) == 0);
@@ -24,6 +25,7 @@ namespace nes
     void Cpu:: and()
     {
         setCurrentInstruction(Instruction:: and);
+        fetchData();
         A = A & memoryFetched;
         setFlag(Z, A == 0x00);
         setFlag(N, A & 0x80);
@@ -33,6 +35,7 @@ namespace nes
     void Cpu::asl()
     {
         setCurrentInstruction(Instruction::asl);
+        fetchData();
         Word temp = (Word)memoryFetched << 1;
         setFlag(C, (temp & 0xFF00) > 0);
         setFlag(Z, (temp & 0x00FF) == 0x00);
@@ -95,6 +98,7 @@ namespace nes
     void Cpu::bit()
     {
         setCurrentInstruction(Instruction::bit);
+        fetchData();
         Word temp = A & memoryFetched;
         setFlag(Z, (temp & 0x00FF) == 0x00);
         setFlag(N, memoryFetched & (1 << 7));
@@ -225,6 +229,7 @@ namespace nes
     void Cpu::cmp()
     {
         setCurrentInstruction(Instruction::cmp);
+        fetchData();
         Word temp = (Word)A - (Word)memoryFetched;
         setFlag(C, A >= memoryFetched);
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -234,6 +239,7 @@ namespace nes
     void Cpu::cpx()
     {
         setCurrentInstruction(Instruction::cpx);
+        fetchData();
         Word temp = (Word)X - (Word)memoryFetched;
         setFlag(C, X >= memoryFetched);
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -243,6 +249,7 @@ namespace nes
     void Cpu::cpy()
     {
         setCurrentInstruction(Instruction::cpy);
+        fetchData();
         Word temp = (Word)Y - (Word)memoryFetched;
         setFlag(C, Y >= memoryFetched);
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -252,6 +259,7 @@ namespace nes
     void Cpu::dec()
     {
         setCurrentInstruction(Instruction::dec);
+        fetchData();
         Word temp = memoryFetched - 1;
         getMemory()->write(addr_abs, Byte(temp & 0x00FF));
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -277,6 +285,7 @@ namespace nes
     void Cpu::eor()
     {
         setCurrentInstruction(Instruction::eor);
+        fetchData();
         A = A ^ memoryFetched;
         setFlag(Z, A == 0x00);
         setFlag(N, A & 0x80);
@@ -285,6 +294,7 @@ namespace nes
     void Cpu::inc()
     {
         setCurrentInstruction(Instruction::inc);
+        fetchData();
         Word temp = memoryFetched + 1;
         getMemory()->write(addr_abs, Byte(temp & 0x00FF));
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -329,6 +339,7 @@ namespace nes
     void Cpu::lda()
     {
         setCurrentInstruction(Instruction::lda);
+        fetchData();
         A = memoryFetched;
         setFlag(Z, A == 0x00);
         setFlag(N, A & 0x80);
@@ -337,6 +348,7 @@ namespace nes
     void Cpu::ldx()
     {
         setCurrentInstruction(Instruction::ldx);
+        fetchData();
         X = memoryFetched;
         setFlag(Z, X == 0x00);
         setFlag(N, X & 0x80);
@@ -353,6 +365,7 @@ namespace nes
     void Cpu::lsr()
     {
         setCurrentInstruction(Instruction::lsr);
+        fetchData();
         setFlag(C, memoryFetched & 0x0001);
         Word temp = memoryFetched >> 1;
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -375,6 +388,7 @@ namespace nes
     void Cpu::ora()
     {
         setCurrentInstruction(Instruction::ora);
+        fetchData();
         A = A | memoryFetched;
         setFlag(Z, A == 0x00);
         setFlag(N, A & 0x80);
@@ -416,6 +430,7 @@ namespace nes
     void Cpu::rol()
     {
         setCurrentInstruction(Instruction::rol);
+        fetchData();
         Word temp = (Word)(memoryFetched << 1) | getFlag(C);
         setFlag(C, temp & 0xFF00);
         setFlag(Z, (temp & 0x00FF) == 0x0000);
@@ -433,6 +448,7 @@ namespace nes
     void Cpu::ror()
     {
         setCurrentInstruction(Instruction::ror);
+        fetchData();
         Word temp = (Word)(getFlag(C) << 7) | (memoryFetched >> 1);
         setFlag(C, memoryFetched & 0x01);
         setFlag(Z, (temp & 0x00FF) == 0x00);
@@ -475,6 +491,7 @@ namespace nes
     void Cpu::sbc()
     {
         setCurrentInstruction(Instruction::sbc);
+        fetchData();
         uint16_t value = ((Word)memoryFetched) ^ 0x00FF;
         Word temp = (Word)A + value + (Word)getFlag(C);
         setFlag(C, temp & 0xFF00);

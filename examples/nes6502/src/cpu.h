@@ -26,6 +26,8 @@ namespace nes
 
     private:
 
+        void fetchData();
+
         void setCurrentAddressMode(AddressModes);
         void setCurrentInstruction(Instruction);
 
