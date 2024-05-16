@@ -327,12 +327,7 @@ namespace nes
     {
         setCurrentInstruction(Instruction::jsr);
         program_counter--;
-
-        getMemory()->write(Word(0x0100 + stack_pointer), Byte((program_counter >> 8) & 0x00FF));
-        stack_pointer--;
-        getMemory()->write(Word(0x0100 + stack_pointer), Byte(program_counter & 0x00FF));
-        stack_pointer--;
-
+        pushWordStack(program_counter);
         program_counter = addr_abs;
     }
 
@@ -480,9 +475,7 @@ namespace nes
     void Cpu::rts()
     {
         setCurrentInstruction(Instruction::rts);
-        Byte low = popStack();
-        Byte hig = popStack();
-        program_counter = toWord(hig, low);
+        program_counter = popWordStack();
         program_counter++;
     }
 
@@ -586,6 +579,5 @@ namespace nes
     {
         setCurrentInstruction(Instruction::xxx);
     }
-
 
 }

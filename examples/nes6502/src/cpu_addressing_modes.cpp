@@ -9,20 +9,34 @@ namespace nes
 {
     void Cpu::pushStack(Byte value)
     {
-        aiko::Log::trace("Push to stack ", toString(value));
         stack_pointer--;
         Word stack_address = 0x0100 + stack_pointer;
         assert(stack_address <= std::get<1>(Memory::STACK_PAGE), "TODO Stack Overflow!");
         getMemory()->write(stack_address, value);
     }
 
+    void Cpu::pushWordStack(Word value)
+    {
+        const Byte high = getHigh(value);
+        const Byte low  = getLow(value);
+        pushStack(high);
+        pushStack(low);
+    }
+
     Byte Cpu::popStack()
     {
-        aiko::Log::trace("Pop to stack");
         stack_pointer++;
-        assert(stack_pointer >=std::get<0>(Memory::STACK_PAGE), "Stack Underflow!");
         Word stack_address = 0x0100 + stack_pointer;
+        assert(stack_address >= std::get<0>(Memory::STACK_PAGE), "Stack Underflow!");
         return getMemory()->read(stack_address);
+    }
+
+    Word Cpu::popWordStack()
+    {
+        const Byte high = popStack();
+        const Byte low = popStack();
+        Word result = toWord(high, low);
+        return result;
     }
 
     void Cpu::relative()

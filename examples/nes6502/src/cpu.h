@@ -140,7 +140,9 @@ namespace nes
         // helpers
         Memory* getMemory();
         void pushStack(Byte);
+        void pushWordStack(Word);
         Byte popStack();
+        Word popWordStack();
         uint8_t getFlag(StatusFlags p);
         void    setFlag(StatusFlags p, bool v);
         inline constexpr Byte getP() { return P; }
