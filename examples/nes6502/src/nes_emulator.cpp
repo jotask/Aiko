@@ -36,7 +36,7 @@ namespace nes
     void NesEmulator::init()
     {
         m_nes.reset();
-        m_nes.insertCartridge("C:/Users/j.iznardo/Documents/Aiko/examples/nes6502/assets/6502_functional_test.bin");
+        m_nes.insertCartridge("C:/Users/j.iznardo/Documents/Aiko/examples/nes6502/assets/nestest.nes");
         m_nes.start();
     }
 

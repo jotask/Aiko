@@ -1,6 +1,7 @@
 #include "cartridge.h"
 
 #include <fstream>
+#include <string>
 
 #include "aiko_includes.h"
 
@@ -14,7 +15,7 @@ namespace nes
     void Cartridge::load(const char* file)
     {
 
-        constexpr size_t skipBytes = 0x0010; // Header NES data
+        constexpr size_t headerBytes = 0x0010; // Header NES data
         constexpr size_t loadBytes = 0x4000; // Number of bytes to load from the file
 
         std::ifstream stream;
@@ -38,8 +39,17 @@ namespace nes
             return;
         }
 
+        std::string constant = std::string(&buffer[0x00], &buffer[0x03]); // Constant $4E $45 $53 $1A (ASCII "NES" followed by MS-DOS end-of-file)
+        char pgr_room = buffer[0x03]; // Size of PRG ROM in 16 KB units
+        char chr_room = buffer[0x04]; // Size of CHR ROM in 8 KB units (value 0 means the board uses CHR RAM)
+        char flags_6  = buffer[0x06]; // Flags 6 – Mapper, mirroring, battery, trainer
+        char flags_7  = buffer[0x07]; // Flags 7 – Mapper, VS/Playchoice, NES 2.0
+        char flags_8  = buffer[0x08]; // Flags 8 – PRG-RAM size (rarely used extension)
+        char flags_9  = buffer[0x09]; // Flags 9 – TV system (rarely used extension)
+        char flags_10 = buffer[0x10]; // Flags 10 – TV system, PRG-RAM presence (unofficial, rarely used extension)
+
         buffer.resize(buffer.size() - loadBytes);
-        buffer.erase(buffer.begin(), buffer.begin() + skipBytes);
+        buffer.erase(buffer.begin(), buffer.begin() + headerBytes);
 
         stream.close();
 
