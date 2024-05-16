@@ -87,14 +87,10 @@ namespace nes
     {
         // Absolute addressing modes provides the 16-bit address of a memory location, the contents
         // of which used as the operand to the instruction.
-        m_currentAddressMode = AddressModes::Absolute;
-        Word lo = getMemory()->read(program_counter);
-        program_counter++;
-        Word hi = getMemory()->read(program_counter);
-        program_counter++;
-
-        addr_abs = (hi << 8) | lo;
-
+        setCurrentAddressMode(AddressModes::Absolute);
+        Byte lo = getMemory()->read(program_counter++);
+        Byte hi = getMemory()->read(program_counter++);
+        addr_abs = toWord(hi, lo);
     }
 
     void Cpu::absoluteX()
