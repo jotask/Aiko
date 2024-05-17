@@ -8,9 +8,15 @@
 
 namespace nes
 {
+    namespace test
+    {
+        class NesTest;
+    }
+
     class Memory;
     class Cpu : public Microprocessor
     {
+        friend class nes::test::NesTest;
     public:
 
         virtual void reset() override;

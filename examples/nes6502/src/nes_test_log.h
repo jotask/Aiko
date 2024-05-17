@@ -6,36 +6,43 @@
 
 #include "nes_types.h"
 
-namespace nes::test
+namespace nes
 {
-
-    class NesTest : public aiko::Singleton<NesTest>
+    class Cpu;
+    class Memory;
+    namespace test
     {
-    private:
-        struct LineCode
-        {
-            Word pc;
-            Byte one;
-            Byte two;
-            Byte thr;
-            std::string instruction;
 
-            Byte a;
-            Byte x;
-            Byte y;
-            Byte p;
-            Byte sp;
+        class NesTest : public aiko::Singleton<NesTest>
+        {
+        private:
+            struct LineCode
+            {
+                Word pc;
+                Byte one;
+                Byte two;
+                Byte thr;
+                std::string instruction;
+
+                Byte a;
+                Byte x;
+                Byte y;
+                Byte p;
+                Byte sp;
+            };
+
+            void init();
+
+            std::vector<LineCode> lines;
+            bool initialized;
+
+        public:
+
+            void test(Word line, Word programCounter, Byte stackPointer, Byte A, Byte X, Byte Y, Byte P);
+
+            void testStack(nes::Cpu* cpu, nes::Memory* memory);
+
         };
 
-        void init();
-
-        std::vector<LineCode> lines;
-        bool initialized;
-
-    public:
-
-        void test(Word line, Word programCounter, Byte stackPointer, Byte A, Byte X, Byte Y, Byte P);
-
-    };
-
+    }
 }
