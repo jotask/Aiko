@@ -21,7 +21,7 @@ namespace nes
         const Byte high = getHigh(value);
         const Byte low  = getLow(value);
         pushStack(high, late);
-        pushStack(low), late;
+        pushStack(low, late);
     }
 
     Byte Cpu::popStack()
