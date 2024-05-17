@@ -60,22 +60,27 @@ namespace nes::test
         }
         if (test.a != A)
         {
-            aiko::Log::warning("ERROR :: PC :: EXPECTED : ", toString(test.a), " -> RECIVED : ", toString(A));
+            aiko::Log::warning("ERROR :: A :: EXPECTED : ", toString(test.a), " -> RECIVED : ", toString(A));
             int a = 0;
         }
         if (test.x != X)
         {
-            aiko::Log::warning("ERROR :: PC :: EXPECTED : ", toString(test.x), " -> RECIVED : ", toString(X));
+            aiko::Log::warning("ERROR :: X :: EXPECTED : ", toString(test.x), " -> RECIVED : ", toString(X));
             int a = 0;
         }
         if (test.y != Y)
         {
-            aiko::Log::warning("ERROR :: PC :: EXPECTED : ", toString(test.y), " -> RECIVED : ", toString(Y));
+            aiko::Log::warning("ERROR :: Y :: EXPECTED : ", toString(test.y), " -> RECIVED : ", toString(Y));
+            int a = 0;
+        }
+        if (test.sp != stackPointer)
+        {
+            aiko::Log::warning("ERROR :: SP :: EXPECTED : ", toString(test.sp), " -> RECIVED : ", toString(stackPointer));
             int a = 0;
         }
         if (test.p != P)
         {
-            // aiko::Log::warning("ERROR :: PC :: EXPECTED : ", toString(test.p), " -> RECIVED : ", toString(P));
+            aiko::Log::warning("ERROR :: P :: EXPECTED : ", toString(test.p), " -> RECIVED : ", toString(P));
             int a = 0;
         }
     }

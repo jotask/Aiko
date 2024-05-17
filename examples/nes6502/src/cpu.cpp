@@ -28,7 +28,8 @@ namespace nes
         X = 0;
         Y = 0;
         stack_pointer = 0xFD;
-        P = 0x00 | U;
+        P = 0x00;
+        setFlag(U, true);
 
         // Clear internal helper variables
         addr_rel = 0x0000;
