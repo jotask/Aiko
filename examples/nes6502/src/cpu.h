@@ -25,6 +25,8 @@ namespace nes
         AddressModes currentAddressMode();
         Instruction currentInstruction();
 
+        Word line = 0;
+
     private:
 
         void fetchData();

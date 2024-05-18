@@ -5,6 +5,7 @@
 
 #include <aiko_includes.h>
 #include "nes_utils.h"
+#include "nes_test_log.h"
 
 namespace nes
 {
@@ -38,6 +39,8 @@ namespace nes
 
         // Reset takes time
         waitForCycles = 8;
+
+        test::NesTest::it().testStack(this, getMemory());
 
     }
 
