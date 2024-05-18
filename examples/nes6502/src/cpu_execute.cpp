@@ -7,7 +7,7 @@
 #include "aiko_includes.h"
 #include "instructions.h"
 
-#include "nes_test_log.h"
+#include "tests/nes_test_log.h"
 
 namespace nes
 {

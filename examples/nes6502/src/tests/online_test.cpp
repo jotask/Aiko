@@ -13,7 +13,7 @@
 
 #include "tests/test_type.h"
 
-namespace test::online
+namespace nes::test::online
 {
     OnlinesTest::OnlinesTest(std::string test)
     {

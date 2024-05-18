@@ -7,7 +7,7 @@
 #include "nes_types.h"
 #include "nes_utils.h"
 
-namespace test::online
+namespace nes::test::online
 {
 
     struct CpuState

@@ -8,6 +8,11 @@
 
 namespace nes
 {
+    namespace test::online
+    {
+        class OnlinesTest;
+    }
+
     class Memory;
     class Cpu : public Microprocessor
     {

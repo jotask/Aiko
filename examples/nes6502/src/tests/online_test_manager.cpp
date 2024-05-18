@@ -14,11 +14,9 @@
 
 #include <json/json.h>
 
-namespace fs = std::filesystem;
-
-namespace test::online
+namespace nes::test::online
 {
-    TestManager::TestManager()
+    void TestManager::init()
     {
 
         // #define LOAD_ALL_FILES
@@ -64,6 +62,14 @@ namespace test::online
 
     void TestManager::run()
     {
+
+        static bool first = true;
+        if (first == true)
+        {
+            first = false;
+            init();
+        }
+
         for (OnlinesTest& t : tests)
         {
             aiko::Log::info("RUN ", t.name);

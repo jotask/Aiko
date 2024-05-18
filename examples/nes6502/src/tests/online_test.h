@@ -4,7 +4,7 @@
 
 #include "online_test_types.h"
 
-namespace test::online
+namespace nes::test::online
 {
 
     class OnlinesTest

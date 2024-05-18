@@ -10,7 +10,7 @@
 
 #define ASSERT_TESTS
 
-namespace test
+namespace nes::test
 {
 
     #define RUN_TEST( fnt ) if (fnt().success == false) result.success = false;
