@@ -39,7 +39,7 @@ namespace nes
     {
 
         nes::test::online::TestManager::it().run();
-
+        
         m_nes.reset();
         m_nes.insertCartridge("C:/Users/j.iznardo/Documents/Aiko/examples/nes6502/assets/nestest.nes");
         m_nes.start();

@@ -19,85 +19,54 @@
 namespace nes::test::online
 {
 
-    void TestManager::init()
+    void TestManager::run()
     {
 
         const std::string GLOBAL_PATH = "C:/Users/Jose/Documents/Aiko/examples/nes6502/assets/tests/";
 
-        std::mutex m;
-
         auto parse = [&](std::string str)
-        {
-            Json::Reader reader;
-            Json::Value root;
-            reader.parse(str, root);
-
-            for (Json::Value::ArrayIndex i = 0; i != root.size(); i++)
             {
-                Json::Value tmp = root[i];
-                Json::FastWriter fastWriter;
-                std::string output = fastWriter.write(tmp);
-                std::lock_guard<std::mutex> lockGuard(m);
-                tests.push_back(OnlinesTest(output));
-            }
-        };
+                Json::Reader reader;
+                Json::Value root;
+                reader.parse(str, root);
 
-#if true
+                for (Json::Value::ArrayIndex i = 0; i != root.size(); i++)
+                {
+                    Json::Value tmp = root[i];
+                    Json::FastWriter fastWriter;
+                    std::string output = fastWriter.write(tmp);
+                    tests.push_back(OnlinesTest(output));
+                }
+    };
 
         auto readFile = [&](std::filesystem::path path)
+            {
+                std::ifstream t(path);
+                std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+                t.close();
+                parse(str);
+            };
+
+        auto runByteOpCode = [&](Byte opCode)
         {
-            std::ifstream t(path);
-            std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-            t.close();
-            parse(str);
+            tests.clear();
+
+            auto fin = GLOBAL_PATH + toString(opCode).substr(2, 2) + ".json";
+            readFile(fin);
+
+            for (OnlinesTest& t : tests)
+            {
+                aiko::Log::info("RUN ", t.name);
+                t.run();
+                aiko::Log::info("   Test passed ", t.name);
+            }
+
+            int a = 0;
         };
 
-        std::vector<std::thread> threads;
-
-        for (const auto& entry : std::filesystem::directory_iterator(GLOBAL_PATH))
+        for (Byte i = 0x2a ; i <= 0xff ; i++)
         {
-            if (std::filesystem::is_regular_file(entry.path()))
-            {
-                threads.emplace_back(std::thread(readFile, entry.path()));
-            }
-        }
-
-        int loaded = 0;
-
-        for (auto& th : threads)
-        {
-            th.join();
-        }
-
-        int finished = 0;
-
-#else 
-        std::string path = GLOBAL_PATH + "0a.json";
-        std::ifstream t(path);
-        std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-        parse(str);
-#endif
-
-        // std::shuffle(tests.begin(), tests.end(), std::default_random_engine{});
-
-    }
-
-    void TestManager::run()
-    {
-
-        static bool first = true;
-        if (first == true)
-        {
-            first = false;
-            init();
-        }
-
-        for (OnlinesTest& t : tests)
-        {
-            aiko::Log::info("RUN ", t.name);
-            t.run();
-            aiko::Log::info("   Test passed ", t.name );
-        
+            runByteOpCode(i);            
         }
 
         int a = 0;
