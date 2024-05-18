@@ -11,6 +11,7 @@ namespace nes
     class Memory;
     class Cpu : public Microprocessor
     {
+        friend class test::online::OnlinesTest;
     public:
 
         virtual void reset() override;
