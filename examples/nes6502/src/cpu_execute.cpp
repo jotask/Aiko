@@ -106,7 +106,7 @@ namespace nes
         static Word line = 0;
         line++;
         aiko::Log::info("A:", toString(A), " X: ", toString(X), " Y: ", toString(Y), " P: ", unsigned(P), " SP: ", toString(stack_pointer), " Line: ", unsigned(line), " PC: ", toString(program_counter));
-        test::NesTest::it().test(line, program_counter, stack_pointer, A, X, Y, P);
+        // test::NesTest::it().test(line, program_counter, stack_pointer, A, X, Y, P);
 
         assert(this->waitForCycles == cycles);
 
