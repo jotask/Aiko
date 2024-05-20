@@ -7,7 +7,7 @@
 #include "aiko_includes.h"
 #include "instructions.h"
 
-#include "nes_test_log.h"
+#include "tests/nes_test_log.h"
 
 namespace nes
 {
@@ -105,7 +105,7 @@ namespace nes
 
         line++;
         aiko::Log::info("A:", toString(A), " X: ", toString(X), " Y: ", toString(Y), " P: ", toString(P), " SP: ", toString(stack_pointer), " Line: ", unsigned(line), " PC: ", toString(program_counter));
-        test::NesTest::it().test(line, program_counter, stack_pointer, A, X, Y, P);
+        // test::NesTest::it().test(line, program_counter, stack_pointer, A, X, Y, P);
 
         assert(this->waitForCycles == cycles);
 

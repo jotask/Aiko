@@ -21,6 +21,8 @@
 #include "nes_utils.h"
 #include "instructions.h"
 
+#include "tests/online_test_manager.h"
+
 namespace nes
 {
 
@@ -35,6 +37,9 @@ namespace nes
 
     void NesEmulator::init()
     {
+
+        nes::test::online::TestManager::it().run();
+        
         m_nes.reset();
         m_nes.insertCartridge("C:/Users/j.iznardo/Documents/Aiko/examples/nes6502/assets/nestest.nes");
         m_nes.start();
