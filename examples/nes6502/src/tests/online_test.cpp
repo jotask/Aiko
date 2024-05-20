@@ -101,12 +101,36 @@ namespace nes::test::online
         }
         // 4. Check if final status it's the same as the final status
         {
-            assert(cpu->program_counter == final.pc, "program_counter not the same");
-            assert(cpu->stack_pointer == final.s, "stack_pointer not the same");
-            assert(cpu->A == final.a, "A not the same");
-            assert(cpu->X == final.x, "X not the same");
-            assert(cpu->Y == final.y, "Y not the same");
-            assert(cpu->getP() == final.p, "P not the same");
+            if (cpu->program_counter != final.pc)
+            {
+                aiko::Log::error("Program Counter not the same. Expected: ", unsigned(final.pc), " Received: ", unsigned(cpu->program_counter));
+                assert(false);
+            }
+            if (cpu->stack_pointer != final.s)
+            {
+                aiko::Log::error("Stack Pointer not the same. Expected: ", unsigned(final.s), " Received: ", unsigned(cpu->stack_pointer));
+                assert(false);
+            }
+            if (cpu->A != final.a)
+            {
+                aiko::Log::error("A not the same. Expected: ", unsigned(final.a), " Received: ", unsigned(cpu->A));
+                assert(false);
+            }
+            if (cpu->X != final.x)
+            {
+                aiko::Log::error("X not the same. Expected: ", unsigned(final.x), " Received: ", unsigned(cpu->X));
+                assert(false);
+            }
+            if (cpu->Y != final.y)
+            {
+                aiko::Log::error("Y not the same. Expected: ", unsigned(final.y), " Received: ", unsigned(cpu->Y));
+                assert(false);
+            }
+            if (cpu->getP() != final.p)
+            {
+                aiko::Log::error("P not the same. Expected: ", unsigned(final.p), " Received: ", unsigned(cpu->getP()));
+                assert(false);
+            }
             for (auto& r : final.ram)
             {
                 nes::Word address = std::get<0>(r);

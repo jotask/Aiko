@@ -66,7 +66,7 @@ namespace nes::test::online
 
         for (Byte i = 0x2a ; i <= 0xff ; i++)
         {
-            runByteOpCode(i);            
+            runByteOpCode(i);
         }
 
         int a = 0;
