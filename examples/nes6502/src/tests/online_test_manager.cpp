@@ -74,12 +74,15 @@ namespace nes::test::online
 #if false
         runByteOpCode(0x01); // ORA IZX     -> OK
         runByteOpCode(0x05); // ORA ZP      -> OK
+        runByteOpCode(0x06); // ASL ZP      -> OK
         runByteOpCode(0x09); // ORA IMM     -> OK
         runByteOpCode(0x0a); // ASL         -> OK
         runByteOpCode(0x0d); // ORA ABS     -> OK
+        runByteOpCode(0x0e); // ASL ABS     -> OK
         runByteOpCode(0x10); // BPL REL     -> OK
         runByteOpCode(0x11); // ORA IZY     -> OK
         runByteOpCode(0x15); // ORA ZPX     -> OK
+        runByteOpCode(0x16); // ASL ZPX     -> OK
         runByteOpCode(0x18); // CLC         -> OK
         runByteOpCode(0x19); // ORA ABY     -> OK
         runByteOpCode(0x1d); // ORA ABX     -> OK
