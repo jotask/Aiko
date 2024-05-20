@@ -30,6 +30,7 @@ namespace nes::test::online
             state.s = root["s"].asInt();
             state.a = root["a"].asInt();
             state.x = root["x"].asInt();
+            state.y = root["y"].asInt();
             state.p = root["p"].asInt();
 
             Json::Value var_ram = root["ram"];
