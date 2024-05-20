@@ -88,7 +88,6 @@ namespace nes
 
         if ((addr_abs & 0xFF00) != (hi << 8))
         {
-            aiko::Log::error("Not Implemented");
             waitForCycles++;
         }
     }
