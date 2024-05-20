@@ -345,6 +345,7 @@ namespace nes
     void Cpu::ldy()
     {
         setCurrentInstruction(Instruction::ldy);
+        fetchData();
         Y = memoryFetched;
         setFlag(Z, Y == 0x00);
         setFlag(N, Y & 0x80);
