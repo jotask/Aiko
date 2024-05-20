@@ -92,7 +92,7 @@ namespace nes::test::online
                 cpu->clock();
                 auto& cycle = cycles[i];
                 nes::Word address = std::get<0>(cycle);
-                nes::Word value = std::get<1>(cycle);
+                nes::Byte value = std::get<1>(cycle);
                 std::string name = std::get<2>(cycle);
                 cpu->waitForCycles = 0;
                 nes::Byte memoryAddressValue = mem->read(address);
