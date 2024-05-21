@@ -160,8 +160,8 @@ namespace nes
         setFlag(B, 1);
         pushStack(P, true);
         setFlag(B, 0);
-        Byte high = getMemory()->read(Word(0xFFFE));
-        Byte low  = getMemory()->read(Word(0xFFFF));
+        Byte low = getMemory()->read(Word(0xFFFE));
+        Byte high  = getMemory()->read(Word(0xFFFF));
         program_counter = toWord(high, low);
     }
 
