@@ -124,6 +124,7 @@ namespace nes::test::online
         runByteOpCode(0x59); // EOR ABY
         runByteOpCode(0x5d); // EOR ABX
         runByteOpCode(0x5e); // LSR ABX
+        runByteOpCode(0x60); // RTS
         runByteOpCode(0x61); // ADC IZX
         runByteOpCode(0x65); // ADC ZP
         runByteOpCode(0x66); // ROR ZP
@@ -224,7 +225,6 @@ namespace nes::test::online
 
         runByteOpCode(0x00); // BRK
         runByteOpCode(0x40); // RTI
-        runByteOpCode(0x60); // RTS
 
 #endif
 #endif

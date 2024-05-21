@@ -66,9 +66,8 @@ namespace nes
     {
         aiko::Log::trace(stack_print_padding, "popWordStack() ");
         stack_print_padding = "        ";
-        const Word stack_address = getWordStackAddress();
-        const Byte low = popStack();
-        const Byte high = popStack();
+        const Byte low = popStack(false);
+        const Byte high = popStack(false);
         stack_print_padding = "    ";
         const Word result = toWord(high, low);
         aiko::Log::trace(stack_print_padding, "popWordStack() ", toString(result));
