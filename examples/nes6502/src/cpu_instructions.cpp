@@ -168,7 +168,7 @@ namespace nes
     void Cpu::bvc()
     {
         setCurrentInstruction(Instruction::bvc);
-        if (getFlag(V) == 0)
+        if (getFlag(V) == false)
         {
             waitForCycles++;
             addr_abs = program_counter + addr_rel;
