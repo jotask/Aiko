@@ -12,7 +12,7 @@
 #include <mutex>
 #include <thread>
 
-#include <core/log.h>
+#include <aiko_includes.h>
 
 #include <json/json.h>
 
@@ -22,7 +22,7 @@ namespace nes::test::online
     void TestManager::run()
     {
 
-        const std::string GLOBAL_PATH = "C:/Users/Jose/Documents/Aiko/examples/nes6502/assets/tests/";
+        const std::string GLOBAL_PATH = AssetPath + "tests/";
 
         auto parse = [&](std::string str)
             {

@@ -18,7 +18,8 @@ namespace nes::test
 
     void NesTest::init()
     {
-        std::ifstream file("C:/Users/j.iznardo/Documents/Aiko/examples/nes6502/assets/nestest.log");
+        const std::string nes_log_path = AssetPath + "nestest.log";
+        std::ifstream file(nes_log_path);
         std::string str;
         while (std::getline(file, str))
         {
