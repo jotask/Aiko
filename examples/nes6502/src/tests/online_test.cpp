@@ -120,20 +120,16 @@ namespace nes::test::online
                         return map;
                     };
                 auto map = getMap();
+                const auto& cycle = cycles[i];
                 for (size_t x = i; x < cpu->waitForCycles; x++)
                 {
-                    auto& cycle = cycles[x];
-
                     CycleCpu state = map[std::get<0>(cycle)];
-
                     nes::Byte memoryAddressValue = mem->read(state.address);
-
                     if (memoryAddressValue != state.value)
                     {
                         aiko::Log::error("Memory is not the expected. Cycle: " , unsigned(x), " Expected: ", unsigned(state.address), " -> ", unsigned(state.value), " Received: ", unsigned(cpu->program_counter), " -> ", unsigned(memoryAddressValue));
                         assert(false , "Memory is not the expected" );
                     }
-
                 }
                 i += cpu->waitForCycles;
                 cpu->waitForCycles = 0;
