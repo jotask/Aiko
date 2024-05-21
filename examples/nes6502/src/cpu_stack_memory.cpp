@@ -10,15 +10,15 @@ namespace nes
 
     static std::string stack_print_padding = "    ";
 
-    Word Cpu::getWordStackAddress()
+    Word Cpu::getWordStackAddress() const
     {
-        Word stack_address = 0x0100 + stack_pointer;
+        const Word stack_address = 0x0100 + stack_pointer;
         return stack_address;
     }
 
     void Cpu::assertStackAddress()
     {
-        Word stack_address = getWordStackAddress();
+        const Word stack_address = getWordStackAddress();
         assert(stack_address <= std::get<1>(Memory::STACK_PAGE), "Stack Overflow!");
         assert(stack_address >= std::get<0>(Memory::STACK_PAGE), "Stack Underflow!");
     }
@@ -26,9 +26,9 @@ namespace nes
     void Cpu::pushStack(Byte value, bool late)
     {
         if (late == false) stack_pointer--;
-        Word stack_address = getWordStackAddress();
+        const Word stack_address = getWordStackAddress();
         if (late == true) stack_pointer--;
-        aiko::Log::trace(stack_print_padding, "pushStack: ", toString(stack_address), " Value: ", toString(value) );
+        aiko::Log::trace(stack_print_padding, "pushStack: ", unsigned(stack_address), " Value: ", unsigned(value) );
         assertStackAddress();
         getMemory()->write(stack_address, value);
     }
@@ -46,7 +46,7 @@ namespace nes
 
     Byte Cpu::peekStack()
     {
-        Word stack_address = getWordStackAddress();
+        const Word stack_address = getWordStackAddress();
         assertStackAddress();
         return getMemory()->read(stack_address);
     }
@@ -54,11 +54,10 @@ namespace nes
     Byte Cpu::popStack(bool late)
     {
         if (late == false) stack_pointer++;
-        Word stack_address = getWordStackAddress();
+        const Word stack_address = getWordStackAddress();
         if (late == true) stack_pointer++;
         assertStackAddress();
-        auto* memory = getMemory();
-        Byte result = getMemory()->read(stack_address);
+        const Byte result = getMemory()->read(stack_address);
         aiko::Log::trace(stack_print_padding, "popStack: ", toString(stack_address), " Value: ", toString(result));
         return result;
     }
@@ -67,11 +66,11 @@ namespace nes
     {
         aiko::Log::trace(stack_print_padding, "popWordStack() ");
         stack_print_padding = "        ";
-        Word stack_address = getWordStackAddress();
-        Byte high = popStack();
-        Byte low = popStack();
+        const Word stack_address = getWordStackAddress();
+        const Byte low = popStack();
+        const Byte high = popStack();
         stack_print_padding = "    ";
-        Word result = toWord(high, low);
+        const Word result = toWord(high, low);
         aiko::Log::trace(stack_print_padding, "popWordStack() ", toString(result));
         return result;
     }

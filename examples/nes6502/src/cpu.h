@@ -147,7 +147,7 @@ namespace nes
 
         // helpers
         Memory* getMemory();
-        Word getWordStackAddress();
+        Word getWordStackAddress() const;
         void assertStackAddress();
         void pushStack(Byte, bool = false);
         void pushWordStack(Word, bool = false);
