@@ -172,7 +172,11 @@ namespace nes::test::online
                 nes::Word address = std::get<0>(r);
                 nes::Byte value = std::get<1>(r);
                 nes::Byte readed = mem->read(address);
-                assert(readed == value, "Memory not the same");
+                if (readed != value)
+                {
+                    aiko::Log::error("Memory is not the expected. Address: " , unsigned(address), " Expected: ", unsigned(value), " Readed : ", unsigned(readed));
+                    assert(false);
+                }
             }
         }
     }
