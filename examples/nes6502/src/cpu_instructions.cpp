@@ -408,8 +408,11 @@ namespace nes
     void Cpu::plp()
     {
         setCurrentInstruction(Instruction::plp);
-        P = popStack();
-        setFlag(U, 1);
+        bool prevB = getFlag(B);
+        bool prevU = getFlag(U);
+        P = popStack(false);
+        setFlag(B, prevB);
+        setFlag(U, prevU);
     }
 
     void Cpu::rol()

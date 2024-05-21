@@ -92,6 +92,7 @@ namespace nes::test::online
         runByteOpCode(0x24); // BIT ZP
         runByteOpCode(0x25); // AND ZP      -> OK
         runByteOpCode(0x26); // ROL ZP
+        runByteOpCode(0x28); // PLP
         runByteOpCode(0x29); // AND IMM     -> OK
         runByteOpCode(0x2a); // ROL         -> OK
         runByteOpCode(0x2c); // BIT ABS
@@ -222,7 +223,6 @@ namespace nes::test::online
 
         runByteOpCode(0x00); // BRK
         runByteOpCode(0x20); // JSR ABS
-        runByteOpCode(0x28); // PLP
         runByteOpCode(0x40); // RTI
         runByteOpCode(0x60); // RTS
 
