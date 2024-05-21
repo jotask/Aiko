@@ -1,5 +1,14 @@
 #include "utils.h"
 
+#ifdef WIN32
+    #include <windows.h>
+#elif LINUX
+    #include <limits.h>
+    #include <unistd.h>
+#else
+    #error OS unsupported!
+#endif
+
 #include <random>
 
 #include "core/libs.h"
@@ -41,6 +50,20 @@ namespace aiko
             buf.append(one);
             buf.append(two);
             return buf.c_str();
+        }
+
+        std::string getExePath()
+        {
+            #ifdef WIN32
+            char result[MAX_PATH];
+            return std::string(result, GetModuleFileName(NULL, result, MAX_PATH));
+            #elif LINUX
+            char result[PATH_MAX];
+            ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+            return std::string(result, (count > 0) ? count : 0);
+            #else
+            #error OS unsupported!
+            #endif
         }
 
         float getRandomValue(float min, float max)

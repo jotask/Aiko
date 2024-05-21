@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include "aiko_types.h"
 
 namespace aiko
@@ -12,6 +13,8 @@ namespace aiko
         int getRandomValue(int min, int max);
 
         const char* join(const char*, const char*);
+
+        std::string getExePath();
 
     }
 }
