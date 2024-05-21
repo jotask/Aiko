@@ -88,6 +88,7 @@ namespace nes::test::online
         runByteOpCode(0x19); // ORA ABY     -> OK
         runByteOpCode(0x1d); // ORA ABX     -> OK
         runByteOpCode(0x1e); // ASL ABX
+        runByteOpCode(0x20); // JSR ABS
         runByteOpCode(0x21); // AND IZX     -> OK
         runByteOpCode(0x24); // BIT ZP
         runByteOpCode(0x25); // AND ZP      -> OK
@@ -222,7 +223,6 @@ namespace nes::test::online
 #else
 
         runByteOpCode(0x00); // BRK
-        runByteOpCode(0x20); // JSR ABS
         runByteOpCode(0x40); // RTI
         runByteOpCode(0x60); // RTS
 

@@ -320,7 +320,7 @@ namespace nes
     {
         setCurrentInstruction(Instruction::jsr);
         program_counter--;
-        pushWordStack(program_counter);
+        pushWordStack(program_counter, true);
         program_counter = addr_abs;
     }
 

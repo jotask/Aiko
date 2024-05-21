@@ -39,8 +39,8 @@ namespace nes
         const Byte low  = getLow(value);
         aiko::Log::trace(stack_print_padding, "pushWordStack() Value: ", toString(value));
         stack_print_padding = "        ";
-        pushStack(low, late);
         pushStack(high, late);
+        pushStack(low, late);
         stack_print_padding = "    ";
     }
 
