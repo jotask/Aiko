@@ -46,22 +46,15 @@ namespace nes
 
     void Cpu::clock()
     {
-
         if (waitForCycles > 0)
         {
             waitForCycles--;
             return;
         }
-
-        Memory* memory = bus->getMicroprocesor<Memory>();
-
-        Byte opCode = memory->read( program_counter++ );
-
+        Byte opCode = getMemory()->read(program_counter++);
         setFlag(U, true);
         execute(opCode);
         setFlag(U, true);
-
-
     }
 
     AddressModes Cpu::currentAddressMode()
