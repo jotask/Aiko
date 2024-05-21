@@ -154,12 +154,12 @@ namespace nes
     {
         setCurrentInstruction(Instruction::brk);
         program_counter++;
-        setFlag(I, 1);
-        pushWordStack(program_counter);
+        setFlag(I, true);
         pushWordStack(program_counter, true);
-        setFlag(B, 1);
+        setFlag(B, true);
+        // P is the problem 
         pushStack(P, true);
-        setFlag(B, 0);
+        setFlag(B, false);
         Byte low = getMemory()->read(Word(0xFFFE));
         Byte high  = getMemory()->read(Word(0xFFFF));
         program_counter = toWord(high, low);
