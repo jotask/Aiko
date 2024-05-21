@@ -454,9 +454,11 @@ namespace nes
     void Cpu::rti()
     {
         setCurrentInstruction(Instruction::rti);
-        P = popStack();
-        P &= ~B;
-        P &= ~U;
+        bool prevB = getFlag(B);
+        bool prevU = getFlag(U);
+        P = popStack(false);
+        setFlag(B, prevB);
+        setFlag(U, prevU);
         program_counter = popWordStack();
     }
 

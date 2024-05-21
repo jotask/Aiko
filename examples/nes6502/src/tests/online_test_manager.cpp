@@ -107,6 +107,7 @@ namespace nes::test::online
         runByteOpCode(0x39); // AND ABY     -> OK
         runByteOpCode(0x3d); // AND ABX     -> OK
         runByteOpCode(0x3e); // ROL ABX
+        runByteOpCode(0x40); // RTI
         runByteOpCode(0x41); // EOR IZX
         runByteOpCode(0x45); // EOR ZP
         runByteOpCode(0x46); // LSR ZP
@@ -224,7 +225,6 @@ namespace nes::test::online
 #else
 
         runByteOpCode(0x00); // BRK
-        runByteOpCode(0x40); // RTI
 
 #endif
 #endif
