@@ -152,7 +152,7 @@ namespace nes
         void pushStack(Byte, bool = false);
         void pushWordStack(Word, bool = false);
         Byte peekStack();
-        Byte popStack();
+        Byte popStack(bool = true);
         Word popWordStack();
         uint8_t getFlag(StatusFlags p);
         void    setFlag(StatusFlags p, bool v);

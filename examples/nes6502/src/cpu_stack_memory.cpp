@@ -51,10 +51,11 @@ namespace nes
         return getMemory()->read(stack_address);
     }
 
-    Byte Cpu::popStack()
+    Byte Cpu::popStack(bool late)
     {
+        if (late == false) stack_pointer++;
         Word stack_address = getWordStackAddress();
-        stack_pointer++;
+        if (late == true) stack_pointer++;
         assertStackAddress();
         auto* memory = getMemory();
         Byte result = getMemory()->read(stack_address);
