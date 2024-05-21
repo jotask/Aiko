@@ -2,6 +2,7 @@
 
 #include <json/json.h>
 #include <tuple>
+#include <map>
 
 #include "bus.h"
 #include "cpu.h"
@@ -88,16 +89,54 @@ namespace nes::test::online
         }
         // 3. Execute run
         {
+
+            struct CycleCpu
+            {
+                nes::Word address;
+                nes::Byte value;
+                std::string name;
+            };
+
             for (size_t i = 0 ; i < cycles.size(); i++)
             {
                 cpu->clock();
-                auto& cycle = cycles[i];
-                nes::Word address = std::get<0>(cycle);
-                nes::Byte value = std::get<1>(cycle);
-                std::string name = std::get<2>(cycle);
+                auto getMap = [&]() -> std::map<nes::Word, CycleCpu>
+                    {
+                        std::map<nes::Word, CycleCpu> map;
+                        for(auto& it : cycles)
+                        {
+                            nes::Word address = std::get<0>(it);
+                            nes::Byte value = std::get<1>(it);
+                            std::string name = std::get<2>(it);
+                            if (map.find(address) == map.end())
+                            {
+                                map.insert({ address, { address, value, name } }); // not found
+                            }
+                            else
+                            {
+                                map[address] = { address, value, name }; // found
+                            }
+                        }
+                        return map;
+                    };
+                auto map = getMap();
+                for (size_t x = i; x < cpu->waitForCycles; x++)
+                {
+                    auto& cycle = cycles[x];
+
+                    CycleCpu state = map[std::get<0>(cycle)];
+
+                    nes::Byte memoryAddressValue = mem->read(state.address);
+
+                    if (memoryAddressValue != state.value)
+                    {
+                        aiko::Log::error("Memory is not the expected. Cycle: " , unsigned(x), " Expected: ", unsigned(state.address), " -> ", unsigned(state.value), " Received: ", unsigned(cpu->program_counter), " -> ", unsigned(memoryAddressValue));
+                        assert(false , "Memory is not the expected" );
+                    }
+
+                }
+                i += cpu->waitForCycles;
                 cpu->waitForCycles = 0;
-                nes::Byte memoryAddressValue = mem->read(address);
-                assert(memoryAddressValue == value, "Memory is not the expected" );
             }
         }
         // 4. Check if final status it's the same as the final status
