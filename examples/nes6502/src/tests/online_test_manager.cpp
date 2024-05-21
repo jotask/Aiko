@@ -125,6 +125,7 @@ namespace nes::test::online
         runByteOpCode(0x61); // ADC IZX
         runByteOpCode(0x65); // ADC ZP
         runByteOpCode(0x66); // ROR ZP
+        runByteOpCode(0x68); // PLA
         runByteOpCode(0x69); // ADC IMM     -> OK
         runByteOpCode(0x6a); // ROR         -> OK
         runByteOpCode(0x6c); // JMP IND
@@ -224,7 +225,6 @@ namespace nes::test::online
         runByteOpCode(0x28); // PLP
         runByteOpCode(0x40); // RTI
         runByteOpCode(0x60); // RTS
-        runByteOpCode(0x68); // PLA
 
 #endif
 #endif

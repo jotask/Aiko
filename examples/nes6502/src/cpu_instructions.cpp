@@ -400,7 +400,7 @@ namespace nes
     void Cpu::pla()
     {
         setCurrentInstruction(Instruction::pla);
-        A = popStack();
+        A = popStack(false);
         setFlag(Z, A == 0x00);
         setFlag(N, A & 0x80);
     }
