@@ -66,6 +66,7 @@ namespace nes::test::online
         nes::nes6502 nes;
         nes::Bus* bus = nes.getBus();
         nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
+        cpu->waitForCycles = 0;
         nes::Memory* mem = bus->getMicroprocesor<nes::Memory>();
         // 2. Set the cpu state to the initial data
         {
