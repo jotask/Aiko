@@ -3,6 +3,7 @@
 #include <aiko_includes.h>
 #include <string>
 #include <vector>
+#include "instructions.h"
 
 #include "nes_types.h"
 
@@ -38,7 +39,7 @@ namespace nes
 
         public:
 
-            void test(Word line, Word programCounter, Byte stackPointer, Byte A, Byte X, Byte Y, Byte P);
+            void test(Word line, OpCode ops, Word programCounter, Byte stackPointer, Byte A, Byte X, Byte Y, Byte P);
 
             void testStack(nes::Cpu* cpu, nes::Memory* memory);
 

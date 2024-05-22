@@ -53,7 +53,7 @@ namespace nes::test
         }
     }
 
-    void NesTest::test(Word line, Word programCounter, Byte stackPointer, Byte A, Byte X, Byte Y, Byte P)
+    void NesTest::test(Word line, OpCode op, Word programCounter, Byte stackPointer, Byte A, Byte X, Byte Y, Byte P)
     {
         if (initialized == false)
         {
@@ -61,38 +61,58 @@ namespace nes::test
             initialized = true;
         }
         auto& test = lines[line];
+        bool success = true;
+
+        // prev lines
+        {
+            auto& prev = lines[line - 1];
+            auto toUpper = [&](std::string str) -> std::string
+            {
+                std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+                return str;
+            };
+            if (prev.instruction.compare( std::string(to_string(op.instruction))) == false )
+            {
+                aiko::Log::warning("ERROR :: INS :: EXPECTED : ", prev.instruction, " -> RECIVED : ", std::string(to_string(op.instruction)));
+                success = false;
+            }
+        }
+
         if (test.pc != programCounter)
         {
             aiko::Log::warning("ERROR :: PC :: EXPECTED : ", toString(test.pc), " -> RECIVED : ", toString(programCounter));
-            int a = 0;
+            success = false;
         }
         if (test.a != A)
         {
             aiko::Log::warning("ERROR :: A :: EXPECTED : ", toString(test.a), " -> RECIVED : ", toString(A));
-            int a = 0;
+            success = false;
         }
         if (test.x != X)
         {
             aiko::Log::warning("ERROR :: X :: EXPECTED : ", toString(test.x), " -> RECIVED : ", toString(X));
-            int a = 0;
+            success = false;
         }
         if (test.y != Y)
         {
             aiko::Log::warning("ERROR :: Y :: EXPECTED : ", toString(test.y), " -> RECIVED : ", toString(Y));
-            int a = 0;
+            success = false;
         }
         if (test.sp != stackPointer)
         {
             aiko::Log::warning("ERROR :: SP :: EXPECTED : ", toString(test.sp), " -> RECIVED : ", toString(stackPointer));
-            int a = 0;
+            success = false;
         }
         if (test.p != P)
         {
-            int a = 0;
             aiko::Log::warning("ERROR :: P :: EXPECTED : ", unsigned(test.p), " -> RECIVED : ", unsigned(P));
             printStatusFlags("    EXPECTED:", test.p);
             printStatusFlags("    RECEIVED:", P);
+            success = false;
         }
+        // TODO test cycles aswell
+        assert(success);
+
     }
 
     void NesTest::testStack(nes::Cpu* cpu, nes::Memory* mem)
