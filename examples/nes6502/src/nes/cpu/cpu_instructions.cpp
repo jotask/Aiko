@@ -1,8 +1,8 @@
-#include "cpu.h"
+#include "nes/cpu/cpu.h"
 
-#include "bus.h"
-#include "memory.h"
-#include "nes_utils.h"
+#include "nes/bus.h"
+#include "nes/memory.h"
+#include "nes/utils/nes_utils.h"
 
 #include <aiko_includes.h>
 

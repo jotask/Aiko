@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "nes_types.h"
+#include "nes/nes_types.h"
 
 namespace nes
 {

@@ -7,8 +7,8 @@
 #include <functional>
 #include <stack>
 
-#include "nes_utils.h"
-#include "cpu.h"
+#include "nes/utils/nes_utils.h"
+#include "nes/cpu/cpu.h"
 #include "memory"
 
 #include <aiko_includes.h>

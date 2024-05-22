@@ -1,8 +1,8 @@
-#include "mappers/mapper_000.h"
+#include "nes/cartridge/mappers/mapper_000.h"
 
 namespace nes
 {
-    Mapper_000::Mapper_000(uint8_t prg_banks, uint8_t chr_banks)
+    Mapper_000::Mapper_000(Byte prg_banks, Byte chr_banks)
         : Mapper(prg_banks, chr_banks)
     {
 

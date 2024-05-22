@@ -1,4 +1,4 @@
-#include "cartridge.h"
+#include "nes/cartridge/cartridge.h"
 
 #include <iostream>
 
@@ -8,9 +8,9 @@
 
 #include "aiko_includes.h"
 
-#include "nes_types.h"
-#include "memory.h"
-#include "bus.h"
+#include "nes/nes_types.h"
+#include "nes/memory.h"
+#include "nes/bus.h"
 
 #include "mappers/mapper_000.h"
 

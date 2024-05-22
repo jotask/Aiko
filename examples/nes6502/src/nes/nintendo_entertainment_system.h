@@ -8,22 +8,22 @@
 #include "types/textures.h"
 #include "types/asset_type.h"
 
-#include "cpu.h"
-#include "cartridge.h"
-#include "bus.h"
-#include "ppu.h"
-#include "memory.h"
+#include "nes/cpu/cpu.h"
+#include "nes/cartridge/cartridge.h"
+#include "nes/bus.h"
+#include "nes/ppu/ppu.h"
+#include "nes/memory.h"
 
 namespace nes
 {
 
     class RenderSystem;
 
-    class nes6502
+    class Nes
     {
     public:
-        nes6502();
-        ~nes6502();
+        Nes();
+        ~Nes();
         void start();
         void stop();
         void reset();

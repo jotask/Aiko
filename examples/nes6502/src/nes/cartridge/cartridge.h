@@ -7,8 +7,8 @@
 
 #include <aiko_includes.h>
 
-#include "nes_types.h"
-#include "microprocessor.h"
+#include "nes/nes_types.h"
+#include "nes/microprocessor.h"
 #include "mappers/mapper.h"
 
 namespace nes

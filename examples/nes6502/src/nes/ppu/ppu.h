@@ -1,7 +1,7 @@
 #pragma once
 
-#include "microprocessor.h"
-#include "nes_types.h"
+#include "nes/microprocessor.h"
+#include "nes/nes_types.h"
 
 namespace nes
 {

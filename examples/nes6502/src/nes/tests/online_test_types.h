@@ -4,8 +4,8 @@
 #include <vector>
 #include <tuple>
 
-#include "nes_types.h"
-#include "nes_utils.h"
+#include "nes/nes_types.h"
+#include "nes/utils/nes_utils.h"
 
 namespace nes::test::online
 {

@@ -2,16 +2,16 @@
 
 #include <vector>
 
-#include "microprocessor.h"
-#include "nes_types.h"
+#include "nes/microprocessor.h"
+#include "nes/nes_types.h"
 
 namespace nes
 {
-    class nes6502;
+    class Nes;
     class Bus : public Microprocessor
     {
     public:
-        friend class nes6502;
+        friend class Nes;
         Bus();
         virtual void reset() override;
         void addMicroprocesor(Microprocessor*);
@@ -26,7 +26,7 @@ namespace nes
 
     private:
         std::vector<Microprocessor*> microprocessors;
-        nes6502* m_nes;
+        Nes* m_nes;
 
         Byte cpu_ram[2048];
 

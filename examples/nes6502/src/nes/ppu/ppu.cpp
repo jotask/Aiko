@@ -1,7 +1,7 @@
-#include "ppu.h"
+#include "nes/ppu/ppu.h"
 
-#include "cartridge.h"
-#include "bus.h"
+#include "nes/cartridge/cartridge.h"
+#include "nes/bus.h"
 
 namespace nes
 {

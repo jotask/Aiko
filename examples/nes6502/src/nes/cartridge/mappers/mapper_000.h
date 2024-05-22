@@ -1,13 +1,13 @@
 #pragma once
 
-#include "mappers/mapper.h"
+#include "nes/cartridge/mappers/mapper.h"
 
 namespace nes
 {
     class Mapper_000 : public Mapper
     {
     public:
-        Mapper_000(uint8_t prg_banks, uint8_t chr_banks);
+        Mapper_000(Byte prg_banks, Byte chr_banks);
         virtual ~Mapper_000() = default;
 
         virtual bool cpu_read(Word address, u32& mapped_addr) override;

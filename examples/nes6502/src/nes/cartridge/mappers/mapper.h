@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nes_types.h"
+#include "nes/nes_types.h"
 
 namespace nes
 {

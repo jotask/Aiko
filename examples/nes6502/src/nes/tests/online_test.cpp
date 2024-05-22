@@ -4,15 +4,15 @@
 #include <tuple>
 #include <map>
 
-#include "bus.h"
-#include "cpu.h"
-#include "memory.h"
-#include "cartridge.h"
-#include "tests/test_type.h"
-#include "nes_utils.h"
-#include "nes6502.h"
+#include "nes/bus.h"
+#include "nes/cpu/cpu.h"
+#include "nes/memory.h"
+#include "nes/cartridge/cartridge.h"
+#include "nes/tests/test_type.h"
+#include "nes/utils/nes_utils.h"
+#include "nes/nintendo_entertainment_system.h"
 
-#include "tests/test_type.h"
+#include "nes/tests/test_type.h"
 
 namespace nes::test::online
 {
@@ -64,7 +64,7 @@ namespace nes::test::online
     void OnlinesTest::run()
     {
         // 1. Create the nest instance
-        nes::nes6502 nes;
+        nes::Nes nes;
         nes::Bus* bus = nes.getBus();
         nes::Cpu* cpu = bus->getMicroprocesor<nes::Cpu>();
         cpu->waitForCycles = 0;

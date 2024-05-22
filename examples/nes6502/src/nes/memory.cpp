@@ -1,6 +1,6 @@
-#include "memory.h"
+#include "nes/memory.h"
 
-#include "nes_utils.h"
+#include "nes/utils/nes_utils.h"
 
 namespace nes
 {

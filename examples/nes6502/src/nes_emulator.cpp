@@ -16,12 +16,12 @@
 #include "shared/math.h"
 #include "core/log.h"
 
-#include "bus.h"
-#include "memory.h"
-#include "nes_utils.h"
-#include "instructions.h"
+#include "nes/bus.h"
+#include "nes/memory.h"
+#include "nes/utils/nes_utils.h"
+#include "nes/cpu/instructions.h"
 
-#include "tests/online_test_manager.h"
+#include "nes/tests/online_test_manager.h"
 
 namespace nes
 {

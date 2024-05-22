@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <tuple>
 
-#include "nes_types.h"
-#include "microprocessor.h"
+#include "nes/nes_types.h"
+#include "nes/microprocessor.h"
 
 namespace test { class MemoryTest; }
 

@@ -8,7 +8,7 @@
 #include "types/textures.h"
 #include "types/asset_type.h"
 
-#include "nes6502.h"
+#include "nes/nintendo_entertainment_system.h"
 
 namespace nes
 {
@@ -27,7 +27,7 @@ namespace nes
 
     private:
 
-        nes::nes6502 m_nes;
+        nes::Nes m_nes;
 
     };
 

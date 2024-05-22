@@ -1,4 +1,4 @@
-#include "nes_utils.h"
+#include "nes/utils/nes_utils.h"
 
 #include  <string>
 #include <iomanip>
@@ -6,8 +6,8 @@
 
 #include <aiko_includes.h>
 
-#include "cpu.h"
-#include "nes_types.h"
+#include "nes/cpu/cpu.h"
+#include "nes/nes_types.h"
 
 namespace nes
 {

@@ -2,9 +2,9 @@
 
 #include <mutex>
 
-#include "nes_types.h"
-#include "microprocessor.h"
-#include "instructions.h"
+#include "nes/nes_types.h"
+#include "nes/microprocessor.h"
+#include "nes/cpu/instructions.h"
 
 namespace nes
 {

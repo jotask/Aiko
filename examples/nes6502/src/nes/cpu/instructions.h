@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "nes_types.h"
-#include "microprocessor.h"
+#include "nes/nes_types.h"
+#include "nes/microprocessor.h"
 
 namespace nes
 {

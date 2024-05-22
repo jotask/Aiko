@@ -1,11 +1,11 @@
-#include "cpu.h"
+#include "nes/cpu/cpu.h"
 
-#include "bus.h"
-#include "memory.h"
+#include "nes/bus.h"
+#include "nes/memory.h"
 
 #include <aiko_includes.h>
-#include "nes_utils.h"
-#include "tests/nes_test_log.h"
+#include "nes/utils/nes_utils.h"
+#include "nes/tests/nes_test_log.h"
 
 namespace nes
 {

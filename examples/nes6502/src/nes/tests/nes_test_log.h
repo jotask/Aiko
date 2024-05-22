@@ -3,9 +3,9 @@
 #include <aiko_includes.h>
 #include <string>
 #include <vector>
-#include "instructions.h"
+#include "nes/cpu/instructions.h"
 
-#include "nes_types.h"
+#include "nes/nes_types.h"
 
 namespace nes
 {

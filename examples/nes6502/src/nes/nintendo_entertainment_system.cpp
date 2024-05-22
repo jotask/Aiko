@@ -1,4 +1,4 @@
-#include "nes6502.h"
+#include "nintendo_entertainment_system.h"
 
 #include <chrono>
 #include <sstream>
@@ -18,7 +18,7 @@
 
 namespace nes
 {
-    nes6502::nes6502()
+    Nes::Nes()
         : runClock(true)
         , nOfcycles(0)
     {
@@ -29,18 +29,18 @@ namespace nes
         bus.addMicroprocesor(&ppu);
     }
 
-    nes6502::~nes6502()
+    Nes::~Nes()
     {
         stop();
     }
 
-    void nes6502::start()
+    void Nes::start()
     {
         runClock = true;
-        clock = std::thread(&nes6502::onCycle, this);
+        clock = std::thread(&Nes::onCycle, this);
     }
 
-    void nes6502::stop()
+    void Nes::stop()
     {
         runClock = false;
         if (std::thread::id() != clock.get_id())
@@ -49,12 +49,12 @@ namespace nes
         }
     }
 
-    void nes6502::reset()
+    void Nes::reset()
     {
         bus.reset();
     }
 
-    void nes6502::onCycle()
+    void Nes::onCycle()
     {
         using namespace std::literals;
         using clock_type = std::chrono::high_resolution_clock;
@@ -74,17 +74,17 @@ namespace nes
 
     }
 
-    void nes6502::insertCartridge(const char* file)
+    void Nes::insertCartridge(const char* file)
     {
         cartridge.load(file);
     }
 
-    std::size_t nes6502::getNofCycles() const
+    std::size_t Nes::getNofCycles() const
     {
         return nOfcycles;;
     }
 
-    nes::Bus* nes6502::getBus()
+    nes::Bus* Nes::getBus()
     {
         return &bus;
     }
