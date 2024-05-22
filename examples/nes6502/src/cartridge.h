@@ -5,8 +5,11 @@
 #include <vector>
 #include <stdlib.h>
 
+#include <aiko_includes.h>
+
 #include "nes_types.h"
 #include "microprocessor.h"
+#include "mappers/mapper.h"
 
 namespace nes
 {
@@ -25,6 +28,15 @@ namespace nes
         bool ppu_write(uint16_t addr, uint8_t data);
 
     private:
+        enum class Mirroring
+        {
+            Vertical,
+            Horizontal,
+            Four_Screen,
+        };
+        std::vector<Byte> PRG_Memory;
+        std::vector<Byte> CHR_Memory;
+        aiko::AikoPtr<Mapper> mapper;
     };
 
 }

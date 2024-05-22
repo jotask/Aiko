@@ -1,13 +1,18 @@
 #include "cartridge.h"
 
+#include <iostream>
+
 #include <fstream>
 #include <string>
+#include <cstring> // For strcmp
 
 #include "aiko_includes.h"
 
 #include "nes_types.h"
 #include "memory.h"
 #include "bus.h"
+
+#include "mappers/mapper_000.h"
 
 namespace nes
 {
@@ -18,6 +23,21 @@ namespace nes
         constexpr size_t headerBytes = 0x0010; // Header NES data
         constexpr size_t loadBytes = 0x4000; // Number of bytes to load from the file
 
+        struct CartridgeHeader
+        {
+            char name[4];
+            Byte prg_rom_chunks;
+            Byte chr_rom_chunks;
+            Byte mapper1;
+            Byte mapper2;
+            Byte prg_ram_size;
+            Byte tv_system1;
+            Byte tv_system2;
+            char unused[5];
+        };
+
+        CartridgeHeader header;
+
         std::ifstream stream;
         stream.open(file, std::ios::binary);
         if (stream.is_open() == false)
@@ -26,38 +46,42 @@ namespace nes
             return;
         }
 
-        // Get the size of the file
-        stream.seekg(0, std::ios::end);
-        std::streampos fileSize = stream.tellg();
-        stream.seekg(0, std::ios::beg);
+        // Parse header
+        stream.read((char*)&header, sizeof(CartridgeHeader));
 
-        std::vector<char> buffer(fileSize);
-        stream.read(buffer.data(), fileSize);
-        if (!stream)
+        if (memcmp("NES\x1A", header.name, 4) != 0)
         {
-            aiko::Log::error("Error reading binary file: ", file);
-            return;
+            aiko::Log::error("Inserted invalid cartridge. Only iNES file are supported");
+            assert(false, "UnkownFile");
+            std::exit(-1);
         }
 
-        std::string constant = std::string(&buffer[0x00], &buffer[0x03]); // Constant $4E $45 $53 $1A (ASCII "NES" followed by MS-DOS end-of-file)
-        char pgr_room = buffer[0x03]; // Size of PRG ROM in 16 KB units
-        char chr_room = buffer[0x04]; // Size of CHR ROM in 8 KB units (value 0 means the board uses CHR RAM)
-        char flags_6  = buffer[0x06]; // Flags 6 – Mapper, mirroring, battery, trainer
-        char flags_7  = buffer[0x07]; // Flags 7 – Mapper, VS/Playchoice, NES 2.0
-        char flags_8  = buffer[0x08]; // Flags 8 – PRG-RAM size (rarely used extension)
-        char flags_9  = buffer[0x09]; // Flags 9 – TV system (rarely used extension)
-        char flags_10 = buffer[0x10]; // Flags 10 – TV system, PRG-RAM presence (unofficial, rarely used extension)
+        // TODO What to do with the trainer from some roms?
 
-        buffer.resize(buffer.size() - loadBytes);
-        buffer.erase(buffer.begin(), buffer.begin() + headerBytes);
+        Byte mapperId = ((header.mapper2 >> 4) << 4) | (header.mapper1 >> 4);
+        Mirroring mirror = (header.mapper1 & 0x01) ? Mirroring::Vertical : Mirroring::Horizontal;
+
+        Byte nFileType = 1;
+
+        assert(nFileType == 1, "TODO Not Implemented");
+        
+        if (nFileType == 1)
+        {
+            PRG_Memory.resize( header.prg_rom_chunks * 16384); // 16KiB
+            stream.read((char*)PRG_Memory.data(), PRG_Memory.size());
+            CHR_Memory.resize(header.chr_rom_chunks * 8192); // 8KiB
+            stream.read((char*)CHR_Memory.data(), CHR_Memory.size());
+        }
+
+        switch (mapperId)
+        {
+        case 0:         mapper = std::make_shared<Mapper_000>(header.prg_rom_chunks, header.chr_rom_chunks);        break;
+        default:
+            assert(false, "Mapper Not Supported");
+            break;
+        }
 
         stream.close();
-
-        Memory* memory = bus->getMicroprocesor<Memory>();
-        assert(memory != nullptr, "Couldn't get Memory connected to the bus");
-
-        std::copy(buffer.begin(), buffer.end(), memory->data + 0x8000);
-        std::copy(buffer.begin(), buffer.end(), memory->data + 0xC000);
 
     }
 
@@ -66,8 +90,8 @@ namespace nes
         assert(memoryDump.size() < nes::Memory::MAX_MEM, "The Memory dump passed is bigger than supported size");
         memoryDump.resize(nes::Memory::MAX_MEM);
         Memory* memory = bus->getMicroprocesor<Memory>();
-        assert(memory != nullptr, "Couldnt' get Memory connected to the bus");
-        assert(memoryDump.size() == Memory::MAX_MEM, "Couldnt' get Memory connected to the bus");
+        assert(memory != nullptr, "Couldn't get Memory connected to the bus");
+        assert(memoryDump.size() == Memory::MAX_MEM, "Couldn't get Memory connected to the bus");
         std::copy(memoryDump.begin(), memoryDump.end(), memory->data);
     }
 
