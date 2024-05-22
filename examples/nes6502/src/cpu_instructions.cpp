@@ -153,13 +153,11 @@ namespace nes
     void Cpu::brk()
     {
         setCurrentInstruction(Instruction::brk);
-        program_counter++;
-        setFlag(I, true);
-        pushWordStack(program_counter, true);
+        pushWordStack(program_counter++, true);
         setFlag(B, true);
-        // P is the problem 
         pushStack(P, true);
         setFlag(B, false);
+        setFlag(I, true);
         Byte low = getMemory()->read(Word(0xFFFE));
         Byte high  = getMemory()->read(Word(0xFFFF));
         program_counter = toWord(high, low);
