@@ -30,6 +30,12 @@ namespace nes
                 Byte y;
                 Byte p;
                 Byte sp;
+
+                Byte ppu_one;
+                Byte ppu_two;
+
+                Word cycle;
+
             };
 
             void init();

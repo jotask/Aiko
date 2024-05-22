@@ -39,13 +39,17 @@ namespace nes::test
 
             code.instruction = str.substr(16, 3);
 
-            auto status = str.substr(48, 25);
+            auto status = str.substr(48, 47);
 
             code.a = toByte(status.substr( 2, 2));
             code.x = toByte(status.substr( 7, 2));
             code.y = toByte(status.substr(12, 2));
             code.p = toByte(status.substr(17, 2));
             code.sp = toByte(status.substr(23, 2));
+
+            code.ppu_one = toByte(status.substr(30, 3));
+            code.ppu_two = toByte(status.substr(34, 3));
+            code.cycle = toWord(status.substr(34, 3));
 
             lines.push_back(code);
 
