@@ -18,7 +18,7 @@ namespace nes
     {
     }
 
-    Byte Ppu::ppu_read(Word addr, bool rdonly)
+    Byte Ppu::ppu_read(Word addr, bool readonly)
     {
     }
 

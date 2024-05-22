@@ -13,11 +13,11 @@ namespace nes
 
     public:
         // Communications with Main Bus
-        Byte cpu_read(Word addr, bool rdonly = false);
+        Byte cpu_read(Word addr, bool readonly = false);
         void cpu_write(Word addr, Byte  data);
 
         // Communications with PPU Bus
-        Byte ppu_read(Word addr, bool rdonly = false);
+        Byte ppu_read(Word addr, bool readonly = false);
         void ppu_write(Word addr, Byte data);
     };
 
