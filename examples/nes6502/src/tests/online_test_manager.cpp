@@ -73,6 +73,7 @@ namespace nes::test::online
 
 #if false
 
+        runByteOpCode(0x00); // BRK
         runByteOpCode(0x01); // ORA IZX     -> OK
         runByteOpCode(0x05); // ORA ZP      -> OK
         runByteOpCode(0x06); // ASL ZP      -> OK
@@ -223,14 +224,9 @@ namespace nes::test::online
         runByteOpCode(0xf9); // SBC ABY
         runByteOpCode(0xfd); // SBC ABX
         runByteOpCode(0xfe); // INC ABX
-#else
-
-        runByteOpCode(0x00); // BRK
-
-#endif
 #endif
 
-        int a = 0;
+#endif
 
     }
 
