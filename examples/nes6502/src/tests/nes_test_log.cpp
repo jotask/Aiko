@@ -41,7 +41,6 @@ namespace nes::test
 
             auto status = str.substr(48, 25);
 
-
             code.a = toByte(status.substr( 2, 2));
             code.x = toByte(status.substr( 7, 2));
             code.y = toByte(status.substr(12, 2));
