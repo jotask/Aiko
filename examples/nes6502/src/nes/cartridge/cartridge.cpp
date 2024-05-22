@@ -85,16 +85,6 @@ namespace nes
 
     }
 
-    void Cartridge::load(std::vector<Byte>& memoryDump)
-    {
-        assert(memoryDump.size() < nes::Memory::MAX_MEM, "The Memory dump passed is bigger than supported size");
-        memoryDump.resize(nes::Memory::MAX_MEM);
-        Memory* memory = bus->getMicroprocesor<Memory>();
-        assert(memory != nullptr, "Couldn't get Memory connected to the bus");
-        assert(memoryDump.size() == Memory::MAX_MEM, "Couldn't get Memory connected to the bus");
-        std::copy(memoryDump.begin(), memoryDump.end(), memory->data);
-    }
-
     void Cartridge::reset()
     {
 
