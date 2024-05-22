@@ -88,8 +88,10 @@ namespace nes::test
         }
         if (test.p != P)
         {
-            aiko::Log::warning("ERROR :: P :: EXPECTED : ", toString(test.p), " -> RECIVED : ", toString(P));
             int a = 0;
+            aiko::Log::warning("ERROR :: P :: EXPECTED : ", unsigned(test.p), " -> RECIVED : ", unsigned(P));
+            printStatusFlags("    EXPECTED:", test.p);
+            printStatusFlags("    RECEIVED:", P);
         }
     }
 

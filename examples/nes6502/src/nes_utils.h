@@ -72,4 +72,6 @@ namespace nes
         return high;
     }
 
+    void printStatusFlags(std::string prefix, Byte statusFlags);
+
 }

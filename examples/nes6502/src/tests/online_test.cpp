@@ -165,29 +165,8 @@ namespace nes::test::online
             if (cpu->getP() != final.p)
             {
                 aiko::Log::error("P not the same. Expected: ", unsigned(final.p), " Received: ", unsigned(cpu->getP()));
-
-                auto printP = [&](Byte b, const char* prefix)
-                    {
-                        auto getFlag = [](Byte P, Cpu::StatusFlags p)
-                            {
-                                return ((P & p) > 0) ? 1 : 0;
-                            };
-                        aiko::Log::error(
-                            prefix,
-                            "StatusFlags::",
-                            " C: ", unsigned(getFlag(b, Cpu::C)),
-                            " Z: ", unsigned(getFlag(b, Cpu::Z)),
-                            " I: ", unsigned(getFlag(b, Cpu::I)),
-                            " D: ", unsigned(getFlag(b, Cpu::D)),
-                            " B: ", unsigned(getFlag(b, Cpu::B)),
-                            " U: ", unsigned(getFlag(b, Cpu::U)),
-                            " V: ", unsigned(getFlag(b, Cpu::V)),
-                            " N: ", unsigned(getFlag(b, Cpu::N))
-                        );
-                    };
-
-                printP(final.p, "Expected: ");
-                printP(cpu->getP(), "Received: ");
+                printStatusFlags("Expected: ", final.p);
+                printStatusFlags("Received: ", cpu->getP());
                 assert(false);
             }
             for (auto& r : final.ram)
