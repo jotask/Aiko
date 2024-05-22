@@ -21,6 +21,7 @@ namespace nes
         // Set it
         program_counter = toWord(hi, lo);
 #else
+        // TODO Upon reset the address at 0xFFFC is loaded into the program counter, and that is where the emulation begins
         program_counter = 0xC000;
 #endif
 
@@ -29,7 +30,7 @@ namespace nes
         X = 0;
         Y = 0;
         stack_pointer = 0xFD;
-        P = 0x00;
+        P = 0x24; // FIXME 0x24 due nest test check, needs investigation
         setFlag(U, true);
 
         // Clear internal helper variables
