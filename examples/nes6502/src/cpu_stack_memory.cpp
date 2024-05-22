@@ -57,8 +57,8 @@ namespace nes
         const Word stack_address = getWordStackAddress();
         if (late == true) stack_pointer++;
         assertStackAddress();
-        aiko::Log::trace(stack_print_padding, "popStack: ", toString(stack_address), " Value: ", toString(result));
         const Byte result = read(stack_address);
+        aiko::Log::trace(stack_print_padding, "popStack: ", toString(stack_address), " Value: ", toString(result));
         return result;
     }
 
