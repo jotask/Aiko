@@ -19,8 +19,6 @@ namespace nes
         template<class T>
         T* getMicroprocesor();
 
-        virtual void clock() override;
-
         void cpu_write(Word, Byte);
         Byte cpu_read(Word, bool = false);
 

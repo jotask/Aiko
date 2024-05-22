@@ -63,13 +63,16 @@ namespace nes
 
         auto when_started = clock_type::now();
         auto target_time = when_started + wait_time;
-        while(runClock)
+        while (runClock)
         {
-            bus.clock();
+            ppu.clock();
+            if (nOfcycles % 3 == 0)
+            {
+                cpu.clock();
+            }
             nOfcycles++;
             std::this_thread::sleep_until(target_time);
             target_time += wait_time;
-            // aiko::Log::info("[6502] clock tick");
         }
 
     }

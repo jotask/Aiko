@@ -8,9 +8,10 @@ namespace nes
 
     class Ppu : public Microprocessor
     {
-    public:
+        friend class Nes;
+    private:
         virtual void reset() override;
-
+        void clock();
     public:
         // Communications with Main Bus
         Byte cpu_read(Word addr, bool readonly = false);

@@ -10,7 +10,12 @@ namespace nes
 
     }
 
-    Byte Ppu::cpu_read(Word addr, bool rdonly)
+    void Ppu::clock()
+    {
+
+    }
+
+    Byte Ppu::cpu_read(Word addr, bool readonly)
     {
         Byte data = 0x00;
         switch (addr)

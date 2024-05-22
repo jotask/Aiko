@@ -25,7 +25,7 @@ namespace nes
     public:
 
         virtual void reset() override;
-        virtual void clock() override;
+        void clock();
 
         AddressModes currentAddressMode();
         Instruction currentInstruction();

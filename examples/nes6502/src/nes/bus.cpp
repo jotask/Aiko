@@ -23,13 +23,6 @@ namespace nes
         microprocessors.push_back(m);
     }
 
-    void Bus::clock()
-    {
-        for(auto& m : microprocessors )
-        {
-            m->clock();
-        }
-    }
     void Bus::cpu_write(Word address, Byte data)
     {
         if (getMicroprocesor<Cartridge>()->cpu_write(address, data))
