@@ -40,8 +40,6 @@ namespace nes
         // Reset takes time
         waitForCycles = 8;
 
-        test::NesTest::it().testStack(this, getMemory());
-
     }
 
     void Cpu::clock()

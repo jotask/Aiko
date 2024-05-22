@@ -41,8 +41,6 @@ namespace nes
 
             void test(Word line, OpCode ops, Word programCounter, Byte stackPointer, Byte A, Byte X, Byte Y, Byte P);
 
-            void testStack(nes::Cpu* cpu, nes::Memory* memory);
-
         };
 
     }
