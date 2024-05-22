@@ -391,8 +391,8 @@ namespace nes
     {
         setCurrentInstruction(Instruction::php);
         pushStack(Byte(P | B | U), true);
-        setFlag(B, 0);
-        setFlag(U, 0);
+        setFlag(B, false);
+        // setFlag(U, false);
     }
 
     void Cpu::pla()
