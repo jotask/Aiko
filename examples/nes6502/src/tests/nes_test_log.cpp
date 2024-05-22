@@ -184,9 +184,7 @@ namespace nes::test
                 Word tmp = toWord(high, low);
                 auto shit = toString(tmp);
                 stackW.push(tmp);
-                cpu->pushWordStack(tmp);
-                // cpu->pushStack(low);
-                // cpu->pushStack(high);
+                cpu->pushWordStack(tmp, true);
                 int a = 0;
             };
 
