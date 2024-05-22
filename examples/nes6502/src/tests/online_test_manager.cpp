@@ -72,6 +72,7 @@ namespace nes::test::online
 #else
 
 #if false
+
         runByteOpCode(0x01); // ORA IZX     -> OK
         runByteOpCode(0x05); // ORA ZP      -> OK
         runByteOpCode(0x06); // ASL ZP      -> OK
