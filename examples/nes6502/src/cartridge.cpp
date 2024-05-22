@@ -76,4 +76,48 @@ namespace nes
 
     }
 
+    bool Cartridge::cpu_read(uint16_t addr, uint8_t& data)
+    {
+        u32 mapped_address = 0;
+        if (mapper->cpu_read( addr, mapped_address ))
+        {
+            data = PRG_Memory[mapped_address];
+            return true;
+        }
+        return false;
+    }
+
+    bool Cartridge::cpu_write(uint16_t addr, uint8_t data)
+    {
+        u32 mapped_address = 0;
+        if (mapper->cpu_write(addr, mapped_address))
+        {
+            PRG_Memory[mapped_address] = data;
+            return true;
+        }
+        return false;
+    }
+
+    bool Cartridge::ppu_read(uint16_t addr, uint8_t& data)
+    {
+        u32 mapped_address = 0;
+        if (mapper->ppu_read(addr, mapped_address))
+        {
+            data = CHR_Memory[mapped_address];
+            return true;
+        }
+        return false;
+    }
+
+    bool Cartridge::ppu_write(uint16_t addr, uint8_t data)
+    {
+        u32 mapped_address = 0;
+        if (mapper->ppu_write(addr, mapped_address))
+        {
+            CHR_Memory[mapped_address] = data;
+            return true;
+        }
+        return false;
+    }
+
 }

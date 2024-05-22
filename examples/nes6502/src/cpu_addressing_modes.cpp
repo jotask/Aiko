@@ -11,7 +11,7 @@ namespace nes
     void Cpu::relative()
     {
         setCurrentAddressMode(AddressModes::Relative);
-        addr_rel = getMemory()->read(program_counter++);
+        addr_rel = read(program_counter++);
         if (addr_rel & 0x80)
         {
             addr_rel |= 0xFF00;
@@ -41,7 +41,7 @@ namespace nes
         // 256 memory locations each ($00…$FF). In this model the high-byte of an address gives the
         // page number and the low-byte a location inside this page.
         setCurrentAddressMode(AddressModes::ZeroPage);
-        addr_abs = getMemory()->read(program_counter++);
+        addr_abs = read(program_counter++);
         addr_abs = getLow(addr_abs);
     }
 
@@ -50,7 +50,7 @@ namespace nes
         // Indexed addressing adds the contents of either the X-register or the Y-register to the
         // provided address to give the effective address, which provides the operand.
         setCurrentAddressMode(AddressModes::ZeroPageX);
-        addr_abs = (getMemory()->read(program_counter) + X);
+        addr_abs = (read(program_counter) + X);
         program_counter++;
         addr_abs &= 0x00FF;
     }
@@ -60,7 +60,7 @@ namespace nes
         // Indexed addressing adds the contents of either the X-register or the Y-register to the
         // provided address to give the effective address, which provides the operand.
         setCurrentAddressMode(AddressModes::ZeroPageY);
-        addr_abs = (getMemory()->read(program_counter) + Y);
+        addr_abs = (read(program_counter) + Y);
         program_counter++;
         addr_abs &= 0x00FF;
     }
@@ -70,18 +70,16 @@ namespace nes
         // Absolute addressing modes provides the 16-bit address of a memory location, the contents
         // of which used as the operand to the instruction.
         setCurrentAddressMode(AddressModes::Absolute);
-        Byte lo = getMemory()->read(program_counter++);
-        Byte hi = getMemory()->read(program_counter++);
+        Byte lo = read(program_counter++);
+        Byte hi = read(program_counter++);
         addr_abs = toWord(hi, lo);
     }
 
     void Cpu::absoluteX()
     {
         setCurrentAddressMode(AddressModes::AbsoluteX);
-        Word lo = getMemory()->read(program_counter);
-        program_counter++;
-        Word hi = getMemory()->read(program_counter);
-        program_counter++;
+        Word lo = read(program_counter++);
+        Word hi = read(program_counter++);
 
         addr_abs = (hi << 8) | lo;
         addr_abs += X;
@@ -95,10 +93,8 @@ namespace nes
     void Cpu::absoluteY()
     {
         setCurrentAddressMode(AddressModes::AbsoluteY);
-        uint16_t lo = getMemory()->read(program_counter);
-        program_counter++;
-        uint16_t hi = getMemory()->read(program_counter);
-        program_counter++;
+        uint16_t lo = read(program_counter++);
+        uint16_t hi = read(program_counter++);
 
         addr_abs = (hi << 8) | lo;
         addr_abs += Y;
@@ -113,20 +109,18 @@ namespace nes
     void Cpu::indirect()
     {
         setCurrentAddressMode(AddressModes::Indirect);
-        Word ptr_lo = getMemory()->read(program_counter);
-        program_counter++;
-        Word ptr_hi = getMemory()->read(program_counter);
-        program_counter++;
+        Word ptr_lo = read(program_counter++);
+        Word ptr_hi = read(program_counter++);
 
         Word ptr = (ptr_hi << 8) | ptr_lo;
 
         if (ptr_lo == 0x00FF) // Simulate page boundary hardware bug
         {
-            addr_abs = (getMemory()->read(Word(ptr & 0xFF00)) << 8) | getMemory()->read(Word(ptr + 0));
+            addr_abs = (read(Word(ptr & 0xFF00)) << 8) | read(Word(ptr + 0));
         }
         else // Behave normally
         {
-            addr_abs = (getMemory()->read(Word(ptr + 1)) << 8) | getMemory()->read(Word(ptr + 0));
+            addr_abs = (read(Word(ptr + 1)) << 8) | (Word(ptr + 0));
         }
 
     }
@@ -134,11 +128,11 @@ namespace nes
     void Cpu::indirectX()
     {
         setCurrentAddressMode(AddressModes::IndirectX);
-        Word t = getMemory()->read(program_counter);
+        Word t = read(program_counter);
         program_counter++;
 
-        Word lo = getMemory()->read(Word((Word)(t + (Word)X) & 0x00FF));
-        Word hi = getMemory()->read(Word((Word)(t + (Word)X + 1) & 0x00FF));
+        Word lo = read(Word((Word)(t + (Word)X) & 0x00FF));
+        Word hi = read(Word((Word)(t + (Word)X + 1) & 0x00FF));
 
         addr_abs = (hi << 8) | lo;
 
@@ -147,11 +141,11 @@ namespace nes
     void Cpu::indirectY()
     {
         setCurrentAddressMode(AddressModes::IndirectY);
-        uint16_t t = getMemory()->read(program_counter);
+        uint16_t t = read(program_counter);
         program_counter++;
 
-        uint16_t lo = getMemory()->read(Word(t & 0x00FF));
-        uint16_t hi = getMemory()->read(Word((t + 1) & 0x00FF));
+        uint16_t lo = read(Word(t & 0x00FF));
+        uint16_t hi = read(Word((t + 1) & 0x00FF));
 
         addr_abs = (hi << 8) | lo;
         addr_abs += Y;

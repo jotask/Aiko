@@ -51,7 +51,7 @@ namespace nes
             waitForCycles--;
             return;
         }
-        Byte opCode = getMemory()->read(program_counter++);
+        Byte opCode = read(program_counter++);
         setFlag(U, true);
         execute(opCode);
         setFlag(U, true);
@@ -77,7 +77,7 @@ namespace nes
     {
         if (currentAddressMode() != AddressModes::Implied)
         {
-            memoryFetched = getMemory()->read(addr_abs);
+            memoryFetched = read(addr_abs);
         }
     }
 
@@ -95,11 +95,14 @@ namespace nes
         m_currentInstruction_mutex.unlock();
     }
 
-    Memory* Cpu::getMemory()
+    Byte Cpu::read(Word address)
     {
-        Memory* mem = bus->getMicroprocesor<Memory>();
-        assert(mem != nullptr, "Memory not found in buffer");
-        return mem;
+        return bus->cpu_read(address, false);
+    }
+
+    void Cpu::write(Word address, Byte data)
+    {
+        bus->cpu_write(address, data);
     }
 
     uint8_t Cpu::getFlag(StatusFlags p)

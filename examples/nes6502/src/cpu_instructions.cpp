@@ -46,7 +46,7 @@ namespace nes
         }
         else
         {
-            getMemory()->write(addr_abs, Byte(temp & 0x00FF));
+            write(addr_abs, Byte(temp & 0x00FF));
         }
     }
 
@@ -158,8 +158,8 @@ namespace nes
         pushStack(P, true);
         setFlag(B, false);
         setFlag(I, true);
-        Byte low = getMemory()->read(Word(0xFFFE));
-        Byte high  = getMemory()->read(Word(0xFFFF));
+        Byte low = read(Word(0xFFFE));
+        Byte high  = read(Word(0xFFFF));
         program_counter = toWord(high, low);
     }
 
@@ -252,7 +252,7 @@ namespace nes
         setCurrentInstruction(Instruction::dec);
         fetchData();
         Word temp = memoryFetched - 1;
-        getMemory()->write(addr_abs, Byte(temp & 0x00FF));
+        write(addr_abs, Byte(temp & 0x00FF));
         setFlag(Z, (temp & 0x00FF) == 0x0000);
         setFlag(N, temp & 0x0080);
     }
@@ -287,7 +287,7 @@ namespace nes
         setCurrentInstruction(Instruction::inc);
         fetchData();
         Word temp = memoryFetched + 1;
-        getMemory()->write(addr_abs, Byte(temp & 0x00FF));
+        write(addr_abs, Byte(temp & 0x00FF));
         setFlag(Z, (temp & 0x00FF) == 0x0000);
         setFlag(N, temp & 0x0080);
     }
@@ -363,7 +363,7 @@ namespace nes
         }
         else
         {
-            getMemory()->write(addr_abs, Byte(temp & 0x00FF));
+            write(addr_abs, Byte(temp & 0x00FF));
         }
     }
 
@@ -427,7 +427,7 @@ namespace nes
         }
         else
         {
-            getMemory()->write(addr_abs, Byte(temp & 0x00FF));
+            write(addr_abs, Byte(temp & 0x00FF));
         }
     }
 
@@ -445,7 +445,7 @@ namespace nes
         }
         else
         {
-            getMemory()->write(addr_abs, Byte(temp & 0x00FF));
+            write(addr_abs, Byte(temp & 0x00FF));
         }
     }
 
@@ -502,19 +502,19 @@ namespace nes
     void Cpu::sta()
     {
         setCurrentInstruction(Instruction::sta);
-        getMemory()->write(addr_abs, A);
+        write(addr_abs, A);
     }
 
     void Cpu::stx()
     {
         setCurrentInstruction(Instruction::stx);
-        getMemory()->write(addr_abs, X);
+        write(addr_abs, X);
     }
 
     void Cpu::sty()
     {
         setCurrentInstruction(Instruction::sty);
-        getMemory()->write(addr_abs, Y);
+        write(addr_abs, Y);
     }
 
     void Cpu::tax()

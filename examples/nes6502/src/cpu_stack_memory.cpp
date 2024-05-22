@@ -30,7 +30,7 @@ namespace nes
         if (late == true) stack_pointer--;
         aiko::Log::trace(stack_print_padding, "pushStack: ", unsigned(stack_address), " Value: ", unsigned(value) );
         assertStackAddress();
-        getMemory()->write(stack_address, value);
+        write(stack_address, value);
     }
 
     void Cpu::pushWordStack(Word value, bool late)
@@ -48,7 +48,7 @@ namespace nes
     {
         const Word stack_address = getWordStackAddress();
         assertStackAddress();
-        return getMemory()->read(stack_address);
+        return read(stack_address);
     }
 
     Byte Cpu::popStack(bool late)
@@ -57,8 +57,8 @@ namespace nes
         const Word stack_address = getWordStackAddress();
         if (late == true) stack_pointer++;
         assertStackAddress();
-        const Byte result = getMemory()->read(stack_address);
         aiko::Log::trace(stack_print_padding, "popStack: ", toString(stack_address), " Value: ", toString(result));
+        const Byte result = read(stack_address);
         return result;
     }
 

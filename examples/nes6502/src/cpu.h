@@ -146,7 +146,10 @@ namespace nes
         Byte waitForCycles;
 
         // helpers
-        Memory* getMemory();
+
+        Byte read(Word);
+        void write(Word, Byte);
+
         Word getWordStackAddress() const;
         void assertStackAddress();
         void pushStack(Byte, bool = false);

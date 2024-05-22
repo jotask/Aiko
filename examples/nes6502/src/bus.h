@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "microprocessor.h"
+#include "nes_types.h"
 
 namespace nes
 {
@@ -20,9 +21,14 @@ namespace nes
 
         virtual void clock() override;
 
+        void cpu_write(Word, Byte);
+        Byte cpu_read(Word, bool = false);
+
     private:
         std::vector<Microprocessor*> microprocessors;
         nes6502* m_nes;
+
+        Byte cpu_ram[2048];
 
     };
 
