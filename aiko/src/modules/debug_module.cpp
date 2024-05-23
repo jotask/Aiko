@@ -47,7 +47,7 @@ namespace aiko
 
     void DebugModule::render()
     {
-        ImGui::ShowDemoWindow();
+
     }
 
     void DebugModule::postRender()
