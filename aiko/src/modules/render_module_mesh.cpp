@@ -65,7 +65,7 @@ namespace aiko
     void RenderModule::renderMesh(Camera* cam,  Transform* transform, Mesh* mesh, Shader* shader)
     {
 
-        glUseProgram(shader->m_shaderData.id);
+        shader->use();
 
         auto projection = cam->getProjectionMatrix();
         shader->setMat4("projection", projection);
@@ -79,6 +79,8 @@ namespace aiko
         glBindVertexArray(mesh->m_data.vao);
         glDrawElements(GL_TRIANGLES, mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
+
+        shader->unuse();
 
     }
 
