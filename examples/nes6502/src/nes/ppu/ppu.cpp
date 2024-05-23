@@ -12,7 +12,17 @@ namespace nes
 
     void Ppu::clock()
     {
-
+        cycle++;
+        if (cycle >= 341)
+        {
+            cycle = 0;
+            scan_line++;
+            if (scan_line >= 261)
+            {
+                scan_line = -1;
+                frame_complete = true;
+            }
+        }
     }
 
     Byte Ppu::cpu_read(Word addr, bool readonly)
