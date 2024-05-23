@@ -12,6 +12,10 @@
 #include <entt/entt.hpp>
 #include <entt/entity/registry.hpp>
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #define GLT_IMPLEMENTATION
 #define GLT_MANUAL_VIEWPORT
 #include <gltext.h>
