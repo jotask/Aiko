@@ -14,6 +14,7 @@ namespace sandbox
     private:
         aiko::GameObject* m_go1;
         aiko::GameObject* m_go2;
+        aiko::GameObject* m_texture;
     };
 
 }

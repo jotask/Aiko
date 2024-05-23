@@ -34,11 +34,13 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
 
-        aiko::AikoPtr<Mesh> createMesh();
+        aiko::AikoPtr<Mesh> createMesh(Mesh::MeshType type);
         aiko::AikoPtr<Light> createLight();
+        texture::Texture createTexture();
 
         void add(Light*);
-        void render(MeshComponent*);
+        void render(Transform* trans, Mesh* mesh, Shader* shader);
+        void render(Transform* trans, Mesh* mesh, Shader* shader, texture::Texture*);
 
         texture::RenderTexture2D* getTargetTexture() const;
 

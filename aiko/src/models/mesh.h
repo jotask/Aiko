@@ -15,6 +15,13 @@ namespace aiko
     {
     public:
 
+        enum class MeshType
+        {
+            TEST,
+            QUAD,
+            CUSTOM,
+        };
+
         friend class RenderModule;
         friend class RenderSystem;
     

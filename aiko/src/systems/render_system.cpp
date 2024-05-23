@@ -44,11 +44,23 @@ namespace aiko
 
     }
 
-    aiko::AikoPtr<Mesh> RenderSystem::createMesh()
+    aiko::AikoPtr<Mesh> RenderSystem::createMesh(Mesh::MeshType type)
     {
         auto mesh = std::make_unique<Mesh>();
         m_renderModule->initMesh(mesh.get());
-        mesh::generatTest(*mesh.get());
+        switch (type)
+        {
+        case aiko::Mesh::MeshType::TEST:
+            mesh::generatTest(*mesh.get());
+            break;
+        case aiko::Mesh::MeshType::QUAD:
+            mesh::generateQuad(*mesh.get());
+            break;
+        case aiko::Mesh::MeshType::CUSTOM:
+            break;
+        default:
+            break;
+        }
         m_renderModule->refreshMesh(mesh.get());
         return mesh;
     }
@@ -57,6 +69,12 @@ namespace aiko
     {
         auto light = std::make_unique<Light>();
         return light;
+    }
+
+    texture::Texture RenderSystem::createTexture()
+    {
+        auto text = m_renderModule->createTexture();
+        return text;
     }
     
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
@@ -90,10 +108,17 @@ namespace aiko
         }
     }
    
-    void RenderSystem::render(MeshComponent* mesh)
+    void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader)
     {
         m_renderModule->beginMode3D();
-        m_renderModule->renderMesh(getMainCamera() , mesh->gameobject->transform().get(), mesh->m_mesh.get(), mesh->m_shader.get());
+        m_renderModule->renderMesh(getMainCamera() , trans, mesh, shader);
+        m_renderModule->endMode3D();
+    }
+
+    void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader, texture::Texture* texture)
+    {
+        m_renderModule->beginMode3D();
+        m_renderModule->renderMesh(getMainCamera(), trans, mesh, shader, texture);
         m_renderModule->endMode3D();
     }
 

@@ -15,7 +15,7 @@ namespace aiko
     void MeshComponent::init()
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
-        m_mesh = m_renderSystem->createMesh();
+        m_mesh = m_renderSystem->createMesh(Mesh::MeshType::TEST);
         m_shader = m_renderSystem->createShader("C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko.vs", "C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko.fs");
 
     }
@@ -27,7 +27,7 @@ namespace aiko
 
     void MeshComponent::render()
     {
-        m_renderSystem->render(this);
+        m_renderSystem->render( gameobject->transform().get(), m_mesh.get(), m_shader.get());
     }
 
 }

@@ -8,7 +8,10 @@
 #include "components/light_component.h"
 #include "models/mesh.h"
 #include "modules/render_primitives.h"
+#include "components/texture_component.h"
 #include "models/camera.h"
+
+#include <aiko_includes.h>
 
 #define TEST_CUBES
 
@@ -26,12 +29,18 @@ namespace sandbox
         m_go1->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
-        
+
         m_go2 = this->createGameObject("Cube2");
         m_go2->transform()->position = { -1.0f, 0.0f, 0.0f };
         m_go2->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         m_go2->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
+
+        m_texture = this->createGameObject("Texture");
+        m_texture->transform()->position = { 0.0f, 0.0f, 0.0f };
+        m_texture->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        m_texture->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        auto mesh3 = m_texture->addComponent<aiko::TextureComponent>();
 #endif
 
     }
