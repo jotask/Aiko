@@ -51,6 +51,7 @@ namespace aiko
         void initMesh(Mesh*);
         void refreshMesh(Mesh*);
         void renderMesh(Camera*, Transform*, Mesh*, Shader*);
+        void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::Texture*);
 
         void refreshShader(Mesh*);
 

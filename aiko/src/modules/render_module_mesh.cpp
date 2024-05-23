@@ -84,5 +84,36 @@ namespace aiko
 
     }
 
+    void RenderModule::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, texture::Texture* text)
+    {
+        glDisable(GL_CULL_FACE);
+
+        // bind textures on corresponding texture units
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, text->id);
+
+        shader->use();
+
+        auto projection = cam->getProjectionMatrix();
+        shader->setMat4("projection", projection);
+
+        auto view = cam->getViewMatrix();
+        shader->setMat4("view", view);
+
+        mat4 model = transform->getMatrix();
+        shader->setMat4("model", model);
+
+        shader->setInt("tex", 0);
+
+
+        glBindVertexArray(mesh->m_data.vao);
+        glDrawElements(GL_TRIANGLES, mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+
+        shader->unuse();
+
+        glEnable(GL_CULL_FACE);
+    }
+
 }
 
