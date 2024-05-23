@@ -99,7 +99,6 @@ namespace aiko
         DisplayModule* m_displayModule;
 
         texture::RenderTexture2D m_renderTexture2D;
-        texture::Texture m_texture;
 
         AikoUPtr<Shader> m_passthrought;
 

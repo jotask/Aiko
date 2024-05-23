@@ -139,7 +139,6 @@ namespace aiko
         m_passthrought->use();
         m_passthrought->setInt("screenTexture", 0);
 
-        m_texture = createTexture();
         m_renderTexture2D = createRenderTexture();
 
         EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);
