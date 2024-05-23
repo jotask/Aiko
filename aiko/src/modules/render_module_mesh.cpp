@@ -31,7 +31,6 @@ namespace aiko
         glGenVertexArrays(1, &mesh->m_data.vao);
         glGenBuffers(1, &mesh->m_data.vbo);
         glGenBuffers(1, &mesh->m_data.ebo);
-        refreshMesh( mesh );
     }
 
     void RenderModule::refreshMesh(Mesh* mesh)

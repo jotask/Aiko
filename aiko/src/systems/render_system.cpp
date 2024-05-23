@@ -47,8 +47,9 @@ namespace aiko
     aiko::AikoPtr<Mesh> RenderSystem::createMesh()
     {
         auto mesh = std::make_unique<Mesh>();
-        mesh::generatTest(*mesh.get());
         m_renderModule->initMesh(mesh.get());
+        mesh::generatTest(*mesh.get());
+        m_renderModule->refreshMesh(mesh.get());
         return mesh;
     }
     
