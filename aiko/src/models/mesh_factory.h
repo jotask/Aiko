@@ -12,6 +12,7 @@ namespace aiko
 
         void generatTest(Mesh& mesh);
 
+        void generateQuad(Mesh& mesh);
         void generateMeshPlane(Mesh& mesh, float width, float length, int resX, int resZ);                     // Generate plane mesh (with subdivisions)
         Mesh generateMeshPoly(int sides, float radius);                                            // Generate polygonal mesh
         void generateMeshCube(Mesh& mesh, float width, float height, float length);                            // Generate cuboid mesh
