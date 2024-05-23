@@ -50,10 +50,10 @@ namespace sandbox
         Application::update();
 #ifdef TEST_CUBES
         static float angle = 0.0f;
-        angle += 10.0f * getlDeltaTime();
+        angle += 25.0f * getlDeltaTime();
         angle = fmod(angle, 360.0f);
-        m_go1->transform()->rotation = { angle, 0.0f, 0.0f };
-        m_go2->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        m_go1->transform()->rotation = {  angle, 0.0f, 0.0f };
+        m_go2->transform()->rotation = { -angle, 0.0f, 0.0f };
 #endif
     }
 
