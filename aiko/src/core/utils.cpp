@@ -30,16 +30,15 @@ namespace aiko
             return &rng;
         }
 
-        template<class T>
-        T getRandom(T min, T max)
-        {
-            std::uniform_int_distribution<T> uni(min, max);
-            return uni(*getRandomDevice());
-        }
-
         int getRandomValue(int min, int max)
         {
             std::uniform_int_distribution<int> uni(min, max);
+            return uni(*getRandomDevice());
+        }
+
+        float getRandomValue(float min, float max)
+        {
+            std::uniform_real_distribution<float> uni(min, max);
             return uni(*getRandomDevice());
         }
 
@@ -64,12 +63,6 @@ namespace aiko
             #else
             #error OS unsupported!
             #endif
-        }
-
-        float getRandomValue(float min, float max)
-        {
-            std::uniform_real_distribution<float> uni(min, max);
-            return uni(*getRandomDevice());
         }
 
     }
