@@ -131,6 +131,96 @@ namespace aiko
         return texture;
     }
 
+    texture::PboTexture RenderModule::createPboTexture(uint16_t width, uint16_t height)
+    {
+        texture::PboTexture pbo;
+
+        pbo.texture.width  = width;
+        pbo.texture.height = height;
+        pbo.texture.format = GL_RGBA;
+
+        const auto channel_count = 4;
+        pbo.data_size = width * height * channel_count;
+
+        // Create texture
+        {
+            // init 2 texture objects
+            glGenTextures(1, &pbo.texture.id);
+            glBindTexture(GL_TEXTURE_2D, pbo.texture.id);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+
+        glGenBuffers(1, &pbo.pbo);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo.pbo);
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, pbo.data_size, nullptr, GL_STREAM_DRAW);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+        return pbo;
+
+    }
+
+    void RenderModule::updatePboTexture(texture::PboTexture pbo, std::vector<Color>& pixels)
+    {
+
+        assert(pbo.texture.width * pbo.texture.height == pixels.size(), "Oh dear this doesn't work at all!");
+
+        glBindTexture(GL_TEXTURE_2D, pbo.texture.id);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo.pbo);
+
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, pbo.data_size, nullptr, GL_STREAM_DRAW);
+
+        GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+        if (ptr)
+        {
+
+            static auto updatePixels = [](GLubyte* dst, uint16_t width, uint16_t height)
+            {
+                    static int color = 0;
+                    if (!dst) return;
+                    int* ptr = (int*)dst;
+
+                    // copy 4 bytes at once
+                    for (int i = 0; i < height; ++i)
+                    {
+                        for (int j = 0; j < width; ++j)
+                        {
+                            *ptr = color;
+                            ++ptr;
+                        }
+                        color += 257;
+                    }
+                    ++color;
+            };
+
+            for (auto c : pixels)
+            {
+               *ptr = c.r * 255;
+               ++ptr;
+               *ptr = c.g * 255;
+               ++ptr;
+               *ptr = c.b * 255;
+               ++ptr;
+               *ptr = c.a * 255;
+               ++ptr;
+            }
+
+            // update data directly on the mapped buffer
+            // updatePixels(ptr, pbo.texture.width, pbo.texture.height);
+            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);  // release pointer to mapping buffer
+        }
+
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pbo.texture.width, pbo.texture.height, pbo.texture.format, GL_UNSIGNED_BYTE, nullptr);
+
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+    }
+
     void RenderModule::drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint)
     {
         int a = 10;

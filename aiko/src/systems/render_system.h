@@ -37,6 +37,9 @@ namespace aiko
         aiko::AikoPtr<Mesh> createMesh(Mesh::MeshType type);
         aiko::AikoPtr<Light> createLight();
         texture::Texture createTexture();
+        texture::PboTexture createPboTexture(uint16_t width, uint16_t height);
+
+        void updatePbo(texture::PboTexture text, std::vector<Color>&);
 
         void add(Light*);
         void render(Transform* trans, Mesh* mesh, Shader* shader);

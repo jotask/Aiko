@@ -16,6 +16,14 @@ namespace aiko::texture
         int channels;
     };
 
+    class PboTexture
+    {
+    public:
+        unsigned int pbo;
+        unsigned int data_size;
+        Texture texture;
+    };
+
     class RenderTexture2D
     {
     public:

@@ -73,10 +73,19 @@ namespace aiko
 
     texture::Texture RenderSystem::createTexture()
     {
-        auto text = m_renderModule->createTexture();
-        return text;
+        return m_renderModule->createTexture();
     }
-    
+
+    texture::PboTexture RenderSystem::createPboTexture(uint16_t width, uint16_t height)
+    {
+        return m_renderModule->createPboTexture(width, height);
+    }
+
+    void RenderSystem::updatePbo(texture::PboTexture text, std::vector<Color>& pixels)
+    {
+        m_renderModule->updatePboTexture(text, pixels);
+    }
+
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
