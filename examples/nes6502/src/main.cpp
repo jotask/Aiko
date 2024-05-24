@@ -4,7 +4,7 @@
 
 int main()
 {
-	nes::NesEmulator nes;
-	nes.run();
-	return EXIT_SUCCESS;
+    nes::NesEmulator nes;
+    nes.run();
+    return EXIT_SUCCESS;
 }

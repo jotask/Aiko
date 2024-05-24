@@ -16,6 +16,7 @@ namespace aiko
 
         friend class RenderSystem;
 
+        PboTextureComponent(std::string, uint32_t width, uint32_t height, bool autoRender);
         PboTextureComponent();
         virtual ~PboTextureComponent() = default;
 
@@ -23,7 +24,13 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
 
+        void refreshPixels();
+
         void updatePixel(uint16_t x, uint16_t y, Color c);
+
+    protected:
+
+        bool auto_render = true;
 
     private:
         RenderSystem*       m_renderSystem;
