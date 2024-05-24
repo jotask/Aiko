@@ -1,5 +1,6 @@
 #include "modules/display_module.h"
 
+#include "aiko.h"
 #include "events/events.hpp"
 #include "core/libs.h"
 #include "core/log.h"
@@ -17,9 +18,11 @@ namespace aiko
 
         EventSystem::it().bind<WindowResizeEvent>(this, &DisplayModule::onWindowResize);
 
+        const AikoConfig cfg = getAiko()->getConfig();
+
         // TODO Initial window size from config
-        const ivec2 size = { 800, 600 };
-        m_displayName = "Aiko";
+        const ivec2 size = { cfg.width, cfg.height };
+        m_displayName = cfg.window_tittle;
         GLFWwindow* window = glfwCreateWindow(size.x, size.y, m_displayName.c_str(), NULL, NULL);
         if (window == NULL)
         {
