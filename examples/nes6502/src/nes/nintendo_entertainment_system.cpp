@@ -84,7 +84,7 @@ namespace nes
 
     std::size_t Nes::getNofCycles() const
     {
-        return nOfcycles;;
+        return nOfcycles;
     }
 
     nes::Bus* Nes::getBus()
