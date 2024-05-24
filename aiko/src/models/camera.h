@@ -46,7 +46,7 @@ namespace aiko
         float m_fov = 0.0f;
 
         camera::CameraType cameraType = camera::CameraType::Perspective;
-        camera::CameraController cameraControler = camera::CameraController::Orbit;
+        camera::CameraController cameraControler = camera::CameraController::Static;
 
     };
 
