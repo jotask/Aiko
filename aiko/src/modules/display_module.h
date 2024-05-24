@@ -13,8 +13,8 @@ namespace aiko
     {
     
     public:
-    
-        DisplayModule() = default;
+
+        DisplayModule(Aiko* aiko) : BaseModule(aiko) { };
         virtual ~DisplayModule();
 
         Display& getCurrentDisplay() { return m_curent; };

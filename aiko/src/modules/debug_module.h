@@ -15,7 +15,7 @@ namespace aiko
     {
     public:
     
-        DebugModule() = default;
+        DebugModule(Aiko* aiko) : BaseModule(aiko) { };
         virtual ~DebugModule() = default;
 
     protected:

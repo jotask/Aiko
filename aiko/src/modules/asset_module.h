@@ -10,8 +10,8 @@ namespace aiko
     class AssetModule : public BaseModule
     {
     public:
-    
-        AssetModule() = default;
+
+        AssetModule(Aiko* aiko) : BaseModule(aiko) { };
         virtual ~AssetModule() = default;
 
     protected:

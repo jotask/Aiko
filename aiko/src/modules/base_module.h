@@ -9,6 +9,8 @@ namespace aiko
     {
     public:
     
+        BaseModule(Aiko* aiko) : Module(aiko) { };
+
         BaseModule() = default;
         virtual ~BaseModule() = default;
     

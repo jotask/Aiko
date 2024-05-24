@@ -83,12 +83,12 @@ namespace aiko
     {
 
         // Modules
-        m_modules.emplace_back(std::make_unique<PlatformModule>());
-        m_modules.emplace_back(std::make_unique<DisplayModule>());
-        m_modules.emplace_back(std::make_unique<RenderModule>());
-        m_modules.emplace_back(std::make_unique<InputModule>());
-        m_modules.emplace_back(std::make_unique<AssetModule>());
-        m_modules.emplace_back(std::make_unique<DebugModule>());
+        m_modules.emplace_back(std::make_unique<PlatformModule>(this));
+        m_modules.emplace_back(std::make_unique<DisplayModule>(this));
+        m_modules.emplace_back(std::make_unique<RenderModule>(this));
+        m_modules.emplace_back(std::make_unique<InputModule>(this));
+        m_modules.emplace_back(std::make_unique<AssetModule>(this));
+        m_modules.emplace_back(std::make_unique<DebugModule>(this));
 
         ModuleConnector moduleConnector(m_modules);
 

@@ -13,8 +13,8 @@ namespace aiko
     class InputModule : public BaseModule
     {
     public:
-    
-        InputModule() = default;
+
+        InputModule(Aiko* aiko) : BaseModule(aiko) { };
         virtual ~InputModule() = default;
 
         bool isKeyPressed(Key) const;

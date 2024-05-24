@@ -22,7 +22,7 @@ namespace aiko
     
     public:
 
-        RenderModule();
+        RenderModule(Aiko* aiko);
         virtual ~RenderModule();
 
     protected:

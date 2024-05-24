@@ -13,7 +13,7 @@ namespace aiko
     {
     public:
 
-        PlatformModule() = default;
+        PlatformModule(Aiko* aiko) : BaseModule(aiko) { };
         virtual ~PlatformModule() = default;
 
         const char* loadTextContent(char* filePath);
