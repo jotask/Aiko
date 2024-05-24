@@ -9,6 +9,7 @@
 #include "models/mesh.h"
 #include "modules/render_primitives.h"
 #include "components/texture_component.h"
+#include "components/pbo_texture_component.h"
 #include "models/camera.h"
 
 #include <aiko_includes.h>
@@ -37,10 +38,17 @@ namespace sandbox
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
 
         m_texture = this->createGameObject("Texture");
-        m_texture->transform()->position = { 0.0f, 0.0f, 0.0f };
+        m_texture->transform()->position = { 0.0f, -0.55f, 0.0f };
         m_texture->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         m_texture->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh3 = m_texture->addComponent<aiko::TextureComponent>();
+
+        m_texturePbo = this->createGameObject("PboTexture");
+        m_texturePbo->transform()->position = { 0.0f, 0.55f, 0.0f };
+        m_texturePbo->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        m_texturePbo->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        auto mesh4 = m_texturePbo->addComponent<aiko::PboTextureComponent>();
+
 #endif
 
     }
