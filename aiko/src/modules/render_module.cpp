@@ -29,8 +29,9 @@ namespace aiko
 
     constexpr bool s_enableDebugLogs = false;
 
-    RenderModule::RenderModule()
-        : m_displayModule(nullptr)
+    RenderModule::RenderModule(Aiko* aiko)
+        : BaseModule(aiko)
+        , m_displayModule(nullptr)
         , m_scale(false)
         , m_renderTexture2D()
     {

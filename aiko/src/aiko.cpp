@@ -29,20 +29,14 @@
 namespace aiko
 {
 
-    const AikoConfig default_aiko_cfg;
-
-    Aiko::Aiko(Application* app)
-        : Aiko(app, default_aiko_cfg)
-    {
-        Log::init();
-    }
+    Aiko::Aiko(Application* app) : Aiko(app, AikoConfig()) { }
 
     Aiko::Aiko(Application * app,  AikoConfig cfg)
         : m_application(app)
         , m_shouldStop(false)
         , cfg(cfg)
     {
-
+        Log::init();
         EventSystem::it().bind<WindowCloseEvent>(this, &Aiko::onWindowClose);
     }
 

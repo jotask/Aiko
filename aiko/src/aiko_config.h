@@ -14,9 +14,13 @@ namespace aiko
             ThreeDimensions = 1,
         };
 
-        int Width = 200;
-        int Height = 100;
-        std::string window_tittle = "Aiko";
+        AikoConfig();
+        AikoConfig(std::string tittle, uint16_t width, uint64_t height);
+
+        uint16_t width;
+        uint16_t height;
+        std::string window_tittle;
+
         RenderType render_type = RenderType::TwoDimensions;
 
     };

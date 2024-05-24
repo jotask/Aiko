@@ -22,6 +22,7 @@ namespace aiko
         friend class Aiko;
 
         Application();
+        Application(AikoConfig cfg);
         virtual ~Application() = default;
 
         void run();

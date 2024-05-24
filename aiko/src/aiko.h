@@ -36,6 +36,8 @@ namespace aiko
     
         void close();
 
+        const AikoConfig getConfig() const { return cfg; }
+
     private:
 
         Application* m_application;
@@ -54,7 +56,7 @@ namespace aiko
          Modules m_modules;
          Systems m_systems;
 
-        AikoConfig cfg;
+        const AikoConfig cfg;
 
     };
 
