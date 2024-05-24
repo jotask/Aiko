@@ -13,6 +13,8 @@ namespace nes
     void Cpu::reset()
     {
 
+        m_cycles = 0;
+
 #if false
         // Get address to set program counter to
         addr_abs = 0xC000;
@@ -45,6 +47,7 @@ namespace nes
 
     void Cpu::clock()
     {
+        m_cycles++;
         if (waitForCycles > 0)
         {
             waitForCycles--;
@@ -104,7 +107,7 @@ namespace nes
         bus->cpu_write(address, data);
     }
 
-    uint8_t Cpu::getFlag(StatusFlags p)
+    uint8_t Cpu::getFlag(StatusFlags p) const
     {
         return ((P & p) > 0) ? 1 : 0;
     }

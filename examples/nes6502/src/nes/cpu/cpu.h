@@ -44,6 +44,17 @@ namespace nes
 
         Word line = 0;
 
+        Word getPC() const { return program_counter; }
+        Byte getSP() const { return stack_pointer; }
+        Byte getP() const { return P; }
+        Byte getA() const { return A; }
+        Byte getX() const { return X; }
+        Byte getY() const { return Y; }
+
+        Byte getFlag(StatusFlags p) const;
+
+        u64 getCycles() const { return m_cycles; }
+
     private:
 
         void fetchData();
@@ -157,10 +168,10 @@ namespace nes
         Byte peekStack();
         Byte popStack(bool = true);
         Word popWordStack();
-        uint8_t getFlag(StatusFlags p);
-        void    setFlag(StatusFlags p, bool v);
-        inline constexpr Byte getP() { return P; }
+        void setFlag(StatusFlags p, bool v);
         inline constexpr void setP(Byte p) { P = p; }
+
+        u64 m_cycles;
 
     };
 
