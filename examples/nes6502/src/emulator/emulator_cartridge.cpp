@@ -2,6 +2,7 @@
 
 #include "emulator/emulator.h"
 #include "nes_emulator.h"
+#include "nes/ppu/colour_palette.h"
 
 #include <aiko_includes.h>
 #include <imgui.h>
@@ -95,9 +96,8 @@ namespace nes
                         for (int col = 0; col < 8; ++col)
                         {
                             Byte pixelValue = ((plane1 >> (7 - col)) & 1) << 1 | ((plane0 >> (7 - col)) & 1);
-                            float color = static_cast<float>(pixelValue); // Normalize to range [0, 1]
-                            int texIndex = (startX + tileX * 8 + col) + (tileY * 8 + row) * width; // Adjust index calculation
-                            textureData[texIndex] = { color, color, color, 1.0f };
+                            int texIndex = (startX + tileX * 8 + col) + (tileY * 8 + row) * width;
+                            textureData[texIndex] = palette::colour_palette[pixelValue];
                         }
                     }
                 }
