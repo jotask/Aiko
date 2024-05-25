@@ -66,7 +66,7 @@ namespace nes
             imageWidth = std::min(imageWidth, maxWidth);
             imageHeight = std::min(imageHeight, maxHeight);
 
-            ImGui::Image((ImTextureID)pbo->getPboTexture().texture.id, ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image((ImTextureID)pbo->getPboTexture().texture.id, ImVec2(imageWidth, imageHeight), ImVec2(0, 0), ImVec2(1, 1));
             ImGui::EndChild();
         }
         ImGui::End();
