@@ -12,4 +12,7 @@ namespace nes
     using u32 = uint32_t;
     using u64 = uint64_t;
 
+    constexpr Byte NES_WIDTH = 256;
+    constexpr Byte NES_HEIGHT = 240;
+
 }

@@ -5,11 +5,13 @@
 #include "models/game_object.h"
 #include "systems/render_system.h"
 
+#include "nes/nes_types.h"
+
 namespace nes
 {
 
     NesComponent::NesComponent()
-        : PboTextureComponent("NesComponent", 256, 240, true)
+        : PboTextureComponent("NesComponent", NES_WIDTH, NES_HEIGHT, true)
     {
 
     }
