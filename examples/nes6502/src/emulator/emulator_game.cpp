@@ -1,4 +1,4 @@
-#include "emulator_window_texture.h"
+#include "emulator_game.h"
 
 #include "emulator/emulator.h"
 #include "nes_emulator.h"
@@ -9,9 +9,8 @@
 
 namespace nes
 {
-    GameWindow::GameWindow(Naiko* n, NesComponent* component)
+    GameWindow::GameWindow(Naiko* n)
         : EmulatorWindow(n, "Game")
-        , component(component)
     {
 
     }
@@ -26,6 +25,7 @@ namespace nes
         ImGui::SetNextWindowSize(ImVec2(256, 240));
         if (ImGui::Begin(name.c_str(), &is_open))
         {
+            auto component = naiko->getApplication()->getNesGo();
             aiko::texture::Texture texture = component->getTexture();
             // Using a Child allow to fill all the space of the window.
             // It also allows customization
