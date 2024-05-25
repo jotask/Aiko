@@ -56,20 +56,23 @@ namespace nes
 
     void NesEmulator::update()
     {
-
+        m_emulator.update();
     }
 
     void NesEmulator::render()
     {
+
+        m_emulator.render();
+
         static std::stringstream fmt;
         constexpr float space = 15.0f;
         float y = 0.0f;
         drawText("nes6502", 0.0f, space * y++);
 
-        fmt.str("");    fmt << "Cycles: " << m_nes.getNofCycles();
-        drawText(fmt.str(), 0.0f, space * y++);
-
         nes::Cpu* cpu = m_nes.getBus()->getMicroprocesor<Cpu>();
+
+        fmt.str("");    fmt << "Cycles: " << cpu->getCycles();
+        drawText(fmt.str(), 0.0f, space * y++);
 
         fmt.str("");    fmt << "AddressingMode: " << nes::to_string(cpu->currentAddressMode());
         drawText(fmt.str(), 0.0f, space * y++);
