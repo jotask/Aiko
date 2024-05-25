@@ -82,7 +82,7 @@ namespace aiko
 
     void PboTextureComponent::updatePixels(std::vector<Color> ps)
     {
-        assert(pixels.size() == ps.size(), "New pixels dont't match texture size");
+        assert(pixels.size() == ps.size(), "New pixels don't match texture size");
         pixels.clear();
         pixels.insert(pixels.end(), ps.begin(), ps.end());
         is_dirty = true;
