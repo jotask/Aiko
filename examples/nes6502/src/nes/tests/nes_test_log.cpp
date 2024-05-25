@@ -64,6 +64,10 @@ namespace nes::test
             init();
             initialized = true;
         }
+        if (line >= lines.size())
+        {
+            return;
+        }
         auto& test = lines[line];
         bool success = true;
 
