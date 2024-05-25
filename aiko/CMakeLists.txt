@@ -9,6 +9,10 @@ include(Dependencies.cmake)
 # It is always easier to navigate in an IDE when projects are organized in folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# generate constant file
+set(GLOBAL_ASSET_PATH ${PROJECT_SOURCE_DIR}/assets/)
+configure_file(constants.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/constants.h)
+
 # Files
 file(GLOB_RECURSE AIKO_SRC "src/*.h" "src/*.cpp" "src/*.hpp")
 

@@ -1,0 +1,11 @@
+#pragma once
+
+#include <string>
+
+namespace aiko
+{
+    namespace global
+    {
+        inline constexpr const char* GLOBAL_ASSET_PATH = "${GLOBAL_ASSET_PATH}";
+    }
+}
