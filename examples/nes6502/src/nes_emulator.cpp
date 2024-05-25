@@ -47,11 +47,19 @@ namespace nes
         return m_nesgo;
     }
 
+    aiko::PboTextureComponent* NesEmulator::getPT0() const
+    {
+        return pattern_table_0;
+    }
+
     void NesEmulator::init()
     {
 
         auto go = createGameObject("NesTexture");
         m_nesgo = go->addComponent<NesComponent>().get();
+
+        auto table_pattern_go_1 = createGameObject("CHR table");
+        pattern_table_0 = table_pattern_go_1->addComponent<aiko::PboTextureComponent>("Pt0", 128, 256, false).get();
 
         m_emulator.init();
 
@@ -69,25 +77,7 @@ namespace nes
 
     void NesEmulator::render()
     {
-
         m_emulator.render();
-
-        static std::stringstream fmt;
-        constexpr float space = 15.0f;
-        float y = 0.0f;
-        drawText("nes6502", 0.0f, space * y++);
-
-        nes::Cpu* cpu = m_nes.getBus()->getMicroprocesor<Cpu>();
-
-        fmt.str("");    fmt << "Cycles: " << cpu->getCycles();
-        drawText(fmt.str(), 0.0f, space * y++);
-
-        fmt.str("");    fmt << "AddressingMode: " << nes::to_string(cpu->currentAddressMode());
-        drawText(fmt.str(), 0.0f, space * y++);
-
-        fmt.str("");    fmt << "Instruction: " << nes::to_string(cpu->currentInstruction());
-        drawText(fmt.str(), 0.0f, space * y++);
-
     }
 
 }

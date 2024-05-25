@@ -1,6 +1,7 @@
 #include "pbo_texture_component.h"
 
 #include  <algorithm>
+#include <assert.h>
 
 #include "models/game_object.h"
 #include "systems/render_system.h"
@@ -77,6 +78,19 @@ namespace aiko
         }
         pixels[index] = c;
         is_dirty = true;
+    }
+
+    void PboTextureComponent::updatePixels(std::vector<Color> ps)
+    {
+        assert(pixels.size() == ps.size(), "New pixels dont't match texture size");
+        pixels.clear();
+        pixels.insert(pixels.end(), ps.begin(), ps.end());
+        is_dirty = true;
+    }
+
+    const texture::PboTexture& PboTextureComponent::getPboTexture()
+    {
+        return m_texture;
     }
 
 }

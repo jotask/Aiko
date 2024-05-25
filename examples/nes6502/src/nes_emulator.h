@@ -27,6 +27,8 @@ namespace nes
         aiko::texture::RenderTexture2D* getTargetTexture() const { return Application::getTargetTexture(); }
 
         NesComponent* getNesGo() const;
+        aiko::PboTextureComponent* getPT0() const;
+        aiko::PboTextureComponent* getPT1() const;
 
     protected:
         virtual void init() override;
@@ -39,6 +41,8 @@ namespace nes
         nes::Naiko m_emulator;
 
         nes::NesComponent* m_nesgo;
+        aiko::PboTextureComponent* pattern_table_0;
+        aiko::PboTextureComponent* pattern_table_1;
 
     };
 

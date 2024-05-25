@@ -5,14 +5,16 @@
 
 namespace nes
 {
-    class CpuWindow : public EmulatorWindow
+    class CartridgeWindow : public EmulatorWindow
     {
     public:
-        CpuWindow(Naiko* n);
+        CartridgeWindow(Naiko* n);
         virtual void update() override;
         virtual void render() override;
 
     private:
+
+        std::vector<aiko::Color> convertPatternTableToTexture(const std::vector<Byte>& patternTable);
 
     };
 }
