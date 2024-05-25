@@ -20,6 +20,7 @@ namespace aiko::editor
 
     void AikoEditor::init()
     {
+        // https://www.codingwiththomas.com/blog/rendering-an-opengl-framebuffer-into-a-dear-imgui-window
         Application::init();
         /*
         ImGuiIO& io = ImGui::GetIO();
