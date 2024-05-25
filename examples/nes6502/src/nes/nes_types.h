@@ -19,4 +19,6 @@ namespace nes
 
     constexpr const char* NES_ROM = "nestest.nes";
 
+    constexpr const bool NES_TESTS_ENABLED = false;
+
 }

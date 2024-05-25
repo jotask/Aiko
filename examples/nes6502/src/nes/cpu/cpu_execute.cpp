@@ -105,8 +105,10 @@ namespace nes
 
         line++;
         aiko::Log::info("A:", toString(A), " X: ", toString(X), " Y: ", toString(Y), " P: ", toString(P), " SP: ", toString(stack_pointer), " Line: ", unsigned(line), " PC: ", unsigned(program_counter));
-        test::NesTest::it().test(line, op, program_counter, stack_pointer, A, X, Y, P);
-
+        if constexpr ( NES_TESTS_ENABLED )
+        {
+            test::NesTest::it().test(line, op, program_counter, stack_pointer, A, X, Y, P);
+        }
         assert(this->waitForCycles == cycles);
 
     }

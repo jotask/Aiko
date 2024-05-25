@@ -27,6 +27,8 @@
 
 #include "nes/tests/online_test_manager.h"
 
+#include "nes/nes_types.h"
+
 #include <imgui.h>
 
 namespace nes
@@ -72,8 +74,10 @@ namespace nes
         palette = palette_go->addComponent<aiko::PboTextureComponent>("pal", size, size, false).get();
 
         m_emulator.init();
-
-        nes::test::online::TestManager::it().run();
+        if constexpr (NES_TESTS_ENABLED)
+        {
+            nes::test::online::TestManager::it().run();
+        }
         const std::string cartridge = global::getAssetPath(NES_ROM);
         m_nes.insertCartridge(cartridge.c_str());
         m_nes.reset();
