@@ -86,7 +86,7 @@ namespace aiko
         {
             glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
             Log::error("SHADER::VERTEX::COMPILATION_FAILED", infoLog);
-            int error = -1;
+            assert(false);
         }
 
         // fragment shader
@@ -102,7 +102,7 @@ namespace aiko
         {
             glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
             Log::error("SHADER::FRAGMENT::COMPILATION_FAILED", infoLog);
-            int error = -1;
+            assert(false);
         }
 
         // link shaders
@@ -116,7 +116,7 @@ namespace aiko
         if (success == false) {
             glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
             Log::error("SHADER::PROGRAM::LINKING_FAILED" , infoLog);
-            int error = -1;
+            assert(false);
         }
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
