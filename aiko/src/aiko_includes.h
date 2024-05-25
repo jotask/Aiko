@@ -11,4 +11,6 @@
 #include "types/render_types.h"
 #include "types/textures.h"
 
+#include "components/pbo_texture_component.h"
+
 #include "shared/singleton.h"
