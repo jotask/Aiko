@@ -74,7 +74,7 @@ namespace nes
         m_emulator.init();
 
         nes::test::online::TestManager::it().run();
-        const std::string cartridge = global::getAssetPath("nestest.nes");
+        const std::string cartridge = global::getAssetPath(NES_ROM);
         m_nes.insertCartridge(cartridge.c_str());
         m_nes.reset();
         m_nes.start();

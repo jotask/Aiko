@@ -17,4 +17,6 @@ namespace nes
 
     constexpr const Byte COLOUR_PALETTE_SIZE = 0x40;
 
+    constexpr const char* NES_ROM = "nestest.nes";
+
 }
