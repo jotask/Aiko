@@ -97,6 +97,7 @@ namespace aiko
 
     private:
 
+        Color background_color;
         bool m_scale;
 
         DisplayModule* m_displayModule;

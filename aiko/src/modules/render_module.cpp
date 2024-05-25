@@ -125,6 +125,7 @@ namespace aiko
 
         const AikoConfig cfg = getAiko()->getConfig();
 
+        background_color = getAiko()->getConfig().background_color;
         glViewport(0, 0, cfg.width, cfg.height);
         glEnable(GL_CULL_FACE);
 
@@ -195,7 +196,7 @@ namespace aiko
         glBindFramebuffer(GL_FRAMEBUFFER, m_renderTexture2D.framebuffer);
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
-        clearBackground({0.2f, 0.3f, 0.3f, 1.0f});
+        clearBackground(background_color);
 
         // Set depth buffer to write mode
         glDepthMask(GL_TRUE);
