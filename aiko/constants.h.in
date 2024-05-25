@@ -11,6 +11,7 @@ namespace aiko
         inline const char* getAssetPath(const char* subpath)
         {
             static std::string buffer;
+            buffer.clear();
             buffer += GLOBAL_ASSET_PATH;
             buffer += subpath;
             return buffer.c_str();

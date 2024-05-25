@@ -11,7 +11,8 @@ namespace nes
         inline const char* getAssetPath(const char* subpath)
         {
             static std::string buffer;
-            buffer += GLOBAL_ASSET_PATH;
+            buffer.clear();
+            buffer += NES_ASSET_PATH;
             buffer += subpath;
             return buffer.c_str();
 
