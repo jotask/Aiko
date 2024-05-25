@@ -3,12 +3,15 @@
 #include <string>
 #include <thread>
 
+#include <aiko_includes.h>
+
 #include "application/application.h"
 #include "models/shader.h"
 #include "types/textures.h"
 #include "types/asset_type.h"
 
 #include "nes/nintendo_entertainment_system.h"
+#include "emulator/emulator.h"
 
 namespace nes
 {
@@ -20,6 +23,9 @@ namespace nes
     public:
         NesEmulator();
         ~NesEmulator();
+
+        aiko::texture::RenderTexture2D* getTargetTexture() const { return Application::getTargetTexture(); }
+
     protected:
         virtual void init() override;
         virtual void update() override;
@@ -28,6 +34,9 @@ namespace nes
     private:
 
         nes::Nes m_nes;
+        nes::Naiko m_emulator;
+
+        aiko::GameObject* m_nesgo;
 
     };
 

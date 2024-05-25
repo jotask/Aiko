@@ -21,12 +21,18 @@
 #include "nes/utils/nes_utils.h"
 #include "nes/cpu/instructions.h"
 
+#include "aiko_extensions/nes_emulator_component.h"
+
 #include "nes/tests/online_test_manager.h"
+
+#include <imgui.h>
 
 namespace nes
 {
 
     NesEmulator::NesEmulator()
+        : aiko::Application(aiko::AikoConfig("NesEmulator", 1024, 768))
+        , m_emulator(this, &m_nes)
     {
 
     }
@@ -37,6 +43,10 @@ namespace nes
 
     void NesEmulator::init()
     {
+
+        m_nesgo = createGameObject("NesTexture");
+        m_nesgo->addComponent<NesComponent>();
+
         nes::test::online::TestManager::it().run();
         const std::string cartridge = AssetPath + "nestest.nes";
         m_nes.insertCartridge(cartridge.c_str());
