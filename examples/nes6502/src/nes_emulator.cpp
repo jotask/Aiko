@@ -32,7 +32,7 @@ namespace nes
 {
 
     NesEmulator::NesEmulator()
-        : aiko::Application(aiko::AikoConfig("NesEmulator", 1024, 768))
+        : aiko::Application(aiko::AikoConfig("NesEmulator", 1024, 768, aiko::DARKGREEN))
         , m_emulator(this, &m_nes)
     {
 
