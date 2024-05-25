@@ -22,7 +22,12 @@ namespace nes
         {
             updated = true;
             Cartridge* cart = naiko->getCartridge();
-            auto pixels = convertPatternTableToTexture(cart->getCHR());
+            const auto chr = cart->getCHR();
+            if (chr.empty())
+            {
+                return;
+            }
+            auto pixels = convertPatternTableToTexture(chr);
             auto* pbo = naiko->getApplication()->getPT0();
             pbo->updatePixels(pixels);
             pbo->refreshPixels();
