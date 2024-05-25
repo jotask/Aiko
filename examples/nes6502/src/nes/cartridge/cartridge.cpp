@@ -134,4 +134,9 @@ namespace nes
         return false;
     }
 
+    std::vector<Byte> Cartridge::getCHR() const
+    {
+        return CHR_Memory;
+    }
+
 }

@@ -26,6 +26,8 @@ namespace nes
         bool ppu_read(uint16_t addr, uint8_t& data);
         bool ppu_write(uint16_t addr, uint8_t data);
 
+        std::vector<Byte> getCHR() const;
+
     private:
         enum class Mirroring
         {
