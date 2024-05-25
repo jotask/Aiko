@@ -9,6 +9,7 @@
 #include <string>
 #include <algorithm>
 
+#include "aiko.h"
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
 #include "models/camera.h"
@@ -122,7 +123,9 @@ namespace aiko
             return;
         }
 
-        glViewport(0, 0, 800, 600);
+        const AikoConfig cfg = getAiko()->getConfig();
+
+        glViewport(0, 0, cfg.width, cfg.height);
         glEnable(GL_CULL_FACE);
 
         // During init, enable debug output
@@ -151,7 +154,8 @@ namespace aiko
         {
             Log::error("glInit failed");
         }
-        gltViewport(800, 600);
+        const AikoConfig cfg = getAiko()->getConfig();
+        gltViewport(cfg.width, cfg.height);
     }
     
     void RenderModule::preUpdate()
