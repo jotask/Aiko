@@ -12,7 +12,9 @@ namespace nes
     using u32 = uint32_t;
     using u64 = uint64_t;
 
-    constexpr Byte NES_WIDTH = 256;
-    constexpr Byte NES_HEIGHT = 240;
+    constexpr u32 NES_WIDTH = 256;
+    constexpr u32 NES_HEIGHT = 240;
+
+    constexpr const Byte COLOUR_PALETTE_SIZE = 0x40;
 
 }

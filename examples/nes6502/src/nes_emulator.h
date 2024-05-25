@@ -28,7 +28,7 @@ namespace nes
 
         NesComponent* getNesGo() const;
         aiko::PboTextureComponent* getPT0() const;
-        aiko::PboTextureComponent* getPT1() const;
+        aiko::PboTextureComponent* getPalette() const;
 
     protected:
         virtual void init() override;
@@ -42,7 +42,7 @@ namespace nes
 
         nes::NesComponent* m_nesgo;
         aiko::PboTextureComponent* pattern_table_0;
-        aiko::PboTextureComponent* pattern_table_1;
+        aiko::PboTextureComponent* palette;
 
     };
 

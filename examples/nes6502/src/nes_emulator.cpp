@@ -3,6 +3,7 @@
 #include <chrono>
 #include <sstream>
 #include <cassert>
+#include <cmath>
 
 #include "shared/math.h"
 #include "models/game_object.h"
@@ -52,6 +53,11 @@ namespace nes
         return pattern_table_0;
     }
 
+    aiko::PboTextureComponent* NesEmulator::getPalette() const
+    {
+        return palette;
+    }
+
     void NesEmulator::init()
     {
 
@@ -60,6 +66,10 @@ namespace nes
 
         auto table_pattern_go_1 = createGameObject("CHR table");
         pattern_table_0 = table_pattern_go_1->addComponent<aiko::PboTextureComponent>("Pt0", 256, 128, false).get();
+
+        auto palette_go = createGameObject("Palette");
+        const Byte size = (Byte) std::sqrt(COLOUR_PALETTE_SIZE);
+        palette = palette_go->addComponent<aiko::PboTextureComponent>("pal", size, size, false).get();
 
         m_emulator.init();
 
