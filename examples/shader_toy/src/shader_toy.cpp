@@ -13,6 +13,7 @@
 #include "types/inputs.h"
 #include "models/camera.h"
 #include "shared/math.h"
+#include <aiko_includes.h>
 
 namespace shadertoy
 {
@@ -157,7 +158,7 @@ namespace shadertoy
 
     void ShaderToy::refreshShader()
     {
-        const std::string GLOBAL_PATH = "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/";
+        const std::string GLOBAL_PATH = aiko::global::getAssetPath("shaders/");
         const std::string vs = GLOBAL_PATH + "aiko_shadertoy" + std::string(".vs");
         const std::string fs = GLOBAL_PATH + s_shaders[currentShader].c_str() + std::string(".fs");
         m_shader->load(vs.c_str(), fs.c_str());

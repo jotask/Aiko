@@ -5,6 +5,7 @@
 #include "shared/math_transform.h"
 #include "systems/render_system.h"
 #include "models/camera.h"
+#include "constants.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -67,9 +68,7 @@ namespace aiko
 
     void Primitives::init(RenderSystem* system)
     {
-        constexpr const char* vsFile = "C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko_primitives.vs";
-        constexpr const char* fsFile = "C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko_primitives.fs";
-        shader = system->createShader(vsFile, fsFile);
+        shader = system->createShader(global::getAssetPath("shaders/aiko_primitives.vs"), global::getAssetPath("shaders/aiko_primitives.fs"));
         renderSystem = system;
     }
 

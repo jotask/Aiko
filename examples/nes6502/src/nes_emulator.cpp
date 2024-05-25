@@ -15,6 +15,7 @@
 #include "models/camera.h"
 #include "shared/math.h"
 #include "core/log.h"
+#include "constants.h"
 
 #include "nes/bus.h"
 #include "nes/memory.h"
@@ -55,7 +56,7 @@ namespace nes
         m_emulator.init();
 
         nes::test::online::TestManager::it().run();
-        const std::string cartridge = AssetPath + "nestest.nes";
+        const std::string cartridge = global::getAssetPath("nestest.nes");
         m_nes.insertCartridge(cartridge.c_str());
         m_nes.reset();
         m_nes.start();

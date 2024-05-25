@@ -2,6 +2,7 @@
 
 #include "models/game_object.h"
 #include "systems/render_system.h"
+#include "constants.h"
 
 namespace aiko
 {
@@ -16,8 +17,7 @@ namespace aiko
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
         m_mesh = m_renderSystem->createMesh(Mesh::MeshType::TEST);
-        m_shader = m_renderSystem->createShader("C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko.vs", "C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko.fs");
-
+        m_shader = m_renderSystem->createShader(global::getAssetPath("shaders/aiko.vs"), global::getAssetPath("shaders/aiko.fs"));
     }
 
     void MeshComponent::update()

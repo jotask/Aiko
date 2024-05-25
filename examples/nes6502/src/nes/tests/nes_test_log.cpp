@@ -12,13 +12,14 @@
 #include "memory"
 
 #include <aiko_includes.h>
+#include "constants.h"
 
 namespace nes::test
 {
 
     void NesTest::init()
     {
-        const std::string nes_log_path = AssetPath + "nestest.log";
+        const std::string nes_log_path = global::getAssetPath("nestest.log");
         std::ifstream file(nes_log_path);
         std::string str;
         while (std::getline(file, str))

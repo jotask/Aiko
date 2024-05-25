@@ -5,6 +5,8 @@
 #include "models/game_object.h"
 #include "systems/render_system.h"
 
+#include "constants.h"
+
 namespace aiko
 {
     PboTextureComponent::PboTextureComponent() : PboTextureComponent("PboTexture", 128, 128, true) { }
@@ -25,7 +27,7 @@ namespace aiko
         if (auto_render)
         {
             m_mesh = m_renderSystem->createMesh(Mesh::MeshType::QUAD);
-            m_shader = m_renderSystem->createShader("C:/Users/j.iznardo/Documents/Aiko/assets/shaders/aiko_default_texture.vs", "C:/Users/j.iznardo/Documents/Aiko/assets/shaders/aiko_default_texture.fs");
+            m_shader = m_renderSystem->createShader(global::getAssetPath("shaders/aiko_default_texture.vs"), global::getAssetPath("shaders/aiko_default_texture.fs"));
         }
         m_texture = m_renderSystem->createPboTexture(m_texture.texture.width, m_texture.texture.height);
         pixels.reserve(m_texture.texture.width * m_texture.texture.height);

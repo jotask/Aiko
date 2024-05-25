@@ -15,6 +15,7 @@
 #include <aiko_includes.h>
 
 #include <json/json.h>
+#include "constants.h"
 
 namespace nes::test::online
 {
@@ -22,7 +23,7 @@ namespace nes::test::online
     void TestManager::run()
     {
 
-        const std::string GLOBAL_PATH = AssetPath + "tests/";
+        const std::string GLOBAL_PATH = global::getAssetPath("tests/");
 
         auto parse = [&](std::string str)
             {

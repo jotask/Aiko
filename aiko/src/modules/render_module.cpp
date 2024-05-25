@@ -22,6 +22,7 @@
 #include "render_primitives.h"
 #include "core/libs.h"
 #include "core/log.h"
+#include "constants.h"
 
 #include "modules/render_primitives.h"
 
@@ -137,8 +138,8 @@ namespace aiko
 
         m_passthrought = createShader();
         m_passthrought->load(
-            "C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko_passthrought.vs",
-            "C:\\Users\\j.iznardo\\Documents\\Aiko\\assets\\shaders\\aiko_passthrought.fs"
+            global::getAssetPath("shaders/aiko_passthrought.vs"),
+            global::getAssetPath("shaders/aiko_passthrought.fs")
         );
 
         m_passthrought->use();
