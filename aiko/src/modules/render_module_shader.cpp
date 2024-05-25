@@ -51,17 +51,18 @@ namespace aiko
 
                 try
                 {
-                    std::ifstream vShaderFile;
-                    vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-                    vShaderFile.open(filename);
-                    std::stringstream vShaderStream;
-                    vShaderStream << vShaderFile.rdbuf();
-                    vShaderFile.close();
-                    return vShaderStream.str();
+                    std::ifstream shaderFile;
+                    shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+                    shaderFile.open(filename);
+                    std::stringstream shaderStream;
+                    shaderStream << shaderFile.rdbuf();
+                    shaderFile.close();
+                    return shaderStream.str();
                 }
                 catch (std::ifstream::failure& e)
                 {
                     Log::error("SHADER::FILE_NOT_SUCCESSFULLY_READ: ", e.what());
+                    assert(false);
                 }
                 return "";
             };
