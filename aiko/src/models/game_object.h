@@ -26,8 +26,8 @@ namespace aiko
         GameObject() = default;
         ~GameObject() = default;
 
-        template<class T>
-        inline aiko::AikoPtr<T> addComponent();
+        template<class T, typename... Args>
+        inline aiko::AikoPtr<T> addComponent(Args...);
 
         template<class T>
         bool hasComponent();
@@ -61,14 +61,14 @@ namespace aiko
 
     };
 
-    template<class T>
-    inline aiko::AikoPtr<T> GameObject::addComponent()
+    template<class T, typename... Args>
+    inline aiko::AikoPtr<T> GameObject::addComponent(Args... args)
     {
         if (hasComponent<T>() == true)
         {
             // throw std::exception();
         }
-        m_components.emplace_back(std::make_shared<T>());
+        m_components.emplace_back(std::make_shared<T>(args...));
         aiko::AikoPtr<Component> back = m_components.back();
         back->setup(this);
         back->init();
