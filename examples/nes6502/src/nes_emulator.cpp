@@ -59,7 +59,7 @@ namespace nes
         m_nesgo = go->addComponent<NesComponent>().get();
 
         auto table_pattern_go_1 = createGameObject("CHR table");
-        pattern_table_0 = table_pattern_go_1->addComponent<aiko::PboTextureComponent>("Pt0", 128, 256, false).get();
+        pattern_table_0 = table_pattern_go_1->addComponent<aiko::PboTextureComponent>("Pt0", 256, 128, false).get();
 
         m_emulator.init();
 

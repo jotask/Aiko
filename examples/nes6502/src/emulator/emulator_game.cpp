@@ -22,7 +22,6 @@ namespace nes
 
     void GameWindow::render()
     {
-        ImGui::SetNextWindowSize(ImVec2(256, 240));
         if (ImGui::Begin(name.c_str(), &is_open))
         {
             auto component = naiko->getApplication()->getNesGo();
@@ -31,10 +30,41 @@ namespace nes
             // It also allows customization
             ImGui::BeginChild("GameRender");
             // Get the size of the child (i.e. the whole draw size of the windows).
-            ImVec2 wsize = ImGui::GetWindowSize();
-            // Because I use the texture from OpenGL, I need to invert the V from the UV.
-            ImGui::Image((ImTextureID)texture.id, wsize, ImVec2(0, 1), ImVec2(1, 0));
+
+                        // Get the dimensions of the texture
+            ImVec2 textureSize = ImVec2(texture.width, texture.height);
+
+            // Calculate aspect ratio of the image
+            float aspectRatio = textureSize.x / textureSize.y;
+
+            // Get available space in the window
+            ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+
+            // Calculate the maximum size of the image while maintaining the aspect ratio
+            float maxWidth = availableSpace.x;
+            float maxHeight = availableSpace.y;
+            float imageWidth, imageHeight;
+
+            if (maxWidth / maxHeight > aspectRatio)
+            {
+                // Height is the limiting factor
+                imageHeight = maxHeight;
+                imageWidth = maxHeight * aspectRatio;
+            }
+            else
+            {
+                // Width is the limiting factor
+                imageWidth = maxWidth;
+                imageHeight = maxWidth / aspectRatio;
+            }
+
+            // Ensure that the image does not exceed the available space
+            imageWidth = std::min(imageWidth, maxWidth);
+            imageHeight = std::min(imageHeight, maxHeight);
+
+            ImGui::Image((ImTextureID)texture.id, ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0));
             ImGui::EndChild();
+
         }
         ImGui::End();
     }
