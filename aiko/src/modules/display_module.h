@@ -23,10 +23,6 @@ namespace aiko
 
     protected:
 
-        // TODO Get this size from config
-        const int screenWidth = 800;
-        const int screenHeight = 450;
-
         virtual void init() override;
         virtual void preUpdate() override;
 
