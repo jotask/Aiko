@@ -22,12 +22,19 @@ namespace nes
 
     void NesComponent::update()
     {
+        auto_render = true;
         PboTextureComponent::update();
+        auto_render = false;
     }
 
     void NesComponent::render()
     {
         PboTextureComponent::render();
+    }
+
+    aiko::texture::Texture NesComponent::getTexture()
+    {
+        return m_texture.texture;
     }
 
 }

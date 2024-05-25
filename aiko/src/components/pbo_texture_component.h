@@ -31,12 +31,12 @@ namespace aiko
     protected:
 
         bool auto_render = true;
+        texture::PboTexture m_texture;
 
     private:
         RenderSystem*       m_renderSystem;
         AikoPtr<Mesh>       m_mesh;
         AikoPtr<Shader>     m_shader;
-        texture::PboTexture m_texture;
 
         std::vector<Color> pixels;
         bool is_dirty = false;

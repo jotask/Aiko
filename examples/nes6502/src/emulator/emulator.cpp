@@ -3,6 +3,9 @@
 #include "emulator/emulator_window_texture.h"
 #include "emulator/emulator_cpu.h"
 #include "emulator/emulator_ppu.h"
+#include "nes_emulator.h"
+
+#include <aiko_includes.h>
 
 namespace nes
 {
@@ -10,7 +13,11 @@ namespace nes
         : em(em)
         , m_nes(nes)
     {
-        windows.emplace_back(std::make_unique<GameWindow>(this));
+    }
+
+    void Naiko::init()
+    {
+        windows.emplace_back(std::make_unique<GameWindow>(this, em->getNesGo() ));
         windows.emplace_back(std::make_unique<CpuWindow>(this));
         windows.emplace_back(std::make_unique<PpuWindow>(this));
     }

@@ -5,14 +5,14 @@
 
 namespace nes
 {
+    class NesComponent;
     class GameWindow : public EmulatorWindow
     {
     public:
-        GameWindow(Naiko* n);
+        GameWindow(Naiko* n, NesComponent* cmp);
         virtual void update() override;
         virtual void render() override;
-
     private:
-
+        NesComponent* component;
     };
 }

@@ -15,7 +15,7 @@
 
 namespace nes
 {
-
+    class NesComponent;
     class RenderSystem;
 
     class NesEmulator : public aiko::Application
@@ -25,6 +25,8 @@ namespace nes
         ~NesEmulator();
 
         aiko::texture::RenderTexture2D* getTargetTexture() const { return Application::getTargetTexture(); }
+
+        NesComponent* getNesGo() const;
 
     protected:
         virtual void init() override;
@@ -36,7 +38,7 @@ namespace nes
         nes::Nes m_nes;
         nes::Naiko m_emulator;
 
-        aiko::GameObject* m_nesgo;
+        nes::NesComponent* m_nesgo;
 
     };
 

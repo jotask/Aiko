@@ -41,11 +41,18 @@ namespace nes
     {
     }
 
+    nes::NesComponent* NesEmulator::getNesGo() const
+    {
+        return m_nesgo;
+    }
+
     void NesEmulator::init()
     {
 
-        m_nesgo = createGameObject("NesTexture");
-        m_nesgo->addComponent<NesComponent>();
+        auto go = createGameObject("NesTexture");
+        m_nesgo = go->addComponent<NesComponent>().get();
+
+        m_emulator.init();
 
         nes::test::online::TestManager::it().run();
         const std::string cartridge = AssetPath + "nestest.nes";

@@ -16,6 +16,8 @@ namespace nes
     {
     public:
         Naiko(NesEmulator* em, Nes* nes);
+
+        void init();
         void update();
         void render();
 

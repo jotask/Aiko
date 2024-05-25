@@ -20,6 +20,8 @@ namespace nes
         virtual void update() override;
         virtual void render() override;
 
+        aiko::texture::Texture getTexture();
+
     private:
 
     };
