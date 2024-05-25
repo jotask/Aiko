@@ -10,7 +10,7 @@ include(Dependencies.cmake)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # generate constant file
-set(GLOBAL_ASSET_PATH ${PROJECT_SOURCE_DIR}/assets/)
+set(GLOBAL_ASSET_PATH ${CMAKE_SOURCE_DIR}/assets/)
 configure_file(constants.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/constants.h)
 
 # Files
