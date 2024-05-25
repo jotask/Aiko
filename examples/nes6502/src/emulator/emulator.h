@@ -11,6 +11,7 @@ namespace nes
 {
     class NesEmulator;
     class Cpu;
+    class Cartridge;
     class Naiko
 
     {
@@ -23,6 +24,7 @@ namespace nes
 
         NesEmulator* getApplication() { return em; }
         Cpu* getCpu();
+        Cartridge* getCartridge();
     private:
         NesEmulator* em;
         Nes* m_nes;
