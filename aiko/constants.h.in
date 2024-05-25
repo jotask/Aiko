@@ -8,13 +8,13 @@ namespace aiko
     {
         inline constexpr const char* GLOBAL_ASSET_PATH = "${GLOBAL_ASSET_PATH}";
 
-        inline const char* getAssetPath(const char* subpath)
+        inline std::string getAssetPath(const char* subpath)
         {
-            static std::string buffer;
+            std::string buffer;
             buffer.clear();
             buffer += GLOBAL_ASSET_PATH;
             buffer += subpath;
-            return buffer.c_str();
+            return buffer;
 
         }
 

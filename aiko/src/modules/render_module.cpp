@@ -138,8 +138,8 @@ namespace aiko
 
         m_passthrought = createShader();
         m_passthrought->load(
-            global::getAssetPath("shaders/aiko_passthrought.vs"),
-            global::getAssetPath("shaders/aiko_passthrought.fs")
+            global::getAssetPath("shaders/aiko_passthrought.vs").c_str(),
+            global::getAssetPath("shaders/aiko_passthrought.fs").c_str()
         );
 
         m_passthrought->use();

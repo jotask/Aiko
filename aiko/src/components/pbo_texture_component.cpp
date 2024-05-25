@@ -27,7 +27,7 @@ namespace aiko
         if (auto_render)
         {
             m_mesh = m_renderSystem->createMesh(Mesh::MeshType::QUAD);
-            m_shader = m_renderSystem->createShader(global::getAssetPath("shaders/aiko_default_texture.vs"), global::getAssetPath("shaders/aiko_default_texture.fs"));
+            m_shader = m_renderSystem->createShader(global::getAssetPath("shaders/aiko_default_texture.vs").c_str(), global::getAssetPath("shaders/aiko_default_texture.fs").c_str());
         }
         m_texture = m_renderSystem->createPboTexture(m_texture.texture.width, m_texture.texture.height);
         pixels.reserve(m_texture.texture.width * m_texture.texture.height);

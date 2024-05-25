@@ -107,7 +107,7 @@ namespace aiko
         // load image, create texture and generate mipmaps
         stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
         // TODO
-        unsigned char* data = stbi_load(global::getAssetPath("raysan.png"), &texture.width, &texture.height, &texture.channels, 0);
+        unsigned char* data = stbi_load(global::getAssetPath("raysan.png").c_str(), &texture.width, &texture.height, &texture.channels, 0);
         if (data)
         {
 

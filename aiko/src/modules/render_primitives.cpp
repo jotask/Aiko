@@ -68,7 +68,7 @@ namespace aiko
 
     void Primitives::init(RenderSystem* system)
     {
-        shader = system->createShader(global::getAssetPath("shaders/aiko_primitives.vs"), global::getAssetPath("shaders/aiko_primitives.fs"));
+        shader = system->createShader(global::getAssetPath("shaders/aiko_primitives.vs").c_str(), global::getAssetPath("shaders/aiko_primitives.fs").c_str());
         renderSystem = system;
     }
 

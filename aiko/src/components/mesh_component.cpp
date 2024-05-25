@@ -17,7 +17,7 @@ namespace aiko
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
         m_mesh = m_renderSystem->createMesh(Mesh::MeshType::TEST);
-        m_shader = m_renderSystem->createShader(global::getAssetPath("shaders/aiko.vs"), global::getAssetPath("shaders/aiko.fs"));
+        m_shader = m_renderSystem->createShader(global::getAssetPath("shaders/aiko.vs").c_str(), global::getAssetPath("shaders/aiko.fs").c_str());
     }
 
     void MeshComponent::update()
