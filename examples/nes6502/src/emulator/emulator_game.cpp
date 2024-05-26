@@ -23,7 +23,8 @@ namespace nes
 
     void GameWindow::render()
     {
-        if (ImGui::Begin(name.c_str(), &is_open))
+        static constexpr const ImGuiWindowFlags flags = ImGuiWindowFlags_None;
+        if (ImGui::Begin(name.c_str(), &is_open, flags))
         {
 
             aiko::PboTextureComponent* pbo = naiko->getApplication()->getNesGo();
