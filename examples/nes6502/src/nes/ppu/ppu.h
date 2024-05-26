@@ -21,7 +21,7 @@ namespace nes
 
     public:
 
-        bool frame_complete = false;
+        bool frame_complete = true;
 
         // Communications with Main Bus
         Byte cpu_read(Word addr, bool readonly = false);

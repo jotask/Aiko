@@ -81,6 +81,7 @@ namespace nes
 
     void NesEmulator::update()
     {
+        m_nes.update();
         m_emulator.update();
     }
 

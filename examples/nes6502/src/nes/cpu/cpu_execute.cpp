@@ -16,7 +16,10 @@ namespace nes
     {
 
         Byte& cycles = this->waitForCycles;
-        aiko::Log::trace("Executing [", toString(opCode), "] OpCode");
+        if constexpr (NES_CPU_LOG)
+        {
+            aiko::Log::trace("Executing [", toString(opCode), "] OpCode");
+        }
 
         OpCode op  = instruction_tables[opCode];
 
@@ -101,10 +104,17 @@ namespace nes
             default:                    assert(false, "unkown instruction");
         }
 
-        aiko::Log::trace("  OpCode: ", toString(opCode), " Addressing Modes: ", to_string(m_currentAddressMode), " Instruction: ", to_string(m_currentInstruction) );
+        if constexpr (NES_CPU_LOG)
+        {
+            aiko::Log::trace("  OpCode: ", toString(opCode), " Addressing Modes: ", to_string(m_currentAddressMode), " Instruction: ", to_string(m_currentInstruction) );
+        }
 
         line++;
-        aiko::Log::info("A:", toString(A), " X: ", toString(X), " Y: ", toString(Y), " P: ", toString(P), " SP: ", toString(stack_pointer), " Line: ", unsigned(line), " PC: ", unsigned(program_counter));
+
+        if constexpr (NES_CPU_LOG)
+        {
+            aiko::Log::info("A:", toString(A), " X: ", toString(X), " Y: ", toString(Y), " P: ", toString(P), " SP: ", toString(stack_pointer), " Line: ", unsigned(line), " PC: ", unsigned(program_counter));
+        }
         if constexpr ( NES_TESTS_ENABLED )
         {
             test::NesTest::it().test(line, op, program_counter, stack_pointer, A, X, Y, P);

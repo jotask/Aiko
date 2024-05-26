@@ -41,16 +41,11 @@ namespace nes
     void Nes::start()
     {
         runClock = true;
-        clock = std::thread(&Nes::onCycle, this);
     }
 
     void Nes::stop()
     {
         runClock = false;
-        if (std::thread::id() != clock.get_id())
-        {
-            clock.join();
-        }
     }
 
     void Nes::reset()
@@ -60,28 +55,13 @@ namespace nes
 
     void Nes::onCycle()
     {
-        using namespace std::literals;
-        using clock_type = std::chrono::high_resolution_clock;
-
-        constexpr auto wait_time = 1ms;// 1000ms;
-
-        auto when_started = clock_type::now();
-        auto target_time = when_started + wait_time;
-        while (runClock)
+        ppu.clock();
+        if (nOfcycles % 3 == 0)
         {
-            ppu.clock();
-            if (nOfcycles % 3 == 0)
-            {
-                cpu.clock();
-            }
-            nOfcycles++;
-            std::this_thread::sleep_until(target_time);
-
-            aiko::EventSystem::it().sendEvent(NesOnClockEvent());
-
-            target_time += wait_time;
+            cpu.clock();
         }
-
+        nOfcycles++;
+        aiko::EventSystem::it().sendEvent(NesOnClockEvent());
     }
 
     void Nes::insertCartridge(const char* file)
@@ -97,6 +77,27 @@ namespace nes
     nes::Bus* Nes::getBus()
     {
         return &bus;
+    }
+
+    void Nes::update()
+    {
+        static float fResidualTime = 0.0f;
+        float fElapsedTime = aiko::Time::it().getDeltaTime();
+        if (fResidualTime > 0.0f)
+        {
+            fResidualTime -= fElapsedTime;
+        }
+        else
+        {
+            fResidualTime += (1.0f / 60.0f) - fElapsedTime;
+            do
+            {
+                onCycle();
+            }
+            while(ppu.frame_complete == false);
+            // Disable now as it gets stuck
+            // ppu.frame_complete = false;
+        }
     }
 
 }

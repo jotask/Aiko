@@ -33,6 +33,8 @@ namespace nes
 
         nes::Bus* getBus();
 
+        void update();
+
     // private:
 
         void onCycle();

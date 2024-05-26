@@ -28,7 +28,10 @@ namespace nes
         if (late == false) stack_pointer--;
         const Word stack_address = getWordStackAddress();
         if (late == true) stack_pointer--;
-        aiko::Log::trace(stack_print_padding, "pushStack: ", unsigned(stack_address), " Value: ", unsigned(value) );
+        if constexpr (NES_CPU_LOG)
+        {
+            aiko::Log::trace(stack_print_padding, "pushStack: ", unsigned(stack_address), " Value: ", unsigned(value) );
+        }
         assertStackAddress();
         write(stack_address, value);
     }
@@ -37,7 +40,10 @@ namespace nes
     {
         const Byte high = getHigh(value);
         const Byte low  = getLow(value);
-        aiko::Log::trace(stack_print_padding, "pushWordStack() Value: ", toString(value));
+        if constexpr (NES_CPU_LOG)
+        {
+            aiko::Log::trace(stack_print_padding, "pushWordStack() Value: ", toString(value));
+        }
         stack_print_padding = "        ";
         pushStack(high, late);
         pushStack(low, late);
@@ -58,19 +64,28 @@ namespace nes
         if (late == true) stack_pointer++;
         assertStackAddress();
         const Byte result = read(stack_address);
-        aiko::Log::trace(stack_print_padding, "popStack: ", toString(stack_address), " Value: ", toString(result));
+        if constexpr (NES_CPU_LOG)
+        {
+            aiko::Log::trace(stack_print_padding, "popStack: ", toString(stack_address), " Value: ", toString(result));
+        }
         return result;
     }
 
     Word Cpu::popWordStack()
     {
-        aiko::Log::trace(stack_print_padding, "popWordStack() ");
+        if constexpr (NES_CPU_LOG)
+        {
+            aiko::Log::trace(stack_print_padding, "popWordStack() ");
+        }
         stack_print_padding = "        ";
         const Byte low = popStack(false);
         const Byte high = popStack(false);
         stack_print_padding = "    ";
         const Word result = toWord(high, low);
-        aiko::Log::trace(stack_print_padding, "popWordStack() ", toString(result));
+        if constexpr (NES_CPU_LOG)
+        {
+            aiko::Log::trace(stack_print_padding, "popWordStack() ", toString(result));
+        }
         return result;
     }
 

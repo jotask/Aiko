@@ -19,6 +19,7 @@ namespace nes
 
     constexpr const char* NES_ROM = "Super Mario Bros (E).nes";
 
+    constexpr const bool NES_CPU_LOG = false;
     constexpr const bool NES_TESTS_ENABLED = false;
 
 }
