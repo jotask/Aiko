@@ -80,6 +80,8 @@ namespace nes
 
         aiko::PboTextureComponent* pbo = naiko->getApplication()->getNesGo();
 
+        pbo->updatePixels( naiko->getPpu()->getPixels() );
+
         auto randomPosition = [&]() -> aiko::vec2
         {
             return aiko::vec2

@@ -82,8 +82,9 @@ namespace nes
     {
         constexpr Word width = 256;
         constexpr Word height = 128;
-        std::vector<aiko::Color> textureData(width * height);
         constexpr Byte n_of_tables = 2;
+        constexpr Word tableSize = 4096;
+        std::vector<aiko::Color> textureData(width * height);
 
         for (int table = 0; table < n_of_tables; ++table)
         {
@@ -94,7 +95,7 @@ namespace nes
                 {
                     for (int row = 0; row < 8; ++row)
                     {
-                        int baseIndex = table * 4096 + tileY * width + tileX * 16 + row;
+                        int baseIndex = table * tableSize + (tileY * 16 + tileX) * 16 + row;
                         Byte plane0 = patternTable[baseIndex];
                         Byte plane1 = patternTable[baseIndex + 8];
 

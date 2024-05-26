@@ -66,7 +66,9 @@ namespace nes
 
         auto palette_go = createGameObject("Palette");
         const Byte size = (Byte) std::sqrt(COLOUR_PALETTE_SIZE);
-        palette = palette_go->addComponent<aiko::PboTextureComponent>("pal", size, size, false).get();
+        constexpr const Byte palette_width = COLOUR_PALETTE_SIZE / 4;
+        constexpr const Byte palette_height = COLOUR_PALETTE_SIZE / 16;
+        palette = palette_go->addComponent<aiko::PboTextureComponent>("pal", palette_width, palette_height, false).get();
 
         m_emulator.init();
         if constexpr (NES_TESTS_ENABLED)

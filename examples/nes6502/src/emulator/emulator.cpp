@@ -65,6 +65,11 @@ namespace nes
         return m_nes->getBus()->getMicroprocesor<Cpu>();
     }
 
+    Ppu* Naiko::getPpu()
+    {
+        return m_nes->getBus()->getMicroprocesor<Ppu>();
+    }
+
     Cartridge* Naiko::getCartridge()
     {
         return m_nes->getBus()->getMicroprocesor<Cartridge>();

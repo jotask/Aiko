@@ -67,9 +67,11 @@ namespace nes
         
         if (nFileType == 1)
         {
-            PRG_Memory.resize( header.prg_rom_chunks * 16384); // 16KiB
+            constexpr const u32 _16KiB = 16384;
+            constexpr const u32 _8KiB = 8192;
+            PRG_Memory.resize( header.prg_rom_chunks * _16KiB);
             stream.read((char*)PRG_Memory.data(), PRG_Memory.size());
-            CHR_Memory.resize(header.chr_rom_chunks * 8192); // 8KiB
+            CHR_Memory.resize(header.chr_rom_chunks * _8KiB);
             stream.read((char*)CHR_Memory.data(), CHR_Memory.size());
         }
 

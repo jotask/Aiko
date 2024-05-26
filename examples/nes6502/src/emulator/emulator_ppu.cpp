@@ -29,7 +29,6 @@ namespace nes
             pbo->updatePixels(pixels);
             pbo->refreshPixels();
         }
-
     }
 
     void PpuWindow::render()

@@ -5,6 +5,13 @@
 
 namespace nes
 {
+
+    Ppu::Ppu()
+        : m_pixels(NES_WIDTH* NES_HEIGHT)
+    {
+
+    }
+
     void Ppu::reset()
     {
 
@@ -23,6 +30,11 @@ namespace nes
                 frame_complete = true;
             }
         }
+    }
+
+    Ppu::Pixels Ppu::getPixels()
+    {
+        return m_pixels;
     }
 
     Byte Ppu::cpu_read(Word addr, bool readonly)
