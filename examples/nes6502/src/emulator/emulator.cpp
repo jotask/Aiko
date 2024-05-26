@@ -8,6 +8,7 @@
 #include "nes_emulator.h"
 
 #include <aiko_includes.h>
+#include <imgui.h>
 
 namespace nes
 {
@@ -35,9 +36,27 @@ namespace nes
 
     void Naiko::render()
     {
+        if (ImGui::BeginMainMenuBar())
+        {
+            if (ImGui::BeginMenu("Nes"))
+            {
+                for (auto& w : windows)
+                {
+                    if (ImGui::MenuItem(w->getName().c_str(), "", w->getIsOpen()))
+                    {
+                        w->toggle();
+                    }
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
         for (auto& w : windows)
         {
-            w->render();
+            if (w->getIsOpen())
+            {
+                w->render();
+            }
         }
     }
 
