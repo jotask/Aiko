@@ -24,7 +24,7 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
 
-        void refreshPixels();
+        void refreshPixels(bool = false);
 
         void updatePixel(uint16_t x, uint16_t y, Color c);
         void updatePixels(std::vector<Color> pixels);

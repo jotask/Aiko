@@ -17,7 +17,7 @@ namespace nes
 
     constexpr const Byte COLOUR_PALETTE_SIZE = 0x40;
 
-    constexpr const char* NES_ROM = "nestest.nes";
+    constexpr const char* NES_ROM = "Super Mario Bros (E).nes";
 
     constexpr const bool NES_TESTS_ENABLED = false;
 

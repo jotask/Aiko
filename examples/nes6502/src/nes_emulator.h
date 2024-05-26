@@ -26,7 +26,7 @@ namespace nes
 
         aiko::texture::RenderTexture2D* getTargetTexture() const { return Application::getTargetTexture(); }
 
-        NesComponent* getNesGo() const;
+        aiko::PboTextureComponent* getNesGo() const;
         aiko::PboTextureComponent* getPT0() const;
         aiko::PboTextureComponent* getPalette() const;
 
@@ -40,7 +40,7 @@ namespace nes
         nes::Nes m_nes;
         nes::Naiko m_emulator;
 
-        nes::NesComponent* m_nesgo;
+        aiko::PboTextureComponent* m_nesgo;
         aiko::PboTextureComponent* pattern_table_0;
         aiko::PboTextureComponent* palette;
 

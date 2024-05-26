@@ -2,7 +2,8 @@
 
 #include "emulator/emulator.h"
 #include "nes_emulator.h"
-#include "aiko_extensions/nes_emulator_component.h"
+
+#include "aiko_extensions/nes_events.h"
 
 #include <aiko_includes.h>
 #include <imgui.h>
@@ -12,7 +13,7 @@ namespace nes
     GameWindow::GameWindow(Naiko* n)
         : EmulatorWindow(n, "Game")
     {
-
+        aiko::EventSystem::it().bind<NesOnClockEvent>(this, &GameWindow::onNesClock);
     }
 
     void GameWindow::update()
@@ -24,8 +25,9 @@ namespace nes
     {
         if (ImGui::Begin(name.c_str(), &is_open))
         {
-            auto component = naiko->getApplication()->getNesGo();
-            aiko::texture::Texture texture = component->getTexture();
+
+            aiko::PboTextureComponent* pbo = naiko->getApplication()->getNesGo();
+            aiko::texture::Texture texture = pbo->getPboTexture().texture;
             // Using a Child allow to fill all the space of the window.
             // It also allows customization
             ImGui::BeginChild("GameRender");
@@ -68,6 +70,18 @@ namespace nes
 
         }
         ImGui::End();
+    }
+
+    void GameWindow::onNesClock(aiko::Event& event)
+    {
+        aiko::PboTextureComponent* pbo = naiko->getApplication()->getNesGo();
+        static int x = 0;
+        static int y = pbo->getPboTexture().texture.height / 2;
+        pbo->updatePixel(x, y, aiko::BLACK);
+        x++;
+        x %= pbo->getPboTexture().texture.width;
+        pbo->updatePixel(x, y, aiko::WHITE);
+        pbo->refreshPixels();
     }
 
 }

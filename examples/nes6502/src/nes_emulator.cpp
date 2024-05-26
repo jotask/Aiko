@@ -17,16 +17,11 @@
 #include "shared/math.h"
 #include "core/log.h"
 #include "constants.h"
-
 #include "nes/bus.h"
 #include "nes/memory.h"
 #include "nes/utils/nes_utils.h"
 #include "nes/cpu/instructions.h"
-
-#include "aiko_extensions/nes_emulator_component.h"
-
 #include "nes/tests/online_test_manager.h"
-
 #include "nes/nes_types.h"
 
 #include <imgui.h>
@@ -45,7 +40,7 @@ namespace nes
     {
     }
 
-    nes::NesComponent* NesEmulator::getNesGo() const
+    aiko::PboTextureComponent* NesEmulator::getNesGo() const
     {
         return m_nesgo;
     }
@@ -64,7 +59,7 @@ namespace nes
     {
 
         auto go = createGameObject("NesTexture");
-        m_nesgo = go->addComponent<NesComponent>().get();
+        m_nesgo = go->addComponent<aiko::PboTextureComponent>("Pt0", NES_WIDTH, NES_HEIGHT, false).get();
 
         auto table_pattern_go_1 = createGameObject("CHR table");
         pattern_table_0 = table_pattern_go_1->addComponent<aiko::PboTextureComponent>("Pt0", 256, 128, false).get();

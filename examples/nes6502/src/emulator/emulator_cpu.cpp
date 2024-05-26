@@ -43,14 +43,18 @@ namespace nes
             ImGui::Spacing();
             ImGui::Text("P : %s", toString(cpu->getP()).c_str());
             ImGui::Spacing();
-            ImGui::Text("C : %d", cpu->getFlag(Cpu::StatusFlags::C));
-            ImGui::Text("Z : %d", cpu->getFlag(Cpu::StatusFlags::Z));
-            ImGui::Text("I : %d", cpu->getFlag(Cpu::StatusFlags::I));
-            ImGui::Text("D : %d", cpu->getFlag(Cpu::StatusFlags::D));
-            ImGui::Text("B : %d", cpu->getFlag(Cpu::StatusFlags::B));
-            ImGui::Text("U : %d", cpu->getFlag(Cpu::StatusFlags::U));
-            ImGui::Text("V : %d", cpu->getFlag(Cpu::StatusFlags::V));
-            ImGui::Text("N : %d", cpu->getFlag(Cpu::StatusFlags::N));
+            ImGui::Text("C : Z : I : D : B : U : V : N");
+            ImGui::Text("%d : %d : %d : %d : %d : %d : %d : %d"
+                , cpu->getFlag(Cpu::StatusFlags::C)
+                , cpu->getFlag(Cpu::StatusFlags::Z)
+                , cpu->getFlag(Cpu::StatusFlags::I)
+                , cpu->getFlag(Cpu::StatusFlags::D)
+                , cpu->getFlag(Cpu::StatusFlags::B)
+                , cpu->getFlag(Cpu::StatusFlags::U)
+                , cpu->getFlag(Cpu::StatusFlags::V)
+                , cpu->getFlag(Cpu::StatusFlags::N)
+            );
+
 
         }
         ImGui::End();

@@ -13,5 +13,8 @@ namespace nes
         virtual void update() override;
         virtual void render() override;
     private:
+
+        void onNesClock(aiko::Event& event);
+
     };
 }

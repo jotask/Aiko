@@ -60,9 +60,9 @@ namespace aiko
         m_renderSystem->render(gameobject->transform().get(), m_mesh.get(), m_shader.get(), &m_texture.texture);
     }
 
-    void PboTextureComponent::refreshPixels()
+    void PboTextureComponent::refreshPixels(bool force)
     {
-        if (is_dirty == true)
+        if (force == true || is_dirty == true)
         {
             is_dirty = false;
             m_renderSystem->updatePbo(m_texture, pixels);

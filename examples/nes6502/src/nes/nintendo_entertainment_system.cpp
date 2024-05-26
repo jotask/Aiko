@@ -16,6 +16,10 @@
 #include "shared/math.h"
 #include "core/log.h"
 
+#include "aiko_extensions/nes_events.h"
+
+#include <aiko_includes.h>
+
 namespace nes
 {
     Nes::Nes()
@@ -72,6 +76,9 @@ namespace nes
             }
             nOfcycles++;
             std::this_thread::sleep_until(target_time);
+
+            aiko::EventSystem::it().sendEvent(NesOnClockEvent());
+
             target_time += wait_time;
         }
 

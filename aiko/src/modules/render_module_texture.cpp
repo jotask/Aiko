@@ -214,6 +214,10 @@ namespace aiko
             // updatePixels(ptr, pbo.texture.width, pbo.texture.height);
             glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);  // release pointer to mapping buffer
         }
+        else
+        {
+            aiko::Log::error("Couldn't get PBO data");
+        }
 
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pbo.texture.width, pbo.texture.height, pbo.texture.format, GL_UNSIGNED_BYTE, nullptr);
 

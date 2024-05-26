@@ -5,6 +5,8 @@
 #include "core/log.h"
 #include "core/utils.h"
 
+#include "events/event_dispatcher.hpp"
+
 #include "models/game_object.h"
 #include "models/time.h"
 
