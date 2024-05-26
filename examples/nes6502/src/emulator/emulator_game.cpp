@@ -74,13 +74,70 @@ namespace nes
 
     void GameWindow::onNesClock(aiko::Event& event)
     {
+
+        constexpr const uint16_t PARTICLES_AMOUNT = 1000;
+
         aiko::PboTextureComponent* pbo = naiko->getApplication()->getNesGo();
-        static int x = 0;
-        static int y = pbo->getPboTexture().texture.height / 2;
-        pbo->updatePixel(x, y, aiko::BLACK);
-        x++;
-        x %= pbo->getPboTexture().texture.width;
-        pbo->updatePixel(x, y, aiko::WHITE);
+
+        auto randomPosition = [&]() -> aiko::vec2
+        {
+            return aiko::vec2
+            (
+                aiko::utils::getRandomValue(0, NES_WIDTH - 1),
+                aiko::utils::getRandomValue(0, NES_HEIGHT - 1)
+            );
+        };
+
+        auto randomVelocity = [&]() -> aiko::vec2
+        {
+            return aiko::vec2
+            (
+                aiko::utils::getRandomValue(-1.0f, 1.0f),
+                aiko::utils::getRandomValue(-1.0f, 1.0f)
+            );
+        };
+
+        struct Particle { aiko::vec2 p; aiko::vec2 v; };
+
+        static std::vector<Particle> particles(PARTICLES_AMOUNT);
+        bool static first = true;
+        if (first)
+        {
+            first = false;
+            for (auto& p : particles)
+            {
+                p.p = randomPosition();
+                p.v = randomVelocity();
+            }
+        }
+
+        for (auto& p : particles)
+        {
+
+            // Clear the previous pixel
+            pbo->updatePixel(p.p.x, p.p.y, aiko::BLACK);
+
+            // Update the position
+            p.p.x += p.v.x;
+            p.p.y += p.v.y;
+
+            // Check for boundary collision and reverse direction if necessary
+            if (p.p.x < 0 || p.p.x >= pbo->getPboTexture().texture.width)
+            {
+                p.v.x = -p.v.x;
+                p.p.x += p.v.x; // Correct the position after reversing direction
+            }
+            if (p.p.y < 0 || p.p.y >= pbo->getPboTexture().texture.height)
+            {
+                p.v.y = -p.v.y;
+                p.p.y += p.v.y; // Correct the position after reversing direction
+            }
+
+            // Draw the new pixel
+            pbo->updatePixel(p.p.x, p.p.y, aiko::WHITE);
+
+        }
+
         pbo->refreshPixels();
     }
 
