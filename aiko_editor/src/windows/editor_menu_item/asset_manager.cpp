@@ -172,6 +172,12 @@ namespace aiko
                 return;
             }
 
+            if (file.peek() == EOF)
+            {
+                aiko::Log::error("Error opening file: ", file_name);
+                return;
+            }
+
             Json::Value root;
             file >> root;
 
