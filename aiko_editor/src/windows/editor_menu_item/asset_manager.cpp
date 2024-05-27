@@ -18,13 +18,7 @@ namespace aiko
         AssetManager::AssetManager(AikoEditor* editor)
             : MenuItem(editor, "AssetManager")
         {
-            for (size_t i = 0; i < 10; i++)
-            {
-                const std::string text = aiko::utils::generateRandomString();
-                assets.push_back({ uuid::Uuid(), text , text , text });
-            }
             load_file("assets.json");
-            save_file();
         }
 
         void AssetManager::render()
@@ -48,11 +42,19 @@ namespace aiko
                         if (ImGui::MenuItem("New", nullptr))
                         {
                             // TODO Create new asset?
-                            for (size_t i = 0 ; i < 10; i++)
+                            for (size_t i = 0; i < 10; i++)
                             {
                                 const std::string text = aiko::utils::generateRandomString();
-                                assets.push_back({ uuid::Uuid(), text , text , text});
+                                assets.push_back({ uuid::Uuid(), text , text , text });
                             }
+                        }
+                        if (ImGui::MenuItem("Save", nullptr))
+                        {
+                            this->save_file();
+                        }
+                        if (ImGui::MenuItem("Load", nullptr))
+                        {
+                            this->load_file("assets.json");
                         }
                         if (ImGui::MenuItem("Close", nullptr))
                         {
@@ -106,6 +108,18 @@ namespace aiko
                 }
                 ImGui::End();
 
+                static auto drawInputText = [&](const char* title, std::string& str, bool read_only = false)
+                    {
+                        if (read_only)
+                        {
+                            ImGui::InputText(title, str.data(), str.size(), ImGuiInputTextFlags_ReadOnly);
+                        }
+                        else
+                        {
+                            ImGui::InputText(title, str.data(), str.size());
+                        }
+                    };
+
                 // Create right child window
                 if (ImGui::Begin(Right_Window, nullptr, window_flags))
                 {
@@ -113,9 +127,10 @@ namespace aiko
                     if (selected_index != -1)
                     {
                         Asset& asset = assets[selected_index];
-                        ImGui::InputText("Name", asset.name.data(), asset.name.size());
-                        ImGui::InputText("Path", asset.path.data(), asset.path.size());
-                        ImGui::InputText("Type", asset.type.data(), asset.type.size());
+                        drawInputText("Uuid", &asset.uid, true);
+                        drawInputText("Name", asset.name);
+                        drawInputText("Path", asset.path);
+                        drawInputText("Type", asset.type);
                     }
                 }
                 ImGui::End();
@@ -124,60 +139,48 @@ namespace aiko
             ImGui::End();
         }
 
-        void AssetManager::load_file(const char* file)
+        void AssetManager::load_file(const char* file_name)
         {
 
-            const std::string GLOBAL_PATH = global::getAssetPath(file);
+            this->file_path = global::getAssetPath(file_name);
 
-            this->file_path = GLOBAL_PATH;
+            assets.clear();
 
-            auto parse = [&](std::string str)
+            std::ifstream file(file_path);
+            if (file.is_open() == false)
+            {
+                aiko::Log::error("Error opening file: ", file_name );
+                return;
+            }
+
+            Json::Value root;
+            file >> root;
+
+            for (const auto& item : root) {
+                Asset s =
                 {
-                    Json::Reader reader;
-                    Json::Value root;
-                    reader.parse(str, root);
-
-                    for (Json::Value::ArrayIndex i = 0; i != root.size(); i++)
-                    {
-                        Json::Value tmp = root[i];
-                        Json::FastWriter fastWriter;
-                        std::string output = fastWriter.write(tmp);
-                        // TODO parse to know struct
-                    }
+                    item["uuid"].asString(),
+                    item["name"].asString(),
+                    item["path"].asString(),
+                    item["type"].asString(),
                 };
-
-            auto readFile = [&](std::filesystem::path path) -> std::string
-                {
-                    std::ifstream t(path);
-                    std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-                    t.close();
-                    return str;
-                };
-
-            std::string asset_content = readFile(file_path);
-            parse(asset_content);
-
-            int a = 0;
+                assets.push_back(s);
+            }
 
         }
 
         void AssetManager::save_file()
         {
             Json::Value root;
-            root["root"] = "root";
-
-            Json::Value myVect;
             for (std::vector<Asset>::iterator it = assets.begin(); it != assets.end(); it++)
             {
                 Json::Value jsonVect;
-                jsonVect.append(it->uid.get());
-                jsonVect.append(it->name);
-                jsonVect.append(it->path);
-                jsonVect.append(it->type);
-                root["testvect"].append(jsonVect);
+                jsonVect["uuid"] = it->uid.get();
+                jsonVect["name"] = it->name;
+                jsonVect["path"] = it->path;
+                jsonVect["type"] = it->type;
+                root.append(jsonVect);
             }
-
-            root["Books"] = myVect;
             Json::StyledWriter writer;
             std::string output = writer.write(root);
 
@@ -186,7 +189,6 @@ namespace aiko
             outfile.open(this->file_path, std::ios_base::trunc);//std::ios_base::app
             outfile << output;
             outfile.close();
-
         }
 
     }
