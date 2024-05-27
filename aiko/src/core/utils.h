@@ -15,6 +15,8 @@ namespace aiko
 
         const char* join(const char*, const char*);
 
+        const std::string generateRandomString(int length = 10);
+
         std::string getExePath();
 
     }
