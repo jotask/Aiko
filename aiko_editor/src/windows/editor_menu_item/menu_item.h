@@ -14,9 +14,9 @@ namespace aiko
             ~MenuItem() = default;
             virtual void render() = 0 ;
             const char* getName() { return name.c_str(); };
+            bool is_open = true;
         protected:
             AikoEditor* m_editor;
-            bool is_open = true;
             std::string name;
         };
 

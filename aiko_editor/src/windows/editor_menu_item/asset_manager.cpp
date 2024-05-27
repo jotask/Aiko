@@ -1,5 +1,7 @@
 #include "asset_manager.h"
 
+#include <imgui.h>
+
 namespace aiko
 {
     namespace editor
@@ -13,7 +15,11 @@ namespace aiko
 
         void AssetManager::render()
         {
-
+            if (ImGui::Begin("AssetManager", &is_open))
+            {
+                ImGui::Text("Yop");
+            }
+            ImGui::End();
         }
 
     }
