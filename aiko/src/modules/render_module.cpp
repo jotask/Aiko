@@ -217,7 +217,7 @@ namespace aiko
 
         // Bind the output texture from the previous shader program.
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_renderTexture2D.texture);
+        glBindTexture(GL_TEXTURE_2D, m_renderTexture2D.texture.id);
         m_passthrought->setInt("screenTexture", 0);
 
         // Draw three "vertices" as a triangle. (no buffers required)
@@ -309,8 +309,10 @@ namespace aiko
 
         // resize render texture
         {
-            m_renderTexture2D.width = screenWidth;
-            m_renderTexture2D.height = screenHeight;
+            m_renderTexture2D.texture.width = screenWidth;
+            m_renderTexture2D.texture.height = screenHeight;
+            m_renderTexture2D.depth.width = screenWidth;
+            m_renderTexture2D.depth.height = screenHeight;
             // color buffer attachment here
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
             // and depth buffer attachment
@@ -369,7 +371,7 @@ namespace aiko
         glBindVertexArray(0);
 
         // Render fullscreen quad
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glBindTexture(GL_TEXTURE_2D, texture.id);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
@@ -395,12 +397,12 @@ namespace aiko
     void RenderModule::beginTextureMode()
     {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_renderTexture2D.texture);
+        glBindTexture(GL_TEXTURE_2D, m_renderTexture2D.texture.id);
     }
 
     void RenderModule::beginTextureMode(texture::RenderTexture2D& target)
     {
-        glBindTexture(GL_TEXTURE_2D, target.texture);
+        glBindTexture(GL_TEXTURE_2D, target.texture.id);
     }
 
     void RenderModule::endTextureMode(void)

@@ -27,11 +27,9 @@ namespace aiko::texture
     class RenderTexture2D
     {
     public:
-        unsigned int framebuffer;       // OpenGL framebuffer object id
-        unsigned int texture;           // Color buffer attachment texture
-        unsigned int depth;             // Depth buffer attachment texture
-        unsigned int width;
-        unsigned int height;
+        unsigned int framebuffer;
+        Texture texture;
+        Texture depth;
     };
 
 }

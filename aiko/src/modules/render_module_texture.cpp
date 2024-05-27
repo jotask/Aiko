@@ -35,8 +35,10 @@ namespace aiko
         texture::RenderTexture2D target;
 
         auto size = m_displayModule->getCurrentDisplay().getDisplaySize();
-        target.width = size.x;
-        target.height = size.y;
+        target.texture.width = size.x;
+        target.texture.height = size.y;
+        target.depth.width = size.x;
+        target.depth.height = size.y;
 
         // Create and bind the framebuffer. This is done exactly the same as it's done for everything else in OpenGL.
         GLuint frameBuffer;
@@ -45,11 +47,11 @@ namespace aiko
 
         // The framebuffer actually consists of a few smaller objects.
         // These are primarily textures and renderbuffers, each which have different uses.
-        glGenTextures(1, &target.texture);
-        glBindTexture(GL_TEXTURE_2D, target.texture);
+        glGenTextures(1, &target.texture.id);
+        glBindTexture(GL_TEXTURE_2D, target.texture.id);
         // Here we're going to create a texture that matches the size of our viewport. (this also gets resized in the viewport resizing code)
         // Instead of passing in data for the texture, we pass in null, which leaves the texture empty.
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, target.width, target.height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, target.texture.width, target.texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
         // clamp to border, do not allow texture wrapping
         // otherwise, pixels that go off the top of the screen will wrap to the bottom
@@ -69,16 +71,16 @@ namespace aiko
 
         // We're going to create one here for the depth stencil buffer.
         // This isn't actually required for this example, because we only render one object, but if we were rendering with depth, this would be very important.
-        glGenRenderbuffers(1, &target.depth);
-        glBindRenderbuffer(GL_RENDERBUFFER, target.depth);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, target.width, target.height);
+        glGenRenderbuffers(1, &target.depth.id);
+        glBindRenderbuffer(GL_RENDERBUFFER, target.depth.id);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, target.depth.width, target.depth.height);
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
         // Finally, we attach both the texture and render buffer to our frame buffer.
         // The texture is attached as a "color attachment". This is where our fragment shader outputs.
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, target.texture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, target.depth.id, 0);
         // The render buffer is attached to the depth stencil attachment.
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, target.depth);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, target.depth.id);
 
         return target;
 
