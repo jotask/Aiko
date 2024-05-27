@@ -14,7 +14,7 @@ namespace aiko
     {
 
         HirearchyWindow::HirearchyWindow(AikoEditor* editor)
-            : Window(editor)
+            : Window(editor, "HirearchyWindow")
         {
 
         }

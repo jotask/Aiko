@@ -195,6 +195,7 @@ namespace aiko
 
         // bind to framebuffer and draw scene as we normally would to color texture 
         glBindFramebuffer(GL_FRAMEBUFFER, m_renderTexture2D.framebuffer);
+        glViewport(0, 0, m_renderTexture2D.texture.width, m_renderTexture2D.texture.height);
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
         clearBackground(background_color);
@@ -209,7 +210,16 @@ namespace aiko
 
         // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        auto window_size = m_displayModule->getCurrentDisplay().getDisplaySize();
+        glViewport(0, 0, window_size.x, window_size.y); // Reset viewport to window size
         clearBackground(BLACK);
+
+        const AikoConfig cfg = getAiko()->getConfig();
+        if (cfg.auto_render == false)
+        {
+            return;
+        }
+
         glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
         // Render using our full screen shader program

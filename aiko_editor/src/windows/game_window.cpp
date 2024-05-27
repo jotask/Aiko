@@ -16,7 +16,7 @@ namespace aiko
     {
 
         GameWindow::GameWindow(AikoEditor* editor)
-            : Window(editor)
+            : Window(editor, "GameWindow")
         {
 
         }

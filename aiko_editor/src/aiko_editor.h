@@ -13,13 +13,17 @@ namespace aiko::editor
     class AikoEditor : public aiko::Application
     {
     public:
+        using Windows = std::vector<AikoUPtr<Window>>;
+
+        AikoEditor();
         aiko::Aiko* getAiko() const;
+
+        const Windows& getWindows() { return m_windows; }
 
     protected:
         virtual void init() override;
         virtual void render() override;
 
-        using Windows = std::vector<AikoUPtr<Window>>;
         Windows m_windows;
 
     };

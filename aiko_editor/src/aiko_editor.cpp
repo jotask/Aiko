@@ -12,6 +12,11 @@
 
 namespace aiko::editor
 {
+    AikoEditor::AikoEditor()
+        : aiko::Application(aiko::AikoConfig("Aiko Editor", 1024, 768, aiko::BLACK, false))
+    {
+
+    }
 
     aiko::Aiko* AikoEditor::getAiko() const
     {
@@ -66,7 +71,10 @@ namespace aiko::editor
 
         for (auto& tmp : m_windows)
         {
-            tmp->render();
+            if (tmp->isOpen())
+            {
+                tmp->render();
+            }
         }
 
     }

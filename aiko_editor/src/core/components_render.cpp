@@ -29,7 +29,7 @@ namespace editor
             }
             else
             {
-                assert(false, "Error: compt is not of type aiko::Transform or derived from it");
+                assert(false, "ERROR :: Component is not supported by the editor");
             }
         }
 

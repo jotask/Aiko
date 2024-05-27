@@ -1,11 +1,11 @@
-#include "window.h"
+#include "menu_item.h"
 
 namespace aiko
 {
     namespace editor
     {
 
-        Window::Window(AikoEditor* editor, const char* name)
+        MenuItem::MenuItem(AikoEditor* editor, const char* name)
             : m_editor(editor)
             , name(name)
         {

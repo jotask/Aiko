@@ -6,6 +6,8 @@
 
 #include "window.h"
 
+#include "editor_menu_item/asset_manager.h"
+
 #include <imgui.h>
 
 namespace aiko
@@ -14,9 +16,9 @@ namespace aiko
     {
 
         MenuBar::MenuBar(AikoEditor* editor)
-            : Window(editor)
+            : Window(editor, "MenuBar")
         {
-
+            m_items.emplace_back(std::make_unique<AssetManager>(editor));
         }
 
         void MenuBar::render()
@@ -43,6 +45,21 @@ namespace aiko
                         // Handle undo
                     }
                     // More edit options here
+                    ImGui::EndMenu();
+                }
+                if (ImGui::BeginMenu("Editor"))
+                {
+                    for (auto& tmp : m_editor->getWindows())
+                    {
+                        if (tmp.get() == this)
+                        {
+                            continue;
+                        }
+                        if (ImGui::MenuItem(tmp->getName(), nullptr, &tmp->is_open))
+                        {
+                            // Handle undo
+                        }
+                    }
                     ImGui::EndMenu();
                 }
                 ImGui::EndMainMenuBar();
