@@ -22,6 +22,16 @@ namespace aiko
         }
     }
 
+    std::vector<Component*> GameObject::getComponents()
+    {
+        std::vector<Component*> components;
+        for (auto& go : m_components)
+        {
+            components.push_back(go.get());
+        }
+        return components;
+    }
+
     void GameObject::render()
     {
         for (auto& go : m_components)

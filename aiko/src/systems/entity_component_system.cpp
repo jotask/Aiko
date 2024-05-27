@@ -39,6 +39,16 @@ namespace aiko
         for (auto& go : m_gameObjects) go->render();
     }
 
+    std::vector<GameObject*> EntityComponentSystem::getObjects()
+    {
+        std::vector<GameObject*> objs;
+        for (auto& obj : m_gameObjects)
+        {
+            objs.push_back(obj.get());
+        }
+        return objs;
+    }
+
     template<class T>
     inline void EntityComponentSystem::onComponentAdded(GameObject* obj, T* c)
     {

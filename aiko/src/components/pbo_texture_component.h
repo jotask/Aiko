@@ -31,9 +31,10 @@ namespace aiko
 
         const texture::PboTexture& getPboTexture();
 
+        bool auto_render = true;
+
     protected:
 
-        bool auto_render = true;
         texture::PboTexture m_texture;
 
     private:

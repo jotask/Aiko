@@ -25,6 +25,8 @@ namespace aiko
     
         aiko::AikoPtr<GameObject> createGameObject(std::string name = "Game Object");
     
+        std::vector<GameObject*> getObjects();
+
     protected:
     
         virtual void connect(ModuleConnector*, SystemConnector*) override;
@@ -35,6 +37,7 @@ namespace aiko
     
         virtual void render() override;
     
+
     private:
 
         template<class T>

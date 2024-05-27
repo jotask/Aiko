@@ -47,6 +47,8 @@ namespace aiko
         template<class T>
         auto getSystem();
 
+        std::vector<Component*> getComponents();
+
     private:
 
         // FIXME: For now, so we can esily create components

@@ -26,6 +26,7 @@ namespace aiko
         const uuid::Uuid uuid;
     
         virtual ~Component() = default;
+        const char* getName() const { return m_name.c_str(); };
     protected:
         GameObject* gameobject;
         virtual void init() { }

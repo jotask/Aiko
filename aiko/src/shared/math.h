@@ -51,6 +51,10 @@ namespace aiko
         float y;
         float z;
 
+        operator float* () {
+            return &x;
+        }
+
         // Addition
         vec3 operator+(const vec3& other) const {
             return vec3(x + other.x, y + other.y, z + other.z);

@@ -1,12 +1,11 @@
 #include "aiko_editor.h"
 
-#include "models/game_object.h"
-#include "components/camera_component.h"
-#include "components/mesh_component.h"
-#include "components/light_component.h"
-
 #include "windows/game_window.h"
 #include "windows/hirearchy_window.h"
+#include "windows/menu_bar.h"
+#include "windows/component_window.h"
+
+#include <aiko_includes.h>
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -27,13 +26,40 @@ namespace aiko::editor
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+        m_windows.emplace_back(std::make_unique<MenuBar>(this));
         m_windows.emplace_back(std::make_unique<GameWindow>(this));
         m_windows.emplace_back(std::make_unique<HirearchyWindow>(this));
+        m_windows.emplace_back(std::make_unique<ComponentWindow>(this));
+
+        auto m_go1 = this->createGameObject("Cube1");
+        m_go1->transform()->position = { 1.0f, 0.0f, 0.0f };
+        m_go1->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        m_go1->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
+
+        auto m_go2 = this->createGameObject("Cube2");
+        m_go2->transform()->position = { -1.0f, 0.0f, 0.0f };
+        m_go2->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        m_go2->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
+
+        auto m_texture = this->createGameObject("Texture");
+        m_texture->transform()->position = { 0.0f, -0.55f, 0.0f };
+        m_texture->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        m_texture->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        auto mesh3 = m_texture->addComponent<aiko::TextureComponent>();
+
+        auto m_texturePbo = this->createGameObject("PboTexture");
+        m_texturePbo->transform()->position = { 0.0f, 0.55f, 0.0f };
+        m_texturePbo->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        m_texturePbo->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        auto mesh4 = m_texturePbo->addComponent<aiko::PboTextureComponent>();
 
     }
 
     void AikoEditor::render()
     {
+        Application::render();
         // Docking Space// Docking Space
         auto main_viewport = ImGui::GetMainViewport();
         ImGui::DockSpaceOverViewport(main_viewport->ID);

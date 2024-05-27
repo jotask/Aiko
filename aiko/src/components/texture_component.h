@@ -23,6 +23,8 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
 
+        const texture::Texture& getTexture() { return m_texture; };
+
     private:
         RenderSystem*       m_renderSystem;
         AikoPtr<Mesh>       m_mesh;
