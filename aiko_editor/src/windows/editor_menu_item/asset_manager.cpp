@@ -9,6 +9,7 @@
 #include <imgui.h>
 #include <json/json.h>
 #include <imgui_internal.h>
+#include <magic_enum.hpp>
 
 namespace aiko
 {
@@ -41,11 +42,11 @@ namespace aiko
                     {
                         if (ImGui::MenuItem("New", nullptr))
                         {
-                            // TODO Create new asset?
+                            // TODO Open dialog to create new asset
                             for (size_t i = 0; i < 10; i++)
                             {
                                 const std::string text = aiko::utils::generateRandomString();
-                                assets.push_back({ uuid::Uuid(), text , text , text });
+                                assets.push_back({ uuid::Uuid(), text , text , Asset::AssetType::Default });
                             }
                         }
                         if (ImGui::MenuItem("Save", nullptr))
@@ -88,10 +89,10 @@ namespace aiko
                 constexpr const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNav;
 
                 // Create left child window
-                static size_t  selected_index = -1;
+                static long  selected_index = -1;
                 if (ImGui::Begin(Left_Window, nullptr, window_flags))
                 {
-                    for (size_t i = 0 ; i < assets.size() ; i++)
+                    for (long i = 0 ; i < assets.size() ; i++)
                     {
                         if (ImGui::Selectable(assets[i].name.c_str(), selected_index == i))
                         {
@@ -130,7 +131,25 @@ namespace aiko
                         drawInputText("Uuid", &asset.uid, true);
                         drawInputText("Name", asset.name);
                         drawInputText("Path", asset.path);
-                        drawInputText("Type", asset.type);
+
+                        if (ImGui::BeginCombo("##combo", magic_enum::enum_name(asset.type).data() )) // The second parameter is the label previewed before opening the combo.
+                        {
+                            for (int n = 0; n < magic_enum::enum_count<Asset::AssetType>(); n++)
+                            {
+                                Asset::AssetType it = magic_enum::enum_value<Asset::AssetType>(n);
+                                bool is_selected = (asset.type == it ); // You can store your selection however you want, outside or inside your objects
+                                if (ImGui::Selectable(magic_enum::enum_name(it).data(), is_selected))
+                                {
+                                    asset.type = it;
+                                }
+                                if (is_selected)
+                                {
+                                    ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
+                                }
+                            }
+                            ImGui::EndCombo();
+                        }
+
                     }
                 }
                 ImGui::End();
@@ -162,7 +181,7 @@ namespace aiko
                     item["uuid"].asString(),
                     item["name"].asString(),
                     item["path"].asString(),
-                    item["type"].asString(),
+                    magic_enum::enum_cast<Asset::AssetType>(item["type"].asString()).value(),
                 };
                 assets.push_back(s);
             }
@@ -178,7 +197,7 @@ namespace aiko
                 jsonVect["uuid"] = it->uid.get();
                 jsonVect["name"] = it->name;
                 jsonVect["path"] = it->path;
-                jsonVect["type"] = it->type;
+                jsonVect["type"] = magic_enum::enum_name(it->type).data();
                 root.append(jsonVect);
             }
             Json::StyledWriter writer;

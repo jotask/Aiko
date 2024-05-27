@@ -18,10 +18,11 @@ namespace aiko
 
             struct Asset
             {
+                enum class AssetType { Default, Text, Texture, };
                 uuid::Uuid  uid;
                 std::string name;
                 std::string path;
-                std::string type;
+                AssetType type;
             };
 
             AssetManager(AikoEditor*);
