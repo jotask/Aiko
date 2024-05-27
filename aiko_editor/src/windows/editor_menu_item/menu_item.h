@@ -10,11 +10,11 @@ namespace aiko
         class MenuItem
         {
         public:
-            MenuItem(AikoEditor*, const char*, bool = true);
+            MenuItem(AikoEditor*, const char*, bool = false);
             ~MenuItem() = default;
             virtual void render() = 0 ;
             const char* getName() { return name.c_str(); };
-            bool is_open = true;
+            bool is_open;
         protected:
             AikoEditor* m_editor;
             std::string name;

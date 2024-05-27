@@ -8,7 +8,7 @@ namespace aiko
     {
 
         ImGuiDemo::ImGuiDemo(AikoEditor* editor)
-            : MenuItem(editor, "ImGuiDemo", false)
+            : MenuItem(editor, "ImGuiDemo")
         {
 
         }
