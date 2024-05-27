@@ -27,24 +27,19 @@ namespace aiko
             {
                 if (ImGui::BeginMenu("File"))
                 {
-                    if (ImGui::MenuItem("Open...", "Ctrl+O")) {
+                    if (ImGui::MenuItem("Open...", "Ctrl+O"))
+                    {
                         // Trigger file open dialog or handle opening files
                     }
-                    if (ImGui::MenuItem("Save", "Ctrl+S")) {
+                    if (ImGui::MenuItem("Save", "Ctrl+S"))
+                    {
                         // Handle saving current work
                     }
-                    if (ImGui::MenuItem("Exit", "Alt+F4")) {
+                    if (ImGui::MenuItem("Exit", "Alt+F4"))
+                    {
                         // Handle exiting the application
                         m_editor->getAiko()->close();
                     }
-                    ImGui::EndMenu();
-                }
-                if (ImGui::BeginMenu("Edit"))
-                {
-                    if (ImGui::MenuItem("Undo", "Ctrl+Z")) {
-                        // Handle undo
-                    }
-                    // More edit options here
                     ImGui::EndMenu();
                 }
                 if (ImGui::BeginMenu("Editor"))
