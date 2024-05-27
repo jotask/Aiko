@@ -2,6 +2,7 @@
 
 #include <aiko_includes.h>
 
+#include <string>
 #include <imgui.h>
 #include <imgui_internal.h>
 
@@ -13,7 +14,11 @@ namespace aiko
         AssetManager::AssetManager(AikoEditor* editor)
             : MenuItem(editor, "AssetManager")
         {
-
+            for (size_t i = 0; i < 10; i++)
+            {
+                const std::string text = aiko::utils::generateRandomString();
+                assets.push_back({ uuid::Uuid(), text , text , text });
+            }
         }
 
         void AssetManager::render()
@@ -21,7 +26,7 @@ namespace aiko
             constexpr const const char* Left_Window = "Left Window";
             constexpr const const char* Right_Window = "Right Window";
 
-            ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+            ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoCollapse;
             if (ImGui::Begin("AssetManager", &is_open, window_flags))
             {
                 // Create a docking space inside the main window
@@ -101,10 +106,10 @@ namespace aiko
                     ImGui::Text("Asset Settings");
                     if (selected_index != -1)
                     {
-                        auto asset = assets[selected_index];
-                        ImGui::Text("Name: %s ", asset.name.c_str());
-                        ImGui::Text("Path: %s ", asset.path.c_str());
-                        ImGui::Text("Type: %s ", asset.type.c_str());
+                        Asset& asset = assets[selected_index];
+                        ImGui::InputText("Name", asset.name.data(), asset.name.size());
+                        ImGui::InputText("Path", asset.path.data(), asset.path.size());
+                        ImGui::InputText("Type", asset.type.data(), asset.type.size());
                     }
                 }
                 ImGui::End();
