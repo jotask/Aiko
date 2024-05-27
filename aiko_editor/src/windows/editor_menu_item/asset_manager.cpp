@@ -2,8 +2,12 @@
 
 #include <aiko_includes.h>
 
+#include <fstream>
+#include <streambuf>
 #include <string>
+#include <filesystem>
 #include <imgui.h>
+#include <json/json.h>
 #include <imgui_internal.h>
 
 namespace aiko
@@ -19,6 +23,8 @@ namespace aiko
                 const std::string text = aiko::utils::generateRandomString();
                 assets.push_back({ uuid::Uuid(), text , text , text });
             }
+            load_file("assets.json");
+            save_file();
         }
 
         void AssetManager::render()
@@ -116,6 +122,71 @@ namespace aiko
 
             }
             ImGui::End();
+        }
+
+        void AssetManager::load_file(const char* file)
+        {
+
+            const std::string GLOBAL_PATH = global::getAssetPath(file);
+
+            this->file_path = GLOBAL_PATH;
+
+            auto parse = [&](std::string str)
+                {
+                    Json::Reader reader;
+                    Json::Value root;
+                    reader.parse(str, root);
+
+                    for (Json::Value::ArrayIndex i = 0; i != root.size(); i++)
+                    {
+                        Json::Value tmp = root[i];
+                        Json::FastWriter fastWriter;
+                        std::string output = fastWriter.write(tmp);
+                        // TODO parse to know struct
+                    }
+                };
+
+            auto readFile = [&](std::filesystem::path path) -> std::string
+                {
+                    std::ifstream t(path);
+                    std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+                    t.close();
+                    return str;
+                };
+
+            std::string asset_content = readFile(file_path);
+            parse(asset_content);
+
+            int a = 0;
+
+        }
+
+        void AssetManager::save_file()
+        {
+            Json::Value root;
+            root["root"] = "root";
+
+            Json::Value myVect;
+            for (std::vector<Asset>::iterator it = assets.begin(); it != assets.end(); it++)
+            {
+                Json::Value jsonVect;
+                jsonVect.append(it->uid.get());
+                jsonVect.append(it->name);
+                jsonVect.append(it->path);
+                jsonVect.append(it->type);
+                root["testvect"].append(jsonVect);
+            }
+
+            root["Books"] = myVect;
+            Json::StyledWriter writer;
+            std::string output = writer.write(root);
+
+            // Save to file
+            std::ofstream outfile;
+            outfile.open(this->file_path, std::ios_base::trunc);//std::ios_base::app
+            outfile << output;
+            outfile.close();
+
         }
 
     }

@@ -29,7 +29,12 @@ namespace aiko
             virtual void render() override;
 
         private:
+
+            void load_file(const char* file);
+            void save_file();
+
             std::vector<Asset> assets;
+            std::string file_path;
         };
 
     }
