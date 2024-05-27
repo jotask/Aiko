@@ -1,5 +1,7 @@
 #include "asset_manager.h"
 
+#include <aiko_includes.h>
+
 #include <imgui.h>
 #include <imgui_internal.h>
 
@@ -18,6 +20,7 @@ namespace aiko
         {
             constexpr const const char* Left_Window = "Left Window";
             constexpr const const char* Right_Window = "Right Window";
+
             ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
             if (ImGui::Begin("AssetManager", &is_open, window_flags))
             {
@@ -34,6 +37,11 @@ namespace aiko
                         if (ImGui::MenuItem("New", nullptr))
                         {
                             // TODO Create new asset?
+                            for (size_t i = 0 ; i < 10; i++)
+                            {
+                                const std::string text = aiko::utils::generateRandomString();
+                                assets.push_back({ uuid::Uuid(), text , text , text});
+                            }
                         }
                         if (ImGui::MenuItem("Close", nullptr))
                         {
@@ -67,16 +75,37 @@ namespace aiko
                 constexpr const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNav;
 
                 // Create left child window
+                static size_t  selected_index = -1;
                 if (ImGui::Begin(Left_Window, nullptr, window_flags))
                 {
-                    ImGui::Text("This is the left window");
+                    for (size_t i = 0 ; i < assets.size() ; i++)
+                    {
+                        if (ImGui::Selectable(assets[i].name.c_str(), selected_index == i))
+                        {
+                            if (selected_index == i)
+                            {
+                                selected_index = -1;
+                            }
+                            else
+                            {
+                                selected_index = i;
+                            }
+                        }
+                    }
                 }
                 ImGui::End();
 
                 // Create right child window
                 if (ImGui::Begin(Right_Window, nullptr, window_flags))
                 {
-                    ImGui::Text("This is the right window");
+                    ImGui::Text("Asset Settings");
+                    if (selected_index != -1)
+                    {
+                        auto asset = assets[selected_index];
+                        ImGui::Text("Name: %s ", asset.name.c_str());
+                        ImGui::Text("Path: %s ", asset.path.c_str());
+                        ImGui::Text("Type: %s ", asset.type.c_str());
+                    }
                 }
                 ImGui::End();
 
