@@ -10,7 +10,7 @@ namespace aiko
         class MenuItem
         {
         public:
-            MenuItem(AikoEditor*, const char*);
+            MenuItem(AikoEditor*, const char*, bool = true);
             ~MenuItem() = default;
             virtual void render() = 0 ;
             const char* getName() { return name.c_str(); };
