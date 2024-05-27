@@ -2,6 +2,8 @@
 
 #include "constants.h"
 
+#include "core/uuid.h"
+
 #include "core/log.h"
 #include "core/utils.h"
 
