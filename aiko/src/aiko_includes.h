@@ -1,9 +1,9 @@
 #pragma once
 
+#include "aiko.h"
 #include "constants.h"
 
 #include "core/uuid.h"
-
 #include "core/log.h"
 #include "core/utils.h"
 
@@ -21,6 +21,7 @@
 #include "types/render_types.h"
 #include "types/textures.h"
 
+#include "systems/camera_system.h"
 #include "systems/render_system.h"
 #include "systems/entity_component_system.h"
 
