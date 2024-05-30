@@ -38,6 +38,9 @@ namespace aiko
         template<class T>
         bool removeComponent();
 
+        template<class T>
+        bool removeComponent(T*);
+
         std::string getName() const { return name; }
         void setName( std::string newName ) { name = newName; }
 
@@ -102,19 +105,29 @@ namespace aiko
     template<class T>
     bool GameObject::removeComponent()
     {
-        if (hasComponent<T>() == false)
+        for (size_t i = 0; i < m_components.size(); ++i)
         {
-            throw std::exception();
+            if (dynamic_cast<T*>(m_components[i].get()) != nullptr)
+            {
+                m_components.erase(m_components.begin() + i);
+                return true;
+            }
         }
-        if (onComponentRemoved)
+        return false;
+    }
+
+    template<class T>
+    bool GameObject::removeComponent(T* item)
+    {
+        for (size_t i = 0; i < m_components.size(); ++i)
         {
-            // TODO
-            throw std::exception();
-            // onComponentRemoved(this, back.get());
+            if (m_components[i].get() == item)
+            {
+                m_components.erase(m_components.begin() + i);
+                return true;
+            }
         }
-        return m_components.erase(std::remove(m_components.begin(), m_components.end(), [](const std::shared_ptr<Component>& component) {
-            return dynamic_cast<T*>(component.get()) != nullptr;
-        }), m_components.end());
+        return false;
     }
 
     template<class T>

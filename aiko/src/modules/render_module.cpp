@@ -297,6 +297,7 @@ namespace aiko
     {
         return m_displayModule->getCurrentDisplay().getDisplaySize();
     }
+
     texture::RenderTexture2D* RenderModule::getRenderTexture()
     {
         return &m_renderTexture2D;

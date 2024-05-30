@@ -3,37 +3,147 @@
 #include <assert.h>
 
 #include <imgui.h>
+#include <magic_enum_all.hpp>
 
 namespace editor
 {
     namespace component
     {
 
-        const void drawComponent(aiko::Component* compt)
+        enum class ComponentsTypes
         {
-            if (aiko::Transform* trans = dynamic_cast<aiko::Transform*>(compt))
+            Tranform,
+            Camera,
+            Grid,
+            Light,
+            Mesh,
+            PboTexture,
+            Texture,
+        };
+
+        std::vector<std::string> getComponents(aiko::GameObject* obj)
+        {
+            ComponentsTypes type;
+            std::vector<std::string> tmp;
+
+            auto addCmp = [&](ComponentsTypes type)
+                {
+                    tmp.push_back(magic_enum::enum_name(type).data());
+                };
+
+            for (auto* tmp : obj->getComponents())
             {
-                drawTransform(trans);
+                constexpr auto pmt = [](auto*) {};
+                if (isComponent<aiko::Transform>(tmp, pmt)) { addCmp(ComponentsTypes::Tranform); continue; };
+                if (isComponent<aiko::TextureComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Texture); continue; };
+                if (isComponent<aiko::PboTextureComponent>(tmp, pmt)) { addCmp(ComponentsTypes::PboTexture); continue; };
+                if (isComponent<aiko::MeshComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Mesh); continue; };
+                assert(false && "ERROR :: Component is not supported by the editor");
             }
-            else if (aiko::TextureComponent* text = dynamic_cast<aiko::TextureComponent*>(compt))
+            return tmp;
+        }
+
+        std::vector<std::string> getMissingComponents(aiko::GameObject* obj)
+        {
+            std::vector<std::string> componentes = getComponents(obj);
+            std::vector<std::string> result;
+
+            magic_enum::enum_for_each<ComponentsTypes>([&](auto val)
+                {
+                    std::string str = std::string(magic_enum::enum_name<ComponentsTypes>(val));
+                    auto found = std::find(componentes.begin(), componentes.end(), str );
+                    if (found != componentes.end())
+                    {
+                        // Already exist
+                    }
+                    else
+                    {
+                        result.push_back(std::string(str));
+                    }
+                });
+
+            return result;
+        }
+
+        void removeComponent(std::string name, aiko::GameObject* obj)
+        {
+            auto component = magic_enum::enum_cast<::editor::component::ComponentsTypes>(name);
+            if (component.has_value() == true)
             {
-                drawTexture(text);
-            }
-            else if (aiko::PboTextureComponent* pbo = dynamic_cast<aiko::PboTextureComponent*>(compt))
-            {
-                drawPboTexture(pbo);
-            }
-            else if (aiko::MeshComponent* mesh = dynamic_cast<aiko::MeshComponent*>(compt))
-            {
-                drawMesh(mesh);
-            }
-            else
-            {
-                assert(false, "ERROR :: Component is not supported by the editor");
+                switch (component.value())
+                {
+                case ComponentsTypes::Camera:
+                    obj->removeComponent<::aiko::CameraComponent>();
+                    break;
+                case ComponentsTypes::Grid:
+                    obj->removeComponent<::aiko::GridComponent>();
+                    break;
+                case ComponentsTypes::Light:
+                    obj->removeComponent<::aiko::LightComponent>();
+                    break;
+                case ComponentsTypes::Mesh:
+                    obj->removeComponent<::aiko::MeshComponent>();
+                    break;
+                case ComponentsTypes::PboTexture:
+                    obj->removeComponent<::aiko::PboTextureComponent>();
+                    break;
+                case ComponentsTypes::Texture:
+                    obj->removeComponent<::aiko::TextureComponent>();
+                    break;
+                default:
+                    break;
+                }
             }
         }
 
-        const void drawTransform(aiko::Transform* t)
+        std::vector<std::string> getAllComponents()
+        {
+            std::array strs = magic_enum::enum_names<ComponentsTypes>();
+            return std::vector<std::string>(strs.begin(), strs.end());
+        }
+
+        void addComponent(std::string name, aiko::GameObject* obj)
+        {
+            auto component = magic_enum::enum_cast<::editor::component::ComponentsTypes>(name);
+            if ( component.has_value() == true )
+            {
+                switch (component.value())
+                {
+                case ComponentsTypes::Camera:
+                    obj->addComponent<::aiko::CameraComponent>();
+                    break;
+                case ComponentsTypes::Grid:
+                    obj->addComponent<::aiko::GridComponent>();
+                    break;
+                case ComponentsTypes::Light:
+                    obj->addComponent<::aiko::LightComponent>();
+                    break;
+                case ComponentsTypes::Mesh:
+                    obj->addComponent<::aiko::MeshComponent>();
+                    break;
+                case ComponentsTypes::PboTexture:
+                    obj->addComponent<::aiko::PboTextureComponent>();
+                    break;
+                case ComponentsTypes::Texture:
+                    obj->addComponent<::aiko::TextureComponent>();
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+
+        void drawComponent(aiko::Component* compt)
+        {
+            if (isComponent<aiko::Transform>(compt, drawTransform)) return;
+            if (isComponent<aiko::TextureComponent>(compt, drawTexture)) return;
+            if (isComponent<aiko::PboTextureComponent>(compt, drawPboTexture)) return;
+            if (isComponent<aiko::MeshComponent>(compt, drawMesh)) return;
+            if (isComponent<aiko::LightComponent>(compt, drawLight)) return;
+            assert(false && "ERROR :: Component is not supported by the editor");
+        }
+
+        void drawTransform(aiko::Transform* t)
         {
             ImGui::DragFloat3("Position", t->position);
             ImGui::DragFloat3("Rotation", t->rotation);
@@ -41,7 +151,7 @@ namespace editor
 
         }
 
-        const void drawTexture(aiko::TextureComponent* text)
+        void drawTexture(aiko::TextureComponent* text)
         {
 
             aiko::texture::Texture texture = text->getTexture();
@@ -60,7 +170,7 @@ namespace editor
 
         }
 
-        const void drawPboTexture(aiko::PboTextureComponent* pbo)
+        void drawPboTexture(aiko::PboTextureComponent* pbo)
         {
             ImGui::Checkbox("Auto Render", &pbo->auto_render);
 
@@ -79,7 +189,12 @@ namespace editor
             
         }
 
-        const void drawMesh(aiko::MeshComponent* mesh)
+        void drawMesh(aiko::MeshComponent* mesh)
+        {
+
+        }
+
+        void drawLight(aiko::LightComponent*)
         {
 
         }
