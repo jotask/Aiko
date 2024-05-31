@@ -37,7 +37,7 @@ namespace aiko
         EventSystem::it().bind<WindowResizeEvent>(this, &DebugModule::onKeyPressed);
     }
 
-    void DebugModule::preRender()
+    void DebugModule::beginFrame()
     {
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -45,12 +45,7 @@ namespace aiko
         ImGui::NewFrame();
     }
 
-    void DebugModule::render()
-    {
-
-    }
-
-    void DebugModule::postRender()
+    void DebugModule::endFrame()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         ImGui::Render();
