@@ -179,6 +179,11 @@ namespace aiko
         auto window_size = m_displayModule->getCurrentDisplay().getDisplaySize();
         glViewport(0, 0, window_size.x, window_size.y);
 
+        if (getAiko()->getConfig().auto_render == false)
+        {
+            return;
+        }
+
         m_passthrought->use();
         m_passthrought->setInt("screenTexture", 0);
         glBindVertexArray(m_screenFbo.vao);
