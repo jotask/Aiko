@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "aiko.h"
+#include "constants.h"
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
 #include "models/camera.h"
@@ -29,7 +30,6 @@
 namespace aiko
 {
 
-    constexpr bool s_enableDebugLogs = false;
 
     RenderModule::RenderModule(Aiko* aiko)
         : BaseModule(aiko)
@@ -73,7 +73,7 @@ namespace aiko
             const void* userParam)
         {
 
-            if (s_enableDebugLogs == false)
+            if (::aiko::global::GPU_LOGGING == false)
             {
                 return;
             }
@@ -81,7 +81,7 @@ namespace aiko
             /*
             Regarding the warning (not error). It just warns you that your buffer will be put in video
             memory since you're using GL_STATIC_DRAW for your buffer. It's actually more of a log and
-            you can safely ignore it. 
+            you can safely ignore it.
             */
             constexpr GLuint error_131185 = 131185;
 
@@ -90,25 +90,26 @@ namespace aiko
                 return;
             }
 
+            std::string typeStr;
+
             switch (type)
             {
-                case GL_DEBUG_TYPE_ERROR:               Log::error( "Type: Error" ); break;
-                case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: Log::error( "Type: Deprecated Behaviour" ); break;
-                case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  Log::error( "Type: Undefined Behaviour" ); break;
-                case GL_DEBUG_TYPE_PORTABILITY:         Log::error( "Type: Portability" ); break;
-                case GL_DEBUG_TYPE_PERFORMANCE:         Log::error( "Type: Performance" ); break;
-                case GL_DEBUG_TYPE_MARKER:              Log::error( "Type: Marker" ); break;
-                case GL_DEBUG_TYPE_PUSH_GROUP:          Log::error( "Type: Push Group" ); break;
-                case GL_DEBUG_TYPE_POP_GROUP:           Log::error( "Type: Pop Group" ); break;
-                case GL_DEBUG_TYPE_OTHER:               return; // Log::error << "Type: Other"; break;
+            case GL_DEBUG_TYPE_ERROR:               typeStr = "Error"; break;
+            case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "Deprecated Behaviour;"; break;
+            case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  typeStr = "Undefined Behaviour"; break;
+            case GL_DEBUG_TYPE_PORTABILITY:         typeStr = "Portability"; break;
+            case GL_DEBUG_TYPE_PERFORMANCE:         typeStr = "Performance"; break;
+            case GL_DEBUG_TYPE_MARKER:              typeStr = "Marker"; break;
+            case GL_DEBUG_TYPE_PUSH_GROUP:          typeStr = "Push Group"; break;
+            case GL_DEBUG_TYPE_POP_GROUP:           typeStr = "Pop Group"; break;
+            case GL_DEBUG_TYPE_OTHER:               return; // Log::error << "Type: Other"; break;
             }
 
             // fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
             //     (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
             //     type, severity, message);
-            
 
-            Log::error("GL::ERROR::", message);
+            Log::error("GL::", typeStr, "::", message);
 
             int a = 0;
 
@@ -159,37 +160,7 @@ namespace aiko
         const AikoConfig cfg = getAiko()->getConfig();
         gltViewport(cfg.width, cfg.height);
     }
-    
-    void RenderModule::preUpdate()
-    {
 
-    }
-    
-    void RenderModule::update()
-    {
-
-    }
-    
-    void RenderModule::postUpdate()
-    {
-
-    }
-    
-    void RenderModule::preRender()
-    {
-
-    }
-    
-    void RenderModule::render()
-    {
-
-    }
-    
-    void RenderModule::postRender()
-    {
-
-    }
-    
     void RenderModule::beginFrame()
     {
 

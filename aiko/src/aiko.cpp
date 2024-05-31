@@ -25,7 +25,6 @@
 #include "systems/input_system.h"
 #include "systems/particle_system/particle_system.h"
 
-
 namespace aiko
 {
 

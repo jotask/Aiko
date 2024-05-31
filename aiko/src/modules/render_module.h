@@ -32,15 +32,7 @@ namespace aiko
         virtual void preInit() override;
         virtual void init() override;
         virtual void postInit() override;
-    
-        void virtual preUpdate() override;
-        void virtual update() override;
-        void virtual postUpdate() override;
-    
-        virtual void preRender() override;
-        virtual void render() override;
-        virtual void postRender() override;
-    
+
         virtual void beginFrame() override;
         virtual void endFrame() override;
 

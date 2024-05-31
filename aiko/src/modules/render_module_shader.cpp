@@ -44,10 +44,8 @@ namespace aiko
         auto loadFile = [](const char* filename) -> std::string
             {
 
-                if (filename == nullptr)
-                {
-                    return "";
-                }
+
+                assert(filename != nullptr && "Shader file name can't be nullptr");
 
                 try
                 {
@@ -113,7 +111,8 @@ namespace aiko
 
         // check for linking errors
         glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-        if (success == false) {
+        if (success == false)
+        {
             glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
             Log::error("SHADER::PROGRAM::LINKING_FAILED" , infoLog);
             assert(false);
