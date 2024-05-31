@@ -10,6 +10,8 @@ namespace aiko
     {
     public:
 
+        static constexpr Color DEFAULT_BACKGROUND_COLOR = { 0.2f, 0.3f, 0.3f, 1.0f };
+
         enum RenderType {
             TwoDimensions = 0,
             ThreeDimensions = 1,

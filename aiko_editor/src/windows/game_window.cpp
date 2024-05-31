@@ -23,6 +23,7 @@ namespace aiko
 
         void GameWindow::render()
         {
+
             static auto* renderSystem = m_editor->getAiko()->getSystem<aiko::RenderSystem>();
             if(ImGui::Begin("Game"))
             {

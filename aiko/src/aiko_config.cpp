@@ -2,8 +2,9 @@
 
 namespace aiko
 {
+
     AikoConfig::AikoConfig()
-        : AikoConfig("Aiko", 800, 600, { 0.2f, 0.3f, 0.3f, 1.0f }, true)
+        : AikoConfig("Aiko", 800, 600, DEFAULT_BACKGROUND_COLOR, true)
     {
     }
 

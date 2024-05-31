@@ -13,7 +13,7 @@
 namespace aiko::editor
 {
     AikoEditor::AikoEditor()
-        : aiko::Application(aiko::AikoConfig("Aiko Editor", 1024, 768, aiko::BLACK, false))
+        : aiko::Application(aiko::AikoConfig("Aiko Editor", 1024, 768, aiko::AikoConfig::DEFAULT_BACKGROUND_COLOR, false))
     {
 
     }
@@ -81,4 +81,3 @@ namespace aiko::editor
 
     }
 }
-
