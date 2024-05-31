@@ -5,6 +5,7 @@
 #include <aiko_includes.h>
 #include "events/editor_events.h"
 #include "aiko_editor.h"
+#include "core/components_render.h"
 
 #include <imgui.h>
 
@@ -28,6 +29,13 @@ namespace aiko
                 ImGui::SetNextItemOpen(initialOpenState);
                 if (ImGui::TreeNode("Scene"))
                 {
+                    if(ImGui::TreeNode("Main Camera"))
+                    {
+                        aiko::Camera* camera = m_editor->getAiko()->getSystem<aiko::CameraSystem>()->getMainCamera();
+                        ::editor::component::drawCamera(camera);
+                        ImGui::TreePop();
+                    }
+
                     for (GameObject* child : ecs->getObjects())
                     {
                         if (ImGui::Selectable(child->getName().c_str()))

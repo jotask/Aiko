@@ -22,7 +22,7 @@ namespace sandbox
     {
         Application::init();
 
-        getMainCamera()->setCameraController(camera::CameraController::Orbit);
+        getMainCamera()->setCameraController(aiko::camera::CameraController::Orbit);
 
 #ifdef TEST_CUBES
         m_go1 = this->createGameObject("Cube1");

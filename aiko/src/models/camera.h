@@ -37,13 +37,14 @@ namespace aiko
         mat4 getViewMatrix();
         mat4 getProjectionMatrix();
 
-    private:
+    // private:
 
         bool isMainCamera = false;
 
         CameraSystem* cameraSystem;
 
         float m_fov = 0.0f;
+        float radius = 3.5f;
 
         camera::CameraType cameraType = camera::CameraType::Perspective;
         camera::CameraController cameraControler = camera::CameraController::Static;

@@ -14,6 +14,7 @@ namespace editor
         void addComponent(std::string, aiko::GameObject*);
         void removeComponent(std::string, aiko::GameObject*);
 
+        void drawCamera(aiko::Camera*);
         void drawComponent(aiko::Component*);
 
         void drawTransform(aiko::Transform*);

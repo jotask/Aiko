@@ -61,7 +61,7 @@ namespace shadertoy
 
         m_shader = getShader();
 
-        getMainCamera()->setCameraController(camera::CameraController::Static);
+        getMainCamera()->setCameraController(aiko::camera::CameraController::Static);
 
         assert( m_shader != nullptr, "shader not init");
 

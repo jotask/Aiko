@@ -25,10 +25,9 @@ namespace aiko
         {
         case camera::CameraController::Orbit:
         {
-            float radius = 3.5f;
             float camX = static_cast<float>(sin(glfwGetTime()) * radius);
             float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
-            position = { camX, 0.0f, camZ };
+            position = { camX, position.y, camZ };
         }
         break;
         case camera::CameraController::Fly:

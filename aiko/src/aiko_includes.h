@@ -20,6 +20,7 @@
 #include "models/time.h"
 
 #include "types/render_types.h"
+#include "types/camera_types.h"
 #include "types/textures.h"
 
 #include "systems/camera_system.h"
@@ -27,3 +28,4 @@
 #include "systems/entity_component_system.h"
 
 #include "shared/singleton.h"
+#include "shared/math.h"
