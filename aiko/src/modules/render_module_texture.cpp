@@ -41,9 +41,8 @@ namespace aiko
         target.depth.height = size.y;
 
         // Create and bind the framebuffer. This is done exactly the same as it's done for everything else in OpenGL.
-        GLuint frameBuffer;
-        glGenFramebuffers(1, &frameBuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer); // The bind location form framebuffers is simply named GL_FRAMEBUFFER.
+        glGenFramebuffers(1, &target.framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, target.framebuffer); // The bind location form framebuffers is simply named GL_FRAMEBUFFER.
 
         // The framebuffer actually consists of a few smaller objects.
         // These are primarily textures and renderbuffers, each which have different uses.
