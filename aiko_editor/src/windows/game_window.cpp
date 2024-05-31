@@ -66,8 +66,18 @@ namespace aiko
                 imageWidth = std::min(imageWidth, maxWidth);
                 imageHeight = std::min(imageHeight, maxHeight);
 
-                ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - imageWidth) * 0.5f, 0));
-                ImGui::Image((ImTextureID)texture.id, ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0));
+                // we get the screen position of the window
+                ImVec2 pos = ImGui::GetCursorScreenPos();
+
+                // and here we can add our created texture as image to ImGui
+                // unfortunately we need to use the cast to void* or I didn't find another way tbh
+                ImGui::GetWindowDrawList()->AddImage(
+                    (ImTextureID)texture.id,
+                    ImVec2(pos.x, pos.y),
+                    ImVec2(pos.x + imageWidth, pos.y + imageHeight),
+                    ImVec2(0, 1),
+                    ImVec2(1, 0)
+                );
 
                 ImGui::EndChild();
             }
