@@ -28,11 +28,35 @@
 namespace aiko
 {
 
-    
-    texture::RenderTexture2D RenderModule::createRenderTexture()
+    void RenderModule::initScreenFbo()
     {
 
-        texture::RenderTexture2D target;
+        uint& quadVAO = m_screenFbo.vao;
+        uint& quadVBO = m_screenFbo.vbo;
+
+        constexpr const float quadVertices[] =
+        {
+            // positions   // texCoords
+            -1.0f,  1.0f,  0.0f, 1.0f,
+            -1.0f, -1.0f,  0.0f, 0.0f,
+             1.0f, -1.0f,  1.0f, 0.0f,
+
+            -1.0f,  1.0f,  0.0f, 1.0f,
+             1.0f, -1.0f,  1.0f, 0.0f,
+             1.0f,  1.0f,  1.0f, 1.0f
+        };
+
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+        texture::RenderTexture2D& target = m_screenFbo.renderTexture;
 
         auto size = m_displayModule->getCurrentDisplay().getDisplaySize();
         target.texture.width = size.x;
@@ -48,9 +72,10 @@ namespace aiko
         // These are primarily textures and renderbuffers, each which have different uses.
         glGenTextures(1, &target.texture.id);
         glBindTexture(GL_TEXTURE_2D, target.texture.id);
-        // Here we're going to create a texture that matches the size of our viewport. (this also gets resized in the viewport resizing code)
-        // Instead of passing in data for the texture, we pass in null, which leaves the texture empty.
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, target.texture.width, target.texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, target.texture.id, 0);
 
         // clamp to border, do not allow texture wrapping
         // otherwise, pixels that go off the top of the screen will wrap to the bottom
@@ -63,25 +88,16 @@ namespace aiko
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        // We also need to create a render buffer.
-        // A render buffer is similar to a texture, but with less features.
-        // When rendering to a texture, we can later use that texture in another draw call, and draw it onto a surface.
-        // A render buffer can't do that. The pixel data is temporary, and gets thrown away by the gpu when it's done.
-
-        // We're going to create one here for the depth stencil buffer.
-        // This isn't actually required for this example, because we only render one object, but if we were rendering with depth, this would be very important.
         glGenRenderbuffers(1, &target.depth.id);
         glBindRenderbuffer(GL_RENDERBUFFER, target.depth.id);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, target.depth.width, target.depth.height);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-        // Finally, we attach both the texture and render buffer to our frame buffer.
-        // The texture is attached as a "color attachment". This is where our fragment shader outputs.
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, target.depth.id, 0);
-        // The render buffer is attached to the depth stencil attachment.
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, target.depth.id);
-
-        return target;
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, target.depth.width, target.depth.height); // use a single renderbuffer object for both a depth AND stencil buffer.
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, target.depth.id); // now actually attach it
+        // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
+            Log::error( "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" );
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     }
 

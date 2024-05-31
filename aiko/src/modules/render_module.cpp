@@ -30,38 +30,6 @@
 namespace aiko
 {
 
-
-    RenderModule::RenderModule(Aiko* aiko)
-        : BaseModule(aiko)
-        , m_displayModule(nullptr)
-        , m_scale(false)
-        , m_renderTexture2D()
-    {
-    
-    }
-
-    RenderModule::~RenderModule()
-    {
-        
-    }
-
-    void RenderModule::connect(ModuleConnector* moduleConnector)
-    {
-        BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule)
-    }
-
-    void RenderModule::preInit()
-    {
-        if (glfwInit() == false)
-        {
-            Log::error("Couldn't init GLFW");
-        }
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-    }
-
     namespace opengl
     {
         void onGlError(GLenum source,
@@ -116,6 +84,36 @@ namespace aiko
         }
     }
 
+    RenderModule::RenderModule(Aiko* aiko)
+        : BaseModule(aiko)
+        , m_displayModule(nullptr)
+        , m_scale(false)
+    {
+    
+    }
+
+    RenderModule::~RenderModule()
+    {
+        
+    }
+
+    void RenderModule::connect(ModuleConnector* moduleConnector)
+    {
+        BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule)
+    }
+
+    void RenderModule::preInit()
+    {
+        if (glfwInit() == false)
+        {
+            Log::error("Couldn't init GLFW");
+        }
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+    }
+
     void RenderModule::init()
     {
 
@@ -146,7 +144,7 @@ namespace aiko
         m_passthrought->use();
         m_passthrought->setInt("screenTexture", 0);
 
-        m_renderTexture2D = createRenderTexture();
+        initScreenFbo();
 
         EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);
     }
@@ -163,50 +161,29 @@ namespace aiko
 
     void RenderModule::beginFrame()
     {
-
-        // bind to framebuffer and draw scene as we normally would to color texture 
-        glBindFramebuffer(GL_FRAMEBUFFER, m_renderTexture2D.framebuffer);
-        glViewport(0, 0, m_renderTexture2D.texture.width, m_renderTexture2D.texture.height);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_screenFbo.renderTexture.framebuffer);
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
-
         clearBackground(background_color);
-
         // Set depth buffer to write mode
         glDepthMask(GL_TRUE);
-
     }
-    
+
     void RenderModule::endFrame()
     {
-
-        // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+        // Bind back to default framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        auto window_size = m_displayModule->getCurrentDisplay().getDisplaySize();
-        glViewport(0, 0, window_size.x, window_size.y); // Reset viewport to window size
+        glDisable(GL_DEPTH_TEST);
         clearBackground(BLACK);
 
-        const AikoConfig cfg = getAiko()->getConfig();
-        if (cfg.auto_render == false)
-        {
-            return;
-        }
+        // Get window size
+        auto window_size = m_displayModule->getCurrentDisplay().getDisplaySize();
+        glViewport(0, 0, window_size.x, window_size.y);
 
-        glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-
-        // Render using our full screen shader program
         m_passthrought->use();
-
-        // Bind the output texture from the previous shader program.
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_renderTexture2D.texture.id);
         m_passthrought->setInt("screenTexture", 0);
-
-        // Draw three "vertices" as a triangle. (no buffers required)
-        // At this point you should look at the contents of the vertex and fragment shaders.
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        // Unbind everything we were using.
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindVertexArray(m_screenFbo.vao);
+        glBindTexture(GL_TEXTURE_2D, m_screenFbo.renderTexture.texture.id);	// use the color attachment texture as the texture of the quad plane
+        glDrawArrays(GL_TRIANGLES, 0, 6);
         m_passthrought->unuse();
 
     }
@@ -271,7 +248,7 @@ namespace aiko
 
     texture::RenderTexture2D* RenderModule::getRenderTexture()
     {
-        return &m_renderTexture2D;
+        return &m_screenFbo.renderTexture;
     }
 
     void RenderModule::onWindowResize(Event& event)
@@ -291,10 +268,10 @@ namespace aiko
 
         // resize render texture
         {
-            m_renderTexture2D.texture.width = screenWidth;
-            m_renderTexture2D.texture.height = screenHeight;
-            m_renderTexture2D.depth.width = screenWidth;
-            m_renderTexture2D.depth.height = screenHeight;
+            m_screenFbo.renderTexture.texture.width = screenWidth;
+            m_screenFbo.renderTexture.texture.height = screenHeight;
+            m_screenFbo.renderTexture.depth.width = screenWidth;
+            m_screenFbo.renderTexture.depth.height = screenHeight;
             // color buffer attachment here
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
             // and depth buffer attachment
@@ -316,7 +293,7 @@ namespace aiko
 
     void RenderModule::endMode2D()
     {
-        auto texture = m_renderTexture2D.texture;
+        auto texture = m_screenFbo.renderTexture.texture;
 
         // Set up vertex data and buffers for a fullscreen quad
         constexpr float vertices[] = {
@@ -379,7 +356,7 @@ namespace aiko
     void RenderModule::beginTextureMode()
     {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_renderTexture2D.texture.id);
+        glBindTexture(GL_TEXTURE_2D, m_screenFbo.renderTexture.texture.id);
     }
 
     void RenderModule::beginTextureMode(texture::RenderTexture2D& target)

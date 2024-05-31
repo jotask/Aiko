@@ -40,6 +40,13 @@ namespace aiko
     
     public:
 
+        struct ScreenFbo
+        {
+            uint vao;
+            uint vbo;
+            texture::RenderTexture2D renderTexture;
+        };
+
         void initMesh(Mesh*);
         void refreshMesh(Mesh*);
         void renderMesh(Camera*, Transform*, Mesh*, Shader*);
@@ -64,11 +71,12 @@ namespace aiko
         void beginBlendMode(BlendMode);
         void endBlendMode(void);
 
+        void initScreenFbo();
+
         // Font
         void drawText(std::string, float, float, float = 1.0f, Color = WHITE);
 
         // Texture
-        texture::RenderTexture2D createRenderTexture();
         texture::Texture createTexture();
         texture::PboTexture createPboTexture(uint16_t, uint16_t);
         void updatePboTexture(texture::PboTexture texture, std::vector<Color>&);
@@ -94,7 +102,7 @@ namespace aiko
 
         DisplayModule* m_displayModule;
 
-        texture::RenderTexture2D m_renderTexture2D;
+        ScreenFbo m_screenFbo;
 
         AikoUPtr<Shader> m_passthrought;
 
