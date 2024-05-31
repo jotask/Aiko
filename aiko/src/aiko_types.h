@@ -16,6 +16,8 @@
 namespace aiko
 {
 
+    using uint = unsigned int;
+
     template<class T>
     using AikoPtr = std::shared_ptr<T>;
 
