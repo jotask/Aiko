@@ -44,14 +44,14 @@ namespace aiko
 
         const char* join(const char* one, const char* two)
         {
-            static std::string buf;
+            static string buf;
             buf.clear();
             buf.append(one);
             buf.append(two);
             return buf.c_str();
         }
 
-        const std::string generateRandomString(int length)
+        const string generateRandomString(int length)
         {
             auto randchar = []() -> char
                 {
@@ -62,20 +62,20 @@ namespace aiko
                     const size_t max_index = (sizeof(charset) - 1);
                     return charset[rand() % max_index];
                 };
-            std::string str(length, 0);
+            string str(length, 0);
             std::generate_n(str.begin(), length, randchar);
             return str;
         }
 
-        std::string getExePath()
+        string getExePath()
         {
             #ifdef WIN32
             char result[MAX_PATH];
-            return std::string(result, GetModuleFileName(NULL, result, MAX_PATH));
+            return string(result, GetModuleFileName(NULL, result, MAX_PATH));
             #elif LINUX
             char result[PATH_MAX];
             ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-            return std::string(result, (count > 0) ? count : 0);
+            return string(result, (count > 0) ? count : 0);
             #else
             #error OS unsupported!
             #endif

@@ -23,7 +23,7 @@ namespace nes
                 Byte one;
                 Byte two;
                 Byte thr;
-                std::string instruction;
+                aiko::string instruction;
 
                 Byte a;
                 Byte x;

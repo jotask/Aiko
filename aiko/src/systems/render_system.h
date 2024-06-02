@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <vector>
-#include <string>
+
 
 #include "aiko_types.h"
 #include "systems/base_system.h"
@@ -61,7 +61,7 @@ namespace aiko
         Camera* getMainCamera();
 
         // Font
-        void renderText(std::string, float, float);
+        void renderText(string, float, float);
 
     protected:
     

@@ -8,7 +8,7 @@ namespace aiko
     {
     }
 
-    AikoConfig::AikoConfig(std::string tittle, uint16_t width, uint64_t height, Color color, bool auto_render)
+    AikoConfig::AikoConfig(string tittle, uint16_t width, uint64_t height, Color color, bool auto_render)
         : window_tittle(tittle)
         , width (width)
         , height(height)

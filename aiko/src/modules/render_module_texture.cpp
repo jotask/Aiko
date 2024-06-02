@@ -1,6 +1,6 @@
 #include "modules/render_module.h"
 
-#include <string>
+
 #include <fstream>
 
 #include <core/libs.h>

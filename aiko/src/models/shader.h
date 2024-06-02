@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <string>
+
 #include <functional>
 
 #include "aiko_types.h"
@@ -31,16 +31,16 @@ namespace aiko
 
         // Type Helpers
 
-        void setBool(const std::string& name, bool value);
-        void setInt(const std::string& name, int value);
-        void setFloat(const std::string& name, float value);
-        void setVec2(const std::string& name, const vec2& value);
-        void setVec2(const std::string& name, float x, float y);
-        void setVec3(const std::string& name, const vec3& value);
-        void setVec3(const std::string& name, float x, float y, float z);
-        void setVec4(const std::string& name, const vec4& value);
-        void setVec4(const std::string& name, float x, float y, float z, float w);
-        void setMat4(const std::string& name, const mat4& mat);
+        void setBool(const string& name, bool value);
+        void setInt(const string& name, int value);
+        void setFloat(const string& name, float value);
+        void setVec2(const string& name, const vec2& value);
+        void setVec2(const string& name, float x, float y);
+        void setVec3(const string& name, const vec3& value);
+        void setVec3(const string& name, float x, float y, float z);
+        void setVec4(const string& name, const vec4& value);
+        void setVec4(const string& name, float x, float y, float z, float w);
+        void setMat4(const string& name, const mat4& mat);
 
         void use();
         void unuse();
@@ -62,8 +62,8 @@ namespace aiko
 
     private:
 
-        std::string vs;
-        std::string fs;
+        string vs;
+        string fs;
 
         bool isValid = false;
         aiko::ShaderData m_shaderData;
@@ -74,7 +74,7 @@ namespace aiko
         LoadShaderData loadShaderData = nullptr;
         UnloadShaderData unloadShaderData = nullptr;
 
-        int getUniformLocation(const std::string& name);
+        int getUniformLocation(const string& name);
 
     };
 }

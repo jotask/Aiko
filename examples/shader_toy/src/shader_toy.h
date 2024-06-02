@@ -29,7 +29,7 @@ namespace shadertoy
         int iMouseLoc;
         int iDateLoc;
 
-        static std::vector<std::string> s_shaders;
+        static std::vector<aiko::string> s_shaders;
 
         aiko::vec3      iResolution;           // viewport resolution (in pixels)
         float           iTime;                 // shader playback time (in seconds)

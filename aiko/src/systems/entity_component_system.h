@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <vector>
-#include <string>
+
 
 #include "aiko_types.h"
 #include "systems/base_system.h"
@@ -23,7 +23,7 @@ namespace aiko
         EntityComponentSystem() = default;
         virtual ~EntityComponentSystem() = default;
     
-        aiko::AikoPtr<GameObject> createGameObject(std::string name = "Game Object");
+        aiko::AikoPtr<GameObject> createGameObject(string name = "Game Object");
         void destroyGameObject(GameObject*);
     
         std::vector<GameObject*> getObjects();

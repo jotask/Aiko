@@ -8,7 +8,7 @@
 namespace nes
 {
 
-    static std::string stack_print_padding = "    ";
+    static aiko::string stack_print_padding = "    ";
 
     Word Cpu::getWordStackAddress() const
     {

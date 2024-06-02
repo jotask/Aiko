@@ -21,7 +21,7 @@ namespace aiko
                 ((ss << xs), ...);                                      \
                 return ss.str();                                        \
                 };                                                      \
-           std::string msg = concatenate(args...);                      \
+           string msg = concatenate(args...);                      \
            log(TYPE, msg.c_str());                                      
 
     public:

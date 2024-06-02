@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+
 #include "aiko_types.h"
 
 namespace aiko
@@ -15,9 +15,9 @@ namespace aiko
 
         const char* join(const char*, const char*);
 
-        const std::string generateRandomString(int length = 10);
+        const string generateRandomString(int length = 10);
 
-        std::string getExePath();
+        string getExePath();
 
     }
 }

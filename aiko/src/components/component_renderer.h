@@ -94,7 +94,7 @@ namespace aiko
             // Type
             {
     
-                using Dictionarty = std::map<camera::CameraType, std::string>;
+                using Dictionarty = std::map<camera::CameraType, string>;
     
                 static const Dictionarty types =
                 {
@@ -127,7 +127,7 @@ namespace aiko
             }
             // Controller
             {
-                using Dictionarty = std::map<camera::CameraController, std::string>;
+                using Dictionarty = std::map<camera::CameraController, string>;
     
                 static const Dictionarty types =
                 {

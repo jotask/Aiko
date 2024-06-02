@@ -9,7 +9,7 @@
 namespace aiko
 {
     
-    aiko::AikoPtr<GameObject> EntityComponentSystem::createGameObject(std::string name)
+    aiko::AikoPtr<GameObject> EntityComponentSystem::createGameObject(string name)
     {
         m_gameObjects.emplace_back(std::make_shared<GameObject>());
         aiko::AikoPtr<GameObject> obj = m_gameObjects.back();

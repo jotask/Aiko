@@ -16,7 +16,7 @@ namespace aiko
 
         friend class RenderSystem;
 
-        PboTextureComponent(std::string str, uint32_t width, uint32_t height, bool autoRender);
+        PboTextureComponent(string str, uint32_t width, uint32_t height, bool autoRender);
         PboTextureComponent();
         virtual ~PboTextureComponent() = default;
 

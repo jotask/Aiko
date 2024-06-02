@@ -12,7 +12,7 @@ namespace aiko
 {
     PboTextureComponent::PboTextureComponent() : PboTextureComponent("PboTexture", 128, 128, true) { }
 
-    PboTextureComponent::PboTextureComponent(std::string str, uint32_t width, uint32_t height, bool autoRender)
+    PboTextureComponent::PboTextureComponent(string str, uint32_t width, uint32_t height, bool autoRender)
         : Component(str)
         , auto_render(autoRender)
     {

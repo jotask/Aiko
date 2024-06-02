@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+
 
 #include "aiko_types.h"
 #include "core/uuid.h"
@@ -17,7 +17,7 @@ namespace aiko
         friend class EntityComponentSystem;
         friend class ComponentRenderer;
     public:
-        Component(std::string name)
+        Component(string name)
             : m_name(name)
             , gameobject(nullptr)
         {
@@ -31,7 +31,7 @@ namespace aiko
         GameObject* gameobject;
         virtual void init() { }
     private:
-        const std::string m_name;
+        const string m_name;
         void setup(GameObject* obj);
     };
 

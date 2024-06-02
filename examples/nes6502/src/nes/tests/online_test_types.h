@@ -21,6 +21,6 @@ namespace nes::test::online
         std::vector<std::tuple<nes::Word, nes::Byte>> ram;
     };
 
-    using CycleState = std::vector<std::tuple<nes::Word, nes::Byte, std::string>>;
+    using CycleState = std::vector<std::tuple<nes::Word, nes::Byte, aiko::string>>;
 
 }

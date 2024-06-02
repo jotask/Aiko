@@ -55,7 +55,7 @@ namespace aiko
         GameObject* createGameObject(char* name);
 
         // Draw text
-        void drawText(std::string, float, float);
+        void drawText(string, float, float);
 
     private:
 

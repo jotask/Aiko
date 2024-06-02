@@ -1,7 +1,6 @@
 #include "nes_test_log.h"
 
 #include <fstream>
-#include <string>
 #include <algorithm>
 #include <random>
 #include <functional>
@@ -19,9 +18,9 @@ namespace nes::test
 
     void NesTest::init()
     {
-        const std::string nes_log_path = global::getAssetPath("nestest.log");
+        const aiko::string nes_log_path = global::getAssetPath("nestest.log");
         std::ifstream file(nes_log_path);
-        std::string str;
+        aiko::string str;
         while (std::getline(file, str))
         {
             LineCode code;
@@ -74,14 +73,14 @@ namespace nes::test
         // prev lines
         {
             auto& prev = lines[line - 1];
-            auto toUpper = [&](std::string str) -> std::string
+            auto toUpper = [&](aiko::string str) -> aiko::string
             {
                 std::transform(str.begin(), str.end(), str.begin(), ::toupper);
                 return str;
             };
-            if (prev.instruction.compare( std::string(to_string(op.instruction))) == false )
+            if (prev.instruction.compare(aiko::string(to_string(op.instruction))) == false )
             {
-                aiko::Log::warning("ERROR :: INS :: EXPECTED : ", prev.instruction, " -> RECEIVED : ", std::string(to_string(op.instruction)));
+                aiko::Log::warning("ERROR :: INS :: EXPECTED : ", prev.instruction, " -> RECEIVED : ", aiko::string(to_string(op.instruction)));
                 success = false;
             }
         }

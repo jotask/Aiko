@@ -43,7 +43,7 @@ namespace aiko
     {
     }
 
-    GameObject* Aiko::createGameObject(std::string name)
+    GameObject* Aiko::createGameObject(string name)
     {
         static EntityComponentSystem* ecs = getSystem<EntityComponentSystem>();
         GameObject* obj = ecs->createGameObject(name).get();

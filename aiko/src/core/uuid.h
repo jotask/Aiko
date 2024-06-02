@@ -3,6 +3,8 @@
 #include <random>
 #include <sstream>
 
+#include <aiko_types.h>
+
 namespace uuid
 {
 
@@ -20,13 +22,13 @@ namespace uuid
 
         }
 
-        Uuid(std::string uuid)
+        Uuid(aiko::string uuid)
             : m_uuid(uuid)
         {
 
         }
 
-        const std::string get() const
+        const aiko::string get() const
         {
             return m_uuid;
         }
@@ -36,15 +38,15 @@ namespace uuid
             return m_uuid == other.m_uuid;
         }
 
-        std::string& operator&()
+        aiko::string& operator&()
         {
             return m_uuid;
         }
 
     private:
-        std::string m_uuid;
+        aiko::string m_uuid;
 
-        std::string generate_uuid_v4()
+        aiko::string generate_uuid_v4()
         {
             std::stringstream ss;
             int i;

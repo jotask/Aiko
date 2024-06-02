@@ -1,12 +1,12 @@
 #include "modules/render_module.h"
 
-#include <string>
+
 #include <fstream>
 
 #include <iostream>
 #include <set>
 #include <vector>
-#include <string>
+
 #include <algorithm>
 
 #include "aiko.h"
@@ -58,7 +58,7 @@ namespace aiko
                 return;
             }
 
-            std::string typeStr;
+            string typeStr;
 
             switch (type)
             {
@@ -193,7 +193,7 @@ namespace aiko
 
     }
 
-    void RenderModule::drawText(std::string texto, float x, float y , float scale, Color color)
+    void RenderModule::drawText(string texto, float x, float y , float scale, Color color)
     {
         gltBeginDraw();
 
@@ -210,7 +210,7 @@ namespace aiko
 
         {
 
-            auto allCharSupported = [](std::string str) -> bool
+            auto allCharSupported = [](string str) -> bool
             {
                 for (char c : str)
                 {

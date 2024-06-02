@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <aiko_types.h>
 
 #include "online_test_types.h"
 
@@ -10,8 +10,8 @@ namespace nes::test::online
     class OnlinesTest
     {
     public:
-        OnlinesTest(std::string test);
-        std::string name;
+        OnlinesTest(aiko::string test);
+        aiko::string name;
 
         CpuState initial;
         CpuState final;

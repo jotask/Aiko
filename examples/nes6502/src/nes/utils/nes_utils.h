@@ -4,12 +4,14 @@
 #include <iomanip>
 #include <sstream>
 
+#include <aiko_types.h>
+
 #include "nes/nes_types.h"
 
 namespace nes
 {
 
-    static Byte toByte(std::string value)
+    static Byte toByte(aiko::string value)
     {
         std::stringstream ss;
         ss << std::hex << value;
@@ -19,7 +21,7 @@ namespace nes
         return result;
     }
 
-    static Word toWord(std::string value)
+    static Word toWord(aiko::string value)
     {
         std::stringstream ss;
         ss << std::hex << value;
@@ -29,18 +31,18 @@ namespace nes
         return result;
     }
 
-    static std::string toString(Byte value)
+    static aiko::string toString(Byte value)
     {
-        static std::string buffer;
+        static aiko::string buffer;
         static std::stringstream ss;
         ss.str("");
         ss << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(value);
         return ss.str();
     }
 
-    static std::string toString(Word value)
+    static aiko::string toString(Word value)
     {
-        static std::string buffer;
+        static aiko::string buffer;
         static std::stringstream ss;
         ss.str("");
         ss << "0x" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(value);
@@ -72,6 +74,6 @@ namespace nes
         return high;
     }
 
-    void printStatusFlags(std::string prefix, Byte statusFlags);
+    void printStatusFlags(aiko::string prefix, Byte statusFlags);
 
 }

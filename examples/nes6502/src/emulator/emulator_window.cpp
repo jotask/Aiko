@@ -2,7 +2,7 @@
 
 namespace nes
 {
-    EmulatorWindow::EmulatorWindow(Naiko* n, std::string str)
+    EmulatorWindow::EmulatorWindow(Naiko* n, aiko::string str)
         : naiko(n)
         , name(str)
         , is_open(true)

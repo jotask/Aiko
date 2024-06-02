@@ -2,8 +2,9 @@
 
 #include <exception>
 #include <assert.h>
-#include <string>
 #include <vector>
+
+#include <aiko_types.h>
 
 #include "nes/nes_types.h"
 #include "nes/microprocessor.h"
@@ -175,7 +176,7 @@ namespace nes
 
     struct OpCode
     {
-        std::string name;
+        aiko::string name;
         Instruction instruction;
         AddressModes mode;
         Byte cycles;

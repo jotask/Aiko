@@ -30,7 +30,7 @@ namespace aiko
             {
                 if (selectedGo != nullptr)
                 {
-                    std::string name = selectedGo->getName();
+                    string name = selectedGo->getName();
                     if (::editor::ImGui::InputText("Name", &name))
                     {
                         selectedGo->setName(name);
@@ -69,8 +69,8 @@ namespace aiko
                             "  \"xxx,yyy\"  display lines containing \"xxx\" or \"yyy\"\n"
                             "  \"-xxx\"     hide lines containing \"xxx\"");
                         filter.Draw();
-                        std::vector<std::string> components = ::editor::component::getMissingComponents(selectedGo);
-                        for(std::string component : components)
+                        std::vector<string> components = ::editor::component::getMissingComponents(selectedGo);
+                        for(string component : components)
                         {
                             if (filter.PassFilter(component.c_str()))
                             {

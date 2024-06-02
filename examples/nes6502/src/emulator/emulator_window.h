@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <aiko_types.h>
 
 namespace nes
 {
@@ -8,17 +8,17 @@ namespace nes
     class EmulatorWindow
     {
     public:
-        EmulatorWindow(Naiko* naiko, std::string);
+        EmulatorWindow(Naiko* naiko, aiko::string);
         virtual ~EmulatorWindow() = default;
         virtual void update() = 0;
         virtual void render() = 0;
-        std::string getName() const { return name; };
+        aiko::string getName() const { return name; };
         bool& getIsOpen() { return is_open; };
         void toggle() { is_open = !is_open; }
     protected:
         Naiko* naiko;
         bool is_open;
-        const std::string name;
+        const aiko::string name;
 
     };
 }

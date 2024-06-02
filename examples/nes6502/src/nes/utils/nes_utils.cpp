@@ -12,7 +12,7 @@
 namespace nes
 {
 
-    void printStatusFlags(std::string prefix, Byte statusFlags)
+    void printStatusFlags(aiko::string prefix, Byte statusFlags)
     {
 
         auto getFlag = [](Byte P, Cpu::StatusFlags p)

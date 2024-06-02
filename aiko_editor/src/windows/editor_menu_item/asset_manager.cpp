@@ -4,7 +4,6 @@
 
 #include <fstream>
 #include <streambuf>
-#include <std::string>
 #include <filesystem>
 #include <imgui.h>
 #include <json/json.h>
@@ -45,7 +44,7 @@ namespace aiko
                             // TODO Open dialog to create new asset
                             for (size_t i = 0; i < 10; i++)
                             {
-                                const std::string text = aiko::utils::generateRandomstd::string();
+                                const string text = aiko::utils::generateRandomString();
                                 assets.push_back({ uuid::Uuid(), text , text , Asset::AssetType::Default });
                             }
                         }
@@ -109,7 +108,7 @@ namespace aiko
                 }
                 ImGui::End();
 
-                static auto drawInputText = [&](const char* title, std::string& str, bool read_only = false)
+                static auto drawInputText = [&](const char* title, string& str, bool read_only = false)
                     {
                         if (read_only)
                         {
@@ -184,10 +183,10 @@ namespace aiko
             for (const auto& item : root) {
                 Asset s =
                 {
-                    item["uuid"].asstd::string(),
-                    item["name"].asstd::string(),
-                    item["path"].asstd::string(),
-                    magic_enum::enum_cast<Asset::AssetType>(item["type"].asstd::string()).value(),
+                    item["uuid"].asString(),
+                    item["name"].asString(),
+                    item["path"].asString(),
+                    magic_enum::enum_cast<Asset::AssetType>(item["type"].asString()).value(),
                 };
                 assets.push_back(s);
             }
@@ -207,7 +206,7 @@ namespace aiko
                 root.append(jsonVect);
             }
             Json::StyledWriter writer;
-            std::string output = writer.write(root);
+            string output = writer.write(root);
 
             // Save to file
             std::ofstream outfile;

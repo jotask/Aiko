@@ -9,7 +9,7 @@ namespace editor
     namespace ImGui
     {
 
-        bool InputText(const char* label, std::string* str, ImGuiInputTextFlags flags = 0)
+        bool InputText(const char* label, aiko::string* str, ImGuiInputTextFlags flags = 0)
         {
             struct InputTextCallbackData
             {
@@ -17,8 +17,8 @@ namespace editor
                 {
                     if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
                     {
-                        // Resize std::string and update data pointers
-                        std::string* str = (std::string*)data->UserData;
+                        // Resize string and update data pointers
+                        aiko::string* str = (aiko::string*)data->UserData;
                         IM_ASSERT(data->Buf == str->c_str());
                         str->resize(data->BufTextLen);
                         data->Buf = (char*)str->c_str();

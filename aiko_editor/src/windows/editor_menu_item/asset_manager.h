@@ -34,7 +34,7 @@ namespace aiko
             void save_file();
 
             std::vector<Asset> assets;
-            std::string file_path;
+            string file_path;
         };
 
     }

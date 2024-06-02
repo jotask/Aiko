@@ -23,10 +23,10 @@ namespace editor
             Texture,
         };
 
-        std::vector<std::string> getComponents(aiko::GameObject* obj)
+        std::vector<aiko::string> getComponents(aiko::GameObject* obj)
         {
             ComponentsTypes type;
-            std::vector<std::string> tmp;
+            std::vector<aiko::string> tmp;
 
             auto addCmp = [&](ComponentsTypes type)
                 {
@@ -45,14 +45,14 @@ namespace editor
             return tmp;
         }
 
-        std::vector<std::string> getMissingComponents(aiko::GameObject* obj)
+        std::vector<aiko::string> getMissingComponents(aiko::GameObject* obj)
         {
-            std::vector<std::string> componentes = getComponents(obj);
-            std::vector<std::string> result;
+            std::vector<aiko::string> componentes = getComponents(obj);
+            std::vector<aiko::string> result;
 
             magic_enum::enum_for_each<ComponentsTypes>([&](auto val)
                 {
-                    std::string str = std::string(magic_enum::enum_name<ComponentsTypes>(val));
+                    aiko::string str = aiko::string(magic_enum::enum_name<ComponentsTypes>(val));
                     auto found = std::find(componentes.begin(), componentes.end(), str );
                     if (found != componentes.end())
                     {
@@ -60,14 +60,14 @@ namespace editor
                     }
                     else
                     {
-                        result.push_back(std::string(str));
+                        result.push_back(aiko::string(str));
                     }
                 });
 
             return result;
         }
 
-        void removeComponent(std::string name, aiko::GameObject* obj)
+        void removeComponent(aiko::string name, aiko::GameObject* obj)
         {
             auto component = magic_enum::enum_cast<::editor::component::ComponentsTypes>(name);
             if (component.has_value() == true)
@@ -98,13 +98,13 @@ namespace editor
             }
         }
 
-        std::vector<std::string> getAllComponents()
+        std::vector<aiko::string> getAllComponents()
         {
             std::array strs = magic_enum::enum_names<ComponentsTypes>();
-            return std::vector<std::string>(strs.begin(), strs.end());
+            return std::vector<aiko::string>(strs.begin(), strs.end());
         }
 
-        void addComponent(std::string name, aiko::GameObject* obj)
+        void addComponent(aiko::string name, aiko::GameObject* obj)
         {
             auto component = magic_enum::enum_cast<::editor::component::ComponentsTypes>(name);
             if ( component.has_value() == true )

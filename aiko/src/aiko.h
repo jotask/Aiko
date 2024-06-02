@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <vector>
-#include <string>
+
 
 #include "aiko_types.h"
 #include "aiko_config.h" 
@@ -32,7 +32,7 @@ namespace aiko
         template<class T>
         T* getSystem();
 
-        GameObject* createGameObject(std::string name = "Game Object");
+        GameObject* createGameObject(string name = "Game Object");
     
         void close();
 

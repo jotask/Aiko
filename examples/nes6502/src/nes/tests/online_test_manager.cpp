@@ -23,9 +23,9 @@ namespace nes::test::online
     void TestManager::run()
     {
 
-        const std::string GLOBAL_PATH = global::getAssetPath("tests/");
+        const aiko::string GLOBAL_PATH = global::getAssetPath("tests/");
 
-        auto parse = [&](std::string str)
+        auto parse = [&](aiko::string str)
             {
                 Json::Reader reader;
                 Json::Value root;
@@ -35,7 +35,7 @@ namespace nes::test::online
                 {
                     Json::Value tmp = root[i];
                     Json::FastWriter fastWriter;
-                    std::string output = fastWriter.write(tmp);
+                    aiko::string output = fastWriter.write(tmp);
                     tests.push_back(OnlinesTest(output));
                 }
     };
@@ -43,7 +43,7 @@ namespace nes::test::online
         auto readFile = [&](std::filesystem::path path)
             {
                 std::ifstream t(path);
-                std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+                aiko::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
                 t.close();
                 parse(str);
             };

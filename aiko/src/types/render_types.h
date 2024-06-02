@@ -1,7 +1,9 @@
 #pragma once
 
 #include <map>
-#include <string>
+
+
+#include "aiko_types.h"
 
 namespace aiko
 {
@@ -48,7 +50,7 @@ namespace aiko
     {
     public:
         unsigned int id;
-        std::map<std::string, int> locs;
+        std::map<string, int> locs;
     };
 
     class MeshData

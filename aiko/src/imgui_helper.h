@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+
 
 #include <aiko_types.h>
 #include "types/color.h"

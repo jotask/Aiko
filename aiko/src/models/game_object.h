@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <stdexcept>
-#include <string>
+
 #include <functional>
 
 #include "aiko.h"
@@ -42,8 +42,8 @@ namespace aiko
         template<class T>
         bool removeComponent(T*);
 
-        std::string getName() const { return name; }
-        void setName( std::string newName ) { name = newName; }
+        string getName() const { return name; }
+        void setName( string newName ) { name = newName; }
 
         aiko::AikoPtr<Transform> transform();
 
@@ -63,7 +63,7 @@ namespace aiko
         uuid::Uuid m_uuid;
 
         SceneObject m_entity;
-        std::string name;
+        string name;
         std::vector<aiko::AikoPtr<Component>> m_components;
 
         void update();

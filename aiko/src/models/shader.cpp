@@ -43,7 +43,7 @@ namespace aiko
         isValid = false;
     }
 
-    int Shader::getUniformLocation(const std::string& name)
+    int Shader::getUniformLocation(const string& name)
     {
         use();
         auto found = m_shaderData.locs.find(name.c_str());
@@ -62,50 +62,50 @@ namespace aiko
 
     // utility uniform functions
 // ------------------------------------------------------------------------
-    void Shader::setBool(const std::string& name, bool value)
+    void Shader::setBool(const string& name, bool value)
     {
         glUniform1i(getUniformLocation(name), (int)value);
     }
     // ------------------------------------------------------------------------
-    void Shader::setInt(const std::string& name, int value)
+    void Shader::setInt(const string& name, int value)
     {
         glUniform1i(getUniformLocation(name), value);
     }
     // ------------------------------------------------------------------------
-    void Shader::setFloat(const std::string& name, float value)
+    void Shader::setFloat(const string& name, float value)
     {
         glUniform1f(getUniformLocation(name), value);
     }
     // ------------------------------------------------------------------------
-    void Shader::setVec2(const std::string& name, const vec2& value)
+    void Shader::setVec2(const string& name, const vec2& value)
     {
         glUniform2fv(getUniformLocation(name), 1, &value.x);
     }
-    void Shader::setVec2(const std::string& name, float x, float y)
+    void Shader::setVec2(const string& name, float x, float y)
     {
         glUniform2f(getUniformLocation(name), x, y);
     }
     // ------------------------------------------------------------------------
-    void Shader::setVec3(const std::string& name, const vec3& value)
+    void Shader::setVec3(const string& name, const vec3& value)
     {
         glUniform3fv(getUniformLocation(name), 1, &value.x);
     }
-    void Shader::setVec3(const std::string& name, float x, float y, float z)
+    void Shader::setVec3(const string& name, float x, float y, float z)
     {
         glUniform3f(getUniformLocation(name), x, y, z);
     }
     // ------------------------------------------------------------------------
-    void Shader::setVec4(const std::string& name, const vec4& value)
+    void Shader::setVec4(const string& name, const vec4& value)
     {
         glUniform4fv(getUniformLocation(name), 1, &value.x);
     }
 
-    void Shader::setVec4(const std::string& name, float x, float y, float z, float w)
+    void Shader::setVec4(const string& name, float x, float y, float z, float w)
     {
         glUniform4f(getUniformLocation(name), x, y, z, w);
     }
 
-    void Shader::setMat4(const std::string& name, const mat4& mat)
+    void Shader::setMat4(const string& name, const mat4& mat)
     {
         glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, mat.data());
     }

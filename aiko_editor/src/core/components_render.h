@@ -8,11 +8,11 @@ namespace editor
     namespace component
     {
 
-        std::vector<std::string> getAllComponents();
-        std::vector<std::string> getComponents(aiko::GameObject*);
-        std::vector<std::string> getMissingComponents(aiko::GameObject*);
-        void addComponent(std::string, aiko::GameObject*);
-        void removeComponent(std::string, aiko::GameObject*);
+        std::vector<aiko::string> getAllComponents();
+        std::vector<aiko::string> getComponents(aiko::GameObject*);
+        std::vector<aiko::string> getMissingComponents(aiko::GameObject*);
+        void addComponent(aiko::string, aiko::GameObject*);
+        void removeComponent(aiko::string, aiko::GameObject*);
 
         void drawCamera(aiko::Camera*);
         void drawComponent(aiko::Component*);

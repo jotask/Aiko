@@ -74,7 +74,7 @@ namespace aiko
         void initScreenFbo();
 
         // Font
-        void drawText(std::string, float, float, float = 1.0f, Color = WHITE);
+        void drawText(string, float, float, float = 1.0f, Color = WHITE);
 
         // Texture
         texture::Texture createTexture();

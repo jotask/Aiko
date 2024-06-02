@@ -1,6 +1,6 @@
 #include "modules/render_module.h"
 
-#include <string>
+
 #include <fstream>
 
 #include <core/libs.h>
@@ -41,7 +41,7 @@ namespace aiko
     aiko::ShaderData RenderModule::loadShaderData(const char* vsPath, const char* fsPath)
     {
 
-        auto loadFile = [](const char* filename) -> std::string
+        auto loadFile = [](const char* filename) -> string
             {
 
 

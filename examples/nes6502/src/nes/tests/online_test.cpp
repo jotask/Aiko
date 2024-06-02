@@ -16,7 +16,7 @@
 
 namespace nes::test::online
 {
-    OnlinesTest::OnlinesTest(std::string test)
+    OnlinesTest::OnlinesTest(aiko::string test)
     {
         Json::Value root;
         Json::Reader reader;
@@ -54,7 +54,7 @@ namespace nes::test::online
             {
                 const nes::Word one = var_cycles[i][0].asInt();
                 const nes::Byte two = var_cycles[i][1].asInt();
-                std::string thre = var_cycles[i][2].asString();
+                aiko::string thre = var_cycles[i][2].asString();
                 cycles.push_back({ one, two, thre });
             }
         }
@@ -94,7 +94,7 @@ namespace nes::test::online
             {
                 nes::Word address;
                 nes::Byte value;
-                std::string name;
+                aiko::string name;
             };
 
             for (size_t i = 0 ; i < cycles.size(); i++)
@@ -107,7 +107,7 @@ namespace nes::test::online
                         {
                             nes::Word address = std::get<0>(it);
                             nes::Byte value = std::get<1>(it);
-                            std::string name = std::get<2>(it);
+                            aiko::string name = std::get<2>(it);
                             if (map.find(address) == map.end())
                             {
                                 map.insert({ address, { address, value, name } }); // not found
