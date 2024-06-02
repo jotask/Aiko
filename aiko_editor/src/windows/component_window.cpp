@@ -20,7 +20,6 @@ namespace aiko
             , selectedGo(nullptr)
         {
             aiko::EventSystem::it().bind<::editor::HirearchyGameObjectSelectedEvent>(this, &aiko::editor::ComponentWindow::onGameObjectSelected);
-            aiko::EventSystem::it().bind<::editor::HirearchyGameObjectUnSelectedEvent>(this, &aiko::editor::ComponentWindow::onGameObjectUnSelected);
         }
 
         void ComponentWindow::render()
@@ -30,6 +29,7 @@ namespace aiko
             {
                 if (selectedGo != nullptr)
                 {
+                    ImGui::Text("Uuid: %s", selectedGo->uuid().get().c_str() );
                     string name = selectedGo->getName();
                     if (::editor::ImGui::InputText("Name", &name))
                     {
@@ -96,12 +96,6 @@ namespace aiko
         {
             const auto& msg = static_cast<const ::editor::HirearchyGameObjectSelectedEvent&>(envt);
             selectedGo = msg.selected;
-        }
-
-        void ComponentWindow::onGameObjectUnSelected(aiko::Event& envt)
-        {
-            const auto& msg = static_cast<const ::editor::HirearchyGameObjectUnSelectedEvent&>(envt);
-            selectedGo = nullptr;
         }
 
     }

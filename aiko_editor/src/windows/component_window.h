@@ -18,7 +18,6 @@ namespace aiko
 
         private:
             void onGameObjectSelected(aiko::Event& envt);
-            void onGameObjectUnSelected(aiko::Event& envt);
             aiko::GameObject* selectedGo;
         };
 

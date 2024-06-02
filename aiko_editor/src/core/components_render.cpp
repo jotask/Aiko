@@ -40,6 +40,7 @@ namespace editor
                 if (isComponent<aiko::TextureComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Texture); continue; };
                 if (isComponent<aiko::PboTextureComponent>(tmp, pmt)) { addCmp(ComponentsTypes::PboTexture); continue; };
                 if (isComponent<aiko::MeshComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Mesh); continue; };
+                if (isComponent<aiko::GridComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Grid); continue; };
                 assert(false && "ERROR :: Component is not supported by the editor");
             }
             return tmp;

@@ -17,11 +17,4 @@ namespace editor
         virtual EventId     getId() const { return "HirearchyGameObjectSelectedEvent"; }
     };
 
-    class HirearchyGameObjectUnSelectedEvent : public aiko::Event
-    {
-    public:
-        HirearchyGameObjectUnSelectedEvent() = default;
-        virtual ~HirearchyGameObjectUnSelectedEvent() = default;
-        virtual EventId     getId() const { return "HirearchyGameObjectUnSelectedEvent"; }
-    };
 }

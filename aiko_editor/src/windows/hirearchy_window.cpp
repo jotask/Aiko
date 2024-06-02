@@ -23,6 +23,13 @@ namespace aiko
         {
             static auto* ecs = m_editor->getAiko()->getSystem<aiko::EntityComponentSystem>();
             static GameObject* selectedGo = nullptr;
+
+            static constexpr const auto selectGo = [&](GameObject* ptr)
+            {
+                selectedGo = ptr;
+                aiko::EventSystem::it().sendEvent(::editor::HirearchyGameObjectSelectedEvent(selectedGo));
+            };
+
             if (ImGui::Begin("Hirearchy"))
             {
                 static bool initialOpenState = true;
@@ -41,8 +48,7 @@ namespace aiko
                         const bool isSelected = (child == selectedGo);
                         if (ImGui::Selectable(child->getName().c_str(), isSelected))
                         {
-                            selectedGo = child;
-                            aiko::EventSystem::it().sendEvent(::editor::HirearchyGameObjectSelectedEvent(selectedGo));
+                            selectGo(child);
                         }
 
                         // Context menu for right-click
@@ -54,7 +60,7 @@ namespace aiko
                                 ecs->destroyGameObject(child);
                                 if (selectedGo == child)
                                 {
-                                    selectedGo = nullptr;
+                                    selectGo(nullptr);
                                 }
                             }
                             ImGui::EndPopup();
@@ -67,7 +73,8 @@ namespace aiko
                 {
                     if (ImGui::MenuItem("Create GameObject"))
                     {
-                        ecs->createGameObject();
+                        aiko::GameObject* go = ecs->createGameObject().get();
+                        selectGo(go);
                     }
                     ImGui::EndPopup();
                 }
@@ -75,8 +82,7 @@ namespace aiko
                 // Check for left-click on the background of the window
                 if (ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                 {
-                    selectedGo = nullptr;
-                    aiko::EventSystem::it().sendEvent(::editor::HirearchyGameObjectUnSelectedEvent());
+                    selectGo(nullptr);
                 }
 
             }
