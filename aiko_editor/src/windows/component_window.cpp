@@ -31,7 +31,7 @@ namespace aiko
                 {
                     ImGui::Text("Uuid: %s", selectedGo->uuid().get().c_str() );
                     string name = selectedGo->getName();
-                    if (::editor::ImGui::InputText("Name", &name))
+                    if (imgui::InputText("Name", &name))
                     {
                         selectedGo->setName(name);
                     }
@@ -49,7 +49,7 @@ namespace aiko
                                 continue;
                             }
                             ImGui::PopID();
-                            ::editor::component::drawComponent(comp);
+                            component::drawComponent(comp);
                         }
                     }
                     ImGui::Spacing();
@@ -69,14 +69,14 @@ namespace aiko
                             "  \"xxx,yyy\"  display lines containing \"xxx\" or \"yyy\"\n"
                             "  \"-xxx\"     hide lines containing \"xxx\"");
                         filter.Draw();
-                        std::vector<string> components = ::editor::component::getMissingComponents(selectedGo);
+                        std::vector<string> components = component::getMissingComponents(selectedGo);
                         for(string component : components)
                         {
                             if (filter.PassFilter(component.c_str()))
                             {
                                 if (ImGui::Selectable(component.c_str()) == true)
                                 {
-                                    ::editor::component::addComponent(component, selectedGo);
+                                    component::addComponent(component, selectedGo);
                                 }
                             }
                         }

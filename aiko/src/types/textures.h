@@ -8,7 +8,7 @@ namespace aiko::texture
     class Texture
     {
     public:
-        unsigned int id;                  // OpenGL texture id
+        uint id;                  // OpenGL texture id
         int width;                        // Texture base width
         int height;                       // Texture base height
         int mipmaps;                      // Mipmap levels, 1 by default
@@ -19,15 +19,15 @@ namespace aiko::texture
     class PboTexture
     {
     public:
-        unsigned int pbo;
-        unsigned int data_size;
+        uint pbo;
+        uint data_size;
         Texture texture;
     };
 
     class RenderTexture2D
     {
     public:
-        unsigned int framebuffer;
+        uint framebuffer;
         Texture texture;
         Texture depth;
     };

@@ -5,7 +5,9 @@
 #include <imgui.h>
 #include <magic_enum_all.hpp>
 
-namespace editor
+#include "core/imgui_helper.h"
+
+namespace aiko::editor
 {
     namespace component
     {
@@ -41,6 +43,7 @@ namespace editor
                 if (isComponent<aiko::PboTextureComponent>(tmp, pmt)) { addCmp(ComponentsTypes::PboTexture); continue; };
                 if (isComponent<aiko::MeshComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Mesh); continue; };
                 if (isComponent<aiko::GridComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Grid); continue; };
+                if (isComponent<aiko::LightComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Light); continue; };
                 assert(false && "ERROR :: Component is not supported by the editor");
             }
             return tmp;
@@ -70,7 +73,7 @@ namespace editor
 
         void removeComponent(aiko::string name, aiko::GameObject* obj)
         {
-            auto component = magic_enum::enum_cast<::editor::component::ComponentsTypes>(name);
+            auto component = magic_enum::enum_cast<component::ComponentsTypes>(name);
             if (component.has_value() == true)
             {
                 switch (component.value())
@@ -107,7 +110,7 @@ namespace editor
 
         void addComponent(aiko::string name, aiko::GameObject* obj)
         {
-            auto component = magic_enum::enum_cast<::editor::component::ComponentsTypes>(name);
+            auto component = magic_enum::enum_cast<component::ComponentsTypes>(name);
             if ( component.has_value() == true )
             {
                 switch (component.value())
@@ -199,62 +202,46 @@ namespace editor
 
         void drawTransform(aiko::Transform* t)
         {
+            ImGui::PushID(t);
             ImGui::DragFloat3("Position", t->position, IMGUI_VELOCITY);
             ImGui::DragFloat3("Rotation", t->rotation, IMGUI_VELOCITY);
             ImGui::DragFloat3("Scale", t->scale, IMGUI_VELOCITY);
+            ImGui::PopID();
         }
 
         void drawTexture(aiko::TextureComponent* text)
         {
-
+            ImGui::PushID(text);
             aiko::texture::Texture texture = text->getTexture();
-            // Using a Child allow to fill all the space of the window.
-            // It also allows customization
-            ImGui::BeginChild("Texture");
-            // Get the size of the child (i.e. the whole draw size of the windows).
-
-            // Get the dimensions of the texture
-            ImVec2 textureSize = ImVec2(texture.width, texture.height);
-
-            ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - textureSize.x) * 0.5f, 0));
-            ImGui::Image((ImTextureID)texture.id, ImVec2(textureSize.x, textureSize.y), ImVec2(0, 1), ImVec2(1, 0));
-
-            ImGui::EndChild();
-
+            imgui::Image(texture);
+            ImGui::PopID();
         }
 
         void drawPboTexture(aiko::PboTextureComponent* pbo)
         {
+            ImGui::PushID(pbo);
             ImGui::Checkbox("Auto Render", &pbo->auto_render);
-
-            ImGui::BeginChild("Texture");
-            // Get the size of the child (i.e. the whole draw size of the windows).
-
             aiko::texture::PboTexture text = pbo->getPboTexture();
-
-            // Get the dimensions of the texture
-            ImVec2 textureSize = ImVec2(text.texture.width, text.texture.height);
-
-            ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - textureSize.x) * 0.5f, 0));
-            ImGui::Image((ImTextureID)text.texture.id, ImVec2(textureSize.x, textureSize.y), ImVec2(0, 1), ImVec2(1, 0));
-
-            ImGui::EndChild();
-            
+            imgui::Image(text.texture);
+            ImGui::PopID();
         }
 
         void drawMesh(aiko::MeshComponent* mesh)
         {
-
+            ImGui::PushID(mesh);
+            ImGui::PopID();
         }
 
-        void drawLight(aiko::LightComponent*)
+        void drawLight(aiko::LightComponent* light)
         {
-
+            ImGui::PushID(light);
+            ImGui::PopID();
         }
 
-        void drawGrid(aiko::GridComponent*)
+        void drawGrid(aiko::GridComponent* grid)
         {
-
+            ImGui::PushID(grid);
+            ImGui::PopID();
         }
 
     }

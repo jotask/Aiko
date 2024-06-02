@@ -3,7 +3,7 @@
 #include <aiko_includes.h>
 #include <vector>
 
-namespace editor
+namespace aiko::editor
 {
     namespace component
     {

@@ -39,7 +39,7 @@ namespace aiko
                     if(ImGui::TreeNode("Main Camera"))
                     {
                         aiko::Camera* camera = m_editor->getAiko()->getSystem<aiko::CameraSystem>()->getMainCamera();
-                        ::editor::component::drawCamera(camera);
+                        component::drawCamera(camera);
                         ImGui::TreePop();
                     }
 
