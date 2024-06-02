@@ -10,6 +10,8 @@ namespace editor
     namespace component
     {
 
+        constexpr const float IMGUI_VELOCITY = .25f;
+
         enum class ComponentsTypes
         {
             Tranform,
@@ -136,9 +138,13 @@ namespace editor
         void drawCamera(aiko::Camera* camera)
         {
             ImGui::PushID(camera);
-            ImGui::DragFloat3("Position", camera->position);
-            ImGui::DragFloat3("Target", camera->target);
-            ImGui::DragFloat("Target", &camera->radius);
+            ImGui::DragFloat3("Position", camera->position, IMGUI_VELOCITY);
+            ImGui::DragFloat3("Target", camera->target, IMGUI_VELOCITY);
+            ImGui::DragFloat("Radius", &camera->radius, IMGUI_VELOCITY);
+            ImGui::Spacing();
+            ImGui::DragFloat("Near", &camera->near, IMGUI_VELOCITY);
+            ImGui::DragFloat("Far", &camera->far, IMGUI_VELOCITY);
+            ImGui::Spacing();
 
             if (ImGui::BeginCombo("##comboType", magic_enum::enum_name(camera->getCameraType()).data())) // The second parameter is the label previewed before opening the combo.
             {
@@ -186,15 +192,15 @@ namespace editor
             if (isComponent<aiko::PboTextureComponent>(compt, drawPboTexture)) return;
             if (isComponent<aiko::MeshComponent>(compt, drawMesh)) return;
             if (isComponent<aiko::LightComponent>(compt, drawLight)) return;
+            if (isComponent<aiko::GridComponent>(compt, drawGrid)) return;
             assert(false && "ERROR :: Component is not supported by the editor");
         }
 
         void drawTransform(aiko::Transform* t)
         {
-            ImGui::DragFloat3("Position", t->position);
-            ImGui::DragFloat3("Rotation", t->rotation);
-            ImGui::DragFloat3("Scale", t->scale);
-
+            ImGui::DragFloat3("Position", t->position, IMGUI_VELOCITY);
+            ImGui::DragFloat3("Rotation", t->rotation, IMGUI_VELOCITY);
+            ImGui::DragFloat3("Scale", t->scale, IMGUI_VELOCITY);
         }
 
         void drawTexture(aiko::TextureComponent* text)
@@ -241,6 +247,11 @@ namespace editor
         }
 
         void drawLight(aiko::LightComponent*)
+        {
+
+        }
+
+        void drawGrid(aiko::GridComponent*)
         {
 
         }

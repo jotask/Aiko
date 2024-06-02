@@ -22,6 +22,7 @@ namespace editor
         void drawPboTexture(aiko::PboTextureComponent*);
         void drawMesh(aiko::MeshComponent*);
         void drawLight(aiko::LightComponent*);
+        void drawGrid(aiko::GridComponent*);
 
         template <typename T>
         bool isComponent(aiko::Component* compt, void (*fnt)(T*))

@@ -108,9 +108,15 @@ namespace aiko
             return toAiko(mat);
         }
 
-        mat4 perspective( float angle, float width, float height, float min, float max)
+        mat4 perspective(float angle, float width, float height, float near, float far)
         {
-            glm::mat4 projection = glm::perspective( radians(angle), width / height, min, max);
+            glm::mat4 projection = glm::perspective(radians(angle), width / height, near, far);
+            return toAiko(projection);
+        }
+
+        mat4 ortho(float left, float right, float bottom, float top, float near, float far)
+        {
+            glm::mat4 projection = glm::ortho(left, right, bottom ,top, near, far);
             return toAiko(projection);
         }
 

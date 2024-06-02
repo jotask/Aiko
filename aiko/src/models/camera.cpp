@@ -83,16 +83,23 @@ namespace aiko
 
     mat4 Camera::getProjectionMatrix()
     {
-        // TODO Get display size
         switch (cameraType)
-            {
-            case camera::CameraType::Perspective:
-            {
-                auto size = cameraSystem->getDisplaySize();
-                return math::perspective( 45.0f, (float)size.x, (float)size.y, 0.1f, 100.0f);
-            }
+        {
+        case camera::CameraType::Perspective:
+        {
+            auto size = cameraSystem->getDisplaySize();
+            return math::perspective(45.0f, (float)size.x, (float)size.y, near, far );
+        }
+        case camera::CameraType::Orthographic:
+        {
+            auto size = cameraSystem->getDisplaySize();
+            float orthoWidth = size.x * 0.5f;
+            float orthoHeight = size.y * 0.5f;
+            return math::ortho(-orthoWidth, orthoWidth, -orthoHeight, orthoHeight, near, far);
+        }
             default:
                 std::exception("Not Implemented");
+                assert(false);
                 return mat4(1.0f);
         }
     }

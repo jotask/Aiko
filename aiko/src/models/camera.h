@@ -45,6 +45,8 @@ namespace aiko
 
         float m_fov = 0.0f;
         float radius = 3.5f;
+        float near = 0.0001f;
+        float far = 100.0f;
 
         camera::CameraType cameraType = camera::CameraType::Perspective;
         camera::CameraController cameraControler = camera::CameraController::Static;

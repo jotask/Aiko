@@ -23,6 +23,7 @@ namespace aiko
         void HirearchyWindow::render()
         {
             static auto* ecs = m_editor->getAiko()->getSystem<aiko::EntityComponentSystem>();
+            static GameObject* selectedGo = nullptr;
             if (ImGui::Begin("Hirearchy"))
             {
                 static bool initialOpenState = true;
@@ -38,13 +39,31 @@ namespace aiko
 
                     for (GameObject* child : ecs->getObjects())
                     {
-                        if (ImGui::Selectable(child->getName().c_str()))
+                        const bool isSelected = (child == selectedGo);
+                        if (ImGui::Selectable(child->getName().c_str(), isSelected))
                         {
-                            aiko::EventSystem::it().sendEvent(::editor::HirearchyGameObjectSelectedEvent(child));
+                            selectedGo = child;
+                            aiko::EventSystem::it().sendEvent(::editor::HirearchyGameObjectSelectedEvent(selectedGo));
                         }
                     }
                     ImGui::TreePop();
                 }
+                if (ImGui::BeginPopupContextWindow())
+                {
+                    if (ImGui::MenuItem("Create GameObject"))
+                    {
+                        ecs->createGameObject();
+                    }
+                    ImGui::EndPopup();
+                }
+
+                // Check for left-click on the background of the window
+                if (ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                {
+                    selectedGo = nullptr;
+                    aiko::EventSystem::it().sendEvent(::editor::HirearchyGameObjectUnSelectedEvent());
+                }
+
             }
             ImGui::End();
         }

@@ -6,6 +6,7 @@
 #include "events/editor_events.h"
 #include "core/components_render.h"
 #include "aiko_editor.h"
+#include "core/imgui_helper.h"
 
 #include <imgui.h>
 
@@ -29,7 +30,13 @@ namespace aiko
             {
                 if (selectedGo != nullptr)
                 {
-                    ImGui::Text(selectedGo->getName().c_str());
+                    std::string name = selectedGo->getName();
+                    if (::editor::ImGui::InputText("Name", &name))
+                    {
+                        selectedGo->setName(name);
+                    }
+                    ImGui::Spacing();
+                    ImGui::Spacing();
                     for (Component* comp : selectedGo->getComponents())
                     {
                         if (ImGui::CollapsingHeader(comp->getName(), ImGuiTreeNodeFlags_DefaultOpen))
