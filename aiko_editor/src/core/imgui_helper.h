@@ -32,11 +32,8 @@ namespace aiko::editor
         static void Image(texture::Texture& texture)
         {
             ImVec2 textureSize = ImVec2(texture.width, texture.height);
-            ImVec2 availableRegionSize = ImGui::GetContentRegionAvail();
-            float posX = (availableRegionSize.x - textureSize.x) * 0.5f;
-            float posY = (availableRegionSize.y - textureSize.y) * 0.5f;
-            ImGui::BeginChild("Texture", ImVec2(textureSize.x, textureSize.y), ImGuiChildFlags_None);
-            ImGui::SetCursorPosX((ImGui::GetWindowSize().x - textureSize.x) * 0.5f);
+            ImGui::BeginChild("Texture", ImVec2(ImGui::GetContentRegionAvail().x, textureSize.y), ImGuiChildFlags_None);
+            ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - textureSize.x) * 0.5f, 0.0f));
             ImGui::Image((ImTextureID)texture.id, textureSize, ImVec2(0, 1), ImVec2(1, 0));
             ImGui::EndChild();
         }
