@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <type_traits>
 
 #include <memory>
@@ -17,6 +18,9 @@ namespace aiko
 {
 
     using uint = unsigned int;
+    using u32 = uint32_t;
+    using u64 = uint64_t;
+    using string = std::string;
 
     template<class T>
     using AikoPtr = std::shared_ptr<T>;

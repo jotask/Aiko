@@ -45,6 +45,22 @@ namespace aiko
                             selectedGo = child;
                             aiko::EventSystem::it().sendEvent(::editor::HirearchyGameObjectSelectedEvent(selectedGo));
                         }
+
+                        // Context menu for right-click
+                        if (ImGui::BeginPopupContextItem(child->getName().c_str()))
+                        {
+                            if (ImGui::MenuItem("Delete"))
+                            {
+                                // Handle deletion of the GameObject
+                                ecs->destroyGameObject(child);
+                                if (selectedGo == child)
+                                {
+                                    selectedGo = nullptr;
+                                }
+                            }
+                            ImGui::EndPopup();
+                        }
+
                     }
                     ImGui::TreePop();
                 }

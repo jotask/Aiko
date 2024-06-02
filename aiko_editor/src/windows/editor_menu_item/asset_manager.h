@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <vector>
 
 #include <aiko_includes.h>
@@ -20,8 +19,8 @@ namespace aiko
             {
                 enum class AssetType { Default, Text, Texture, };
                 uuid::Uuid  uid;
-                std::string name;
-                std::string path;
+                aiko::string name;
+                aiko::string path;
                 AssetType type;
             };
 

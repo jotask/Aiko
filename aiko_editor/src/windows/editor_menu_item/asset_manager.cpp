@@ -4,7 +4,7 @@
 
 #include <fstream>
 #include <streambuf>
-#include <string>
+#include <std::string>
 #include <filesystem>
 #include <imgui.h>
 #include <json/json.h>
@@ -45,7 +45,7 @@ namespace aiko
                             // TODO Open dialog to create new asset
                             for (size_t i = 0; i < 10; i++)
                             {
-                                const std::string text = aiko::utils::generateRandomString();
+                                const std::string text = aiko::utils::generateRandomstd::string();
                                 assets.push_back({ uuid::Uuid(), text , text , Asset::AssetType::Default });
                             }
                         }
@@ -184,10 +184,10 @@ namespace aiko
             for (const auto& item : root) {
                 Asset s =
                 {
-                    item["uuid"].asString(),
-                    item["name"].asString(),
-                    item["path"].asString(),
-                    magic_enum::enum_cast<Asset::AssetType>(item["type"].asString()).value(),
+                    item["uuid"].asstd::string(),
+                    item["name"].asstd::string(),
+                    item["path"].asstd::string(),
+                    magic_enum::enum_cast<Asset::AssetType>(item["type"].asstd::string()).value(),
                 };
                 assets.push_back(s);
             }

@@ -19,6 +19,21 @@ namespace aiko
         auto trans = obj->addComponent<Transform>();
         return obj;
     }
+
+    void EntityComponentSystem::destroyGameObject(GameObject* obj)
+    {
+        
+        auto found = std::find_if(m_gameObjects.begin(), m_gameObjects.end(), [obj](const aiko::AikoPtr<GameObject>& gameObject)
+        {
+            return gameObject->uuid() == obj->uuid();
+        });
+
+        if (found != m_gameObjects.end())
+        {
+            int a = 0;
+            // m_gameObjects.erase(found);
+        }
+    }
     
     void EntityComponentSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {

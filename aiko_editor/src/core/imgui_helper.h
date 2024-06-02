@@ -17,7 +17,7 @@ namespace editor
                 {
                     if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
                     {
-                        // Resize string and update data pointers
+                        // Resize std::string and update data pointers
                         std::string* str = (std::string*)data->UserData;
                         IM_ASSERT(data->Buf == str->c_str());
                         str->resize(data->BufTextLen);

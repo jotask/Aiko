@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <aiko_includes.h>
 
 namespace aiko
 {
@@ -18,7 +18,7 @@ namespace aiko
             bool is_open = true;
         protected:
             AikoEditor* m_editor;
-            std::string name;
+            aiko::string name;
         };
 
     }

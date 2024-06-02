@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "aiko.h"
+#include "core/uuid.h"
 #include "aiko_types.h"
 #include "component.h"
 #include "components/transform_component.h"
@@ -52,10 +53,14 @@ namespace aiko
 
         std::vector<Component*> getComponents();
 
+        const uuid::Uuid uuid() const { return m_uuid; }
+
     private:
 
         // FIXME: For now, so we can esily create components
         Aiko* aiko;
+
+        uuid::Uuid m_uuid;
 
         SceneObject m_entity;
         std::string name;

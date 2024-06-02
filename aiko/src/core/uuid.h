@@ -31,6 +31,11 @@ namespace uuid
             return m_uuid;
         }
 
+        bool operator==(const Uuid& other) const
+        {
+            return m_uuid == other.m_uuid;
+        }
+
         std::string& operator&()
         {
             return m_uuid;
