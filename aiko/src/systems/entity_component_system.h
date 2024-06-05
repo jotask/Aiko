@@ -22,8 +22,11 @@ namespace aiko
     
         EntityComponentSystem() = default;
         virtual ~EntityComponentSystem() = default;
-    
-        aiko::AikoPtr<GameObject> createGameObject(string name = "Game Object");
+
+        constexpr static const char* DEFAULT_OBJECT_NAME = "Game Object";
+
+        aiko::AikoPtr<GameObject> createGameObject(string name = DEFAULT_OBJECT_NAME);
+        aiko::AikoPtr<GameObject> createGameObject(GameObject* parent, string name = DEFAULT_OBJECT_NAME);
         void destroyGameObject(GameObject*);
     
         std::vector<GameObject*> getObjects();

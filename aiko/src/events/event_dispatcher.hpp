@@ -65,7 +65,19 @@ namespace aiko
     template<class Evnt>
     inline void EventSystem::unbind(void(* const fun)(Event&))
     {
-        // TODO
+        const Evnt evnt;
+        auto found = m_map.find(evnt.getId());
+        if (found != m_map.end())
+        {
+            auto& callbacks = found->second;
+            callbacks.erase(std::remove(callbacks.begin(), callbacks.end(), fun), callbacks.end());
+
+            // If the list of callbacks is empty, you can optionally remove the event from the map
+            if (callbacks.empty())
+            {
+                m_map.erase(found);
+            }
+        }
     }
 
     template<class Evnt, class T>

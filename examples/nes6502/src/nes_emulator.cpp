@@ -58,13 +58,13 @@ namespace nes
     void NesEmulator::init()
     {
 
-        auto go = createGameObject("NesTexture");
+        auto go = Instantiate("NesTexture");
         m_nesgo = go->addComponent<aiko::PboTextureComponent>("Pt0", NES_WIDTH, NES_HEIGHT, false).get();
 
-        auto table_pattern_go_1 = createGameObject("CHR table");
+        auto table_pattern_go_1 = Instantiate("CHR table");
         pattern_table_0 = table_pattern_go_1->addComponent<aiko::PboTextureComponent>("Pt0", 256, 128, false).get();
 
-        auto palette_go = createGameObject("Palette");
+        auto palette_go = Instantiate("Palette");
         const Byte size = (Byte) std::sqrt(COLOUR_PALETTE_SIZE);
         constexpr const Byte palette_width = COLOUR_PALETTE_SIZE / 4;
         constexpr const Byte palette_height = COLOUR_PALETTE_SIZE / 16;

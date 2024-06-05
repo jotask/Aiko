@@ -52,7 +52,8 @@ namespace aiko
 
         aiko::AikoPtr<aiko::Shader> getShader();
 
-        GameObject* createGameObject(char* name);
+        GameObject* Instantiate(char* name);
+        GameObject* Instantiate(GameObject* , char* name);
 
         // Draw text
         void drawText(string, float, float);

@@ -43,13 +43,6 @@ namespace aiko
     {
     }
 
-    GameObject* Aiko::createGameObject(string name)
-    {
-        static EntityComponentSystem* ecs = getSystem<EntityComponentSystem>();
-        GameObject* obj = ecs->createGameObject(name).get();
-        return obj;
-    }
-
     void Aiko::onWindowClose(Event& event)
     {
         const auto& msg = static_cast<const WindowCloseEvent&>(event);

@@ -12,7 +12,6 @@
 #include "modules/module_connector.h"
 #include "systems/system_connector.h"
 #include "components/transform_component.h"
-#include "components/component_renderer.h"
 #include "components/mesh_component.h"
 #include "systems/camera_system.h"
 #include "render_system.h"

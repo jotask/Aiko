@@ -3,7 +3,6 @@
 #include "modules/module_connector.h"
 
 #include "components/transform_component.h"
-#include "components/component_renderer.h"
 #include "models/game_object.h"
 
 namespace aiko
@@ -11,8 +10,8 @@ namespace aiko
     
     aiko::AikoPtr<GameObject> EntityComponentSystem::createGameObject(string name)
     {
-        m_gameObjects.emplace_back(std::make_shared<GameObject>());
-        aiko::AikoPtr<GameObject> obj = m_gameObjects.back();
+        auto obj = std::make_shared<GameObject>();
+        m_gameObjects.emplace_back(obj);
         obj->m_entity = createEntity();
         obj->setName(name);
         obj->aiko = aiko;
@@ -20,9 +19,16 @@ namespace aiko
         return obj;
     }
 
+    aiko::AikoPtr<GameObject> EntityComponentSystem::createGameObject(GameObject* parent, string name)
+    {
+        aiko::AikoPtr<GameObject> obj = createGameObject(name);
+        parent->transform()->childs.push_back(obj->transform().get());
+        obj->transform()->parent = parent->transform().get();
+        return obj;
+    }
+
     void EntityComponentSystem::destroyGameObject(GameObject* obj)
     {
-        
         auto found = std::find_if(m_gameObjects.begin(), m_gameObjects.end(), [obj](const aiko::AikoPtr<GameObject>& gameObject)
         {
             return gameObject->uuid() == obj->uuid();
@@ -30,8 +36,7 @@ namespace aiko
 
         if (found != m_gameObjects.end())
         {
-            int a = 0;
-            // m_gameObjects.erase(found);
+            m_gameObjects.erase(found);
         }
     }
     

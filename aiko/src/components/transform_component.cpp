@@ -33,10 +33,4 @@ namespace aiko
         return transformMatrix;
     }
 
-    mat4 Transform::getBillboard(Camera*)
-    {
-        // TODO
-        return getMatrix();
-    }
-
 }

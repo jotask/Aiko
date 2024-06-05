@@ -31,8 +31,6 @@ namespace aiko
 
         template<class T>
         T* getSystem();
-
-        GameObject* createGameObject(string name = "Game Object");
     
         void close();
 

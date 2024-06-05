@@ -19,8 +19,6 @@ namespace aiko
         EventSystem::it().bind<WindowResizeEvent>(this, &DisplayModule::onWindowResize);
 
         const AikoConfig cfg = getAiko()->getConfig();
-
-        // TODO Initial window size from config
         const ivec2 size = { cfg.width, cfg.height };
         m_displayName = cfg.window_tittle;
         GLFWwindow* window = glfwCreateWindow(size.x, size.y, m_displayName.c_str(), NULL, NULL);

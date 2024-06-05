@@ -5,6 +5,7 @@
 #include "systems/asset_system.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
+#include "systems/entity_component_system.h"
 #include "models/shader.h"
 #include "models/time.h"
 
@@ -107,9 +108,18 @@ namespace aiko
         return assetSystem->createShader();
     }
 
-    GameObject* Application::createGameObject(char* name)
+    GameObject* Application::Instantiate(char* name)
     {
-        return m_aiko->createGameObject(name);
+        EntityComponentSystem* ecs = m_aiko->getSystem<EntityComponentSystem>();
+        GameObject* obj = ecs->createGameObject(name).get();
+        return obj;
+    }
+
+    GameObject* Application::Instantiate(GameObject* parent, char* name)
+    {
+        EntityComponentSystem* ecs = m_aiko->getSystem<EntityComponentSystem>();
+        GameObject* obj = ecs->createGameObject(parent, name).get();
+        return obj;
     }
 
     void Application::drawText(string str, float x, float y)

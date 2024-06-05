@@ -21,7 +21,6 @@ namespace aiko
     class GameObject
     {
         friend class EntityComponentSystem;
-        friend class Component; // FIXME, so we can easily create components
     public:
 
         GameObject() = default;
@@ -47,7 +46,7 @@ namespace aiko
 
         aiko::AikoPtr<Transform> transform();
 
-        // FIXME: For now, so we can esily create components
+        // FIXME: For now, so we can easily create components
         template<class T>
         auto getSystem();
 
@@ -57,7 +56,6 @@ namespace aiko
 
     private:
 
-        // FIXME: For now, so we can esily create components
         Aiko* aiko;
 
         uuid::Uuid m_uuid;
