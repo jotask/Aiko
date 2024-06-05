@@ -101,11 +101,6 @@ namespace aiko
 
     }
 
-    void RenderModule::renderToTargetTexture()
-    {
-        // TODO
-    }
-
     texture::Texture RenderModule::createTexture()
     {
         // load and create a texture 

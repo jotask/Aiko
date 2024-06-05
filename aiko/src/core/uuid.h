@@ -5,80 +5,87 @@
 
 #include <aiko_types.h>
 
-namespace uuid
+namespace aiko
 {
-
-    static std::random_device              rd;
-    static std::mt19937                    gen(rd());
-    static std::uniform_int_distribution<> dis(0, 15);
-    static std::uniform_int_distribution<> dis2(8, 11);
-
-    class Uuid
+    namespace uuid
     {
-    public:
-        Uuid()
-            : m_uuid(generate_uuid_v4())
+
+        class Uuid
         {
+        public:
 
-        }
+            using Id = aiko::string;
 
-        Uuid(aiko::string uuid)
-            : m_uuid(uuid)
-        {
-
-        }
-
-        const aiko::string get() const
-        {
-            return m_uuid;
-        }
-
-        bool operator==(const Uuid& other) const
-        {
-            return m_uuid == other.m_uuid;
-        }
-
-        aiko::string& operator&()
-        {
-            return m_uuid;
-        }
-
-    private:
-        aiko::string m_uuid;
-
-        aiko::string generate_uuid_v4()
-        {
-            std::stringstream ss;
-            int i;
-            ss << std::hex;
-            for (i = 0; i < 8; i++)
+            Uuid()
+                : m_uuid(generate_uuid_v4())
             {
-                ss << dis(gen);
+
             }
-            ss << "-";
-            for (i = 0; i < 4; i++)
-            {
-                ss << dis(gen);
-            }
-            ss << "-4";
-            for (i = 0; i < 3; i++)
-            {
-                ss << dis(gen);
-            }
-            ss << "-";
-            ss << dis2(gen);
-            for (i = 0; i < 3; i++)
-            {
-                ss << dis(gen);
-            }
-            ss << "-";
-            for (i = 0; i < 12; i++)
-            {
-                ss << dis(gen);
-            };
-            return ss.str();
-        }
 
-    };
+            Uuid(Id uuid)
+                : m_uuid(uuid)
+            {
 
+            }
+
+            const Id get() const
+            {
+                return m_uuid;
+            }
+
+            bool operator==(const Uuid& other) const
+            {
+                return m_uuid == other.m_uuid;
+            }
+
+            Id& operator&()
+            {
+                return m_uuid;
+            }
+
+        private:
+            Id m_uuid;
+
+            Id generate_uuid_v4()
+            {
+
+                static std::random_device              rd;
+                static std::mt19937                    gen(rd());
+                static std::uniform_int_distribution<> dis(0, 15);
+                static std::uniform_int_distribution<> dis2(8, 11);
+
+                std::stringstream ss;
+                int i;
+                ss << std::hex;
+                for (i = 0; i < 8; i++)
+                {
+                    ss << dis(gen);
+                }
+                ss << "-";
+                for (i = 0; i < 4; i++)
+                {
+                    ss << dis(gen);
+                }
+                ss << "-4";
+                for (i = 0; i < 3; i++)
+                {
+                    ss << dis(gen);
+                }
+                ss << "-";
+                ss << dis2(gen);
+                for (i = 0; i < 3; i++)
+                {
+                    ss << dis(gen);
+                }
+                ss << "-";
+                for (i = 0; i < 12; i++)
+                {
+                    ss << dis(gen);
+                };
+                return ss.str();
+            }
+
+        };
+
+    }
 }

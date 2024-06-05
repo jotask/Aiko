@@ -158,20 +158,5 @@ namespace aiko
 
     }
 
-    int RenderModule::getShaderLocation(aiko::ShaderData& shader, const char* uniformName)
-    {
-        return -1;
-    }
-
-    void RenderModule::setShaderUniformValue(aiko::ShaderData& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType)
-    {
-
-    }
-
-    void RenderModule::setShaderUniformValueV(aiko::ShaderData& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count)
-    {
-
-    }
-
 }
 

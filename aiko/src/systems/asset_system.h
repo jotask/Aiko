@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <vector>
-#include <map>
 
 #include "aiko_types.h"
 #include "systems/base_system.h"
@@ -12,6 +11,9 @@
 #include "types/camera_types.h"
 #include "shared/math.h"
 #include "types/asset_type.h"
+#include "core/uuid.h"
+
+#include "assets/asset.h"
 
 namespace aiko
 {
@@ -26,10 +28,11 @@ namespace aiko
 
         AssetSystem() = default;
         virtual ~AssetSystem() = default;
-    
-        Shader* loadShader(const char*, const char*);
 
-        void unload(asset::Asset&);
+        template<class T>
+        T* load();
+
+        void unload(asset::Asset*);
         void unload(asset::ID);
 
         RenderSystem* getRenderSystem() const { return m_renderSystem; }
@@ -39,20 +42,26 @@ namespace aiko
         virtual void connect(ModuleConnector*, SystemConnector*) override;
     
         virtual void init() override;
-    
         virtual void update() override;
-    
         virtual void render() override;
 
     private:
 
-        void initAsset(asset::Asset*);
-
-        using Assets = std::map<asset::ID, AikoUPtr<asset::Asset>>;
+        using Assets = std::vector<AikoPtr<asset::Asset>>;
         Assets m_assets;
 
         RenderSystem* m_renderSystem;
 
     };
+
+    template<class T>
+    inline T* AssetSystem::load()
+    {
+        static_assert(std::is_base_of<BaseAsset, T>::value, "T must be derived from Asset");
+        AikoPtr<asset::Asset> ass = std::make_shared<T>();
+        m_assets.push_back(ass);
+        ass->connect(nullptr);
+        return nullptr;
+    }
 
 }

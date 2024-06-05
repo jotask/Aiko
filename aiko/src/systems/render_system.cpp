@@ -183,21 +183,6 @@ namespace aiko
         m_renderModule->unloadShader(data.m_shaderData);
     }
 
-    int RenderSystem::getShaderLocation(Shader& shader, const char* uniformName)
-    {
-        return m_renderModule->getShaderLocation( shader.m_shaderData, uniformName );
-    }
-
-    void RenderSystem::setShaderUniformValue(Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType)
-    {
-        m_renderModule->setShaderUniformValue(shader.m_shaderData, locIndex, value, uniformType);
-    }
-
-    void RenderSystem::setShaderUniformValueV(Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count)
-    {
-        m_renderModule->setShaderUniformValueV(shader.m_shaderData, locIndex, value, uniformType, count);
-    }
-
     Camera* RenderSystem::getMainCamera()
     {
         return m_cameraSystem->getMainCamera();

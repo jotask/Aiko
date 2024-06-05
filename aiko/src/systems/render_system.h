@@ -54,9 +54,6 @@ namespace aiko
         AikoUPtr<Shader> createShader();
         AikoUPtr<Shader> createShader(const char* vs, const char* fs);
         void unloadShader(Shader& data);
-        int getShaderLocation(Shader& shader, const char* uniformName);
-        void setShaderUniformValue(Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType);
-        void setShaderUniformValueV(Shader& shader, int locIndex, const void* value, aiko::ShaderUniformDataType uniformType, int count);
 
         Camera* getMainCamera();
 

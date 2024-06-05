@@ -82,18 +82,11 @@ namespace aiko
         void updatePboTexture(texture::PboTexture texture, std::vector<Color>&);
         void drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint);
         void drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint);
-        // void drawTexture(texture::Texture texture, int posX, int posY, Color tint);
-        // void drawTextureV(texture::Texture texture, vec2 position, Color tint);
-        // void drawTextureRec(texture::Texture texture, Rectangle source, vec2 position, Color tint);
-        // void drawTexturePro(texture::Texture texture, Rectangle source, Rectangle dest, vec2 origin, float rotation, Color tint);
 
         // Shader
         AikoUPtr<Shader> createShader();
         aiko::ShaderData loadShaderData(const char*, const char*);
         void unloadShader( aiko::ShaderData& );
-        int getShaderLocation(aiko::ShaderData&, const char* uniformName );
-        void setShaderUniformValue(aiko::ShaderData&, int, const void*, aiko::ShaderUniformDataType);
-        void setShaderUniformValueV(aiko::ShaderData&, int, const void*, aiko::ShaderUniformDataType, int);
 
     private:
 
@@ -107,7 +100,6 @@ namespace aiko
         AikoUPtr<Shader> m_passthrought;
 
         void onWindowResize(Event&);
-        void renderToTargetTexture();
     
     };
 

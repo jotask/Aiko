@@ -1,5 +1,7 @@
 #include "asset_system.h"
 
+#include <algorithm>
+
 #include "modules/module_connector.h"
 #include "systems/system_connector.h"
 
@@ -13,42 +15,23 @@
 
 namespace aiko
 {
-    Shader* AssetSystem::loadShader(const char* vs, const char* fs)
-    {
-        // auto shared = std::make_unique<asset::Shader>();
-        // initAsset(shared.get());
-        // ((asset::Asset*)shared.get())->connect();
-        // shared->load(vs, fs);
-        // asset::ID uuid = shared->getID();
-        // m_assets[uuid] = std::move(shared);
-        // return (asset::Shader*)m_assets[uuid].get();
-        return nullptr;
-    }
 
-    void AssetSystem::unload(asset::Asset& asset)
+    void AssetSystem::unload(asset::Asset* asset)
     {
-        this->unload(asset.getID());
+        this->unload(asset->getID());
     }
 
     void AssetSystem::unload(asset::ID asset)
     {
-        if (asset == asset::INVALID_ID)
-        {
-            // Already deleted?
-            return;
-        }
-        auto it = m_assets.find(asset);
+        auto it = std::find_if(m_assets.begin(), m_assets.end(), [&](const AikoPtr<asset::Asset>& ptr) {
+            return ptr->getID() == asset;
+            });
         if (it != m_assets.end())
         {
-            (*it).second.get()->unload(); // unload 
-            (*it).second.reset(); // Call destructor
+            (*it)->unload();
+            (*it).reset(); // Call destructor
             m_assets.erase(it);
         }
-    }
-
-    void AssetSystem::initAsset(asset::Asset* asset)
-    {
-        asset->m_assetSystem = this;
     }
 
     void AssetSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
