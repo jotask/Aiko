@@ -265,8 +265,8 @@ namespace aiko
             return;
         }
 
-        auto screenWidth = msg.width;
-        auto screenHeight = msg.height;
+        const auto screenWidth = msg.width;
+        const auto screenHeight = msg.height;
 
         glViewport(0, 0, screenWidth, screenHeight);
         gltViewport(screenWidth, screenHeight);
