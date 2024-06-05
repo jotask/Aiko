@@ -35,7 +35,7 @@ namespace aiko
     }
     
     Camera* CameraSystem::createCamera(bool setMain)
-    {  
+    {
         Camera& cam = m_cameras.emplace_back();
         cam.cameraSystem = this;
         if (setMain == true)
@@ -49,24 +49,5 @@ namespace aiko
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
     }
-    
-    void CameraSystem::init()
-    {
-        createCamera(true);
-    }
-    
-    void CameraSystem::update()
-    {
-        for (auto& tmp : m_cameras)
-        {
-            tmp.update();
-        }
-    }
-    
-    void CameraSystem::render()
-    {
-        
-    }
-    
 
 }

@@ -36,13 +36,6 @@ namespace aiko
                 ImGui::SetNextItemOpen(initialOpenState);
                 if (ImGui::TreeNode("Scene"))
                 {
-                    if(ImGui::TreeNode("Main Camera"))
-                    {
-                        aiko::Camera* camera = m_editor->getAiko()->getSystem<aiko::CameraSystem>()->getMainCamera();
-                        component::drawCamera(camera);
-                        ImGui::TreePop();
-                    }
-
                     for (GameObject* child : ecs->getObjects())
                     {
                         const bool isSelected = (child == selectedGo);

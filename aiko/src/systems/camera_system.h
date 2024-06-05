@@ -32,15 +32,7 @@ namespace aiko
         ivec2 getDisplaySize();
     
     protected:
-    
         virtual void connect(ModuleConnector*, SystemConnector*) override;
-    
-        virtual void init() override;
-    
-        virtual void update() override;
-    
-        virtual void render() override;
-    
     private:
 
         RenderModule* m_renderModule;

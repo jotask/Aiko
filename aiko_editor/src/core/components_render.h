@@ -14,7 +14,6 @@ namespace aiko::editor
         void addComponent(aiko::string, aiko::GameObject*);
         void removeComponent(aiko::string, aiko::GameObject*);
 
-        void drawCamera(aiko::Camera*);
         void drawComponent(aiko::Component*);
 
         void drawTransform(aiko::Transform*);
@@ -23,6 +22,8 @@ namespace aiko::editor
         void drawMesh(aiko::MeshComponent*);
         void drawLight(aiko::LightComponent*);
         void drawGrid(aiko::GridComponent*);
+        void drawGrid(aiko::GridComponent*);
+        void drawCamera(aiko::CameraComponent*);
 
         template <typename T>
         bool isComponent(aiko::Component* compt, void (*fnt)(T*))

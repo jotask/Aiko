@@ -17,13 +17,8 @@ namespace aiko
         Camera();
         ~Camera() = default;
 
-        void update();
-
         camera::CameraType getCameraType() const;
         void setCameraType(camera::CameraType);
-
-        camera::CameraController getCameraController() const;
-        void setCameraController(camera::CameraController);
 
         vec3 position;
         vec3 target;
@@ -44,12 +39,10 @@ namespace aiko
         CameraSystem* cameraSystem;
 
         float m_fov = 0.0f;
-        float radius = 3.5f;
         float near = 0.0001f;
         float far = 100.0f;
 
         camera::CameraType cameraType = camera::CameraType::Perspective;
-        camera::CameraController cameraControler = camera::CameraController::Static;
 
     };
 

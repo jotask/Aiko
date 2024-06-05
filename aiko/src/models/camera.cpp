@@ -19,39 +19,6 @@ namespace aiko
         cameraUp = math::cross(cameraDirection, right);
     }
 
-    void Camera::update()
-    {
-        switch (cameraControler)
-        {
-        case camera::CameraController::Orbit:
-        {
-            float camX = static_cast<float>(sin(glfwGetTime()) * radius);
-            float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
-            position = { camX, position.y, camZ };
-        }
-        break;
-        case camera::CameraController::Fly:
-        {
-
-        }
-        break;
-        case camera::CameraController::Drag:
-        {
-
-        }
-        break;
-        case camera::CameraController::Static:
-        {
-
-        }
-        break;
-        default:
-            Log::error( "CAMERA :: UPDATE :: UNKNOW CONTROLLER");
-            break;
-        }
-        
-    }
-
     camera::CameraType Camera::getCameraType() const
     {
         return cameraType;
@@ -60,17 +27,6 @@ namespace aiko
     void Camera::setCameraType(camera::CameraType newType)
     {
         cameraType = newType;
-        cameraSystem->setMainCamera(this);
-    }
-
-    camera::CameraController Camera::getCameraController() const
-    {
-        return cameraControler;
-    }
-
-    void Camera::setCameraController(camera::CameraController newController)
-    {
-        cameraControler = newController;
         cameraSystem->setMainCamera(this);
     }
 

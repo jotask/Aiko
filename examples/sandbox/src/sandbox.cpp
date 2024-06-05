@@ -22,7 +22,8 @@ namespace sandbox
     {
         Application::init();
 
-        getMainCamera()->setCameraController(aiko::camera::CameraController::Orbit);
+        auto camera = this->createGameObject("Camera");
+        auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Orbit);
 
 #ifdef TEST_CUBES
         m_go1 = this->createGameObject("Cube1");

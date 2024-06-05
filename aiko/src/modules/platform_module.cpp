@@ -24,32 +24,32 @@ namespace aiko
 
     void PlatformModule::updateTime()
     {
+        auto& time = Time::it();
+
         // Delta Time
-        static double currentFrame = glfwGetTime();
-        static double lastFrame = currentFrame;
+        time.time = glfwGetTime();
+        static double lastFrame = time.time;
         static double deltaTime;
 
         // Fps
         static double previousTime = glfwGetTime();
         static int frameCount = 0;
 
-        currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        deltaTime = time.time - lastFrame;
+        lastFrame = time.time;
 
-        auto& time = Time::it();
         time.deltaTime = deltaTime;
         time.frames++;
 
         frameCount++;
         // If a second has passed.
-        if (currentFrame - previousTime >= 1.0)
+        if (time.time - previousTime >= 1.0)
         {
             // Display the frame count here any way you want.
             time.fps = frameCount;
 
             frameCount = 0;
-            previousTime = currentFrame;
+            previousTime = time.time;
         }
 
     }

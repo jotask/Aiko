@@ -28,7 +28,8 @@ namespace aiko::editor
         // https://www.codingwiththomas.com/blog/rendering-an-opengl-framebuffer-into-a-dear-imgui-window
         Application::init();
 
-        getAiko()->getSystem<CameraSystem>()->getMainCamera()->setCameraController(camera::CameraController::Orbit);
+        auto camera = this->createGameObject("Camera");
+        auto cam = camera->addComponent<aiko::CameraComponent>(camera::CameraController::Orbit);
 
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;

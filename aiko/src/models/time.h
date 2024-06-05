@@ -15,10 +15,16 @@ namespace aiko
             return deltaTime;
         }
 
+        double secondSinceStart() const
+        {
+            return time;
+        }
+
     private:
+        double time = 0.0f;
         float deltaTime = 0.0f;
         float fps = 0.0f;
-        unsigned int frames = 0;
+        uint frames = 0;
     };
 
 }

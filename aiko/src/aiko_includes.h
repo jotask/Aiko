@@ -16,6 +16,7 @@
 #include "components/pbo_texture_component.h"
 #include "components/grid_component.h"
 
+#include "models/camera.h"
 #include "models/game_object.h"
 #include "models/time.h"
 
