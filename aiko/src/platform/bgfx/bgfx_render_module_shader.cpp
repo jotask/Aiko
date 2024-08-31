@@ -1,6 +1,6 @@
-#ifdef AIKO_NATIVE
+#ifdef AIKO_BGFX
 
-#include "opengl_render_module.h"
+#include "bgfx_render_module.h"
 
 #include <fstream>
 
@@ -23,15 +23,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace aiko::native
+namespace aiko::fx
 {
 
-    void OpenglRenderModule::refreshShader(Mesh*)
+    void BgfxRenderModule::refreshShader(Mesh*)
     {
 
     }
 
-    AikoUPtr<Shader> OpenglRenderModule::createShader()
+    AikoUPtr<Shader> BgfxRenderModule::createShader()
     {
         AikoUPtr<Shader> shader = std::make_unique<Shader>();
         shader->loadShaderData = std::bind(&RenderModule::loadShaderData, this, std::placeholders::_1, std::placeholders::_2);
@@ -39,7 +39,7 @@ namespace aiko::native
         return shader;
     }
 
-    aiko::ShaderData OpenglRenderModule::loadShaderData(const char* vsPath, const char* fsPath)
+    aiko::ShaderData BgfxRenderModule::loadShaderData(const char* vsPath, const char* fsPath)
     {
 
         auto loadFile = [](const char* filename) -> string
@@ -154,7 +154,7 @@ namespace aiko::native
         return data;
     }
 
-    void OpenglRenderModule::unloadShader(aiko::ShaderData& data)
+    void BgfxRenderModule::unloadShader(aiko::ShaderData& data)
     {
 
     }

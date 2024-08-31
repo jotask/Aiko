@@ -22,6 +22,7 @@ namespace aiko
     {
         const AikoConfig cfg = getAiko()->getConfig();
         background_color = cfg.background_color;
+        EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);
     }
 
     ivec2 RenderModule::getDisplaySize()

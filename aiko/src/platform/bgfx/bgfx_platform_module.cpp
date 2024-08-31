@@ -1,4 +1,4 @@
-#ifdef AIKO_NATIVE
+#ifdef AIKO_BGFX
 
 #include "modules/platform_module.h"
 
@@ -57,5 +57,4 @@ namespace aiko
     }
 
 }
-
 #endif

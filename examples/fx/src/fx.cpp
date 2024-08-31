@@ -20,12 +20,6 @@ namespace fx
     void Fx::init()
     {
         Application::init();
-
-        auto camera = this->Instantiate("Camera");
-        auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Orbit);
-
-        auto root = Instantiate("Root");
-
     }
 
     void Fx::update()

@@ -1,3 +1,5 @@
+#ifdef AIKO_NATIVE
+
 #include "opengl_render_module.h"
 
 #include <fstream>
@@ -139,7 +141,6 @@ namespace aiko::native
 
         initScreenFbo();
 
-        EventSystem::it().bind<WindowResizeEvent>(this, &OpenglRenderModule::onWindowResize);
     }
 
     void OpenglRenderModule::postInit()
@@ -387,4 +388,4 @@ namespace aiko::native
     }
 
 }
-
+#endif

@@ -1,6 +1,6 @@
-#ifdef AIKO_NATIVE
+#ifdef AIKO_BGFX
 
-#include "opengl_render_module.h"
+#include "bgfx_render_module.h"
 
 #include <fstream>
 
@@ -23,7 +23,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace aiko::native
+namespace aiko::fx
 {
 
     // TODO

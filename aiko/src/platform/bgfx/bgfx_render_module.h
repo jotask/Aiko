@@ -1,4 +1,4 @@
-#ifdef AIKO_NATIVE
+#ifdef AIKO_BGFX
 
 #pragma once
 
@@ -21,16 +21,16 @@ namespace aiko
     class Transform;
 }
 
-namespace aiko::native
+namespace aiko::fx
 {
 
-    class OpenglRenderModule : public aiko::RenderModule
+    class BgfxRenderModule : public aiko::RenderModule
     {
     
     public:
 
-        OpenglRenderModule(Aiko* aiko);
-        virtual ~OpenglRenderModule();
+        BgfxRenderModule(Aiko* aiko);
+        virtual ~BgfxRenderModule();
 
     protected:
     
@@ -97,9 +97,10 @@ namespace aiko::native
         AikoUPtr<Shader> m_passthrought;
 
         virtual void onWindowResize(Event&) override;
+
+    private:
     
     };
 
 }
-
 #endif

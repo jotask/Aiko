@@ -1,5 +1,6 @@
-#include "opengl_render_module.h"
+#ifdef AIKO_NATIVE
 
+#include "opengl_render_module.h"
 
 #include <fstream>
 
@@ -251,4 +252,4 @@ namespace aiko::native
     }
 
 }
-
+#endif

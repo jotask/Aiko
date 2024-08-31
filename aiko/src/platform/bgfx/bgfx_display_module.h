@@ -1,4 +1,4 @@
-#ifdef AIKO_NATIVE
+#ifdef AIKO_BGFX
 
 #pragma once
 
@@ -8,26 +8,31 @@
 #include "models/display.h"
 #include "events/event.hpp"
 
-namespace aiko::native
+class GLFWwindow;
+
+namespace aiko::fx
 {
 
-    class OpenglDisplayModule : public aiko::DisplayModule
+    class BgfxDisplayModule : public aiko::DisplayModule
     {
 
     public:
 
-        OpenglDisplayModule(Aiko* aiko) : aiko::DisplayModule(aiko) { };
-        virtual ~OpenglDisplayModule();
+        BgfxDisplayModule(Aiko* aiko);
+        virtual ~BgfxDisplayModule();
 
     protected:
 
-        virtual void init() override;
+        virtual void preInit() override;
         virtual void preUpdate() override;
 
         virtual void beginFrame() override;
         virtual void endFrame() override;
 
         virtual void dispose() override;
+
+    private:
+        GLFWwindow* m_window;
 
     };
 

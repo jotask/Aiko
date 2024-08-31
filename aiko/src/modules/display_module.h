@@ -24,7 +24,7 @@ namespace aiko
 
     protected:
 
-        virtual void init() override;
+        virtual void preInit() override;
 
         Display m_curent;
 

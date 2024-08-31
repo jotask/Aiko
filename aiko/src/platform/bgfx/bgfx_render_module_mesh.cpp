@@ -1,6 +1,6 @@
-#ifdef AIKO_NATIVE
+#ifdef AIKO_BGFX
 
-#include "opengl_render_module.h"
+#include "bgfx_render_module.h"
 
 #include <fstream>
 
@@ -12,6 +12,7 @@
 #include "types/textures.h"
 #include "events/events.hpp"
 #include "types/render_types.h"
+#include "models/camera.h"
 #include "models/mesh.h"
 #include "models/shader.h"
 #include "components/transform_component.h"
@@ -23,10 +24,28 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace aiko::native
+namespace aiko::fx
 {
 
-    // TODO
+    void BgfxRenderModule::initMesh( Mesh* mesh )
+    {
+
+    }
+
+    void BgfxRenderModule::refreshMesh(Mesh* mesh)
+    {
+
+    }
+
+    void BgfxRenderModule::renderMesh(Camera* cam,  Transform* transform, Mesh* mesh, Shader* shader)
+    {
+
+    }
+
+    void BgfxRenderModule::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, texture::Texture* text)
+    {
+        
+    }
 
 }
 #endif

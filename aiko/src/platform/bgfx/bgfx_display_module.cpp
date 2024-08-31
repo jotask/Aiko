@@ -1,6 +1,6 @@
-#ifdef AIKO_NATIVE
+#ifdef AIKO_BGFX
 
-#include "opengl_display_module.h"
+#include "bgfx_display_module.h"
 
 #include "aiko.h"
 #include "core/libs.h"
@@ -8,7 +8,7 @@
 
 #include "events/events.hpp"
 
-namespace aiko::native
+namespace aiko::fx
 {
 
     GLFWwindow* getNative(void* ptr)
@@ -16,28 +16,40 @@ namespace aiko::native
         return (GLFWwindow*)ptr;
     }
 
-    OpenglDisplayModule::~OpenglDisplayModule()
+    BgfxDisplayModule::BgfxDisplayModule(Aiko* aiko)
+        : aiko::DisplayModule(aiko)
+        , m_window(nullptr)
     {
 
     }
 
-    void OpenglDisplayModule::init()
+    BgfxDisplayModule::~BgfxDisplayModule()
     {
 
-        DisplayModule::init();
+    }
+
+    void BgfxDisplayModule::preInit()
+    {
 
         const AikoConfig cfg = getAiko()->getConfig();
         const ivec2 size = { cfg.width, cfg.height };
         m_displayName = cfg.window_tittle;
-        GLFWwindow* window = glfwCreateWindow(size.x, size.y, m_displayName.c_str(), NULL, NULL);
-        if (window == NULL)
+
+        if (glfwInit() ==false)
+        {
+            Log::critical("Failed to GLFW init");
+            return;
+        }
+
+        m_window = glfwCreateWindow(size.x, size.y, m_displayName.c_str(), NULL, NULL);
+        if (m_window == NULL)
         {
             Log::critical("Failed to create GLFW window");
             glfwTerminate();
             // Throw exception and/or exit
             return;
         }
-        glfwMakeContextCurrent(window);
+        glfwMakeContextCurrent(m_window);
         glfwSwapInterval(0);
 
         // window resize
@@ -46,45 +58,44 @@ namespace aiko::native
             WindowResizeEvent even(width, height);
             aiko::EventSystem::it().sendEvent(even);
         };
-        glfwSetFramebufferSizeCallback(window, lamba );
+        glfwSetFramebufferSizeCallback(m_window, lamba);
 
         // keyboard
         auto key_callback = [](GLFWwindow* window, int key, int scancode, int action, int mods)
-            {
-                OnKeyPressedEvent even(key, scancode, action, mods);
-                aiko::EventSystem::it().sendEvent(even);
-            };
+        {
+            OnKeyPressedEvent even(key, scancode, action, mods);
+            aiko::EventSystem::it().sendEvent(even);
+        };
 
-        glfwSetKeyCallback(window, key_callback);
+        glfwSetKeyCallback(m_window, key_callback);
 
         // Mouse position
         auto cursor_position_callback = [](GLFWwindow* window, double xpos, double ypos)
-            {
-                OnMouseMoveEvent even(xpos, ypos);
-                aiko::EventSystem::it().sendEvent(even);
-            };
+        {
+            OnMouseMoveEvent even(xpos, ypos);
+            aiko::EventSystem::it().sendEvent(even);
+        };
 
-        glfwSetCursorPosCallback(window, cursor_position_callback);
-        m_curent.setNative(window);
+        glfwSetCursorPosCallback(m_window, cursor_position_callback);
+        m_curent.setNative(m_window);
         m_curent.setWindowSize(size.x, size.y);
-
     }
 
-    void OpenglDisplayModule::beginFrame()
+    void BgfxDisplayModule::beginFrame()
     {
     }
 
-    void OpenglDisplayModule::endFrame()
+    void BgfxDisplayModule::endFrame()
     {
         glfwSwapBuffers(getNative(m_curent.getNative()));
     }
 
-    void OpenglDisplayModule::dispose()
+    void BgfxDisplayModule::dispose()
     {
         glfwDestroyWindow(getNative(m_curent.getNative()));
     }
 
-    void OpenglDisplayModule::preUpdate()
+    void BgfxDisplayModule::preUpdate()
     {
 
         static float lastTime;
@@ -117,5 +128,4 @@ namespace aiko::native
     }
 
 }
-
 #endif
