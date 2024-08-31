@@ -19,6 +19,7 @@
 #include "models/camera.h"
 #include "models/game_object.h"
 #include "models/time.h"
+#include "models/input.h"
 
 #include "types/render_types.h"
 #include "types/camera_types.h"
