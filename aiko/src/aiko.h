@@ -3,7 +3,6 @@
 #include <memory>
 #include <vector>
 
-
 #include "aiko_types.h"
 #include "aiko_config.h" 
 #include "modules/module.h"

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "aiko.h"
 #include "aiko_types.h"
 #include "base_module.h"
 #include "shared/math.h"
@@ -15,7 +16,7 @@ namespace aiko
     public:
 
         DisplayModule(Aiko* aiko) : BaseModule(aiko) { };
-        virtual ~DisplayModule();
+        virtual ~DisplayModule() = default;
 
         Display& getCurrentDisplay() { return m_curent; };
 
@@ -24,12 +25,6 @@ namespace aiko
     protected:
 
         virtual void init() override;
-        virtual void preUpdate() override;
-
-        virtual void beginFrame() override;
-        virtual void endFrame() override;
-
-        virtual void dispose() override;
 
         Display m_curent;
 

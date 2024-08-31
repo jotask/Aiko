@@ -1,4 +1,4 @@
-#include "modules/render_module.h"
+#include "opengl_render_module.h"
 
 
 #include <fstream>
@@ -22,7 +22,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace aiko
+namespace aiko::native
 {
 
     // TODO

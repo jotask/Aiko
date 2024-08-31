@@ -23,21 +23,13 @@ namespace aiko
     public:
 
         RenderModule(Aiko* aiko);
-        virtual ~RenderModule();
+        virtual ~RenderModule() = default;
 
     protected:
 
         virtual void connect(ModuleConnector*);
-    
-        virtual void preInit() override;
         virtual void init() override;
-        virtual void postInit() override;
 
-        virtual void beginFrame() override;
-        virtual void endFrame() override;
-
-        virtual void dispose() override;
-    
     public:
 
         struct ScreenFbo
@@ -47,59 +39,55 @@ namespace aiko
             texture::RenderTexture2D renderTexture;
         };
 
-        void initMesh(Mesh*);
-        void refreshMesh(Mesh*);
-        void renderMesh(Camera*, Transform*, Mesh*, Shader*);
-        void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::Texture*);
-
-        void refreshShader(Mesh*);
-
         ivec2 getDisplaySize();
 
-        texture::RenderTexture2D* getRenderTexture();
+        virtual void initMesh(Mesh*) = 0;
+        virtual void refreshMesh(Mesh*) = 0;
+        virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*) = 0;
+        virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::Texture*) = 0;
 
-        void clearBackground(Color);
-        void beginMode2D();
-        void endMode2D();
-        void beginMode3D();
-        void endMode3D();
-        void beginTextureMode();
-        void beginTextureMode(texture::RenderTexture2D& target);
-        void endTextureMode(void);
-        void beginShaderMode(aiko::Shader* shader);
-        void endShaderMode(void);
-        void beginBlendMode(BlendMode);
-        void endBlendMode(void);
+        virtual void refreshShader(Mesh*) = 0;
 
-        void initScreenFbo();
+        virtual texture::RenderTexture2D* getRenderTexture() = 0;
+
+        virtual void clearBackground(Color) = 0;
+        virtual void beginMode2D() = 0;
+        virtual void endMode2D() = 0;
+        virtual void beginMode3D() = 0;
+        virtual void endMode3D() = 0;
+        virtual void beginTextureMode() = 0;
+        virtual void beginTextureMode(texture::RenderTexture2D& target) = 0;
+        virtual void endTextureMode(void) = 0;
+        virtual void beginShaderMode(aiko::Shader* shader) = 0;
+        virtual void endShaderMode(void) = 0;
+        virtual void beginBlendMode(BlendMode) = 0;
+        virtual void endBlendMode(void) = 0;
+
+        virtual void initScreenFbo() = 0;
 
         // Font
-        void drawText(string, float, float, float = 1.0f, Color = WHITE);
+        virtual void drawText(string, float, float, float = 1.0f, Color = WHITE) = 0;
 
         // Texture
-        texture::Texture createTexture();
-        texture::PboTexture createPboTexture(uint16_t, uint16_t);
-        void updatePboTexture(texture::PboTexture texture, std::vector<Color>&);
-        void drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint);
-        void drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint);
+        virtual texture::Texture createTexture() = 0;
+        virtual texture::PboTexture createPboTexture(uint16_t, uint16_t) = 0;
+        virtual void updatePboTexture(texture::PboTexture texture, std::vector<Color>&) = 0;
+        virtual void drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint) = 0;
+        virtual void drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint) = 0;
 
         // Shader
-        AikoUPtr<Shader> createShader();
-        aiko::ShaderData loadShaderData(const char*, const char*);
-        void unloadShader( aiko::ShaderData& );
+        virtual AikoUPtr<Shader> createShader() = 0;
+        virtual aiko::ShaderData loadShaderData(const char*, const char*) = 0;
+        virtual void unloadShader(aiko::ShaderData&) = 0;
 
-    private:
+    protected:
 
         Color background_color;
         bool m_scale;
 
         DisplayModule* m_displayModule;
 
-        ScreenFbo m_screenFbo;
-
-        AikoUPtr<Shader> m_passthrought;
-
-        void onWindowResize(Event&);
+        virtual void onWindowResize(Event&);
     
     };
 

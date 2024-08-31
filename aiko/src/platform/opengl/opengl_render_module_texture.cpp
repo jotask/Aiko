@@ -1,4 +1,4 @@
-#include "modules/render_module.h"
+#include "opengl_render_module.h"
 
 
 #include <fstream>
@@ -25,10 +25,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <stb_image.h>
 
-namespace aiko
+namespace aiko::native
 {
 
-    void RenderModule::initScreenFbo()
+    void OpenglRenderModule::initScreenFbo()
     {
 
         uint& quadVAO = m_screenFbo.vao;
@@ -101,7 +101,7 @@ namespace aiko
 
     }
 
-    texture::Texture RenderModule::createTexture()
+    texture::Texture OpenglRenderModule::createTexture()
     {
         // load and create a texture 
         // -------------------------
@@ -144,7 +144,7 @@ namespace aiko
         return texture;
     }
 
-    texture::PboTexture RenderModule::createPboTexture(uint16_t width, uint16_t height)
+    texture::PboTexture OpenglRenderModule::createPboTexture(uint16_t width, uint16_t height)
     {
         texture::PboTexture pbo;
 
@@ -177,7 +177,7 @@ namespace aiko
 
     }
 
-    void RenderModule::updatePboTexture(texture::PboTexture pbo, std::vector<Color>& pixels)
+    void OpenglRenderModule::updatePboTexture(texture::PboTexture pbo, std::vector<Color>& pixels)
     {
 
         assert(pbo.texture.width * pbo.texture.height == pixels.size(), "Oh dear this doesn't work at all!");
@@ -238,12 +238,12 @@ namespace aiko
 
     }
 
-    void RenderModule::drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint)
+    void OpenglRenderModule::drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint)
     {
         int a = 10;
     }
 
-    void RenderModule::drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint)
+    void OpenglRenderModule::drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint)
     {
         // glActiveTexture(GL_TEXTURE0);
         // glBindTexture(GL_TEXTURE_2D, texture.texture);

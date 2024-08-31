@@ -1,22 +1,28 @@
-#include "modules/display_module.h"
+#include "opengl_display_module.h"
 
 #include "aiko.h"
-#include "events/events.hpp"
 #include "core/libs.h"
 #include "core/log.h"
 
-namespace aiko
+#include "events/events.hpp"
+
+namespace aiko::native
 {
 
-    DisplayModule::~DisplayModule()
+    GLFWwindow* getNative(void* ptr)
+    {
+        return (GLFWwindow*)ptr;
+    }
+
+    OpenglDisplayModule::~OpenglDisplayModule()
     {
 
     }
 
-    void DisplayModule::init()
+    void OpenglDisplayModule::init()
     {
 
-        EventSystem::it().bind<WindowResizeEvent>(this, &DisplayModule::onWindowResize);
+        DisplayModule::init();
 
         const AikoConfig cfg = getAiko()->getConfig();
         const ivec2 size = { cfg.width, cfg.height };
@@ -57,37 +63,26 @@ namespace aiko
             };
 
         glfwSetCursorPosCallback(window, cursor_position_callback);
-        m_curent.native = window;
-        m_curent.m_size = size;
+        m_curent.setNative(window);
+        m_curent.setWindowSize(size.x, size.y);
 
     }
 
-    void DisplayModule::onWindowResize(Event& event)
-    {
-        const auto& msg = static_cast<const WindowResizeEvent&>(event);
-        m_curent.m_size = { msg.width, msg.height };
-    }
-
-    void* DisplayModule::getNativeDisplay()
-    {
-        return m_curent.native;
-    }
-
-    void DisplayModule::beginFrame()
+    void OpenglDisplayModule::beginFrame()
     {
     }
 
-    void DisplayModule::endFrame()
+    void OpenglDisplayModule::endFrame()
     {
-        glfwSwapBuffers((GLFWwindow*)m_curent.native);
+        glfwSwapBuffers(getNative(m_curent.getNative()));
     }
 
-    void DisplayModule::dispose()
+    void OpenglDisplayModule::dispose()
     {
-        glfwDestroyWindow((GLFWwindow*)m_curent.native);
+        glfwDestroyWindow(getNative(m_curent.getNative()));
     }
 
-    void DisplayModule::preUpdate()
+    void OpenglDisplayModule::preUpdate()
     {
 
         static float lastTime;
@@ -105,14 +100,14 @@ namespace aiko
             std::stringstream ss;
             ss << m_displayName.c_str() << " [" << fps << " FPS]";
 
-            glfwSetWindowTitle((GLFWwindow*)m_curent.native, ss.str().c_str());
+            glfwSetWindowTitle(getNative(m_curent.getNative()), ss.str().c_str());
 
             nbFrames = 0;
             lastTime = currentTime;
         }
 
         glfwPollEvents();
-        if ( glfwWindowShouldClose((GLFWwindow*) m_curent.native) == true )
+        if ( glfwWindowShouldClose(getNative(m_curent.getNative())) == true )
         {
             WindowCloseEvent even;
             aiko::EventSystem::it().sendEvent(even);

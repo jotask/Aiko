@@ -1,5 +1,4 @@
-#include "modules/render_module.h"
-
+#include "opengl_render_module.h"
 
 #include <fstream>
 
@@ -27,7 +26,7 @@
 
 #include "modules/render_primitives.h"
 
-namespace aiko
+namespace aiko::native
 {
 
     namespace opengl
@@ -84,25 +83,19 @@ namespace aiko
         }
     }
 
-    RenderModule::RenderModule(Aiko* aiko)
-        : BaseModule(aiko)
-        , m_displayModule(nullptr)
-        , m_scale(false)
+    OpenglRenderModule::OpenglRenderModule(Aiko* aiko)
+        : RenderModule(aiko)
     {
     
     }
 
-    RenderModule::~RenderModule()
+    OpenglRenderModule::~OpenglRenderModule()
     {
         
     }
 
-    void RenderModule::connect(ModuleConnector* moduleConnector)
-    {
-        BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule)
-    }
 
-    void RenderModule::preInit()
+    void OpenglRenderModule::preInit()
     {
         if (glfwInit() == false)
         {
@@ -114,8 +107,10 @@ namespace aiko
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
     }
 
-    void RenderModule::init()
+    void OpenglRenderModule::init()
     {
+
+        RenderModule::init();
 
         if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == false)
         {
@@ -123,10 +118,8 @@ namespace aiko
             return;
         }
 
-        const AikoConfig cfg = getAiko()->getConfig();
-
-        background_color = getAiko()->getConfig().background_color;
-        glViewport(0, 0, cfg.width, cfg.height);
+        const auto windows_size = getDisplaySize();
+        glViewport(0, 0, windows_size.x, windows_size.y);
         glEnable(GL_CULL_FACE);
 
         // During init, enable debug output
@@ -137,8 +130,8 @@ namespace aiko
 
         m_passthrought = createShader();
         m_passthrought->load(
-            global::getAssetPath("shaders/aiko_passthrought.vs").c_str(),
-            global::getAssetPath("shaders/aiko_passthrought.fs").c_str()
+            aiko::global::getAssetPath("shaders/aiko_passthrought.vs").c_str(),
+            aiko::global::getAssetPath("shaders/aiko_passthrought.fs").c_str()
         );
 
         m_passthrought->use();
@@ -146,10 +139,10 @@ namespace aiko
 
         initScreenFbo();
 
-        EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);
+        EventSystem::it().bind<WindowResizeEvent>(this, &OpenglRenderModule::onWindowResize);
     }
 
-    void RenderModule::postInit()
+    void OpenglRenderModule::postInit()
     {
         if (gltInit() == false)
         {
@@ -159,7 +152,7 @@ namespace aiko
         gltViewport(cfg.width, cfg.height);
     }
 
-    void RenderModule::beginFrame()
+    void OpenglRenderModule::beginFrame()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_screenFbo.renderTexture.framebuffer);
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
@@ -168,7 +161,7 @@ namespace aiko
         glDepthMask(GL_TRUE);
     }
 
-    void RenderModule::endFrame()
+    void OpenglRenderModule::endFrame()
     {
         // Bind back to default framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -176,7 +169,7 @@ namespace aiko
         clearBackground(BLACK);
 
         // Get window size
-        auto window_size = m_displayModule->getCurrentDisplay().getDisplaySize();
+        const auto window_size = getDisplaySize();
         glViewport(0, 0, window_size.x, window_size.y);
 
         if (getAiko()->getConfig().auto_render == false)
@@ -193,7 +186,7 @@ namespace aiko
 
     }
 
-    void RenderModule::drawText(string texto, float x, float y , float scale, Color color)
+    void OpenglRenderModule::drawText(string texto, float x, float y , float scale, Color color)
     {
         gltBeginDraw();
 
@@ -240,24 +233,22 @@ namespace aiko
 
     }
 
-    void RenderModule::dispose()
+    void OpenglRenderModule::dispose()
     {
         gltTerminate();
         glfwTerminate();
     }
 
-    ivec2 RenderModule::getDisplaySize()
-    {
-        return m_displayModule->getCurrentDisplay().getDisplaySize();
-    }
-
-    texture::RenderTexture2D* RenderModule::getRenderTexture()
+    texture::RenderTexture2D* OpenglRenderModule::getRenderTexture()
     {
         return &m_screenFbo.renderTexture;
     }
 
-    void RenderModule::onWindowResize(Event& event)
+    void OpenglRenderModule::onWindowResize(Event& event)
     {
+
+        RenderModule::onWindowResize(event);
+
         const auto& msg = static_cast<const WindowResizeEvent&>(event);
 
         if (m_scale == true)
@@ -285,18 +276,18 @@ namespace aiko
 
     }
 
-    void RenderModule::clearBackground(Color color)
+    void OpenglRenderModule::clearBackground(Color color)
     {
         glClearColor(color.r, color.g, color.b, color.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    void RenderModule::beginMode2D()
+    void OpenglRenderModule::beginMode2D()
     {
         glDisable(GL_DEPTH_TEST);
     }
 
-    void RenderModule::endMode2D()
+    void OpenglRenderModule::endMode2D()
     {
         auto texture = m_screenFbo.renderTexture.texture;
 
@@ -348,49 +339,49 @@ namespace aiko
         glEnable(GL_CULL_FACE);
     }
 
-    void RenderModule::beginMode3D()
+    void OpenglRenderModule::beginMode3D()
     {
         glEnable(GL_DEPTH_TEST);
     }
 
-    void RenderModule::endMode3D()
+    void OpenglRenderModule::endMode3D()
     {
 
     }
 
-    void RenderModule::beginTextureMode()
+    void OpenglRenderModule::beginTextureMode()
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_screenFbo.renderTexture.texture.id);
     }
 
-    void RenderModule::beginTextureMode(texture::RenderTexture2D& target)
+    void OpenglRenderModule::beginTextureMode(texture::RenderTexture2D& target)
     {
         glBindTexture(GL_TEXTURE_2D, target.texture.id);
     }
 
-    void RenderModule::endTextureMode(void)
+    void OpenglRenderModule::endTextureMode(void)
     {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    void RenderModule::beginShaderMode(aiko::Shader* shader)
+    void OpenglRenderModule::beginShaderMode(aiko::Shader* shader)
     {
         glDisable(GL_CULL_FACE);
         shader->use();
     }
 
-    void RenderModule::endShaderMode(void)
+    void OpenglRenderModule::endShaderMode(void)
     {
         glUseProgram(0);
     }
 
-    void RenderModule::beginBlendMode(BlendMode mode)
+    void OpenglRenderModule::beginBlendMode(BlendMode mode)
     {
 
     }
 
-    void RenderModule::endBlendMode(void)
+    void OpenglRenderModule::endBlendMode(void)
     {
 
     }

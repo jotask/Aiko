@@ -25,6 +25,8 @@
 #include "systems/input_system.h"
 #include "systems/particle_system/particle_system.h"
 
+#include "platform/platform_builder.hpp"
+
 namespace aiko
 {
 
@@ -70,8 +72,8 @@ namespace aiko
 
         // Modules
         m_modules.emplace_back(std::make_unique<PlatformModule>(this));
-        m_modules.emplace_back(std::make_unique<DisplayModule>(this));
-        m_modules.emplace_back(std::make_unique<RenderModule>(this));
+        m_modules.emplace_back(modules::builder::getDisplaySystem(this));
+        m_modules.emplace_back(modules::builder::getRenderSystem(this));
         m_modules.emplace_back(std::make_unique<InputModule>(this));
         m_modules.emplace_back(std::make_unique<AssetModule>(this));
         m_modules.emplace_back(std::make_unique<DebugModule>(this));

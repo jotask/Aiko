@@ -1,4 +1,4 @@
-#include "modules/render_module.h"
+#include "opengl_render_module.h"
 
 
 #include <fstream>
@@ -23,17 +23,17 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace aiko
+namespace aiko::native
 {
 
-    void RenderModule::initMesh( Mesh* mesh )
+    void OpenglRenderModule::initMesh( Mesh* mesh )
     {
         glGenVertexArrays(1, &mesh->m_data.vao);
         glGenBuffers(1, &mesh->m_data.vbo);
         glGenBuffers(1, &mesh->m_data.ebo);
     }
 
-    void RenderModule::refreshMesh(Mesh* mesh)
+    void OpenglRenderModule::refreshMesh(Mesh* mesh)
     {
 
         glBindVertexArray(mesh->m_data.vao);
@@ -62,7 +62,7 @@ namespace aiko
 
     }
 
-    void RenderModule::renderMesh(Camera* cam,  Transform* transform, Mesh* mesh, Shader* shader)
+    void OpenglRenderModule::renderMesh(Camera* cam,  Transform* transform, Mesh* mesh, Shader* shader)
     {
 
         shader->use();
@@ -84,7 +84,7 @@ namespace aiko
 
     }
 
-    void RenderModule::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, texture::Texture* text)
+    void OpenglRenderModule::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, texture::Texture* text)
     {
         glDisable(GL_CULL_FACE);
 

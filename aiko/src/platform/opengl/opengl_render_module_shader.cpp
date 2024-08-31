@@ -1,4 +1,4 @@
-#include "modules/render_module.h"
+#include "opengl_render_module.h"
 
 
 #include <fstream>
@@ -22,15 +22,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace aiko
+namespace aiko::native
 {
 
-    void RenderModule::refreshShader(Mesh*)
+    void OpenglRenderModule::refreshShader(Mesh*)
     {
 
     }
 
-    AikoUPtr<Shader> RenderModule::createShader()
+    AikoUPtr<Shader> OpenglRenderModule::createShader()
     {
         AikoUPtr<Shader> shader = std::make_unique<Shader>();
         shader->loadShaderData = std::bind(&RenderModule::loadShaderData, this, std::placeholders::_1, std::placeholders::_2);
@@ -38,7 +38,7 @@ namespace aiko
         return shader;
     }
 
-    aiko::ShaderData RenderModule::loadShaderData(const char* vsPath, const char* fsPath)
+    aiko::ShaderData OpenglRenderModule::loadShaderData(const char* vsPath, const char* fsPath)
     {
 
         auto loadFile = [](const char* filename) -> string
@@ -153,7 +153,7 @@ namespace aiko
         return data;
     }
 
-    void RenderModule::unloadShader(aiko::ShaderData& data)
+    void OpenglRenderModule::unloadShader(aiko::ShaderData& data)
     {
 
     }

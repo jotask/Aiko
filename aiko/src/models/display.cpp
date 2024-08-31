@@ -13,6 +13,16 @@
 namespace aiko
 {
 
+    void* Display::getNative()
+    {
+        return native;
+    }
+
+    void Display::setNative(void* n)
+    {
+        native = n;
+    }
+
     ivec2 Display::getDisplaySize()
     {
         return m_size;
@@ -20,17 +30,22 @@ namespace aiko
 
     void Display::setWindowTitle(const char* title)
     {
-        // SetWindowTitle(title);
+        tittle = title;
+    }
+
+    std::string Display::getWindowTitle() const
+    {
+        return tittle;
     }
 
     void Display::setWindowPosition(int x, int y)
     {
-        // SetWindowPosition(x, y);
+
     }
 
     void Display::setWindowSize(int width, int height)
     {
-        // SetWindowSize(width, height);
+        m_size = {width, height};
     }
 
 }

@@ -71,6 +71,8 @@ namespace aiko
         using LoadShaderData = std::function<aiko::ShaderData(const char*, const char*)>;//  aiko::ShaderData(RenderModule::*)(const char*, const char*);
         using UnloadShaderData = std::function<void(aiko::ShaderData)>;
 
+    public:
+
         LoadShaderData loadShaderData = nullptr;
         UnloadShaderData unloadShaderData = nullptr;
 
