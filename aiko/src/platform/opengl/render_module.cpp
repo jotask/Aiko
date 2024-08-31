@@ -20,7 +20,7 @@
 #include "models/mesh.h"
 #include "models/shader.h"
 #include "components/transform_component.h"
-#include "render_primitives.h"
+#include "modules/render_primitives.h"
 #include "core/libs.h"
 #include "core/log.h"
 #include "constants.h"
