@@ -16,6 +16,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include <magic_enum.hpp>
+
 #define GLT_IMPLEMENTATION
 #define GLT_MANUAL_VIEWPORT
 #include <gltext.h>
