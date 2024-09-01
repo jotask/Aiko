@@ -212,28 +212,3 @@ message("Fetching magic_enum")
 FetchContent_MakeAvailable(magic_enum)
 
 #----------------------------------------------------------------------
-
-FetchContent_Declare(
-    bgfx
-    GIT_REPOSITORY https://github.com/bkaradzic/bgfx.cmake.git
-    GIT_TAG        master
-    GIT_SHALLOW    TRUE
-    GIT_PROGRESS   TRUE
-)
-
-message("Fetching bgfx")
-#FetchContent_MakeAvailable(bgfx)
-FetchContent_GetProperties(bgfx)
-if(NOT bgfx_POPULATED)
-	FetchContent_Populate(bgfx)
-	if(EMSCRIPTEN OR IOS)
-    		set(BGFX_BUILD_TOOLS OFF CACHE INTERNAL "")
-	else()
-    		set(BGFX_BUILD_TOOLS ON CACHE INTERNAL "")
-	endif()
-	set( BGFX_BUILD_EXAMPLES  OFF CACHE INTERNAL "" )
-	set( BGFX_CUSTOM_TARGETS  OFF CACHE INTERNAL "" )
-	add_subdirectory(${bgfx_SOURCE_DIR} ${bgfx_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
-
-#----------------------------------------------------------------------
