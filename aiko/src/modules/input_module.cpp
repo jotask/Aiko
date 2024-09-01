@@ -125,6 +125,12 @@ namespace aiko
         const auto key = toKey(msg.key);
         const auto action = toAction(msg.action);
 
+        {
+            auto keyo = magic_enum::enum_name(key).data();
+            auto actiono = magic_enum::enum_name(action).data();
+            Log::trace("KEY :: ACTION :: ", keyo, " :: ", actiono);
+        }
+
         m_inputs[key].Type = action;
         m_inputs[key].justPressed = action == InputType::PressedType::PRESS;
 
