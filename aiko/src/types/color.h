@@ -1,5 +1,6 @@
 #pragma once
 
+#include "aiko_types.h"
 #include "shared/math.h"
 
 namespace aiko
@@ -20,6 +21,16 @@ namespace aiko
 
         constexpr bool Color::operator==(const Color& other) { return r == other.r && g == other.g && b == other.b && a == other.a; }
         constexpr bool Color::operator!=(const Color& other) { return !(*this == other); }
+
+        const u32 rgba()
+        {
+            uint8_t red = static_cast<uint8_t>(r * 255.0f);
+            uint8_t green = static_cast<uint8_t>(g * 255.0f);
+            uint8_t blue = static_cast<uint8_t>(b * 255.0f);
+            uint8_t alpha = static_cast<uint8_t>(a * 255.0f);
+            uint32_t rgba = (red << 24) | (green << 16) | (blue << 8) | alpha;
+            return rgba;
+        }
 
     };
 
