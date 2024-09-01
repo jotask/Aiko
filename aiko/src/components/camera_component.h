@@ -13,7 +13,7 @@ namespace aiko
     {
     public:
         CameraComponent();
-        CameraComponent(camera::CameraController);
+        CameraComponent(camera::CameraController, camera::CameraType type = camera::CameraType::Perspective);
         virtual ~CameraComponent() = default;
     
         camera::CameraType getCameraType() const;
@@ -36,6 +36,7 @@ namespace aiko
     private:
 
         InputSystem* m_inputSystem;
+        camera::CameraType m_type;
 
         // Orbit
         float m_radius = 3.5f;

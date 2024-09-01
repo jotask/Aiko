@@ -14,10 +14,11 @@ namespace aiko
     {
     }
 
-    CameraComponent::CameraComponent(camera::CameraController controller)
+    CameraComponent::CameraComponent(camera::CameraController controller, camera::CameraType type)
         : Component("Camera")
         , m_camera(nullptr)
         , cameraControler(controller)
+        , m_type(type)
     {
 
     }
@@ -137,8 +138,9 @@ namespace aiko
     void CameraComponent::init()
     {
         auto system = gameobject->getSystem<CameraSystem>();
-        m_camera = system->createCamera(true);
         m_inputSystem = gameobject->getSystem<InputSystem>();
+        m_camera = system->createCamera(true);
+        m_camera->setCameraType(m_type);
     }
 
 }

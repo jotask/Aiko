@@ -6,23 +6,23 @@
 namespace aiko
 {
 
-    GridComponent::GridComponent()
-        : Component("Grid")
+    GridXComponent::GridXComponent()
+        : Component("GridX")
     {
 
     }
 
-    void GridComponent::init()
+    void GridXComponent::init()
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
     }
 
-    void GridComponent::update()
+    void GridXComponent::update()
     {
         // aiko::AikoPtr<Transform> transform = gameobject->transform();
     }
 
-    void GridComponent::render()
+    void GridXComponent::render()
     {
         // m_renderSystem->render(this);
     }

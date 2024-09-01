@@ -10,14 +10,14 @@ namespace aiko
 
     class RenderSystem;
 
-    class GridComponent : public Component, public IUpdate, public IRender3D
+    class GridXComponent : public Component, public IUpdate, public IRender3D
     {
     public:
 
         friend class RenderSystem;
 
-        GridComponent();
-        virtual ~GridComponent() = default;
+        GridXComponent();
+        virtual ~GridXComponent() = default;
 
         virtual void init() override;
         virtual void update() override;
