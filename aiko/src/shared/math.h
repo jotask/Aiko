@@ -34,6 +34,7 @@ namespace aiko
 
         vec2 operator*(const float& scalar) const { return { x * scalar, y * scalar }; }
         vec2 operator+(vec2& other) const { return { x + other.x, y + other.y }; }
+        vec2 operator-(vec2& other) const { return { x - other.x, y - other.y }; }
         vec2 operator+=(vec2& other) const { return { x + other.x, y + other.y }; }
 
     };
@@ -73,6 +74,38 @@ namespace aiko
         // Division
         vec3 operator/(float scalar) const {
             return vec3(x / scalar, y / scalar, z / scalar);
+        }
+
+        // Compound Addition
+        vec3& operator+=(const vec3& other) {
+            x += other.x;
+            y += other.y;
+            z += other.z;
+            return *this;
+        }
+
+        // Compound Subtraction
+        vec3& operator-=(const vec3& other) {
+            x -= other.x;
+            y -= other.y;
+            z -= other.z;
+            return *this;
+        }
+
+        // Compound Multiplication (for scalar multiplication)
+        vec3& operator*=(float scalar) {
+            x *= scalar;
+            y *= scalar;
+            z *= scalar;
+            return *this;
+        }
+
+        // Compound Division (for scalar division)
+        vec3& operator/=(float scalar) {
+            x /= scalar;
+            y /= scalar;
+            z /= scalar;
+            return *this;
         }
 
     };
