@@ -2,6 +2,11 @@
 
 #include  <algorithm>
 #include <assert.h>
+#include <chrono>
+
+#include "shared/math.h"
+#include "shared/math_transform.h"
+#include "core/utils.h"
 
 #include "models/game_object.h"
 #include "systems/render_system.h"
@@ -39,14 +44,86 @@ namespace aiko
 
     void PboTextureComponent::update()
     {
-        if (auto_render)
+
+        static auto lastTime = std::chrono::steady_clock::now();
+        static double accumulatedTime = 0.0;
+        static const double interval = 1 / 60.0f;
+
+        auto currentTime = std::chrono::steady_clock::now();
+        std::chrono::duration<double> delta = currentTime - lastTime;
+        lastTime = currentTime;
+
+        accumulatedTime += delta.count();
+        bool should_update = false;
+
+        if (accumulatedTime >= interval)
         {
-            static int x = 0;
-            static int y = m_texture.texture.height / 2;
+            accumulatedTime -= interval; // Handle possible overflow
+            should_update = true;
+        }
+
+        if (auto_render && should_update)
+        {
+
+            struct Particle
+            {
+                ivec2 pos;
+                ivec2 dir;
+                Color col;
+            };
+
+            constexpr auto N_PARTICLES = 1000;
+
+            static std::vector<Particle> s_particles;
+
+            const int w = m_texture.texture.width - 1;
+            const int h = m_texture.texture.height - 1;
+
+            if (s_particles.size() != N_PARTICLES)
+            {
+                for (uint i = 0 ; i < N_PARTICLES; i++)
+                {
+                    ivec2 pos = ivec2(utils::getRandomValue(0, w), utils::getRandomValue(0, h));
+                    ivec2 dir = ivec2(utils::getRandomValue(-1, 1), utils::getRandomValue(-1, 1));
+                    Color col = { utils::getRandomValue(0.0f, 1.0f) , utils::getRandomValue(0.0f, 1.0f) , utils::getRandomValue(0.0f, 1.0f) , 1.0f};
+                    s_particles.push_back({pos, dir, col});
+                }
+            }
+            else
+            {
+                for(auto& it : s_particles)
+                {
+
+                    {
+                        if (it.pos.x == 0 || it.pos.x == w)
+                        {
+                            it.dir.x *= -1;
+                        }
+                        if (it.pos.y == 0 || it.pos.y == h)
+                        {
+                            it.dir.y *= -1;
+                        }
+                    }
+
+                    it.pos.x += it.dir.x;
+                    it.pos.y += it.dir.y;
+
+                    it.pos.x = math::clamp(it.pos.x, 0, w);
+                    it.pos.y = math::clamp(it.pos.y, 0, h);
+                }
+            }
+
             std::fill(pixels.begin(), pixels.end(), BLACK);
-            updatePixel(x, y, WHITE);
-            x++;
-            x %= m_texture.texture.width;
+
+            for (auto it : s_particles)
+            {
+                if (it.pos.x == -1 || it.pos.y == -1)
+                {
+                    Log::trace(it.pos.x, " :: ", it.pos.y);
+                }
+                updatePixel(it.pos.x, it.pos.y, it.col);
+            }
+
         }
     }
 
