@@ -74,6 +74,9 @@ namespace aiko
     {
         EventSystem::it().bind<OnKeyPressedEvent>(this, &InputModule::onKeyPressed);
         EventSystem::it().bind<OnMouseMoveEvent>(this, &InputModule::onMouseMoved);
+        GLFWwindow* window = (GLFWwindow*)m_displayModule->getNativeDisplay();
+        glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+        setCentredToScreen(false);
     }
 
     void InputModule::endFrame()
