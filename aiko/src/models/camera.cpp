@@ -50,7 +50,6 @@ namespace aiko
         {
             ivec2 size = cameraSystem->getDisplaySize();
             float aspectRatio = size.x / size.y;
-            constexpr float orthoHeight = 2.0f;
             float orthoWidth = orthoHeight * aspectRatio;
             return math::ortho(-orthoWidth, orthoWidth, -orthoHeight, orthoHeight, near, far);
         }

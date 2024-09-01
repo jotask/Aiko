@@ -41,6 +41,7 @@ namespace aiko
         float m_fov = 0.0f;
         float near = 0.0001f;
         float far = 100.0f;
+        float orthoHeight = 2.0f;
 
         camera::CameraType cameraType = camera::CameraType::Perspective;
 
