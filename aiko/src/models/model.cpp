@@ -1,15 +1,11 @@
-#pragma once
-
-#include "models/mesh.h"
+#include "model.h"
 
 namespace aiko
 {
-    class Model
+
+    Model::Model()
     {
-    public:
-        Model() = default;
-        ~Model() = default;
-    private:
-        Mesh m_mesh;
-    };
+
+    }
+
 }
