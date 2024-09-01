@@ -20,7 +20,11 @@ namespace aiko
         bool isKeyPressed(Key) const;
         bool isKeyJustPressed(Key) const;
         vec2 getMousePosition() const;
+        vec2 getMouseDelta() const;
         bool isMouseButtonPressed(MouseButton button) const;
+
+        void setCentredToScreen(bool);
+        bool getCentredToScreen() const;
 
     protected:
 
@@ -46,8 +50,13 @@ namespace aiko
         std::map<Key, InputType> m_inputs;
 
         void onKeyPressed(Event& event);
+        void onMouseMoved(Event& event);
 
         DisplayModule* m_displayModule;
+
+        vec2 m_mousePosition;
+        vec2 m_mouseDelta;
+        bool m_mouseCentred;
     };
 
 }

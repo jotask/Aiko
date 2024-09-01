@@ -29,9 +29,12 @@ namespace aiko
         InputSystem() = default;
         virtual ~InputSystem() = default;
 
+        void setIsMouseCentred(bool centred) const;
+        bool getIsMouseCentred() const;
         bool isKeyPressed(Key) const;
         bool isKeyJustPressed(Key) const;
         vec2 getMousePosition() const;
+        vec2 getMouseDelta() const;
         bool isMouseButtonPressed(MouseButton button) const;
 
     protected:
@@ -41,7 +44,7 @@ namespace aiko
     private:
 
         InputModule* m_inputModule;
-    
+
     };
 
 }

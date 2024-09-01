@@ -32,12 +32,36 @@ namespace aiko
 
     vec2 InputModule::getMousePosition() const
     {
-        return {};
+        return m_mousePosition;
+    }
+
+    vec2 InputModule::getMouseDelta() const
+    {
+        return m_mouseDelta;
     }
 
     bool InputModule::isMouseButtonPressed(MouseButton button) const
     {
         return false;
+    }
+
+    void InputModule::setCentredToScreen(bool newMouseCentred)
+    {
+        m_mouseCentred = newMouseCentred;
+        GLFWwindow* window = (GLFWwindow*)m_displayModule->getNativeDisplay();
+        if (m_mouseCentred == true)
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+        else
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+    }
+
+    bool InputModule::getCentredToScreen() const
+    {
+        return m_mouseCentred;
     }
 
     void InputModule::connect(ModuleConnector* moduleConnector)
@@ -48,6 +72,7 @@ namespace aiko
     void InputModule::init()
     {
         EventSystem::it().bind<OnKeyPressedEvent>(this, &InputModule::onKeyPressed);
+        EventSystem::it().bind<OnMouseMoveEvent>(this, &InputModule::onMouseMoved);
     }
 
     void InputModule::endFrame()
@@ -61,6 +86,7 @@ namespace aiko
         {
             it->second.justPressed = false;
         }
+        m_mouseDelta = {};
     }
 
     void InputModule::onKeyPressed(Event& event)
@@ -101,11 +127,14 @@ namespace aiko
         m_inputs[key].Type = action;
         m_inputs[key].justPressed = action == InputType::PressedType::PRESS;
 
-        if (m_inputs[key].justPressed)
-        {
-            int a = 0;
-        }
+    }
 
+    void InputModule::onMouseMoved(Event& event)
+    {
+        const auto& msg = static_cast<const OnMouseMoveEvent&>(event);
+        vec2 newMousePosition = { msg.x, msg.y };
+        m_mouseDelta = newMousePosition - m_mousePosition;
+        m_mousePosition = newMousePosition;
     }
 
 }

@@ -17,6 +17,16 @@ namespace aiko
         BIND_MODULE_REQUIRED(InputModule, moduleConnector, m_inputModule)
     }
 
+    void InputSystem::setIsMouseCentred(bool centred) const
+    {
+        m_inputModule->setCentredToScreen(centred);
+    }
+
+    bool InputSystem::getIsMouseCentred() const
+    {
+        return m_inputModule->getCentredToScreen();
+    }
+
     bool InputSystem::isKeyPressed(Key key) const
     {
         return m_inputModule->isKeyPressed(key);
@@ -30,6 +40,11 @@ namespace aiko
     vec2 InputSystem::getMousePosition() const
     {
         return m_inputModule->getMousePosition();
+    }
+
+    vec2 InputSystem::getMouseDelta() const
+    {
+        return m_inputModule->getMouseDelta();
     }
 
     bool InputSystem::isMouseButtonPressed(MouseButton button) const
