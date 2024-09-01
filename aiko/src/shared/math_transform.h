@@ -16,6 +16,7 @@ namespace aiko
         mat4 scale(mat4, vec3);
         mat4 translate(mat4, vec3);
         mat4 rotate(mat4, float, vec3);
+        vec3 rotate(vec3, float, vec3);
         mat4 lookAt(vec3, vec3, vec3);
 
         mat4 perspective(float, float, float, float, float);

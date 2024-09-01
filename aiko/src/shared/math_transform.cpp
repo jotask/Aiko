@@ -101,6 +101,19 @@ namespace aiko
             return toAiko(m);
         }
 
+        vec3 rotate(vec3 v, float angle, vec3 axis)
+        {
+
+            // Create a rotation matrix
+            glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(angle), toGlm(axis));
+
+            // Rotate the vector by applying the rotation matrix
+            glm::vec4 glmVec4(toGlm(v), 1.0f); // Convert to vec4 for matrix multiplication
+            glm::vec4 rotatedVec4 = rotationMatrix * glmVec4;
+
+            return toAiko(glm::vec3(rotatedVec4));
+        }
+
         mat4 lookAt(vec3 position, vec3 target, vec3 up)
         {
             glm::mat4 mat = glm::mat4(1.0f);
