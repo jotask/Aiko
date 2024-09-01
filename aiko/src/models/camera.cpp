@@ -48,9 +48,10 @@ namespace aiko
         }
         case camera::CameraType::Orthographic:
         {
-            auto size = cameraSystem->getDisplaySize();
-            float orthoWidth = size.x * 0.5f;
-            float orthoHeight = size.y * 0.5f;
+            ivec2 size = cameraSystem->getDisplaySize();
+            float aspectRatio = size.x / size.y;
+            constexpr float orthoHeight = 2.0f;
+            float orthoWidth = orthoHeight * aspectRatio;
             return math::ortho(-orthoWidth, orthoWidth, -orthoHeight, orthoHeight, near, far);
         }
             default:
