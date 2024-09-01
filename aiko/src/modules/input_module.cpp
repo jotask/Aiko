@@ -16,7 +16,8 @@ namespace aiko
     {
         if (m_inputs.find(key) != m_inputs.end())
         {
-            return m_inputs.at(key).Type == InputType::PressedType::PRESS;
+            InputType::PressedType type = m_inputs.at(key).Type;
+            return type == InputType::PressedType::PRESS || type == InputType::PressedType::REPEAT;
         }
         return false;
     }
