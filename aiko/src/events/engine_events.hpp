@@ -60,7 +60,7 @@ namespace aiko
     class OnMouseMoveEvent : public Event
     {
     public:
-        OnMouseMoveEvent() = default;
+        OnMouseMoveEvent() { };
         OnMouseMoveEvent(float x, float y) : x(x), y(y) {};
         virtual ~OnMouseMoveEvent() = default;
         virtual EventId     getId() const { return "OnMouseMoveEvent"; }
