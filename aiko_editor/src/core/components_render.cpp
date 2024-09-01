@@ -200,7 +200,6 @@ namespace aiko::editor
             ImGui::PushID(camera);
             ImGui::DragFloat3("Position", camera->getCamera()->position, IMGUI_VELOCITY);
             ImGui::DragFloat3("Target", camera->getCamera()->target, IMGUI_VELOCITY);
-            ImGui::DragFloat("Radius", &camera->radius(), IMGUI_VELOCITY);
             ImGui::Spacing();
             ImGui::DragFloat("Near", &camera->getCamera()->near, IMGUI_VELOCITY);
             ImGui::DragFloat("Far", &camera->getCamera()->far, IMGUI_VELOCITY);
@@ -240,6 +239,18 @@ namespace aiko::editor
                     }
                 }
                 ImGui::EndCombo();
+            }
+
+            switch (camera->getCameraController())
+            {
+            case aiko::camera::CameraController::Orbit:
+                ImGui::Text("Orbit");
+                ImGui::DragFloat("Radius", &camera->radius(), IMGUI_VELOCITY);
+                break;
+            case aiko::camera::CameraController::Fly:
+                ImGui::Text("Fly");
+                ImGui::DragFloat("Radius", &camera->speed(), IMGUI_VELOCITY);
+                break;
             }
 
             ImGui::PopID();

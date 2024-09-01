@@ -26,6 +26,7 @@ namespace aiko
         virtual void render() override { };
 
         float& radius() { return m_radius; }
+        float& speed() { return m_speed; }
 
         Camera* getCamera() { return m_camera; }
     
