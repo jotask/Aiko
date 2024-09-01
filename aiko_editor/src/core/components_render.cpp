@@ -228,6 +228,8 @@ namespace aiko::editor
                 ImGui::DragFloat("OrthoHeight", &camera->getCamera()->orthoHeight, IMGUI_VELOCITY);
             }
 
+            ImGui::Spacing();
+
             if (ImGui::BeginCombo("##comboController", magic_enum::enum_name(camera->getCameraController()).data())) // The second parameter is the label previewed before opening the combo.
             {
                 for (int n = 0; n < magic_enum::enum_count<aiko::camera::CameraController>(); n++)
