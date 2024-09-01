@@ -23,7 +23,7 @@ namespace sandbox
         Application::init();
 
         auto camera = this->Instantiate("Camera");
-        auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Orbit);
+        auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
 
         auto root = Instantiate("Root");
 
