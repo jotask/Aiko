@@ -43,6 +43,18 @@ namespace aiko
             return { m.x, m.y, m.z };
         };
 
+        float clamp(float val, float min, float max)
+        {
+            if (val < min) return min;
+            if (val > max) return max;
+            return val;
+        }
+
+        float clamp01(float val)
+        {
+            return clamp(val, 0.0f, 1.0f);
+        }
+
         float cos(float delta)
         {
             return glm::cos(delta);
