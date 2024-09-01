@@ -76,7 +76,7 @@ namespace aiko
         m_modules.emplace_back(modules::builder::getRenderSystem(this));
         m_modules.emplace_back(std::make_unique<InputModule>(this));
         m_modules.emplace_back(std::make_unique<AssetModule>(this));
-        // m_modules.emplace_back(std::make_unique<DebugModule>(this));
+        m_modules.emplace_back(std::make_unique<DebugModule>(this));
 
         ModuleConnector moduleConnector(m_modules);
 
