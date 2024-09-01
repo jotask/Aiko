@@ -73,6 +73,7 @@ namespace aiko
             };
 
             constexpr auto N_PARTICLES = 1000;
+            constexpr bool S_CLEAR_BRACKGROUND = false;
 
             static std::vector<Particle> s_particles;
 
@@ -113,7 +114,10 @@ namespace aiko
                 }
             }
 
-            std::fill(pixels.begin(), pixels.end(), BLACK);
+            if (S_CLEAR_BRACKGROUND)
+            {
+                std::fill(pixels.begin(), pixels.end(), BLACK);
+            }
 
             for (auto it : s_particles)
             {
