@@ -9,6 +9,8 @@
 #include "modules/display_module.h"
 #include "events/events.hpp"
 
+#define LOG_INPUT false
+
 namespace aiko
 {
 
@@ -125,13 +127,21 @@ namespace aiko
                 return (Key)key;
             };
 
-        const auto key = toKey(msg.key);
-        const auto action = toAction(msg.action);
+        const aiko::Key key = toKey(msg.key);
+        const InputType::PressedType action = toAction(msg.action);
 
+        if(LOG_INPUT)
         {
-            auto keyo = magic_enum::enum_name(key).data();
-            auto actiono = magic_enum::enum_name(action).data();
-            Log::trace("KEY :: ACTION :: ", keyo, " :: ", actiono);
+            const char* keyo = magic_enum::enum_name<aiko::Key>(key).data();
+            const char* actiono = magic_enum::enum_name<InputType::PressedType>(action).data();
+            if (keyo != nullptr && actiono != nullptr)
+            {
+                Log::trace("KEY :: ACTION :: ", keyo, " :: ", actiono);
+            }
+            else
+            {
+                Log::trace("KEY :: ACTION :: UNKNOW KEY");
+            }
         }
 
         m_inputs[key].Type = action;
