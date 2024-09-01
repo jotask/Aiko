@@ -7,6 +7,7 @@ namespace aiko
 {
     
     class Camera;
+    class InputSystem;
     
     class CameraComponent : public Component, public IUpdate, public IRender3D
     {
@@ -33,7 +34,13 @@ namespace aiko
     
     private:
 
+        InputSystem* m_inputSystem;
+
+        // Orbit
         float m_radius = 3.5f;
+
+        // Fly
+        float m_speed = 3.5f;
 
         Camera* m_camera;
         camera::CameraController cameraControler = camera::CameraController::Static;
