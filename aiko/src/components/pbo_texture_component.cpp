@@ -117,10 +117,6 @@ namespace aiko
 
             for (auto it : s_particles)
             {
-                if (it.pos.x == -1 || it.pos.y == -1)
-                {
-                    Log::trace(it.pos.x, " :: ", it.pos.y);
-                }
                 updatePixel(it.pos.x, it.pos.y, it.col);
             }
 
