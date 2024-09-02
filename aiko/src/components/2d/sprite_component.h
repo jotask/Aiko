@@ -10,7 +10,7 @@ namespace aiko
 
     class RenderSystem;
 
-    class SpriteComponent : public Component, public IUpdate, public IRender3D
+    class SpriteComponent : public Component, public IUpdate, public IRender2D
     {
     public:
 
