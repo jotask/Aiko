@@ -42,7 +42,7 @@ namespace aiko::editor
                 if (isComponent<aiko::TextureComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Texture); continue; };
                 if (isComponent<aiko::PboTextureComponent>(tmp, pmt)) { addCmp(ComponentsTypes::PboTexture); continue; };
                 if (isComponent<aiko::MeshComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Mesh); continue; };
-                if (isComponent<aiko::GridComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Grid); continue; };
+                if (isComponent<aiko::GridXComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Grid); continue; };
                 if (isComponent<aiko::LightComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Light); continue; };
                 assert(false && "ERROR :: Component is not supported by the editor");
             }
@@ -82,7 +82,7 @@ namespace aiko::editor
                     obj->removeComponent<::aiko::CameraComponent>();
                     break;
                 case ComponentsTypes::Grid:
-                    obj->removeComponent<::aiko::GridComponent>();
+                    obj->removeComponent<::aiko::GridXComponent>();
                     break;
                 case ComponentsTypes::Light:
                     obj->removeComponent<::aiko::LightComponent>();
@@ -119,7 +119,7 @@ namespace aiko::editor
                     obj->addComponent<::aiko::CameraComponent>();
                     break;
                 case ComponentsTypes::Grid:
-                    obj->addComponent<::aiko::GridComponent>();
+                    obj->addComponent<::aiko::GridXComponent>();
                     break;
                 case ComponentsTypes::Light:
                     obj->addComponent<::aiko::LightComponent>();
@@ -146,7 +146,7 @@ namespace aiko::editor
             if (isComponent<aiko::PboTextureComponent>(compt, drawPboTexture)) return;
             if (isComponent<aiko::MeshComponent>(compt, drawMesh)) return;
             if (isComponent<aiko::LightComponent>(compt, drawLight)) return;
-            if (isComponent<aiko::GridComponent>(compt, drawGrid)) return;
+            if (isComponent<aiko::GridXComponent>(compt, drawGrid)) return;
             if (isComponent<aiko::CameraComponent>(compt, drawCamera)) return;
             assert(false && "ERROR :: Component is not supported by the editor");
         }
@@ -189,7 +189,7 @@ namespace aiko::editor
             ImGui::PopID();
         }
 
-        void drawGrid(aiko::GridComponent* grid)
+        void drawGrid(aiko::GridXComponent* grid)
         {
             ImGui::PushID(grid);
             ImGui::PopID();

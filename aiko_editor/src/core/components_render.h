@@ -21,8 +21,8 @@ namespace aiko::editor
         void drawPboTexture(aiko::PboTextureComponent*);
         void drawMesh(aiko::MeshComponent*);
         void drawLight(aiko::LightComponent*);
-        void drawGrid(aiko::GridComponent*);
-        void drawGrid(aiko::GridComponent*);
+        void drawGrid(aiko::GridXComponent*);
+        void drawGrid(aiko::GridXComponent*);
         void drawCamera(aiko::CameraComponent*);
 
         template <typename T>
