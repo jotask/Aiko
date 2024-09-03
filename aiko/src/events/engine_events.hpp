@@ -57,6 +57,16 @@ namespace aiko
         int key; int scancode; int action; int mods;
     };
 
+    class OnMouseKeyPressedEvent : public Event
+    {
+    public:
+        OnMouseKeyPressedEvent() { };
+        OnMouseKeyPressedEvent(int button, int action, int mods) : button(button), action(action), mods(mods) {  };
+        virtual ~OnMouseKeyPressedEvent() = default;
+        virtual EventId     getId() const { return "OnMouseKeyPressedEvent"; }
+        int button; int action; int mods;
+    };
+
     class OnMouseMoveEvent : public Event
     {
     public:

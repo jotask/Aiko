@@ -50,12 +50,23 @@ namespace aiko::native
 
         // keyboard
         auto key_callback = [](GLFWwindow* window, int key, int scancode, int action, int mods)
-            {
-                OnKeyPressedEvent even(key, scancode, action, mods);
-                aiko::EventSystem::it().sendEvent(even);
-            };
+        {
+            OnKeyPressedEvent even(key, scancode, action, mods);
+            aiko::EventSystem::it().sendEvent(even);
+        };
 
+        // Mouse
+        auto mouse_callback = [](GLFWwindow* window, int button, int action, int mods)
+        {
+            OnMouseKeyPressedEvent even(button, action, mods);
+            aiko::EventSystem::it().sendEvent(even);
+        };
+
+        // Set the keyboard callback
         glfwSetKeyCallback(window, key_callback);
+
+        // Set the mouse button callback
+        glfwSetMouseButtonCallback(window, mouse_callback);
 
         // Mouse position
         auto cursor_position_callback = [](GLFWwindow* window, double xpos, double ypos)
