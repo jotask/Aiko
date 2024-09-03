@@ -43,14 +43,19 @@ namespace aiko
                 PRESS, // The key or mouse button was pressed.
                 REPEAT, // The key was held down until it repeated.
             };
+
             PressedType Type;
             bool justPressed;
         };
 
-        std::map<Key, InputType> m_inputs;
+        std::map<Key, InputType> m_keys_inputs;
+        std::map<MouseButton, InputType> m_mouse_inputs;
 
         void onKeyPressed(Event& event);
+        void onMouseKeyPressed(Event& event);
         void onMouseMoved(Event& event);
+
+        InputType::PressedType convertToAction(int code);
 
         DisplayModule* m_displayModule;
 

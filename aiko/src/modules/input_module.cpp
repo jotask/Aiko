@@ -16,9 +16,9 @@ namespace aiko
 
     bool InputModule::isKeyPressed(Key key) const
     {
-        if (m_inputs.find(key) != m_inputs.end())
+        if (m_keys_inputs.find(key) != m_keys_inputs.end())
         {
-            InputType::PressedType type = m_inputs.at(key).Type;
+            InputType::PressedType type = m_keys_inputs.at(key).Type;
             return type == InputType::PressedType::PRESS || type == InputType::PressedType::REPEAT;
         }
         return false;
@@ -26,9 +26,9 @@ namespace aiko
 
     bool InputModule::isKeyJustPressed(Key key) const
     {
-        if (m_inputs.find(key) != m_inputs.end())
+        if (m_keys_inputs.find(key) != m_keys_inputs.end())
         {
-            return m_inputs.at(key).justPressed;
+            return m_keys_inputs.at(key).justPressed;
         }
         return false;
     }
@@ -45,6 +45,11 @@ namespace aiko
 
     bool InputModule::isMouseButtonPressed(MouseButton button) const
     {
+        if (m_mouse_inputs.find(button) != m_mouse_inputs.end())
+        {
+            InputType::PressedType type = m_mouse_inputs.at(button).Type;
+            return type == InputType::PressedType::PRESS || type == InputType::PressedType::REPEAT;
+        }
         return false;
     }
 
@@ -75,6 +80,7 @@ namespace aiko
     void InputModule::init()
     {
         EventSystem::it().bind<OnKeyPressedEvent>(this, &InputModule::onKeyPressed);
+        EventSystem::it().bind<OnMouseKeyPressedEvent>(this, &InputModule::onMouseKeyPressed);
         EventSystem::it().bind<OnMouseMoveEvent>(this, &InputModule::onMouseMoved);
         GLFWwindow* window = (GLFWwindow*)m_displayModule->getNativeDisplay();
         glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
@@ -88,7 +94,7 @@ namespace aiko
         {
             glfwSetWindowShouldClose(window, true);
         }
-        for (auto it = m_inputs.begin(); it != m_inputs.end(); it++)
+        for (auto it = m_keys_inputs.begin(); it != m_keys_inputs.end(); it++)
         {
             it->second.justPressed = false;
         }
@@ -99,36 +105,8 @@ namespace aiko
     {
         const auto& msg = static_cast<const OnKeyPressedEvent&>(event);
 
-        bool final = false;
-
-        static auto toAction = [](int action) -> InputType::PressedType
-            {
-
-                if (action == GLFW_RELEASE)
-                {
-                    return InputType::PressedType::RELEASE;
-                }
-                else if (action == GLFW_PRESS)
-                {
-                    return InputType::PressedType::PRESS;
-                }
-                else if (action == GLFW_REPEAT)
-                {
-                    return InputType::PressedType::REPEAT;
-                }
-                else
-                {
-                    Log::error("KEY :: ACTION :: Not Implemented");
-                }
-            };
-
-        static auto toKey = [](int key) -> Key
-            {
-                return (Key)key;
-            };
-
-        const aiko::Key key = toKey(msg.key);
-        const InputType::PressedType action = toAction(msg.action);
+        const aiko::Key key = static_cast<Key>(key);
+        const InputType::PressedType action = convertToAction(msg.action);
 
         if(LOG_INPUT)
         {
@@ -144,8 +122,34 @@ namespace aiko
             }
         }
 
-        m_inputs[key].Type = action;
-        m_inputs[key].justPressed = action == InputType::PressedType::PRESS;
+        m_keys_inputs[key].Type = action;
+        m_keys_inputs[key].justPressed = action == InputType::PressedType::PRESS;
+
+    }
+
+    void InputModule::onMouseKeyPressed(Event& event)
+    {
+        const auto& msg = static_cast<const OnMouseKeyPressedEvent&>(event);
+
+        const aiko::MouseButton key = static_cast<MouseButton>(msg.button);
+        const InputType::PressedType action = convertToAction(msg.action);
+
+        if (LOG_INPUT)
+        {
+            const char* keyo = magic_enum::enum_name<aiko::MouseButton>(key).data();
+            const char* actiono = magic_enum::enum_name<InputType::PressedType>(action).data();
+            if (keyo != nullptr && actiono != nullptr)
+            {
+                Log::trace("MOUSE :: BUTTON :: ", keyo, " :: ", actiono);
+            }
+            else
+            {
+                Log::trace("MOUSE :: BUTTON :: UNKNOW KEY");
+            }
+        }
+
+        m_mouse_inputs[key].Type = action;
+        m_mouse_inputs[key].justPressed = action == InputType::PressedType::PRESS;
 
     }
 
@@ -155,6 +159,26 @@ namespace aiko
         vec2 newMousePosition = { msg.x, msg.y };
         m_mouseDelta = newMousePosition - m_mousePosition;
         m_mousePosition = newMousePosition;
+    }
+
+    InputModule::InputType::PressedType InputModule::convertToAction(int action)
+    {
+        if (action == GLFW_RELEASE)
+        {
+            return InputType::PressedType::RELEASE;
+        }
+        else if (action == GLFW_PRESS)
+        {
+            return InputType::PressedType::PRESS;
+        }
+        else if (action == GLFW_REPEAT)
+        {
+            return InputType::PressedType::REPEAT;
+        }
+        else
+        {
+            Log::error("KEY :: ACTION :: Not Implemented");
+        }
     }
 
 }
