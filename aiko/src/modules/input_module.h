@@ -21,6 +21,7 @@ namespace aiko
         bool isKeyJustPressed(Key) const;
         vec2 getMousePosition() const;
         vec2 getMouseDelta() const;
+        vec2 getMouseScrollBack() const;
         bool isMouseButtonPressed(MouseButton button) const;
 
         void setCentredToScreen(bool);
@@ -54,12 +55,14 @@ namespace aiko
         void onKeyPressed(Event& event);
         void onMouseKeyPressed(Event& event);
         void onMouseMoved(Event& event);
+        void OnMouseScrollCallback(Event& event);
 
         InputType::PressedType convertToAction(int code);
 
         DisplayModule* m_displayModule;
 
         vec2 m_mousePosition;
+        vec2 m_mouseScrollBack;
         vec2 m_mouseDelta;
         bool m_mouseCentred;
     };

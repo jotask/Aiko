@@ -43,6 +43,11 @@ namespace aiko
         return m_mouseDelta;
     }
 
+    vec2 InputModule::getMouseScrollBack() const
+    {
+        return m_mouseScrollBack;
+    }
+
     bool InputModule::isMouseButtonPressed(MouseButton button) const
     {
         if (m_mouse_inputs.find(button) != m_mouse_inputs.end())
@@ -82,6 +87,7 @@ namespace aiko
         EventSystem::it().bind<OnKeyPressedEvent>(this, &InputModule::onKeyPressed);
         EventSystem::it().bind<OnMouseKeyPressedEvent>(this, &InputModule::onMouseKeyPressed);
         EventSystem::it().bind<OnMouseMoveEvent>(this, &InputModule::onMouseMoved);
+        EventSystem::it().bind<OnMouseScrollCallbackEvent>(this, &InputModule::OnMouseScrollCallback);
         GLFWwindow* window = (GLFWwindow*)m_displayModule->getNativeDisplay();
         glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
         setCentredToScreen(false);
@@ -99,6 +105,7 @@ namespace aiko
             it->second.justPressed = false;
         }
         m_mouseDelta = {};
+        m_mouseScrollBack = {};
     }
 
     void InputModule::onKeyPressed(Event& event)
@@ -159,6 +166,12 @@ namespace aiko
         vec2 newMousePosition = { msg.x, msg.y };
         m_mouseDelta = newMousePosition - m_mousePosition;
         m_mousePosition = newMousePosition;
+    }
+
+    void InputModule::OnMouseScrollCallback(Event& event)
+    {
+        const auto& msg = static_cast<const OnMouseScrollCallbackEvent&>(event);
+        m_mouseScrollBack = { static_cast<float>( msg.xoffset ), static_cast<float>( msg.yoffset ) };
     }
 
     InputModule::InputType::PressedType InputModule::convertToAction(int action)

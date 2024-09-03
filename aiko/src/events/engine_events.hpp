@@ -77,4 +77,14 @@ namespace aiko
         float x; float y;
     };
 
+    class OnMouseScrollCallbackEvent : public Event
+    {
+    public:
+        OnMouseScrollCallbackEvent() { };
+        OnMouseScrollCallbackEvent(double xoffset, double yoffset) : xoffset(xoffset), yoffset(yoffset) {};
+        virtual ~OnMouseScrollCallbackEvent() = default;
+        virtual EventId     getId() const { return "OnMouseScrollCallbackEvent"; }
+        double xoffset; double yoffset;
+    };
+
 }

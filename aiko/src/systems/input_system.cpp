@@ -47,6 +47,11 @@ namespace aiko
         return m_inputModule->getMouseDelta();
     }
 
+    vec2 InputSystem::getMouseScrollBack() const
+    {
+        return m_inputModule->getMouseScrollBack();
+    }
+
     bool InputSystem::isMouseButtonPressed(MouseButton button) const
     {
         return m_inputModule->isMouseButtonPressed(button);

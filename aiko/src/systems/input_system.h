@@ -35,6 +35,7 @@ namespace aiko
         bool isKeyJustPressed(Key) const;
         vec2 getMousePosition() const;
         vec2 getMouseDelta() const;
+        vec2 getMouseScrollBack() const;
         bool isMouseButtonPressed(MouseButton button) const;
 
     protected:
