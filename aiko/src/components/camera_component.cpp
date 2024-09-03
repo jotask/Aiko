@@ -122,22 +122,15 @@ namespace aiko
         case camera::CameraController::Drag:
         {
             const auto dt = Time::it().getDeltaTime();
-            
-            static bool is_dragging = false;
 
-            if (m_inputSystem->isMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT))
+            if (m_inputSystem->isMouseButtonPressed(MouseButton::MOUSE_BUTTON_RIGHT))
             {
 
                 vec2 currentMousePos = m_inputSystem->getMousePosition();
 
-                if (is_dragging == false)
-                {
-                    is_dragging = true;
-                }
-
                 vec2 mouseDelta = m_inputSystem->getMouseDelta();
 
-                float sensitivity = 0.002f;  // Adjust sensitivity as needed
+                float sensitivity = 0.002f;
 
                 // Rotate camera based on mouse movement
                 vec3 direction = m_camera->position - m_camera->target;
@@ -161,60 +154,31 @@ namespace aiko
                 vec3 newDirY = math::normalize(cosAngleY * newDirX + sinAngleY * m_camera->getUp() );
 
                 m_camera->position = m_camera->target + newDirY * math::length(direction);
-                // cameraDirection = math::normalize(m_camera->target - m_camera->position);
 
-            }
-            else
-            {
-                is_dragging = false;
             }
 
             if (m_inputSystem->isMouseButtonPressed(MouseButton::MOUSE_BUTTON_MIDDLE))
             {
+                constexpr const float panSpeed = 0.01f;
 
-                vec2 currentMousePos = m_inputSystem->getMousePosition();
-
-                if (is_dragging == false)
-                {
-                    is_dragging = true;
-                }
-
-                vec2 mouseDelta = m_inputSystem->getMouseDelta();
-                float panSpeed = 0.01f;
-
-                vec3 right = math::normalize(math::cross(m_camera->getCameraDirection(), m_camera->getUp()));
-                vec3 upMove = m_camera->getUp() * ( mouseDelta.y * panSpeed );
-                vec3 rightMove = right * ( mouseDelta.x * panSpeed );
+                const vec2 currentMousePos = m_inputSystem->getMousePosition();
+                const vec2 mouseDelta = m_inputSystem->getMouseDelta();
+                const vec3 right = math::normalize(math::cross(m_camera->getCameraDirection(), m_camera->getUp()));
+                const vec3 upMove = m_camera->getUp() * ( mouseDelta.y * panSpeed );
+                const vec3 rightMove = right * ( mouseDelta.x * panSpeed );
 
                 m_camera->position += rightMove + upMove;
                 m_camera->target += rightMove + upMove;
-
-            }
-            else
-            {
-                is_dragging = false;
             }
 
             constexpr const float epsilon = 1e-6f;
             if (fabs(m_inputSystem->getMouseScrollBack().y) > epsilon)
             {
-                vec2 currentMousePos = m_inputSystem->getMousePosition();
-
-                if (is_dragging == false)
-                {
-                    is_dragging = true;
-                }
-
                 constexpr const float zoomSpeed = 0.5f;
-
-                vec3 direction = math::normalize(m_camera->target - m_camera->position);
+                const vec2 currentMousePos = m_inputSystem->getMousePosition();
+                const vec3 direction = math::normalize(m_camera->target - m_camera->position);
                 float amount = m_inputSystem->getMouseScrollBack().y * zoomSpeed;
                 m_camera->position += direction * amount;
-
-            }
-            else
-            {
-                is_dragging = false;
             }
 
         }
