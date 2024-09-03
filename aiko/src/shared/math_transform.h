@@ -21,6 +21,7 @@ namespace aiko
             return clamp(value, 0, 1);
         }
 
+
         float cos(float);
         float sin(float);
         float radians(float);
