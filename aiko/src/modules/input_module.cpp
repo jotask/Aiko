@@ -112,7 +112,7 @@ namespace aiko
     {
         const auto& msg = static_cast<const OnKeyPressedEvent&>(event);
 
-        const aiko::Key key = static_cast<Key>(key);
+        const aiko::Key key = static_cast<Key>(msg.key);
         const InputType::PressedType action = convertToAction(msg.action);
 
         if(LOG_INPUT)

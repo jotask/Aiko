@@ -15,6 +15,7 @@
 #include "components/texture_component.h"
 #include "components/pbo_texture_component.h"
 #include "components/grid_component.h"
+#include "components/2d/cellular_automaton/cell_cellular_automaton_helper.h"
 
 #include "models/camera.h"
 #include "models/game_object.h"
