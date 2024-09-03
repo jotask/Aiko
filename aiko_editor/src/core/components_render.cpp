@@ -18,7 +18,7 @@ namespace aiko::editor
         {
             Tranform,
             Camera,
-            Grid,
+            GridX,
             Light,
             Mesh,
             PboTexture,
@@ -42,7 +42,7 @@ namespace aiko::editor
                 if (isComponent<aiko::TextureComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Texture); continue; };
                 if (isComponent<aiko::PboTextureComponent>(tmp, pmt)) { addCmp(ComponentsTypes::PboTexture); continue; };
                 if (isComponent<aiko::MeshComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Mesh); continue; };
-                if (isComponent<aiko::GridXComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Grid); continue; };
+                if (isComponent<aiko::GridXComponent>(tmp, pmt)) { addCmp(ComponentsTypes::GridX); continue; };
                 if (isComponent<aiko::LightComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Light); continue; };
                 assert(false && "ERROR :: Component is not supported by the editor");
             }
@@ -81,7 +81,7 @@ namespace aiko::editor
                 case ComponentsTypes::Camera:
                     obj->removeComponent<::aiko::CameraComponent>();
                     break;
-                case ComponentsTypes::Grid:
+                case ComponentsTypes::GridX:
                     obj->removeComponent<::aiko::GridXComponent>();
                     break;
                 case ComponentsTypes::Light:
@@ -118,7 +118,7 @@ namespace aiko::editor
                 case ComponentsTypes::Camera:
                     obj->addComponent<::aiko::CameraComponent>();
                     break;
-                case ComponentsTypes::Grid:
+                case ComponentsTypes::GridX:
                     obj->addComponent<::aiko::GridXComponent>();
                     break;
                 case ComponentsTypes::Light:
