@@ -20,14 +20,20 @@ namespace aiko
         return v * scalar;
     }
 
-    inline float sqrt(float v)
+    namespace math
     {
-        return std::sqrt(v);
-    }
 
-    inline float length(const vec3& v)
-    {
-        return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+
+        inline float sqrt(float v)
+        {
+            return std::sqrt(v);
+        }
+
+        inline float length(const vec3& v)
+        {
+            return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+        }
+
     }
 
 }
