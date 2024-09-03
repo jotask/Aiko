@@ -32,6 +32,10 @@ namespace aiko
         mat4 getViewMatrix();
         mat4 getProjectionMatrix();
 
+        vec3 getCameraDirection();
+        vec3 getCameraRight();
+        vec3 getCameraUp();
+
     // private:
 
         bool isMainCamera = false;

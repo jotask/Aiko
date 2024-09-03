@@ -14,9 +14,6 @@ namespace aiko
     {
         position = { 0.0f, 0.0f, 3.0f };
         target = { 0.0f, 0.0f, 0.0f };
-        cameraDirection = math::normalize(position - target);
-        right = math::normalize(math::cross(getUp(), cameraDirection));;
-        cameraUp = math::cross(cameraDirection, right);
     }
 
     camera::CameraType Camera::getCameraType() const
@@ -58,6 +55,21 @@ namespace aiko
                 assert(false);
                 return mat4(1.0f);
         }
+    }
+
+    vec3 Camera::getCameraDirection()
+    {
+        return math::normalize(position - target);
+    }
+
+    vec3 Camera::getCameraRight()
+    {
+        return math::normalize(math::cross(getUp(), cameraDirection));
+    }
+
+    vec3 Camera::getCameraUp()
+    {
+        return math::cross(getCameraDirection(), getCameraRight());
     }
 
 }
