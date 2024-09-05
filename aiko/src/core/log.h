@@ -49,4 +49,11 @@ namespace aiko
 
     };
 
+    class LogTimer
+    {
+    public:
+        static void startTimer();
+        static void endTimer();
+    };
+
 }

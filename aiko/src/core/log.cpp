@@ -1,5 +1,6 @@
 #include "log.h"
 
+#include <chrono>
 #include <iostream>
 #include <cstdarg>
 #include <cstring>
@@ -31,6 +32,20 @@ namespace aiko
             default:
                 break;
         }
+    }
+
+    static std::chrono::time_point<std::chrono::high_resolution_clock> m_start = std::chrono::high_resolution_clock::now();
+
+    void LogTimer::startTimer()
+    {
+        m_start = std::chrono::high_resolution_clock::now();
+    }
+
+    void LogTimer::endTimer()
+    {
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - m_start).count();
+        Log::trace("Function took " , duration , " ms to execute.");
     }
 
 }
