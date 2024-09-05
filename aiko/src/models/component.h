@@ -17,6 +17,10 @@ namespace aiko
         friend class EntityComponentSystem;
         friend class ComponentRenderer;
     public:
+
+        Component(const Component&) = delete;
+        Component& operator= (const Component&) = delete;
+
         Component(string name)
             : m_name(name)
             , gameobject(nullptr)
