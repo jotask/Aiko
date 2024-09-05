@@ -26,16 +26,34 @@ namespace aiko
         {
             for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
             {
-                m_cells.push_back({this, x, y, BLACK});
+                m_cells.emplace_back(this, x, y);
             }
         }
+
+        if(false)
         {
-            const auto color = RED;
-            m_cells[cellautomaton::getIndex(0, 0, cellautomaton::SIZE_CHUNK)].setColor(color);
-            m_cells[cellautomaton::getIndex(cellautomaton::SIZE_CHUNK - 1, 0, cellautomaton::SIZE_CHUNK)].setColor(color);
-            m_cells[cellautomaton::getIndex(0, cellautomaton::SIZE_CHUNK - 1, cellautomaton::SIZE_CHUNK)].setColor(color);
-            m_cells[cellautomaton::getIndex(cellautomaton::SIZE_CHUNK - 1, cellautomaton::SIZE_CHUNK - 1, cellautomaton::SIZE_CHUNK)].setColor(color);
+            m_cells[cellautomaton::getIndex(0, 0, cellautomaton::SIZE_CHUNK)].setState(CellCellularAutomaton::CellState::DEBUG);
+            m_cells[cellautomaton::getIndex(cellautomaton::SIZE_CHUNK - 1, 0, cellautomaton::SIZE_CHUNK)].setState(CellCellularAutomaton::CellState::DEBUG);
+            m_cells[cellautomaton::getIndex(0, cellautomaton::SIZE_CHUNK - 1, cellautomaton::SIZE_CHUNK)].setState(CellCellularAutomaton::CellState::DEBUG);
+            m_cells[cellautomaton::getIndex(cellautomaton::SIZE_CHUNK - 1, cellautomaton::SIZE_CHUNK - 1, cellautomaton::SIZE_CHUNK)].setState(CellCellularAutomaton::CellState::DEBUG);
         }
+
+        if (true)
+        {
+            for (auto& c : m_cells)
+            {
+                auto rnd = utils::getRandomValue(0.0f, 1.0f);
+                if (rnd < 0.5f)
+                {
+                    c.setState(CellCellularAutomaton::CellState::LIVE);
+                }
+                else
+                {
+                    c.setState(CellCellularAutomaton::CellState::DEAD);
+                }
+            }
+        }
+
     }
 
     void ChunkCellularAutomaton::update()
@@ -71,6 +89,24 @@ namespace aiko
     ChunkCellularAutomaton::Cells& ChunkCellularAutomaton::getCells()
     {
         return m_cells;
+    }
+
+    std::vector<CellCellularAutomaton> ChunkCellularAutomaton::getNeighbours(ivec2 cell)
+    {
+        return world->getNeighbours({x, y}, cell);
+    }
+
+    CellCellularAutomaton* ChunkCellularAutomaton::getCell(const ivec2 pos)
+    {
+        auto found = std::find_if(m_cells.begin(), m_cells.end(), [pos](CellCellularAutomaton& c)
+        {
+            return c.getPosition() == pos;
+        });
+        if (found == m_cells.end())
+        {
+            return nullptr;
+        }
+        return &(*found);
     }
 
 }

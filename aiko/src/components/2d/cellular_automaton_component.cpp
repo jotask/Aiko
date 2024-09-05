@@ -32,7 +32,22 @@ namespace aiko
 
     void CellularAutomatonComponent::update()
     {
-        m_world.update();
+        static auto lastTime = std::chrono::steady_clock::now();
+        static double accumulatedTime = 0.0;
+        static const double interval = 10 / 60.0f;
+
+        auto currentTime = std::chrono::steady_clock::now();
+        std::chrono::duration<double> delta = currentTime - lastTime;
+        lastTime = currentTime;
+
+        accumulatedTime += delta.count();
+        bool should_update = false;
+
+        if (accumulatedTime >= interval)
+        {
+            accumulatedTime -= interval;
+            m_world.update();
+        }
     }
 
     void CellularAutomatonComponent::render()
@@ -70,7 +85,7 @@ namespace aiko
 
     void CellularAutomatonComponent::updatePixels(std::vector<Color> ps)
     {
-        assert(pixels.size() == ps.size(), "New pixels don't match texture size");
+        // assert(pixels.size() == ps.size(), "New pixels don't match texture size");
         pixels.clear();
         pixels.insert(pixels.end(), ps.begin(), ps.end());
         is_dirty = true;

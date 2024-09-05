@@ -9,8 +9,8 @@ namespace aiko
     namespace cellautomaton
     {
 
-        constexpr const uint SIZE_WORLD = 4; // How many initial chunks
-        constexpr const uint SIZE_CHUNK = 16; // How many cells in a chunk
+        constexpr const uint SIZE_WORLD = 1; // How many initial chunks
+        constexpr const uint SIZE_CHUNK = 64; // How many cells in a chunk
 
         static int getIndex(int x, int y, int width)
         {

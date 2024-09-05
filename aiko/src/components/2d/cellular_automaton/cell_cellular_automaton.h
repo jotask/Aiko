@@ -12,22 +12,33 @@ namespace aiko
     {
     public:
 
-        CellCellularAutomaton(ChunkCellularAutomaton* chunk,const int i, const int j, const Color color);
+        enum class CellState
+        {
+            LIVE,
+            DEAD,
+            DEBUG,
+        };
+
+        CellCellularAutomaton(ChunkCellularAutomaton* chunk,const int i, const int j);
         virtual ~CellCellularAutomaton() = default;
 
-        void init();
         void update();
 
+        void setState(CellState);
+        CellState getState();
+
         Color getColor();
-        void setColor(Color);
+
+        ChunkCellularAutomaton* getChunk();
+
+        ivec2 getPosition() { return { i, j }; };
 
     private:
 
-        const ChunkCellularAutomaton* chunk;
+        ChunkCellularAutomaton* m_chunk = nullptr;
         const int i;
         const int j;
-
-        Color color;
+        CellState state;
 
     };
 

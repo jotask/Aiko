@@ -28,9 +28,13 @@ namespace aiko
         Cells& getCells();
         ivec2 getPosition() { return { x, y }; };
 
+        std::vector<CellCellularAutomaton> getNeighbours(ivec2 cell);
+
+        CellCellularAutomaton* getCell(const ivec2 pos);
+
     private:
 
-        const WorldCellularAutomaton* world;
+        WorldCellularAutomaton* world = nullptr;
         const int x;
         const int y;
 
