@@ -17,6 +17,8 @@ namespace aiko
         ivec2(int x, int y) : x(x), y(y) { };
         int x;
         int y;
+        bool operator==(ivec2& other) const { return { x == other.x && y == other.y }; }
+        bool operator==(const ivec2& other) const { return { x == other.x && y == other.y }; }
     };
 
     class vec2
@@ -33,6 +35,7 @@ namespace aiko
         vec2 operator+(vec2& other) const { return { x + other.x, y + other.y }; }
         vec2 operator-(vec2& other) const { return { x - other.x, y - other.y }; }
         vec2 operator+=(vec2& other) const { return { x + other.x, y + other.y }; }
+        bool operator==(vec2& other) const { return { x == other.x && y == other.y }; }
 
     };
 
