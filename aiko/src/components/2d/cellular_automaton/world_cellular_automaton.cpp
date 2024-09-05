@@ -7,32 +7,38 @@
 #include "systems/render_system.h"
 #include "constants.h"
 
+#include "core/log.h"
+
 namespace aiko
 {
 
     WorldCellularAutomaton::WorldCellularAutomaton()
-        // : m_chunks(cellautomaton::SIZE_WORLD == 1 ? 1 : cellautomaton::SIZE_WORLD * cellautomaton::SIZE_WORLD)
     {
-
     }
 
-    void WorldCellularAutomaton::init()
+    void WorldCellularAutomaton::init(RenderSystem* renderSystem)
     {
+        m_renderSystem = renderSystem;
         for (int y = 0; y < cellautomaton::SIZE_WORLD; y++)
         {
             for (int x = 0; x < cellautomaton::SIZE_WORLD; x++)
             {
-                m_chunks.emplace_back(this, x, y);
+                m_chunks.emplace_back( this, x, y );
             }
         }
     }
 
     void WorldCellularAutomaton::update()
     {
+        LogTimer::startTimer();
         for (auto& c : m_chunks)
         {
+            // Log::trace(c.getPosition().x, " : ", c.getPosition().y);
+            // LogTimer::startTimer();
             c.update();
+            // LogTimer::endTimer();
         }
+        LogTimer::endTimer();
     }
 
     void WorldCellularAutomaton::render()
@@ -48,15 +54,16 @@ namespace aiko
         return m_chunks;
     }
 
-    std::vector<CellCellularAutomaton> WorldCellularAutomaton::getNeighbours(ivec2 chunk, ivec2 cell)
+    std::vector<ChunkCellularAutomaton::CellState> WorldCellularAutomaton::getNeighbours(ivec2 chunk, ivec2 cell)
     {
+
         auto isCurrentChunk = [&](ivec2 p) -> bool
         {
             return ( p.x >= 0 && p.x < cellautomaton::SIZE_CHUNK ) && (p.y >= 0 && p.y < cellautomaton::SIZE_CHUNK);
         };
 
         constexpr const int NEIGHBOUR = 1;
-        auto neighbours = std::vector<CellCellularAutomaton>();
+        auto neighbours = std::vector<ChunkCellularAutomaton::CellState>();
 
         for (int y = -NEIGHBOUR; y <= NEIGHBOUR; y++)
         {
@@ -73,6 +80,7 @@ namespace aiko
                 // Check if the position falls within the current chunk
                 if ( isCurrentChunk(pos) == false )
                 {
+
                     // Adjust chunk coordinates based on the cell's offset
                     if (pos.x < 0)
                     {
@@ -98,12 +106,11 @@ namespace aiko
                 }
 
                 // Retrieve the chunk based on the adjusted chunk position
-                ChunkCellularAutomaton* chunkPtr = getChunk(targetChunk);
-                if (chunkPtr != nullptr)
+                std::optional<ChunkCellularAutomaton> chunkPtr = getChunk(targetChunk);
+                if (chunkPtr != std::nullopt)
                 {
-                    // Retrieve the cell from the target chunk
-                    CellCellularAutomaton* neighborCell = chunkPtr->getCell(pos);
-                    if (neighborCell != nullptr)
+                    std::optional<ChunkCellularAutomaton::CellState> neighborCell = chunkPtr->getCell(pos);
+                    if (neighborCell != std::nullopt)
                     {
                         neighbours.push_back(*neighborCell); // Add the neighbor cell to the vector
                     }
@@ -113,17 +120,19 @@ namespace aiko
         return neighbours;
     }
 
-    ChunkCellularAutomaton* WorldCellularAutomaton::getChunk(const ivec2 pos)
+    std::optional<ChunkCellularAutomaton> WorldCellularAutomaton::getChunk(const ivec2 pos)
     {
-        auto found = std::find_if(m_chunks.begin(), m_chunks.end(), [pos](ChunkCellularAutomaton& c)
+        const auto idx = cellautomaton::getIndex(pos.x, pos.y, cellautomaton::SIZE_CHUNK);
+        if ( idx >= 0 && idx < m_chunks.size())
         {
-            return c.getPosition() == pos;
-        });
-        if (found == m_chunks.end())
-        {
-            return nullptr;
+            return m_chunks[idx];
         }
-        return &(*found);
+        return  std::nullopt;
+    }
+
+    RenderSystem* WorldCellularAutomaton::getRenderSystem()
+    {
+        return m_renderSystem;
     }
 
 }

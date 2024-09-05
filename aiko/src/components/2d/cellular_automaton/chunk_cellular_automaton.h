@@ -1,10 +1,13 @@
 #pragma once
 
+#include <vector>
+#include <optional>
+#include <array>
+
 #include "aiko_types.h"
 #include "shared/math.h"
 
-#include <vector>
-#include "cell_cellular_automaton.h"
+#include "systems/render_system.h"
 #include "components/2d/cellular_automaton/cell_cellular_automaton_helper.h"
 
 namespace aiko
@@ -15,7 +18,12 @@ namespace aiko
     {
     public:
 
-        using Cells = std::vector<CellCellularAutomaton>;
+        enum class CellState
+        {
+            LIVE,
+            DEAD,
+            DEBUG,
+        };
 
         ChunkCellularAutomaton(WorldCellularAutomaton* world, const int x, const int y);
         virtual ~ChunkCellularAutomaton() = default;
@@ -25,12 +33,13 @@ namespace aiko
         void render();
 
         std::vector<Color> getPixels();
-        Cells& getCells();
         ivec2 getPosition() { return { x, y }; };
 
-        std::vector<CellCellularAutomaton> getNeighbours(ivec2 cell);
+        std::vector<CellState> getNeighbours(ivec2 cell);
 
-        CellCellularAutomaton* getCell(const ivec2 pos);
+        std::optional<CellState> getCell(const ivec2 pos);
+
+        texture::PboTexture getPbo();
 
     private:
 
@@ -38,7 +47,17 @@ namespace aiko
         const int x;
         const int y;
 
-        Cells m_cells;
+        std::array<CellState, cellautomaton::SIZE_CHUNK * cellautomaton::SIZE_CHUNK> cells;
+
+        void refreshPixels(bool = false);
+        void updatePixel(uint16_t x, uint16_t y, Color c);
+        void updatePixels(std::vector<Color> pixels);
+
+        texture::PboTexture m_texture;
+        std::vector<Color> pixels;
+        bool is_dirty = false;
+
+        // Cells m_cells;
 
     };
 

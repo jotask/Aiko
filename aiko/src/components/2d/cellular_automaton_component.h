@@ -28,14 +28,6 @@ namespace aiko
         RenderSystem*       m_renderSystem;
         AikoPtr<Mesh>       m_mesh;
         AikoPtr<Shader>     m_shader;
-        texture::PboTexture m_texture;
-
-        std::vector<Color> pixels;
-        bool is_dirty = false;
-
-        void refreshPixels(bool = false);
-        void updatePixel(uint16_t x, uint16_t y, Color c);
-        void updatePixels(std::vector<Color> pixels);
 
         WorldCellularAutomaton m_world;
 
