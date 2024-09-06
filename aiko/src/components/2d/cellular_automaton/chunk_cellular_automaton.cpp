@@ -25,14 +25,6 @@ namespace aiko
     void ChunkCellularAutomaton::init()
     {
 
-        m_texture.texture.width = cellautomaton::SIZE_CHUNK;
-        m_texture.texture.height = cellautomaton::SIZE_CHUNK;
-        m_texture = world->getRenderSystem()->createPboTexture(m_texture.texture.width, m_texture.texture.height);
-        pixels.reserve(m_texture.texture.width * m_texture.texture.height);
-        pixels.resize(m_texture.texture.width * m_texture.texture.height);
-        std::fill(pixels.begin(), pixels.end(), BLACK);
-        is_dirty = true;
-
         for (int y = 0 ; y < cellautomaton::SIZE_CHUNK; y++)
         {
             for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
@@ -42,7 +34,7 @@ namespace aiko
             }
         }
 
-        if(false)
+        if(true)
         {
             cells[cellautomaton::getIndex(0, 0, cellautomaton::SIZE_CHUNK)] = CellState::DEBUG;
             cells[cellautomaton::getIndex(cellautomaton::SIZE_CHUNK - 1, 0, cellautomaton::SIZE_CHUNK)] = CellState::DEBUG;
@@ -50,7 +42,7 @@ namespace aiko
             cells[cellautomaton::getIndex(cellautomaton::SIZE_CHUNK - 1, cellautomaton::SIZE_CHUNK - 1, cellautomaton::SIZE_CHUNK)] = CellState::DEBUG;
         }
 
-        if (true)
+        if (false)
         {
             for (auto& c : cells)
             {
@@ -70,6 +62,7 @@ namespace aiko
 
     void ChunkCellularAutomaton::update()
     {
+
         for (int y = 0; y < cellautomaton::SIZE_CHUNK; y++)
         {
             for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
@@ -78,7 +71,7 @@ namespace aiko
                 const auto idx = cellautomaton::getIndex(x, y, cellautomaton::SIZE_CHUNK);
                 auto state = cells[idx];
                 
-                std::vector<CellState> neighbours = getNeighbours({ x, y });
+                std::vector<CellState> neighbours;//  = getNeighbours({ x, y });
 
                 const auto alive = std::count_if(neighbours.begin(), neighbours.end(), [](CellState& c)
                 {
@@ -110,7 +103,6 @@ namespace aiko
 
             }
         }
-        refreshPixels();
     }
 
     void ChunkCellularAutomaton::render()
@@ -119,30 +111,6 @@ namespace aiko
         {
 
         }
-    }
-
-    std::vector<Color> ChunkCellularAutomaton::getPixels()
-    {
-        std::vector<Color> colors;
-        for (int y = 0; y < cellautomaton::SIZE_CHUNK; y++)
-        {
-            for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
-            {
-                const auto idx = cellautomaton::getIndex(x, y, cellautomaton::SIZE_CHUNK);
-
-                Color c;
-                switch (cells[idx])
-                {
-                case CellState::LIVE:  c = WHITE;   break;
-                case CellState::DEAD:  c = BLACK;   break;
-                case CellState::DEBUG: c = MAGENTA; break;
-                default:
-                    break;
-                }
-                colors.push_back(c);
-            }
-        }
-        return colors;
     }
 
     std::vector<ChunkCellularAutomaton::CellState> ChunkCellularAutomaton::getNeighbours(ivec2 cell)
@@ -161,37 +129,15 @@ namespace aiko
 
     }
 
-    texture::PboTexture ChunkCellularAutomaton::getPbo()
+    Color ChunkCellularAutomaton::getColorFromCell(CellState stat)
     {
-        return m_texture;
-    }
-
-    void ChunkCellularAutomaton::refreshPixels(bool force)
-    {
-        if (force == true || is_dirty == true)
+        switch (stat)
         {
-            is_dirty = false;
-            world->getRenderSystem()->updatePbo(m_texture, pixels);
+            case CellState::LIVE:  return WHITE;
+            case CellState::DEAD:  return BLACK;
+            case CellState::DEBUG: return MAGENTA;
+            default:               return MAGENTA;
         }
-    }
-
-    void ChunkCellularAutomaton::updatePixel(uint16_t x, uint16_t y, Color c)
-    {
-        const uint16_t index = y * m_texture.texture.width + x;
-        if (pixels[index] == c)
-        {
-            return;
-        }
-        pixels[index] = c;
-        is_dirty = true;
-    }
-
-    void ChunkCellularAutomaton::updatePixels(std::vector<Color> ps)
-    {
-        assert(pixels.size() == ps.size(), "New pixels don't match texture size");
-        pixels.clear();
-        pixels.insert(pixels.end(), ps.begin(), ps.end());
-        is_dirty = true;
     }
 
 }

@@ -20,7 +20,7 @@ namespace aiko
         WorldCellularAutomaton();
         virtual ~WorldCellularAutomaton() = default;
 
-        void init(RenderSystem* renderSystem);
+        void init();
         void update();
         void render();
 
@@ -34,7 +34,6 @@ namespace aiko
     private:
 
         Chunks m_chunks;
-        RenderSystem* m_renderSystem;
 
     };
 

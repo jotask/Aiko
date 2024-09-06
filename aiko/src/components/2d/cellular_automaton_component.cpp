@@ -20,10 +20,8 @@ namespace aiko
 
     void CellularAutomatonComponent::init()
     {
-        m_renderSystem = gameobject->getSystem<RenderSystem>();
-        m_mesh = m_renderSystem->createMesh(Mesh::MeshType::QUAD);
-        m_shader = m_renderSystem->createShader(global::getAssetPath("shaders/aiko_default_texture.vs").c_str(), global::getAssetPath("shaders/aiko_default_texture.fs").c_str());
-        m_world.init(m_renderSystem);
+        m_world.init();
+        m_render.init(gameobject->getSystem<RenderSystem>());
     }
 
     void CellularAutomatonComponent::update()
@@ -42,20 +40,14 @@ namespace aiko
         if (accumulatedTime >= interval)
         {
             accumulatedTime -= interval;
-            m_world.update();
+            // m_world.update();
+            m_render.update();
         }
     }
 
     void CellularAutomatonComponent::render()
     {
-        Transform trans;
-        for (auto& chunk : m_world.getChunks())
-        {
-            auto pixels = chunk.getPixels();
-            auto pbo = chunk.getPbo();
-            trans.position = chunk.getPosition();
-            m_renderSystem->render(&trans, m_mesh.get(), m_shader.get(), &pbo.texture);
-        }
+        m_render.render(&m_world);
     }
 
 }

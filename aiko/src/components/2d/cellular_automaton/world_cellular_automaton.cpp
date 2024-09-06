@@ -4,7 +4,6 @@
 #include <chrono>
 
 #include "models/game_object.h"
-#include "systems/render_system.h"
 #include "constants.h"
 
 #include "core/log.h"
@@ -16,9 +15,8 @@ namespace aiko
     {
     }
 
-    void WorldCellularAutomaton::init(RenderSystem* renderSystem)
+    void WorldCellularAutomaton::init()
     {
-        m_renderSystem = renderSystem;
         for (int y = 0; y < cellautomaton::SIZE_WORLD; y++)
         {
             for (int x = 0; x < cellautomaton::SIZE_WORLD; x++)
@@ -30,15 +28,10 @@ namespace aiko
 
     void WorldCellularAutomaton::update()
     {
-        LogTimer::startTimer();
         for (auto& c : m_chunks)
         {
-            // Log::trace(c.getPosition().x, " : ", c.getPosition().y);
-            // LogTimer::startTimer();
-            c.update();
-            // LogTimer::endTimer();
+            // c.update();
         }
-        LogTimer::endTimer();
     }
 
     void WorldCellularAutomaton::render()
@@ -128,11 +121,6 @@ namespace aiko
             return m_chunks[idx];
         }
         return  std::nullopt;
-    }
-
-    RenderSystem* WorldCellularAutomaton::getRenderSystem()
-    {
-        return m_renderSystem;
     }
 
 }
