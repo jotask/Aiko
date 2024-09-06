@@ -171,6 +171,13 @@ namespace aiko
         return m_renderModule->createShader();
     }
 
+    AikoUPtr<Shader> RenderSystem::createShader(const char* name)
+    {
+        const auto vs = name + std::string(".vs");
+        const auto fs = name + std::string(".fs");
+        return createShader(vs.c_str(), fs.c_str());
+    }
+
     AikoUPtr<Shader> RenderSystem::createShader(const char* vsPath, const char* fsPath)
     {
         auto shader = createShader();
