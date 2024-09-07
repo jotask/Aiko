@@ -143,16 +143,6 @@ namespace aiko::native
 
     }
 
-    void OpenglRenderModule::postInit()
-    {
-        if (gltInit() == false)
-        {
-            Log::error("glInit failed");
-        }
-        const AikoConfig cfg = getAiko()->getConfig();
-        gltViewport(cfg.width, cfg.height);
-    }
-
     void OpenglRenderModule::beginFrame()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_screenFbo.renderTexture.framebuffer);
@@ -189,54 +179,11 @@ namespace aiko::native
 
     void OpenglRenderModule::drawText(string texto, float x, float y , float scale, Color color)
     {
-        gltBeginDraw();
-
-        GLTtext* text1 = gltCreateText();
-        if (gltSetText(text1, texto.c_str()) == GL_FALSE)
-        {
-            Log::error("glText can't set text");
-            return;
-        }
-
-        auto size = getDisplaySize();
-
-        gltColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-        {
-
-            auto allCharSupported = [](string str) -> bool
-            {
-                for (char c : str)
-                {
-                    if (isspace(c))
-                    {
-                        return true;
-                    }
-                    if (gltIsCharacterDrawable(c) == GL_FALSE)
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            };
-
-            if (allCharSupported(texto) == false)
-            {
-                Log::warning("char not supported by font");
-            }
-        }
-
-        gltDrawText2D(text1, x, y, scale );
-
-        gltEndDraw();
-
-        gltDeleteText(text1);
 
     }
 
     void OpenglRenderModule::dispose()
     {
-        gltTerminate();
         glfwTerminate();
     }
 
@@ -261,7 +208,6 @@ namespace aiko::native
         const auto screenHeight = msg.height;
 
         glViewport(0, 0, screenWidth, screenHeight);
-        gltViewport(screenWidth, screenHeight);
 
         // resize render texture
         {
