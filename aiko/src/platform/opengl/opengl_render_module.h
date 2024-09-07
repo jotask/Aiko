@@ -36,7 +36,6 @@ namespace aiko::native
     
         virtual void preInit() override;
         virtual void init() override;
-        virtual void postInit() override;
 
         virtual void beginFrame() override;
         virtual void endFrame() override;
