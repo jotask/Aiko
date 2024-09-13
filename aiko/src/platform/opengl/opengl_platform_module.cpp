@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include "modules/render_module.h"
+#include "modules/render/render_module.h"
 #include "modules/module_connector.h"
 
 #include "core/libs.h"

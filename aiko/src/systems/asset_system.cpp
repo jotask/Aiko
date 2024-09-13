@@ -5,7 +5,7 @@
 #include "modules/module_connector.h"
 #include "systems/system_connector.h"
 
-#include "modules/render_module.h"
+#include "modules/render/render_module.h"
 #include "components/transform_component.h"
 #include "components/camera_component.h"
 #include "types/camera_types.h"
