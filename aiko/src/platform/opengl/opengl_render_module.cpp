@@ -215,10 +215,24 @@ namespace aiko::native
             m_screenFbo.renderTexture.texture.height = screenHeight;
             m_screenFbo.renderTexture.depth.width = screenWidth;
             m_screenFbo.renderTexture.depth.height = screenHeight;
-            // color buffer attachment here
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-            // and depth buffer attachment
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+
+            GLint prevFbo;
+            glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFbo);
+            {
+                glBindFramebuffer(GL_FRAMEBUFFER, m_screenFbo.renderTexture.framebuffer);
+
+                glBindTexture(GL_TEXTURE_2D, m_screenFbo.renderTexture.texture.id);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+                glBindTexture(GL_TEXTURE_2D, 0);
+
+                glBindRenderbuffer(GL_RENDERBUFFER, m_screenFbo.renderTexture.depth.id);
+                glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+                glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            }
+            glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
+
         }
 
     }
