@@ -7,7 +7,7 @@
 #include "aiko.h"
 #include "systems/render_system.h"
 #include "systems/asset_system.h"
-#include "modules/render_module.h"
+#include "modules/render/render_module.h"
 #include "core/libs.h"
 #include "core/log.h"
 

@@ -4,7 +4,7 @@
 
 #include "aiko.h"
 #include "aiko_types.h"
-#include "modules/render_module.h"
+#include "modules/render/render_module.h"
 #include "types/textures.h"
 #include "models/shader.h"
 #include "events/event.hpp"

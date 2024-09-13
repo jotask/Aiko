@@ -7,7 +7,7 @@
 #include "components/2d/sprite_component.h"
 #include "components/2d/cellular_automaton_component.h"
 #include "models/mesh.h"
-#include "modules/render_primitives.h"
+#include "modules/render/render_primitives.h"
 #include "components/texture_component.h"
 #include "components/pbo_texture_component.h"
 #include "models/camera.h"

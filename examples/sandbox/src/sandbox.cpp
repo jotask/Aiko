@@ -7,7 +7,7 @@
 #include "components/mesh_component.h"
 #include "components/light_component.h"
 #include "models/mesh.h"
-#include "modules/render_primitives.h"
+#include "modules/render/render_primitives.h"
 #include "components/texture_component.h"
 #include "components/pbo_texture_component.h"
 #include "models/camera.h"

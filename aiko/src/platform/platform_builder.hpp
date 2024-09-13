@@ -2,8 +2,8 @@
 
 #include "aiko_types.h"
 #include "constants.h"
-#include "modules\render_module.h"
-#include "modules\display_module.h"
+#include "modules/render/render_module.h"
+#include "modules/display_module.h"
 
 namespace aiko::modules::builder
 {

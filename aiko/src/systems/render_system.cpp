@@ -19,7 +19,7 @@
 #include "models/mesh_factory.h"
 #include "types/color.h"
 
-#include "modules/render_primitives.h"
+#include "modules/render/render_primitives.h"
 
 namespace aiko
 {

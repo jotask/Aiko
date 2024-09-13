@@ -12,7 +12,7 @@
 // Modules
 #include "modules/platform_module.h"
 #include "modules/display_module.h"
-#include "modules/render_module.h"
+#include "modules/render/render_module.h"
 #include "modules/input_module.h"
 #include "modules/asset_module.h"
 #include "modules/debug_module.h"
