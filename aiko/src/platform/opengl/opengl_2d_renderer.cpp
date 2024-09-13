@@ -29,7 +29,6 @@ namespace aiko
         glBindVertexArray(m_fbo.vao);
 
         {
-            uint& quadVAO = m_fbo.vao;
 
             auto size = getRenderModule()->getDisplaySize();
             m_fbo.renderTexture.texture.width = size.x;
@@ -194,7 +193,6 @@ namespace aiko
 
         enableNecessaryGLFeatures();
 
-        bool internalClearDrawData = true;
 
         if (!m_fbo.vao)
         {
@@ -207,8 +205,6 @@ namespace aiko
         {
             return;
         }
-
-        m_fbo.renderTexture.texture;
 
         auto windowSize = getRenderModule()->getDisplaySize();
         glViewport(0, 0, windowSize.x, windowSize.y);
@@ -267,9 +263,8 @@ namespace aiko
 
         m_defaultShader->unuse();
 
-        if (internalClearDrawData)
+        clearBatch();
         {
-            clearBatch();
         }
 
     }
