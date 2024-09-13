@@ -26,6 +26,8 @@
 #include "core/log.h"
 #include "constants.h"
 
+#include "platform/opengl/opengl_2d_renderer.h"
+
 #include "modules/render/render_primitives.h"
 
 namespace aiko::native
@@ -130,6 +132,12 @@ namespace aiko::native
         glDebugMessageCallback(opengl::onGlError, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 
+        // Init context
+        {
+            auto& renderers = getRenderers();
+            renderers.emplace(ContextType::Render2D, std::make_shared<Opengl2DRenderer>(this));
+        }
+
         m_passthrought = createShader();
         m_passthrought->load(
             aiko::global::getAssetPath("shaders/aiko_passthrought.vs").c_str(),
@@ -145,6 +153,7 @@ namespace aiko::native
 
     void OpenglRenderModule::beginFrame()
     {
+        RenderModule::beginFrame();
         glBindFramebuffer(GL_FRAMEBUFFER, m_screenFbo.renderTexture.framebuffer);
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
         clearBackground(background_color);
@@ -154,8 +163,10 @@ namespace aiko::native
 
     void OpenglRenderModule::endFrame()
     {
+        RenderModule::endFrame();
         // Bind back to default framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDisable(GL_BLEND);
         glDisable(GL_DEPTH_TEST);
         clearBackground(BLACK);
 
@@ -184,6 +195,7 @@ namespace aiko::native
 
     void OpenglRenderModule::dispose()
     {
+        RenderModule::dispose();
         glfwTerminate();
     }
 

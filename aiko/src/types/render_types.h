@@ -34,6 +34,11 @@ namespace aiko
         BLEND_CUSTOM_SEPARATE           // Blend textures using custom rgb/alpha separate src/dst factors (use rlSetBlendFactorsSeparate())
     } BlendMode;
 
+    enum class ContextType
+    {
+        Render2D,
+        Render3D,
+    };
 
     class Rectangle
     {

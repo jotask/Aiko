@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include "aiko_types.h"
 #include "modules/base_module.h"
 #include "types/textures.h"
@@ -7,6 +9,8 @@
 #include "events/event.hpp"
 #include "types/color.h"
 #include "types/textures.h"
+
+#include "modules/render/renderer_context.h"
 
 namespace aiko
 {
@@ -22,6 +26,8 @@ namespace aiko
     
     public:
 
+        using RenderersCtx = std::map<ContextType, AikoPtr<RenderContext>>;
+
         RenderModule(Aiko* aiko);
         virtual ~RenderModule() = default;
 
@@ -29,6 +35,11 @@ namespace aiko
 
         virtual void connect(ModuleConnector*);
         virtual void init() override;
+        virtual void postInit() override;
+
+        virtual void beginFrame() override;
+        virtual void endFrame() override;
+        virtual void dispose() override;
 
     public:
 
@@ -81,6 +92,10 @@ namespace aiko
         virtual aiko::ShaderData loadShaderSrc(const char*, const char*) = 0;
         virtual void unloadShader(aiko::ShaderData&) = 0;
 
+        // RenderContext
+        RenderContext* getRenderer(ContextType);
+        template<class Ctx> Ctx* getRenderer(ContextType);
+
     protected:
 
         Color background_color;
@@ -89,7 +104,26 @@ namespace aiko
         DisplayModule* m_displayModule;
 
         virtual void onWindowResize(Event&);
+
+        RenderersCtx& getRenderers();
+
+    private:
+
+        RenderersCtx m_renderers;
     
     };
+
+    template<class Ctx>
+    inline Ctx* RenderModule::getRenderer(ContextType ctx)
+    {
+        RenderContext* context = getRenderer(ctx);
+        if (context == nullptr)
+        {
+            Log::error("Render Context not supported for selected platform");
+            assert(false);
+            return nullptr;
+        }
+        return dynamic_cast<Ctx*>(context);
+    }
 
 }
