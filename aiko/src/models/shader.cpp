@@ -28,9 +28,17 @@ namespace aiko
             unload();
         }
         isValid = true;
-        m_shaderData = loadShaderData(vs, fs);
-        this->vs = vs;
-        this->fs = fs;
+        m_shaderData = internalLoadShaderData(vs, fs);
+    }
+
+    void Shader::loadFromSource(const char* vs, const char* fs)
+    {
+        if (isValid == true)
+        {
+            unload();
+        }
+        isValid = true;
+        m_shaderData = internalLoadShaderSrc(vs, fs);
     }
 
     void Shader::unload()
@@ -39,7 +47,7 @@ namespace aiko
         {
             return;
         }
-        unloadShaderData(m_shaderData);
+        internalUnloadShaderData(m_shaderData);
         isValid = false;
     }
 

@@ -76,8 +76,9 @@ namespace aiko
         virtual void drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint) = 0;
 
         // Shader
-        virtual AikoUPtr<Shader> createShader() = 0;
+        virtual AikoPtr<Shader> createShader() = 0;
         virtual aiko::ShaderData loadShaderData(const char*, const char*) = 0;
+        virtual aiko::ShaderData loadShaderSrc(const char*, const char*) = 0;
         virtual void unloadShader(aiko::ShaderData&) = 0;
 
     protected:

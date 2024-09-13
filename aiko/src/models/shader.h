@@ -27,7 +27,8 @@ namespace aiko
         ~Shader() = default;
 
         void load(const char* vs, const char* fs);
-        virtual void unload();
+        void loadFromSource(const char* vs, const char* fs);
+        void unload();
 
         // Type Helpers
 
@@ -62,19 +63,18 @@ namespace aiko
 
     private:
 
-        string vs;
-        string fs;
-
         bool isValid = false;
         aiko::ShaderData m_shaderData;
 
         using LoadShaderData = std::function<aiko::ShaderData(const char*, const char*)>;//  aiko::ShaderData(RenderModule::*)(const char*, const char*);
+        using LoadShaderSrc  = std::function<aiko::ShaderData(const char*, const char*)>;//  aiko::ShaderData(RenderModule::*)(const char*, const char*);
         using UnloadShaderData = std::function<void(aiko::ShaderData)>;
 
     public:
 
-        LoadShaderData loadShaderData = nullptr;
-        UnloadShaderData unloadShaderData = nullptr;
+        LoadShaderSrc internalLoadShaderSrc = nullptr;
+        LoadShaderData internalLoadShaderData = nullptr;
+        UnloadShaderData internalUnloadShaderData = nullptr;
 
         int getUniformLocation(const string& name);
 

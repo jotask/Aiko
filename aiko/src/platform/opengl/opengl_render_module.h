@@ -86,14 +86,15 @@ namespace aiko::native
         void drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint);
 
         // Shader
-        AikoUPtr<Shader> createShader();
+        AikoPtr<Shader> createShader();
         aiko::ShaderData loadShaderData(const char*, const char*);
-        void unloadShader( aiko::ShaderData& );
+        aiko::ShaderData loadShaderSrc(const char*, const char*);
+        void unloadShader(aiko::ShaderData& );
 
     protected:
 
         ScreenFbo m_screenFbo;
-        AikoUPtr<Shader> m_passthrought;
+        AikoPtr<Shader> m_passthrought;
 
         virtual void onWindowResize(Event&) override;
     

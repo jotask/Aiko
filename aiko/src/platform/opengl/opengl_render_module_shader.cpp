@@ -31,17 +31,17 @@ namespace aiko::native
 
     }
 
-    AikoUPtr<Shader> OpenglRenderModule::createShader()
+    AikoPtr<Shader> OpenglRenderModule::createShader()
     {
-        AikoUPtr<Shader> shader = std::make_unique<Shader>();
-        shader->loadShaderData = std::bind(&RenderModule::loadShaderData, this, std::placeholders::_1, std::placeholders::_2);
-        shader->unloadShaderData = std::bind(&RenderModule::unloadShader, this, std::placeholders::_1);
+        AikoPtr<Shader> shader = std::make_shared<Shader>();
+        shader->internalLoadShaderSrc = std::bind(&RenderModule::loadShaderSrc, this, std::placeholders::_1, std::placeholders::_2);
+        shader->internalLoadShaderData = std::bind(&RenderModule::loadShaderData, this, std::placeholders::_1, std::placeholders::_2);
+        shader->internalUnloadShaderData = std::bind(&RenderModule::unloadShader, this, std::placeholders::_1);
         return shader;
     }
 
-    aiko::ShaderData OpenglRenderModule::loadShaderData(const char* vsPath, const char* fsPath)
+    aiko::ShaderData OpenglRenderModule::loadShaderData(const char* vertex, const char* fragment)
     {
-
         auto loadFile = [](const char* filename) -> string
             {
 
@@ -65,47 +65,44 @@ namespace aiko::native
                 }
                 return "";
             };
+        aiko::string vs = loadFile(vertex);
+        aiko::string fs = loadFile(fragment);
+        aiko::ShaderData shader = loadShaderSrc(vs.data(), fs.data());
+        return shader;
+    }
 
-        // build and compile our shader program
-        // ------------------------------------
+    aiko::ShaderData OpenglRenderModule::loadShaderSrc(const char* vertex, const char* fragment)
+    {
 
-        int success;
+        aiko::ShaderData shader;
+
+        int success = 0;
         char infoLog[512];
 
-        // vertex shader
-        auto vertexShaderSource = loadFile(vsPath);
-        char* tmp1 = vertexShaderSource.data();
-        unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexShader, 1, &tmp1, NULL);
-        glCompileShader(vertexShader);
-
-        // check for shader compile errors
-        glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-        if (!success)
+        auto loadShader = [&](const char* source, GLenum shaderType)
         {
-            glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-            Log::error("SHADER::VERTEX::COMPILATION_FAILED", infoLog);
-            assert(false);
-        }
+            const GLuint id = glCreateShader(shaderType);
 
-        // fragment shader
-        auto fragmentShaderSource = loadFile(fsPath);
-        char* tmp2 = fragmentShaderSource.data();
-        unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, 1, &tmp2, NULL);
-        glCompileShader(fragmentShader);
+            glShaderSource(id, 1, &source, NULL);
+            glCompileShader(id);
 
-        // check for shader compile errors
-        glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-        if (success == false)
-        {
-            glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-            Log::error("SHADER::FRAGMENT::COMPILATION_FAILED", infoLog);
-            assert(false);
-        }
+            glGetShaderiv(id, GL_COMPILE_STATUS, &success);
+
+            if (!success)
+            {
+                glGetShaderInfoLog(id, 512, NULL, infoLog);
+                Log::error("SHADER::COMPILATION_FAILED", infoLog);
+                assert(false);
+            }
+
+            return id;
+        };
+
+        const GLuint vertexShader = loadShader(vertex, GL_VERTEX_SHADER);
+        const GLuint fragmentShader = loadShader(fragment, GL_FRAGMENT_SHADER);
 
         // link shaders
-        unsigned int shaderProgram = glCreateProgram();
+        const GLuint shaderProgram = glCreateProgram();
         glAttachShader(shaderProgram, vertexShader);
         glAttachShader(shaderProgram, fragmentShader);
         glLinkProgram(shaderProgram);
@@ -115,15 +112,13 @@ namespace aiko::native
         if (success == false)
         {
             glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-            Log::error("SHADER::PROGRAM::LINKING_FAILED" , infoLog);
+            Log::error("SHADER::PROGRAM::LINKING_FAILED", infoLog);
             assert(false);
         }
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
 
-        aiko::ShaderData data;
-
-        data.id = shaderProgram;
+        shader.id = shaderProgram;
 
         // TODO Do I need to store the other attributeS?
         // https://stackoverflow.com/questions/440144/in-opengl-is-there-a-way-to-get-a-list-of-all-uniforms-attribs-used-by-a-shade
@@ -146,17 +141,18 @@ namespace aiko::native
             for (GLint i = 0; i < count; i++)
             {
                 glGetActiveUniform(shaderProgram, (GLuint)i, bufSize, &length, &size, &type, name);
-                data.locs.emplace(name, i);
+                shader.locs.emplace(name, i);
                 // printf("Uniform #%d Type: %u Name: %s\n", i, type, name);
             }
         }
 
-        return data;
+        return shader;
+
     }
 
     void OpenglRenderModule::unloadShader(aiko::ShaderData& data)
     {
-
+        // TODO
     }
 
 }

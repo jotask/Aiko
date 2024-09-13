@@ -51,9 +51,9 @@ namespace aiko
 
         void render(texture::RenderTexture2D&, Shader*);
 
-        AikoUPtr<Shader> createShader();
-        AikoUPtr<Shader> createShader(const char* name);
-        AikoUPtr<Shader> createShader(const char* vs, const char* fs);
+        AikoPtr<Shader> createShader();
+        AikoPtr<Shader> createShader(const char* name);
+        AikoPtr<Shader> createShader(const char* vs, const char* fs);
         void unloadShader(Shader& data);
 
         Camera* getMainCamera();
