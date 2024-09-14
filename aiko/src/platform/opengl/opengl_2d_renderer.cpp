@@ -6,6 +6,7 @@
 #include "shared/math.h"
 #include "models/camera.h"
 #include "models/shader.h"
+#include "constants.h"
 
 namespace aiko
 {
@@ -25,104 +26,51 @@ namespace aiko
         m_texturePositions.reserve(BATCH_SIZE * 6);
         m_spriteTextures.reserve(BATCH_SIZE);
 
-        glGenVertexArrays(1, &m_fbo.vao);
-        glBindVertexArray(m_fbo.vao);
-
         {
 
-            auto size = getRenderModule()->getDisplaySize();
-            m_fbo.renderTexture.texture.width = size.x;
-            m_fbo.renderTexture.texture.height = size.y;
-            m_fbo.renderTexture.depth.width = size.x;
-            m_fbo.renderTexture.depth.height = size.y;
+            #define GL2D_OPNEGL_SHADER_VERSION "#version 330"
+            #define GL2D_OPNEGL_SHADER_PRECISION "precision highp float;"
 
-            // Create and bind the framebuffer. This is done exactly the same as it's done for everything else in OpenGL.
-            glGenFramebuffers(1, &m_fbo.renderTexture.framebuffer);
-            glBindFramebuffer(GL_FRAMEBUFFER, m_fbo.renderTexture.framebuffer); // The bind location form framebuffers is simply named GL_FRAMEBUFFER.
+            static const char* defaultVertexShader =
+                GL2D_OPNEGL_SHADER_VERSION "\n"
+                GL2D_OPNEGL_SHADER_PRECISION "\n"
+                "layout(location = 0) in vec2 quad_positions;\n"
+                "layout(location = 1) in vec4 quad_colors;\n"
+                "layout(location = 2) in vec2 texturePositions;\n"
+                "out vec4 v_color;\n"
+                "out vec2 v_texture;\n"
+                "out vec2 v_positions;\n"
+                "void main()\n"
+                "{\n"
+                "	gl_Position = vec4(quad_positions, 0, 1);\n"
+                "	v_color = quad_colors;\n"
+                "	v_texture = texturePositions;\n"
+                "	v_positions = gl_Position.xy;\n"
+                "}\n";
 
-            // The framebuffer actually consists of a few smaller objects.
-            // These are primarily textures and renderbuffers, each which have different uses.
-            glGenTextures(1, &m_fbo.renderTexture.texture.id);
-            glBindTexture(GL_TEXTURE_2D, m_fbo.renderTexture.texture.id);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_fbo.renderTexture.texture.width, m_fbo.renderTexture.texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_fbo.renderTexture.texture.id, 0);
+            static const char* defaultFragmentShader =
+                GL2D_OPNEGL_SHADER_VERSION "\n"
+                GL2D_OPNEGL_SHADER_PRECISION "\n"
+                "out vec4 color;\n"
+                "in vec4 v_color;\n"
+                "in vec2 v_texture;\n"
+                "uniform sampler2D u_sampler;\n"
+                "void main()\n"
+                "{\n"
+                "    discard;\n"
+                "    vec4 texColor = texture(u_sampler, v_texture);\n"
+                "    vec4 finalColor = v_color * texColor;\n"
+                "    if (finalColor.a < 0.1) // Adjust threshold for transparency\n"
+                "    {\n"
+                "        discard;\n"
+                "    }\n"
+                "    color = finalColor;\n"
+                "}\n";
 
-            // clamp to border, do not allow texture wrapping
-            // otherwise, pixels that go off the top of the screen will wrap to the bottom
-            // and pixels that go too far right will show up on the left
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-            // When we read from the texture, it will be 1 to 1 with the screen, so we shouldnt have any filtering.
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glBindTexture(GL_TEXTURE_2D, 0);
-
-            glGenRenderbuffers(1, &m_fbo.renderTexture.depth.id);
-            glBindRenderbuffer(GL_RENDERBUFFER, m_fbo.renderTexture.depth.id);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_fbo.renderTexture.depth.width, m_fbo.renderTexture.depth.height); // use a single renderbuffer object for both a depth AND stencil buffer.
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_fbo.renderTexture.depth.id); // now actually attach it
-            // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            {
-                Log::error("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
-            }
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            m_defaultShader = getRenderModule()->createShader();
+            m_defaultShader->loadFromSource(defaultVertexShader, defaultFragmentShader);
 
         }
-
-        glGenBuffers(Renderer2DBufferType::BufferSize, buffers);
-
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-        glBindVertexArray(0);
-
-        #define GL2D_OPNEGL_SHADER_VERSION "#version 330"
-        #define GL2D_OPNEGL_SHADER_PRECISION "precision highp float;"
-
-        static const char* defaultVertexShader =
-            GL2D_OPNEGL_SHADER_VERSION "\n"
-            GL2D_OPNEGL_SHADER_PRECISION "\n"
-            "in vec2 quad_positions;\n"
-            "in vec4 quad_colors;\n"
-            "in vec2 texturePositions;\n"
-            "out vec4 v_color;\n"
-            "out vec2 v_texture;\n"
-            "out vec2 v_positions;\n"
-            "void main()\n"
-            "{\n"
-            "	gl_Position = vec4(quad_positions, 0, 1);\n"
-            "	v_color = quad_colors;\n"
-            "	v_texture = texturePositions;\n"
-            "	v_positions = gl_Position.xy;\n"
-            "}\n";
-
-        static const char* defaultFragmentShader =
-            GL2D_OPNEGL_SHADER_VERSION "\n"
-            GL2D_OPNEGL_SHADER_PRECISION "\n"
-            "out vec4 color;\n"
-            "in vec4 v_color;\n"
-            "in vec2 v_texture;\n"
-            "uniform sampler2D u_sampler;\n"
-            "void main()\n"
-            "{\n"
-            "    color = v_color * texture2D(u_sampler, v_texture);\n"
-            "}\n";
-
-        m_defaultShader = getRenderModule()->createShader();
-        m_defaultShader->loadFromSource(defaultVertexShader, defaultFragmentShader);
 
         auto createFromBuffer = [](const char* image_data, const int width, const int height, bool pixelated = false, bool useMipMaps = true) -> texture::Texture
         {
@@ -181,6 +129,63 @@ namespace aiko
 
         m_white1pxSquareTexture = createFromBuffer((char*)buff, 1, 1);
 
+        {
+
+            // Vertex data for a full-screen quad
+            static const float quadVertices[] = {
+                // Positions     // Texture Coords
+                -1.0f,  1.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f,
+                 1.0f, -1.0f, 1.0f, 0.0f,
+
+                -1.0f,  1.0f, 0.0f, 1.0f,
+                 1.0f, -1.0f, 1.0f, 0.0f,
+                 1.0f,  1.0f, 1.0f, 1.0f
+            };
+
+            glGenVertexArrays(1, &m_vao);
+            glGenBuffers(1, &m_vbo);
+
+            glBindVertexArray(m_vao);
+
+            glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+            // Position attribute
+            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(0);
+
+            // Texture coordinate attribute
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+            glEnableVertexAttribArray(1);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+        }
+
+        {
+
+            auto fbo = getRenderModule()->getScreenFbo();
+            // glBindVertexArray(fbo.vao);
+            // 
+            // // Create Buffers
+            // glGenBuffers(Renderer2DBufferType::BufferSize, buffers);
+            // 
+            // glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
+            // glEnableVertexAttribArray(0);
+            // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+            // 
+            // glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
+            // glEnableVertexAttribArray(1);
+            // glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+            // 
+            // glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
+            // glEnableVertexAttribArray(2);
+            // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+            // 
+            // glBindVertexArray(0);
+        }
+
     }
 
     void Opengl2DRenderer::beginFrame()
@@ -191,81 +196,93 @@ namespace aiko
     void Opengl2DRenderer::endFrame()
     {
 
-        enableNecessaryGLFeatures();
-
-
-        if (!m_fbo.vao)
+        if (m_spriteTextures.empty())
         {
-            Log::error("Renderer not initialized. It should be called after FBO is created");
             clearBatch();
             return;
         }
 
-        if (m_spriteTextures.empty())
+        // enableNecessaryGLFeatures();
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
         {
-            return;
-        }
 
-        auto windowSize = getRenderModule()->getDisplaySize();
-        glViewport(0, 0, windowSize.x, windowSize.y);
+            auto fbo = getRenderModule()->getScreenFbo();
 
-        glBindVertexArray(m_fbo.vao);
+            glViewport(0, 0, fbo.renderTexture.texture.width, fbo.renderTexture.texture.height);
 
-        m_defaultShader->use();
-        m_defaultShader->setInt("u_sampler", 0);
+            m_defaultShader->use();
+            m_defaultShader->setInt("u_sampler", 0);
 
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
-        glBufferData(GL_ARRAY_BUFFER, m_spritePositions.size() * sizeof(vec2), m_spritePositions.data(), GL_STREAM_DRAW);
+            glBindVertexArray(m_vao);
 
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
-        glBufferData(GL_ARRAY_BUFFER, m_spriteColors.size() * sizeof(vec4), m_spriteColors.data(), GL_STREAM_DRAW);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
 
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
-        glBufferData(GL_ARRAY_BUFFER, m_texturePositions.size() * sizeof(vec2), m_texturePositions.data(), GL_STREAM_DRAW);
 
-        //Instance render the textures
-        {
-            const int size = m_spriteTextures.size();
-            int pos = 0;
-            unsigned int id = m_spriteTextures[0].id;
+            // glActiveTexture(GL_TEXTURE0);
+            // glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
+            // 
+            // glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
+            // glBufferData(GL_ARRAY_BUFFER, m_spritePositions.size() * sizeof(vec2), m_spritePositions.data(), GL_STREAM_DRAW);
+            // 
+            // glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
+            // glBufferData(GL_ARRAY_BUFFER, m_spriteColors.size() * sizeof(vec4), m_spriteColors.data(), GL_STREAM_DRAW);
+            // 
+            // glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
+            // glBufferData(GL_ARRAY_BUFFER, m_texturePositions.size() * sizeof(vec2), m_texturePositions.data(), GL_STREAM_DRAW);
 
-            auto bindTexture = [](texture::Texture& text)
+            glDrawArrays(GL_TRIANGLES, 0, 6); // Draw the quad
+
+            //Instance render the textures
+#if false
             {
-                glActiveTexture(GL_TEXTURE0 + 0);
-                glBindTexture(GL_TEXTURE_2D, text.id);
-            };
+                const int size = m_spriteTextures.size();
+                int pos = 0;
+                unsigned int id = m_spriteTextures[0].id;
 
-            auto unbindTexture = [](texture::Texture& text)
-            {
-                glBindTexture(GL_TEXTURE_2D, 0);
-            };
-
-            bindTexture(m_spriteTextures[0]);
-
-            for (int i = 1; i < size; i++)
-            {
-                if (m_spriteTextures[i].id != id)
+                auto bindTexture = [](texture::Texture& text)
                 {
-                    glDrawArrays(GL_TRIANGLES, pos * 6, 6 * (i - pos));
-                    pos = i;
-                    id = m_spriteTextures[i].id;
-                    bindTexture(m_spriteTextures[i]);
+                    glActiveTexture(GL_TEXTURE0 + 0);
+                    glBindTexture(GL_TEXTURE_2D, text.id);
+                };
+
+                auto unbindTexture = [](texture::Texture& text)
+                {
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                };
+
+                bindTexture(m_spriteTextures[0]);
+
+                for (int i = 1; i < size; i++)
+                {
+                    if (m_spriteTextures[i].id != id)
+                    {
+                        glDrawArrays(GL_TRIANGLES, pos * 6, 6 * (i - pos));
+                        pos = i;
+                        id = m_spriteTextures[i].id;
+                        bindTexture(m_spriteTextures[i]);
+                    }
                 }
+
+                glDrawArrays(GL_TRIANGLES, pos * 6, 6 * (size - pos));
+
+                glBindVertexArray(0);
+
+                std::for_each(m_spriteTextures.begin(), m_spriteTextures.end(), [](texture::Texture& text) { glBindTexture(GL_TEXTURE_2D, 0); });
+
             }
-
-            glDrawArrays(GL_TRIANGLES, pos * 6, 6 * (size - pos));
-
+#endif
             glBindVertexArray(0);
-
-            std::for_each(m_spriteTextures.begin(), m_spriteTextures.end(), [](texture::Texture& text) { glBindTexture(GL_TEXTURE_2D, 0); });
+            glBindTexture(GL_TEXTURE_2D, 0);
+            m_defaultShader->unuse();
 
         }
-
-        m_defaultShader->unuse();
 
         clearBatch();
-        {
-        }
 
     }
 
@@ -393,10 +410,11 @@ namespace aiko
 
     void Opengl2DRenderer::enableNecessaryGLFeatures()
     {
-        glEnable(GL_BLEND);
         glDisable(GL_DEPTH_TEST);
-        glBlendEquation(GL_FUNC_ADD);
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
     }
 
     vec2 Opengl2DRenderer::positionToScreenCoords(vec2 pos, vec2 screenSize)

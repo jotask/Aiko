@@ -149,6 +149,7 @@ namespace aiko::native
 
         m_passthrought->use();
         m_passthrought->setInt("screenTexture", 0);
+        m_passthrought->unuse();
 
         initScreenFbo();
 
@@ -166,27 +167,39 @@ namespace aiko::native
 
     void OpenglRenderModule::endFrame()
     {
+
         RenderModule::endFrame();
+
         // Bind back to default framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glDisable(GL_BLEND);
+
         glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         clearBackground(BLACK);
 
         // Get window size
         const ivec2 window_size = getDisplaySize();
-        glViewport(0, 0, window_size.x, window_size.y);
+        glViewport(0, 0, m_screenFbo.renderTexture.texture.width, m_screenFbo.renderTexture.texture.height);
 
         if (getAiko()->getConfig().auto_render == false)
         {
             return;
         }
 
+        glBindVertexArray(m_screenFbo.vao);
+
         m_passthrought->use();
         m_passthrought->setInt("screenTexture", 0);
-        glBindVertexArray(m_screenFbo.vao);
+
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_screenFbo.renderTexture.texture.id);	// use the color attachment texture as the texture of the quad plane
+
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindVertexArray(0);
         m_passthrought->unuse();
 
     }

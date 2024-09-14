@@ -49,6 +49,8 @@ namespace aiko
         vec2 rotateAroundPoint(vec2, vec2, float);
         vec2 scaleAroundPoint(vec2, vec2, float);
 
+        uint m_vao;
+        uint m_vbo;
         std::vector<vec2> m_spritePositions;
         std::vector<vec4> m_spriteColors;
         std::vector<vec2> m_texturePositions;
