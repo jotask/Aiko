@@ -136,7 +136,7 @@ namespace aiko::native
         // Init context
         {
             // TODO Extract this, into AikoCfg
-            auto& renderers = getRenderers();
+            RenderModule::RenderersCtx& renderers = getRenderers();
             renderers.emplace(ContextType::Render2D, std::make_shared<Opengl2DRenderer>(this));
             renderers.emplace(ContextType::Render3D, std::make_shared<Opengl3DRenderer>(this));
         }
