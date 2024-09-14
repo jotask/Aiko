@@ -43,13 +43,6 @@ namespace aiko
 
     public:
 
-        struct ScreenFbo
-        {
-            uint vao;
-            uint vbo;
-            texture::RenderTexture2D renderTexture;
-        };
-
         ivec2 getDisplaySize();
 
         virtual void initMesh(Mesh*) = 0;

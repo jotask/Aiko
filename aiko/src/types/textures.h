@@ -32,5 +32,12 @@ namespace aiko::texture
         Texture depth;
     };
 
+    struct ScreenFbo
+    {
+        uint vao;
+        uint vbo;
+        texture::RenderTexture2D renderTexture;
+    };
+
 }
 

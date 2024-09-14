@@ -1,6 +1,7 @@
 #pragma once
 
 #include "shared/math.h"
+#include "types/textures.h"
 
 namespace aiko
 {
@@ -8,6 +9,7 @@ namespace aiko
     class RenderContext
     {
     public:
+        friend class RenderModule;
         RenderContext(RenderModule* renderer);
         virtual ~RenderContext() = default;
 
@@ -21,6 +23,8 @@ namespace aiko
 
     private:
         RenderModule* m_renderModule;
+
+        virtual texture::ScreenFbo getFbo() = 0;
 
     };
 }

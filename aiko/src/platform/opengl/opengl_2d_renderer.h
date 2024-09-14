@@ -38,6 +38,8 @@ namespace aiko
 
         #define GL2D_DefaultTextureCoords (vec4{ 0, 1, 1, 0 })
 
+        virtual texture::ScreenFbo getFbo();
+
         void drawAbsRotation(Camera* cam, vec2 pos, vec2 size, const texture::Texture texture, const Color color, const vec2 origin = {}, const float rotationDegrees = 0.f, const vec4 textureCoords = GL2D_DefaultTextureCoords);
 
         const unsigned int BATCH_SIZE = 1'000;
