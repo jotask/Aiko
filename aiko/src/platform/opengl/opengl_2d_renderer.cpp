@@ -57,7 +57,6 @@ namespace aiko
                 "uniform sampler2D u_sampler;\n"
                 "void main()\n"
                 "{\n"
-                "    discard;\n"
                 "    vec4 texColor = texture(u_sampler, v_texture);\n"
                 "    vec4 finalColor = v_color * texColor;\n"
                 "    if (finalColor.a < 0.1) // Adjust threshold for transparency\n"
