@@ -171,7 +171,7 @@ namespace aiko::native
         clearBackground(BLACK);
 
         // Get window size
-        const auto window_size = getDisplaySize();
+        const ivec2 window_size = getDisplaySize();
         glViewport(0, 0, window_size.x, window_size.y);
 
         if (getAiko()->getConfig().auto_render == false)
