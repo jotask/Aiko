@@ -165,25 +165,24 @@ namespace aiko
 
         {
 
-            auto fbo = getRenderModule()->getScreenFbo();
-            // glBindVertexArray(fbo.vao);
-            // 
-            // // Create Buffers
-            // glGenBuffers(Renderer2DBufferType::BufferSize, buffers);
-            // 
-            // glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
-            // glEnableVertexAttribArray(0);
-            // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-            // 
-            // glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
-            // glEnableVertexAttribArray(1);
-            // glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
-            // 
-            // glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
-            // glEnableVertexAttribArray(2);
-            // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-            // 
-            // glBindVertexArray(0);
+            glBindVertexArray(m_vao);
+            
+            // Create Buffers
+            glGenBuffers(Renderer2DBufferType::BufferSize, buffers);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+            
+            glBindVertexArray(0);
         }
 
     }
@@ -222,18 +221,17 @@ namespace aiko
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
 
-
-            // glActiveTexture(GL_TEXTURE0);
-            // glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
-            // 
-            // glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
-            // glBufferData(GL_ARRAY_BUFFER, m_spritePositions.size() * sizeof(vec2), m_spritePositions.data(), GL_STREAM_DRAW);
-            // 
-            // glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
-            // glBufferData(GL_ARRAY_BUFFER, m_spriteColors.size() * sizeof(vec4), m_spriteColors.data(), GL_STREAM_DRAW);
-            // 
-            // glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
-            // glBufferData(GL_ARRAY_BUFFER, m_texturePositions.size() * sizeof(vec2), m_texturePositions.data(), GL_STREAM_DRAW);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
+            glBufferData(GL_ARRAY_BUFFER, m_spritePositions.size() * sizeof(vec2), m_spritePositions.data(), GL_STREAM_DRAW);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
+            glBufferData(GL_ARRAY_BUFFER, m_spriteColors.size() * sizeof(vec4), m_spriteColors.data(), GL_STREAM_DRAW);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
+            glBufferData(GL_ARRAY_BUFFER, m_texturePositions.size() * sizeof(vec2), m_texturePositions.data(), GL_STREAM_DRAW);
 
             glDrawArrays(GL_TRIANGLES, 0, 6); // Draw the quad
 
