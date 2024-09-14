@@ -234,7 +234,7 @@ namespace aiko::native
                 glBindFramebuffer(GL_FRAMEBUFFER, m_screenFbo.renderTexture.framebuffer);
 
                 glBindTexture(GL_TEXTURE_2D, m_screenFbo.renderTexture.texture.id);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenWidth, screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
                 glBindTexture(GL_TEXTURE_2D, 0);
 
                 glBindRenderbuffer(GL_RENDERBUFFER, m_screenFbo.renderTexture.depth.id);
