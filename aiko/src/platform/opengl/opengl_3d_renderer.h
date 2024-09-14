@@ -2,6 +2,7 @@
 
 #include "modules/render/3d_renderer.h"
 #include "modules/render/render_module.h"
+#include "models/shader.h"
 
 namespace aiko
 {
@@ -19,6 +20,14 @@ namespace aiko
         virtual void dispose();
 
     private:
+
+        uint vao;
+        uint vbo;
+        AikoPtr<Shader> m_shader;
+
+        uint vao2;
+        uint vbo2;
+        AikoPtr<Shader> m_shader2;
 
     };
 }
