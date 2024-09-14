@@ -224,16 +224,40 @@ namespace aiko
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
             
-            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
-            glBufferData(GL_ARRAY_BUFFER, m_spritePositions.size() * sizeof(vec2), m_spritePositions.data(), GL_STREAM_DRAW);
+            {
+                std::vector<float> spritePositions;
+                for (const vec2& pos : m_spritePositions)
+                {
+                    spritePositions.push_back(pos.x);
+                    spritePositions.push_back(pos.y);
+                }
+                glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
+                glBufferData(GL_ARRAY_BUFFER, spritePositions.size() * sizeof(vec2), spritePositions.data(), GL_STREAM_DRAW);
+            }
             
-            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
-            glBufferData(GL_ARRAY_BUFFER, m_spriteColors.size() * sizeof(vec4), m_spriteColors.data(), GL_STREAM_DRAW);
+            {
+                std::vector<float> spriteColors;
+                for (const vec4& pos : m_spriteColors)
+                {
+                    spriteColors.push_back(pos.x);
+                    spriteColors.push_back(pos.y);
+                    spriteColors.push_back(pos.z);
+                    spriteColors.push_back(pos.w);
+                }
+                glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
+                glBufferData(GL_ARRAY_BUFFER, spriteColors.size() * sizeof(vec4), spriteColors.data(), GL_STREAM_DRAW);
+            }
             
-            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
-            glBufferData(GL_ARRAY_BUFFER, m_texturePositions.size() * sizeof(vec2), m_texturePositions.data(), GL_STREAM_DRAW);
-
-            glDrawArrays(GL_TRIANGLES, 0, 6); // Draw the quad
+            {
+                std::vector<float> texturePositions;
+                for (const vec2& pos : m_texturePositions)
+                {
+                    texturePositions.push_back(pos.x);
+                    texturePositions.push_back(pos.y);
+                }
+                glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
+                glBufferData(GL_ARRAY_BUFFER, texturePositions.size() * sizeof(vec2), texturePositions.data(), GL_STREAM_DRAW);
+            }
 
             //Instance render the textures
 #if false
