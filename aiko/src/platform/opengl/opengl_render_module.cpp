@@ -174,8 +174,7 @@ namespace aiko::native
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+        glDisable(GL_BLEND);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         clearBackground(BLACK);
 
