@@ -61,7 +61,7 @@ namespace aiko
                 "    vec4 finalColor = v_color * texColor;\n"
                 "    if (finalColor.a < 0.1) // Adjust threshold for transparency\n"
                 "    {\n"
-                "        discard;\n"
+                // "        discard;\n"
                 "    }\n"
                 "    color = finalColor;\n"
                 "}\n";
@@ -170,16 +170,16 @@ namespace aiko
             glGenBuffers(Renderer2DBufferType::BufferSize, buffers);
             
             glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+            glEnableVertexAttribArray(Renderer2DBufferType::QuadPositions);
+            glVertexAttribPointer(Renderer2DBufferType::QuadPositions, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
             
             glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+            glEnableVertexAttribArray(Renderer2DBufferType::QuadColors);
+            glVertexAttribPointer(Renderer2DBufferType::QuadColors, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
             
             glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+            glEnableVertexAttribArray(Renderer2DBufferType::TexturePositions);
+            glVertexAttribPointer(Renderer2DBufferType::TexturePositions, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
             
             glBindVertexArray(0);
         }
@@ -203,102 +203,120 @@ namespace aiko
         // enableNecessaryGLFeatures();
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
+        auto fbo = getRenderModule()->getScreenFbo();
+        glViewport(0, 0, fbo.renderTexture.texture.width, fbo.renderTexture.texture.height);
+
+        m_defaultShader->use();
+        m_defaultShader->setInt("u_sampler", 0);
+
+        /*
+
+        glBindVertexArray(m_vao);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
+
         {
-
-            auto fbo = getRenderModule()->getScreenFbo();
-
-            glViewport(0, 0, fbo.renderTexture.texture.width, fbo.renderTexture.texture.height);
-
-            m_defaultShader->use();
-            m_defaultShader->setInt("u_sampler", 0);
-
-            glBindVertexArray(m_vao);
-
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
-            
+            std::vector<float> spritePositions;
+            for (const vec2& pos : m_spritePositions)
             {
-                std::vector<float> spritePositions;
-                for (const vec2& pos : m_spritePositions)
-                {
-                    spritePositions.push_back(pos.x);
-                    spritePositions.push_back(pos.y);
-                }
-                glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
-                glBufferData(GL_ARRAY_BUFFER, spritePositions.size() * sizeof(vec2), spritePositions.data(), GL_STREAM_DRAW);
+                spritePositions.push_back(pos.x);
+                spritePositions.push_back(pos.y);
             }
-            
+            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
+            glBufferData(GL_ARRAY_BUFFER, spritePositions.size() * sizeof(vec2), spritePositions.data(), GL_STREAM_DRAW);
+        }
+
+        {
+            std::vector<float> spriteColors;
+            for (const vec4& pos : m_spriteColors)
             {
-                std::vector<float> spriteColors;
-                for (const vec4& pos : m_spriteColors)
-                {
-                    spriteColors.push_back(pos.x);
-                    spriteColors.push_back(pos.y);
-                    spriteColors.push_back(pos.z);
-                    spriteColors.push_back(pos.w);
-                }
-                glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
-                glBufferData(GL_ARRAY_BUFFER, spriteColors.size() * sizeof(vec4), spriteColors.data(), GL_STREAM_DRAW);
+                spriteColors.push_back(pos.x);
+                spriteColors.push_back(pos.y);
+                spriteColors.push_back(pos.z);
+                spriteColors.push_back(pos.w);
             }
-            
+            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
+            glBufferData(GL_ARRAY_BUFFER, spriteColors.size() * sizeof(vec4), spriteColors.data(), GL_STREAM_DRAW);
+        }
+
+        {
+            std::vector<float> texturePositions;
+            for (const vec2& pos : m_texturePositions)
             {
-                std::vector<float> texturePositions;
-                for (const vec2& pos : m_texturePositions)
-                {
-                    texturePositions.push_back(pos.x);
-                    texturePositions.push_back(pos.y);
-                }
-                glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
-                glBufferData(GL_ARRAY_BUFFER, texturePositions.size() * sizeof(vec2), texturePositions.data(), GL_STREAM_DRAW);
+                texturePositions.push_back(pos.x);
+                texturePositions.push_back(pos.y);
             }
+            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
+            glBufferData(GL_ARRAY_BUFFER, texturePositions.size() * sizeof(vec2), texturePositions.data(), GL_STREAM_DRAW);
+        }
 
-            //Instance render the textures
-#if false
+        //Instance render the textures
+        if (false)
+        {
+            const int size = m_spriteTextures.size();
+            int pos = 0;
+            unsigned int id = m_spriteTextures[0].id;
+
+            auto bindTexture = [](texture::Texture& text)
             {
-                const int size = m_spriteTextures.size();
-                int pos = 0;
-                unsigned int id = m_spriteTextures[0].id;
+                glActiveTexture(GL_TEXTURE0 + 0);
+                glBindTexture(GL_TEXTURE_2D, text.id);
+            };
 
-                auto bindTexture = [](texture::Texture& text)
+            auto unbindTexture = [](texture::Texture& text)
+            {
+                glBindTexture(GL_TEXTURE_2D, 0);
+            };
+
+            bindTexture(m_spriteTextures[0]);
+
+            for (int i = 1; i < size; i++)
+            {
+                if (m_spriteTextures[i].id != id)
                 {
-                    glActiveTexture(GL_TEXTURE0 + 0);
-                    glBindTexture(GL_TEXTURE_2D, text.id);
-                };
-
-                auto unbindTexture = [](texture::Texture& text)
-                {
-                    glBindTexture(GL_TEXTURE_2D, 0);
-                };
-
-                bindTexture(m_spriteTextures[0]);
-
-                for (int i = 1; i < size; i++)
-                {
-                    if (m_spriteTextures[i].id != id)
-                    {
-                        glDrawArrays(GL_TRIANGLES, pos * 6, 6 * (i - pos));
-                        pos = i;
-                        id = m_spriteTextures[i].id;
-                        bindTexture(m_spriteTextures[i]);
-                    }
+                    glDrawArrays(GL_TRIANGLES, pos * 6, 6 * (i - pos));
+                    pos = i;
+                    id = m_spriteTextures[i].id;
+                    bindTexture(m_spriteTextures[i]);
                 }
-
-                glDrawArrays(GL_TRIANGLES, pos * 6, 6 * (size - pos));
-
-                glBindVertexArray(0);
-
-                std::for_each(m_spriteTextures.begin(), m_spriteTextures.end(), [](texture::Texture& text) { glBindTexture(GL_TEXTURE_2D, 0); });
-
             }
-#endif
-            glBindVertexArray(0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            m_defaultShader->unuse();
+
+            glDrawArrays(GL_TRIANGLES, pos * 6, 6 * (size - pos));
 
         }
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        */
+
+        // Bind texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
+
+        // Bind VAO and buffers
+        glBindVertexArray(m_vao);
+
+        // Update buffer data
+        glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
+        glBufferData(GL_ARRAY_BUFFER, m_spritePositions.size() * sizeof(float), m_spritePositions.data(), GL_STREAM_DRAW);
+
+        glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
+        glBufferData(GL_ARRAY_BUFFER, m_spriteColors.size() * sizeof(float), m_spriteColors.data(), GL_STREAM_DRAW);
+
+        glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
+        glBufferData(GL_ARRAY_BUFFER, m_texturePositions.size() * sizeof(float), m_texturePositions.data(), GL_STREAM_DRAW);
+
+        // Draw
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glBindVertexArray(0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        std::for_each(m_spriteTextures.begin(), m_spriteTextures.end(), [](texture::Texture& text) { glBindTexture(GL_TEXTURE_2D, 0); });
+        m_defaultShader->unuse();
 
         clearBatch();
 
