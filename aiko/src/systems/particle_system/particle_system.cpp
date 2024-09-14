@@ -1,7 +1,7 @@
 #include "particle_system.h"
 
 #include "modules/module_connector.h"
-#include "modules/render_module.h"
+#include "modules/render/render_module.h"
 
 namespace aiko
 {
