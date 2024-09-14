@@ -27,6 +27,7 @@
 #include "constants.h"
 
 #include "platform/opengl/opengl_2d_renderer.h"
+#include "platform/opengl/opengl_3d_renderer.h"
 
 #include "modules/render/render_primitives.h"
 
@@ -134,8 +135,10 @@ namespace aiko::native
 
         // Init context
         {
+            // TODO Extract this, into AikoCfg
             auto& renderers = getRenderers();
             renderers.emplace(ContextType::Render2D, std::make_shared<Opengl2DRenderer>(this));
+            renderers.emplace(ContextType::Render3D, std::make_shared<Opengl3DRenderer>(this));
         }
 
         m_passthrought = createShader();
