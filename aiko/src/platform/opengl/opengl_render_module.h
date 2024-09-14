@@ -87,7 +87,7 @@ namespace aiko::native
 
     protected:
 
-        ScreenFbo m_screenFbo;
+        texture::ScreenFbo m_screenFbo;
         AikoPtr<Shader> m_passthrought;
 
         virtual void onWindowResize(Event&) override;
