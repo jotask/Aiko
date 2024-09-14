@@ -220,9 +220,6 @@ namespace aiko
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
-
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
             
             {
                 std::vector<float> spritePositions;
