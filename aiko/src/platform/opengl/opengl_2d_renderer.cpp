@@ -280,11 +280,6 @@ namespace aiko
         drawAbsRotation(cam, pos, size, m_white1pxSquareTexture, color, newOrigin, 0);
     }
 
-    texture::ScreenFbo Opengl2DRenderer::getFbo()
-    {
-        return m_fbo;
-    }
-
     void Opengl2DRenderer::drawAbsRotation(Camera* cam, vec2 pos, vec2 size, const texture::Texture texture, const Color color, const vec2 origin, const float rotationDegrees, const vec4 textureCoords)
     {
 

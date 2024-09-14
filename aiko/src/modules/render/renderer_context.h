@@ -9,7 +9,6 @@ namespace aiko
     class RenderContext
     {
     public:
-        friend class RenderModule;
         RenderContext(RenderModule* renderer);
         virtual ~RenderContext() = default;
 
@@ -24,7 +23,6 @@ namespace aiko
     private:
         RenderModule* m_renderModule;
 
-        virtual texture::ScreenFbo getFbo() = 0;
 
     };
 }
