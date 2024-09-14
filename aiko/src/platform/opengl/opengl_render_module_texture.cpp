@@ -102,6 +102,11 @@ namespace aiko::native
 
     }
 
+    texture::ScreenFbo OpenglRenderModule::getScreenFbo()
+    {
+        return m_screenFbo;
+    }
+
     texture::Texture OpenglRenderModule::createTexture()
     {
         // load and create a texture 

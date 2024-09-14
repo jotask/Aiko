@@ -44,13 +44,6 @@ namespace aiko::native
     
     public:
 
-        struct ScreenFbo
-        {
-            uint vao;
-            uint vbo;
-            texture::RenderTexture2D renderTexture;
-        };
-
         void initMesh(Mesh*);
         void refreshMesh(Mesh*);
         void renderMesh(Camera*, Transform*, Mesh*, Shader*);
@@ -74,6 +67,7 @@ namespace aiko::native
         void endBlendMode(void);
 
         void initScreenFbo();
+        texture::ScreenFbo getScreenFbo();
 
         // Font
         void drawText(string, float, float, float = 1.0f, Color = WHITE);

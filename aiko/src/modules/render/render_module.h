@@ -68,6 +68,7 @@ namespace aiko
         virtual void endBlendMode(void) = 0;
 
         virtual void initScreenFbo() = 0;
+        virtual texture::ScreenFbo getScreenFbo() = 0;
 
         // Font
         virtual void drawText(string, float, float, float = 1.0f, Color = WHITE) = 0;
