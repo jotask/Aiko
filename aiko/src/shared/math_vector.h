@@ -19,6 +19,7 @@ namespace aiko
         int y;
         bool operator==(ivec2& other) const { return { x == other.x && y == other.y }; }
         bool operator==(const ivec2& other) const { return { x == other.x && y == other.y }; }
+        ivec2 operator*(const float& scalar) const { return { static_cast<int>(x * scalar), static_cast<int>(y * scalar) }; }
     };
 
     class vec2
