@@ -2,6 +2,7 @@
 
 #include "aiko_types.h"
 #include "shared/math.h"
+#include "core/utils.h"
 
 namespace aiko
 {
@@ -30,6 +31,16 @@ namespace aiko
             uint8_t alpha = static_cast<uint8_t>(a * 255.0f);
             uint32_t rgba = (red << 24) | (green << 16) | (blue << 8) | alpha;
             return rgba;
+        }
+
+        static Color getRandomColor()
+        {
+            return {
+                utils::getRandomValue(0.0f, 1.0f),
+                utils::getRandomValue(0.0f, 1.0f),
+                utils::getRandomValue(0.0f, 1.0f),
+                utils::getRandomValue(0.0f, 1.0f),
+            };
         }
 
     };
