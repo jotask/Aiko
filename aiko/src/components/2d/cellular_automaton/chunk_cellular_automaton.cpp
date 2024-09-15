@@ -121,7 +121,7 @@ namespace aiko
     std::optional<ChunkCellularAutomaton::CellState> ChunkCellularAutomaton::getCell(const ivec2 pos)
     {
         const auto idx = cellautomaton::getIndex(pos.x, pos.y, cellautomaton::SIZE_CHUNK);
-        if (idx >= 0 && idx < cellautomaton::SIZE_CHUNK)
+        if (idx >= 0 && idx < cellautomaton::SIZE_CHUNK * cellautomaton::SIZE_CHUNK)
         {
             return cells[idx];
         }
