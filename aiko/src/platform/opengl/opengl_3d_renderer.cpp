@@ -233,45 +233,19 @@ namespace aiko
         //for (auto& v : objs)
         if( objs.spriteTextures.empty() == false)
         {
+
             glBindVertexArray(objs.vao);
             objs.shader->use();
             objs.shader->setInt("u_sampler", 0);
 
-            {
-                std::vector<float> sp;
-                for (auto& tmp : objs.spritePositions)
-                {
-                    sp.push_back(tmp.x);
-                    sp.push_back(tmp.y);
-                }
-                glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadPositions]);
-                glBufferData(GL_ARRAY_BUFFER, sp.size() * sizeof(float), sp.data(), GL_STREAM_DRAW);
-            }
+            glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadPositions]);
+            glBufferData(GL_ARRAY_BUFFER, objs.spritePositions.size() * sizeof(vec2), objs.spritePositions.data(), GL_STREAM_DRAW);
 
-            {
-                std::vector<float> sc;
-                for (auto& tmp : objs.spriteColors)
-                {
-                    sc.push_back(tmp.x);
-                    sc.push_back(tmp.y);
-                    sc.push_back(tmp.z);
-                    sc.push_back(tmp.w);
-                }
-                glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadColors]);
-                glBufferData(GL_ARRAY_BUFFER, sc.size() * sizeof(float), sc.data(), GL_STREAM_DRAW);
-            }
+            glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadColors]);
+            glBufferData(GL_ARRAY_BUFFER, objs.spriteColors.size() * sizeof(Color), objs.spriteColors.data(), GL_STREAM_DRAW);
 
-            {
-
-                std::vector<float> tp;
-                for (auto& tmp : objs.texturePositions)
-                {
-                    tp.push_back(tmp.x);
-                    tp.push_back(tmp.y);
-                }
-                glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::TexturePositions]);
-                glBufferData(GL_ARRAY_BUFFER, tp.size() * sizeof(float), tp.data(), GL_STREAM_DRAW);
-            }
+            glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::TexturePositions]);
+            glBufferData(GL_ARRAY_BUFFER, objs.texturePositions.size() * sizeof(vec2), objs.texturePositions.data(), GL_STREAM_DRAW);
 
             //Instance render the textures
             {
@@ -358,8 +332,8 @@ namespace aiko
 
         vec2 v1 = { pos.x,         transformsY };
         vec2 v2 = { pos.x,         transformsY - size.x };
-        vec2 v3 = { pos.x + pos.y, transformsY - size.x };
-        vec2 v4 = { pos.x + pos.y, transformsY };
+        vec2 v3 = { pos.x + size.y, transformsY - size.x };
+        vec2 v4 = { pos.x + size.y, transformsY };
 
         //Apply rotations
         if (rotationDegrees != 0)
@@ -427,12 +401,13 @@ namespace aiko
         objs.spritePositions.push_back(vec2{ v3.x, v3.y });
         objs.spritePositions.push_back(vec2{ v4.x, v4.y });
 
-        objs.spriteColors.push_back(color.r);
-        objs.spriteColors.push_back(color.g);
-        objs.spriteColors.push_back(color.b);
-        objs.spriteColors.push_back(color.g);
-        objs.spriteColors.push_back(color.b);
-        objs.spriteColors.push_back(color.a);
+        objs.spriteColors.push_back(color); // v1
+        objs.spriteColors.push_back(color); // v2
+        objs.spriteColors.push_back(color); // v4
+
+        objs.spriteColors.push_back(color); // v2
+        objs.spriteColors.push_back(color); // v3
+        objs.spriteColors.push_back(color); // v4
 
         objs.texturePositions.push_back(vec2{ textureCoords.x, textureCoords.y }); //1
         objs.texturePositions.push_back(vec2{ textureCoords.x, textureCoords.w }); //2

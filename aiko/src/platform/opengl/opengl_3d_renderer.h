@@ -49,7 +49,7 @@ namespace aiko
             uint vbo;
 
             std::vector<vec2> spritePositions;
-            std::vector<vec4> spriteColors;
+            std::vector<Color> spriteColors;
             std::vector<vec2> texturePositions;
             std::vector<texture::Texture> spriteTextures;
             uint buffers[Renderer2DBufferType::BufferSize] = {};
