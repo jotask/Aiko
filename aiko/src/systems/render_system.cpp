@@ -21,6 +21,7 @@
 
 #include "modules/render/render_primitives.h"
 #include "modules/render/3d_renderer.h"
+#include "modules/render/2d_renderer.h"
 
 namespace aiko
 {
@@ -41,7 +42,7 @@ namespace aiko
 
     void RenderSystem::render()
     {
-        auto ctx = m_renderModule->getRenderer<RenderContext3D>(ContextType::Render3D);
+        auto ctx = m_renderModule->getRenderer<RenderContext2D>(ContextType::Render2D);
         assert(ctx != nullptr);
         ctx->drawRectangle(getMainCamera(), { 000.0f, 000.0f }, { 100.0f, 100.0f }, RED);
         ctx->drawRectangle(getMainCamera(), { 100.0f, 100.0f }, { 100.0f, 100.0f }, RAYWHITE);

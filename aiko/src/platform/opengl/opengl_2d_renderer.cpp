@@ -1,37 +1,172 @@
 #include "opengl_2d_renderer.h"
 
 #include "core/libs.h"
-#include "modules/render/render_module.h"
-#include "types/render_types.h"
-#include "shared/math.h"
+
 #include "models/camera.h"
-#include "models/shader.h"
-#include "constants.h"
 
 namespace aiko
 {
+
     Opengl2DRenderer::Opengl2DRenderer(RenderModule* renderer)
         : RenderContext2D(renderer)
     {
-
     }
 
     void Opengl2DRenderer::init()
     {
+        // Passthrought
+        {
+            static float quadVertices[] =
+            {
+                // Positions     // Texture Coords
+                -1.0f,  1.0f,    0.0f, 1.0f,
+                -1.0f, -1.0f,    0.0f, 0.0f,
+                 1.0f, -1.0f,    1.0f, 0.0f,
 
-        clearBatch();
+                -1.0f,  1.0f,    0.0f, 1.0f,
+                 1.0f, -1.0f,    1.0f, 0.0f,
+                 1.0f,  1.0f,    1.0f, 1.0f
+            };
 
-        m_spritePositions.reserve(BATCH_SIZE * 6);
-        m_spriteColors.reserve(BATCH_SIZE * 6);
-        m_texturePositions.reserve(BATCH_SIZE * 6);
-        m_spriteTextures.reserve(BATCH_SIZE);
+            glGenVertexArrays(1, &root.vao);
+            glGenBuffers(1, &root.vbo);
+            glBindVertexArray(root.vao);
 
+            glBindBuffer(GL_ARRAY_BUFFER, root.vbo);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+            // Position attribute
+            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(0);
+
+            // Texture coordinate attribute
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+            glEnableVertexAttribArray(1);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+        }
+        {
+            // Shader sources
+            const char* vertexShaderSource = R"(
+                #version 330 core
+                layout(location = 0) in vec2 aPosition;
+                layout(location = 1) in vec2 aTexCoord;
+                out vec2 TexCoord;
+                void main()
+                {
+                    gl_Position = vec4(aPosition, 0.0, 1.0);
+                    TexCoord = aTexCoord;
+                }
+            )";
+
+            const char* fragmentShaderSource = R"(
+                #version 330 core
+                in vec2 TexCoord;
+                out vec4 FragColor;
+                uniform vec4 u_color;
+                uniform sampler2D u_texture;
+                void main()
+                {
+                    vec4 final = texture(u_texture, TexCoord) * u_color;
+                    if(final.a < 0.001)
+                    {
+                        discard;
+                    }
+                    FragColor = final;
+                }
+            )";
+
+            root.shader = getRenderModule()->createShader();
+            root.shader->loadFromSource(vertexShaderSource, fragmentShaderSource);
+
+        }
+        // Overlay
         {
 
-            #define GL2D_OPNEGL_SHADER_VERSION "#version 330"
-            #define GL2D_OPNEGL_SHADER_PRECISION "precision highp float;"
+            glGenVertexArrays(1, &objs.vao);
+            glBindVertexArray(objs.vao);
 
-            static const char* defaultVertexShader =
+            // Create Buffers
+            glGenBuffers(Renderer2DBufferType::BufferSize, objs.buffers);
+
+            glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadPositions]);
+            glEnableVertexAttribArray(Renderer2DBufferType::QuadPositions);
+            glVertexAttribPointer(Renderer2DBufferType::QuadPositions, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+            glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadColors]);
+            glEnableVertexAttribArray(Renderer2DBufferType::QuadColors);
+            glVertexAttribPointer(Renderer2DBufferType::QuadColors, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+            glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::TexturePositions]);
+            glEnableVertexAttribArray(Renderer2DBufferType::TexturePositions);
+            glVertexAttribPointer(Renderer2DBufferType::TexturePositions, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+        }
+        {
+            auto createFromBuffer = [](const char* image_data, const int width, const int height, bool pixelated = false, bool useMipMaps = true) -> texture::Texture
+            {
+
+                texture::Texture texture;
+                texture.width = width;
+                texture.height = height;
+
+                glActiveTexture(GL_TEXTURE0);
+
+                glGenTextures(1, &texture.id);
+                glBindTexture(GL_TEXTURE_2D, texture.id);
+
+                if (pixelated)
+                {
+                    if (useMipMaps)
+                    {
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+                    }
+                    else
+                    {
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                    }
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                }
+                else
+                {
+                    if (useMipMaps)
+                    {
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                    }
+                    else
+                    {
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                    }
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                }
+
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+                glGenerateMipmap(GL_TEXTURE_2D);
+
+                return texture;
+
+            };
+            const unsigned char buff[] =
+            {
+                0xff,
+                0xff,
+                0xff,
+                0xff
+            };
+            objs.defaultTexture = createFromBuffer((char*)buff, 1, 1);
+        }
+        {
+
+#define GL2D_OPNEGL_SHADER_VERSION "#version 330"
+#define GL2D_OPNEGL_SHADER_PRECISION "precision highp float;"
+
+            static const char* vertexShaderSource =
                 GL2D_OPNEGL_SHADER_VERSION "\n"
                 GL2D_OPNEGL_SHADER_PRECISION "\n"
                 "layout(location = 0) in vec2 quad_positions;\n"
@@ -48,7 +183,7 @@ namespace aiko
                 "	v_positions = gl_Position.xy;\n"
                 "}\n";
 
-            static const char* defaultFragmentShader =
+            static const char* fragmentShaderSource =
                 GL2D_OPNEGL_SHADER_VERSION "\n"
                 GL2D_OPNEGL_SHADER_PRECISION "\n"
                 "out vec4 color;\n"
@@ -66,282 +201,132 @@ namespace aiko
                 "    color = finalColor;\n"
                 "}\n";
 
-            m_defaultShader = getRenderModule()->createShader();
-            m_defaultShader->loadFromSource(defaultVertexShader, defaultFragmentShader);
+            objs.shader = getRenderModule()->createShader();
+            objs.shader->loadFromSource(vertexShaderSource, fragmentShaderSource);
 
         }
 
-        auto createFromBuffer = [](const char* image_data, const int width, const int height, bool pixelated = false, bool useMipMaps = true) -> texture::Texture
-        {
+        const size_t quadCount = 1'000;
 
-            texture::Texture texture;
-            texture.width = width;
-            texture.height = height;
-
-            glActiveTexture(GL_TEXTURE0);
-
-            glGenTextures(1, &texture.id);
-            glBindTexture(GL_TEXTURE_2D, texture.id);
-
-            if (pixelated)
-            {
-                if (useMipMaps)
-                {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-                }
-                else
-                {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                }
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            }
-            else
-            {
-                if (useMipMaps)
-                {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                }
-                else
-                {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                }
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            }
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-
-            return texture;
-
-        };
-
-        const unsigned char buff[] =
-        {
-            0xff,
-            0xff,
-            0xff,
-            0xff
-        };
-
-        m_white1pxSquareTexture = createFromBuffer((char*)buff, 1, 1);
-
-        {
-
-            // Vertex data for a full-screen quad
-            static const float quadVertices[] = {
-                // Positions     // Texture Coords
-                -1.0f,  1.0f, 0.0f, 1.0f,
-                -1.0f, -1.0f, 0.0f, 0.0f,
-                 1.0f, -1.0f, 1.0f, 0.0f,
-
-                -1.0f,  1.0f, 0.0f, 1.0f,
-                 1.0f, -1.0f, 1.0f, 0.0f,
-                 1.0f,  1.0f, 1.0f, 1.0f
-            };
-
-            glGenVertexArrays(1, &m_vao);
-            glGenBuffers(1, &m_vbo);
-
-            glBindVertexArray(m_vao);
-
-            glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
-
-            // Position attribute
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-            glEnableVertexAttribArray(0);
-
-            // Texture coordinate attribute
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-            glEnableVertexAttribArray(1);
-
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-        }
-
-        {
-
-            glBindVertexArray(m_vao);
-            
-            // Create Buffers
-            glGenBuffers(Renderer2DBufferType::BufferSize, buffers);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
-            glEnableVertexAttribArray(Renderer2DBufferType::QuadPositions);
-            glVertexAttribPointer(Renderer2DBufferType::QuadPositions, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
-            glEnableVertexAttribArray(Renderer2DBufferType::QuadColors);
-            glVertexAttribPointer(Renderer2DBufferType::QuadColors, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
-            glEnableVertexAttribArray(Renderer2DBufferType::TexturePositions);
-            glVertexAttribPointer(Renderer2DBufferType::TexturePositions, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-            
-            glBindVertexArray(0);
-        }
+        objs.spritePositions.reserve(quadCount * 6);
+        objs.spriteColors.reserve(quadCount * 6);
+        objs.texturePositions.reserve(quadCount * 6);
+        objs.spriteTextures.reserve(quadCount);
 
     }
 
     void Opengl2DRenderer::beginFrame()
     {
-
     }
 
     void Opengl2DRenderer::endFrame()
     {
 
-        if (m_spriteTextures.empty())
-        {
-            clearBatch();
-            return;
-        }
+        // Use framebuffer
+        // glBindFramebuffer(GL_FRAMEBUFFER, getRenderModule()->getRenderTexture()->framebuffer);
+        // glViewport(0, 0, getRenderModule()->getRenderTexture()->texture.width, getRenderModule()->getRenderTexture()->texture.height); // Set viewport to match texture size
 
-        // enableNecessaryGLFeatures();
-        glDisable(GL_DEPTH_TEST);
+        // Enable blending for transparency
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-        auto fbo = getRenderModule()->getScreenFbo();
-        glViewport(0, 0, fbo.renderTexture.texture.width, fbo.renderTexture.texture.height);
-
-        m_defaultShader->use();
-        m_defaultShader->setInt("u_sampler", 0);
-
-        /*
-
-        glBindVertexArray(m_vao);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
-
+        //for (auto& v : objs)
+        if (objs.spriteTextures.empty() == false)
         {
-            std::vector<float> spritePositions;
-            for (const vec2& pos : m_spritePositions)
-            {
-                spritePositions.push_back(pos.x);
-                spritePositions.push_back(pos.y);
-            }
-            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
-            glBufferData(GL_ARRAY_BUFFER, spritePositions.size() * sizeof(vec2), spritePositions.data(), GL_STREAM_DRAW);
-        }
 
-        {
-            std::vector<float> spriteColors;
-            for (const vec4& pos : m_spriteColors)
-            {
-                spriteColors.push_back(pos.x);
-                spriteColors.push_back(pos.y);
-                spriteColors.push_back(pos.z);
-                spriteColors.push_back(pos.w);
-            }
-            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
-            glBufferData(GL_ARRAY_BUFFER, spriteColors.size() * sizeof(vec4), spriteColors.data(), GL_STREAM_DRAW);
-        }
+            glBindVertexArray(objs.vao);
+            objs.shader->use();
+            objs.shader->setInt("u_sampler", 0);
 
-        {
-            std::vector<float> texturePositions;
-            for (const vec2& pos : m_texturePositions)
-            {
-                texturePositions.push_back(pos.x);
-                texturePositions.push_back(pos.y);
-            }
-            glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
-            glBufferData(GL_ARRAY_BUFFER, texturePositions.size() * sizeof(vec2), texturePositions.data(), GL_STREAM_DRAW);
-        }
+            glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadPositions]);
+            glBufferData(GL_ARRAY_BUFFER, objs.spritePositions.size() * sizeof(vec2), objs.spritePositions.data(), GL_STREAM_DRAW);
 
-        //Instance render the textures
-        if (false)
-        {
-            const int size = m_spriteTextures.size();
-            int pos = 0;
-            unsigned int id = m_spriteTextures[0].id;
+            glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadColors]);
+            glBufferData(GL_ARRAY_BUFFER, objs.spriteColors.size() * sizeof(Color), objs.spriteColors.data(), GL_STREAM_DRAW);
 
-            auto bindTexture = [](texture::Texture& text)
+            glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::TexturePositions]);
+            glBufferData(GL_ARRAY_BUFFER, objs.texturePositions.size() * sizeof(vec2), objs.texturePositions.data(), GL_STREAM_DRAW);
+
+            //Instance render the textures
             {
+                const int size = objs.spriteTextures.size();
+                int pos = 0;
+                unsigned int id = objs.spriteTextures[0].id;
+
                 glActiveTexture(GL_TEXTURE0 + 0);
-                glBindTexture(GL_TEXTURE_2D, text.id);
-            };
+                glBindTexture(GL_TEXTURE_2D, objs.spriteTextures[0].id);
 
-            auto unbindTexture = [](texture::Texture& text)
-            {
-                glBindTexture(GL_TEXTURE_2D, 0);
-            };
-
-            bindTexture(m_spriteTextures[0]);
-
-            for (int i = 1; i < size; i++)
-            {
-                if (m_spriteTextures[i].id != id)
+                for (int i = 1; i < size; i++)
                 {
-                    glDrawArrays(GL_TRIANGLES, pos * 6, 6 * (i - pos));
-                    pos = i;
-                    id = m_spriteTextures[i].id;
-                    bindTexture(m_spriteTextures[i]);
+                    if (objs.spriteTextures[i].id != id)
+                    {
+                        glDrawArrays(GL_TRIANGLES, pos * 6, 6 * (i - pos));
+
+                        pos = i;
+                        id = objs.spriteTextures[i].id;
+                        glActiveTexture(GL_TEXTURE0 + 0);
+                        glBindTexture(GL_TEXTURE_2D, objs.spriteTextures[i].id);
+                    }
+
                 }
+
+                glDrawArrays(GL_TRIANGLES, pos * 6, 6 * (size - pos));
+
+                glBindVertexArray(0);
             }
 
-            glDrawArrays(GL_TRIANGLES, pos * 6, 6 * (size - pos));
+            objs.shader->unuse();
+
+            objs.spritePositions.clear();
+            objs.spriteColors.clear();
+            objs.texturePositions.clear();
+            objs.spriteTextures.clear();
 
         }
 
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        // Bind shader (assuming you have a shader program already created and compiled)
+        root.shader->use();
 
-        */
+        // Bind the VAO
+        glBindVertexArray(root.vao);
 
-        // Bind texture
+        // Bind the texture
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, fbo.renderTexture.texture.id);
+        glBindTexture(GL_TEXTURE_2D, getRenderModule()->getRenderTexture()->texture.id);
+        root.shader->setInt("u_texture", 0);
+        root.shader->setVec4("u_color", { 1.0f, 1.0f, 1.0f, 1.0f });
 
-        // Bind VAO and buffers
-        glBindVertexArray(m_vao);
-
-        // Update buffer data
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadPositions]);
-        glBufferData(GL_ARRAY_BUFFER, m_spritePositions.size() * sizeof(float), m_spritePositions.data(), GL_STREAM_DRAW);
-
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::QuadColors]);
-        glBufferData(GL_ARRAY_BUFFER, m_spriteColors.size() * sizeof(float), m_spriteColors.data(), GL_STREAM_DRAW);
-
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::TexturePositions]);
-        glBufferData(GL_ARRAY_BUFFER, m_texturePositions.size() * sizeof(float), m_texturePositions.data(), GL_STREAM_DRAW);
-
-        // Draw
+        // Draw the quad
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
+        // Unbind everything
         glBindVertexArray(0);
         glBindTexture(GL_TEXTURE_2D, 0);
-        std::for_each(m_spriteTextures.begin(), m_spriteTextures.end(), [](texture::Texture& text) { glBindTexture(GL_TEXTURE_2D, 0); });
-        m_defaultShader->unuse();
+        root.shader->unuse();
 
-        clearBatch();
+        // Unbind framebuffer
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     }
 
     void Opengl2DRenderer::dispose()
     {
-
     }
 
     void Opengl2DRenderer::drawRectangle(Camera* cam, vec2 pos, vec2 size, Color color)
     {
         vec2 newOrigin;
-        drawAbsRotation(cam, pos, size, m_white1pxSquareTexture, color, newOrigin, 0);
+        drawAbsRotation(cam, pos, size, objs.defaultTexture, color, newOrigin, 0);
     }
 
     void Opengl2DRenderer::drawAbsRotation(Camera* cam, vec2 pos, vec2 size, const texture::Texture texture, const Color color, const vec2 origin, const float rotationDegrees, const vec4 textureCoords)
     {
-
         texture::Texture textureCopy = texture;
 
         if (textureCopy.id == 0)
         {
             Log::error("Invalid texture");
-            textureCopy = m_white1pxSquareTexture;
+            textureCopy = objs.defaultTexture;
         }
 
         //We need to flip texture_transforms.y
@@ -349,8 +334,8 @@ namespace aiko
 
         vec2 v1 = { pos.x,         transformsY };
         vec2 v2 = { pos.x,         transformsY - size.x };
-        vec2 v3 = { pos.x + pos.y, transformsY - size.x };
-        vec2 v4 = { pos.x + pos.y, transformsY };
+        vec2 v3 = { pos.x + size.y, transformsY - size.x };
+        vec2 v4 = { pos.x + size.y, transformsY };
 
         //Apply rotations
         if (rotationDegrees != 0)
@@ -410,47 +395,31 @@ namespace aiko
         v3 = positionToScreenCoords(v3, screenSize);
         v4 = positionToScreenCoords(v4, screenSize);
 
-        m_spritePositions.push_back(vec2{ v1.x, v1.y });
-        m_spritePositions.push_back(vec2{ v2.x, v2.y });
-        m_spritePositions.push_back(vec2{ v4.x, v4.y });
+        objs.spritePositions.push_back(vec2{ v1.x, v1.y });
+        objs.spritePositions.push_back(vec2{ v2.x, v2.y });
+        objs.spritePositions.push_back(vec2{ v4.x, v4.y });
 
-        m_spritePositions.push_back(vec2{ v2.x, v2.y });
-        m_spritePositions.push_back(vec2{ v3.x, v3.y });
-        m_spritePositions.push_back(vec2{ v4.x, v4.y });
+        objs.spritePositions.push_back(vec2{ v2.x, v2.y });
+        objs.spritePositions.push_back(vec2{ v3.x, v3.y });
+        objs.spritePositions.push_back(vec2{ v4.x, v4.y });
 
-        m_spriteColors.push_back(color.r);
-        m_spriteColors.push_back(color.g);
-        m_spriteColors.push_back(color.b);
-        m_spriteColors.push_back(color.g);
-        m_spriteColors.push_back(color.b);
-        m_spriteColors.push_back(color.a);
+        objs.spriteColors.push_back(color); // v1
+        objs.spriteColors.push_back(color); // v2
+        objs.spriteColors.push_back(color); // v4
 
-        m_texturePositions.push_back(vec2{ textureCoords.x, textureCoords.y }); //1
-        m_texturePositions.push_back(vec2{ textureCoords.x, textureCoords.w }); //2
-        m_texturePositions.push_back(vec2{ textureCoords.z, textureCoords.y }); //4
-        m_texturePositions.push_back(vec2{ textureCoords.x, textureCoords.w }); //2
-        m_texturePositions.push_back(vec2{ textureCoords.z, textureCoords.w }); //3
-        m_texturePositions.push_back(vec2{ textureCoords.z, textureCoords.y }); //4
+        objs.spriteColors.push_back(color); // v2
+        objs.spriteColors.push_back(color); // v3
+        objs.spriteColors.push_back(color); // v4
 
-        m_spriteTextures.push_back(textureCopy);
+        objs.texturePositions.push_back(vec2{ textureCoords.x, textureCoords.y }); //1
+        objs.texturePositions.push_back(vec2{ textureCoords.x, textureCoords.w }); //2
+        objs.texturePositions.push_back(vec2{ textureCoords.z, textureCoords.y }); //4
+        objs.texturePositions.push_back(vec2{ textureCoords.x, textureCoords.w }); //2
+        objs.texturePositions.push_back(vec2{ textureCoords.z, textureCoords.w }); //3
+        objs.texturePositions.push_back(vec2{ textureCoords.z, textureCoords.y }); //4
 
-    }
+        objs.spriteTextures.push_back(textureCopy);
 
-    void Opengl2DRenderer::clearBatch()
-    {
-        m_spritePositions.clear();
-        m_spriteColors.clear();
-        m_texturePositions.clear();
-        m_spriteTextures.clear();
-    }
-
-    void Opengl2DRenderer::enableNecessaryGLFeatures()
-    {
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
     }
 
     vec2 Opengl2DRenderer::positionToScreenCoords(vec2 pos, vec2 screenSize)
