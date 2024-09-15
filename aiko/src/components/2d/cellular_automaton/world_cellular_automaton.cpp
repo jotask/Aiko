@@ -97,7 +97,7 @@ namespace aiko
                     std::optional<ChunkCellularAutomaton::CellState> neighborCell = chunkPtr->getCell(pos);
                     if (neighborCell != std::nullopt)
                     {
-                        neighbours.push_back(*neighborCell); // Add the neighbor cell to the vector
+                        neighbours.push_back(neighborCell.value()); // Add the neighbor cell to the vector
                     }
                 }
             }
