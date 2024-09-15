@@ -18,9 +18,6 @@ namespace aiko
         class AutomatonRender
         {
             RenderSystem* m_renderSystem;
-            AikoPtr<Mesh>       m_mesh;
-            AikoPtr<Shader>     m_shader;
-            texture::Texture    m_texture;
 
         public:
 
