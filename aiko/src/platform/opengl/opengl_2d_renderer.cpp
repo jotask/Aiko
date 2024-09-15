@@ -363,26 +363,21 @@ namespace aiko
         v4.x -= cam->position.x;
         v4.y += cam->position.y;
 
-        //Apply camera rotation
-        /*
-        if (cam->rotation != 0)
-        {
-            vec2 cameraCenter;
-
-            cameraCenter.x = windowW / 2.0f;
-            cameraCenter.y = windowH / 2.0f;
-
-            v1 = rotateAroundPoint(v1, cameraCenter, currentCamera.rotation);
-            v2 = rotateAroundPoint(v2, cameraCenter, currentCamera.rotation);
-            v3 = rotateAroundPoint(v3, cameraCenter, currentCamera.rotation);
-            v4 = rotateAroundPoint(v4, cameraCenter, currentCamera.rotation);
-        }
-        */
-
         const auto screenSize = getRenderModule()->getDisplaySize();
 
+        //Apply camera rotation
+        constexpr float rotation = 0.0f;
+        if (rotation != 0)
+        {
+            vec2 cameraCenter = { screenSize.x / 2.0f, screenSize.y / 2.0f };
+            v1 = rotateAroundPoint(v1, cameraCenter, rotation);
+            v2 = rotateAroundPoint(v2, cameraCenter, rotation);
+            v3 = rotateAroundPoint(v3, cameraCenter, rotation);
+            v4 = rotateAroundPoint(v4, cameraCenter, rotation);
+        }
+
         //Apply camera zoom
-        static float zoom = 2.0f;
+        constexpr float zoom = 2.0f;
         if(zoom != 1)
         {
             vec2 cameraCenter = { cam->position.x , cam->position.y };
