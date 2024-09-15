@@ -1,7 +1,10 @@
 #pragma once
 
+#include <vector>
+
 #include "modules/render/3d_renderer.h"
 #include "modules/render/render_module.h"
+#include "models/shader.h"
 
 namespace aiko
 {

@@ -21,6 +21,9 @@
 
 #include "modules/render/render_primitives.h"
 
+#include "modules/render/3d_renderer.h"
+#include "modules/render/2d_renderer.h"
+
 namespace aiko
 {
 
@@ -40,7 +43,13 @@ namespace aiko
 
     void RenderSystem::render()
     {
-
+        auto ctx = m_renderModule->getRenderer<RenderContext2D>(ContextType::Render2D);
+        assert(ctx != nullptr);
+        Color colors[4] { RED, WHITE, BLUE, GREEN };
+        ctx->drawRectangle(getMainCamera(), { 000.0f, 000.0f }, { 100.0f, 100.0f }, colors);
+        ctx->drawRectangle(getMainCamera(), { 100.0f, 100.0f }, { 100.0f, 100.0f }, RAYWHITE);
+        ctx->drawRectangle(getMainCamera(), { 200.0f, 200.0f }, { 100.0f, 100.0f }, MAGENTA);
+        ctx->drawRectangle(getMainCamera(), { 300.0f, 300.0f }, { 100.0f, 100.0f }, YELLOW);
     }
 
     aiko::AikoPtr<Mesh> RenderSystem::createMesh(Mesh::MeshType type)

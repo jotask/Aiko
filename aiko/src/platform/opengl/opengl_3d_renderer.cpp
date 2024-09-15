@@ -1,5 +1,9 @@
 #include "opengl_3d_renderer.h"
 
+#include "core/libs.h"
+
+#include "models/camera.h"
+
 namespace aiko
 {
 
@@ -10,6 +14,7 @@ namespace aiko
 
     void Opengl3DRenderer::init()
     {
+
     }
 
     void Opengl3DRenderer::beginFrame()
@@ -18,6 +23,7 @@ namespace aiko
 
     void Opengl3DRenderer::endFrame()
     {
+
     }
 
     void Opengl3DRenderer::dispose()
