@@ -316,10 +316,17 @@ namespace aiko
     void Opengl2DRenderer::drawRectangle(Camera* cam, vec2 pos, vec2 size, Color color)
     {
         vec2 newOrigin;
-        drawAbsRotation(cam, pos, size, objs.defaultTexture, color, newOrigin, 0);
+        Color colors[4] = {color, color, color, color};
+        drawAbsRotation(cam, pos, size, objs.defaultTexture, colors, newOrigin, 0);
     }
 
-    void Opengl2DRenderer::drawAbsRotation(Camera* cam, vec2 pos, vec2 size, const texture::Texture texture, const Color color, const vec2 origin, const float rotationDegrees, const vec4 textureCoords)
+    void Opengl2DRenderer::drawRectangle(Camera* cam, vec2 pos, vec2 size, Color colors[4])
+    {
+        vec2 newOrigin;
+        drawAbsRotation(cam, pos, size, objs.defaultTexture, colors, newOrigin, 0);
+    }
+
+    void Opengl2DRenderer::drawAbsRotation(Camera* cam, vec2 pos, vec2 size, const texture::Texture texture, const Color colors[4], const vec2 origin, const float rotationDegrees, const vec4 textureCoords)
     {
         texture::Texture textureCopy = texture;
 
@@ -403,13 +410,13 @@ namespace aiko
         objs.spritePositions.push_back(vec2{ v3.x, v3.y });
         objs.spritePositions.push_back(vec2{ v4.x, v4.y });
 
-        objs.spriteColors.push_back(color); // v1
-        objs.spriteColors.push_back(color); // v2
-        objs.spriteColors.push_back(color); // v4
+        objs.spriteColors.push_back(colors[0]); // v1
+        objs.spriteColors.push_back(colors[1]); // v2
+        objs.spriteColors.push_back(colors[3]); // v4
 
-        objs.spriteColors.push_back(color); // v2
-        objs.spriteColors.push_back(color); // v3
-        objs.spriteColors.push_back(color); // v4
+        objs.spriteColors.push_back(colors[1]); // v2
+        objs.spriteColors.push_back(colors[2]); // v3
+        objs.spriteColors.push_back(colors[3]); // v4
 
         objs.texturePositions.push_back(vec2{ textureCoords.x, textureCoords.y }); //1
         objs.texturePositions.push_back(vec2{ textureCoords.x, textureCoords.w }); //2

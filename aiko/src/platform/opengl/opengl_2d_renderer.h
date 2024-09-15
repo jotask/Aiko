@@ -9,6 +9,7 @@
 namespace aiko
 {
     class RenderModule;
+    class Camera;
     class Opengl2DRenderer : public RenderContext2D
     {
     public:
@@ -22,6 +23,7 @@ namespace aiko
         virtual void dispose();
 
         virtual void drawRectangle(Camera* cam, vec2 pos, vec2 size, Color color);
+        virtual void drawRectangle(Camera*, vec2 pos, vec2 size, Color colors[4]);
 
     private:
 
@@ -61,7 +63,7 @@ namespace aiko
         Screen root;
         Vertex objs;
 
-        void drawAbsRotation(Camera* cam, vec2 pos, vec2 size, const texture::Texture texture, const Color color, const vec2 origin = {}, const float rotationDegrees = 0.f, const vec4 textureCoords = GL2D_DefaultTextureCoords);
+        void drawAbsRotation(Camera* cam, vec2 pos, vec2 size, const texture::Texture texture, const Color colors[4], const vec2 origin = {}, const float rotationDegrees = 0.f, const vec4 textureCoords = GL2D_DefaultTextureCoords);
 
         vec2 positionToScreenCoords(vec2, vec2);
         vec2 rotateAroundPoint(vec2, vec2, float);
