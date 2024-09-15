@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <chrono>
+#include <thread>
 
 #include "models/game_object.h"
 #include "systems/render_system.h"
@@ -14,10 +15,9 @@
 namespace aiko
 {
 
-    ChunkCellularAutomaton::ChunkCellularAutomaton(WorldCellularAutomaton* world, const int x, const int y)
+    ChunkCellularAutomaton::ChunkCellularAutomaton(WorldCellularAutomaton* world, const ivec2 pos)
         : world(world)
-        , x(x)
-        , y(y)
+        , pos(pos)
     {
         init();
     }
@@ -34,7 +34,7 @@ namespace aiko
             }
         }
 
-        if(true)
+        if(false)
         {
             cells[cellautomaton::getIndex(0, 0, cellautomaton::SIZE_CHUNK)] = CellState::DEBUG;
             cells[cellautomaton::getIndex(cellautomaton::SIZE_CHUNK - 1, 0, cellautomaton::SIZE_CHUNK)] = CellState::DEBUG;
@@ -42,7 +42,7 @@ namespace aiko
             cells[cellautomaton::getIndex(cellautomaton::SIZE_CHUNK - 1, cellautomaton::SIZE_CHUNK - 1, cellautomaton::SIZE_CHUNK)] = CellState::DEBUG;
         }
 
-        if (false)
+        if (true)
         {
             for (auto& c : cells)
             {
@@ -58,20 +58,22 @@ namespace aiko
             }
         }
 
+        prev_cells = cells;
+
     }
 
     void ChunkCellularAutomaton::update()
     {
-
+        prev_cells = cells;
         for (int y = 0; y < cellautomaton::SIZE_CHUNK; y++)
         {
             for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
             {
 
                 const auto idx = cellautomaton::getIndex(x, y, cellautomaton::SIZE_CHUNK);
-                auto state = cells[idx];
+                auto state = prev_cells[idx];
                 
-                std::vector<CellState> neighbours;//  = getNeighbours({ x, y });
+                std::vector<CellState> neighbours = getNeighbours({ x, y });
 
                 const auto alive = std::count_if(neighbours.begin(), neighbours.end(), [](CellState& c)
                 {
@@ -81,12 +83,8 @@ namespace aiko
                 if (state == ChunkCellularAutomaton::CellState::LIVE)
                 {
                     // Loneliness: A live cell with fewer than 2 live neighbors dies
-                    if (alive < 2)
-                    {
-                        state = CellState::DEAD;
-                    }
                     // Overcrowding: A live cell with more than 3 live neighbors dies
-                    else if (alive > 3)
+                    if (alive < 2 || alive > 3)
                     {
                         state = CellState::DEAD;
                     }
@@ -100,22 +98,14 @@ namespace aiko
                         state = CellState::LIVE;
                     }
                 }
-
+                cells[idx] = state;
             }
-        }
-    }
-
-    void ChunkCellularAutomaton::render()
-    {
-        for (auto& cell : cells)
-        {
-
         }
     }
 
     std::vector<ChunkCellularAutomaton::CellState> ChunkCellularAutomaton::getNeighbours(ivec2 cell)
     {
-        return world->getNeighbours({x, y}, cell);
+        return world->getNeighbours(pos, cell);
     }
 
     std::optional<ChunkCellularAutomaton::CellState> ChunkCellularAutomaton::getCell(const ivec2 pos)

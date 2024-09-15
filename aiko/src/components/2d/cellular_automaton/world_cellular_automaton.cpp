@@ -21,24 +21,16 @@ namespace aiko
         {
             for (int x = 0; x < cellautomaton::SIZE_WORLD; x++)
             {
-                m_chunks.emplace_back( this, x, y );
+                m_chunks.emplace_back(this, ivec2 { x, y });
             }
         }
     }
 
     void WorldCellularAutomaton::update()
     {
-        for (auto& c : m_chunks)
+        for (ChunkCellularAutomaton& c : m_chunks)
         {
-            // c.update();
-        }
-    }
-
-    void WorldCellularAutomaton::render()
-    {
-        for (auto& c : m_chunks)
-        {
-            c.render();
+            c.update();
         }
     }
 
@@ -50,7 +42,7 @@ namespace aiko
     std::vector<ChunkCellularAutomaton::CellState> WorldCellularAutomaton::getNeighbours(ivec2 chunk, ivec2 cell)
     {
 
-        auto isCurrentChunk = [&](ivec2 p) -> bool
+        static auto isCurrentChunk = [&](ivec2 p) -> bool
         {
             return ( p.x >= 0 && p.x < cellautomaton::SIZE_CHUNK ) && (p.y >= 0 && p.y < cellautomaton::SIZE_CHUNK);
         };

@@ -22,14 +22,12 @@ namespace aiko
 
         void init();
         void update();
-        void render();
 
         Chunks& getChunks();
 
         std::vector<ChunkCellularAutomaton::CellState> getNeighbours(ivec2 chunk, ivec2 cell);
     
         std::optional<ChunkCellularAutomaton> getChunk(const ivec2 pos);
-        RenderSystem* getRenderSystem();
 
     private:
 

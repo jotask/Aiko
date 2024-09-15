@@ -7,6 +7,9 @@
 namespace aiko
 {
 
+    constexpr float s_rotation = 0.0f;
+    constexpr float s_zoom = 16.0f;
+
     Opengl2DRenderer::Opengl2DRenderer(RenderModule* renderer)
         : RenderContext2D(renderer)
     {
@@ -366,25 +369,23 @@ namespace aiko
         const auto screenSize = getRenderModule()->getDisplaySize();
 
         //Apply camera rotation
-        constexpr float rotation = 0.0f;
-        if (rotation != 0)
+        if (s_rotation != 0)
         {
             vec2 cameraCenter = { screenSize.x / 2.0f, screenSize.y / 2.0f };
-            v1 = rotateAroundPoint(v1, cameraCenter, rotation);
-            v2 = rotateAroundPoint(v2, cameraCenter, rotation);
-            v3 = rotateAroundPoint(v3, cameraCenter, rotation);
-            v4 = rotateAroundPoint(v4, cameraCenter, rotation);
+            v1 = rotateAroundPoint(v1, cameraCenter, s_rotation);
+            v2 = rotateAroundPoint(v2, cameraCenter, s_rotation);
+            v3 = rotateAroundPoint(v3, cameraCenter, s_rotation);
+            v4 = rotateAroundPoint(v4, cameraCenter, s_rotation);
         }
 
         //Apply camera zoom
-        constexpr float zoom = 2.0f;
-        if(zoom != 1)
+        if(s_zoom != 1)
         {
             vec2 cameraCenter = { cam->position.x , cam->position.y };
-            v1 = scaleAroundPoint(v1, cameraCenter, zoom);
-            v2 = scaleAroundPoint(v2, cameraCenter, zoom);
-            v3 = scaleAroundPoint(v3, cameraCenter, zoom);
-            v4 = scaleAroundPoint(v4, cameraCenter, zoom);
+            v1 = scaleAroundPoint(v1, cameraCenter, s_zoom);
+            v2 = scaleAroundPoint(v2, cameraCenter, s_zoom);
+            v3 = scaleAroundPoint(v3, cameraCenter, s_zoom);
+            v4 = scaleAroundPoint(v4, cameraCenter, s_zoom);
         }
 
         v1 = positionToScreenCoords(v1, screenSize);

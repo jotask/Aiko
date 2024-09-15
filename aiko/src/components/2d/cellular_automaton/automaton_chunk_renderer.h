@@ -26,8 +26,6 @@ namespace aiko
 
             void init(RenderSystem* m_renderSystem);
 
-            void update();
-
             void render(WorldCellularAutomaton* world);
 
             void drawChunk(ChunkCellularAutomaton* chunk);

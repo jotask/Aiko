@@ -26,11 +26,6 @@ namespace aiko
             m_renderSystem = renderSystem;
         }
 
-        void AutomatonRender::update()
-        {
-
-        }
-
         void AutomatonRender::render(WorldCellularAutomaton* world)
         {
             for (auto& chunk : world->getChunks())
@@ -38,10 +33,30 @@ namespace aiko
                 drawChunk(&chunk);
             }
         }
+
         void AutomatonRender::drawChunk(ChunkCellularAutomaton* chunk)
         {
-            Transform trans;
-            trans.position = chunk->getPosition();
+            auto ctx = m_renderSystem->getRenderer<RenderContext2D>(ContextType::Render2D);
+            auto cam = m_renderSystem->getMainCamera();
+            Color c = Color::getRandomColor();
+            c.a = 0.1f;
+            vec2 chunkPosition = chunk->getPosition() * cellautomaton::SIZE_CHUNK;
+            for (int y = 0; y < cellautomaton::SIZE_CHUNK; y++)
+            {
+                for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
+                {
+                    const auto cellState = chunk->getCell({ x, y });
+                    if (cellState == std::nullopt)
+                    {
+                        Log::error("Cell out fo bounds?");
+                        continue;
+                    }
+                    vec2 cellPosition = {static_cast<float>(x), static_cast<float>(y) };
+                    const auto color = chunk->getColorFromCell(cellState.value());
+                    ctx->drawRectangle(cam, chunkPosition + cellPosition, { 1 , 1 }, color);
+                }
+            }
+            // ctx->drawRectangle(cam, chunkPosition, { cellautomaton::SIZE_CHUNK , cellautomaton::SIZE_CHUNK }, c);
         }
     }
 }

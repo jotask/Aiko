@@ -24,28 +24,27 @@ namespace aiko
             DEBUG,
         };
 
-        ChunkCellularAutomaton(WorldCellularAutomaton* world, const int x, const int y);
+        ChunkCellularAutomaton(WorldCellularAutomaton* world, const ivec2 pos);
         virtual ~ChunkCellularAutomaton() = default;
 
         void init();
         void update();
-        void render();
 
-        ivec2 getPosition() { return { x, y }; };
+        ivec2 getPosition() { return pos; };
 
         std::vector<CellState> getNeighbours(ivec2 cell);
 
         std::optional<CellState> getCell(const ivec2 pos);
 
-    private:
-
         Color getColorFromCell(CellState);
 
-        WorldCellularAutomaton* world = nullptr;
-        const int x;
-        const int y;
+    private:
 
-        std::array<CellState, cellautomaton::SIZE_CHUNK * cellautomaton::SIZE_CHUNK> cells;
+        WorldCellularAutomaton* world = nullptr;
+        const ivec2 pos;
+
+        std::array<CellState, cellautomaton::SIZE_CHUNK* cellautomaton::SIZE_CHUNK> prev_cells;
+        std::array<CellState, cellautomaton::SIZE_CHUNK* cellautomaton::SIZE_CHUNK> cells;
 
     };
 

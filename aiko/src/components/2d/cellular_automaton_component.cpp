@@ -40,8 +40,7 @@ namespace aiko
         if (accumulatedTime >= interval)
         {
             accumulatedTime -= interval;
-            // m_world.update();
-            m_render.update();
+            m_world.update();
         }
     }
 
