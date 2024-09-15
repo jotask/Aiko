@@ -253,7 +253,8 @@ namespace aiko
                 int pos = 0;
                 unsigned int id = objs.spriteTextures[0].id;
 
-                glUseProgram(objs.spriteTextures[0].id);
+                glActiveTexture(GL_TEXTURE0 + 0);
+                glBindTexture(GL_TEXTURE_2D, objs.spriteTextures[0].id);
 
                 for (int i = 1; i < size; i++)
                 {
@@ -263,7 +264,8 @@ namespace aiko
 
                         pos = i;
                         id = objs.spriteTextures[i].id;
-                        glUseProgram(objs.spriteTextures[i].id);
+                        glActiveTexture(GL_TEXTURE0 + 0);
+                        glBindTexture(GL_TEXTURE_2D, objs.spriteTextures[i].id);
                     }
 
                 }
