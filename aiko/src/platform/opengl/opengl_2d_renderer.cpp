@@ -379,23 +379,18 @@ namespace aiko
         }
         */
 
-        //Apply camera zoom
-        /*
-        if(renderer->currentCamera.zoom != 1)
-        {
-
-            vec2 cameraCenter;
-            cameraCenter.x = windowW / 2.0f;
-            cameraCenter.y = -windowH / 2.0f;
-
-            v1 = scaleAroundPoint(v1, cameraCenter, currentCamera.zoom);
-            v2 = scaleAroundPoint(v2, cameraCenter, currentCamera.zoom);
-            v3 = scaleAroundPoint(v3, cameraCenter, currentCamera.zoom);
-            v4 = scaleAroundPoint(v4, cameraCenter, currentCamera.zoom);
-        }
-        */
-
         const auto screenSize = getRenderModule()->getDisplaySize();
+
+        //Apply camera zoom
+        static float zoom = 2.0f;
+        if(zoom != 1)
+        {
+            vec2 cameraCenter = { cam->position.x , cam->position.y };
+            v1 = scaleAroundPoint(v1, cameraCenter, zoom);
+            v2 = scaleAroundPoint(v2, cameraCenter, zoom);
+            v3 = scaleAroundPoint(v3, cameraCenter, zoom);
+            v4 = scaleAroundPoint(v4, cameraCenter, zoom);
+        }
 
         v1 = positionToScreenCoords(v1, screenSize);
         v2 = positionToScreenCoords(v2, screenSize);
