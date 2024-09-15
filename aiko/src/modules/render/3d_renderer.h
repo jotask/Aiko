@@ -16,5 +16,7 @@ namespace aiko
         RenderContext3D(RenderModule* renderer) : RenderContext(renderer) { };
         virtual ~RenderContext3D() = default;
 
+        virtual void drawRectangle(Camera* cam, vec2 pos, vec2 size, Color color) = 0;
+
     };
 }
