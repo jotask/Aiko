@@ -315,7 +315,7 @@ namespace aiko
 
     void Opengl2DRenderer::drawRectangle(Camera* cam, vec2 pos, vec2 size, Color color)
     {
-        vec2 newOrigin;
+        vec2 newOrigin = pos;
         Color colors[4] = {color, color, color, color};
         drawAbsRotation(cam, pos, size, objs.defaultTexture, colors, newOrigin, 0);
     }
