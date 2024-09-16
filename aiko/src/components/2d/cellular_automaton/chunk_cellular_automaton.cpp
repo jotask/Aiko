@@ -113,7 +113,7 @@ namespace aiko
         const auto idx = cellautomaton::getIndex(pos.x, pos.y, cellautomaton::SIZE_CHUNK);
         if (idx >= 0 && idx < cellautomaton::SIZE_CHUNK * cellautomaton::SIZE_CHUNK)
         {
-            return cells[idx];
+            return prev_cells[idx];
         }
         return  std::nullopt;
 
