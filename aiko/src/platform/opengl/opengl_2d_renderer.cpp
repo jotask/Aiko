@@ -8,7 +8,7 @@ namespace aiko
 {
 
     constexpr float s_rotation = 0.0f;
-    constexpr float s_zoom = 16.0f;
+    constexpr float s_zoom = 4.0f;
 
     Opengl2DRenderer::Opengl2DRenderer(RenderModule* renderer)
         : RenderContext2D(renderer)
