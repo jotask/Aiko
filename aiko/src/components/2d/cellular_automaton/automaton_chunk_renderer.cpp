@@ -38,9 +38,14 @@ namespace aiko
         {
             auto ctx = m_renderSystem->getRenderer<RenderContext2D>(ContextType::Render2D);
             auto cam = m_renderSystem->getMainCamera();
-            Color c = Color::getRandomColor();
-            c.a = 0.1f;
             vec2 chunkPosition = chunk->getPosition() * cellautomaton::SIZE_CHUNK;
+            if (s_render_cells == false)
+            {
+                Color randomColor = Color::getRandomColor();
+                randomColor.a = 0.25f;
+                ctx->drawRectangle(cam, chunkPosition, { cellautomaton::SIZE_CHUNK , cellautomaton::SIZE_CHUNK }, randomColor );
+                return;
+            }
             for (int y = 0; y < cellautomaton::SIZE_CHUNK; y++)
             {
                 for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
@@ -56,7 +61,6 @@ namespace aiko
                     ctx->drawRectangle(cam, chunkPosition + cellPosition, { 1 , 1 }, color);
                 }
             }
-            // ctx->drawRectangle(cam, chunkPosition, { cellautomaton::SIZE_CHUNK , cellautomaton::SIZE_CHUNK }, c);
         }
     }
 }

@@ -17,6 +17,8 @@ namespace aiko
 
         class AutomatonRender
         {
+        private:
+            const bool s_render_cells = false;
             RenderSystem* m_renderSystem;
 
         public:
