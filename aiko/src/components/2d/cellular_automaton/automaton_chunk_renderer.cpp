@@ -56,6 +56,10 @@ namespace aiko
                         Log::error("Cell out fo bounds?");
                         continue;
                     }
+                    if (DRAW_DEAD_CELLS == false && cellState == ChunkCellularAutomaton::CellState::DEAD)
+                    {
+                        continue;
+                    }
                     vec2 cellPosition = {static_cast<float>(x), static_cast<float>(y) };
                     const auto color = chunk->getColorFromCell(cellState);
                     ctx->drawRectangle(cam, chunkPosition + cellPosition, { 1 , 1 }, color);

@@ -9,6 +9,8 @@ namespace aiko
     namespace cellautomaton
     {
 
+        constexpr const uint DRAW_DEAD_CELLS = false;
+
         constexpr const uint SIZE_WORLD = 4; // How many initial chunks
         constexpr const uint SIZE_CHUNK = 32; // How many cells in a chunk
 
