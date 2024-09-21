@@ -226,11 +226,6 @@ namespace aiko::native
 
         const auto& msg = static_cast<const WindowResizeEvent&>(event);
 
-        if (m_scale == true)
-        {
-            return;
-        }
-
         const auto screenWidth = msg.width;
         const auto screenHeight = msg.height;
 

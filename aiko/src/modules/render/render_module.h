@@ -93,7 +93,6 @@ namespace aiko
     protected:
 
         Color background_color;
-        bool m_scale;
 
         DisplayModule* m_displayModule;
 
