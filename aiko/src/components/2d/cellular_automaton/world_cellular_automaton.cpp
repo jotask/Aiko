@@ -107,7 +107,7 @@ namespace aiko
 
     std::optional<ChunkCellularAutomaton> WorldCellularAutomaton::getChunk(const ivec2 pos)
     {
-        const auto idx = cellautomaton::getIndex(pos.x, pos.y, cellautomaton::SIZE_CHUNK);
+        const auto idx = cellautomaton::getChunkIndex(pos.x, pos.y, cellautomaton::SIZE_CHUNK);
         if ( idx >= 0 && idx < m_chunks.size())
         {
             return m_chunks[idx];
