@@ -17,6 +17,10 @@ namespace aiko
             return width * x + y;
         }
 
+        inline int getChunkIndex(int x, int y, int width) {
+            return y * width + x;
+        }
+
     }
 
 }
