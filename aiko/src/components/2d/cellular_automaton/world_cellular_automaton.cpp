@@ -91,13 +91,13 @@ namespace aiko
                 }
 
                 // Retrieve the chunk based on the adjusted chunk position
-                std::optional<ChunkCellularAutomaton> chunkPtr = getChunk(targetChunk);
-                if (chunkPtr != std::nullopt)
+                ChunkCellularAutomaton* chunkPtr = getChunk(targetChunk);
+                if (chunkPtr != nullptr)
                 {
-                    std::optional<ChunkCellularAutomaton::CellState> neighborCell = chunkPtr->getCell(pos);
-                    if (neighborCell != std::nullopt)
+                    ChunkCellularAutomaton::CellState neighborCell = chunkPtr->getCell(pos);
+                    if (neighborCell != ChunkCellularAutomaton::CellState::NULLPTR)
                     {
-                        neighbours.push_back(neighborCell.value()); // Add the neighbor cell to the vector
+                        neighbours.push_back(neighborCell);
                     }
                 }
             }
@@ -105,14 +105,14 @@ namespace aiko
         return neighbours;
     }
 
-    std::optional<ChunkCellularAutomaton> WorldCellularAutomaton::getChunk(const ivec2 pos)
+    ChunkCellularAutomaton* WorldCellularAutomaton::getChunk(const ivec2 pos)
     {
         const auto idx = cellautomaton::getChunkIndex(pos.x, pos.y, cellautomaton::SIZE_CHUNK);
         if ( idx >= 0 && idx < m_chunks.size())
         {
-            return m_chunks[idx];
+            return &m_chunks[idx];
         }
-        return  std::nullopt;
+        return  nullptr;
     }
 
 }

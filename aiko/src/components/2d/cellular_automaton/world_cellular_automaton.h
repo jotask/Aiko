@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <optional>
 
 #include "aiko_types.h"
 #include "components/2d/cellular_automaton/chunk_cellular_automaton.h"
@@ -27,7 +26,7 @@ namespace aiko
 
         std::vector<ChunkCellularAutomaton::CellState> getNeighbours(ivec2 chunk, ivec2 cell);
     
-        std::optional<ChunkCellularAutomaton> getChunk(const ivec2 pos);
+        ChunkCellularAutomaton* getChunk(const ivec2 pos);
 
     private:
 

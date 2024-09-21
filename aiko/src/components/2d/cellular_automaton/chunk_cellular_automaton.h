@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <optional>
 #include <array>
 
 #include "aiko_types.h"
@@ -19,6 +18,7 @@ namespace aiko
 
         enum class CellState
         {
+            NULLPTR,
             LIVE,
             DEAD,
             DEBUG,
@@ -34,7 +34,7 @@ namespace aiko
 
         std::vector<CellState> getNeighbours(ivec2 cell);
 
-        std::optional<CellState> getCell(const ivec2 pos);
+        CellState getCell(const ivec2 pos);
 
         Color getColorFromCell(CellState);
 
@@ -43,8 +43,8 @@ namespace aiko
         WorldCellularAutomaton* world = nullptr;
         const ivec2 pos;
 
-        std::array<CellState, cellautomaton::SIZE_CHUNK* cellautomaton::SIZE_CHUNK> prev_cells;
-        std::array<CellState, cellautomaton::SIZE_CHUNK* cellautomaton::SIZE_CHUNK> cells;
+        std::array<CellState, cellautomaton::SIZE_CHUNK * cellautomaton::SIZE_CHUNK> prev_cells;
+        std::array<CellState, cellautomaton::SIZE_CHUNK * cellautomaton::SIZE_CHUNK> cells;
 
     };
 

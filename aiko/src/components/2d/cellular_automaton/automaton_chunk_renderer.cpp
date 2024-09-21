@@ -45,14 +45,14 @@ namespace aiko
             {
                 for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
                 {
-                    const auto cellState = chunk->getCell({ x, y });
-                    if (cellState == std::nullopt)
+                    const ChunkCellularAutomaton::CellState cellState = chunk->getCell({ x, y });
+                    if (cellState == ChunkCellularAutomaton::CellState::NULLPTR)
                     {
                         Log::error("Cell out fo bounds?");
                         continue;
                     }
                     vec2 cellPosition = {static_cast<float>(x), static_cast<float>(y) };
-                    const auto color = chunk->getColorFromCell(cellState.value());
+                    const auto color = chunk->getColorFromCell(cellState);
                     ctx->drawRectangle(cam, chunkPosition + cellPosition, { 1 , 1 }, color);
                 }
             }
