@@ -138,48 +138,11 @@ namespace aiko
             objs.defaultTexture = createFromBuffer((char*)buff, 1, 1);
         }
         {
-
-#define GL2D_OPNEGL_SHADER_VERSION "#version 330"
-#define GL2D_OPNEGL_SHADER_PRECISION "precision highp float;"
-
-            static const char* vertexShaderSource =
-                GL2D_OPNEGL_SHADER_VERSION "\n"
-                GL2D_OPNEGL_SHADER_PRECISION "\n"
-                "layout(location = 0) in vec2 quad_positions;\n"
-                "layout(location = 1) in vec4 quad_colors;\n"
-                "layout(location = 2) in vec2 texturePositions;\n"
-                "out vec4 v_color;\n"
-                "out vec2 v_texture;\n"
-                "out vec2 v_positions;\n"
-                "void main()\n"
-                "{\n"
-                "	gl_Position = vec4(quad_positions, 0, 1);\n"
-                "	v_color = quad_colors;\n"
-                "	v_texture = texturePositions;\n"
-                "	v_positions = gl_Position.xy;\n"
-                "}\n";
-
-            static const char* fragmentShaderSource =
-                GL2D_OPNEGL_SHADER_VERSION "\n"
-                GL2D_OPNEGL_SHADER_PRECISION "\n"
-                "out vec4 color;\n"
-                "in vec4 v_color;\n"
-                "in vec2 v_texture;\n"
-                "uniform sampler2D u_sampler;\n"
-                "void main()\n"
-                "{\n"
-                "    vec4 texColor = texture(u_sampler, v_texture);\n"
-                "    vec4 finalColor = v_color * texColor;\n"
-                "    if (finalColor.a < 0.1) // Adjust threshold for transparency\n"
-                "    {\n"
-                // "        discard;\n"
-                "    }\n"
-                "    color = finalColor;\n"
-                "}\n";
-
             objs.shader = getRenderModule()->createShader();
-            objs.shader->loadFromSource(vertexShaderSource, fragmentShaderSource);
-
+            objs.shader->load(
+                aiko::global::getAssetPath("shaders/aiko_2d_batch.vs").c_str(),
+                aiko::global::getAssetPath("shaders/aiko_2d_batch.fs").c_str()
+            );
         }
 
         const size_t quadCount = 1'000;
