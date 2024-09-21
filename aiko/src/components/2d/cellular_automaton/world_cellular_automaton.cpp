@@ -107,12 +107,12 @@ namespace aiko
 
     ChunkCellularAutomaton* WorldCellularAutomaton::getChunk(const ivec2 pos)
     {
-        const auto idx = cellautomaton::getChunkIndex(pos.x, pos.y, cellautomaton::SIZE_CHUNK);
+        const auto idx = cellautomaton::getChunkIndex(pos.x, pos.y, cellautomaton::SIZE_WORLD);
         if ( idx >= 0 && idx < m_chunks.size())
         {
             return &m_chunks[idx];
         }
-        return  nullptr;
+        return nullptr;
     }
 
 }
