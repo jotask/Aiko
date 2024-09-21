@@ -28,7 +28,7 @@ namespace aiko
     {
         static auto lastTime = std::chrono::steady_clock::now();
         static double accumulatedTime = 0.0;
-        static const double interval = 10 / 60.0f;
+        static const double interval = 1 / 60.0f;
 
         auto currentTime = std::chrono::steady_clock::now();
         std::chrono::duration<double> delta = currentTime - lastTime;
