@@ -25,6 +25,8 @@ namespace aiko
 
     private:
 
+        const bool fps_timer_update = true;
+
         WorldCellularAutomaton m_world;
         cellautomaton::AutomatonRender m_render;
 
