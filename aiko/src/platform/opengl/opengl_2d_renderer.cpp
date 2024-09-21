@@ -3,6 +3,7 @@
 #include "core/libs.h"
 
 #include "models/camera.h"
+#include "constants.h"
 
 namespace aiko
 {
@@ -50,39 +51,11 @@ namespace aiko
             glBindVertexArray(0);
         }
         {
-            // Shader sources
-            const char* vertexShaderSource = R"(
-                #version 330 core
-                layout(location = 0) in vec2 aPosition;
-                layout(location = 1) in vec2 aTexCoord;
-                out vec2 TexCoord;
-                void main()
-                {
-                    gl_Position = vec4(aPosition, 0.0, 1.0);
-                    TexCoord = aTexCoord;
-                }
-            )";
-
-            const char* fragmentShaderSource = R"(
-                #version 330 core
-                in vec2 TexCoord;
-                out vec4 FragColor;
-                uniform vec4 u_color;
-                uniform sampler2D u_texture;
-                void main()
-                {
-                    vec4 final = texture(u_texture, TexCoord) * u_color;
-                    if(final.a < 0.001)
-                    {
-                        discard;
-                    }
-                    FragColor = final;
-                }
-            )";
-
             root.shader = getRenderModule()->createShader();
-            root.shader->loadFromSource(vertexShaderSource, fragmentShaderSource);
-
+            root.shader->load(
+                aiko::global::getAssetPath("shaders/aiko_2d.vs").c_str(),
+                aiko::global::getAssetPath("shaders/aiko_2d.fs").c_str()
+            );
         }
         // Overlay
         {
