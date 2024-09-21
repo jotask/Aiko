@@ -34,6 +34,7 @@ namespace aiko
 
         vec2 operator*(const float& scalar) const { return { x * scalar, y * scalar }; }
         vec2 operator+(vec2& other) const { return { x + other.x, y + other.y }; }
+        vec2 operator+(const vec2& other) const { return { x + other.x, y + other.y }; }
         vec2 operator-(vec2& other) const { return { x - other.x, y - other.y }; }
         vec2 operator+=(vec2& other) const { return { x + other.x, y + other.y }; }
         bool operator==(vec2& other) const { return { x == other.x && y == other.y }; }
