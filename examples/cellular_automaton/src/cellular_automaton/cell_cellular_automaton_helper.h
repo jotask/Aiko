@@ -3,7 +3,7 @@
 #include "aiko_types.h"
 #include "types/color.h"
 
-namespace aiko
+namespace aiko::ca
 {
 
     namespace cellautomaton

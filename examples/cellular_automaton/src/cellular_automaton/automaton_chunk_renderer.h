@@ -1,14 +1,10 @@
 #pragma once
 
-#include "aiko_types.h"
-#include "types/color.h"
+#include <aiko_includes.h>
 
-#include "components/2d/cellular_automaton/cell_cellular_automaton_helper.h"
+#include "cell_cellular_automaton_helper.h"
 
-#include "models/mesh.h"
-#include "models/shader.h"
-
-namespace aiko
+namespace aiko::ca
 {
     class WorldCellularAutomaton;
     class ChunkCellularAutomaton;

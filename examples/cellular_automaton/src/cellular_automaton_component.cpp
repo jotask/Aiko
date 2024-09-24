@@ -3,13 +3,9 @@
 #include <assert.h>
 #include <chrono>
 
-#include "models/game_object.h"
-#include "systems/render_system.h"
-#include "constants.h"
+#include <aiko_includes.h>
 
-#include "core/log.h"
-
-namespace aiko
+namespace aiko::ca
 {
 
     CellularAutomatonComponent::CellularAutomatonComponent()

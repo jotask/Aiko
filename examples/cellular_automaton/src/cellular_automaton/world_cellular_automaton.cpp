@@ -8,7 +8,7 @@
 
 #include "core/log.h"
 
-namespace aiko
+namespace aiko::ca
 {
 
     WorldCellularAutomaton::WorldCellularAutomaton()

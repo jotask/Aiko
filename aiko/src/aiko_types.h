@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <assert.h>
 
 #include <type_traits>
 

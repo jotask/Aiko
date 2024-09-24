@@ -5,7 +5,6 @@
 #include "models/game_object.h"
 #include "components/camera_component.h"
 #include "components/2d/sprite_component.h"
-#include "components/2d/cellular_automaton_component.h"
 #include "models/mesh.h"
 #include "modules/render/render_primitives.h"
 #include "components/texture_component.h"
@@ -27,7 +26,7 @@ namespace sandbox
         m_sprite->transform()->position = { 0.0f, -0.0f, 0.0f };
         m_sprite->transform()->rotation = { 0.0f,  0.0f, 0.0f };
         m_sprite->transform()->scale = { 1.0f, 1.0f, 1.0f };
-        auto grid = m_sprite->addComponent<aiko::CellularAutomatonComponent>();
+        auto sprite = m_sprite->addComponent<aiko::SpriteComponent>();
 
     }
 

@@ -3,15 +3,12 @@
 #include <assert.h>
 #include <chrono>
 
-#include "models/game_object.h"
-#include "systems/render_system.h"
-#include "modules/render/2d_renderer.h"
-#include "constants.h"
+#include <aiko_includes.h>
 
 #include "chunk_cellular_automaton.h"
 #include "world_cellular_automaton.h"
 
-namespace aiko
+namespace aiko::ca
 {
     namespace cellautomaton
     {

@@ -6,9 +6,9 @@
 #include "aiko_types.h"
 #include "shared/math.h"
 
-#include "components/2d/cellular_automaton/cell_cellular_automaton_helper.h"
+#include "cell_cellular_automaton_helper.h"
 
-namespace aiko
+namespace aiko::ca
 {
 
     class WorldCellularAutomaton;

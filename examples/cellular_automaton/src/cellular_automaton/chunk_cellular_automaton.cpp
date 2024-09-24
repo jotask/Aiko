@@ -12,7 +12,7 @@
 
 #include "core/log.h"
 
-namespace aiko
+namespace aiko::ca
 {
 
     ChunkCellularAutomaton::ChunkCellularAutomaton(WorldCellularAutomaton* world, const ivec2 pos)

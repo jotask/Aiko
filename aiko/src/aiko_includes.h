@@ -1,5 +1,6 @@
 #pragma once
 
+#include "aiko_types.h"
 #include "aiko.h"
 #include "constants.h"
 
@@ -15,8 +16,10 @@
 #include "components/texture_component.h"
 #include "components/pbo_texture_component.h"
 #include "components/grid_component.h"
-#include "components/2d/cellular_automaton/cell_cellular_automaton_helper.h"
+#include "components/2d/sprite_component.h"
 
+#include "models/shader.h"
+#include "models/mesh.h"
 #include "models/camera.h"
 #include "models/game_object.h"
 #include "models/time.h"
@@ -25,10 +28,14 @@
 #include "types/render_types.h"
 #include "types/camera_types.h"
 #include "types/textures.h"
+#include "types/color.h"
 
 #include "systems/camera_system.h"
 #include "systems/render_system.h"
 #include "systems/entity_component_system.h"
+
+#include "modules/render/2d_renderer.h"
+#include "modules/render/3d_renderer.h"
 
 #include "shared/singleton.h"
 #include "shared/math.h"

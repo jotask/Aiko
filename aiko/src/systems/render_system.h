@@ -3,7 +3,6 @@
 #include <memory>
 #include <vector>
 
-
 #include "aiko_types.h"
 #include "systems/base_system.h"
 #include "models/game_object.h"
