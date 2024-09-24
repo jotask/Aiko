@@ -20,7 +20,7 @@ namespace aiko::ca
         , pos(pos)
         , cells(cellautomaton::SIZE_CHUNK * cellautomaton::SIZE_CHUNK)
     {
-        init();
+
     }
 
     void ChunkCellularAutomaton::init()

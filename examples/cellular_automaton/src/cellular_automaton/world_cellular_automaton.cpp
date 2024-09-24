@@ -26,6 +26,10 @@ namespace aiko::ca
                 m_chunks.emplace_back(this, ivec2 { x, y });
             }
         }
+        for (ChunkCellularAutomaton& c : m_chunks)
+        {
+            c.init();
+        }
     }
 
     void WorldCellularAutomaton::update()
@@ -116,6 +120,7 @@ namespace aiko::ca
         {
             return &m_chunks[idx];
         }
+        assert(!(pos.x == 0 && pos.y == 0));
         return nullptr;
     }
 

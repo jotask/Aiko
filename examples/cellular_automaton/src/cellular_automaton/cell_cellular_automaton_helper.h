@@ -11,8 +11,8 @@ namespace aiko::ca
 
         constexpr const uint DRAW_DEAD_CELLS = true;
 
-        constexpr const uint SIZE_WORLD = 4; // How many initial chunks
-        constexpr const uint SIZE_CHUNK = 32; // How many cells in a chunk
+        constexpr const uint SIZE_WORLD = 1; // How many initial chunks
+        constexpr const uint SIZE_CHUNK = 128; // How many cells in a chunk
 
         inline int getIndex(int x, int y, int width)
         {
