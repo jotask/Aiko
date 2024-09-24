@@ -47,21 +47,34 @@ namespace aiko::ca
             {
                 for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
                 {
-                    const ChunkCellularAutomaton::CellState cellState = chunk->getCell({ x, y });
-                    if (cellState == ChunkCellularAutomaton::CellState::NULLPTR)
+                    CellCellularAutomaton* cell = chunk->getCell({ x, y });
+                    const CellCellularAutomaton::CellState cellState = cell->getState();
+                    if (cellState == CellCellularAutomaton::CellState::NULLPTR)
                     {
                         Log::error("Cell out fo bounds?");
                         continue;
                     }
-                    if (DRAW_DEAD_CELLS == false && cellState == ChunkCellularAutomaton::CellState::DEAD)
+                    if (DRAW_DEAD_CELLS == false && cellState == CellCellularAutomaton::CellState::DEAD)
                     {
                         continue;
                     }
                     vec2 cellPosition = {static_cast<float>(x), static_cast<float>(y) };
-                    const auto color = chunk->getColorFromCell(cellState);
+                    const auto color = getColorFromCell(cellState);
                     ctx->drawRectangle(cam, chunkPosition + cellPosition, { 1 , 1 }, color);
                 }
             }
         }
+
+        Color AutomatonRender::getColorFromCell(CellCellularAutomaton::CellState stat)
+        {
+            switch (stat)
+            {
+            case CellCellularAutomaton::CellState::LIVE:  return WHITE;
+            case CellCellularAutomaton::CellState::DEAD:  return BLACK;
+            case CellCellularAutomaton::CellState::DEBUG: return MAGENTA;
+            default:               return MAGENTA;
+            }
+        }
+
     }
 }

@@ -7,6 +7,7 @@
 #include "shared/math.h"
 
 #include "cell_cellular_automaton_helper.h"
+#include "cell_cellular_automaton.h"
 
 namespace aiko::ca
 {
@@ -16,14 +17,6 @@ namespace aiko::ca
     {
     public:
 
-        enum class CellState
-        {
-            NULLPTR,
-            LIVE,
-            DEAD,
-            DEBUG,
-        };
-
         ChunkCellularAutomaton(WorldCellularAutomaton* world, const ivec2 pos);
         virtual ~ChunkCellularAutomaton() = default;
 
@@ -32,19 +25,18 @@ namespace aiko::ca
 
         ivec2 getPosition() { return pos; };
 
-        std::vector<CellState> getNeighbours(ivec2 cell);
+        Color getColorFromCell(CellCellularAutomaton);
 
-        CellState getCell(const ivec2 pos);
+        CellCellularAutomaton* getCell(const ivec2);
 
-        Color getColorFromCell(CellState);
+        WorldCellularAutomaton* getWorld();
 
     private:
 
         WorldCellularAutomaton* world = nullptr;
         const ivec2 pos;
 
-        std::array<CellState, cellautomaton::SIZE_CHUNK * cellautomaton::SIZE_CHUNK> prev_cells;
-        std::array<CellState, cellautomaton::SIZE_CHUNK * cellautomaton::SIZE_CHUNK> cells;
+        std::vector<CellCellularAutomaton> cells;
 
     };
 

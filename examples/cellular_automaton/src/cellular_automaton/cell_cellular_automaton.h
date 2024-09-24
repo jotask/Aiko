@@ -1,0 +1,52 @@
+#pragma once
+
+#include <vector>
+#include <array>
+
+#include "aiko_types.h"
+#include "shared/math.h"
+
+#include "cell_cellular_automaton_helper.h"
+
+namespace aiko::ca
+{
+
+    class WorldCellularAutomaton;
+    class ChunkCellularAutomaton;
+    class CellCellularAutomaton
+    {
+    public:
+
+        enum class CellState
+        {
+            NULLPTR,
+            LIVE,
+            DEAD,
+            DEBUG,
+        };
+
+        CellCellularAutomaton() = default;
+        CellCellularAutomaton(ChunkCellularAutomaton* chunk, const ivec2 pos, CellState cellstate = CellState::DEAD);
+        virtual ~CellCellularAutomaton() = default;
+
+        void init();
+        void update();
+
+        ivec2 getPosition() { return pos; };
+
+        CellState getState();
+        CellState getPrevState();
+
+    private:
+
+        ChunkCellularAutomaton* chunk = nullptr;
+        const ivec2 pos;
+
+        std::vector<CellCellularAutomaton*> cache_neighbours;
+
+        CellState prev_state;
+        CellState state;
+
+    };
+
+}

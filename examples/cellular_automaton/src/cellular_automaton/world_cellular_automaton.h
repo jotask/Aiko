@@ -25,7 +25,7 @@ namespace aiko
 
             Chunks& getChunks();
 
-            std::vector<ChunkCellularAutomaton::CellState> getNeighbours(ivec2 chunk, ivec2 cell);
+            std::vector<CellCellularAutomaton*> getNeighbours(ivec2 chunk, ivec2 cell);
 
             ChunkCellularAutomaton* getChunk(const ivec2 pos);
 

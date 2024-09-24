@@ -3,6 +3,7 @@
 #include <aiko_includes.h>
 
 #include "cell_cellular_automaton_helper.h"
+#include "cell_cellular_automaton.h"
 
 namespace aiko::ca
 {
@@ -27,6 +28,8 @@ namespace aiko::ca
             void render(WorldCellularAutomaton* world);
 
             void drawChunk(ChunkCellularAutomaton* chunk);
+
+            Color getColorFromCell(CellCellularAutomaton::CellState stat);
 
         };
 

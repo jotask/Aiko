@@ -17,6 +17,8 @@ namespace aiko::ca
 
     void WorldCellularAutomaton::init()
     {
+        m_chunks.clear();
+        m_chunks.reserve(cellautomaton::SIZE_WORLD * cellautomaton::SIZE_WORLD);
         for (int y = 0; y < cellautomaton::SIZE_WORLD; y++)
         {
             for (int x = 0; x < cellautomaton::SIZE_WORLD; x++)
@@ -39,7 +41,7 @@ namespace aiko::ca
         return m_chunks;
     }
 
-    std::vector<ChunkCellularAutomaton::CellState> WorldCellularAutomaton::getNeighbours(ivec2 chunk, ivec2 cell)
+    std::vector<CellCellularAutomaton*> WorldCellularAutomaton::getNeighbours(ivec2 chunk, ivec2 cell)
     {
 
         static auto isCurrentChunk = [&](ivec2 p) -> bool
@@ -48,16 +50,18 @@ namespace aiko::ca
         };
 
         constexpr const int NEIGHBOUR = 1;
-        auto neighbours = std::vector<ChunkCellularAutomaton::CellState>();
+        auto neighbours = std::vector<CellCellularAutomaton*>();
 
         for (int y = -NEIGHBOUR; y <= NEIGHBOUR; y++)
         {
             for (int x = -NEIGHBOUR; x <= NEIGHBOUR; x++)
             {
+
                 if (y == 0 && x == 0)
                 {
                     continue;
                 }
+
                 // Calculate the position of the neighboring cell
                 ivec2 pos = { cell.x + x, cell.y + y };
                 ivec2 targetChunk = chunk; // Start with the current chunk
@@ -94,8 +98,8 @@ namespace aiko::ca
                 ChunkCellularAutomaton* chunkPtr = getChunk(targetChunk);
                 if (chunkPtr != nullptr)
                 {
-                    ChunkCellularAutomaton::CellState neighborCell = chunkPtr->getCell(pos);
-                    if (neighborCell != ChunkCellularAutomaton::CellState::NULLPTR)
+                    CellCellularAutomaton* neighborCell = chunkPtr->getCell(pos);
+                    if (neighborCell != nullptr)
                     {
                         neighbours.push_back(neighborCell);
                     }
