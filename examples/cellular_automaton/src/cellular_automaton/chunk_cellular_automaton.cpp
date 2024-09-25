@@ -25,7 +25,7 @@ namespace aiko::ca
 
     void ChunkCellularAutomaton::init()
     {
-        constexpr bool debug_cells = true;
+        constexpr bool debug_cells = false;
         const auto isDebugCell = [](const uint x, const uint y) -> bool
         {
             if (x == 0 && y == 0)
