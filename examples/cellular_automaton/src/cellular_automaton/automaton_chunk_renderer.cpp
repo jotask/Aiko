@@ -33,6 +33,7 @@ namespace aiko::ca
 
         void AutomatonRender::drawChunk(ChunkCellularAutomaton* chunk)
         {
+
             auto ctx = m_renderSystem->getRenderer<RenderContext2D>(ContextType::Render2D);
             auto cam = m_renderSystem->getMainCamera();
             vec2 chunkPosition = chunk->getPosition() * cellautomaton::SIZE_CHUNK;
@@ -43,6 +44,7 @@ namespace aiko::ca
                 ctx->drawRectangle(cam, chunkPosition, { cellautomaton::SIZE_CHUNK , cellautomaton::SIZE_CHUNK }, randomColor );
                 return;
             }
+
             for (int y = 0; y < cellautomaton::SIZE_CHUNK; y++)
             {
                 for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
@@ -59,7 +61,7 @@ namespace aiko::ca
                         continue;
                     }
                     vec2 cellPosition = {static_cast<float>(x), static_cast<float>(y) };
-                    const auto color = getColorFromCell(cellState);
+                    Color color = getColorFromCell(cellState);
                     ctx->drawRectangle(cam, chunkPosition + cellPosition, { 1 , 1 }, color);
                 }
             }
@@ -69,9 +71,10 @@ namespace aiko::ca
         {
             switch (stat)
             {
-            case CellCellularAutomaton::CellState::LIVE:  return WHITE;
-            case CellCellularAutomaton::CellState::DEAD:  return BLACK;
-            case CellCellularAutomaton::CellState::DEBUG: return MAGENTA;
+            case CellCellularAutomaton::CellState::LIVE:    return WHITE;
+            case CellCellularAutomaton::CellState::DEAD:    return BLACK;
+            case CellCellularAutomaton::CellState::DEBUG:   return MAGENTA;
+            case CellCellularAutomaton::CellState::NULLPTR: return MAGENTA;
             default:               return MAGENTA;
             }
         }

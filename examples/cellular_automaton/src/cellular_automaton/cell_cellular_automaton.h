@@ -32,10 +32,15 @@ namespace aiko::ca
         void init();
         void update();
 
+        void updateNeighbours();
+
         ivec2 getPosition() { return pos; };
 
         CellState getState();
         CellState getPrevState();
+
+        std::vector<CellCellularAutomaton*> getCache();
+        ChunkCellularAutomaton* getChunk();
 
     private:
 
@@ -46,6 +51,7 @@ namespace aiko::ca
 
         CellState prev_state;
         CellState state;
+        CellState next_state;
 
     };
 

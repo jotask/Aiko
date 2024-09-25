@@ -52,9 +52,9 @@ namespace aiko::ca
         {
             for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
             {
+                auto idx = cellautomaton::getIndex( x, y, cellautomaton::SIZE_CHUNK );
                 if (debug_cells == true && isDebugCell(x, y) == true)
                 {
-                    auto idx = cellautomaton::getIndex( x, y, cellautomaton::SIZE_CHUNK );
                     cells.push_back({ this, ivec2(x, y), CellCellularAutomaton::CellState::DEBUG });
                 }
                 else
@@ -63,26 +63,18 @@ namespace aiko::ca
                 }
             }
         }
-
-        for (CellCellularAutomaton& cell : cells)
-        {
-            cell.init();
-        }
-
+        std::for_each(cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.init(); });
     }
 
     void ChunkCellularAutomaton::update()
     {
-        for (CellCellularAutomaton& cell : cells)
-        {
-            cell.update();
-        }
+        std::for_each(cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.update(); });
     }
 
     CellCellularAutomaton* ChunkCellularAutomaton::getCell(const ivec2 pos)
     {
         const uint idx = cellautomaton::getIndex(pos.x, pos.y, cellautomaton::SIZE_CHUNK);
-        if (idx >= 0 && idx < cellautomaton::SIZE_CHUNK * cellautomaton::SIZE_CHUNK)
+        if (idx >= 0 && idx < cells.size())
         {
             return &cells[idx];
         }

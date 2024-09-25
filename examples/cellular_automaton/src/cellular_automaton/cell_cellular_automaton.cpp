@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <chrono>
 #include <thread>
+#include <iostream>
 
 #include "models/game_object.h"
 #include "systems/render_system.h"
@@ -21,7 +22,7 @@ namespace aiko::ca
         , state(st)
         , prev_state(state)
     {
-        init();
+
     }
 
     void CellCellularAutomaton::init()
@@ -39,18 +40,17 @@ namespace aiko::ca
                 state = CellState::DEAD;
             }
         }
-        cache_neighbours = chunk->getWorld()->getNeighbours(chunk->getPosition(), pos);
+        updateNeighbours();
         prev_state = state;
     }
 
     void CellCellularAutomaton::update()
     {
-
         const auto alive = std::count_if(cache_neighbours.begin(), cache_neighbours.end(), [](CellCellularAutomaton* c)
         {
-            return c->getState() == CellState::LIVE;
+            return c->getPrevState() == CellState::LIVE;
         });
-
+        prev_state = state;
         if (state == CellState::LIVE)
         {
             // Loneliness: A live cell with fewer than 2 live neighbors dies
@@ -69,7 +69,11 @@ namespace aiko::ca
                 state = CellState::LIVE;
             }
         }
-        prev_state = state;
+    }
+
+    void CellCellularAutomaton::updateNeighbours()
+    {
+        cache_neighbours = chunk->getWorld()->getNeighbours(chunk->getPosition(), pos);
     }
 
     CellCellularAutomaton::CellState CellCellularAutomaton::getState()
@@ -80,6 +84,16 @@ namespace aiko::ca
     CellCellularAutomaton::CellState CellCellularAutomaton::getPrevState()
     {
         return prev_state;
+    }
+
+    std::vector<CellCellularAutomaton*> CellCellularAutomaton::getCache()
+    {
+        return cache_neighbours;
+    }
+
+    ChunkCellularAutomaton* CellCellularAutomaton::getChunk()
+    {
+        return chunk;
     }
 
 }
