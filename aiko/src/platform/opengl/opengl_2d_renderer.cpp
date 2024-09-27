@@ -292,8 +292,8 @@ namespace aiko
         //We need to flip texture_transforms.y
         const float transformsY = pos.y * -1;
 
-        vec2 v1 = { pos.x,         transformsY };
-        vec2 v2 = { pos.x,         transformsY - size.x };
+        vec2 v1 = { pos.x,          transformsY };
+        vec2 v2 = { pos.x,          transformsY - size.x };
         vec2 v3 = { pos.x + size.y, transformsY - size.x };
         vec2 v4 = { pos.x + size.y, transformsY };
 
