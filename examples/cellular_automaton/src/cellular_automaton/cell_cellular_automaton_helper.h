@@ -16,6 +16,11 @@ namespace aiko::ca
 
         inline int getIndex(int x, int y, int width)
         {
+            return width * x + y;
+        }
+
+        inline int getChunkIndex(int x, int y, int width)
+        {
             return y * width + x;
         }
 

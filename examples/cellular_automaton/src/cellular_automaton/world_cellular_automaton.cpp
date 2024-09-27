@@ -56,9 +56,9 @@ namespace aiko::ca
         constexpr const int NEIGHBOUR = 1;
         auto neighbours = std::vector<CellCellularAutomaton*>();
 
-        for (int y = -NEIGHBOUR; y <= NEIGHBOUR; y++)
+        for (int y = -NEIGHBOUR; y <= NEIGHBOUR; ++y)
         {
-            for (int x = -NEIGHBOUR; x <= NEIGHBOUR; x++)
+            for (int x = -NEIGHBOUR; x <= NEIGHBOUR; ++x)
             {
 
                 if (y == 0 && x == 0)

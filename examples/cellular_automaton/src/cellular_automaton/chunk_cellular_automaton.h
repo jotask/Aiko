@@ -25,8 +25,6 @@ namespace aiko::ca
 
         ivec2 getPosition() { return pos; };
 
-        Color getColorFromCell(CellCellularAutomaton);
-
         CellCellularAutomaton* getCell(const ivec2);
 
         WorldCellularAutomaton* getWorld();

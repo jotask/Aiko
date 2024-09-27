@@ -37,6 +37,7 @@ namespace aiko::ca
 
         ivec2 getPosition() { return pos; };
 
+        void setState(CellState);
         CellState getState();
         CellState getPrevState();
 

@@ -80,6 +80,12 @@ namespace aiko::ca
         cache_neighbours = chunk->getWorld()->getNeighbours(chunk->getPosition(), pos);
     }
 
+    void CellCellularAutomaton::setState(CellState st)
+    {
+        state = st;
+        prev_state = state;
+    }
+
     CellCellularAutomaton::CellState CellCellularAutomaton::getState()
     {
         return state;
