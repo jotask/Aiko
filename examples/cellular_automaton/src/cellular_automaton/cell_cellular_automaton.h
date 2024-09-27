@@ -25,7 +25,6 @@ namespace aiko::ca
             DEBUG,
         };
 
-        CellCellularAutomaton() = default;
         CellCellularAutomaton(ChunkCellularAutomaton* chunk, const ivec2 pos, CellState cellstate = CellState::DEAD);
         virtual ~CellCellularAutomaton() = default;
 

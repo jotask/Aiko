@@ -16,13 +16,13 @@ namespace aiko::ca
         constexpr bool ASYNC_UPDATE_CHUNK = false;
         constexpr bool ASYNC_UPDATE_CELL = false;
 
-        constexpr const uint SIZE_WORLD = 32; // How many initial chunks
-        constexpr const uint SIZE_CHUNK = 4; // How many cells in a chunk
+        constexpr const ivec2 SIZE_WORLD = { 32 }; // How many initial chunks
+        constexpr const ivec2 SIZE_CHUNK = { 4 }; // How many cells in a chunk
 
-        constexpr bool WORLD_FPS_TIMER_LOCK = true;
-        constexpr float WORLD_FRAME_RATE = 1.0f;
+        constexpr const bool WORLD_FPS_TIMER_LOCK = true;
+        constexpr const float WORLD_FRAME_RATE = 1.0f;
 
-        const ivec2 NEIGHBOURS = { 1,  1 };
+        constexpr const ivec2 NEIGHBOURS = { 1,  1 };
 
         inline int getIndex(int x, int y, int width)
         {

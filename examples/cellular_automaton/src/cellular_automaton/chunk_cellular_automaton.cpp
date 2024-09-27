@@ -18,7 +18,6 @@ namespace aiko::ca
     ChunkCellularAutomaton::ChunkCellularAutomaton(WorldCellularAutomaton* world, const ivec2 pos)
         : world(world)
         , pos(pos)
-        , cells(cellautomaton::SIZE_CHUNK * cellautomaton::SIZE_CHUNK)
     {
 
     }
@@ -31,25 +30,25 @@ namespace aiko::ca
             {
                 return true;
             }
-            if (x == cellautomaton::SIZE_CHUNK - 1 && y == 0)
+            if (x == cellautomaton::SIZE_CHUNK.x - 1 && y == 0)
             {
                 return true;
             }
-            if (x == 0 && y == cellautomaton::SIZE_CHUNK - 1)
+            if (x == 0 && y == cellautomaton::SIZE_CHUNK.y - 1)
             {
                 return true;
             }
-            if (x == cellautomaton::SIZE_CHUNK - 1 && y == cellautomaton::SIZE_CHUNK - 1)
+            if (x == cellautomaton::SIZE_CHUNK.x - 1 && y == cellautomaton::SIZE_CHUNK.y - 1)
             {
                 return true;
             }
             return false;
         };
         cells.clear();
-        cells.reserve(cellautomaton::SIZE_CHUNK * cellautomaton::SIZE_CHUNK);
-        for (int y = 0 ; y < cellautomaton::SIZE_CHUNK; y++)
+        cells.reserve(cellautomaton::SIZE_CHUNK.product());
+        for (int y = 0 ; y < cellautomaton::SIZE_CHUNK.y; y++)
         {
-            for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
+            for (int x = 0; x < cellautomaton::SIZE_CHUNK.x; x++)
             {
                 if (cellautomaton::DEBUG_CHUNKS == true && isDebugCell(x, y) == true)
                 {

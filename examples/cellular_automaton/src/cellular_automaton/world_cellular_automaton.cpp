@@ -19,10 +19,10 @@ namespace aiko::ca
     void WorldCellularAutomaton::init()
     {
         m_chunks.clear();
-        m_chunks.reserve(cellautomaton::SIZE_WORLD * cellautomaton::SIZE_WORLD);
-        for (int y = 0; y < cellautomaton::SIZE_WORLD; y++)
+        m_chunks.reserve(cellautomaton::SIZE_WORLD.product());
+        for (int y = 0; y < cellautomaton::SIZE_WORLD.y; y++)
         {
-            for (int x = 0; x < cellautomaton::SIZE_WORLD; x++)
+            for (int x = 0; x < cellautomaton::SIZE_WORLD.x; x++)
             {
                 m_chunks.emplace_back(this, ivec2 { x, y });
             }
@@ -50,7 +50,7 @@ namespace aiko::ca
 
         static auto isCurrentChunk = [&](ivec2 p) -> bool
         {
-            return ( p.x >= 0 && p.x < cellautomaton::SIZE_CHUNK ) && (p.y >= 0 && p.y < cellautomaton::SIZE_CHUNK);
+            return ( p.x >= 0 && p.x < cellautomaton::SIZE_CHUNK.x ) && (p.y >= 0 && p.y < cellautomaton::SIZE_CHUNK.y);
         };
 
         auto neighbours = std::vector<CellCellularAutomaton*>();
@@ -77,23 +77,23 @@ namespace aiko::ca
                     if (pos.x < 0)
                     {
                         targetChunk.x -= 1; // Move to the left chunk
-                        pos.x += cellautomaton::SIZE_CHUNK; // Wrap around to the last cell in the left chunk
+                        pos.x += cellautomaton::SIZE_CHUNK.x; // Wrap around to the last cell in the left chunk
                     }
-                    else if (pos.x >= cellautomaton::SIZE_CHUNK)
+                    else if (pos.x >= cellautomaton::SIZE_CHUNK.x)
                     {
                         targetChunk.x += 1; // Move to the right chunk
-                        pos.x -= cellautomaton::SIZE_CHUNK; // Wrap around to the first cell in the right chunk
+                        pos.x -= cellautomaton::SIZE_CHUNK.x; // Wrap around to the first cell in the right chunk
                     }
 
                     if (pos.y < 0)
                     {
                         targetChunk.y -= 1; // Move to the chunk above
-                        pos.y += cellautomaton::SIZE_CHUNK; // Wrap around to the last cell in the above chunk
+                        pos.y += cellautomaton::SIZE_CHUNK.y; // Wrap around to the last cell in the above chunk
                     }
-                    else if (pos.y >= cellautomaton::SIZE_CHUNK)
+                    else if (pos.y >= cellautomaton::SIZE_CHUNK.y)
                     {
                         targetChunk.y += 1; // Move to the chunk below
-                        pos.y -= cellautomaton::SIZE_CHUNK; // Wrap around to the first cell in the below chunk
+                        pos.y -= cellautomaton::SIZE_CHUNK.y; // Wrap around to the first cell in the below chunk
                     }
                 }
 

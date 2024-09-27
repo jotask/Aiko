@@ -36,18 +36,18 @@ namespace aiko::ca
 
             auto ctx = m_renderSystem->getRenderer<RenderContext2D>(ContextType::Render2D);
             auto cam = m_renderSystem->getMainCamera();
-            vec2 chunkPosition = chunk->getPosition() * cellautomaton::SIZE_CHUNK;
+            ivec2 chunkPosition = chunk->getPosition() * cellautomaton::SIZE_CHUNK;
             if (s_render_cells == false)
             {
                 Color randomColor = Color::getRandomColor();
                 randomColor.a = 0.25f;
-                ctx->drawRectangle(cam, chunkPosition, { cellautomaton::SIZE_CHUNK , cellautomaton::SIZE_CHUNK }, randomColor );
+                ctx->drawRectangle(cam, chunkPosition, cellautomaton::SIZE_CHUNK , randomColor );
                 return;
             }
 
-            for (int y = 0; y < cellautomaton::SIZE_CHUNK; y++)
+            for (int y = 0; y < cellautomaton::SIZE_CHUNK.y; y++)
             {
-                for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
+                for (int x = 0; x < cellautomaton::SIZE_CHUNK.x; x++)
                 {
                     CellCellularAutomaton* cell = chunk->getCell({ x, y });
                     const CellCellularAutomaton::CellState cellState = cell->getState();
@@ -60,8 +60,8 @@ namespace aiko::ca
                     {
                         continue;
                     }
-                    vec2 cellPosition = {static_cast<float>(x), static_cast<float>(y) };
-                    Color color = getColorFromCell(cellState);
+                    const ivec2 cellPosition = { x, y };
+                    const Color color = getColorFromCell(cellState);
                     ctx->drawRectangle(cam, chunkPosition + cellPosition, { 1 , 1 }, color);
                 }
             }
