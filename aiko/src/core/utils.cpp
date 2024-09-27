@@ -25,8 +25,18 @@ namespace aiko
 
         std::mt19937* getRandomDevice()
         {
-            static std::random_device rd;     // Only used once to initialise (seed) engine
-            static std::mt19937 rng(rd());    // Random-number engine used (Mersenne-Twister in this case
+            static bool init = false;
+            uint seed = RND_SEED;
+            if (init == false)
+            {
+                init = true;
+                if (RND_RANDOM_SEED)
+                {
+                    static std::random_device rd;     // Only used once to initialise (seed) engine
+                    seed = rd();
+                }
+            }
+            static std::mt19937 rng(seed);    // Random-number engine used (Mersenne-Twister in this case
             return &rng;
         }
 
@@ -40,6 +50,12 @@ namespace aiko
         {
             std::uniform_real_distribution<float> uni(min, max);
             return uni(*getRandomDevice());
+        }
+
+        bool getRandomBool()
+        {
+            std::uniform_int_distribution<int> distribution(0, 1);
+            return distribution(*getRandomDevice()) == 1;
         }
 
         const char* join(const char* one, const char* two)
