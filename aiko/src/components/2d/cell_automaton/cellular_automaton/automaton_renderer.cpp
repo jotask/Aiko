@@ -1,4 +1,4 @@
-#include "automaton_chunk_renderer.h"
+#include "automaton_renderer.h"
 
 #include <assert.h>
 #include <chrono>
