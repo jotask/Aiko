@@ -23,7 +23,7 @@ namespace aiko::ca
     void CellularAutomatonComponent::update()
     {
 
-        if (fps_timer_update == false)
+        if (cellautomaton::WORLD_FPS_TIMER_LOCK == false)
         {
 
             aiko::InputSystem* input = gameobject->getSystem<InputSystem>();
@@ -37,7 +37,7 @@ namespace aiko::ca
 
         static auto lastTime = std::chrono::steady_clock::now();
         static double accumulatedTime = 0.0;
-        static const double interval = frame_rate / 60.0f;
+        static const double interval = cellautomaton::WORLD_FRAME_RATE / 60.0f;
 
         auto currentTime = std::chrono::steady_clock::now();
         std::chrono::duration<double> delta = currentTime - lastTime;
