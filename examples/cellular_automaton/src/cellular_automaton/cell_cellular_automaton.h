@@ -30,6 +30,7 @@ namespace aiko::ca
         virtual ~CellCellularAutomaton() = default;
 
         void init();
+        void preUpdate();
         void update();
 
         void updateNeighbours();

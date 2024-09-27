@@ -44,13 +44,17 @@ namespace aiko::ca
         prev_state = state;
     }
 
+    void CellCellularAutomaton::preUpdate()
+    {
+        prev_state = state;
+    }
+
     void CellCellularAutomaton::update()
     {
         const auto alive = std::count_if(cache_neighbours.begin(), cache_neighbours.end(), [](CellCellularAutomaton* c)
         {
             return c->getPrevState() == CellState::LIVE;
         });
-        prev_state = state;
         if (state == CellState::LIVE)
         {
             // Loneliness: A live cell with fewer than 2 live neighbors dies

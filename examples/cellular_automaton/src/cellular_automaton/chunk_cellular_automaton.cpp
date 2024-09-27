@@ -68,6 +68,7 @@ namespace aiko::ca
 
     void ChunkCellularAutomaton::update()
     {
+        std::for_each(cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.preUpdate(); });
         std::for_each(cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.update(); });
     }
 
