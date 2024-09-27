@@ -27,6 +27,7 @@ namespace aiko
         private:
 
             const bool fps_timer_update = true;
+            const float frame_rate = 60.0f * 0.5f;
 
             WorldCellularAutomaton m_world;
             cellautomaton::AutomatonRender m_render;
