@@ -16,8 +16,8 @@ namespace aiko::ca
         constexpr bool ASYNC_UPDATE_CHUNK = false;
         constexpr bool ASYNC_UPDATE_CELL = false;
 
-        constexpr const ivec2 SIZE_WORLD = { 1 }; // How many initial chunks
-        constexpr const ivec2 SIZE_CHUNK = { 32 }; // How many cells in a chunk
+        constexpr const ivec2 SIZE_WORLD = { 32 }; // How many initial chunks
+        constexpr const ivec2 SIZE_CHUNK = { 4 }; // How many cells in a chunk
 
         constexpr const bool WORLD_FPS_TIMER_LOCK = true;
         constexpr const float WORLD_FRAME_RATE = 30.0f;

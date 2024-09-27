@@ -18,16 +18,7 @@ namespace aiko::ca
 
     void WorldCellularAutomaton::init()
     {
-        m_chunks.clear();
-        m_chunks.reserve(cellautomaton::SIZE_WORLD.product());
-        for (int y = 0; y < cellautomaton::SIZE_WORLD.y; y++)
-        {
-            for (int x = 0; x < cellautomaton::SIZE_WORLD.x; x++)
-            {
-                m_chunks.emplace_back(this, ivec2 { x, y });
-            }
-        }
-        std::for_each(m_chunks.begin(), m_chunks.end(), [](ChunkCellularAutomaton& chunk) { chunk.init(); });
+        regenerate();
     }
 
     void WorldCellularAutomaton::update()
@@ -121,6 +112,20 @@ namespace aiko::ca
             return &(*found);
         }
         return nullptr;
+    }
+
+    void WorldCellularAutomaton::regenerate()
+    {
+        m_chunks.clear();
+        m_chunks.reserve(cellautomaton::SIZE_WORLD.product());
+        for (int y = 0; y < cellautomaton::SIZE_WORLD.y; y++)
+        {
+            for (int x = 0; x < cellautomaton::SIZE_WORLD.x; x++)
+            {
+                m_chunks.emplace_back(this, ivec2{ x, y });
+            }
+        }
+        std::for_each(m_chunks.begin(), m_chunks.end(), [](ChunkCellularAutomaton& chunk) { chunk.init(); });
     }
 
 }

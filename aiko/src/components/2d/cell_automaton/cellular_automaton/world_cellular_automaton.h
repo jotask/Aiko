@@ -29,6 +29,8 @@ namespace aiko
 
             ChunkCellularAutomaton* getChunk(const ivec2 pos);
 
+            void regenerate();
+
         private:
 
             Chunks m_chunks;

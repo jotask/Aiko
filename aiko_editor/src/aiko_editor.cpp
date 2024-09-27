@@ -66,10 +66,10 @@ namespace aiko::editor
         auto mesh4 = m_texturePbo->addComponent<aiko::PboTextureComponent>();
 
         auto automatonGO = this->Instantiate(root, "CellularAutomaton");
-        m_texturePbo->transform()->position = { 0.0f, 0.0f, 0.0f };
-        m_texturePbo->transform()->rotation = { 0.0f, 0.0f, 0.0f };
-        m_texturePbo->transform()->scale = { 1.0f, 1.0f, 1.0f };
-        auto automaton = m_texturePbo->addComponent<ca::CellularAutomatonComponent>();
+        automatonGO->transform()->position = { 0.0f, 0.0f, 0.0f };
+        automatonGO->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        automatonGO->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        auto automaton = automatonGO->addComponent<ca::CellularAutomatonComponent>();
 
     }
 

@@ -17,7 +17,7 @@ namespace aiko::ca
     void CellularAutomatonComponent::init()
     {
         m_world.init();
-        // m_render.init(gameobject->getSystem<RenderSystem>());
+        m_render.init(gameobject->getSystem<RenderSystem>());
     }
 
     void CellularAutomatonComponent::update()
@@ -55,7 +55,12 @@ namespace aiko::ca
 
     void CellularAutomatonComponent::render()
     {
-        // m_render.render(&m_world);
+        m_render.render(&m_world);
+    }
+
+    WorldCellularAutomaton& CellularAutomatonComponent::getWorld()
+    {
+        return m_world;
     }
 
 }

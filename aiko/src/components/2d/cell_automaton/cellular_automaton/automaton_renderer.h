@@ -1,37 +1,39 @@
 #pragma once
 
-#include <aiko_includes.h>
-
 #include "cell_cellular_automaton_helper.h"
 #include "cell_cellular_automaton.h"
 
-namespace aiko::ca
+namespace aiko
 {
-    class WorldCellularAutomaton;
-    class ChunkCellularAutomaton;
-    namespace cellautomaton
+    class RenderSystem;
+    namespace ca
     {
-
-        class AutomatonRender
+        class WorldCellularAutomaton;
+        class ChunkCellularAutomaton;
+        namespace cellautomaton
         {
-        private:
-            const bool s_render_cells = true;
-            RenderSystem* m_renderSystem;
 
-        public:
+            class AutomatonRender
+            {
+            private:
+                const bool s_render_cells = true;
+                RenderSystem* m_renderSystem;
 
-            AutomatonRender();
-            ~AutomatonRender() = default;
+            public:
 
-            void init(RenderSystem* m_renderSystem);
+                AutomatonRender();
+                ~AutomatonRender() = default;
 
-            void render(WorldCellularAutomaton* world);
+                void init(RenderSystem* m_renderSystem);
 
-            void drawChunk(ChunkCellularAutomaton* chunk);
+                void render(WorldCellularAutomaton* world);
 
-            Color getColorFromCell(CellCellularAutomaton::CellState stat);
+                void drawChunk(ChunkCellularAutomaton* chunk);
 
-        };
+                Color getColorFromCell(CellCellularAutomaton::CellState stat);
 
+            };
+
+        }
     }
 }
