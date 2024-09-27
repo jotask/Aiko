@@ -14,7 +14,7 @@ void main()
     vec4 finalColor = v_color * texColor;
     if (finalColor.a < 0.1) // Adjust threshold for transparency
     {
-		discard;
+        discard;
     }
     color = finalColor;
 }

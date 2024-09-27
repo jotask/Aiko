@@ -2,6 +2,9 @@
 
 #include "core/libs.h"
 
+#include "components/transform_component.h"
+
+#include "shared/math.h"
 #include "models/camera.h"
 #include "constants.h"
 
@@ -156,6 +159,26 @@ namespace aiko
 
     void Opengl2DRenderer::beginFrame()
     {
+
+
+        {
+            // Define the camera's position, target, and up vector
+            vec3 cameraPos = vec3(0.0f, 0.0f, 0.5f);  // Camera position
+            vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);  // Target the camera is looking at
+            vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);  // Up direction
+            objs.view = math::lookAt(cameraPos, cameraTarget, cameraUp);
+        }
+
+        {
+            float fov = 120.0f;   // Field of view in radians
+            float width = 800.0f;
+            float height = 600.0f;
+            float aspectRatio = width / height; // Screen aspect ratio (width/height)
+            float nearPlane = 0.1f;  // Near clipping plane
+            float farPlane = 100.0f;  // Far clipping plane
+            objs.projection = math::perspective(fov, width, height, nearPlane, farPlane);
+        }
+
     }
 
     void Opengl2DRenderer::endFrame()
@@ -176,6 +199,13 @@ namespace aiko
             glBindVertexArray(objs.vao);
             objs.shader->use();
             objs.shader->setInt("u_sampler", 0);
+            objs.shader->setMat4("projection", objs.projection);
+            objs.shader->setMat4("view", objs.view);
+            Transform trans;
+            trans.position = {0};
+            trans.rotation = { 1.0f };
+            trans.scale = { 1 };
+            objs.shader->setMat4("model", trans.getMatrix());
 
             glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadPositions]);
             glBufferData(GL_ARRAY_BUFFER, objs.spritePositions.size() * sizeof(vec2), objs.spritePositions.data(), GL_STREAM_DRAW);

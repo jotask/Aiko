@@ -14,7 +14,6 @@
 #include "constants.h"
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
-#include "models/camera.h"
 #include "types/textures.h"
 #include "events/events.hpp"
 #include "types/render_types.h"
