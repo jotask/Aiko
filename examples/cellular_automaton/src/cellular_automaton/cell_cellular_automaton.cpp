@@ -29,8 +29,8 @@ namespace aiko::ca
     {
         if (cellautomaton::RANDOM_CELL_INIT == true && state != CellState::DEBUG)
         {
-            auto rnd = utils::getRandomValue(0.0f, 1.0f);
-            if (rnd < 0.5f)
+            bool rnd = utils::getRandomBool();
+            if (rnd)
             {
                 state = CellState::LIVE;
             }
