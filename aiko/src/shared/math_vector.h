@@ -12,17 +12,16 @@ namespace aiko
     class ivec2
     {
     public:
-        ivec2() : ivec2(0) { };
-        ivec2(int xyz) : ivec2(xyz, xyz) { };
-        ivec2(int x, int y) : x(x), y(y) { };
+        constexpr ivec2() : ivec2(0) { };
+        constexpr ivec2(const int xy) : ivec2(xy, xy) { };
+        constexpr ivec2(const int x, const int y) : x(x), y(y) { };
         int x;
         int y;
-        bool operator==(ivec2& other) const { return { x == other.x && y == other.y }; }
         bool operator==(const ivec2& other) const { return { x == other.x && y == other.y }; }
-        bool operator!=(ivec2& other) const { return !(*this == other); }
         bool operator!=(const ivec2& other) const { return !(*this == other); }
         ivec2 operator*(const float& scalar) const { return { static_cast<int>(x * scalar), static_cast<int>(y * scalar) }; }
         bool operator<(const ivec2& other) const { if (x != other.x) { return x < other.x; } return y < other.y; }
+        ivec2 operator*(const ivec2& other) const { return { x * other.x, y * other.y }; }
 
     };
 
