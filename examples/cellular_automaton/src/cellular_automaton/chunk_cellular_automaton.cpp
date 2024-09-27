@@ -2,7 +2,7 @@
 
 #include <assert.h>
 #include <chrono>
-#include <thread>
+#include <execution>
 
 #include "models/game_object.h"
 #include "systems/render_system.h"
@@ -51,7 +51,6 @@ namespace aiko::ca
         {
             for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
             {
-                auto idx = cellautomaton::getIndex( x, y, cellautomaton::SIZE_CHUNK );
                 if (cellautomaton::DEBUG_CHUNKS == true && isDebugCell(x, y) == true)
                 {
                     cells.push_back({ this, ivec2(x, y), CellCellularAutomaton::CellState::DEBUG });
@@ -67,6 +66,12 @@ namespace aiko::ca
 
     void ChunkCellularAutomaton::update()
     {
+        if (cellautomaton::ASYNC_UPDATE_CELL == true)
+        {
+            std::for_each(std::execution::par, cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.preUpdate(); });
+            std::for_each(std::execution::par, cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.update(); });
+            return;
+        }
         std::for_each(cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.preUpdate(); });
         std::for_each(cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.update(); });
     }

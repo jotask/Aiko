@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <chrono>
+#include <execution>
 
 #include "models/game_object.h"
 #include "constants.h"
@@ -26,18 +27,17 @@ namespace aiko::ca
                 m_chunks.emplace_back(this, ivec2 { x, y });
             }
         }
-        for (ChunkCellularAutomaton& c : m_chunks)
-        {
-            c.init();
-        }
+        std::for_each(m_chunks.begin(), m_chunks.end(), [](ChunkCellularAutomaton& chunk) { chunk.init(); });
     }
 
     void WorldCellularAutomaton::update()
     {
-        for (ChunkCellularAutomaton& c : m_chunks)
+        if (cellautomaton::ASYNC_UPDATE_CHUNK == true)
         {
-            c.update();
+            std::for_each(std::execution::par, m_chunks.begin(), m_chunks.end(), [](ChunkCellularAutomaton& chunk) { chunk.update(); });
+            return;
         }
+        std::for_each(m_chunks.begin(), m_chunks.end(), [](ChunkCellularAutomaton& chunk) { chunk.update(); });
     }
 
     WorldCellularAutomaton::Chunks& WorldCellularAutomaton::getChunks()
