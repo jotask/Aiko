@@ -53,12 +53,11 @@ namespace aiko::ca
             return ( p.x >= 0 && p.x < cellautomaton::SIZE_CHUNK ) && (p.y >= 0 && p.y < cellautomaton::SIZE_CHUNK);
         };
 
-        constexpr const int NEIGHBOUR = 1;
         auto neighbours = std::vector<CellCellularAutomaton*>();
 
-        for (int y = -NEIGHBOUR; y <= NEIGHBOUR; ++y)
+        for (int y = -cellautomaton::NEIGHBOURS.y; y <= cellautomaton::NEIGHBOURS.y; ++y)
         {
-            for (int x = -NEIGHBOUR; x <= NEIGHBOUR; ++x)
+            for (int x = -cellautomaton::NEIGHBOURS.x; x <= cellautomaton::NEIGHBOURS.x; ++x)
             {
 
                 if (y == 0 && x == 0)

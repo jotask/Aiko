@@ -25,7 +25,6 @@ namespace aiko::ca
 
     void ChunkCellularAutomaton::init()
     {
-        constexpr bool debug_cells = false;
         const auto isDebugCell = [](const uint x, const uint y) -> bool
         {
             if (x == 0 && y == 0)
@@ -53,7 +52,7 @@ namespace aiko::ca
             for (int x = 0; x < cellautomaton::SIZE_CHUNK; x++)
             {
                 auto idx = cellautomaton::getIndex( x, y, cellautomaton::SIZE_CHUNK );
-                if (debug_cells == true && isDebugCell(x, y) == true)
+                if (cellautomaton::DEBUG_CHUNKS == true && isDebugCell(x, y) == true)
                 {
                     cells.push_back({ this, ivec2(x, y), CellCellularAutomaton::CellState::DEBUG });
                 }
