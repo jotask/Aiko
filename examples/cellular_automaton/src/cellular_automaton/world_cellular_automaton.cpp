@@ -114,10 +114,11 @@ namespace aiko::ca
 
     ChunkCellularAutomaton* WorldCellularAutomaton::getChunk(const ivec2 pos)
     {
-        const auto idx = cellautomaton::getIndex(pos.x, pos.y, cellautomaton::SIZE_WORLD);
-        if ( idx >= 0 && idx < m_chunks.size())
+        // FIXME instead of std::find, we can convert the chunk index from 2D to 1D dimension array
+        auto found = std::find_if(m_chunks.begin(), m_chunks.end(), [pos](ChunkCellularAutomaton& cell) { return cell.getPosition() == pos; });
+        if (found != m_chunks.end())
         {
-            return &m_chunks[idx];
+            return &(*found);
         }
         return nullptr;
     }
