@@ -160,25 +160,6 @@ namespace aiko
     void Opengl2DRenderer::beginFrame()
     {
 
-
-        {
-            // Define the camera's position, target, and up vector
-            vec3 cameraPos = vec3(0.0f, 0.0f, 0.5f);  // Camera position
-            vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);  // Target the camera is looking at
-            vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);  // Up direction
-            objs.view = math::lookAt(cameraPos, cameraTarget, cameraUp);
-        }
-
-        {
-            float fov = 120.0f;   // Field of view in radians
-            float width = 800.0f;
-            float height = 600.0f;
-            float aspectRatio = width / height; // Screen aspect ratio (width/height)
-            float nearPlane = 0.1f;  // Near clipping plane
-            float farPlane = 100.0f;  // Far clipping plane
-            objs.projection = math::perspective(fov, width, height, nearPlane, farPlane);
-        }
-
     }
 
     void Opengl2DRenderer::endFrame()
@@ -190,6 +171,7 @@ namespace aiko
 
         // Enable blending for transparency
         glEnable(GL_BLEND);
+        glDisable(GL_CULL_FACE);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         //for (auto& v : objs)
@@ -203,7 +185,7 @@ namespace aiko
             objs.shader->setMat4("view", objs.view);
             Transform trans;
             trans.position = {0};
-            trans.rotation = { 1.0f };
+            trans.rotation = { 0.0f };
             trans.scale = { 1 };
             objs.shader->setMat4("model", trans.getMatrix());
 
@@ -287,6 +269,8 @@ namespace aiko
         vec2 newOrigin = pos;
         Color colors[4] = {color, color, color, color};
         drawAbsRotation(cam, pos, size, objs.defaultTexture, colors, newOrigin, 0);
+        objs.projection = cam->getProjectionMatrix();
+        objs.view = cam->getViewMatrix();
     }
 
     void Opengl2DRenderer::drawRectangle(Camera* cam, vec2 pos, vec2 size, Color colors[4])
