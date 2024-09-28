@@ -35,6 +35,9 @@ namespace aiko
         ImGui_ImplOpenGL3_Init();
 
         EventSystem::it().bind<WindowResizeEvent>(this, &DebugModule::onKeyPressed);
+
+        Log::info() << "ImGui Version : " << IMGUI_VERSION << " (" << IMGUI_VERSION_NUM << ")";
+
     }
 
     void DebugModule::beginFrame()

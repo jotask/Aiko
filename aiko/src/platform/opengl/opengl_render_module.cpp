@@ -152,6 +152,12 @@ namespace aiko::native
 
         initScreenFbo();
 
+        Log::info() << "OpenGL Renderer : " << glGetString(GL_RENDERER);
+        Log::info() << "OpenGL Vendor : " << glGetString(GL_VENDOR);
+        Log::info() << "OpenGL Version : " << glGetString(GL_VERSION);
+        Log::info() << "GLSL Version : " << glGetString(GL_SHADING_LANGUAGE_VERSION);
+        Log::info() << "GLFW Version : " << GLFW_VERSION_MAJOR << "." << GLFW_VERSION_MINOR << "." << GLFW_VERSION_REVISION;
+
     }
 
     void OpenglRenderModule::beginFrame()
