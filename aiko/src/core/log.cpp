@@ -12,6 +12,9 @@
 
 namespace aiko
 {
+
+    const char* Log::endl = "\n";
+
     void Log::init()
     {
         // Create a color console logger

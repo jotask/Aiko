@@ -14,16 +14,6 @@ namespace aiko
         friend class Aiko;
         static void init();
 
-        #define Expand_ARGS(TYPE)                                       \
-            constexpr auto concatenate = [](auto&&... xs) constexpr     \
-            {                                                           \
-                std::stringstream ss;                                   \
-                ((ss << xs), ...);                                      \
-                return ss.str();                                        \
-                };                                                      \
-           string msg = concatenate(args...);                      \
-           log(TYPE, msg.c_str());                                      
-
     public:
 
         enum class Type
@@ -36,14 +26,55 @@ namespace aiko
             Critical,
         };
 
-        template<typename... Args> static constexpr void trace(const Args&... args) { Expand_ARGS(Type::Trace) };
-        template<typename... Args> static constexpr void debug(const Args&... args) { Expand_ARGS(Type::Debug) };
-        template<typename... Args> static constexpr void info(const Args&... args) { Expand_ARGS(Type::Info) };
-        template<typename... Args> static constexpr void warning(const Args&... args) { Expand_ARGS(Type::Warning) };
-        template<typename... Args> static constexpr void error(const Args&... args) { Expand_ARGS(Type::Error) };
-        template<typename... Args> static constexpr void critical(const Args&... args) { Expand_ARGS(Type::Critical) };
+        static const char* endl;
+
+        class LogStream
+        {
+        public:
+            LogStream(Type type) : m_type(type) {}
+
+            ~LogStream()
+            {
+                Log::log(m_type, m_stream.str().c_str());
+            }
+
+            // Overload the stream operator to accept various types of input
+            template<typename T>
+            LogStream& operator<<(const T& value)
+            {
+                m_stream << value;
+                return *this;
+            }
+
+
+        private:
+            Type m_type;
+            std::stringstream m_stream;  // buffer for the message
+        };
+
+        template<typename... Args> static constexpr void trace(const Args&... args)     { logMessage(Type::Critical, args...); };
+        template<typename... Args> static constexpr void debug(const Args&... args)     { logMessage(Type::Critical, args...); };
+        template<typename... Args> static constexpr void info(const Args&... args)      { logMessage(Type::Critical, args...); };
+        template<typename... Args> static constexpr void warning(const Args&... args)   { logMessage(Type::Critical, args...); };
+        template<typename... Args> static constexpr void error(const Args&... args)     { logMessage(Type::Critical, args...); };
+        template<typename... Args> static constexpr void critical(const Args&... args)  { logMessage(Type::Critical, args...); };
+
+        static LogStream trace() { return LogStream(Type::Trace); }
+        static LogStream debug() { return LogStream(Type::Debug); }
+        static LogStream info() { return LogStream(Type::Info); }
+        static LogStream warning() { return LogStream(Type::Warning); }
+        static LogStream error() { return LogStream(Type::Error); }
+        static LogStream critical() { return LogStream(Type::Critical); }
 
     private:
+
+        template<typename... Args>
+        static void logMessage(Type type, const Args&... args)
+        {
+            std::stringstream ss;
+            (ss << ... << args);
+            log(type, ss.str().c_str());
+        }
 
         static void log(Type, const char* message);
 
