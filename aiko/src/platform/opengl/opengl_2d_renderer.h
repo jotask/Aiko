@@ -23,7 +23,7 @@ namespace aiko
         virtual void dispose();
 
         virtual void drawRectangle(Camera* cam, vec2 pos, vec2 size, Color color);
-        virtual void drawRectangle(Camera*, vec2 pos, vec2 size, Color colors[4]);
+        virtual void drawRectangle(Camera*, vec2 pos, vec2 size, std::array<Color, 4> colors);
 
     private:
 
@@ -50,7 +50,7 @@ namespace aiko
             uint vao;
             uint vbo;
 
-            std::vector<vec2> spritePositions;
+            std::vector<vec3> spritePositions;
             std::vector<Color> spriteColors;
             std::vector<vec2> texturePositions;
             std::vector<texture::Texture> spriteTextures;
@@ -66,11 +66,11 @@ namespace aiko
         Screen root;
         Vertex objs;
 
-        void drawAbsRotation(Camera* cam, vec2 pos, vec2 size, const texture::Texture texture, const Color colors[4], const vec2 origin = {}, const float rotationDegrees = 0.f, const vec4 textureCoords = GL2D_DefaultTextureCoords);
+        void drawAbsRotation(Camera* cam, vec3 pos, vec2 size, const texture::Texture texture, const std::array<Color, 4> colors, const vec2 origin = {}, const float rotationDegrees = 0.f, const vec4 textureCoords = GL2D_DefaultTextureCoords);
 
-        vec2 positionToScreenCoords(vec2, vec2);
-        vec2 rotateAroundPoint(vec2, vec2, float);
-        vec2 scaleAroundPoint(vec2, vec2, float);
+        vec2 positionToScreenCoords(vec3, vec2);
+        vec3 rotateAroundPoint(vec3, vec3, float);
+        vec3 scaleAroundPoint(vec3, vec3, float);
 
     };
 }

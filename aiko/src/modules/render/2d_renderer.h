@@ -17,7 +17,7 @@ namespace aiko
         virtual ~RenderContext2D() = default;
 
         virtual void drawRectangle(Camera*, vec2 pos, vec2 size, Color color) = 0;
-        virtual void drawRectangle(Camera*, vec2 pos, vec2 size, Color colors[4]) = 0;
+        virtual void drawRectangle(Camera*, vec2 pos, vec2 size, std::array<Color, 4> colors) = 0;
 
     };
 }

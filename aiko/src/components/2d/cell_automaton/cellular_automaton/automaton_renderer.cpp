@@ -25,6 +25,20 @@ namespace aiko::ca
 
         void AutomatonRender::render(WorldCellularAutomaton* world)
         {
+
+            auto ctx = m_renderSystem->getRenderer<RenderContext2D>(ContextType::Render2D);
+            auto cam = m_renderSystem->getMainCamera();
+
+            Color randomColor = Color::getRandomColor();
+            randomColor.a = 1.0f;
+
+            vec2 pos = {0};
+            vec2 size = {100};
+
+            ctx->drawRectangle(cam, pos, size, randomColor);
+
+            return;
+
             for (auto& chunk : world->getChunks())
             {
                 drawChunk(&chunk);
@@ -71,11 +85,11 @@ namespace aiko::ca
         {
             switch (stat)
             {
-            case CellCellularAutomaton::CellState::LIVE:    return WHITE;
-            case CellCellularAutomaton::CellState::DEAD:    return BLACK;
-            case CellCellularAutomaton::CellState::DEBUG:   return MAGENTA;
-            case CellCellularAutomaton::CellState::NULLPTR: return MAGENTA;
-            default:               return MAGENTA;
+                case CellCellularAutomaton::CellState::LIVE:    return WHITE;
+                case CellCellularAutomaton::CellState::DEAD:    return BLACK;
+                case CellCellularAutomaton::CellState::DEBUG:   return MAGENTA;
+                case CellCellularAutomaton::CellState::NULLPTR: return MAGENTA;
+                default:                         assert(false); return MAGENTA;
             }
         }
 

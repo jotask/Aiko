@@ -12,7 +12,7 @@ namespace aiko::ca
         auto cam = camera->addComponent<CameraComponent>(camera::CameraController::Drag, camera::CameraType::Perspective);
 
         m_sprite = this->Instantiate("CellularAutomaton");
-        m_sprite->transform()->position = { 0.0f, -0.0f, 0.0f };
+        m_sprite->transform()->position = { 0.0f, 0.0f, 0.0f };
         m_sprite->transform()->rotation = { 0.0f,  0.0f, 0.0f };
         m_sprite->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto grid = m_sprite->addComponent<CellularAutomatonComponent>();

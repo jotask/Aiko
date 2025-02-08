@@ -71,7 +71,7 @@ namespace aiko
 
             glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadPositions]);
             glEnableVertexAttribArray(Renderer2DBufferType::QuadPositions);
-            glVertexAttribPointer(Renderer2DBufferType::QuadPositions, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+            glVertexAttribPointer(Renderer2DBufferType::QuadPositions, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
             glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadColors]);
             glEnableVertexAttribArray(Renderer2DBufferType::QuadColors);
@@ -150,9 +150,9 @@ namespace aiko
 
         const size_t quadCount = 1'000;
 
-        objs.spritePositions.reserve(quadCount * 6);
-        objs.spriteColors.reserve(quadCount * 6);
-        objs.texturePositions.reserve(quadCount * 6);
+        objs.spritePositions.reserve(quadCount);
+        objs.spriteColors.reserve(quadCount);
+        objs.texturePositions.reserve(quadCount);
         objs.spriteTextures.reserve(quadCount);
 
     }
@@ -171,26 +171,34 @@ namespace aiko
 
         // Enable blending for transparency
         glEnable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
         glDisable(GL_CULL_FACE);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         //for (auto& v : objs)
-        if (objs.spriteTextures.empty() == false)
+        if (objs.spriteTextures.empty() == true)
         {
+            return;
+        }
+
+        {
+
+            Transform trans;
+            trans.position = {0.0, 0.0, 0.0};
+            trans.rotation = { 0.0f };
+            trans.scale = { 1 };
 
             glBindVertexArray(objs.vao);
             objs.shader->use();
             objs.shader->setInt("u_sampler", 0);
             objs.shader->setMat4("projection", objs.projection);
             objs.shader->setMat4("view", objs.view);
-            Transform trans;
-            trans.position = {0};
-            trans.rotation = { 0.0f };
-            trans.scale = { 1 };
             objs.shader->setMat4("model", trans.getMatrix());
 
             glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadPositions]);
-            glBufferData(GL_ARRAY_BUFFER, objs.spritePositions.size() * sizeof(vec2), objs.spritePositions.data(), GL_STREAM_DRAW);
+
+            glBufferData(GL_ARRAY_BUFFER, objs.spritePositions.size() * sizeof(vec3), objs.spritePositions.data(), GL_STREAM_DRAW);
 
             glBindBuffer(GL_ARRAY_BUFFER, objs.buffers[Renderer2DBufferType::QuadColors]);
             glBufferData(GL_ARRAY_BUFFER, objs.spriteColors.size() * sizeof(Color), objs.spriteColors.data(), GL_STREAM_DRAW);
@@ -200,6 +208,10 @@ namespace aiko
 
             //Instance render the textures
             {
+
+                const auto sorter = [](const aiko::texture::Texture& a, const aiko::texture::Texture& b) { return a.id < b.id; };
+                std::sort(objs.spriteTextures.begin(), objs.spriteTextures.end(), sorter);
+
                 const int size = objs.spriteTextures.size();
                 int pos = 0;
                 unsigned int id = objs.spriteTextures[0].id;
@@ -267,19 +279,20 @@ namespace aiko
     void Opengl2DRenderer::drawRectangle(Camera* cam, vec2 pos, vec2 size, Color color)
     {
         vec2 newOrigin = pos;
-        Color colors[4] = {color, color, color, color};
+        std::array<Color, 4> colors;
+        std::fill(colors.begin(), colors.end(), color);
         drawAbsRotation(cam, pos, size, objs.defaultTexture, colors, newOrigin, 0);
         objs.projection = cam->getProjectionMatrix();
         objs.view = cam->getViewMatrix();
     }
 
-    void Opengl2DRenderer::drawRectangle(Camera* cam, vec2 pos, vec2 size, Color colors[4])
+    void Opengl2DRenderer::drawRectangle(Camera* cam, vec2 pos, vec2 size, std::array<Color, 4> colors)
     {
         vec2 newOrigin;
         drawAbsRotation(cam, pos, size, objs.defaultTexture, colors, newOrigin, 0);
     }
 
-    void Opengl2DRenderer::drawAbsRotation(Camera* cam, vec2 pos, vec2 size, const texture::Texture texture, const Color colors[4], const vec2 origin, const float rotationDegrees, const vec4 textureCoords)
+    void Opengl2DRenderer::drawAbsRotation(Camera* cam, vec3 pos, vec2 size, const texture::Texture texture, const std::array<Color, 4> colors, const vec2 origin, const float rotationDegrees, const vec4 textureCoords)
     {
         texture::Texture textureCopy = texture;
 
@@ -289,15 +302,15 @@ namespace aiko
             textureCopy = objs.defaultTexture;
         }
 
-        //We need to flip texture_transforms.y
+        // We need to flip texture_transforms.y
         const float transformsY = pos.y * -1;
 
-        vec2 v1 = { pos.x,          transformsY };
-        vec2 v2 = { pos.x,          transformsY - size.x };
-        vec2 v3 = { pos.x + size.y, transformsY - size.x };
-        vec2 v4 = { pos.x + size.y, transformsY };
+        vec3 v1 = { pos.x,          transformsY          , pos.z };
+        vec3 v2 = { pos.x,          transformsY - size.y , pos.z }; // Corrected size.x to size.y
+        vec3 v3 = { pos.x + size.x, transformsY - size.y , pos.z }; // Corrected size.y to size.x
+        vec3 v4 = { pos.x + size.x, transformsY          , pos.z }; // Corrected size.y to size.x
 
-        //Apply rotations
+        // Apply rotations
         if (rotationDegrees != 0)
         {
             v1 = rotateAroundPoint(v1, origin, rotationDegrees);
@@ -306,7 +319,7 @@ namespace aiko
             v4 = rotateAroundPoint(v4, origin, rotationDegrees);
         }
 
-        //Apply camera transformations
+        // Apply camera transformations
         v1.x -= cam->position.x;
         v1.y += cam->position.y;
         v2.x -= cam->position.x;
@@ -318,7 +331,7 @@ namespace aiko
 
         const auto screenSize = getRenderModule()->getDisplaySize();
 
-        //Apply camera rotation
+        // Apply camera rotation
         if (s_rotation != 0)
         {
             vec2 cameraCenter = { screenSize.x / 2.0f, screenSize.y / 2.0f };
@@ -328,8 +341,8 @@ namespace aiko
             v4 = rotateAroundPoint(v4, cameraCenter, s_rotation);
         }
 
-        //Apply camera zoom
-        if(s_zoom != 1)
+        // Apply camera zoom
+        if (s_zoom != 1)
         {
             vec2 cameraCenter = { cam->position.x , cam->position.y };
             v1 = scaleAroundPoint(v1, cameraCenter, s_zoom);
@@ -343,13 +356,13 @@ namespace aiko
         v3 = positionToScreenCoords(v3, screenSize);
         v4 = positionToScreenCoords(v4, screenSize);
 
-        objs.spritePositions.push_back(vec2{ v1.x, v1.y });
-        objs.spritePositions.push_back(vec2{ v2.x, v2.y });
-        objs.spritePositions.push_back(vec2{ v4.x, v4.y });
+        objs.spritePositions.push_back(v1);
+        objs.spritePositions.push_back(v2);
+        objs.spritePositions.push_back(v4);
 
-        objs.spritePositions.push_back(vec2{ v2.x, v2.y });
-        objs.spritePositions.push_back(vec2{ v3.x, v3.y });
-        objs.spritePositions.push_back(vec2{ v4.x, v4.y });
+        objs.spritePositions.push_back(v2);
+        objs.spritePositions.push_back(v3);
+        objs.spritePositions.push_back(v4);
 
         objs.spriteColors.push_back(colors[0]); // v1
         objs.spriteColors.push_back(colors[1]); // v2
@@ -367,20 +380,14 @@ namespace aiko
         objs.texturePositions.push_back(vec2{ textureCoords.z, textureCoords.y }); //4
 
         objs.spriteTextures.push_back(textureCopy);
-
     }
 
-    vec2 Opengl2DRenderer::positionToScreenCoords(vec2 pos, vec2 screenSize)
+    vec2 Opengl2DRenderer::positionToScreenCoords(vec3 pos, vec2 screenSize)
     {
-        return
-        {
-            (pos.x / screenSize.x) * 2 - 1,
-            -((-pos.y / screenSize.y) * 2 - 1)
-
-        };
+        return { (pos.x / screenSize.x) * 2 - 1, -((-pos.y / screenSize.y) * 2 - 1) };
     }
 
-    vec2 Opengl2DRenderer::rotateAroundPoint(vec2 vec, vec2 point, float degrees)
+    vec3 Opengl2DRenderer::rotateAroundPoint(vec3 vec, vec3 point, float degrees)
     {
         point.y = -point.y;
         float a = math::radians(degrees);
@@ -396,7 +403,7 @@ namespace aiko
         return vec;
     }
 
-    vec2 Opengl2DRenderer::scaleAroundPoint(vec2 vec, vec2 point, float scale)
+    vec3 Opengl2DRenderer::scaleAroundPoint(vec3 vec, vec3 point, float scale)
     {
         vec = (vec - point) * scale + point;
         return vec;
