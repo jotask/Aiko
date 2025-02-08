@@ -5,11 +5,10 @@
 #include <vector>
 
 #include <aiko_types.h>
+#include <magic_enum/magic_enum_all.hpp>
 
 #include "nes/nes_types.h"
 #include "nes/microprocessor.h"
-
-#include <magic_enum.hpp>
 
 namespace nes
 {

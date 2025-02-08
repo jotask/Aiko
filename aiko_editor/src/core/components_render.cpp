@@ -3,7 +3,7 @@
 #include <assert.h>
 
 #include <imgui.h>
-#include <magic_enum_all.hpp>
+#include <magic_enum/magic_enum_all.hpp>
 
 #include "core/imgui_helper.h"
 
