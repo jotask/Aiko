@@ -2,10 +2,8 @@
 
 #include "application/application.h"
 
-#include <vector>
-
-class PaDeviceInfo;
-class PaHostApiInfo;
+#include "loop_recorder.h"
+#include "loop_visualizer.h"
 
 namespace aiko::recorder
 {
@@ -17,15 +15,8 @@ namespace aiko::recorder
         virtual void update() override;
         virtual void render() override;
     private:
-
-        struct AudioDevices
-        {
-            const PaDeviceInfo* info;
-            const PaHostApiInfo* host;
-        };
-
-        std::vector<AudioDevices> m_audioDevices;
-
+        LoopRecorder m_loopRecorder;
+        LoopVisualizer m_loopVisualizer;
     };
 
 }
