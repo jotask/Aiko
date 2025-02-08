@@ -12,6 +12,7 @@ namespace aiko::recorder
         Application::init();
         m_loopRecorder.init();
         m_loopVisualizer.init();
+        m_loopPlayer.init();
     }
 
     void LoopRecorderGui::update()
@@ -103,7 +104,7 @@ namespace aiko::recorder
                         if (ImGui::Button("Play"))
                         {
                             std::cout << "Play: " << file.filename << std::endl;
-                            // m_loopRecorder.playFile(file);
+                            m_loopPlayer.playAudioFile(file.filename);
                         }
 
                         ImGui::TableSetColumnIndex(2);
@@ -127,5 +128,6 @@ namespace aiko::recorder
         ImGui::End();
 
     }
+
 }
 
