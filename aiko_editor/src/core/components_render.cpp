@@ -204,8 +204,8 @@ namespace aiko::editor
             ImGui::DragFloat3("Position", camera->getCamera()->position, IMGUI_VELOCITY);
             ImGui::DragFloat3("Target", camera->getCamera()->target, IMGUI_VELOCITY);
             ImGui::Spacing();
-            ImGui::DragFloat("Near", &camera->getCamera()->near, IMGUI_VELOCITY);
-            ImGui::DragFloat("Far", &camera->getCamera()->far, IMGUI_VELOCITY);
+            ImGui::DragFloat("Near", &camera->getCamera()->m_near, IMGUI_VELOCITY);
+            ImGui::DragFloat("Far", &camera->getCamera()->m_far, IMGUI_VELOCITY);
             ImGui::Spacing();
 
             if (ImGui::BeginCombo("##comboType", magic_enum::enum_name(camera->getCameraType()).data())) // The second parameter is the label previewed before opening the combo.
@@ -228,7 +228,7 @@ namespace aiko::editor
 
             if (camera->getCameraType() == camera::CameraType::Orthographic)
             {
-                ImGui::DragFloat("OrthoHeight", &camera->getCamera()->orthoHeight, IMGUI_VELOCITY);
+                ImGui::DragFloat("OrthoHeight", &camera->getCamera()->m_orthoHeight, IMGUI_VELOCITY);
             }
 
             ImGui::Spacing();
