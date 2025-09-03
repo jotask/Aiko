@@ -60,9 +60,6 @@ namespace aiko
         // Font
         void renderText(string, float, float);
 
-        template<class Ctx>
-        Ctx* getRenderer(ContextType);
-
     protected:
     
         virtual void connect(ModuleConnector*, SystemConnector*) override;
@@ -71,14 +68,7 @@ namespace aiko
     
         RenderModule* m_renderModule;
         CameraSystem* m_cameraSystem;
-    
-    };
 
-    template<class Ctx>
-    inline Ctx* RenderSystem::getRenderer(ContextType ctx)
-    {
-        return m_renderModule->getRenderer<Ctx>(ctx);
-    }
     // ---------------------------------------------------
     //                   PRIMITECES
     // ---------------------------------------------------

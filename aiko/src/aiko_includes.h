@@ -36,8 +36,5 @@
 #include "systems/input_system.h"
 #include "systems/entity_component_system.h"
 
-#include "modules/render/2d_renderer.h"
-#include "modules/render/3d_renderer.h"
-
 #include "shared/singleton.h"
 #include "shared/math.h"

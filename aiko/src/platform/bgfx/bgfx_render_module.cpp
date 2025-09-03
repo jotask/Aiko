@@ -24,10 +24,6 @@
 #include "core/log.h"
 #include "constants.h"
 
-#include "platform/opengl/opengl_2d_renderer.h"
-#include "platform/opengl/opengl_3d_renderer.h"
-
-
 namespace aiko::bgfx
 {
 
