@@ -53,7 +53,8 @@ namespace aiko
 
     int Shader::getUniformLocation(const string& name)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
+        return -1;
     }
 
     void Shader::setBool(const string& name, bool value)
