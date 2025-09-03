@@ -22,7 +22,6 @@
 #include "components/transform_component.h"
 #include "core/libs.h"
 #include "core/log.h"
-#include "constants.h"
 
 namespace aiko::bgfx
 {

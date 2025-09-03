@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-#include <core/libs.h>
+#include "core/libs.h"
 
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
@@ -16,11 +16,6 @@
 #include "models/shader.h"
 #include "components/transform_component.h"
 #include "constants.h"
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <stb_image.h>
 
 namespace aiko::bgfx
 {
