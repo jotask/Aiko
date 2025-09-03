@@ -21,14 +21,17 @@ namespace aiko::bgfx
 
     }
 
-    void BgfxDisplayModule::init()
+    void BgfxDisplayModule::preInit()
     {
 
         DisplayModule::init();
 
+        if (glfwInit() == GLFW_FALSE) return exitWithCode(EXIT_CODE::GLFW_INIT);
+
         const AikoConfig cfg = getAiko()->getConfig();
         const ivec2 size = { cfg.width, cfg.height };
         m_displayName = cfg.window_tittle;
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // no OpenGL
         GLFWwindow* window = glfwCreateWindow(size.x, size.y, m_displayName.c_str(), NULL, NULL);
         if (window == NULL)
         {

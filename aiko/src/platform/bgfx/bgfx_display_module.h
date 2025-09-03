@@ -21,7 +21,7 @@ namespace aiko::bgfx
 
     protected:
 
-        virtual void init() override;
+        virtual void preInit() override;
         virtual void preUpdate() override;
 
         virtual void beginFrame() override;

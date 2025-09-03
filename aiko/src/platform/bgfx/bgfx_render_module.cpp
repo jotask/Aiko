@@ -63,7 +63,7 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::endFrame()
     {
-        AIKO_NOT_IMPLEMENTED
+        ::bgfx::frame();
     }
 
     void BgfxRenderModule::drawText(string texto, float x, float y , float scale, Color color)
@@ -96,13 +96,14 @@ namespace aiko::bgfx
         const auto screenWidth = msg.width;
         const auto screenHeight = msg.height;
 
-        AIKO_NOT_IMPLEMENTED
+        ::bgfx::setViewRect(0, 0, 0, screenWidth, screenHeight);
 
     }
 
     void BgfxRenderModule::clearBackground(Color color)
     {
-        AIKO_NOT_IMPLEMENTED
+        // FIXME 
+        ::bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
     }
 
     void BgfxRenderModule::beginMode2D()
