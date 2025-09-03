@@ -1,4 +1,4 @@
-#include "entity_component_system.h"
+#include "render_system.h"
 
 #include <stdexcept>
 #include <memory>
@@ -14,7 +14,6 @@
 #include "components/transform_component.h"
 #include "components/mesh_component.h"
 #include "systems/camera_system.h"
-#include "render_system.h"
 #include "models/light.h"
 #include "models/mesh_factory.h"
 #include "types/color.h"
