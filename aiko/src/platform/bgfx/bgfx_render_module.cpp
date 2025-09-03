@@ -20,7 +20,6 @@
 #include "models/mesh.h"
 #include "models/shader.h"
 #include "components/transform_component.h"
-#include "modules/render/render_primitives.h"
 #include "core/libs.h"
 #include "core/log.h"
 #include "constants.h"
@@ -28,7 +27,6 @@
 #include "platform/opengl/opengl_2d_renderer.h"
 #include "platform/opengl/opengl_3d_renderer.h"
 
-#include "modules/render/render_primitives.h"
 
 namespace aiko::bgfx
 {

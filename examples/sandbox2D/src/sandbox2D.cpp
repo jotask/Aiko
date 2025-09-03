@@ -6,7 +6,6 @@
 #include "components/camera_component.h"
 #include "components/2d/sprite_component.h"
 #include "models/mesh.h"
-#include "modules/render/render_primitives.h"
 #include "components/texture_component.h"
 #include "components/pbo_texture_component.h"
 #include "models/camera.h"

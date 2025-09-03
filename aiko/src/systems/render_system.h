@@ -79,5 +79,52 @@ namespace aiko
     {
         return m_renderModule->getRenderer<Ctx>(ctx);
     }
+    // ---------------------------------------------------
+    //                   PRIMITECES
+    // ---------------------------------------------------
+
+    public:
+
+        #define DEFAULT_2D_COLOR { 1.0f   , 0.686f , 0.8f    , 1.0f }
+        #define DEFAULT_3D_COLOR { 1.0f   , 1.0f   , 1.0f    , 1.0f }
+
+        struct Data
+        {
+            struct Vertex {
+                vec3 position;
+                vec3 normal;
+                vec2 texCoords;
+            };
+            std::vector<Vertex>& vertices;
+        };
+
+        void initPrimitives();
+
+        // 2D
+        void drawPoint(vec3, Color = DEFAULT_2D_COLOR);
+        void drawTriangle(vec3, float, Color = DEFAULT_2D_COLOR);
+        void drawTriangle(vec3, vec3, vec3, Color = DEFAULT_2D_COLOR);
+        void drawRectangle(vec3, vec3, Color = DEFAULT_2D_COLOR);
+        void renderLine(vec3, vec3, Color = DEFAULT_2D_COLOR);
+        void renderCircle(vec3, float, int = 50, Color = DEFAULT_2D_COLOR);
+        void renderNgon(vec3, float, unsigned int, Color = DEFAULT_2D_COLOR);
+
+        // 3d
+        void drawPyramid(vec3, float baseWidth, float height, Color = DEFAULT_3D_COLOR);
+        void drawCube(vec3, vec3, Color = DEFAULT_3D_COLOR);
+        void renderSphere(vec3, float, int = 25, Color = DEFAULT_3D_COLOR);
+        void renderPolygon(vec3, float, int rings, int sectors, Color = DEFAULT_3D_COLOR);
+        void renderCylinder(vec3 pos, float radius, float height, int sectors, Color = DEFAULT_3D_COLOR);
+
+    private:
+
+        void bindData(std::vector<float>& verts);
+        void calculateNormals(Data& data);
+        void calculateUvs(Data& data);
+
+        void bindShaderAttributes();
+        void setUniforms(Color color);
+
+    };
 
 }

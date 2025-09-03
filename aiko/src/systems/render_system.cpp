@@ -33,7 +33,7 @@ namespace aiko
     
     void RenderSystem::init()
     {
-        Primitives::init(this);
+        this->initPrimitives();
     }
 
     void RenderSystem::update()

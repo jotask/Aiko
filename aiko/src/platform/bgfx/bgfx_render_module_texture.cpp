@@ -15,7 +15,6 @@
 #include "models/mesh.h"
 #include "models/shader.h"
 #include "components/transform_component.h"
-#include "modules/render/render_primitives.h"
 #include "constants.h"
 
 #include <glm/glm.hpp>
