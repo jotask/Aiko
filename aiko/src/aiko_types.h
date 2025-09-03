@@ -16,6 +16,8 @@
 #define CLITERAL(type)      (type)
 #endif
 
+#include "aiko_exit_codes.h"
+
 namespace aiko
 {
 
