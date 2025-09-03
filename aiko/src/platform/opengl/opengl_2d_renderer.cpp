@@ -1,3 +1,5 @@
+#ifdef AIKO_NATIVE
+
 #include "opengl_2d_renderer.h"
 
 #include "core/libs.h"
@@ -81,3 +83,5 @@ namespace aiko
     }
 
 }
+
+#endif

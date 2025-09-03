@@ -1,3 +1,5 @@
+#ifdef AIKO_NATIVE
+
 #pragma once
 
 #include <vector>
@@ -74,3 +76,5 @@ namespace aiko
 
     };
 }
+
+#endif
