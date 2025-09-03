@@ -30,22 +30,25 @@ namespace aiko::bgfx
 
     AikoPtr<Shader> BgfxRenderModule::createShader()
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
+        return nullptr;
     }
 
     aiko::ShaderData BgfxRenderModule::loadShaderData(const char* vertex, const char* fragment)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
+        return { 0 };
     }
 
     aiko::ShaderData BgfxRenderModule::loadShaderSrc(const char* vertex, const char* fragment)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
+        return { 0 };
     }
 
     void BgfxRenderModule::unloadShader(aiko::ShaderData& data)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
 }

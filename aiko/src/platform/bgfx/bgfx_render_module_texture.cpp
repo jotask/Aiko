@@ -27,7 +27,7 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::initScreenFbo()
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     texture::ScreenFbo BgfxRenderModule::getScreenFbo()
@@ -37,27 +37,29 @@ namespace aiko::bgfx
 
     texture::Texture BgfxRenderModule::createTexture()
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
+            return { 0 };
     }
 
     texture::PboTexture BgfxRenderModule::createPboTexture(uint16_t width, uint16_t height)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
+            return { 0 };
     }
 
     void BgfxRenderModule::updatePboTexture(texture::PboTexture pbo, std::vector<Color>& pixels)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
 }

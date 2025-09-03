@@ -41,17 +41,25 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::preInit()
     {
-        AIKO_NOT_IMPLEMENTED
     }
+
+
 
     void BgfxRenderModule::init()
     {
-        AIKO_NOT_IMPLEMENTED
+        GLFWwindow* window = static_cast<GLFWwindow*>(m_displayModule->getNativeDisplay());
+        ::bgfx::Init init;
+        init.type = ::bgfx::RendererType::Count; // auto choose renderer (DirectX, OpenGL, etc.)
+        init.platformData.nwh = glfwGetWin32Window(window);
+        init.resolution.width = 800;
+        init.resolution.height = 600;
+        init.resolution.reset = BGFX_RESET_VSYNC;
+        ::bgfx::init(init);
     }
 
     void BgfxRenderModule::beginFrame()
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::endFrame()
@@ -66,7 +74,7 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::dispose()
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     texture::RenderTexture2D* BgfxRenderModule::getRenderTexture()
@@ -100,59 +108,58 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::beginMode2D()
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::endMode2D()
     {
-
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::beginMode3D()
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::endMode3D()
     {
-
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::beginTextureMode()
     {
 
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::beginTextureMode(texture::RenderTexture2D& target)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::endTextureMode(void)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::beginShaderMode(aiko::Shader* shader)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::endShaderMode(void)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::beginBlendMode(BlendMode mode)
     {
-
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::endBlendMode(void)
     {
-
+        AIKO_DEBUG_BREAK
     }
 
 }

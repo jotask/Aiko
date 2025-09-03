@@ -26,22 +26,22 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::initMesh( Mesh* mesh )
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::refreshMesh(Mesh* mesh)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::renderMesh(Camera* cam,  Transform* transform, Mesh* mesh, Shader* shader)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, texture::Texture* text)
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
     }
 
 }

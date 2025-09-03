@@ -51,7 +51,7 @@ namespace aiko
     void DebugModule::endFrame()
     {
         // glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        AIKO_NOT_IMPLEMENTED
+        AIKO_DEBUG_BREAK
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
