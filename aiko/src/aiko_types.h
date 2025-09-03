@@ -31,6 +31,7 @@ namespace aiko
     using AikoUPtr = std::unique_ptr<T>;
 
     #define AIKO_NOT_IMPLEMENTED static_assert(false, "NOT IMPLEMENTED");
+    #define AIKO_ASSERT(cond, msg) assert(cond && msg);
 
     template < typename C, C beginVal, C endVal>
     class EnumIterator {
