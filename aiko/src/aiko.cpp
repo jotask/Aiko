@@ -27,6 +27,11 @@
 
 #include "platform/platform_builder.hpp"
 
+#include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
+#include <bx/bx.h>
+#include <bx/math.h>
+
 namespace aiko
 {
 

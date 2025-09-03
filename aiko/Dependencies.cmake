@@ -181,3 +181,27 @@ message("Fetching magic_enum")
 FetchContent_MakeAvailable(magic_enum)
 
 #----------------------------------------------------------------------
+
+set(BGFX_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(BGFX_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+  bx
+  GIT_REPOSITORY https://github.com/bkaradzic/bx.git
+  GIT_TAG master
+)
+
+FetchContent_Declare(
+  bimg
+  GIT_REPOSITORY https://github.com/bkaradzic/bimg.git
+  GIT_TAG master
+)
+
+FetchContent_Declare(
+  bgfx
+  GIT_REPOSITORY https://github.com/bkaradzic/bgfx.cmake.git
+  GIT_TAG master
+)
+
+FetchContent_MakeAvailable(bx bimg bgfx)
+#----------------------------------------------------------------------

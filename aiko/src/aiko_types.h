@@ -30,6 +30,8 @@ namespace aiko
     template<class T>
     using AikoUPtr = std::unique_ptr<T>;
 
+    #define AIKO_NOT_IMPLEMENTED static_assert(false, "NOT IMPLEMENTED");
+
     template < typename C, C beginVal, C endVal>
     class EnumIterator {
         typedef typename std::underlying_type<C>::type val_t;

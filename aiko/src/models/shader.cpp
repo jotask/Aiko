@@ -53,132 +53,67 @@ namespace aiko
 
     int Shader::getUniformLocation(const string& name)
     {
-        use();
-        auto found = m_shaderData.locs.find(name.c_str());
-        if (found != m_shaderData.locs.end())
-        {
-            return found->second;
-        }
-
-        int loc = glGetUniformLocation(m_shaderData.id, name.c_str());
-        if (loc == -1)
-        {
-            Log::error( "SHADER::LOCALISATION NOT FOUND :: ", name.c_str() );
-        }
-        return loc;
+        AIKO_NOT_IMPLEMENTED
     }
 
-    // utility uniform functions
-// ------------------------------------------------------------------------
     void Shader::setBool(const string& name, bool value)
     {
-        glUniform1i(getUniformLocation(name), (int)value);
+
     }
-    // ------------------------------------------------------------------------
+
     void Shader::setInt(const string& name, int value)
     {
-        glUniform1i(getUniformLocation(name), value);
+
     }
-    // ------------------------------------------------------------------------
+
     void Shader::setFloat(const string& name, float value)
     {
-        glUniform1f(getUniformLocation(name), value);
+
     }
-    // ------------------------------------------------------------------------
+
     void Shader::setVec2(const string& name, const vec2& value)
     {
-        glUniform2fv(getUniformLocation(name), 1, &value.x);
+
     }
+
     void Shader::setVec2(const string& name, float x, float y)
     {
-        glUniform2f(getUniformLocation(name), x, y);
+
     }
-    // ------------------------------------------------------------------------
+
     void Shader::setVec3(const string& name, const vec3& value)
     {
-        glUniform3fv(getUniformLocation(name), 1, &value.x);
+
     }
     void Shader::setVec3(const string& name, float x, float y, float z)
     {
-        glUniform3f(getUniformLocation(name), x, y, z);
+
     }
-    // ------------------------------------------------------------------------
+
     void Shader::setVec4(const string& name, const vec4& value)
     {
-        glUniform4fv(getUniformLocation(name), 1, &value.x);
+
     }
 
     void Shader::setVec4(const string& name, float x, float y, float z, float w)
     {
-        glUniform4f(getUniformLocation(name), x, y, z, w);
+
     }
 
     void Shader::setMat4(const string& name, const mat4& mat)
     {
-        glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, mat.data());
+
     }
 
     void Shader::use()
     {
-        glUseProgram(this->getData()->id);
+
     }
 
     void Shader::unuse()
     {
-        glUseProgram(0);
-    }
 
-    /*
-    void Shader::setShaderValue(int locIndex, const int& value)
-    {
-        AIKO_RETURN_NO_LOC
-        m_renderSystem->setShaderUniformValue(*this, locIndex, &value, SHADER_UNIFORM_INT);
     }
-
-    void Shader::setShaderValue(int locIndex, const float& value)
-    {
-        AIKO_RETURN_NO_LOC
-            m_renderSystem->setShaderUniformValue(*this, locIndex, &value, SHADER_UNIFORM_FLOAT);
-    }
-
-    void Shader::setShaderValue(int locIndex, const ivec2& value)
-    {
-        AIKO_RETURN_NO_LOC
-            std::array<float, 2> loc;
-        loc = { static_cast<float>(value.x), static_cast<float>(value.y) };
-        m_renderSystem->setShaderUniformValue(*this, locIndex, loc.data(), SHADER_UNIFORM_VEC2);
-    }
-
-    void Shader::setShaderValue(int locIndex, const vec2& value)
-    {
-        AIKO_RETURN_NO_LOC
-            std::array<float, 2> loc;
-        loc = { static_cast<float>(value.x), static_cast<float>(value.y) };
-        m_renderSystem->setShaderUniformValue(*this, locIndex, loc.data(), SHADER_UNIFORM_VEC2);
-    }
-
-    void Shader::setShaderValue(int locIndex, const vec3& value)
-    {
-        AIKO_RETURN_NO_LOC
-        static std::array<float, 3> loc;
-        loc = { value.x, value.y ,value.z };
-        m_renderSystem->setShaderUniformValue(*this, locIndex, loc.data(), SHADER_UNIFORM_VEC3);
-    }
-
-    void Shader::setShaderValue(int locIndex, const vec4& value)
-    {
-        AIKO_RETURN_NO_LOC
-            static std::array<float, 4> loc;
-        loc = { value.x, value.y ,value.z, value.w };
-        m_renderSystem->setShaderUniformValue(*this, locIndex, loc.data(), SHADER_UNIFORM_VEC4);
-    }
-
-    void Shader::setShaderValue(int locIndex, const std::vector<vec2>& value)
-    {
-        AIKO_RETURN_NO_LOC;
-        m_renderSystem->setShaderUniformValueV(*this, locIndex, value.data(), SHADER_UNIFORM_VEC2, value.size());
-    }
-    */
 
     aiko::ShaderData* Shader::getData()
     {
