@@ -19,8 +19,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-#include <magic_enum/magic_enum.hpp>
-
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 
+#include <magic_enum/magic_enum.hpp>

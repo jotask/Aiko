@@ -9,8 +9,6 @@
 #include "models/shader.h"
 #include "models/time.h"
 
-#include "core/libs.h"
-
 namespace aiko
 {
 

@@ -1,6 +1,5 @@
 #include "aiko.h"
 
-
 #include "modules/module_connector.h"
 #include "systems/system_connector.h"
 
@@ -24,8 +23,6 @@
 #include "systems/asset_system.h"
 #include "systems/input_system.h"
 #include "systems/particle_system/particle_system.h"
-
-#include "platform/platform_builder.hpp"
 
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>

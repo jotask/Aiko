@@ -16,4 +16,4 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${EXAMPLE_SANDBOX_SRC})
 # Main executable
 add_executable(Sandbox ${EXAMPLE_SANDBOX_SRC})
 
-target_link_libraries(Sandbox PRIVATE Aiko)
+target_link_libraries(Sandbox PRIVATE Aiko magic_enum)
