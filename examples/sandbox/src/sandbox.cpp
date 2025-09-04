@@ -13,7 +13,7 @@
 
 #include <aiko_includes.h>
 
-#define TEST_CUBES
+// #define TEST_CUBES
 
 namespace sandbox
 {
