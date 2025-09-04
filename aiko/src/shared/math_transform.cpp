@@ -70,7 +70,7 @@ namespace aiko
             return glm::radians(angle);
         }
 
-        int _max(int a, int b)
+        int max(int a, int b)
         {
 			return glm::max(a, b);
         }

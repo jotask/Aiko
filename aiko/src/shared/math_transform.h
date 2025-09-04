@@ -26,7 +26,7 @@ namespace aiko
         float sin(float);
         float radians(float);
 
-        int _max(int, int);
+        int max(int, int);
 
         vec3 cross(vec3, vec3);
         vec3 normalize(vec3);
