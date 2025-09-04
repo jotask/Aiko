@@ -2,6 +2,7 @@ include(FetchContent)
 
 set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libs CACHE PATH "Missing description." FORCE)
 Set(FETCHCONTENT_QUIET FALSE)
+set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
 
 #----------------------------------------------------------------------
 
@@ -172,7 +173,7 @@ target_compile_definitions(EnTT INTERFACE ENTT_FORCE_SILENT_WARNINGS)
 FetchContent_Declare(
     magic_enum
     GIT_REPOSITORY https://github.com/Neargye/magic_enum.git
-    GIT_TAG        master
+    GIT_TAG        v0.9.7
     GIT_SHALLOW    TRUE
     GIT_PROGRESS   TRUE
 )
