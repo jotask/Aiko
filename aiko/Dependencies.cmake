@@ -1,6 +1,6 @@
 include(FetchContent)
 
-set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libs CACHE PATH "Missing description." FORCE)
+set(FETCHCONTENT_BASE_DIR ${CMAKE_SOURCE_DIR}/deps_cache CACHE PATH "Folder to cache FetchContent libraries." FORCE)
 Set(FETCHCONTENT_QUIET FALSE)
 set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
 
