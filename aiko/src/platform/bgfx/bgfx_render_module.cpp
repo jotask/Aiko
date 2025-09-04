@@ -23,6 +23,9 @@
 #include "core/libs.h"
 #include "core/log.h"
 
+#include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
+
 namespace aiko::bgfx
 {
 

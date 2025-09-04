@@ -23,6 +23,8 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${AIKO_SRC})
 # Main Library
 add_library(Aiko STATIC ${AIKO_SRC})
 target_compile_definitions(Aiko PRIVATE ${AIKO_PLATFORM} )
+target_compile_definitions(Aiko PUBLIC NOMINMAX )
+ 
 target_compile_features(Aiko PRIVATE cxx_std_17)
 target_link_libraries(Aiko PRIVATE glfw glad glm TracyClient spdlog imgui EnTT assimp stb bx bimg bgfx )
 target_link_libraries(Aiko PUBLIC magic_enum )

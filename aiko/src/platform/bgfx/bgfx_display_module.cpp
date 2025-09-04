@@ -6,6 +6,7 @@
 #include "core/libs.h"
 #include "core/log.h"
 #include "aiko_types.h"
+#include "shared/math_transform.h"
 
 #include "events/events.hpp"
 
@@ -72,14 +73,14 @@ namespace aiko::bgfx
                     continue;
 
                 // Get intersection of two rectangles - screen and window
-                int minX = std::max(mx, px);
-                int minY = std::max(my, py);
+                int minX = aiko::math::_max(mx, px);
+                int minY = aiko::math::_max(my, py);
 
-                int maxX = std::min(mx + mode->width, px + sx);
-                int maxY = std::min(my + mode->height, py + sy);
+                int maxX = aiko::math::_max(mx + mode->width, px + sx);
+                int maxY = aiko::math::_max(my + mode->height, py + sy);
 
                 // Calculate area of the intersection
-                int area = std::max(maxX - minX, 0) * std::max(maxY - minY, 0);
+                int area = aiko::math::_max(maxX - minX, 0) * aiko::math::_max(maxY - minY, 0);
 
                 // If its bigger than actual (window covers more space on this monitor)
                 if (area > best_area)

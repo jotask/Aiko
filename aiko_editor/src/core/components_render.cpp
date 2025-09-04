@@ -2,8 +2,10 @@
 
 #include <assert.h>
 
+#include <magic_enum/magic_enum.hpp>
+#include <magic_enum/magic_enum_utility.hpp>
+
 #include <imgui.h>
-#include "core/libs.h"
 
 #include "core/imgui_helper.h"
 

@@ -9,7 +9,7 @@
 #include <json/json.h>
 #include <imgui_internal.h>
 
-#include "core/libs.h"
+#include <magic_enum/magic_enum.hpp>
 
 namespace aiko
 {
