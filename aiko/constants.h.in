@@ -7,8 +7,6 @@ namespace aiko
     namespace global
     {
 
-        #define ${AIKO_PLATFORM}
-
         inline constexpr bool GPU_LOGGING = true;
 
         inline constexpr const char* GLOBAL_ASSET_PATH = "${GLOBAL_ASSET_PATH}";
