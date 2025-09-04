@@ -9,6 +9,8 @@
 #include "modules/display_module.h"
 #include "events/events.hpp"
 
+#include <magic_enum/magic_enum.hpp>
+
 #define LOG_INPUT false
 
 namespace aiko
