@@ -16,6 +16,8 @@ namespace aiko
 
     #define AIKO_RETURN_NO_LOC if(locIndex < 0) return;
 
+    RenderModule* Shader::s_renderModule = nullptr;
+
     Shader::Shader()
     {
     
@@ -28,7 +30,7 @@ namespace aiko
             unload();
         }
         isValid = true;
-        m_shaderData = internalLoadShaderData(vs, fs);
+        m_shaderData = s_renderModule->loadShaderData(vs,fs);
     }
 
     void Shader::loadFromSource(const char* vs, const char* fs)
@@ -38,7 +40,7 @@ namespace aiko
             unload();
         }
         isValid = true;
-        m_shaderData = internalLoadShaderSrc(vs, fs);
+        m_shaderData = s_renderModule->loadShaderData(vs, fs);
     }
 
     void Shader::unload()
@@ -47,7 +49,7 @@ namespace aiko
         {
             return;
         }
-        internalUnloadShaderData(m_shaderData);
+        s_renderModule->unloadShader(m_shaderData);
         isValid = false;
     }
 

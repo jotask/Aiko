@@ -26,12 +26,13 @@ namespace sandbox
 
         auto root = Instantiate("Root");
 
-#ifdef TEST_CUBES
         m_go1 = this->Instantiate(root, "Cube1");
         m_go1->transform()->position = { 1.0f, 0.0f, 0.0f };
         m_go1->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
+
+#ifdef TEST_CUBES
 
         m_go2 = this->Instantiate(root, "Cube2");
         m_go2->transform()->position = { -1.0f, 0.0f, 0.0f };

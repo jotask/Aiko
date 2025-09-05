@@ -50,8 +50,6 @@ namespace aiko
 
         aiko::AikoUPtr<Aiko> m_aiko;
 
-        aiko::AikoPtr<aiko::Shader> getShader();
-
         GameObject* Instantiate(char* name);
         GameObject* Instantiate(GameObject* , char* name);
 

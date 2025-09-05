@@ -46,7 +46,7 @@ namespace aiko
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*) = 0;
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::Texture*) = 0;
 
-        virtual void refreshShader(Mesh*) = 0;
+        virtual void refreshShader(Shader*) = 0;
 
         virtual texture::RenderTexture2D* getRenderTexture() = 0;
 
@@ -77,7 +77,6 @@ namespace aiko
         virtual void drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint) = 0;
 
         // Shader
-        virtual AikoPtr<Shader> createShader() = 0;
         virtual aiko::ShaderData loadShaderData(const char*, const char*) = 0;
         virtual aiko::ShaderData loadShaderSrc(const char*, const char*) = 0;
         virtual void unloadShader(aiko::ShaderData&) = 0;

@@ -10,9 +10,12 @@
 
 namespace aiko
 {
-
+    class RenderModule;
     class Mesh
     {
+    private:
+        friend class RenderModule;
+        static RenderModule* s_renderModule;
     public:
 
         enum class MeshType

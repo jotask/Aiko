@@ -183,8 +183,10 @@ FetchContent_MakeAvailable(magic_enum)
 
 #----------------------------------------------------------------------
 
-set(BGFX_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(BGFX_BUILD_TOOLS ON CACHE BOOL "" FORCE)
 set(BGFX_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(BX_USE_DX ON CACHE BOOL "" FORCE)               # Enable DX/HLSL support
+set(BGFX_RENDERER_DIRECT3D11 ON CACHE BOOL "" FORCE)
 
 FetchContent_Declare(
   bx

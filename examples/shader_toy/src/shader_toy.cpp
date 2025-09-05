@@ -58,14 +58,14 @@ namespace shadertoy
 
         iTime = 0.0f;
         iFrame = 0;
-
-        m_shader = getShader();
-
+        
+        m_shader = { 0 };
+        
         auto camera = this->Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Static);
-
+        
         assert( m_shader != nullptr, "shader not init");
-
+        
         currentShader = 0; // aiko::utils::getRandomValue(0, s_shaders.size());
         refreshShader();
 

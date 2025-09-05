@@ -26,9 +26,9 @@ namespace aiko
         const texture::Texture& getTexture() { return m_texture; };
 
     private:
-        RenderSystem*       m_renderSystem;
-        AikoPtr<Mesh>       m_mesh;
-        AikoPtr<Shader>     m_shader;
+        RenderSystem* m_renderSystem;
+        Mesh       m_mesh;
+        Shader     m_shader;
         texture::Texture    m_texture;
 
     };

@@ -51,7 +51,7 @@ namespace aiko::bgfx
         void renderMesh(Camera*, Transform*, Mesh*, Shader*);
         void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::Texture*);
 
-        void refreshShader(Mesh*);
+        void refreshShader(Shader*);
 
         texture::RenderTexture2D* getRenderTexture();
 
@@ -83,9 +83,9 @@ namespace aiko::bgfx
 
         // Shader
         AikoPtr<Shader> createShader();
-        aiko::ShaderData loadShaderData(const char*, const char*);
-        aiko::ShaderData loadShaderSrc(const char*, const char*);
-        void unloadShader(aiko::ShaderData& );
+        virtual aiko::ShaderData loadShaderData(const char*, const char*) override;
+        virtual aiko::ShaderData loadShaderSrc(const char*, const char*) override;
+        virtual void unloadShader(aiko::ShaderData& ) override;
 
     protected:
 

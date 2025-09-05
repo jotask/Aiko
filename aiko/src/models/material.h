@@ -27,7 +27,7 @@ namespace aiko
         ~Material() = default;
 
     public:
-        aiko::AikoPtr<Shader> m_shader;
+        Shader m_shader;
 
     };
 

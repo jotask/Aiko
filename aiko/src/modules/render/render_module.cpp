@@ -4,13 +4,15 @@
 #include "modules/display_module.h"
 #include "events/events.hpp"
 
+#include "models/shader.h"
+#include "models/mesh.h"
+
 namespace aiko
 {
     RenderModule::RenderModule(Aiko* aiko)
         : BaseModule(aiko)
         , m_displayModule(nullptr)
     {
-
     }
 
     void RenderModule::connect(ModuleConnector* moduleConnector)
@@ -20,6 +22,11 @@ namespace aiko
 
     void RenderModule::init()
     {
+
+        // This just allow us to create instances, without coupling to all system/modules fnt calls
+        Mesh::s_renderModule = this;
+        Shader::s_renderModule = this;
+
         const AikoConfig cfg = getAiko()->getConfig();
         background_color = cfg.background_color;
         EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);

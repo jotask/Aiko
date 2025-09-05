@@ -27,8 +27,8 @@ namespace aiko
 
     private:
         RenderSystem*       m_renderSystem;
-        AikoPtr<Mesh>       m_mesh;
-        AikoPtr<Shader>     m_shader;
+        Mesh       m_mesh;
+        Shader     m_shader;
         texture::Texture    m_texture;
 
     };

@@ -33,7 +33,7 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
 
-        aiko::AikoPtr<Mesh> createMesh(Mesh::MeshType type);
+        Mesh createMesh(Mesh::MeshType type);
         aiko::AikoPtr<Light> createLight();
         texture::Texture createTexture();
         texture::PboTexture createPboTexture(uint16_t width, uint16_t height);
@@ -43,16 +43,11 @@ namespace aiko
         void add(Light*);
         void render(Transform* trans, Mesh* mesh, Shader* shader);
         void render(Transform* trans, Mesh* mesh, Shader* shader, texture::Texture*);
+        void render(texture::RenderTexture2D&, Shader*);
+        void renderToFullScreen(Shader*);
 
         texture::RenderTexture2D* getTargetTexture() const;
 
-        void renderToFullScreen(Shader*);
-
-        void render(texture::RenderTexture2D&, Shader*);
-
-        AikoPtr<Shader> createShader();
-        AikoPtr<Shader> createShader(const char* name);
-        AikoPtr<Shader> createShader(const char* vs, const char* fs);
         void unloadShader(Shader& data);
 
         Camera* getMainCamera();
@@ -70,7 +65,7 @@ namespace aiko
         CameraSystem* m_cameraSystem;
 
     // ---------------------------------------------------
-    //                   PRIMITECES
+    //                   PRIMITIVES
     // ---------------------------------------------------
 
     public:

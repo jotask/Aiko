@@ -4,6 +4,8 @@
 
 namespace aiko
 {
+
+    RenderModule* Mesh::s_renderModule = nullptr;
     
     Mesh::Mesh()
     {

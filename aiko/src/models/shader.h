@@ -15,13 +15,12 @@
 namespace aiko
 {
     class RenderModule;
-    class RenderSystem;
-
     class Shader
     {
-    public:
+    private:
         friend class RenderModule;
-        friend class RenderSystem;
+        static RenderModule* s_renderModule;
+    public:
 
         Shader();
         ~Shader() = default;
@@ -66,15 +65,7 @@ namespace aiko
         bool isValid = false;
         aiko::ShaderData m_shaderData;
 
-        using LoadShaderData = std::function<aiko::ShaderData(const char*, const char*)>;//  aiko::ShaderData(RenderModule::*)(const char*, const char*);
-        using LoadShaderSrc  = std::function<aiko::ShaderData(const char*, const char*)>;//  aiko::ShaderData(RenderModule::*)(const char*, const char*);
-        using UnloadShaderData = std::function<void(aiko::ShaderData)>;
-
     public:
-
-        LoadShaderSrc internalLoadShaderSrc = nullptr;
-        LoadShaderData internalLoadShaderData = nullptr;
-        UnloadShaderData internalUnloadShaderData = nullptr;
 
         int getUniformLocation(const string& name);
 

@@ -11,7 +11,7 @@ namespace aiko
         Model();
         ~Model() = default;
     public:
-        aiko::AikoPtr<Mesh> m_mesh;
+        Mesh m_mesh;
         Material m_material;
     };
 }

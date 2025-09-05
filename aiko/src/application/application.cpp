@@ -100,12 +100,6 @@ namespace aiko
         return inputSystem->isMouseButtonPressed(button);
     }
 
-    aiko::AikoPtr<aiko::Shader> Application::getShader()
-    {
-        auto* assetSystem = getRenderSystem();
-        return assetSystem->createShader();
-    }
-
     GameObject* Application::Instantiate(char* name)
     {
         EntityComponentSystem* ecs = m_aiko->getSystem<EntityComponentSystem>();

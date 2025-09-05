@@ -19,8 +19,8 @@ namespace nes
     void Cpu::assertStackAddress()
     {
         const Word stack_address = getWordStackAddress();
-        assert(stack_address <= std::get<1>(Memory::STACK_PAGE), "Stack Overflow!");
-        assert(stack_address >= std::get<0>(Memory::STACK_PAGE), "Stack Underflow!");
+        assert(stack_address <= std::get<1>(Memory::STACK_PAGE) && "Stack Overflow!");
+        assert(stack_address >= std::get<0>(Memory::STACK_PAGE) && "Stack Underflow!");
     }
 
     void Cpu::pushStack(Byte value, bool late)

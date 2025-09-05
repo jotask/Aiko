@@ -24,7 +24,7 @@ namespace aiko
     RenderSystem::RenderSystem()
     {
     }
-    
+
     void RenderSystem::init()
     {
         this->initPrimitives();
@@ -40,24 +40,24 @@ namespace aiko
 
     }
 
-    aiko::AikoPtr<Mesh> RenderSystem::createMesh(Mesh::MeshType type)
+    Mesh RenderSystem::createMesh(Mesh::MeshType type)
     {
-        auto mesh = std::make_unique<Mesh>();
-        m_renderModule->initMesh(mesh.get());
+        auto mesh = Mesh();
+        m_renderModule->initMesh(&mesh);
         switch (type)
         {
         case aiko::Mesh::MeshType::TEST:
-            mesh::generatTest(*mesh.get());
+            mesh::generatTest(mesh);
             break;
         case aiko::Mesh::MeshType::QUAD:
-            mesh::generateQuad(*mesh.get());
+            mesh::generateQuad(mesh);
             break;
         case aiko::Mesh::MeshType::CUSTOM:
             break;
         default:
             break;
         }
-        m_renderModule->refreshMesh(mesh.get());
+        m_renderModule->refreshMesh(&mesh);
         return mesh;
     }
     
@@ -161,30 +161,6 @@ namespace aiko
         m_renderModule->drawRenderTextureEx(target, vec2(), 0.0f, 1.0f, WHITE );
 
         m_renderModule->endShaderMode();
-    }
-
-    AikoPtr<Shader> RenderSystem::createShader()
-    {
-        return m_renderModule->createShader();
-    }
-
-    AikoPtr<Shader> RenderSystem::createShader(const char* name)
-    {
-        const auto vs = name + std::string(".vs");
-        const auto fs = name + std::string(".fs");
-        return createShader(vs.c_str(), fs.c_str());
-    }
-
-    AikoPtr<Shader> RenderSystem::createShader(const char* vsPath, const char* fsPath)
-    {
-        auto shader = createShader();
-        shader->load( vsPath, fsPath );
-        return shader;
-    }
-
-    void RenderSystem::unloadShader(Shader& data)
-    {
-        m_renderModule->unloadShader(data.m_shaderData);
     }
 
     Camera* RenderSystem::getMainCamera()

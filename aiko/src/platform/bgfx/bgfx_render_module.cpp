@@ -49,6 +49,9 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::init()
     {
+
+        RenderModule::init();
+
         GLFWwindow* window = static_cast<GLFWwindow*>(m_displayModule->getNativeDisplay());
         const ivec2 displaySize = m_displayModule->getCurrentDisplay().getDisplaySize();
         ::bgfx::Init init;
