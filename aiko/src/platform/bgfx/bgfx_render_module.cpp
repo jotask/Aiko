@@ -32,7 +32,7 @@ namespace aiko::bgfx
     BgfxRenderModule::BgfxRenderModule(Aiko* aiko)
         : RenderModule(aiko)
     {
-    
+        static_assert(sizeof(::bgfx::ViewId) == sizeof(BgfxRenderModule::ViewId) && "Bgfx ViewId type has changed");
     }
 
     BgfxRenderModule::~BgfxRenderModule()
@@ -50,18 +50,27 @@ namespace aiko::bgfx
     void BgfxRenderModule::init()
     {
         GLFWwindow* window = static_cast<GLFWwindow*>(m_displayModule->getNativeDisplay());
+        const ivec2 displaySize = m_displayModule->getCurrentDisplay().getDisplaySize();
         ::bgfx::Init init;
         init.type = ::bgfx::RendererType::Count; // auto choose renderer (DirectX, OpenGL, etc.)
         init.platformData.nwh = glfwGetWin32Window(window);
-        init.resolution.width = 800;
-        init.resolution.height = 600;
+        init.resolution.width = displaySize.x;
+        init.resolution.height = displaySize.y;
         init.resolution.reset = BGFX_RESET_VSYNC;
-        ::bgfx::init(init);
+        if (::bgfx::init(init) == false)
+        {
+            return std::exit(99);
+        }
+
+        auto caca = ::bgfx::getRendererType();
+        m_kClearView = 0;
+        ::bgfx::setViewClear(m_kClearView, BGFX_CLEAR_COLOR);
+        ::bgfx::setViewRect(m_kClearView, 0, 0, ::bgfx::BackbufferRatio::Equal);
     }
 
     void BgfxRenderModule::beginFrame()
     {
-        AIKO_DEBUG_BREAK
+        ::bgfx::touch(m_kClearView);
     }
 
     void BgfxRenderModule::endFrame()
@@ -76,7 +85,7 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::dispose()
     {
-        AIKO_DEBUG_BREAK
+        ::bgfx::shutdown();
     }
 
     texture::RenderTexture2D* BgfxRenderModule::getRenderTexture()
@@ -99,14 +108,15 @@ namespace aiko::bgfx
         const auto screenWidth = msg.width;
         const auto screenHeight = msg.height;
 
-        ::bgfx::setViewRect(0, 0, 0, screenWidth, screenHeight);
+        ::bgfx::reset((uint32_t)screenWidth, (uint32_t)screenHeight, BGFX_RESET_VSYNC);
+        ::bgfx::setViewRect(m_kClearView, 0, 0, ::bgfx::BackbufferRatio::Equal);
 
     }
 
     void BgfxRenderModule::clearBackground(Color color)
     {
         // FIXME 
-        ::bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
+        ::bgfx::setViewClear(m_kClearView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
     }
 
     void BgfxRenderModule::beginMode2D()

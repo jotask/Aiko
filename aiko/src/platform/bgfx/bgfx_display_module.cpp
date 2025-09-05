@@ -183,6 +183,7 @@ namespace aiko::bgfx
     void BgfxDisplayModule::dispose()
     {
         glfwDestroyWindow(getNative(m_curent.getNative()));
+        glfwTerminate();
     }
 
     void BgfxDisplayModule::preUpdate()

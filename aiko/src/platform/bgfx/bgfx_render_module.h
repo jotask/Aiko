@@ -29,6 +29,8 @@ namespace aiko::bgfx
     
     public:
 
+        using ViewId = uint16_t;
+
         BgfxRenderModule(Aiko* aiko);
         virtual ~BgfxRenderModule();
 
@@ -92,6 +94,9 @@ namespace aiko::bgfx
 
         virtual void onWindowResize(Event&) override;
     
+    private:
+        ViewId m_kClearView;
+
     };
 
 }
