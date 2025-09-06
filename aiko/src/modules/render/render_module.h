@@ -6,9 +6,9 @@
 #include "modules/base_module.h"
 #include "types/textures.h"
 #include "models/shader.h"
+#include "models/texture.h"
 #include "events/event.hpp"
 #include "types/color.h"
-#include "types/textures.h"
 
 namespace aiko
 {
@@ -44,7 +44,7 @@ namespace aiko
         virtual void initMesh(Mesh*) = 0;
         virtual void refreshMesh(Mesh*) = 0;
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*) = 0;
-        virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::Texture*) = 0;
+        virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, Texture*) = 0;
 
         virtual void refreshShader(Shader*) = 0;
 
@@ -71,6 +71,7 @@ namespace aiko
 
         // Texture
         virtual texture::Texture createTexture() = 0;
+        virtual texture::Texture loadTexture(const char*) = 0;
         virtual texture::PboTexture createPboTexture(uint16_t, uint16_t) = 0;
         virtual void updatePboTexture(texture::PboTexture texture, std::vector<Color>&) = 0;
         virtual void drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint) = 0;

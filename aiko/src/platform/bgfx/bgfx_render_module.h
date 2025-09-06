@@ -7,6 +7,7 @@
 #include "modules/render/render_module.h"
 #include "types/textures.h"
 #include "models/shader.h"
+#include "models/texture.h"
 #include "events/event.hpp"
 #include "types/color.h"
 #include "types/textures.h"
@@ -49,7 +50,7 @@ namespace aiko::bgfx
         void initMesh(Mesh*);
         void refreshMesh(Mesh*);
         void renderMesh(Camera*, Transform*, Mesh*, Shader*);
-        void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::Texture*);
+        void renderMesh(Camera*, Transform*, Mesh*, Shader*, Texture*);
 
         void refreshShader(Shader*);
 
@@ -76,6 +77,7 @@ namespace aiko::bgfx
 
         // Texture
         texture::Texture createTexture();
+        virtual texture::Texture loadTexture(const char*) override;
         texture::PboTexture createPboTexture(uint16_t, uint16_t);
         void updatePboTexture(texture::PboTexture texture, std::vector<Color>&);
         void drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint);

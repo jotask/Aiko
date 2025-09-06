@@ -168,7 +168,7 @@ namespace aiko::editor
         void drawTexture(aiko::TextureComponent* text)
         {
             ImGui::PushID(text);
-            aiko::texture::Texture texture = text->getTexture();
+            aiko::texture::Texture texture = text->getTexture()->m_texture;
             imgui::Image(texture);
             ImGui::PopID();
         }

@@ -4,6 +4,7 @@
 #include "models/component.h"
 #include "models/mesh.h"
 #include "models/shader.h"
+#include "models/texture.h"
 
 namespace aiko
 {
@@ -23,13 +24,13 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
 
-        const texture::Texture& getTexture() { return m_texture; };
+        const Texture* getTexture() { return &m_texture; };
 
     private:
         RenderSystem* m_renderSystem;
         Mesh       m_mesh;
         Shader     m_shader;
-        texture::Texture    m_texture;
+        Texture    m_texture;
 
     };
 

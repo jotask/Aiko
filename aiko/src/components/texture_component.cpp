@@ -16,9 +16,9 @@ namespace aiko
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
         m_mesh = m_renderSystem->createMesh(Mesh::MeshType::QUAD);
-        m_shader.load(global::getAssetPath("shaders/aiko_default_texture.vs").c_str(), global::getAssetPath("shaders/aiko_default_texture.fs").c_str());
+        m_shader.load("aiko.fs", "aiko.vs");
         assert(m_shader.isvalid() && "Shader is invalid");
-        m_texture = m_renderSystem->createTexture();
+        m_texture.loadTextureFromFile("texel_checker.png");
     }
 
     void TextureComponent::update()

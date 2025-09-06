@@ -135,7 +135,8 @@ namespace aiko
         {
             return;
         }
-        m_renderSystem->render(gameobject->transform().get(), &m_mesh, &m_shader, &m_texture.texture);
+        AIKO_DEBUG_BREAK
+        // m_renderSystem->render(gameobject->transform().get(), &m_mesh, &m_shader, &m_texture);
     }
 
     void PboTextureComponent::refreshPixels(bool force)

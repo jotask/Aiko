@@ -19,7 +19,8 @@ namespace aiko
         m_mesh = m_renderSystem->createMesh(Mesh::MeshType::QUAD);
         m_shader.load(global::getAssetPath("shaders/aiko_default_texture.vs").c_str(), global::getAssetPath("shaders/aiko_default_texture.fs").c_str());
         assert(m_shader.isvalid() && "Shader not valid?");
-        m_texture = m_renderSystem->createTexture();
+        AIKO_DEBUG_BREAK
+        // m_texture = m_renderSystem->createTexture();
     }
 
     void SpriteComponent::update()

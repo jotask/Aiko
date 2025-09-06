@@ -26,6 +26,7 @@ namespace aiko
         // This just allow us to create instances, without coupling to all system/modules fnt calls
         Mesh::s_renderModule = this;
         Shader::s_renderModule = this;
+        Texture::s_renderModule = this;
 
         const AikoConfig cfg = getAiko()->getConfig();
         background_color = cfg.background_color;

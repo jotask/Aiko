@@ -9,6 +9,7 @@
 #include "models/mesh.h"
 #include "models/light.h"
 #include "models/shader.h"
+#include "models/texture.h"
 #include "types/textures.h"
 #include "modules/render/render_module.h"
 #include "types/asset_type.h"
@@ -42,7 +43,7 @@ namespace aiko
 
         void add(Light*);
         void render(Transform* trans, Mesh* mesh, Shader* shader);
-        void render(Transform* trans, Mesh* mesh, Shader* shader, texture::Texture*);
+        void render(Transform* trans, Mesh* mesh, Shader* shader, Texture*);
         void render(texture::RenderTexture2D&, Shader*);
         void renderToFullScreen(Shader*);
 
