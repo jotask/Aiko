@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types/color.h"
+
 #include <bgfx/bgfx.h>
 
 namespace aiko
@@ -13,6 +15,9 @@ namespace aiko
 		#define AIKO_TO_IBH(idx) (::bgfx::IndexBufferHandle{ (static_cast<uint16_t>(idx)) })
 
 		#define AIKO_TO_PH(idx)  (::bgfx::ProgramHandle{ (static_cast<uint16_t>(idx)) })
+
+		u32 convertColorToBgfx(float*);
+		u32 convertColorToBgfx(Color);
 
 	}
 }

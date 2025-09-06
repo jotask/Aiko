@@ -26,6 +26,8 @@
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 
+#include "platform/bgfx/bgfx_platform_helper.h"
+
 namespace aiko::bgfx
 {
 
@@ -43,9 +45,8 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::preInit()
     {
+        // FIXME
     }
-
-
 
     void BgfxRenderModule::init()
     {
@@ -69,10 +70,12 @@ namespace aiko::bgfx
         m_kClearView = 0;
         ::bgfx::setViewClear(m_kClearView, BGFX_CLEAR_COLOR);
         ::bgfx::setViewRect(m_kClearView, 0, 0, ::bgfx::BackbufferRatio::Equal);
+
     }
 
     void BgfxRenderModule::beginFrame()
     {
+        clearBackground(background_color);
         ::bgfx::touch(m_kClearView);
     }
 
@@ -118,8 +121,7 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::clearBackground(Color color)
     {
-        // FIXME 
-        ::bgfx::setViewClear(m_kClearView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
+        ::bgfx::setViewClear(m_kClearView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, convertColorToBgfx(color), 1.0f, 0);
     }
 
     void BgfxRenderModule::beginMode2D()

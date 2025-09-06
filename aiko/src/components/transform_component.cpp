@@ -10,6 +10,7 @@ namespace aiko
     
     Transform::Transform()
         : Component("Transform")
+        , parent(nullptr)
     {
     
     }
@@ -29,6 +30,12 @@ namespace aiko
 
         // Combine translation, rotation, and scale matrices to get the final transformation matrix
         mat4 transformMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+        // FIXME
+        // if (parent != nullptr)
+        // {
+        //     return parent->getMatrix() * transformMatrix;
+        // }
 
         return transformMatrix;
     }
