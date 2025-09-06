@@ -1,5 +1,3 @@
-from os import listdir
-from os.path import isfile, join
 from pathlib import Path
 import sys
 import os
@@ -7,96 +5,113 @@ import subprocess
 from rich import print
 
 class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+
+class Profile:
+    def __init__(self, platform: str, profile: str, folder: str):
+        self.platform = platform
+        self.profile = profile
+        self.folder = folder
+
+# All backends + their shader profiles
+profiles = [
+    # Direct3D11
+    Profile("windows", "vs_5_0", "dx11"),
+    Profile("windows", "ps_5_0", "dx11"),
+
+    # Direct3D12
+    Profile("windows", "vs_5_1", "dx12"),
+    Profile("windows", "ps_5_1", "dx12"),
+
+    # OpenGL (GLSL 1.50 core)
+    Profile("windows", "150", "glsl"),
+    Profile("linux",   "150", "glsl"),
+    Profile("osx",     "150", "glsl"),
+
+    # OpenGLES
+    Profile("windows", "300_es", "essl"),
+    Profile("linux",   "300_es", "essl"),
+    Profile("osx",     "300_es", "essl"),
+    Profile("windows", "100_es", "essl"),
+    Profile("linux",   "100_es", "essl"),
+    Profile("osx",     "100_es", "essl"),
+
+    # Vulkan (SPIR-V)
+    Profile("windows", "spirv", "spirv"),
+    Profile("linux",   "spirv", "spirv"),
+    Profile("osx",     "spirv", "spirv"),
+
+    # Metal
+    Profile("osx", "metal", "metal"),
+    Profile("ios", "metal", "metal"),
+]
 
 def compileshader(shader: Path):
-
     print(f"[purple]{shader}[/purple]")
 
     shaderc_path = getshadercpath()
 
-    # detect type by filename convention
+    # detect type by filename suffix
     if shader.suffix == ".vs":
         shader_type = "vertex"
-        shader_profile = "50"
     elif shader.suffix == ".fs":
         shader_type = "fragment"
-        shader_profile = "50"
     elif shader.suffix == ".cs":
         shader_type = "compute"
-        shader_profile = "cs_5_0"
     else:
         print(f"Skipping {shader.name} (unknown shader type)")
         return
 
-    output_dir = Path(__file__).parents[1].resolve() / "assets/build/shaders"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    output_file = output_dir / f"{shader.stem}.{shader.suffix[1:]}.bin"
+    # compile for all profiles
+    for p in profiles:
+        output_dir = Path(__file__).parents[1].resolve() / f"assets/build/shaders/{p.folder}"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = output_dir / f"{shader.stem}.{shader.suffix[1:]}.bin"
 
-    print   (f"[red]output:[/red] {output_file}")
+        print(f"[red]output:[/red] {output_file}")
 
-    varyingfile = str(shader.parent)
-    print(varyingfile)
+        cmd = [
+            str(shaderc_path),
+            "-f", str(shader),
+            "-o", str(output_file),
+            "--type", shader_type,
+            "--platform", p.platform,
+            "--profile", p.profile,
+            "-i", str(shader.parent),
+            "-i", str(getshaderincludesBgfxShader()),
+            "-i", str(getshaderincludesCommon()),
+        ]
 
-    cmd = [
-        str(shaderc_path),
-        "-f", str(shader),
-        "-o", str(output_file),
-        "--type", shader_type,
-        "--platform", "windows",   # adjust if targeting another platform
-        "--profile", shader_profile,        # GLSL profile, e.g., 120, 150, 300_es
-        "-i", varyingfile,  # add folder containing varying.def.sc
-        "-i", str(getshaderincludesBgfxShader()),
-        "-i", str(getshaderincludesCommon()),
+        print("[bold yellow]Running:[/bold yellow]", " ".join(cmd))
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(bcolors.FAIL + "Shader compilation failed!" + bcolors.ENDC)
+            print("[bold red]STDOUT:[/bold red]", result.stdout)
+        else:
+            print("[bold green]Shader compiled successfully![/bold green]")
 
-    ]
-
-    print("[bold yellow]Running:[/bold yellow]", " ".join(cmd))
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(bcolors.FAIL + "Shader compilation failed!" + bcolors.ENDC)
-        print("[bold red]STDOUT:[/bold red]", result.stdout)
-    else:
-        print("[bold green]Shader compiled successfully![/bold green]")
-
-    print("[bold yellow]------------------------------------------------------------------------------------------------------------------------------------------------------------[/bold yellow]")
+        print("[bold yellow]" + "-" * 150 + "[/bold yellow]")
 
 def getshaderincludesBgfxShader() -> Path:
-    currentpath = Path(__file__).parents[1].resolve() / "deps_cache/bgfx-src/bgfx/src"
-    return currentpath
+    return Path(__file__).parents[1].resolve() / "deps_cache/bgfx-src/bgfx/src"
 
 def getshaderincludesCommon() -> Path:
-    currentpath = Path(__file__).parents[1].resolve() / "deps_cache/bgfx-src/bgfx/examples/common"
-    return currentpath
+    return Path(__file__).parents[1].resolve() / "deps_cache/bgfx-src/bgfx/examples/common"
 
 def getshadercpath() -> Path:
     currentpath = Path(__file__).parents[1].resolve() / "deps_cache/bgfx-build/cmake/bgfx/Debug"
     shaderc_path = Path(currentpath) / "shaderc.exe"
-    if( os.path.exists(shaderc_path) == False):
+    if not shaderc_path.exists():
         print("Shaderc not compiled?")
         sys.exit(3)
-    
-    return shaderc_path
-
-def getoutpath() -> Path:
-    shaderc_path = Path("C:/path/to/bgfx/.build/win64_vs2022/bin/shaderc.exe")
     return shaderc_path
 
 def main():
+    shader_dir = Path(__file__).parents[1].resolve() / "assets/shaders/bgfx"
+    onlyfiles = [f for f in shader_dir.iterdir() if f.is_file() and f.suffix in (".vs", ".fs", ".cs")]
 
-
-    currentpath = Path(__file__).parents[1].resolve() / "assets/shaders/bgfx"
-    onlyfiles = [f for f in currentpath.iterdir() if f.is_file() and f.suffix in (".vs", ".fs", ".cs")]
-
-    if(len(onlyfiles) == 0):
+    if not onlyfiles:
         sys.exit(1)
 
     for file in onlyfiles:
