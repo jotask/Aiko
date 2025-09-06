@@ -52,46 +52,53 @@ def compileshader(shader: Path):
 
     shaderc_path = getshadercpath()
 
-    # detect type by filename suffix
+    print(shader.suffix)
+
+    # detect type by filename suffiax
     if shader.suffix == ".vs":
         shader_type = "vertex"
+        profile = "s_5_0"
     elif shader.suffix == ".fs":
         shader_type = "fragment"
-    elif shader.suffix == ".cs":
+        profile = "s_5_0"
+    elif shader.suffix  == ".cs":
         shader_type = "compute"
     else:
         print(f"Skipping {shader.name} (unknown shader type)")
         return
+    
+    folder = "dx11"
+    platform = "windows"
 
-    # compile for all profiles
-    for p in profiles:
-        output_dir = Path(__file__).parents[1].resolve() / f"assets/build/shaders/{p.folder}"
-        output_dir.mkdir(parents=True, exist_ok=True)
-        output_file = output_dir / f"{shader.stem}.{shader.suffix[1:]}.bin"
+    # compile profiler
+    output_dir = Path(__file__).parents[1].resolve() / f"assets/build/shaders/{folder}"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / f"{shader.stem}.{shader.suffix[1:]}.bin"
 
-        print(f"[red]output:[/red] {output_file}")
+    print(f"[red]output:[/red] {output_file}")
 
-        cmd = [
-            str(shaderc_path),
-            "-f", str(shader),
-            "-o", str(output_file),
-            "--type", shader_type,
-            "--platform", p.platform,
-            "--profile", p.profile,
-            "-i", str(shader.parent),
-            "-i", str(getshaderincludesBgfxShader()),
-            "-i", str(getshaderincludesCommon()),
-        ]
+    cmd = [
+        str(shaderc_path),
+        "-f", str(shader),
+        "-o", str(output_file),
+        "--type", shader_type,
+        "--platform", platform,
+        "--profile", profile,
+        "-i", str(shader.parent),
+        "-i", str(getshaderincludesBgfxShader()),
+        "-i", str(getshaderincludesCommon()),
+    ]
 
-        print("[bold yellow]Running:[/bold yellow]", " ".join(cmd))
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode != 0:
-            print(bcolors.FAIL + "Shader compilation failed!" + bcolors.ENDC)
-            print("[bold red]STDOUT:[/bold red]", result.stdout)
-        else:
-            print("[bold green]Shader compiled successfully![/bold green]")
+    print("[bold yellow]Running:[/bold yellow]", " ".join(cmd))
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(bcolors.FAIL + "Shader compilation failed!" + bcolors.ENDC)
+        print("[bold red]STDOUT:[/bold red]", result.stdout)
+        sys.exit(420);
+    else:
+        print("[bold green]Shader compiled successfully![/bold green]")
 
-        print("[bold yellow]" + "-" * 150 + "[/bold yellow]")
+    print("[bold yellow]" + "-" * 150 + "[/bold yellow]")
 
 def getshaderincludesBgfxShader() -> Path:
     return Path(__file__).parents[1].resolve() / "deps_cache/bgfx-src/bgfx/src"
