@@ -40,28 +40,23 @@ namespace aiko::bgfx
     {
         auto getShaderDir = []() -> std::string
             {
-                std::string base = ::aiko::global::GLOBAL_PATH;
-                base += "/deps_cache/bgfx-src/bgfx/examples/runtime/shaders/";
-                // base += "/build/shaders/";
+                std::string base = ::aiko::global::GLOBAL_ASSET_PATH + "/build/shaders/";
 
-                // AIKO_DISABLE_CODE
+                switch (::bgfx::getRendererType())
                 {
-                    switch (::bgfx::getRendererType())
-                    {
-                    case ::bgfx::RendererType::Direct3D11:
-                    case ::bgfx::RendererType::Direct3D12:  base += "dx11/"; break;
-                    case ::bgfx::RendererType::Metal:       base += "metal/"; break;
-                    case ::bgfx::RendererType::OpenGL:      base += "glsl/"; break;
-                    case ::bgfx::RendererType::OpenGLES:    base += "essl/"; break;
-                    case ::bgfx::RendererType::Vulkan:      base += "spirv/"; break;
-                    case ::bgfx::RendererType::Agc:
-                    case ::bgfx::RendererType::Gnm:         base += "pssl/"; break;
-                    case ::bgfx::RendererType::Nvn:         base += "nvn/"; break;
-                    case ::bgfx::RendererType::Noop:
-                    case ::bgfx::RendererType::Count:
-                    default:
-                        throw std::runtime_error("Unsupported bgfx renderer or Noop.");
-                    }
+                case ::bgfx::RendererType::Direct3D11:
+                case ::bgfx::RendererType::Direct3D12:  base += "dx11/"; break;
+                case ::bgfx::RendererType::Metal:       base += "metal/"; break;
+                case ::bgfx::RendererType::OpenGL:      base += "glsl/"; break;
+                case ::bgfx::RendererType::OpenGLES:    base += "essl/"; break;
+                case ::bgfx::RendererType::Vulkan:      base += "spirv/"; break;
+                case ::bgfx::RendererType::Agc:
+                case ::bgfx::RendererType::Gnm:         base += "pssl/"; break;
+                case ::bgfx::RendererType::Nvn:         base += "nvn/"; break;
+                case ::bgfx::RendererType::Noop:
+                case ::bgfx::RendererType::Count:
+                default:
+                    throw std::runtime_error("Unsupported bgfx renderer or Noop.");
                 }
 
                 return base;
@@ -99,8 +94,8 @@ namespace aiko::bgfx
         const ::bgfx::Memory* vmem = loadShader(vshaderPath);
         const ::bgfx::Memory* fmem = loadShader(fshaderPath);
 
-        printf("vsh magic: %02X %02X %02X %02X\n", vmem->data[0], vmem->data[1], vmem->data[2], vmem->data[3]);
-        printf("fsh magic: %02X %02X %02X %02X\n", fmem->data[0], fmem->data[1], fmem->data[2], fmem->data[3]);
+        // printf("vsh magic: %02X %02X %02X %02X\n", vmem->data[0], vmem->data[1], vmem->data[2], vmem->data[3]);
+        // printf("fsh magic: %02X %02X %02X %02X\n", fmem->data[0], fmem->data[1], fmem->data[2], fmem->data[3]);
 
         ::bgfx::ShaderHandle vsh = ::bgfx::createShader(vmem);
         ::bgfx::ShaderHandle fsh = ::bgfx::createShader(fmem);
