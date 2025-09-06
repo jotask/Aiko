@@ -16,7 +16,6 @@ namespace aiko
 
 		#define AIKO_TO_PH(idx)  (::bgfx::ProgramHandle{ (static_cast<uint16_t>(idx)) })
 
-		u32 convertColorToBgfx(float*);
 		u32 convertColorToBgfx(Color);
 
 	}

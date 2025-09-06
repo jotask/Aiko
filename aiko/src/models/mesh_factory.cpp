@@ -6,9 +6,11 @@ namespace aiko
     {
         void generatTest(Mesh& mesh)
         {
+
             mesh.m_vertices =
             {
                 // positions              // texture coords   // Color
+				// Front face
                 -0.5f,  0.5f,  0.5f,       0.0f, 1.0f,        1.0f, 0.0f, 0.0f, // Top-left
                 -0.5f, -0.5f,  0.5f,       0.0f, 0.0f,        1.0f, 0.0f, 0.0f, // Bottom-left
                  0.5f, -0.5f,  0.5f,       1.0f, 0.0f,        1.0f, 0.0f, 0.0f, // Bottom-right
@@ -25,19 +27,19 @@ namespace aiko
                  0.5f,  0.5f, -0.5f,       1.0f, 1.0f,         0.0f, 0.0f, 1.0f, // Back-top-right
                 -0.5f,  0.5f, -0.5f,      0.0f, 1.0f,         0.0f, 0.0f, 1.0f, // Back-top-left
                 -0.5f,  0.5f,  0.5f,      0.0f, 0.0f,         0.0f, 0.0f, 1.0f, // Front-top-left
-
+                
                 // Bottom face                                
                 -0.5f, -0.5f, -0.5f,      0.0f, 1.0f,         1.0f, 1.0f, 0.0f, // Back-bottom- left
                  0.5f, -0.5f, -0.5f,       1.0f, 1.0f,         1.0f, 1.0f, 0.0f, // Back-bottom-right
                  0.5f, -0.5f,  0.5f,       1.0f, 0.0f,         1.0f, 1.0f, 0.0f, // Front-bottom-right
                 -0.5f, -0.5f,  0.5f,      0.0f, 0.0f,         1.0f, 1.0f, 0.0f, // Front-bottom-left
-
+                
                 // Right face                                 
                  0.5f, -0.5f,  0.5f,      1.0f, 0.0f,         1.0f, 0.0f, 1.0f, // Front-bottom-right
                  0.5f, -0.5f, -0.5f,      1.0f, 1.0f,         1.0f, 0.0f, 1.0f, // Back-bottom-right
                  0.5f,  0.5f, -0.5f,      0.0f, 1.0f,         1.0f, 0.0f, 1.0f, // Back-top-right
                  0.5f,  0.5f,  0.5f,      0.0f, 0.0f,         1.0f, 0.0f, 1.0f, // Front-top-right
-
+                
                 // Left face                                  
                 -0.5f,  0.5f,  0.5f,      0.0f, 1.0f,         0.0f, 1.0f, 1.0f, // Front-top-left
                 -0.5f,  0.5f, -0.5f,      1.0f, 1.0f,         0.0f, 1.0f, 1.0f, // Back-top-left

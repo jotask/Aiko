@@ -37,8 +37,8 @@ namespace aiko
         using TeexCoords = std::vector<float>;
         using TeexCoords2 = std::vector<float>;
         using Normals = std::vector<float>;
-        using Colors = std::vector<unsigned char>;
-        using Indices = std::vector<unsigned int>;
+        using Colors = std::vector<uint8_t>;
+        using Indices = std::vector<uint32_t>;
 
         Vertices m_vertices;
         TeexCoords m_teexCoord;
