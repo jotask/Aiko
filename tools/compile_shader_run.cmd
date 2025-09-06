@@ -1,1 +1,1 @@
-py compile_shaders.py
+cls && py compile_shaders.py
