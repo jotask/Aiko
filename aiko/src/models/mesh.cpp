@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+#include "modules/render/render_module.h"
+
 namespace aiko
 {
 
@@ -9,7 +11,7 @@ namespace aiko
     
     Mesh::Mesh()
     {
-    
+        s_renderModule->initMesh(this);
     }
 
 }

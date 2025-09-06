@@ -26,6 +26,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "bgfx_platform_helper.h"
+
 namespace aiko::bgfx
 {
 
@@ -37,84 +39,72 @@ namespace aiko::bgfx
     aiko::ShaderData BgfxRenderModule::loadShaderData(const char* vertex, const char* fragment)
     {
 
-        auto generateShaderAssetGlobalPath = [](const char* shader) -> auto
-            {
-                ::bx::FilePath filePath(::aiko::global::GLOBAL_ASSET_PATH);
-                filePath.join("build/shaders");
+        // AIKO_DISABLE_CODE
+        {
 
-                if constexpr (false)
+            auto generateShaderAssetGlobalPath = [](const char* shader) -> auto
                 {
-                    switch (::bgfx::getRendererType())
+                    std::filesystem::path filePath = ::aiko::global::GLOBAL_ASSET_PATH;
+                    filePath /= "build/shaders";
+                    filePath /= std::string(shader) + ".bin";
+                    assert(std::filesystem::exists(filePath) && "Shader doesn't exist");
+                    return filePath;
+
+                };
+
+            auto load_shader = [](const std::filesystem::path& path) -> auto
+                {
+                    std::ifstream file(path, std::ios::binary | std::ios::ate);
+                    if (!file)
                     {
-                    case ::bgfx::RendererType::Noop:
-                    case ::bgfx::RendererType::Direct3D11:
-                    case ::bgfx::RendererType::Direct3D12: filePath.join("dx11");  break;
-                    case ::bgfx::RendererType::Agc:
-                    case ::bgfx::RendererType::Gnm:        filePath.join("pssl");  break;
-                    case ::bgfx::RendererType::Metal:      filePath.join("metal"); break;
-                    case ::bgfx::RendererType::Nvn:        filePath.join("nvn");   break;
-                    case ::bgfx::RendererType::OpenGL:     filePath.join("glsl");  break;
-                    case ::bgfx::RendererType::OpenGLES:   filePath.join("essl");  break;
-                    case ::bgfx::RendererType::Vulkan:     filePath.join("spirv"); break;
-
-                    case ::bgfx::RendererType::Count:
-                        BX_ASSERT(false, "You should not be here!");
-                        break;
+                        throw std::runtime_error("Failed to open shader file: " + path.string());
                     }
-                }
 
-                std::string shader_file = std::string(shader) + ".bin";
+                    std::streamsize size = file.tellg();
+                    file.seekg(0, std::ios::beg);
 
-                filePath.join(shader_file.c_str());
-                
-                std::string s(filePath.getCPtr());
-                std::filesystem::path outputPath(s);
-                assert(std::filesystem::exists(outputPath) && "Shader dont' exist");
+                    std::vector<uint8_t> buffer(size);
+                    if (!file.read(reinterpret_cast<char*>(buffer.data()), size))
+                    {
+                        throw std::runtime_error("Failed to read shader file: " + path.string());
+                    }
 
-                return outputPath;
+                    return buffer;
+                };
 
-            };
+            auto v_shader_path = generateShaderAssetGlobalPath(vertex);
+            auto f_shader_path = generateShaderAssetGlobalPath(fragment);
 
-        auto load_shader = [](const std::filesystem::path& path) -> auto
+            auto v_shader_data = load_shader(v_shader_path);
+            auto f_shader_data = load_shader(f_shader_path);
+
+            auto mem = ::bgfx::makeRef(v_shader_data.data(), uint32_t(v_shader_data.size()));
+            printf("vsh magic: %02X %02X %02X %02X\n", mem->data[0], mem->data[1], mem->data[2], mem->data[3]);
+
+            ::bgfx::ShaderHandle vsh = ::bgfx::createShader(
+                ::bgfx::makeRef(v_shader_data.data(), static_cast<uint32_t>(v_shader_data.size()))
+            );
+
+            ::bgfx::ShaderHandle fsh = ::bgfx::createShader(
+                ::bgfx::makeRef(f_shader_data.data(), static_cast<uint32_t>(f_shader_data.size()))
+            );
+
+            if (::bgfx::isValid(vsh) == false || ::bgfx::isValid(fsh) == false)
             {
-                std::ifstream file(path, std::ios::binary | std::ios::ate);
-                if (!file)
-                {
-                    throw std::runtime_error("Failed to open shader file: " + path.string());
-                }
+                std::exit(9);
+            }
 
-                std::streamsize size = file.tellg();
-                file.seekg(0, std::ios::beg);
 
-                std::vector<uint8_t> buffer(size);
-                if (!file.read(reinterpret_cast<char*>(buffer.data()), size))
-                {
-                    throw std::runtime_error("Failed to read shader file: " + path.string());
-                }
+            ::bgfx::ProgramHandle program = ::bgfx::createProgram(vsh, fsh, true);
 
-                return buffer;
-            };
+            ShaderData data = { 0 };
+            data.id = program.idx;
 
-        auto v_shader_path = generateShaderAssetGlobalPath(vertex);
-        auto f_shader_path = generateShaderAssetGlobalPath(fragment);
+            return data;
+        }
 
-        auto v_shader_data = load_shader(v_shader_path);
-        auto f_shader_data = load_shader(f_shader_path);
+        return { 0 };
 
-        ::bgfx::ShaderHandle vsh = ::bgfx::createShader(
-            ::bgfx::makeRef(v_shader_data.data(), static_cast<uint32_t>(v_shader_data.size()))
-        );
-
-        ::bgfx::ShaderHandle fsh = ::bgfx::createShader(
-            ::bgfx::makeRef(f_shader_data.data(), static_cast<uint32_t>(f_shader_data.size()))
-        );
-
-        ::bgfx::ProgramHandle program = ::bgfx::createProgram(vsh, fsh, true);
-
-        ShaderData data = { 0 };
-        data.id = program.idx;
-
-        return data;
     }
 
     aiko::ShaderData BgfxRenderModule::loadShaderSrc(const char* vertex, const char* fragment)

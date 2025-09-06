@@ -18,6 +18,8 @@
 #include "models/mesh_factory.h"
 #include "types/color.h"
 
+#include "platform/bgfx/bgfx_platform_helper.h"
+
 namespace aiko
 {
 
@@ -43,7 +45,6 @@ namespace aiko
     Mesh RenderSystem::createMesh(Mesh::MeshType type)
     {
         auto mesh = Mesh();
-        m_renderModule->initMesh(&mesh);
         switch (type)
         {
         case aiko::Mesh::MeshType::TEST:

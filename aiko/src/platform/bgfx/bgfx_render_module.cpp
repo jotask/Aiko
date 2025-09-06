@@ -134,12 +134,12 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::beginMode3D()
     {
-        AIKO_DEBUG_BREAK
+        //AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::endMode3D()
     {
-        AIKO_DEBUG_BREAK
+        //AIKO_DEBUG_BREAK
     }
 
     void BgfxRenderModule::beginTextureMode()

@@ -26,10 +26,10 @@ def compileshader(shader: Path):
     # detect type by filename convention
     if shader.suffix == ".vs":
         shader_type = "vertex"
-        shader_profile = "120"
+        shader_profile = "50"
     elif shader.suffix == ".fs":
         shader_type = "fragment"
-        shader_profile = "120"
+        shader_profile = "50"
     elif shader.suffix == ".cs":
         shader_type = "compute"
         shader_profile = "cs_5_0"
@@ -40,6 +40,8 @@ def compileshader(shader: Path):
     output_dir = Path(__file__).parents[1].resolve() / "assets/build/shaders"
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / f"{shader.stem}.{shader.suffix[1:]}.bin"
+
+    print   (f"[red]output:[/red] {output_file}")
 
     varyingfile = str(shader.parent)
     print(varyingfile)

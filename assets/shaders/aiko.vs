@@ -1,19 +1,22 @@
-#version 330 core
+// aiko.vs - bgfx universal vertex shader
 
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoord;
-layout (location = 2) in vec3 aColor;
+// Attributes
+attribute vec3 a_pos;
+attribute vec2 a_texcoord0;
+attribute vec3 a_color0;
 
-out vec2 TexCoord;
-out vec3 Color;
+// Varyings to fragment shader
+varying vec2 v_texcoord0;
+varying vec3 v_color0;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+// Uniforms
+uniform mat4 u_model;
+uniform mat4 u_view;
+uniform mat4 u_projection;
 
 void main()
 {
-	gl_Position = projection * view * model * vec4(aPos, 1.0f);
-	TexCoord = vec2(aTexCoord.x, aTexCoord.y);
-	Color = aColor;
+    gl_Position = u_projection * u_view * u_model * vec4(a_pos, 1.0);
+    v_texcoord0 = a_texcoord0;
+    v_color0 = a_color0;
 }
