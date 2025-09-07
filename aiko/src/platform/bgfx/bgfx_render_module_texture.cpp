@@ -41,6 +41,10 @@ namespace aiko::bgfx
             return { 0 };
     }
 
+    texture::Texture BgfxRenderModule::createTexture(int width, int height)
+    {
+    }
+
     texture::Texture BgfxRenderModule::loadTexture(const char* file)
     {
 
@@ -95,8 +99,9 @@ namespace aiko::bgfx
 
     texture::PboTexture BgfxRenderModule::createPboTexture(uint16_t width, uint16_t height)
     {
-        AIKO_DEBUG_BREAK
-            return { 0 };
+        texture::PboTexture pbo = { 0 };
+        pbo.texture = createTexture(width, height);
+        return pbo;
     }
 
     void BgfxRenderModule::updatePboTexture(texture::PboTexture pbo, std::vector<Color>& pixels)

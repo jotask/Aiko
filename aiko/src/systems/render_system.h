@@ -44,12 +44,13 @@ namespace aiko
         void add(Light*);
         void render(Transform* trans, Mesh* mesh, Shader* shader);
         void render(Transform* trans, Mesh* mesh, Shader* shader, Texture*);
+        void render(Transform* trans, Mesh* mesh, Shader* shader, texture::PboTexture*);
         void render(texture::RenderTexture2D&, Shader*);
         void renderToFullScreen(Shader*);
 
         texture::RenderTexture2D* getTargetTexture() const;
 
-        void unloadShader(Shader& data);
+        void unloadShader(Shader* data);
 
         Camera* getMainCamera();
 

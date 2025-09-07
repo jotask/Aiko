@@ -128,6 +128,13 @@ namespace aiko
         m_renderModule->endMode3D();
     }
 
+    void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader, texture::PboTexture* texture)
+    {
+        m_renderModule->beginMode3D();
+        m_renderModule->renderMesh(getMainCamera(), trans, mesh, shader, texture);
+        m_renderModule->endMode3D();
+    }
+
     texture::RenderTexture2D* RenderSystem::getTargetTexture() const
     {
         return m_renderModule->getRenderTexture();

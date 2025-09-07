@@ -110,5 +110,9 @@ namespace aiko::bgfx
 
     }
 
+    void BgfxRenderModule::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, texture::PboTexture* texture)
+    {
+    }
+
 }
 #endif

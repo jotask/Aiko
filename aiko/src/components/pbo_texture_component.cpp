@@ -33,8 +33,9 @@ namespace aiko
         if (auto_render)
         {
             m_mesh = m_renderSystem->createMesh(Mesh::MeshType::QUAD);
-            m_shader.load("aiko_default_texture.vs", "aiko_default_texture.fs");
+            m_shader.load("aiko");
             assert(m_shader.isvalid() && "Shader is invalid");
+            m_shader.preLoadUniforms({ "u_texture" });
         }
         m_texture = m_renderSystem->createPboTexture(m_texture.texture.width, m_texture.texture.height);
         pixels.reserve(m_texture.texture.width * m_texture.texture.height);
@@ -73,7 +74,7 @@ namespace aiko
                 Color col;
             };
 
-            constexpr auto N_PARTICLES = 1000;
+            constexpr auto N_PARTICLES = 100;
             constexpr bool S_CLEAR_BRACKGROUND = false;
 
             static std::vector<Particle> s_particles;
@@ -117,7 +118,7 @@ namespace aiko
 
             if (S_CLEAR_BRACKGROUND)
             {
-                std::fill(pixels.begin(), pixels.end(), BLACK);
+                std::fill(pixels.begin(), pixels.end(), RAYWHITE);
             }
 
             for (auto it : s_particles)
@@ -135,8 +136,7 @@ namespace aiko
         {
             return;
         }
-        AIKO_DEBUG_BREAK
-        // m_renderSystem->render(gameobject->transform().get(), &m_mesh, &m_shader, &m_texture);
+        m_renderSystem->render(gameobject->transform().get(), &m_mesh, &m_shader, &m_texture);
     }
 
     void PboTextureComponent::refreshPixels(bool force)

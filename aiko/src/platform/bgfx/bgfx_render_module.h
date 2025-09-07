@@ -51,6 +51,7 @@ namespace aiko::bgfx
         void refreshMesh(Mesh*);
         void renderMesh(Camera*, Transform*, Mesh*, Shader*);
         void renderMesh(Camera*, Transform*, Mesh*, Shader*, Texture*);
+        void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::PboTexture*);
 
         void refreshShader(Shader*);
 
@@ -78,7 +79,8 @@ namespace aiko::bgfx
         void drawText(string, float, float, float = 1.0f, Color = WHITE);
 
         // Texture
-        texture::Texture createTexture();
+        texture::Texture createTexture() override;
+        virtual texture::Texture createTexture(int width, int height) override;
         virtual texture::Texture loadTexture(const char*) override;
         texture::PboTexture createPboTexture(uint16_t, uint16_t);
         void updatePboTexture(texture::PboTexture texture, std::vector<Color>&);
