@@ -23,6 +23,13 @@ namespace aiko
     
     }
 
+    void Shader::load(const char* fileCodeName)
+    {
+        std::string vs = std::string(fileCodeName) + ".vs";
+        std::string fs = std::string(fileCodeName) + ".fs";
+        this->load(vs.c_str(), fs.c_str());
+    }
+
     void Shader::load(const char* vs, const char* fs)
     {
         if (isValid == true)
@@ -30,7 +37,7 @@ namespace aiko
             unload();
         }
         isValid = true;
-        m_shaderData = s_renderModule->loadShaderData(vs,fs);
+        m_shaderData = s_renderModule->loadShaderData(vs, fs);
     }
 
     void Shader::loadFromSource(const char* vs, const char* fs)
@@ -53,10 +60,25 @@ namespace aiko
         isValid = false;
     }
 
+    void Shader::preLoadUniforms(std::vector<string> uniforms)
+    {
+        m_uniforms.clear();
+        for (auto u : uniforms)
+        {
+            auto id = getUniformLocation(u);
+        }
+    }
+
     int Shader::getUniformLocation(const string& name)
     {
-        AIKO_DEBUG_BREAK
-        return -1;
+        auto value = m_uniforms.find(name);
+        if (value != m_uniforms.end())
+        {
+            return value->second;
+        }
+        const int val = s_renderModule->getShaderUniform(this, name);
+        m_uniforms.insert(std::make_pair(std::string(name), int(val)));
+        return val;
     }
 
     void Shader::setBool(const string& name, bool value)

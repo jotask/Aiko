@@ -47,8 +47,8 @@ namespace aiko
         auto mesh = Mesh();
         switch (type)
         {
-        case aiko::Mesh::MeshType::TEST:
-            mesh::generatTest(mesh);
+        case aiko::Mesh::MeshType::CUBE:
+            mesh::generateCube(mesh);
             break;
         case aiko::Mesh::MeshType::QUAD:
             mesh::generateQuad(mesh);

@@ -69,6 +69,8 @@ namespace aiko::bgfx
         void beginBlendMode(BlendMode);
         void endBlendMode(void);
 
+        virtual int getShaderUniform(Shader*, const string&) override;
+
         void initScreenFbo();
         texture::ScreenFbo getScreenFbo();
 

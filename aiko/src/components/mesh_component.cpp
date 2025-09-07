@@ -17,7 +17,7 @@ namespace aiko
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
         m_shader.load("cubes.vs", "cubes.fs");
-        m_mesh = m_renderSystem->createMesh(Mesh::MeshType::TEST);
+        m_mesh = m_renderSystem->createMesh(Mesh::MeshType::CUBE);
         assert(m_shader.isvalid() && "Shader is invalid");
     }
 

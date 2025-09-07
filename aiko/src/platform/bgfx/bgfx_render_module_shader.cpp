@@ -112,6 +112,11 @@ namespace aiko::bgfx
 
         ::bgfx::ProgramHandle program = ::bgfx::createProgram(vsh, fsh, true);
 
+        if (::bgfx::isValid(program) == false)
+        {
+            throw std::runtime_error("Failed to create fragment shaders!");
+        }
+
         ShaderData data = {};
         data.id = program.idx;
         return data;
@@ -127,6 +132,16 @@ namespace aiko::bgfx
     void BgfxRenderModule::unloadShader(aiko::ShaderData& data)
     {
         AIKO_DEBUG_BREAK
+    }
+
+    int BgfxRenderModule::getShaderUniform(Shader* shader, const string& name)
+    {
+        ::bgfx::UniformHandle uniform = ::bgfx::createUniform(name.c_str(), ::bgfx::UniformType::Sampler);
+        if (::bgfx::isValid(uniform) == false)
+        {
+            std::runtime_error("Uniform not found");
+        }
+        return uniform.idx;
     }
 
 }

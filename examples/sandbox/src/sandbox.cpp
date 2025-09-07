@@ -31,9 +31,7 @@ namespace sandbox
         m_go1->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
-
-#ifdef TEST_CUBES
-
+        
         m_go2 = this->Instantiate(root, "Cube2");
         m_go2->transform()->position = { -1.0f, 0.0f, 0.0f };
         m_go2->transform()->rotation = { 0.0f, 0.0f, 0.0f };
@@ -42,16 +40,16 @@ namespace sandbox
 
         m_texture = this->Instantiate(root, "Texture");
         m_texture->transform()->position = { 0.0f, -0.55f, 0.0f };
-        m_texture->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        m_texture->transform()->rotation = { 0.0f, 180.0f, 0.0f };
         m_texture->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh3 = m_texture->addComponent<aiko::TextureComponent>();
 
+#ifdef TEST_CUBES
         m_texturePbo = this->Instantiate(root, "PboTexture");
         m_texturePbo->transform()->position = { 0.0f, 0.55f, 0.0f };
         m_texturePbo->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         m_texturePbo->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh4 = m_texturePbo->addComponent<aiko::PboTextureComponent>();
-
 #endif
 
     }
@@ -59,13 +57,11 @@ namespace sandbox
     void Sandbox::update()
     {
         Application::update();
-#ifdef TEST_CUBES
         static float angle = 0.0f;
         angle += 25.0f * getlDeltaTime();
         angle = fmod(angle, 360.0f);
         m_go1->transform()->rotation = {  angle, 0.0f, 0.0f };
         m_go2->transform()->rotation = { -angle, 0.0f, 0.0f };
-#endif
     }
 
     void Sandbox::render()

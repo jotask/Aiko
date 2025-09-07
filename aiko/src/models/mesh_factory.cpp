@@ -4,7 +4,7 @@ namespace aiko
 {
     namespace mesh
     {
-        void generatTest(Mesh& mesh)
+        void generateCube(Mesh& mesh)
         {
 
             mesh.m_vertices =

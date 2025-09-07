@@ -16,9 +16,10 @@ namespace aiko
     void ModelComponent::init()
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
-        m_model.m_mesh = m_renderSystem->createMesh(Mesh::MeshType::TEST);
-        m_model.m_material.m_shader.load(global::getAssetPath("shaders/aiko.vs").c_str(), global::getAssetPath("shaders/aiko.fs").c_str());
+        m_model.m_mesh = m_renderSystem->createMesh(Mesh::MeshType::CUBE);
+        m_model.m_material.m_shader.load("aiko.vs", "shaders/aiko.fs");
         assert(m_model.m_material.m_shader.isvalid() && "Shader is invalid");
+        AIKO_DEBUG_BREAK
     }
 
     void ModelComponent::update()

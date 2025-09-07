@@ -159,10 +159,7 @@ namespace shadertoy
 
     void ShaderToy::refreshShader()
     {
-        const aiko::string GLOBAL_PATH = aiko::global::getAssetPath("shaders/");
-        const aiko::string vs = GLOBAL_PATH + "aiko_shadertoy" + aiko::string(".vs");
-        const aiko::string fs = GLOBAL_PATH + s_shaders[currentShader].c_str() + aiko::string(".fs");
-        m_shader->load(vs.c_str(), fs.c_str());
+        m_shader->load("aiko_shadertoy.vs", "aiko_shadertoy.fs");
     }
 
 }

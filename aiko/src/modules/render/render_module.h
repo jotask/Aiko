@@ -62,6 +62,7 @@ namespace aiko
         virtual void endShaderMode(void) = 0;
         virtual void beginBlendMode(BlendMode) = 0;
         virtual void endBlendMode(void) = 0;
+        virtual int getShaderUniform(Shader*, const string&) = 0;
 
         virtual void initScreenFbo() = 0;
         virtual texture::ScreenFbo getScreenFbo() = 0;

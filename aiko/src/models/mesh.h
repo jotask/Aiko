@@ -20,7 +20,7 @@ namespace aiko
 
         enum class MeshType
         {
-            TEST,
+            CUBE,
             QUAD,
             CUSTOM,
         };

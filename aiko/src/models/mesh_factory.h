@@ -10,7 +10,7 @@ namespace aiko
     namespace mesh
     {
 
-        void generatTest(Mesh& mesh);
+        void generateCube(Mesh& mesh);
 
         void generateQuad(Mesh& mesh);
         void generateMeshPlane(Mesh& mesh, float width, float length, int resX, int resZ);                     // Generate plane mesh (with subdivisions)

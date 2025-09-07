@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 
 #include <functional>
 
@@ -25,9 +26,12 @@ namespace aiko
         Shader();
         ~Shader() = default;
 
+        void load(const char* fileCodeName);
         void load(const char* vs, const char* fs);
         void loadFromSource(const char* vs, const char* fs);
         void unload();
+
+        void preLoadUniforms(std::vector<string> uniforms);
 
         // Type Helpers
 
@@ -45,14 +49,6 @@ namespace aiko
         void use();
         void unuse();
 
-        // void setShaderValue(int locIndex, const int& value);
-        // void setShaderValue(int locIndex, const float& value);
-        // void setShaderValue(int locIndex, const ivec2& value);
-        // void setShaderValue(int locIndex, const vec2& value);
-        // void setShaderValue(int locIndex, const vec3& value);
-        // void setShaderValue(int locIndex, const vec4& value);
-        // void setShaderValue(int locIndex, const std::vector<vec2>& value);
-
         aiko::ShaderData* getData();
 
         bool isvalid() const { return isValid; }
@@ -64,6 +60,8 @@ namespace aiko
 
         bool isValid = false;
         aiko::ShaderData m_shaderData;
+
+        std::map<string, int> m_uniforms;
 
     public:
 
