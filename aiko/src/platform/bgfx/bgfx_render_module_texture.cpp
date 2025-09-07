@@ -17,6 +17,7 @@
 #include "models/shader.h"
 #include "components/transform_component.h"
 #include "constants.h"
+#include "platform/bgfx/bgfx_platform_helper.h"
 
 #include <bgfx/bgfx.h>
 #define STB_IMAGE_IMPLEMENTATION
@@ -43,6 +44,61 @@ namespace aiko::bgfx
 
     texture::Texture BgfxRenderModule::createTexture(int width, int height)
     {
+
+        const uint32_t pixelCount = width * height;
+
+        // Allocate memory for RGBA8 texture
+        const ::bgfx::Memory* mem = ::bgfx::alloc(pixelCount * 4); // 4 bytes per pixel
+
+        // Fill memory with initial data (optional)
+        // memset(mem->data, 0x00, mem->size);
+
+        {
+            // Allocate memory for RGBA8
+            uint8_t* dst = mem->data;
+
+            // Random number generator
+            static std::mt19937 rng{ std::random_device{}() };
+            static std::uniform_int_distribution<int> dist(0, 255);
+
+            for (uint32_t i = 0; i < pixelCount; ++i)
+            {
+                dst[i * 4 + 0] = dist(rng); // R
+                dst[i * 4 + 1] = dist(rng); // G
+                dst[i * 4 + 2] = dist(rng); // B
+                dst[i * 4 + 3] = 255;       // A fully opaque
+            }
+        }
+
+
+        // Create texture using memory
+        ::bgfx::TextureHandle tex = ::bgfx::createTexture2D(
+            width,
+            height,
+            false,                     // no mipmaps
+            1,                         // layers
+            ::bgfx::TextureFormat::RGBA8,
+            BGFX_TEXTURE_NONE,          // flags, BGFX_TEXTURE_RT if you need a render target
+            mem
+        );
+
+        if (::bgfx::isValid(tex) == false)
+        {
+            std::runtime_error("Invalid texture");
+        }
+
+        texture::Texture texture = {0};
+
+        texture.id = tex.idx;
+        texture.width = width;
+        texture.height = height;
+        texture.channels = 4;
+
+        texture.mipmaps = 1;
+        texture.format = ::bgfx::TextureFormat::RGBA8;
+
+        return texture;
+
     }
 
     texture::Texture BgfxRenderModule::loadTexture(const char* file)

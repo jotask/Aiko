@@ -112,7 +112,7 @@ namespace aiko::bgfx
         ::bgfx::setViewTransform(m_kClearView, viewMatrix.data(), projMatrix.data());
 
         const ::bgfx::UniformHandle sampler = AIKO_TO_UH(shader->getUniformLocation("u_texture"));
-        ::bgfx::setTexture(0, sampler, AIKO_TO_TH(texture->texture.id));
+        ::bgfx::setTexture(0, sampler, AIKO_TO_TH(texture->texture.id), BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT | BGFX_SAMPLER_MIP_POINT);
 
         // Set buffers
         ::bgfx::setVertexBuffer(0, AIKO_TO_VBH(mesh->m_data.vao));
