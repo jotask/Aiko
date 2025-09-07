@@ -18,5 +18,7 @@ FetchContent_Declare(
 
 # Make available
 FetchContent_MakeAvailable(PortAudio)
+set_target_properties(portaudio PROPERTIES FOLDER "Dependencies")
+set_target_properties(portaudio_static PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------

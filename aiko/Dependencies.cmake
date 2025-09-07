@@ -21,6 +21,7 @@ FetchContent_Declare(
 )
 message("Fetching glfw")
 FetchContent_MakeAvailable(glfw)
+set_target_properties(glfw PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------
 
@@ -41,6 +42,8 @@ if(NOT glad_POPULATED)
     set(GLAD_EXTENSIONS "GL_ARB_bindless_texture" CACHE STRING "Extensions to take into consideration when generating the bindings")
     add_subdirectory(${glad_SOURCE_DIR} ${glad_BINARY_DIR})
 endif()
+set_target_properties(glad PROPERTIES FOLDER "Dependencies")
+set_target_properties(glad-generate-files PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------
 
@@ -58,6 +61,9 @@ set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "" FORCE)
 set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(assimp)
+set_target_properties(assimp PROPERTIES FOLDER "Dependencies")
+set_target_properties(zlibstatic PROPERTIES FOLDER "Dependencies")
+set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------
 
@@ -71,6 +77,7 @@ FetchContent_Declare(
 
 message("Fetching spdlog")
 FetchContent_MakeAvailable(spdlog)
+set_target_properties(spdlog PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------
 
@@ -90,6 +97,7 @@ option(TRACY_ENABLE "Enable profiling" OFF)
 option(TRACY_ONLY_IPV4 "IPv4 only" OFF)
 message("Fetching tracy")
 FetchContent_MakeAvailable(tracy)
+set_target_properties(TracyClient PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------
 
@@ -122,6 +130,7 @@ if(NOT imgui_POPULATED)
 
     target_link_libraries(imgui PRIVATE glfw)
 endif ()
+set_target_properties(imgui PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------
 
@@ -136,6 +145,7 @@ FetchContent_Declare(
 message("Fetching glm")
 FetchContent_MakeAvailable(glm)
 target_compile_definitions(glm INTERFACE GLM_FORCE_SILENT_WARNINGS)
+set_target_properties(glm PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------
 
@@ -154,6 +164,7 @@ if(NOT stb_POPULATED)
     add_library(stb INTERFACE ${stb_SOURCE_DIR})
     target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
 endif()
+set_target_properties(stb PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------
 
@@ -167,6 +178,7 @@ FetchContent_Declare(
 message("Fetching EnTT")
 FetchContent_MakeAvailable(EnTT)
 target_compile_definitions(EnTT INTERFACE ENTT_FORCE_SILENT_WARNINGS)
+set_target_properties(EnTT PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------
 
@@ -207,4 +219,7 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(bx bimg bgfx)
+set_target_properties(bx PROPERTIES FOLDER "Dependencies")
+set_target_properties(bimg PROPERTIES FOLDER "Dependencies")
+set_target_properties(bgfx PROPERTIES FOLDER "Dependencies")
 #----------------------------------------------------------------------

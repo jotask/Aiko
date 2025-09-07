@@ -22,5 +22,6 @@ FetchContent_Declare(
 
 message("Fetching jsoncpp")
 FetchContent_MakeAvailable(jsoncpp)
+set_target_properties(jsoncpp_static PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------
