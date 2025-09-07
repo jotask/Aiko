@@ -47,30 +47,7 @@ namespace aiko::bgfx
 
         const uint32_t pixelCount = width * height;
 
-        // Allocate memory for RGBA8 texture
-        const ::bgfx::Memory* mem = ::bgfx::alloc(pixelCount * 4); // 4 bytes per pixel
-
-        // Fill memory with initial data (optional)
-        // memset(mem->data, 0x00, mem->size);
-
-        {
-            // Allocate memory for RGBA8
-            uint8_t* dst = mem->data;
-
-            // Random number generator
-            static std::mt19937 rng{ std::random_device{}() };
-            static std::uniform_int_distribution<int> dist(0, 255);
-
-            for (uint32_t i = 0; i < pixelCount; ++i)
-            {
-                dst[i * 4 + 0] = dist(rng); // R
-                dst[i * 4 + 1] = dist(rng); // G
-                dst[i * 4 + 2] = dist(rng); // B
-                dst[i * 4 + 3] = 255;       // A fully opaque
-            }
-        }
-
-
+        
         // Create texture using memory
         ::bgfx::TextureHandle tex = ::bgfx::createTexture2D(
             width,
@@ -79,7 +56,7 @@ namespace aiko::bgfx
             1,                         // layers
             ::bgfx::TextureFormat::RGBA8,
             BGFX_TEXTURE_NONE,          // flags, BGFX_TEXTURE_RT if you need a render target
-            mem
+            nullptr
         );
 
         if (::bgfx::isValid(tex) == false)
@@ -93,7 +70,6 @@ namespace aiko::bgfx
         texture.width = width;
         texture.height = height;
         texture.channels = 4;
-
         texture.mipmaps = 1;
         texture.format = ::bgfx::TextureFormat::RGBA8;
 
@@ -162,7 +138,41 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::updatePboTexture(texture::PboTexture pbo, std::vector<Color>& pixels)
     {
-        AIKO_DEBUG_BREAK
+
+        const uint32_t pixelCount = pbo.texture.width * pbo.texture.height;
+
+        // Allocate memory for RGBA8
+        const ::bgfx::Memory* newMem = ::bgfx::alloc(pixelCount * 4);
+
+        if constexpr(false)
+        {
+            // Fill memory with initial data (optional)
+            memset(newMem->data, 0x00, newMem->size);
+        }
+        else
+        {
+            uint8_t* dst = newMem->data;
+            // Random number generator
+            static std::mt19937 rng{ std::random_device{}() };
+            static std::uniform_int_distribution<int> dist(0, 255);
+
+            for (uint32_t i = 0; i < pixelCount; ++i)
+            {
+                Color c = pixels[i];
+                dst[i * 4 + 0] = c.r * 255;
+                dst[i * 4 + 1] = c.g * 255;
+                dst[i * 4 + 2] = c.b * 255;
+                dst[i * 4 + 3] = c.a * 255;
+            }
+        }
+
+        ::bgfx::updateTexture2D(
+            AIKO_TO_TH(pbo.texture.id),
+            0, 0, 0, 0,
+            pbo.texture.width,
+            pbo.texture.height,
+            newMem
+        );
     }
 
     void BgfxRenderModule::drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint)
