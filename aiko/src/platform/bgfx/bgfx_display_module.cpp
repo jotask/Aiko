@@ -169,6 +169,10 @@ namespace aiko::bgfx
         m_curent.setNative(window);
         m_curent.setWindowSize(size.x, size.y);
 
+        int glfw_major, glfw_minor, glfw_patch;
+        glfwGetVersion(&glfw_major, &glfw_minor, &glfw_patch);
+        Log::info() << "GLFW Version: " << glfw_major << "." << glfw_minor << "." << glfw_patch;
+
     }
 
     void BgfxDisplayModule::beginFrame()

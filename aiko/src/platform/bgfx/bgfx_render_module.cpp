@@ -71,6 +71,34 @@ namespace aiko::bgfx
         ::bgfx::setViewClear(m_kClearView, BGFX_CLEAR_COLOR);
         ::bgfx::setViewRect(m_kClearView, 0, 0, ::bgfx::BackbufferRatio::Equal);
 
+        // Log Init
+        {
+
+            static const std::unordered_map<uint32_t, std::string> vendorMap = {
+                { 0x10DE, "NVIDIA" },
+                { 0x1002, "AMD/ATI" },
+                { 0x8086, "Intel" },
+                { 0x5143, "Qualcomm" },
+                { 0x13B5, "ARM" },
+                { 0x5333, "S3 Graphics" },
+                { 0x102B, "Matrox" }
+                // add more if needed
+            };
+
+            auto getVendorName = [&](uint32_t vendorId) -> std::string
+                {
+                    auto it = vendorMap.find(vendorId);
+                    if (it != vendorMap.end())
+                        return it->second;
+                    return std::string{ "Unknown" };
+                };
+
+            uint32_t vendorId = ::bgfx::getCaps()->vendorId;
+            uint32_t deviceId = ::bgfx::getCaps()->deviceId;
+            Log::info() << "GPU: " << getVendorName(vendorId) << ", Vendor ID: 0x" << std::hex << vendorId << ", Device ID: 0x" << deviceId<< std::dec;
+            Log::info() << "BGFX Renderer: " << ::bgfx::getRendererName(::bgfx::getRendererType());
+        }
+
     }
 
     void BgfxRenderModule::beginFrame()
