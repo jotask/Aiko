@@ -9,7 +9,7 @@ namespace aiko
     {
     public:
 
-        static constexpr Color DEFAULT_BACKGROUND_COLOR = MAGENTA;
+        static constexpr Color DEFAULT_BACKGROUND_COLOR = BLACK;
 
         enum RenderType {
             TwoDimensions = 0,
