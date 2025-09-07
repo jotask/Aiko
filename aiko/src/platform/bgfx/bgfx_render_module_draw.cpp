@@ -36,10 +36,6 @@ namespace aiko::bgfx
         const mat4 viewMatrix = cam->getViewMatrix();
         const mat4 modelMatrix = transform->getMatrix();
 
-        // Set BGFX view and clear
-        ::bgfx::setViewClear(m_kClearView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
-        ::bgfx::setViewRect(m_kClearView, 0, 0, ::bgfx::BackbufferRatio::Equal);
-
         ::bgfx::setViewTransform(m_kClearView, viewMatrix.data(), projMatrix.data());
 
         // Set buffers
@@ -73,10 +69,6 @@ namespace aiko::bgfx
         const mat4 projMatrix = cam->getProjectionMatrix();
         const mat4 viewMatrix = cam->getViewMatrix();
         const mat4 modelMatrix = transform->getMatrix();
-
-        // Set BGFX view and clear
-        ::bgfx::setViewClear(m_kClearView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
-        ::bgfx::setViewRect(m_kClearView, 0, 0, ::bgfx::BackbufferRatio::Equal);
 
         ::bgfx::setViewTransform(m_kClearView, viewMatrix.data(), projMatrix.data());
 
@@ -116,10 +108,6 @@ namespace aiko::bgfx
         const mat4 projMatrix = cam->getProjectionMatrix();
         const mat4 viewMatrix = cam->getViewMatrix();
         const mat4 modelMatrix = transform->getMatrix();
-
-        // Set BGFX view and clear
-        ::bgfx::setViewClear(m_kClearView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
-        ::bgfx::setViewRect(m_kClearView, 0, 0, ::bgfx::BackbufferRatio::Equal);
 
         ::bgfx::setViewTransform(m_kClearView, viewMatrix.data(), projMatrix.data());
 
