@@ -13,7 +13,7 @@
 
 #include <aiko_includes.h>
 
-// #define TEST_CUBES
+#define TEST_CUBES
 
 namespace sandbox
 {
@@ -26,6 +26,7 @@ namespace sandbox
 
         auto root = Instantiate("Root");
 
+#ifdef TEST_CUBES
         m_go1 = this->Instantiate(root, "Cube1");
         m_go1->transform()->position = { 1.0f, 0.0f, 0.0f };
         m_go1->transform()->rotation = { 0.0f, 0.0f, 0.0f };
@@ -44,7 +45,6 @@ namespace sandbox
         m_texture->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh3 = m_texture->addComponent<aiko::TextureComponent>();
 
-#ifdef TEST_CUBES
         m_texturePbo = this->Instantiate(root, "PboTexture");
         m_texturePbo->transform()->position = { 0.0f, 0.55f, 0.0f };
         m_texturePbo->transform()->rotation = { 0.0f, 0.0f, 0.0f };
@@ -57,11 +57,13 @@ namespace sandbox
     void Sandbox::update()
     {
         Application::update();
+#ifdef TEST_CUBES
         static float angle = 0.0f;
         angle += 25.0f * getlDeltaTime();
         angle = fmod(angle, 360.0f);
         m_go1->transform()->rotation = {  angle, 0.0f, 0.0f };
         m_go2->transform()->rotation = { -angle, 0.0f, 0.0f };
+#endif
     }
 
     void Sandbox::render()
