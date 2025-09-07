@@ -54,6 +54,7 @@ namespace aiko::bgfx
 
         int width, height, channels;
         // Load image data with stb_image
+        stbi_set_flip_vertically_on_load(true);
         unsigned char* data = stbi_load(base.c_str(), &width, &height, &channels, 4); // force RGBA
         if (!data)
         {

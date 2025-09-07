@@ -7,14 +7,10 @@ $input v_texcoord0, v_color0
 
 #include "../common/common.sh"
 
+SAMPLER2D(u_texture, 0);
+
 void main()
 {
-    gl_FragColor = v_color0;
-
-    // Optional: mix textures
-    // gl_FragColor = lerp(
-    //     texture2D(texture1, v_texcoord0),
-    //     texture2D(texture2, v_texcoord0),
-    //     0.2
-    // );
+    vec4 texColor = texture2D(u_texture, v_texcoord0);
+    gl_FragColor = texColor * v_color0; // modulate with vertex color
 }

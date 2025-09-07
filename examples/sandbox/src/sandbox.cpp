@@ -40,7 +40,7 @@ namespace sandbox
 
         m_texture = this->Instantiate(root, "Texture");
         m_texture->transform()->position = { 0.0f, -0.55f, 0.0f };
-        m_texture->transform()->rotation = { 0.0f, 180.0f, 0.0f };
+        m_texture->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         m_texture->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh3 = m_texture->addComponent<aiko::TextureComponent>();
 
