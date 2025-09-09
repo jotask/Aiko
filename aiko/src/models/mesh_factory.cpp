@@ -10,41 +10,41 @@ namespace aiko
             mesh.m_vertices =
             {
                 // positions              // texture coords   // Color
-				// Front face
+                // Front face
                 -0.5f,  0.5f,  0.5f,       0.0f, 1.0f,        1.0f, 0.0f, 0.0f, // Top-left
                 -0.5f, -0.5f,  0.5f,       0.0f, 0.0f,        1.0f, 0.0f, 0.0f, // Bottom-left
                  0.5f, -0.5f,  0.5f,       1.0f, 0.0f,        1.0f, 0.0f, 0.0f, // Bottom-right
                  0.5f,  0.5f,  0.5f,       1.0f, 1.0f,        1.0f, 0.0f, 0.0f, // Top-right
 
-                // Back face                                  
-                -0.5f, -0.5f, -0.5f,       0.0f, 0.0f,         0.0f, 1.0f, 0.0f, // Bottom-left
-                -0.5f,  0.5f, -0.5f,       0.0f, 1.0f,         0.0f, 1.0f, 0.0f, // Top-left
-                 0.5f,  0.5f, -0.5f,       1.0f, 1.0f,         0.0f, 1.0f, 0.0f, // Top-right
-                 0.5f, -0.5f, -0.5f,       1.0f, 0.0f,         0.0f, 1.0f, 0.0f, // Bottom-right
+                 // Back face                                  
+                 -0.5f, -0.5f, -0.5f,       0.0f, 0.0f,         0.0f, 1.0f, 0.0f, // Bottom-left
+                 -0.5f,  0.5f, -0.5f,       0.0f, 1.0f,         0.0f, 1.0f, 0.0f, // Top-left
+                  0.5f,  0.5f, -0.5f,       1.0f, 1.0f,         0.0f, 1.0f, 0.0f, // Top-right
+                  0.5f, -0.5f, -0.5f,       1.0f, 0.0f,         0.0f, 1.0f, 0.0f, // Bottom-right
 
-                // Top face                                   
-                 0.5f,  0.5f,  0.5f,       1.0f, 0.0f,         0.0f, 0.0f, 1.0f, // Front-top-right
-                 0.5f,  0.5f, -0.5f,       1.0f, 1.0f,         0.0f, 0.0f, 1.0f, // Back-top-right
-                -0.5f,  0.5f, -0.5f,      0.0f, 1.0f,         0.0f, 0.0f, 1.0f, // Back-top-left
-                -0.5f,  0.5f,  0.5f,      0.0f, 0.0f,         0.0f, 0.0f, 1.0f, // Front-top-left
-                
-                // Bottom face                                
-                -0.5f, -0.5f, -0.5f,      0.0f, 1.0f,         1.0f, 1.0f, 0.0f, // Back-bottom- left
-                 0.5f, -0.5f, -0.5f,       1.0f, 1.0f,         1.0f, 1.0f, 0.0f, // Back-bottom-right
-                 0.5f, -0.5f,  0.5f,       1.0f, 0.0f,         1.0f, 1.0f, 0.0f, // Front-bottom-right
-                -0.5f, -0.5f,  0.5f,      0.0f, 0.0f,         1.0f, 1.0f, 0.0f, // Front-bottom-left
-                
-                // Right face                                 
-                 0.5f, -0.5f,  0.5f,      1.0f, 0.0f,         1.0f, 0.0f, 1.0f, // Front-bottom-right
-                 0.5f, -0.5f, -0.5f,      1.0f, 1.0f,         1.0f, 0.0f, 1.0f, // Back-bottom-right
-                 0.5f,  0.5f, -0.5f,      0.0f, 1.0f,         1.0f, 0.0f, 1.0f, // Back-top-right
-                 0.5f,  0.5f,  0.5f,      0.0f, 0.0f,         1.0f, 0.0f, 1.0f, // Front-top-right
-                
-                // Left face                                  
-                -0.5f,  0.5f,  0.5f,      0.0f, 1.0f,         0.0f, 1.0f, 1.0f, // Front-top-left
-                -0.5f,  0.5f, -0.5f,      1.0f, 1.0f,         0.0f, 1.0f, 1.0f, // Back-top-left
-                -0.5f, -0.5f, -0.5f,      1.0f, 0.0f,         0.0f, 1.0f, 1.0f, // Back-bottom-left
-                -0.5f, -0.5f,  0.5f,      0.0f, 0.0f,         0.0f, 1.0f, 1.0f, // Front-bottom-left
+                  // Top face                                   
+                   0.5f,  0.5f,  0.5f,       1.0f, 0.0f,         0.0f, 0.0f, 1.0f, // Front-top-right
+                   0.5f,  0.5f, -0.5f,       1.0f, 1.0f,         0.0f, 0.0f, 1.0f, // Back-top-right
+                  -0.5f,  0.5f, -0.5f,      0.0f, 1.0f,         0.0f, 0.0f, 1.0f, // Back-top-left
+                  -0.5f,  0.5f,  0.5f,      0.0f, 0.0f,         0.0f, 0.0f, 1.0f, // Front-top-left
+
+                  // Bottom face                                
+                  -0.5f, -0.5f, -0.5f,      0.0f, 1.0f,         1.0f, 1.0f, 0.0f, // Back-bottom- left
+                   0.5f, -0.5f, -0.5f,       1.0f, 1.0f,         1.0f, 1.0f, 0.0f, // Back-bottom-right
+                   0.5f, -0.5f,  0.5f,       1.0f, 0.0f,         1.0f, 1.0f, 0.0f, // Front-bottom-right
+                  -0.5f, -0.5f,  0.5f,      0.0f, 0.0f,         1.0f, 1.0f, 0.0f, // Front-bottom-left
+
+                  // Right face                                 
+                   0.5f, -0.5f,  0.5f,      1.0f, 0.0f,         1.0f, 0.0f, 1.0f, // Front-bottom-right
+                   0.5f, -0.5f, -0.5f,      1.0f, 1.0f,         1.0f, 0.0f, 1.0f, // Back-bottom-right
+                   0.5f,  0.5f, -0.5f,      0.0f, 1.0f,         1.0f, 0.0f, 1.0f, // Back-top-right
+                   0.5f,  0.5f,  0.5f,      0.0f, 0.0f,         1.0f, 0.0f, 1.0f, // Front-top-right
+
+                   // Left face                                  
+                   -0.5f,  0.5f,  0.5f,      0.0f, 1.0f,         0.0f, 1.0f, 1.0f, // Front-top-left
+                   -0.5f,  0.5f, -0.5f,      1.0f, 1.0f,         0.0f, 1.0f, 1.0f, // Back-top-left
+                   -0.5f, -0.5f, -0.5f,      1.0f, 0.0f,         0.0f, 1.0f, 1.0f, // Back-bottom-left
+                   -0.5f, -0.5f,  0.5f,      0.0f, 0.0f,         0.0f, 1.0f, 1.0f, // Front-bottom-left
             };
 
             mesh.m_indices =
@@ -61,13 +61,37 @@ namespace aiko
 
         void generateQuad(Mesh& mesh)
         {
+            VerticesColor colors =
+            {
+                aiko::Color( 1.0f, 0.0f, 0.0f, 1.0f ),
+                aiko::Color( 0.0f, 1.0f, 0.0f, 1.0f ),
+                aiko::Color( 0.0f, 0.0f, 1.0f, 1.0f ),
+                aiko::Color( 1.0f, 1.0f, 0.0f, 1.0f),
+            };
+            return generateQuad(mesh, colors);
+        }
+
+        void generateQuad(Mesh& mesh, aiko::Color color)
+        {
+            VerticesColor colors =
+            {
+                color,
+                color,
+                color,
+                color,
+            };
+            return generateQuad(mesh, colors);
+        }
+
+        void generateQuad(Mesh& mesh, VerticesColor c)
+        {
             mesh.m_vertices =
             {
                   // positions           // texture coords      // colors         
-                   0.5f,  0.5f, 0.0f,     1.0f, 1.0f,            1.0f, 0.0f, 0.0f, // top right
-                   0.5f, -0.5f, 0.0f,     1.0f, 0.0f,            0.0f, 1.0f, 0.0f, // bottom right
-                  -0.5f, -0.5f, 0.0f,     0.0f, 0.0f,            0.0f, 0.0f, 1.0f, // bottom left
-                  -0.5f,  0.5f, 0.0f,     0.0f, 1.0f,            1.0f, 1.0f, 0.0f, // top left
+                   0.5f,  0.5f, 0.0f,     1.0f, 1.0f,            c[0].r, c[0].g, c[0].b, // top right
+                   0.5f, -0.5f, 0.0f,     1.0f, 0.0f,            c[1].r, c[1].g, c[1].b, // bottom right
+                  -0.5f, -0.5f, 0.0f,     0.0f, 0.0f,            c[2].r, c[2].g, c[2].b, // bottom left
+                  -0.5f,  0.5f, 0.0f,     0.0f, 1.0f,            c[3].r, c[3].g, c[3].b, // top left
             };
 
             mesh.m_indices =

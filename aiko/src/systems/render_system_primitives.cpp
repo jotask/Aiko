@@ -22,6 +22,10 @@ namespace aiko
 
     void RenderSystem::initPrimitives()
     {
+        mesh::generateQuad(m_quadMesh, WHITE);
+        refreshMesh(&m_quadMesh);
+        m_quadShader.load("primitive");
+        m_quadShader.preLoadUniforms({ {"u_color", ShaderUniformDataType::SHADER_UNIFORM_FLOAT}, { "u_border", ShaderUniformDataType::SHADER_UNIFORM_FLOAT }, {"u_border_thickness", ShaderUniformDataType::SHADER_UNIFORM_FLOAT} });
     }
 
     void RenderSystem::drawPoint(vec3, Color)
@@ -36,8 +40,18 @@ namespace aiko
     {
     }
 
-    void RenderSystem::drawRectangle(vec3, vec3, Color)
+    void RenderSystem::drawRectangle(vec3 pos, vec3 size, Color color)
     {
+
+        m_quadShader.setBool("u_border", true);
+        m_quadShader.setFloat("u_border_thickness", 0.05f);
+        m_quadShader.setVec4("u_color", { 1.0f, 1.0f, 1.0f, 1.0f});
+
+        aiko::Camera* camera = m_cameraSystem->getMainCamera();
+        Transform t;
+        t.position = pos;
+        t.scale *= size;
+        m_renderModule->renderMesh(camera, &t, &m_quadMesh, &m_quadShader );
     }
 
     void RenderSystem::renderLine(vec3, vec3, Color)
@@ -69,26 +83,6 @@ namespace aiko
     }
 
     void RenderSystem::renderCylinder(vec3 pos, float radius, float height, int sectors, Color)
-    {
-    }
-
-    void RenderSystem::bindData(std::vector<float>& verts)
-    {
-    }
-
-    void RenderSystem::calculateNormals(Data& data)
-    {
-    }
-
-    void RenderSystem::calculateUvs(Data& data)
-    {
-    }
-
-    void RenderSystem::bindShaderAttributes()
-    {
-    }
-
-    void RenderSystem::setUniforms(Color color)
     {
     }
 

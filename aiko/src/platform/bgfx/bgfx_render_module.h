@@ -55,8 +55,6 @@ namespace aiko::bgfx
         void renderMesh(Camera*, Transform*, Mesh*, Shader*, Texture*);
         void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::PboTexture*);
 
-        void refreshShader(Shader*);
-
         texture::RenderTexture2D* getRenderTexture();
 
         void clearBackground(Color);
@@ -72,7 +70,6 @@ namespace aiko::bgfx
         void beginBlendMode(BlendMode);
         void endBlendMode(void);
 
-        virtual int getShaderUniform(Shader*, const string&) override;
 
         void initScreenFbo();
         texture::ScreenFbo getScreenFbo();
@@ -90,10 +87,12 @@ namespace aiko::bgfx
         void drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint);
 
         // Shader
-        AikoPtr<Shader> createShader();
         virtual aiko::ShaderData loadShaderData(const char*, const char*) override;
         virtual aiko::ShaderData loadShaderSrc(const char*, const char*) override;
         virtual void unloadShader(aiko::ShaderData& ) override;
+        virtual int loadShaderUniform(Shader* shader, const string& name, ShaderUniformDataType type) override;
+        virtual void setShaderUniform(Shader*, string name, vec4 value) override;
+        void refreshShader(Shader*);
 
     protected:
 

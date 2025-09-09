@@ -1,9 +1,11 @@
  #pragma once
 
 #include <vector>
+#include <array>
 
 #include "aiko_types.h"
 #include "models/mesh.h"
+#include "types/color.h"
 
 namespace aiko
 {
@@ -12,7 +14,12 @@ namespace aiko
 
         void generateCube(Mesh& mesh);
 
+        using VerticesColor = std::array<aiko::Color, 4>;
+
         void generateQuad(Mesh& mesh);
+        void generateQuad(Mesh& mesh, aiko::Color color);
+        void generateQuad(Mesh& mesh, VerticesColor colors);
+
         void generateMeshPlane(Mesh& mesh, float width, float length, int resX, int resZ);                     // Generate plane mesh (with subdivisions)
         Mesh generateMeshPoly(int sides, float radius);                                            // Generate polygonal mesh
         void generateMeshCube(Mesh& mesh, float width, float height, float length);                            // Generate cuboid mesh

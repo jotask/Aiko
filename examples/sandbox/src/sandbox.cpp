@@ -10,10 +10,11 @@
 #include "components/texture_component.h"
 #include "components/pbo_texture_component.h"
 #include "models/camera.h"
+#include "types/color.h"
 
 #include <aiko_includes.h>
 
-#define TEST_CUBES
+// #define TEST_CUBES
 
 namespace sandbox
 {
@@ -44,7 +45,7 @@ namespace sandbox
         m_texture->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         m_texture->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh3 = m_texture->addComponent<aiko::TextureComponent>();
-
+        
         m_texturePbo = this->Instantiate(root, "PboTexture");
         m_texturePbo->transform()->position = { 0.0f, 0.55f, 0.0f };
         m_texturePbo->transform()->rotation = { 0.0f, 0.0f, 0.0f };
@@ -69,6 +70,12 @@ namespace sandbox
     void Sandbox::render()
     {
         Application::render();
+
+        const aiko::vec3 position = { 0.0f,  0.0f, 0.0f };
+        const aiko::vec3 size     = { 1.0f, 1.0f, 1.0f };
+        const aiko::Color color   = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+        getRenderSystem()->drawRectangle(position, size, color);
 
 #if 0
         static aiko::vec3 circlePosition = { -0.5f,  0.0f, 0.0f };

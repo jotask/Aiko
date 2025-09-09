@@ -58,10 +58,16 @@ namespace aiko
         default:
             break;
         }
-        m_renderModule->refreshMesh(&mesh);
+        refreshMesh(&mesh);
         return mesh;
     }
     
+
+    void RenderSystem::refreshMesh(Mesh* mesh)
+    {
+        m_renderModule->refreshMesh(mesh);
+    }
+
     aiko::AikoPtr<Light> RenderSystem::createLight()
     {
         auto light = std::make_unique<Light>();

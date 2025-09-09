@@ -10,6 +10,7 @@
 #include "events/event.hpp"
 #include "types/color.h"
 #include "types/textures.h"
+#include "types/render_types.h"
 
 namespace aiko
 {
@@ -48,8 +49,6 @@ namespace aiko
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, Texture*) = 0;
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::PboTexture*) = 0;
 
-        virtual void refreshShader(Shader*) = 0;
-
         virtual texture::RenderTexture2D* getRenderTexture() = 0;
 
         virtual void clearBackground(Color) = 0;
@@ -64,7 +63,6 @@ namespace aiko
         virtual void endShaderMode(void) = 0;
         virtual void beginBlendMode(BlendMode) = 0;
         virtual void endBlendMode(void) = 0;
-        virtual int getShaderUniform(Shader*, const string&) = 0;
 
         virtual void initScreenFbo() = 0;
         virtual texture::ScreenFbo getScreenFbo() = 0;
@@ -85,6 +83,9 @@ namespace aiko
         virtual aiko::ShaderData loadShaderData(const char*, const char*) = 0;
         virtual aiko::ShaderData loadShaderSrc(const char*, const char*) = 0;
         virtual void unloadShader(aiko::ShaderData&) = 0;
+        virtual int loadShaderUniform(Shader* shader, const string& name, ShaderUniformDataType type) = 0;
+        virtual void setShaderUniform(Shader*, string name, vec4 value) = 0;
+        virtual void refreshShader(Shader*) = 0;
 
     protected:
 

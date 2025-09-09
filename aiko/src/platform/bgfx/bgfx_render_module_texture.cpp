@@ -35,7 +35,7 @@ namespace aiko::bgfx
         {
             int a = 9;
         }
-        m_passthrought.preLoadUniforms({ "u_texture" });
+        m_passthrought.preLoadUniforms({ {"u_texture", ShaderUniformDataType::SHADER_UNIFORM_SAMPLER2D} });
 
         // VAO// IBH -> Not Needed we are rendering to full 
 

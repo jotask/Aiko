@@ -134,14 +134,46 @@ namespace aiko::bgfx
         AIKO_DEBUG_BREAK
     }
 
-    int BgfxRenderModule::getShaderUniform(Shader* shader, const string& name)
+    int BgfxRenderModule::loadShaderUniform(Shader* shader, const string& name, ShaderUniformDataType type)
     {
-        ::bgfx::UniformHandle uniform = ::bgfx::createUniform(name.c_str(), ::bgfx::UniformType::Sampler);
+
+        auto convertToBgfxUniformType = [](ShaderUniformDataType type) -> ::bgfx::UniformType::Enum
+            {
+                switch (type)
+                {
+                    case ShaderUniformDataType::SHADER_UNIFORM_FLOAT:       return ::bgfx::UniformType::Vec4;
+                    case ShaderUniformDataType::SHADER_UNIFORM_VEC2:        return ::bgfx::UniformType::Vec4;
+                    case ShaderUniformDataType::SHADER_UNIFORM_VEC3:        return ::bgfx::UniformType::Vec4;
+                    case ShaderUniformDataType::SHADER_UNIFORM_VEC4:        return ::bgfx::UniformType::Vec4;
+                    case ShaderUniformDataType::SHADER_UNIFORM_INT:         return ::bgfx::UniformType::Vec4;
+                    case ShaderUniformDataType::SHADER_UNIFORM_IVEC2:       return ::bgfx::UniformType::Vec4;
+                    case ShaderUniformDataType::SHADER_UNIFORM_IVEC3:       return ::bgfx::UniformType::Vec4;
+                    case ShaderUniformDataType::SHADER_UNIFORM_IVEC4:       return ::bgfx::UniformType::Vec4;
+                    case ShaderUniformDataType::SHADER_UNIFORM_SAMPLER2D:   return ::bgfx::UniformType::Sampler;
+                    default:                                                return ::bgfx::UniformType::Vec4;
+                }
+            };
+
+        const ::bgfx::UniformType::Enum uniform_type = convertToBgfxUniformType(type);
+        ::bgfx::UniformHandle uniform = ::bgfx::createUniform(name.c_str(), uniform_type);
         if (::bgfx::isValid(uniform) == false)
         {
             std::runtime_error("Uniform not found");
         }
         return uniform.idx;
+    }
+
+
+    void BgfxRenderModule::setShaderUniform(Shader* shader, string name, vec4 value)
+    {
+        auto loc = shader->getUniformLocation(name);
+        if (::bgfx::isValid(AIKO_TO_UH(loc)) == false)
+        {
+            Log::error("Uniform not valid!");
+            return;
+        }
+        float val[4] = { value.x , value.y , value.z , value.w };
+        ::bgfx::setUniform(AIKO_TO_UH(loc), &val);
     }
 
 }

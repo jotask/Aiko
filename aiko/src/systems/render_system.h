@@ -35,6 +35,7 @@ namespace aiko
         virtual void render() override;
 
         Mesh createMesh(Mesh::MeshType type);
+        void refreshMesh(Mesh*);
         aiko::AikoPtr<Light> createLight();
         texture::Texture createTexture();
         texture::PboTexture createPboTexture(uint16_t width, uint16_t height);
@@ -75,15 +76,8 @@ namespace aiko
         #define DEFAULT_2D_COLOR { 1.0f   , 0.686f , 0.8f    , 1.0f }
         #define DEFAULT_3D_COLOR { 1.0f   , 1.0f   , 1.0f    , 1.0f }
 
-        struct Data
-        {
-            struct Vertex {
-                vec3 position;
-                vec3 normal;
-                vec2 texCoords;
-            };
-            std::vector<Vertex>& vertices;
-        };
+        Shader m_quadShader;
+        Mesh m_quadMesh;
 
         void initPrimitives();
 
@@ -104,13 +98,6 @@ namespace aiko
         void renderCylinder(vec3 pos, float radius, float height, int sectors, Color = DEFAULT_3D_COLOR);
 
     private:
-
-        void bindData(std::vector<float>& verts);
-        void calculateNormals(Data& data);
-        void calculateUvs(Data& data);
-
-        void bindShaderAttributes();
-        void setUniforms(Color color);
 
     };
 

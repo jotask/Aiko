@@ -31,7 +31,7 @@ namespace aiko
         void loadFromSource(const char* vs, const char* fs);
         void unload();
 
-        void preLoadUniforms(std::vector<string> uniforms);
+        void preLoadUniforms(std::vector<std::pair<string, ShaderUniformDataType>> uniforms);
 
         // Type Helpers
 
