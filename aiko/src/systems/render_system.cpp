@@ -116,23 +116,17 @@ namespace aiko
    
     void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader)
     {
-        m_renderModule->beginMode3D();
         m_renderModule->renderMesh(getMainCamera() , trans, mesh, shader);
-        m_renderModule->endMode3D();
     }
 
     void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader, Texture* texture)
     {
-        m_renderModule->beginMode3D();
         m_renderModule->renderMesh(getMainCamera(), trans, mesh, shader, texture);
-        m_renderModule->endMode3D();
     }
 
     void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader, texture::PboTexture* texture)
     {
-        m_renderModule->beginMode3D();
         m_renderModule->renderMesh(getMainCamera(), trans, mesh, shader, texture);
-        m_renderModule->endMode3D();
     }
 
     texture::RenderTexture2D* RenderSystem::getTargetTexture() const
@@ -148,7 +142,6 @@ namespace aiko
         m_renderModule->endMode2D();
         m_renderModule->endTextureMode();
         m_renderModule->endShaderMode();
-
     }
 
     void RenderSystem::render(texture::RenderTexture2D& target, Shader* shader)

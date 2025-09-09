@@ -91,6 +91,9 @@ namespace aiko
         Color background_color;
         bool m_scale;
 
+        texture::ScreenFbo m_screenFbo;
+        Shader m_passthrought;
+
         DisplayModule* m_displayModule;
 
         virtual void onWindowResize(Event&);

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <stack>
+
 #include "aiko.h"
 #include "aiko_types.h"
 #include "modules/render/render_module.h"
@@ -95,13 +97,14 @@ namespace aiko::bgfx
 
     protected:
 
-        texture::ScreenFbo m_screenFbo;
-        AikoPtr<Shader> m_passthrought;
-
         virtual void onWindowResize(Event&) override;
     
     private:
-        ViewId m_kClearView;
+
+        const ViewId m_kViewOffScreen;
+        const ViewId m_kViewMain;
+
+        ViewId currentViewId;
 
     };
 

@@ -24,6 +24,7 @@
 #include "core/log.h"
 
 #include <bgfx/bgfx.h>
+#include <bx/bx.h>
 #include <bgfx/platform.h>
 
 #include "platform/bgfx/bgfx_platform_helper.h"
@@ -33,8 +34,12 @@ namespace aiko::bgfx
 
     BgfxRenderModule::BgfxRenderModule(Aiko* aiko)
         : RenderModule(aiko)
+        , m_kViewMain(0)
+        , m_kViewOffScreen(1)
+        , currentViewId(m_kViewMain)
     {
-        static_assert(sizeof(::bgfx::ViewId) == sizeof(BgfxRenderModule::ViewId) && "Bgfx ViewId type has changed");
+        static_assert(sizeof(::bgfx::ViewId) == sizeof(BgfxRenderModule::ViewId),    "Bgfx ViewId type has changed");
+        static_assert(std::is_same<::bgfx::ViewId, BgfxRenderModule::ViewId>::value, "Bgfx ViewId type has changed");
     }
 
     BgfxRenderModule::~BgfxRenderModule()
@@ -65,12 +70,7 @@ namespace aiko::bgfx
         {
             return std::exit(99);
         }
-
-        auto caca = ::bgfx::getRendererType();
-        m_kClearView = 0;
-        ::bgfx::setViewClear(m_kClearView, BGFX_CLEAR_COLOR);
-        ::bgfx::setViewRect(m_kClearView, 0, 0, ::bgfx::BackbufferRatio::Equal);
-
+        
         // Log Init
         {
 
@@ -99,17 +99,100 @@ namespace aiko::bgfx
             Log::info() << "BGFX Renderer: " << ::bgfx::getRendererName(::bgfx::getRendererType());
         }
 
+        initScreenFbo();
+
     }
 
     void BgfxRenderModule::beginFrame()
     {
+        // Set view to the fbo
+        currentViewId = m_kViewOffScreen;
+        ::bgfx::setViewFrameBuffer(currentViewId, AIKO_TO_FBH(m_screenFbo.renderTexture.framebuffer));
+        const auto size = m_displayModule->getCurrentDisplay().getDisplaySize();
+        ::bgfx::setViewRect(currentViewId, 0, 0, size.x, size.y);
         clearBackground(background_color);
-        ::bgfx::touch(m_kClearView);
+        ::bgfx::touch(currentViewId);
     }
 
     void BgfxRenderModule::endFrame()
     {
+
+        currentViewId = m_kViewMain;
+
+        const auto size = m_displayModule->getCurrentDisplay().getDisplaySize();
+
+        ::bgfx::setViewRect(currentViewId, 0, 0, size.x, size.y);
+        clearBackground(background_color);
+        ::bgfx::touch(currentViewId);
+
+        // Bind the offscreen texture to a sampler
+        const ::bgfx::UniformHandle sampler = AIKO_TO_UH(m_passthrought.getUniformLocation("u_texture"));
+
+        ::bgfx::setTexture(0, sampler, AIKO_TO_TH(m_screenFbo.renderTexture.texture.id));
+        
+        auto screenSpaceQuad = [](float width, float heigh)
+            {
+
+                struct ScreenQuadVertex
+                {
+                    float x, y, z;
+                    float u, v;
+                };
+
+                static ::bgfx::VertexLayout s_screenQuadLayout;
+                s_screenQuadLayout.begin()
+                    .add(::bgfx::Attrib::Position, 3,  ::bgfx::AttribType::Float)
+                    .add(::bgfx::Attrib::TexCoord0, 2, ::bgfx::AttribType::Float)
+                    .end();
+
+                const bool _originBottomLeft = false;
+
+                const uint16_t numVertices = 4;
+                const uint16_t numIndices = 6;
+
+                ::bgfx::TransientVertexBuffer vb;
+                ::bgfx::allocTransientVertexBuffer(&vb, numVertices, s_screenQuadLayout);
+
+                ::bgfx::TransientIndexBuffer ib;
+                ::bgfx::allocTransientIndexBuffer(&ib, numIndices);
+
+                const float size = 1.0f;
+
+                const float minx = -size;
+                const float maxx =  size;
+                const float miny = -size;
+                const float maxy =  size;
+
+                const float minu = 0.0f;
+                const float maxu = 1.0f;
+                const float minv = _originBottomLeft ? 0.0f : 1.0f;
+                const float maxv = _originBottomLeft ? 1.0f : 0.0f;
+
+                ScreenQuadVertex* vertex = (ScreenQuadVertex*)vb.data;
+
+                vertex[0] = { minx, miny, 0.0f, minu, minv };
+                vertex[1] = { maxx, miny, 0.0f, maxu, minv };
+                vertex[2] = { maxx, maxy, 0.0f, maxu, maxv };
+                vertex[3] = { minx, maxy, 0.0f, minu, maxv };
+
+                uint16_t* indices = (uint16_t*)ib.data;
+                indices[0] = 0;
+                indices[1] = 1;
+                indices[2] = 2;
+                indices[3] = 2;
+                indices[4] = 3;
+                indices[5] = 0;
+
+                ::bgfx::setVertexBuffer(0, &vb);
+                ::bgfx::setIndexBuffer(&ib);
+            };
+
+        screenSpaceQuad((float)size.x, (float)size.y);
+
+        ::bgfx::submit(currentViewId, AIKO_TO_PH(m_passthrought.getData()->id));
+
         ::bgfx::frame();
+
     }
 
     void BgfxRenderModule::drawText(string texto, float x, float y , float scale, Color color)
@@ -143,13 +226,16 @@ namespace aiko::bgfx
         const auto screenHeight = msg.height;
 
         ::bgfx::reset((uint32_t)screenWidth, (uint32_t)screenHeight, BGFX_RESET_VSYNC);
-        ::bgfx::setViewRect(m_kClearView, 0, 0, ::bgfx::BackbufferRatio::Equal);
+
+        // FIXME is this correct?
+        ::bgfx::setViewRect(m_kViewMain, 0, 0, ::bgfx::BackbufferRatio::Equal);
+        ::bgfx::setViewRect(m_kViewOffScreen, 0, 0, ::bgfx::BackbufferRatio::Equal);
 
     }
 
     void BgfxRenderModule::clearBackground(Color color)
     {
-        ::bgfx::setViewClear(m_kClearView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, convertColorToBgfx(color), 1.0f, 0);
+        ::bgfx::setViewClear(currentViewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, convertColorToBgfx(color), 1.0f, 0);
     }
 
     void BgfxRenderModule::beginMode2D()
