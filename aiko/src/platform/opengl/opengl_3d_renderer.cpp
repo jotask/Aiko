@@ -2,6 +2,8 @@
 
 #include "opengl_3d_renderer.h"
 
+#ifndef DISABLE_CODE
+
 #include "core/libs.h"
 
 #include "models/camera.h"
@@ -34,4 +36,5 @@ namespace aiko
 
 }
 
+#endif
 #endif

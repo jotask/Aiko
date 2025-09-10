@@ -20,7 +20,6 @@
 #include "models/mesh.h"
 #include "models/shader.h"
 #include "components/transform_component.h"
-#include "modules/render/render_primitives.h"
 #include "core/libs.h"
 #include "core/log.h"
 #include "constants.h"
@@ -28,7 +27,8 @@
 #include "platform/opengl/opengl_2d_renderer.h"
 #include "platform/opengl/opengl_3d_renderer.h"
 
-#include "modules/render/render_primitives.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 namespace aiko::native
 {
@@ -132,23 +132,11 @@ namespace aiko::native
         glDebugMessageCallback(opengl::onGlError, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 
-        // Init context
-        {
-            // TODO Extract this, into AikoCfg
-            RenderModule::RenderersCtx& renderers = getRenderers();
-            renderers.emplace(ContextType::Render2D, std::make_shared<Opengl2DRenderer>(this));
-            renderers.emplace(ContextType::Render3D, std::make_shared<Opengl3DRenderer>(this));
-        }
+        m_passthrought.load( "shaders/aiko_passthrought.vs", "shaders/aiko_passthrought.fs");
 
-        m_passthrought = createShader();
-        m_passthrought->load(
-            aiko::global::getAssetPath("shaders/aiko_passthrought.vs").c_str(),
-            aiko::global::getAssetPath("shaders/aiko_passthrought.fs").c_str()
-        );
-
-        m_passthrought->use();
-        m_passthrought->setInt("screenTexture", 0);
-        m_passthrought->unuse();
+        m_passthrought.use();
+        m_passthrought.setInt("screenTexture", 0);
+        m_passthrought.unuse();
 
         initScreenFbo();
 
@@ -194,8 +182,8 @@ namespace aiko::native
 
         glBindVertexArray(m_screenFbo.vao);
 
-        m_passthrought->use();
-        m_passthrought->setInt("screenTexture", 0);
+        m_passthrought.use();
+        m_passthrought.setInt("screenTexture", 0);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_screenFbo.renderTexture.texture.id);	// use the color attachment texture as the texture of the quad plane
@@ -204,7 +192,7 @@ namespace aiko::native
 
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindVertexArray(0);
-        m_passthrought->unuse();
+        m_passthrought.unuse();
 
     }
 

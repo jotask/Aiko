@@ -2,6 +2,10 @@
 
 #pragma once
 
+#define DISABLE_CODE
+
+#ifndef DISABLE_CODE
+
 #include <vector>
 
 #include "modules/render/3d_renderer.h"
@@ -28,4 +32,5 @@ namespace aiko
     };
 }
 
+#endif
 #endif

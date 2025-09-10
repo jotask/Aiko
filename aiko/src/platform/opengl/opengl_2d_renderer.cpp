@@ -2,6 +2,8 @@
 
 #include "opengl_2d_renderer.h"
 
+#ifndef DISABLE_CODE
+
 #include "core/libs.h"
 
 #include "components/transform_component.h"
@@ -84,4 +86,5 @@ namespace aiko
 
 }
 
+#endif
 #endif

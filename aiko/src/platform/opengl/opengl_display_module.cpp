@@ -7,6 +7,7 @@
 #include "core/log.h"
 
 #include "events/events.hpp"
+#include <GLFW/glfw3.h>
 
 namespace aiko::native
 {

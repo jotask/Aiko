@@ -15,11 +15,11 @@
 #include "models/mesh.h"
 #include "models/shader.h"
 #include "components/transform_component.h"
-#include "modules/render/render_primitives.h"
 #include "constants.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <stb_image.h>
 
 namespace aiko::native
 {
@@ -102,11 +102,14 @@ namespace aiko::native
         return m_screenFbo;
     }
 
-    texture::Texture OpenglRenderModule::createTexture()
+    texture::Texture OpenglRenderModule::createTexture(int width, int height)
     {
         // load and create a texture 
         // -------------------------
         texture::Texture texture;
+        texture.width = width;
+        texture.height = height;
+
         // texture 1
         // ---------
         glGenTextures(1, &texture.id);
@@ -145,6 +148,12 @@ namespace aiko::native
         return texture;
     }
 
+    texture::Texture OpenglRenderModule::loadTexture(const char*)
+    {
+        AIKO_DEBUG_BREAK
+        return { 0 };
+    }
+
     texture::PboTexture OpenglRenderModule::createPboTexture(uint16_t width, uint16_t height)
     {
         texture::PboTexture pbo;
@@ -181,7 +190,7 @@ namespace aiko::native
     void OpenglRenderModule::updatePboTexture(texture::PboTexture pbo, std::vector<Color>& pixels)
     {
 
-        assert(pbo.texture.width * pbo.texture.height == pixels.size(), "Oh dear this doesn't work at all!");
+        assert(pbo.texture.width * pbo.texture.height == pixels.size() && "Oh dear this doesn't work at all!");
 
         glBindTexture(GL_TEXTURE_2D, pbo.texture.id);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo.pbo);
@@ -237,18 +246,6 @@ namespace aiko::native
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-    }
-
-    void OpenglRenderModule::drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint)
-    {
-        int a = 10;
-    }
-
-    void OpenglRenderModule::drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint)
-    {
-        // glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_2D, texture.texture);
-        // glUniform1i(m_textureUniformID, 0);
     }
 
 }

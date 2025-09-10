@@ -74,11 +74,6 @@ namespace aiko
         return light;
     }
 
-    texture::Texture RenderSystem::createTexture()
-    {
-        return m_renderModule->createTexture();
-    }
-
     texture::PboTexture RenderSystem::createPboTexture(uint16_t width, uint16_t height)
     {
         return m_renderModule->createPboTexture(width, height);
@@ -152,6 +147,7 @@ namespace aiko
 
     void RenderSystem::render(texture::RenderTexture2D& target, Shader* shader)
     {
+        /*
         m_renderModule->beginShaderMode(shader);
 
         Camera* cam = this->getMainCamera();
@@ -168,6 +164,8 @@ namespace aiko
         m_renderModule->drawRenderTextureEx(target, vec2(), 0.0f, 1.0f, WHITE );
 
         m_renderModule->endShaderMode();
+        */
+        AIKO_DEBUG_BREAK
     }
 
     Camera* RenderSystem::getMainCamera()

@@ -22,25 +22,15 @@
 namespace aiko::native
 {
 
-    void OpenglRenderModule::refreshShader(Mesh*)
+    void OpenglRenderModule::refreshShader(Shader*)
     {
 
-    }
-
-    AikoPtr<Shader> OpenglRenderModule::createShader()
-    {
-        AikoPtr<Shader> shader = std::make_shared<Shader>();
-        shader->internalLoadShaderSrc = std::bind(&RenderModule::loadShaderSrc, this, std::placeholders::_1, std::placeholders::_2);
-        shader->internalLoadShaderData = std::bind(&RenderModule::loadShaderData, this, std::placeholders::_1, std::placeholders::_2);
-        shader->internalUnloadShaderData = std::bind(&RenderModule::unloadShader, this, std::placeholders::_1);
-        return shader;
     }
 
     aiko::ShaderData OpenglRenderModule::loadShaderData(const char* vertex, const char* fragment)
     {
         auto loadFile = [](const char* filename) -> string
             {
-
 
                 assert(filename != nullptr && "Shader file name can't be nullptr");
 
@@ -146,10 +136,22 @@ namespace aiko::native
 
     }
 
+    int OpenglRenderModule::loadShaderUniform(Shader* shader, const string& name, ShaderUniformDataType type)
+    {
+        AIKO_DEBUG_BREAK
+        return { 0 };
+    }
+
     void OpenglRenderModule::unloadShader(aiko::ShaderData& data)
     {
-        // TODO
+        AIKO_DEBUG_BREAK
     }
+
+    void OpenglRenderModule::setShaderUniform(Shader*, string name, vec4 value)
+    {
+        AIKO_DEBUG_BREAK
+    }
+
 
 }
 #endif

@@ -44,46 +44,47 @@ namespace aiko::native
     
     public:
 
-        void initMesh(Mesh*);
-        void refreshMesh(Mesh*);
-        void renderMesh(Camera*, Transform*, Mesh*, Shader*);
-        void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::Texture*);
+        virtual void initMesh(Mesh*) override;
+        virtual void refreshMesh(Mesh*) override;
+        virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*) override;
+        virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, Texture*) override;
+        virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::PboTexture*) override;
 
-        void refreshShader(Mesh*);
 
-        texture::RenderTexture2D* getRenderTexture();
+        virtual texture::RenderTexture2D* getRenderTexture() override;
 
-        void clearBackground(Color);
-        void beginMode2D();
-        void endMode2D();
-        void beginMode3D();
-        void endMode3D();
-        void beginTextureMode();
-        void beginTextureMode(texture::RenderTexture2D& target);
-        void endTextureMode(void);
-        void beginShaderMode(aiko::Shader* shader);
-        void endShaderMode(void);
-        void beginBlendMode(BlendMode);
-        void endBlendMode(void);
+        virtual void clearBackground(Color) override;
+        virtual void beginMode2D() override;
+        virtual void endMode2D() override;
+        virtual void beginMode3D() override;
+        virtual void endMode3D() override;
+        virtual void beginTextureMode() override;
+        virtual void beginTextureMode(texture::RenderTexture2D& target) override;
+        virtual void endTextureMode(void) override;
+        virtual void beginShaderMode(aiko::Shader* shader) override;
+        virtual void endShaderMode(void) override;
+        virtual void beginBlendMode(BlendMode) override;
+        virtual void endBlendMode(void) override;
 
-        void initScreenFbo();
-        texture::ScreenFbo getScreenFbo();
+        virtual void initScreenFbo() override;
+        virtual texture::ScreenFbo getScreenFbo() override;
 
         // Font
-        void drawText(string, float, float, float = 1.0f, Color = WHITE);
+        virtual void drawText(string, float, float, float = 1.0f, Color = WHITE) override;
 
         // Texture
-        texture::Texture createTexture();
-        texture::PboTexture createPboTexture(uint16_t, uint16_t);
-        void updatePboTexture(texture::PboTexture texture, std::vector<Color>&);
-        void drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint);
-        void drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint);
+        virtual texture::Texture createTexture(int width, int height) override;
+        virtual texture::Texture loadTexture(const char*) override;
+        virtual texture::PboTexture createPboTexture(uint16_t, uint16_t) override;
+        virtual void updatePboTexture(texture::PboTexture texture, std::vector<Color>&) override;
 
         // Shader
-        AikoPtr<Shader> createShader();
-        aiko::ShaderData loadShaderData(const char*, const char*);
-        aiko::ShaderData loadShaderSrc(const char*, const char*);
-        void unloadShader(aiko::ShaderData& );
+        virtual aiko::ShaderData loadShaderData(const char*, const char*) override;
+        virtual aiko::ShaderData loadShaderSrc(const char*, const char*) override;
+        virtual int loadShaderUniform(Shader* shader, const string& name, ShaderUniformDataType type) override;
+        virtual void setShaderUniform(Shader*, string name, vec4 value) override;
+        virtual void refreshShader(Shader*) override;
+        virtual void unloadShader(aiko::ShaderData& ) override;
 
     protected:
 

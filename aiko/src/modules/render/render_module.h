@@ -71,13 +71,10 @@ namespace aiko
         virtual void drawText(string, float, float, float = 1.0f, Color = WHITE) = 0;
 
         // Texture
-        virtual texture::Texture createTexture() = 0;
         virtual texture::Texture createTexture(int width, int height) = 0;
         virtual texture::Texture loadTexture(const char*) = 0;
         virtual texture::PboTexture createPboTexture(uint16_t, uint16_t) = 0;
         virtual void updatePboTexture(texture::PboTexture texture, std::vector<Color>&) = 0;
-        virtual void drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint) = 0;
-        virtual void drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint) = 0;
 
         // Shader
         virtual aiko::ShaderData loadShaderData(const char*, const char*) = 0;
