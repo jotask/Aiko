@@ -150,7 +150,8 @@ namespace aiko::bgfx
                     case ShaderUniformDataType::SHADER_UNIFORM_IVEC3:       return ::bgfx::UniformType::Vec4;
                     case ShaderUniformDataType::SHADER_UNIFORM_IVEC4:       return ::bgfx::UniformType::Vec4;
                     case ShaderUniformDataType::SHADER_UNIFORM_SAMPLER2D:   return ::bgfx::UniformType::Sampler;
-                    default:                                                return ::bgfx::UniformType::Vec4;
+                    case ShaderUniformDataType::SHADER_UNIFORM_MAT4:        return ::bgfx::UniformType::Mat4;
+                    default:                                                assert(false && "Shader not implmeneted");
                 }
             };
 

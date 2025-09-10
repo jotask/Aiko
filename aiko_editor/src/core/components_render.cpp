@@ -25,7 +25,6 @@ namespace aiko::editor
             Mesh,
             PboTexture,
             Texture,
-            Automaton,
         };
 
         std::vector<aiko::string> getComponents(aiko::GameObject* obj)
@@ -47,7 +46,6 @@ namespace aiko::editor
                 if (isComponent<aiko::MeshComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Mesh); continue; };
                 if (isComponent<aiko::GridXComponent>(tmp, pmt)) { addCmp(ComponentsTypes::GridX); continue; };
                 if (isComponent<aiko::LightComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Light); continue; };;
-                if (isComponent<aiko::ca::CellularAutomatonComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Automaton); continue; };
                 assert(false && "ERROR :: Component is not supported by the editor");
             }
             return tmp;
@@ -133,9 +131,6 @@ namespace aiko::editor
                 case ComponentsTypes::Texture:
                     obj->addComponent<::aiko::TextureComponent>();
                     break;
-                case ComponentsTypes::Automaton:
-                    obj->addComponent<::aiko::ca::CellularAutomatonComponent>();
-                    break;
                 default:
                     assert(false);
                     break;
@@ -152,7 +147,6 @@ namespace aiko::editor
             if (isComponent<aiko::LightComponent>(compt, drawLight)) return;
             if (isComponent<aiko::GridXComponent>(compt, drawGrid)) return;
             if (isComponent<aiko::CameraComponent>(compt, drawCamera)) return;
-            if (isComponent<aiko::ca::CellularAutomatonComponent>(compt, drawAutomaton)) return;
             assert(false && "ERROR :: Component is not supported by the editor");
         }
 
@@ -265,17 +259,6 @@ namespace aiko::editor
                 break;
             }
 
-            ImGui::PopID();
-        }
-
-        void drawAutomaton(aiko::ca::CellularAutomatonComponent* cmp)
-        {
-            ImGui::PushID(cmp);
-            ImGui::Text("CellularAutomatonComponent");
-            if (ImGui::Button("Regenerate"))
-            {
-                cmp->getWorld().regenerate();
-            }
             ImGui::PopID();
         }
 

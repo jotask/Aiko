@@ -29,13 +29,13 @@ namespace aiko
         mat4 scaleMatrix = math::scale(mat4(1.0f), scale);
 
         // Combine translation, rotation, and scale matrices to get the final transformation matrix
-        mat4 transformMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+        mat4 transformMatrix = translationMatrix * (rotationMatrix * scaleMatrix);
 
         // FIXME
-        // if (parent != nullptr)
-        // {
-        //     return parent->getMatrix() * transformMatrix;
-        // }
+        if (parent != nullptr)
+        {
+            return parent->getMatrix() * transformMatrix;
+        }
 
         return transformMatrix;
     }

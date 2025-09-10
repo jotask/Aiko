@@ -22,72 +22,123 @@ namespace aiko
 
     void RenderSystem::initPrimitives()
     {
-        mesh::generateQuad(m_quadMesh, WHITE);
-        refreshMesh(&m_quadMesh);
-        m_quadShader.load("primitive");
-        m_quadShader.preLoadUniforms({
+        m_quadShaderPrimitives.load("primitive");
+        m_quadShaderPrimitives.preLoadUniforms({
+            // {"u_modelViewProj", ShaderUniformDataType::SHADER_UNIFORM_MAT4},
             {"u_color", ShaderUniformDataType::SHADER_UNIFORM_VEC4},
             {"u_border", ShaderUniformDataType::SHADER_UNIFORM_FLOAT},
             {"u_border_thickness", ShaderUniformDataType::SHADER_UNIFORM_FLOAT}
         });
     }
 
-    void RenderSystem::drawPoint(vec3, Color)
+    void RenderSystem::setPrimitiveShaderData(bool border, float thickness, Color color)
     {
+        m_quadShaderPrimitives.setBool("u_border", border);
+        m_quadShaderPrimitives.setFloat("u_border_thickness", thickness);
+        m_quadShaderPrimitives.setVec4("u_color", { color.r, color.g, color.b, color.a });
     }
 
-    void RenderSystem::drawTriangle(vec3, float, Color)
+    void RenderSystem::drawPoint(vec3 pos, Color color, bool border, float thickness)
     {
+        aiko::Camera* camera = m_cameraSystem->getMainCamera();
+        Transform t;
+        t.position = pos;
+        Mesh mesh;
+        mesh::generateMeshSphere(mesh, 0.01f, 8, 8);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
     }
 
-    void RenderSystem::drawTriangle(vec3, vec3, vec3, Color)
+    void RenderSystem::drawTriangle(vec3, float, Color color, bool border, float thickness)
     {
+        setPrimitiveShaderData(border, thickness, color);
+        AIKO_DEBUG_BREAK
     }
 
-    void RenderSystem::drawRectangle(vec3 pos, vec3 size, Color color, bool border, float border_thickness)
+    void RenderSystem::drawTriangle(vec3, vec3, vec3, Color color, bool border, float thickness)
     {
+        setPrimitiveShaderData(border, thickness, color);
+        AIKO_DEBUG_BREAK
+    }
 
-        m_quadShader.setBool("u_border", border);
-        m_quadShader.setFloat("u_border_thickness", border_thickness);
-        m_quadShader.setVec4("u_color", { color.r, color.g, color. b, color.a});
+    void RenderSystem::drawRectangle(vec3 pos, vec3 size, Color color, bool border, float thickness)
+    {
+        setPrimitiveShaderData(border, thickness, color);
+        aiko::Camera* camera = m_cameraSystem->getMainCamera();
+        Transform t;
+        t.position = pos;
+        t.scale = size;
+        Mesh mesh;
+        mesh::generateQuad(mesh, WHITE);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices );
+    }
 
+    void RenderSystem::renderLine(vec3, vec3, Color color, bool border, float thickness)
+    {
+        setPrimitiveShaderData(border, thickness, color);
+        AIKO_DEBUG_BREAK
+    }
+
+    void RenderSystem::renderCircle(vec3, float, Color color, bool border, float thickness)
+    {
+        setPrimitiveShaderData(border, thickness, color);
+        AIKO_DEBUG_BREAK
+    }
+
+    void RenderSystem::renderNgon(vec3, float, unsigned int, Color color, bool border, float thickness)
+    {
+        setPrimitiveShaderData(border, thickness, color);
+        AIKO_DEBUG_BREAK
+    }
+
+    void RenderSystem::drawPyramid(vec3 pos, float baseWidth, float height, Color color, bool border, float thickness)
+    {
+        setPrimitiveShaderData(border, thickness, color);
+        aiko::Camera* camera = m_cameraSystem->getMainCamera();
+        Transform t;
+        t.position = pos;
+        Mesh mesh;
+        mesh::generatePyramid(mesh, baseWidth, height);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+    }
+
+    void RenderSystem::drawCube(vec3 pos, vec3 size, Color color, bool border, float thickness)
+    {
+        setPrimitiveShaderData(border, thickness, color);
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         t.position = pos;
         t.scale *= size;
-        m_renderModule->renderMesh(camera, &t, &m_quadMesh, &m_quadShader );
+        Mesh mesh;
+        mesh::generateCube(mesh);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
     }
 
-    void RenderSystem::renderLine(vec3, vec3, Color)
+    void RenderSystem::renderSphere(vec3 pos, float radius, int segments, Color color, bool border, float thickness)
     {
+        setPrimitiveShaderData(border, thickness, color);
+        aiko::Camera* camera = m_cameraSystem->getMainCamera();
+        Transform t;
+        t.position = pos;
+        Mesh mesh;
+        mesh::generateMeshSphere(mesh, radius, segments, segments);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
     }
 
-    void RenderSystem::renderCircle(vec3, float, int, Color)
+    void RenderSystem::renderPolygon(vec3, float, int rings, int sectors, Color color, bool border, float thickness)
     {
+        setPrimitiveShaderData(border, thickness, color);
+        AIKO_DEBUG_BREAK
     }
 
-    void RenderSystem::renderNgon(vec3, float, unsigned int, Color)
+    void RenderSystem::renderCylinder(vec3 pos, float radius, float height, int sectors, Color color, bool border, float thickness)
     {
-    }
-
-    void RenderSystem::drawPyramid(vec3, float baseWidth, float height, Color)
-    {
-    }
-
-    void RenderSystem::drawCube(vec3, vec3, Color)
-    {
-    }
-
-    void RenderSystem::renderSphere(vec3, float, int, Color)
-    {
-    }
-
-    void RenderSystem::renderPolygon(vec3, float, int rings, int sectors, Color)
-    {
-    }
-
-    void RenderSystem::renderCylinder(vec3 pos, float radius, float height, int sectors, Color)
-    {
+        setPrimitiveShaderData(border, thickness, color);
+        aiko::Camera* camera = m_cameraSystem->getMainCamera();
+        Transform t;
+        t.position = pos;
+        Mesh mesh;
+        mesh::generateMeshCylinder(mesh, radius, height, sectors);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
     }
 
 }

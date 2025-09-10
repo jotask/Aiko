@@ -54,6 +54,7 @@ namespace aiko::bgfx
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*) override;
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, Texture*) override;
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::PboTexture*) override;
+        virtual void renderTransientBuffer(Camera*, Transform*, Shader*, std::vector<float>*, std::vector<uint>*) override;
 
         virtual texture::RenderTexture2D* getRenderTexture() override;
 

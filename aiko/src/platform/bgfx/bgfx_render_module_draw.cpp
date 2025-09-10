@@ -142,5 +142,110 @@ namespace aiko::bgfx
 
     }
 
+    void BgfxRenderModule::renderTransientBuffer(Camera* cam, Transform* transform, Shader* shader, std::vector<float>* vertices, std::vector<uint>* indices)
+    {
+
+        const mat4 projMatrix = cam->getProjectionMatrix();
+        const mat4 viewMatrix = cam->getViewMatrix();
+        const mat4 modelMatrix = transform->getMatrix();
+
+        ::bgfx::setViewTransform(AIKO_TO_VIEWID(currentViewId), viewMatrix.data(), projMatrix.data());
+
+        constexpr const uint strides = 3 + 2 + 3;
+
+        const uint32_t numVertices = vertices->size() / strides;
+        const uint32_t numIndices = indices->size();
+
+        ::bgfx::VertexLayout ms_layout;
+        ms_layout
+            .begin()
+            .add(::bgfx::Attrib::Position, 3, ::bgfx::AttribType::Float)
+            .add(::bgfx::Attrib::TexCoord0, 2, ::bgfx::AttribType::Float)
+            .add(::bgfx::Attrib::Color0, 4, ::bgfx::AttribType::Uint8, true)
+            .end();
+
+        struct PosTexColorVertex
+        {
+            float x, y, z;   // position
+            float u, v;      // texcoord
+            uint32_t abgr;   // color
+        };
+
+        // Check if enough space is available for this frame
+        if (::bgfx::getAvailTransientVertexBuffer(numVertices, ms_layout) >= numVertices &&
+            ::bgfx::getAvailTransientIndexBuffer(numIndices) >= numIndices)
+        {
+            // Allocate per-frame buffers
+            ::bgfx::TransientVertexBuffer tvb;
+            ::bgfx::TransientIndexBuffer tib;
+
+            ::bgfx::allocTransientVertexBuffer(&tvb, numVertices, ms_layout);
+            ::bgfx::allocTransientIndexBuffer(&tib, numIndices);
+
+            // Vertices
+            PosTexColorVertex* verts = (PosTexColorVertex*)tvb.data;
+
+            for (size_t i = 0; i < numVertices; ++i)
+            {
+
+                const size_t base = i * strides;
+
+                PosTexColorVertex v{};
+                // position
+                v.x = (*vertices)[base + 0];
+                v.y = (*vertices)[base + 1];
+                v.z = (*vertices)[base + 2];
+
+                // uv
+                v.u = (*vertices)[base + 3];
+                v.v = (*vertices)[base + 4];
+
+                // color floats
+                float rf = (*vertices)[base + 5];
+                float gf = (*vertices)[base + 6];
+                float bf = (*vertices)[base + 7];
+
+                uint8_t r = static_cast<uint8_t>(rf * 255.0f);
+                uint8_t g = static_cast<uint8_t>(gf * 255.0f);
+                uint8_t b = static_cast<uint8_t>(bf * 255.0f);
+                uint8_t a = 255;
+
+                // pack to ABGR
+                v.abgr = (uint32_t(a) << 24) | (uint32_t(b) << 16) | (uint32_t(g) << 8) | uint32_t(r);
+
+                verts[i] = v;
+
+            }
+
+            // Fill indices
+
+            uint16_t* ind = (uint16_t*)tib.data;
+            for (size_t i = 0; i < numIndices; ++i)
+            {
+                ind[i] = (*indices)[i];
+            }
+
+            // Submit draw
+            ::bgfx::setVertexBuffer(0, &tvb);
+            ::bgfx::setIndexBuffer(&tib);
+
+            ::bgfx::setTransform(modelMatrix.data());
+
+            constexpr const uint64_t state = 0
+                | BGFX_STATE_WRITE_R
+                | BGFX_STATE_WRITE_G
+                | BGFX_STATE_WRITE_B
+                | BGFX_STATE_WRITE_A
+                | BGFX_STATE_WRITE_Z
+                | BGFX_STATE_DEPTH_TEST_LESS
+                // | BGFX_STATE_CULL_CW
+                | BGFX_STATE_MSAA
+                ;
+
+            ::bgfx::setState(state);
+            ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), AIKO_TO_PH(shader->getData()->id));
+        }
+    }
+
 }
 #endif

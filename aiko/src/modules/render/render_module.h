@@ -48,6 +48,7 @@ namespace aiko
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*) = 0;
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, Texture*) = 0;
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::PboTexture*) = 0;
+        virtual void renderTransientBuffer(Camera*, Transform*, Shader*, std::vector<float>*, std::vector<uint>*) = 0;
 
         virtual texture::RenderTexture2D* getRenderTexture() = 0;
 

@@ -70,31 +70,33 @@ namespace aiko
     //                   PRIMITIVES
     // ---------------------------------------------------
 
-    public:
-
         #define DEFAULT_2D_COLOR { 1.0f   , 0.686f , 0.8f    , 1.0f }
         #define DEFAULT_3D_COLOR { 1.0f   , 1.0f   , 1.0f    , 1.0f }
 
-        Shader m_quadShader;
-        Mesh m_quadMesh;
+        #define PRIMITIVE_FNT_DEFAULT_ARGS Color color = DEFAULT_2D_COLOR, bool border = false, float border_thickness = 0.05f
+        #define PRIMITIVE_FNT(method_name, ...) void method_name( __VA_ARGS__, PRIMITIVE_FNT_DEFAULT_ARGS ) 
 
+        Shader m_quadShaderPrimitives;
+        void setPrimitiveShaderData(bool border, float thickness, Color color);
         void initPrimitives();
 
-        // 2D
-        void drawPoint(vec3, Color = DEFAULT_2D_COLOR);
-        void drawTriangle(vec3, float, Color = DEFAULT_2D_COLOR);
-        void drawTriangle(vec3, vec3, vec3, Color = DEFAULT_2D_COLOR);
-        void drawRectangle(vec3, vec3, Color = DEFAULT_2D_COLOR, bool border = false, float border_thickness = 0.05f);
-        void renderLine(vec3, vec3, Color = DEFAULT_2D_COLOR);
-        void renderCircle(vec3, float, int = 50, Color = DEFAULT_2D_COLOR);
-        void renderNgon(vec3, float, unsigned int, Color = DEFAULT_2D_COLOR);
+    public:
+
+        // 2d
+        PRIMITIVE_FNT(drawPoint, vec3);
+        PRIMITIVE_FNT(drawTriangle, vec3, float);
+        PRIMITIVE_FNT(drawTriangle, vec3, vec3, vec3);
+        PRIMITIVE_FNT(drawRectangle, vec3, vec3);
+        PRIMITIVE_FNT(renderLine, vec3, vec3);
+        PRIMITIVE_FNT(renderCircle, vec3, float);
+        PRIMITIVE_FNT(renderNgon, vec3, float, uint);
 
         // 3d
-        void drawPyramid(vec3, float baseWidth, float height, Color = DEFAULT_3D_COLOR);
-        void drawCube(vec3, vec3, Color = DEFAULT_3D_COLOR);
-        void renderSphere(vec3, float, int = 25, Color = DEFAULT_3D_COLOR);
-        void renderPolygon(vec3, float, int rings, int sectors, Color = DEFAULT_3D_COLOR);
-        void renderCylinder(vec3 pos, float radius, float height, int sectors, Color = DEFAULT_3D_COLOR);
+        PRIMITIVE_FNT(drawPyramid, vec3, float baseWidth, float height);
+        PRIMITIVE_FNT(drawCube, vec3, vec3);
+        PRIMITIVE_FNT(renderSphere, vec3, float, int = 25);
+        PRIMITIVE_FNT(renderPolygon, vec3, float, int rings, int sectors);
+        PRIMITIVE_FNT(renderCylinder, vec3 pos, float radius, float height, int sectors);
 
     private:
 
