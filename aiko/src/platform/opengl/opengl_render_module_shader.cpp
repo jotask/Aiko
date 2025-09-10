@@ -15,6 +15,7 @@
 #include "models/mesh.h"
 #include "models/shader.h"
 #include "components/transform_component.h"
+#include "constants.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -34,11 +35,13 @@ namespace aiko::native
 
                 assert(filename != nullptr && "Shader file name can't be nullptr");
 
+                auto file_path = aiko::global::getAssetPath(filename);
+
                 try
                 {
                     std::ifstream shaderFile;
                     shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-                    shaderFile.open(filename);
+                    shaderFile.open(file_path);
                     std::stringstream shaderStream;
                     shaderStream << shaderFile.rdbuf();
                     shaderFile.close();
