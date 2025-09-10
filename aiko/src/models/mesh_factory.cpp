@@ -111,11 +111,11 @@ namespace aiko
 
         // Pyramids
 
-        void generatePyramid(Mesh& mesh, float base, float height)
+        void generatePyramid(Mesh& mesh)
         {
 
-            const float h2 = height / 2;
-            const float b2 = base / 2;
+            const float h2 = 1.0f / 2.0f;
+            const float b2 = 1.0f / 2.0f;
 
             mesh.m_vertices =
             {
@@ -143,12 +143,13 @@ namespace aiko
 
         // Sphere
 
-        void generateMeshSphere(Mesh& mesh, float radius, int rings, int slices)
+        void generateMeshSphere(Mesh& mesh, int rings, int slices)
         {
+
+            constexpr const float r2 = 1.0f / 2.0f;
+
             auto vertices = mesh.m_vertices;
             auto indices = mesh.m_indices;
-
-            float r2 = radius / 2;
 
             // Vertices
             for (int i = 0; i <= rings; ++i)
@@ -202,11 +203,11 @@ namespace aiko
 
         // Cylinder
 
-        void generateMeshCylinder(Mesh& mesh, float radius, float height, int slices)
+        void generateMeshCylinder(Mesh& mesh, int slices)
         {
 
-            const float halfHeight = height / 2.0f;
-            const float r2 = radius / 2;
+            constexpr const float r2 = 1.0f / 2.0f;
+            constexpr const float halfHeight = 1.0f / 2.0f;
 
             // Generate vertices
             for (int i = 0; i <= slices; ++i)
@@ -298,6 +299,67 @@ namespace aiko
             }
         }
 
+        // Circle
+        void generateCircle(Mesh& mesh, uint segments)
+        {
+            constexpr float radius = 1.0f / 2.0f;
+            constexpr Color color = WHITE;
+
+            mesh.m_vertices.reserve((segments + 1) * 8); // 8 floats per vertex (pos+uv+color)
+
+            // Center vertex
+            mesh.m_vertices.push_back(0.0f); // x
+            mesh.m_vertices.push_back(0.0f); // y
+            mesh.m_vertices.push_back(0.0f); // z
+            mesh.m_vertices.push_back(0.5f); // u
+            mesh.m_vertices.push_back(0.5f); // v
+            mesh.m_vertices.push_back(color.r);
+            mesh.m_vertices.push_back(color.g);
+            mesh.m_vertices.push_back(color.b);
+
+            // Circle perimeter vertices
+            for (int i = 0; i <= segments; ++i)
+            {
+                float angle = (2.0f * M_PI * i) / segments;
+                float x = cosf(angle) * radius;
+                float y = sinf(angle) * radius;
+
+                mesh.m_vertices.push_back(x);
+                mesh.m_vertices.push_back(y);
+                mesh.m_vertices.push_back(0.0f); // z
+                mesh.m_vertices.push_back(0.5f + 0.5f * cosf(angle)); // u
+                mesh.m_vertices.push_back(0.5f + 0.5f * sinf(angle)); // v
+                mesh.m_vertices.push_back(color.r);
+                mesh.m_vertices.push_back(color.g);
+                mesh.m_vertices.push_back(color.b);
+            }
+
+            // Indices (triangle fan)
+            mesh.m_indices.reserve(segments * 3);
+            for (uint16_t i = 1; i <= segments; ++i)
+            {
+                mesh.m_indices.push_back(0);       // center
+                mesh.m_indices.push_back(i);       // current perimeter
+                mesh.m_indices.push_back(i + 1);   // next perimeter (wraps around)
+            }
+        }
+
+        // Triangle
+        void generateTriangle(Mesh& mesh)
+        {
+            mesh.m_vertices =
+            {
+                -0.5f, -0.5f,  0.0f,       0.0f, 1.0f,        1.0f, 1.0f, 1.0f, // Top-left
+                 0.5f, -0.5f,  0.0f,       0.0f, 0.0f,        1.0f, 1.0f, 1.0f, // Bottom-left
+                 0.0f,  0.5f,  0.0f,       1.0f, 0.0f,        1.0f, 1.0f, 1.0f, // Bottom-right
+            };
+
+            mesh.m_indices =
+            {
+                0, 1, 2
+            };
+        }
+
         // Others
 
         void generateMeshPlane(Mesh& mesh, float width, float length, int resX, int resZ)
@@ -364,6 +426,173 @@ namespace aiko
 
         }
 
+        void generateMeshTorus(Mesh& mesh)
+        {
+
+            constexpr const float majorRadius   = 1.0f;
+            constexpr const float minorRadius   = 0.3f;
+            constexpr const uint radSeg         = 32;
+            constexpr const uint sides          = 16;
+            constexpr const Color color         = WHITE;
+
+            constexpr const float maxDiameter = 2.0f * (majorRadius + minorRadius);
+            constexpr const float scale = 1.0f / maxDiameter;
+
+            for (int i = 0; i <= radSeg; ++i)
+            {
+                float u = (float)i / radSeg * 2.0f * M_PI;
+                float cosU = cosf(u);
+                float sinU = sinf(u);
+
+                for (int j = 0; j <= sides; ++j)
+                {
+                    float v = (float)j / sides * 2.0f * M_PI;
+                    float cosV = cosf(v);
+                    float sinV = sinf(v);
+
+                    vec3 pos;
+                    pos.x = (majorRadius + minorRadius * cosV) * cosU;
+                    pos.y = minorRadius * sinV;
+                    pos.z = (majorRadius + minorRadius * cosV) * sinU;
+
+                    pos *= scale;
+
+                    float texU = (float)i / radSeg;
+                    float texV = (float)j / sides;
+
+                    mesh.m_vertices.push_back(pos.x);
+                    mesh.m_vertices.push_back(pos.y);
+                    mesh.m_vertices.push_back(pos.z);
+                    mesh.m_vertices.push_back(texU);
+                    mesh.m_vertices.push_back(texV);
+                    mesh.m_vertices.push_back(color.r);
+                    mesh.m_vertices.push_back(color.g);
+                    mesh.m_vertices.push_back(color.b);
+                }
+            }
+
+            // Indices
+            for (int i = 0; i < radSeg; ++i)
+            {
+                for (int j = 0; j < sides; ++j)
+                {
+                    int first = i * (sides + 1) + j;
+                    int second = first + sides + 1;
+
+                    mesh.m_indices.push_back(first);
+                    mesh.m_indices.push_back(second);
+                    mesh.m_indices.push_back(first + 1);
+
+                    mesh.m_indices.push_back(second);
+                    mesh.m_indices.push_back(second + 1);
+                    mesh.m_indices.push_back(first + 1);
+                }
+            }
+        }
+
+        void generateMeshKnot(Mesh& mesh)
+        {
+
+            constexpr const int p = 2;
+            constexpr const int q = 3;
+            constexpr const float radius = 1.0f;
+            constexpr const float tube = 0.2f;
+            constexpr const int radSeg = 128;
+            constexpr const int sides = 16;
+            constexpr const Color color = WHITE;
+
+            constexpr const float size = 1.0f;
+
+            // Store temporary vertices before scaling
+            std::vector<vec3> positions;
+            positions.reserve((radSeg + 1) * (sides + 1));
+
+            for (int i = 0; i <= radSeg; ++i)
+            {
+                float t = (float)i / radSeg * 2.0f * M_PI;
+
+                // Torus knot center point
+                float x = (radius + tube * cosf(q * t)) * cosf(p * t);
+                float y = (radius + tube * cosf(q * t)) * sinf(p * t);
+                float z = tube * sinf(q * t);
+
+                // Tangent along the knot
+                float dx = -p * (radius + tube * cosf(q * t)) * sinf(p * t) - tube * q * sinf(q * t) * cosf(p * t);
+                float dy = p * (radius + tube * cosf(q * t)) * cosf(p * t) - tube * q * sinf(q * t) * sinf(p * t);
+                float dz = tube * q * cosf(q * t);
+                vec3 tangent = math::normalize(vec3(dx, dy, dz));
+
+                // Perpendicular frame
+                vec3 normal = math::normalize(math::cross(tangent, vec3(0, 0, 1)));
+                vec3 binormal = math::cross(tangent, normal);
+
+                for (int j = 0; j <= sides; ++j)
+                {
+                    float phi = (float)j / sides * 2.0f * M_PI;
+                    float cx = cosf(phi) * tube;
+                    float cy = sinf(phi) * tube;
+
+                    vec3 pos = vec3(x, y, z) + normal * cx + binormal * cy;
+                    positions.push_back(pos);
+                }
+            }
+
+            // Find bounding box and compute scale
+            vec3 minV(FLT_MAX), maxV(-FLT_MAX);
+            for (auto& p : positions)
+            {
+                minV.x = std::min(minV.x, p.x);
+                minV.y = std::min(minV.y, p.y);
+                minV.z = std::min(minV.z, p.z);
+
+                maxV.x = std::max(maxV.x, p.x);
+                maxV.y = std::max(maxV.y, p.y);
+                maxV.z = std::max(maxV.z, p.z);
+            }
+            float maxExtent = std::max({ maxV.x - minV.x, maxV.y - minV.y, maxV.z - minV.z });
+            float scale = size / maxExtent;
+
+            // Write final vertices into mesh
+            int idx = 0;
+            for (int i = 0; i <= radSeg; ++i)
+            {
+                for (int j = 0; j <= sides; ++j)
+                {
+                    vec3 pos = positions[idx++] * scale;
+
+                    float u = (float)i / radSeg;
+                    float v = (float)j / sides;
+
+                    mesh.m_vertices.push_back(pos.x);
+                    mesh.m_vertices.push_back(pos.y);
+                    mesh.m_vertices.push_back(pos.z);
+                    mesh.m_vertices.push_back(u);
+                    mesh.m_vertices.push_back(v);
+                    mesh.m_vertices.push_back(color.r);
+                    mesh.m_vertices.push_back(color.g);
+                    mesh.m_vertices.push_back(color.b);
+                }
+            }
+
+            // Indices
+            for (int i = 0; i < radSeg; ++i)
+            {
+                for (int j = 0; j < sides; ++j)
+                {
+                    int first = i * (sides + 1) + j;
+                    int second = first + sides + 1;
+
+                    mesh.m_indices.push_back(first);
+                    mesh.m_indices.push_back(second);
+                    mesh.m_indices.push_back(first + 1);
+
+                    mesh.m_indices.push_back(second);
+                    mesh.m_indices.push_back(second + 1);
+                    mesh.m_indices.push_back(first + 1);
+                }
+            }
+        }
+
         // 2D
 
         void generatePoint(Mesh& mesh)
@@ -390,37 +619,6 @@ namespace aiko
 
         }
 
-        /*
-        Mesh generateMeshPoly(int sides, float radius)
-        {
-            ::Mesh m = ::GenMeshPoly(sides, radius);
-            return raylib::utils::toMesh( m );
-        }
-
-        Mesh generateMeshCylinder(float radius, float height, int slices)
-        {
-            ::Mesh m = ::GenMeshCylinder( radius, height, slices);
-            return raylib::utils::toMesh(m);
-        }
-
-        Mesh generateMeshCone(float radius, float height, int slices)
-        {
-            ::Mesh m = ::GenMeshCone( radius, height, slices);
-            return raylib::utils::toMesh(m);
-        }
-
-        Mesh generateMeshTorus(float radius, float size, int radSeg, int sides)
-        {
-            ::Mesh m = ::GenMeshTorus( radius, size, radSeg, sides);
-            return raylib::utils::toMesh(m);
-        }
-
-        Mesh generateMeshKnot(float radius, float size, int radSeg, int sides)
-        {
-            ::Mesh m = ::GenMeshKnot( radius, size, radSeg, sides);
-            return raylib::utils::toMesh(m);
-        }
-        */
     }
 
 }

@@ -231,7 +231,7 @@ namespace aiko::bgfx
 
             ::bgfx::setTransform(modelMatrix.data());
 
-            constexpr const uint64_t state = 0
+            uint64_t state = 0
                 | BGFX_STATE_WRITE_R
                 | BGFX_STATE_WRITE_G
                 | BGFX_STATE_WRITE_B
@@ -241,6 +241,15 @@ namespace aiko::bgfx
                 // | BGFX_STATE_CULL_CW
                 | BGFX_STATE_MSAA
                 ;
+
+            if (numVertices == 1)
+            {
+                state |= BGFX_STATE_PT_POINTS;
+            }
+            else if (numVertices == 2)
+            {
+                state |= BGFX_STATE_PT_LINES;
+            }
 
             ::bgfx::setState(state);
             ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), AIKO_TO_PH(shader->getData()->id));

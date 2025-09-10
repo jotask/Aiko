@@ -83,20 +83,23 @@ namespace aiko
     public:
 
         // 2d
-        PRIMITIVE_FNT(drawPoint, vec3);
-        PRIMITIVE_FNT(drawTriangle, vec3, float);
-        PRIMITIVE_FNT(drawTriangle, vec3, vec3, vec3);
-        PRIMITIVE_FNT(drawRectangle, vec3, vec3);
-        PRIMITIVE_FNT(renderLine, vec3, vec3);
-        PRIMITIVE_FNT(renderCircle, vec3, float);
-        PRIMITIVE_FNT(renderNgon, vec3, float, uint);
+        PRIMITIVE_FNT(drawPoint, vec3 pos);
+        PRIMITIVE_FNT(renderLine, vec3 start, vec3 end);
+
+        PRIMITIVE_FNT(drawTriangle, vec3 pos, vec3 size);
+        PRIMITIVE_FNT(drawRectangle, vec3 pos, vec3 size);
+        PRIMITIVE_FNT(renderCircle, vec3 pos, vec3 size);
+        PRIMITIVE_FNT(renderNgon, vec3 pos, vec3 size, uint polygons);
 
         // 3d
-        PRIMITIVE_FNT(drawPyramid, vec3, float baseWidth, float height);
-        PRIMITIVE_FNT(drawCube, vec3, vec3);
-        PRIMITIVE_FNT(renderSphere, vec3, float, int = 25);
-        PRIMITIVE_FNT(renderPolygon, vec3, float, int rings, int sectors);
-        PRIMITIVE_FNT(renderCylinder, vec3 pos, float radius, float height, int sectors);
+        PRIMITIVE_FNT(drawPyramid, vec3 pos, vec3 size);
+        PRIMITIVE_FNT(drawCube, vec3 pos, vec3 size);
+        PRIMITIVE_FNT(renderSphere, vec3 pos, vec3 size, int = 25);
+        PRIMITIVE_FNT(renderPolygon, vec3 pos, vec3 size, int rings, int sectors);
+        PRIMITIVE_FNT(renderCylinder, vec3 pos, vec3 size, uint sectors);
+
+        PRIMITIVE_FNT(renderTorus, vec3 pos, vec3 size);
+        PRIMITIVE_FNT(renderKnot, vec3 pos, vec3 size);
 
     private:
 

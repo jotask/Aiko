@@ -73,29 +73,29 @@ namespace sandbox
 
         const aiko::vec3 position = { 0.0f,  0.0f, 0.0f };
         const aiko::vec3 size = { 1.0f, 1.0f, 1.0f };
-        // getRenderSystem()->drawRectangle(position, size);
 
 #if true
-
-        static aiko::vec3 circlePosition = { -0.5f,  0.0f, 0.0f };
-        static aiko::vec3 trianglePosition = { 0.0f, -0.5f, 0.0f };
-        static aiko::vec3 rectanglePosition = { 0.5f, 0.0f, 0.0f };
 
         constexpr const float SIZE = 1.0f;
 
         // 2D
-        getRenderSystem()->drawRectangle({ 0.0f, 1.0f, 0.0f }, aiko::vec3(SIZE));
         getRenderSystem()->drawPoint({ 1.0f, 1.0f, 0.0f });
-        // getRenderSystem()->renderLine(aiko::vec3(-1, 0, 0), aiko::vec3(1, 0, 0));
-        // getRenderSystem()->renderCircle(circlePosition, 0.1);
-        // getRenderSystem()->drawTriangle(trianglePosition, 0.25f);
-        // getRenderSystem()->renderNgon(aiko::vec3(0.5f, 0.0f, 0.0f), 0.25f, 6);
+        getRenderSystem()->renderLine({ -2.0f, -1.0f, 0.0f }, { 2.0f, -1.0f, 0.0f });
+
+        getRenderSystem()->drawRectangle({ 0.0f, 1.0f, 0.0f }, SIZE);
+        getRenderSystem()->renderCircle({ 2.0f, 1.0f, 0.0f }, SIZE);
+        getRenderSystem()->drawTriangle({ -1.0f, 1.0f, 0.0f }, SIZE);
+        getRenderSystem()->renderNgon({ -2.0f, 1.0f, 0.0f }, SIZE, 6);
 
         // 3D
-        getRenderSystem()->renderSphere({ -1.0f, 0.0f, 0.0f }, SIZE);
+        getRenderSystem()->drawCube({ 1.0f, 0.0f, 0.0f }, SIZE);
         getRenderSystem()->drawPyramid({ 0.0f, 0.0f, 0.0f }, SIZE, SIZE);
-        getRenderSystem()->drawCube({ 1.0f, 0.0f, 0.0f }, aiko::vec3(SIZE));
-        getRenderSystem()->renderCylinder({ -2.0f, 0.0f, 0.0f }, 1.0f, 1.0f, 10);
+        getRenderSystem()->renderSphere({ -1.0f, 0.0f, 0.0f }, SIZE);
+        getRenderSystem()->renderCylinder({ -2.0f, 0.0f, 0.0f }, SIZE, 10);
+        getRenderSystem()->renderPolygon({ -3.0f, 0.0f, 0.0f }, SIZE, 5, 5);
+
+        getRenderSystem()->renderTorus({ 2.0f, 0.0f, 0.0f }, SIZE);
+        getRenderSystem()->renderKnot({ 3.0f, 0.0f, 0.0f }, SIZE);
 
 #endif
 
