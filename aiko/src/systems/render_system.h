@@ -85,7 +85,7 @@ namespace aiko
         void drawPoint(vec3, Color = DEFAULT_2D_COLOR);
         void drawTriangle(vec3, float, Color = DEFAULT_2D_COLOR);
         void drawTriangle(vec3, vec3, vec3, Color = DEFAULT_2D_COLOR);
-        void drawRectangle(vec3, vec3, Color = DEFAULT_2D_COLOR);
+        void drawRectangle(vec3, vec3, Color = DEFAULT_2D_COLOR, bool border = false, float border_thickness = 0.05f);
         void renderLine(vec3, vec3, Color = DEFAULT_2D_COLOR);
         void renderCircle(vec3, float, int = 50, Color = DEFAULT_2D_COLOR);
         void renderNgon(vec3, float, unsigned int, Color = DEFAULT_2D_COLOR);

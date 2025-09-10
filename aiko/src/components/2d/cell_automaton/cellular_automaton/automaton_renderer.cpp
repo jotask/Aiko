@@ -25,19 +25,6 @@ namespace aiko::ca
 
         void AutomatonRender::render(WorldCellularAutomaton* world)
         {
-
-            auto cam = m_renderSystem->getMainCamera();
-
-            Color randomColor = Color::getRandomColor();
-            randomColor.a = 1.0f;
-
-            vec2 pos = {0};
-            vec2 size = {100};
-
-            m_renderSystem->drawRectangle(pos, size, randomColor);
-
-            return;
-
             for (auto& chunk : world->getChunks())
             {
                 drawChunk(&chunk);
@@ -48,11 +35,11 @@ namespace aiko::ca
         {
 
             auto cam = m_renderSystem->getMainCamera();
-            ivec2 chunkPosition = chunk->getPosition() * cellautomaton::SIZE_CHUNK;
+            ivec2 chunkPosition = chunk->getPosition();
             if (s_render_cells == false)
             {
                 Color randomColor = Color::getRandomColor();
-                randomColor.a = 0.25f;
+                randomColor.a = 1.0f;
                 m_renderSystem->drawRectangle(chunkPosition, cellautomaton::SIZE_CHUNK , randomColor );
                 return;
             }

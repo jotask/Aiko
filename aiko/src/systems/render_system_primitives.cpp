@@ -40,12 +40,12 @@ namespace aiko
     {
     }
 
-    void RenderSystem::drawRectangle(vec3 pos, vec3 size, Color color)
+    void RenderSystem::drawRectangle(vec3 pos, vec3 size, Color color, bool border, float border_thickness)
     {
 
-        m_quadShader.setBool("u_border", true);
-        m_quadShader.setFloat("u_border_thickness", 0.05f);
-        m_quadShader.setVec4("u_color", { 1.0f, 1.0f, 1.0f, 1.0f});
+        m_quadShader.setBool("u_border", border);
+        m_quadShader.setFloat("u_border_thickness", border_thickness);
+        m_quadShader.setVec4("u_color", { color.r, color.g, color. b, color.a});
 
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
