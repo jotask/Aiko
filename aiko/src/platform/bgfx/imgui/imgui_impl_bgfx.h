@@ -1,3 +1,5 @@
+#ifdef AIKO_BGFX
+
 // Derived from this Gist by Richard Gale:
 //     https://gist.github.com/RichardGale/6e2b74bc42b3005e08397236e4be0fd0
 
@@ -18,3 +20,5 @@ void ImGui_Implbgfx_RenderDrawLists(struct ImDrawData* draw_data);
 // Use if you want to reset your rendering device without losing ImGui state.
 void ImGui_Implbgfx_InvalidateDeviceObjects();
 bool ImGui_Implbgfx_CreateDeviceObjects();
+
+#endif

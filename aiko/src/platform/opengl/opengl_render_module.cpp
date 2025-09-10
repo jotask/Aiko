@@ -133,6 +133,7 @@ namespace aiko::native
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 
         m_passthrought.load( "shaders/aiko_passthrought.vs", "shaders/aiko_passthrought.fs");
+        m_passthrought.preLoadUniforms({ {"screenTexture", ShaderUniformDataType::SHADER_UNIFORM_SAMPLER2D }});
 
         m_passthrought.use();
         m_passthrought.setInt("screenTexture", 0);
@@ -349,7 +350,7 @@ namespace aiko::native
     void OpenglRenderModule::beginShaderMode(aiko::Shader* shader)
     {
         glDisable(GL_CULL_FACE);
-        shader->use();
+        glUseProgram(shader->getData()->id);
     }
 
     void OpenglRenderModule::endShaderMode(void)

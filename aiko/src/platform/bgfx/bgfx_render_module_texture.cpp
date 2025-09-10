@@ -222,15 +222,5 @@ namespace aiko::bgfx
         );
     }
 
-    void BgfxRenderModule::drawTextureEx(texture::Texture texture, vec2 position, float rotation, float scale, Color tint)
-    {
-        AIKO_DEBUG_BREAK
-    }
-
-    void BgfxRenderModule::drawRenderTextureEx(texture::RenderTexture2D texture, vec2 position, float rotation, float scale, Color tint)
-    {
-        AIKO_DEBUG_BREAK
-    }
-
 }
 #endif

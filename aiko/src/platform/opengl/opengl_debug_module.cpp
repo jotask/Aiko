@@ -1,9 +1,11 @@
+#ifdef AIKO_NATIVE
+
 #include "modules/debug_module.h"
 
 #include <bgfx/bgfx.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
-#include "imgui/imgui_impl_bgfx.h"
+#include <imgui_impl_opengl3.h>
 
 #include "models/time.h"
 #include "aiko_types.h"
@@ -35,10 +37,8 @@ namespace aiko
 
         GLFWwindow* window = (GLFWwindow*)m_displayModule->getNativeDisplay();
 
-        ::bgfx::ViewId m_kView = 0;
-
         ImGui_ImplGlfw_InitForOther(window, true);
-        ImGui_Implbgfx_Init(m_kView);
+        ImGui_ImplOpenGL3_Init();
 
         EventSystem::it().bind<WindowResizeEvent>(this, &DebugModule::onKeyPressed);
 
@@ -49,7 +49,7 @@ namespace aiko
     void DebugModule::beginFrame()
     {
         // Start the Dear ImGui frame
-        ImGui_Implbgfx_NewFrame();
+        ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
     }
@@ -59,7 +59,7 @@ namespace aiko
         // FIXME
         // glBindFramebuffer(GL_FRAMEBUFFER, 0);
         ImGui::Render();
-        ImGui_Implbgfx_RenderDrawLists(ImGui::GetDrawData());
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
     void DebugModule::onKeyPressed(Event& event)
@@ -69,3 +69,5 @@ namespace aiko
     }
 
 }
+
+#endif

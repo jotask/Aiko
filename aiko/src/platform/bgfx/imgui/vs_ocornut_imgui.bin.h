@@ -1,3 +1,5 @@
+#ifdef AIKO_BGFX
+
 static const uint8_t vs_ocornut_imgui_glsl[460] =
 {
 	0x56, 0x53, 0x48, 0x0b, 0x00, 0x00, 0x00, 0x00, 0x01, 0x83, 0xf2, 0xe1, 0x01, 0x00, 0x0a, 0x75, // VSH............u
@@ -276,3 +278,5 @@ static const uint8_t vs_ocornut_imgui_mtl[855] =
 };
 extern const uint8_t* vs_ocornut_imgui_pssl;
 extern const uint32_t vs_ocornut_imgui_pssl_size;
+
+#endif

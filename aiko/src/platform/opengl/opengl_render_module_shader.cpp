@@ -119,7 +119,7 @@ namespace aiko::native
 
             GLint size; // size of the variable
             GLenum type; // type of the variable (float, vec3 or mat4, etc)
-
+            
             const GLsizei bufSize = 128; // maximum name length
             GLchar name[bufSize]; // variable name in GLSL
             GLsizei length; // name length
@@ -141,8 +141,12 @@ namespace aiko::native
 
     int OpenglRenderModule::loadShaderUniform(Shader* shader, const string& name, ShaderUniformDataType type)
     {
-        AIKO_DEBUG_BREAK
-        return { 0 };
+        GLint location = glGetUniformLocation(shader->getData()->id, name.c_str());
+        if (location == -1)
+        {
+            Log::error() << "Warning: uniform 'uTime' not found!";
+        }
+        return location;
     }
 
     void OpenglRenderModule::unloadShader(aiko::ShaderData& data)
@@ -150,9 +154,14 @@ namespace aiko::native
         AIKO_DEBUG_BREAK
     }
 
-    void OpenglRenderModule::setShaderUniform(Shader*, string name, vec4 value)
+    void OpenglRenderModule::setShaderUniform(Shader* shader, string name, vec4 value)
     {
-        AIKO_DEBUG_BREAK
+        const int location = shader->getUniformLocation(name);
+        if (location == -1)
+        {
+            std::cout << "Warning: uniform 'uTime' not found!" << std::endl;
+        }
+        glUniform1f(location, 3.14f);   // float
     }
 
 

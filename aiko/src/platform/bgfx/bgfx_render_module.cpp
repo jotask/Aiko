@@ -26,6 +26,9 @@
 #include <bgfx/bgfx.h>
 #include <bx/bx.h>
 #include <bgfx/platform.h>
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 #include "platform/bgfx/bgfx_platform_helper.h"
 

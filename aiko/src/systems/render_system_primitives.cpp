@@ -25,7 +25,11 @@ namespace aiko
         mesh::generateQuad(m_quadMesh, WHITE);
         refreshMesh(&m_quadMesh);
         m_quadShader.load("primitive");
-        m_quadShader.preLoadUniforms({ {"u_color", ShaderUniformDataType::SHADER_UNIFORM_FLOAT}, { "u_border", ShaderUniformDataType::SHADER_UNIFORM_FLOAT }, {"u_border_thickness", ShaderUniformDataType::SHADER_UNIFORM_FLOAT} });
+        m_quadShader.preLoadUniforms({
+            {"u_color", ShaderUniformDataType::SHADER_UNIFORM_VEC4},
+            {"u_border", ShaderUniformDataType::SHADER_UNIFORM_FLOAT },
+            {"u_border_thickness", ShaderUniformDataType::SHADER_UNIFORM_FLOAT}
+            });
     }
 
     void RenderSystem::drawPoint(vec3, Color)

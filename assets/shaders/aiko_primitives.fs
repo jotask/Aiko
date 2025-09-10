@@ -38,6 +38,10 @@ out vec4 FragColor;
 
 #define NR_POINT_LIGHTS 4
 
+uniform vec4 u_color;
+uniform float u_border;
+uniform float u_border_thickness;
+
 uniform Light lights[NR_POINT_LIGHTS];
 uniform int numLights;
 
@@ -151,6 +155,6 @@ void main()
 
     vec3 finalColor = ambientLight * lighting;
 
-    FragColor = vec4(finalColor, 1.0);
+    FragColor = vec4(finalColor, 1.0) * u_color;
 
 }

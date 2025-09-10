@@ -89,7 +89,7 @@ namespace aiko
 
     void Shader::setInt(const string& name, int value)
     {
-        AIKO_DEBUG_BREAK
+        s_renderModule->setShaderUniform(this, name, value);
     }
 
     void Shader::setFloat(const string& name, float value)
@@ -133,12 +133,12 @@ namespace aiko
 
     void Shader::use()
     {
-        AIKO_DEBUG_BREAK
+        s_renderModule->beginShaderMode(this);
     }
 
     void Shader::unuse()
     {
-        AIKO_DEBUG_BREAK
+        s_renderModule->endShaderMode();
     }
 
     aiko::ShaderData* Shader::getData()

@@ -1,3 +1,5 @@
+#ifdef AIKO_BGFX
+
 static const uint8_t fs_ocornut_imgui_glsl[189] =
 {
 	0x46, 0x53, 0x48, 0x0b, 0x01, 0x83, 0xf2, 0xe1, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x05, 0x73, // FSH............s
@@ -184,3 +186,5 @@ static const uint8_t fs_ocornut_imgui_mtl[609] =
 };
 extern const uint8_t* fs_ocornut_imgui_pssl;
 extern const uint32_t fs_ocornut_imgui_pssl_size;
+
+#endif
