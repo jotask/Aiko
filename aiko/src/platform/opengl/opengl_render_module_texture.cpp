@@ -104,6 +104,7 @@ namespace aiko::native
 
     texture::Texture OpenglRenderModule::createTexture(int width, int height)
     {
+
         // load and create a texture 
         // -------------------------
         texture::Texture texture;
@@ -146,6 +147,7 @@ namespace aiko::native
         stbi_image_free(data);
 
         return texture;
+
     }
 
     texture::Texture OpenglRenderModule::loadTexture(const char*)
