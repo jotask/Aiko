@@ -17,7 +17,6 @@
 #include "components/pbo_texture_component.h"
 #include "components/grid_component.h"
 #include "components/2d/sprite_component.h"
-#include "components/2d/cell_automaton/cellular_automaton_component.h"
 
 #include "models/shader.h"
 #include "models/mesh.h"

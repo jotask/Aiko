@@ -2,6 +2,8 @@
 
 #include <aiko_includes.h>
 
+#include "cell_automaton_component/cellular_automaton_component.h"
+
 namespace aiko::ca
 {
 
