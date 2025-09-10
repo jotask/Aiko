@@ -73,6 +73,7 @@ namespace aiko::native
         virtual void drawText(string, float, float, float = 1.0f, Color = WHITE) override;
 
         // Texture
+        virtual texture::Texture createTexture() override;
         virtual texture::Texture createTexture(int width, int height) override;
         virtual texture::Texture loadTexture(const char*) override;
         virtual texture::PboTexture createPboTexture(uint16_t, uint16_t) override;

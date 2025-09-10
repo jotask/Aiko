@@ -132,7 +132,7 @@ namespace aiko::native
         glDebugMessageCallback(opengl::onGlError, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 
-        m_passthrought.load( "shaders/aiko_passthrought.vs", "shaders/aiko_passthrought.fs");
+        m_passthrought.load("passthrought");
         m_passthrought.preLoadUniforms({ {"screenTexture", ShaderUniformDataType::SHADER_UNIFORM_SAMPLER2D }});
 
         m_passthrought.use();

@@ -104,6 +104,11 @@ namespace aiko::native
         return m_screenFbo;
     }
 
+    texture::Texture OpenglRenderModule::createTexture()
+    {
+        return createTexture(1, 1);
+    }
+
     texture::Texture OpenglRenderModule::createTexture(int width, int height)
     {
 

@@ -34,8 +34,8 @@ namespace aiko::native
             {
 
                 assert(filename != nullptr && "Shader file name can't be nullptr");
-
-                auto file_path = aiko::global::getAssetPath(filename);
+                string path = std::string("shaders/native/") + filename;
+                auto file_path = aiko::global::getAssetPath(path.c_str());
 
                 try
                 {
