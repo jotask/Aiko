@@ -143,7 +143,7 @@ namespace aiko::bgfx
 
     }
 
-    void BgfxRenderModule::renderTransientBuffer(Camera* cam, Transform* transform, Shader* shader, std::vector<float>* vertices, std::vector<uint>* indices)
+    void BgfxRenderModule::renderTransientBuffer(Camera* cam, Transform* transform, Shader* shader, Mesh* mesh)
     {
 
         const mat4 projMatrix = cam->getProjectionMatrix();
@@ -152,10 +152,8 @@ namespace aiko::bgfx
 
         ::bgfx::setViewTransform(AIKO_TO_VIEWID(currentViewId), viewMatrix.data(), projMatrix.data());
 
-        constexpr const uint strides = 3 + 2 + 3;
-
-        const uint32_t numVertices = vertices->size() / strides;
-        const uint32_t numIndices = indices->size();
+        const uint32_t numVertices = mesh->m_vertices.size();
+        const uint32_t numIndices  = mesh->m_indices.size();
 
         // Check if enough space is available for this frame
         if (::bgfx::getAvailTransientVertexBuffer(numVertices, shared::s_global_layout) >= numVertices &&
@@ -170,45 +168,18 @@ namespace aiko::bgfx
 
             // Vertices
             shared::VertexInformation* verts = (shared::VertexInformation*)tvb.data;
-
+            const auto localVertex = shared::convertToBgfxVertex(*mesh);
             for (size_t i = 0; i < numVertices; ++i)
             {
-
-                const size_t base = i * strides;
-
-                shared::VertexInformation v{};
-                // position
-                v.x = (*vertices)[base + 0];
-                v.y = (*vertices)[base + 1];
-                v.z = (*vertices)[base + 2];
-
-                // uv
-                v.u = (*vertices)[base + 3];
-                v.v = (*vertices)[base + 4];
-
-                // color floats
-                float rf = (*vertices)[base + 5];
-                float gf = (*vertices)[base + 6];
-                float bf = (*vertices)[base + 7];
-
-                uint8_t r = static_cast<uint8_t>(rf * 255.0f);
-                uint8_t g = static_cast<uint8_t>(gf * 255.0f);
-                uint8_t b = static_cast<uint8_t>(bf * 255.0f);
-                uint8_t a = 255;
-
-                // pack to ABGR
-                v.abgr = (uint32_t(a) << 24) | (uint32_t(b) << 16) | (uint32_t(g) << 8) | uint32_t(r);
-
-                verts[i] = v;
-
+                verts[i] = localVertex[i];
             }
 
-            // Fill indices
-
+            // Indices
             uint16_t* ind = (uint16_t*)tib.data;
+            const auto localIndice = shared::convertToBgfxIndices(*mesh);
             for (size_t i = 0; i < numIndices; ++i)
             {
-                ind[i] = (*indices)[i];
+                ind[i] = localIndice[i];
             }
 
             // Submit draw

@@ -48,18 +48,8 @@ namespace aiko::bgfx
 
         auto convertIndexBufferFromMesh = [](Mesh* mesh) -> ::bgfx::IndexBufferHandle
             {
-                if(!mesh || mesh->m_indices.empty())
-                {
-                    return ::bgfx::IndexBufferHandle{ { ::bgfx::kInvalidHandle } };
-                }
-
-                std::vector<uint16_t> indices16;
-                indices16.reserve(mesh->m_indices.size());
-                for (uint32_t idx : mesh->m_indices)
-                {
-                    indices16.push_back(static_cast<uint16_t>(idx));
-                }
-                const ::bgfx::Memory* mem = ::bgfx::copy(indices16.data(), static_cast<uint32_t>(indices16.size() * sizeof(uint16_t)));
+                auto indices = shared::convertToBgfxIndices(*mesh);
+                const ::bgfx::Memory* mem = ::bgfx::copy(indices.data(), static_cast<uint32_t>(indices.size() * sizeof(uint16_t)));
                 return ::bgfx::createIndexBuffer(mem);
 
             };
