@@ -158,25 +158,25 @@ namespace aiko::bgfx
         const uint32_t numIndices = indices->size();
 
         // Check if enough space is available for this frame
-        if (::bgfx::getAvailTransientVertexBuffer(numVertices, s_global_layout) >= numVertices &&
+        if (::bgfx::getAvailTransientVertexBuffer(numVertices, shared::s_global_layout) >= numVertices &&
             ::bgfx::getAvailTransientIndexBuffer(numIndices) >= numIndices)
         {
             // Allocate per-frame buffers
             ::bgfx::TransientVertexBuffer tvb;
             ::bgfx::TransientIndexBuffer tib;
 
-            ::bgfx::allocTransientVertexBuffer(&tvb, numVertices, s_global_layout);
+            ::bgfx::allocTransientVertexBuffer(&tvb, numVertices, shared::s_global_layout);
             ::bgfx::allocTransientIndexBuffer(&tib, numIndices);
 
             // Vertices
-            VertexInformation* verts = (VertexInformation*)tvb.data;
+            shared::VertexInformation* verts = (shared::VertexInformation*)tvb.data;
 
             for (size_t i = 0; i < numVertices; ++i)
             {
 
                 const size_t base = i * strides;
 
-                VertexInformation v{};
+                shared::VertexInformation v{};
                 // position
                 v.x = (*vertices)[base + 0];
                 v.y = (*vertices)[base + 1];
@@ -217,16 +217,7 @@ namespace aiko::bgfx
 
             ::bgfx::setTransform(modelMatrix.data());
 
-            uint64_t state = 0
-                | BGFX_STATE_WRITE_R
-                | BGFX_STATE_WRITE_G
-                | BGFX_STATE_WRITE_B
-                | BGFX_STATE_WRITE_A
-                | BGFX_STATE_WRITE_Z
-                | BGFX_STATE_DEPTH_TEST_LESS
-                // | BGFX_STATE_CULL_CW
-                | BGFX_STATE_MSAA
-                ;
+            uint64_t state = shared::default_state;
 
             if (numVertices == 1)
             {

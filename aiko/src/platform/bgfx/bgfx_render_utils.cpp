@@ -4,8 +4,10 @@
 
 namespace aiko
 {
-    namespace bgfx
+    namespace bgfx::shared
     {
+
+        ::bgfx::VertexLayout s_global_layout;
 
         void init()
         {
@@ -17,7 +19,7 @@ namespace aiko
                 .end();
         }
 
-        std::vector<VertexInformation> convertTo(const Mesh& mesh)
+        std::vector<VertexInformation> convertToBgfxVertex(const Mesh& mesh)
         {
 
             std::vector<VertexInformation> vertices;

@@ -40,9 +40,9 @@ namespace aiko::bgfx
 
         auto convertVertexBufferFromMesh = [&](Mesh* mesh) -> ::bgfx::VertexBufferHandle
             {
-                auto vertices = convertTo(*mesh);
-                const ::bgfx::Memory* mem = ::bgfx::copy(vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(VertexInformation)));
-                return ::bgfx::createVertexBuffer(mem, s_global_layout);
+                auto vertices = shared::convertToBgfxVertex(*mesh);
+                const ::bgfx::Memory* mem = ::bgfx::copy(vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(shared::VertexInformation)));
+                return ::bgfx::createVertexBuffer(mem, shared::s_global_layout);
 
             };
 

@@ -31,6 +31,7 @@
 #include <GLFW/glfw3native.h>
 
 #include "platform/bgfx/bgfx_platform_helper.h"
+#include "platform/bgfx/bgfx_render_utils.h"
 
 namespace aiko::bgfx
 {
@@ -101,6 +102,8 @@ namespace aiko::bgfx
             Log::info() << "GPU: " << getVendorName(vendorId) << ", Vendor ID: 0x" << std::hex << vendorId << ", Device ID: 0x" << deviceId<< std::dec;
             Log::info() << "BGFX Renderer: " << ::bgfx::getRendererName(::bgfx::getRendererType());
         }
+
+        ::aiko::bgfx::shared::init();
 
         initScreenFbo();
 
