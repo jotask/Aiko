@@ -25,6 +25,7 @@
 #include <bgfx/bgfx.h>
 
 #include "bgfx_platform_helper.h"
+#include "bgfx_render_utils.h"
 
 namespace aiko::bgfx
 {
@@ -156,41 +157,26 @@ namespace aiko::bgfx
         const uint32_t numVertices = vertices->size() / strides;
         const uint32_t numIndices = indices->size();
 
-        ::bgfx::VertexLayout ms_layout;
-        ms_layout
-            .begin()
-            .add(::bgfx::Attrib::Position, 3, ::bgfx::AttribType::Float)
-            .add(::bgfx::Attrib::TexCoord0, 2, ::bgfx::AttribType::Float)
-            .add(::bgfx::Attrib::Color0, 4, ::bgfx::AttribType::Uint8, true)
-            .end();
-
-        struct PosTexColorVertex
-        {
-            float x, y, z;   // position
-            float u, v;      // texcoord
-            uint32_t abgr;   // color
-        };
-
         // Check if enough space is available for this frame
-        if (::bgfx::getAvailTransientVertexBuffer(numVertices, ms_layout) >= numVertices &&
+        if (::bgfx::getAvailTransientVertexBuffer(numVertices, s_global_layout) >= numVertices &&
             ::bgfx::getAvailTransientIndexBuffer(numIndices) >= numIndices)
         {
             // Allocate per-frame buffers
             ::bgfx::TransientVertexBuffer tvb;
             ::bgfx::TransientIndexBuffer tib;
 
-            ::bgfx::allocTransientVertexBuffer(&tvb, numVertices, ms_layout);
+            ::bgfx::allocTransientVertexBuffer(&tvb, numVertices, s_global_layout);
             ::bgfx::allocTransientIndexBuffer(&tib, numIndices);
 
             // Vertices
-            PosTexColorVertex* verts = (PosTexColorVertex*)tvb.data;
+            VertexInformation* verts = (VertexInformation*)tvb.data;
 
             for (size_t i = 0; i < numVertices; ++i)
             {
 
                 const size_t base = i * strides;
 
-                PosTexColorVertex v{};
+                VertexInformation v{};
                 // position
                 v.x = (*vertices)[base + 0];
                 v.y = (*vertices)[base + 1];
