@@ -250,64 +250,50 @@ namespace aiko
         void generateMeshPlane(Mesh& mesh, float width, float length, int resX, int resZ)
         {
 
-            resX++;
-            resZ++;
+            // Step size per grid cell
+            float stepX = width / float(resX - 1);
+            float stepZ = length / float(resZ - 1);
 
-            // Vertices definition
-            int vertexCount = resX * resZ; // vertices get reused for the faces
-
-            mesh.m_vertices.resize(vertexCount * sizeof(vec3));
-            for (int z = 0; z < resZ; z++)
+            // Generate vertices, UVs, colors
+            for (int z = 0; z < resZ; ++z)
             {
-                // [-length/2, length/2]
-                float zPos = ((float)z / (resZ - 1) - 0.5f) * length;
-                for (int x = 0; x < resX; x++)
+                for (int x = 0; x < resX; ++x)
                 {
-                    // [-width/2, width/2]
-                    float xPos = ((float)x / (resX - 1) - 0.5f) * width;
-                    mesh.m_vertices[x + z * resX + 0] = xPos;
-                    mesh.m_vertices[x + z * resX + 1] = 0.0f;
-                    mesh.m_vertices[x + z * resX + 2] = zPos;
+                    float vx = -width / 2.0f + x * stepX;
+                    float vz = -length / 2.0f + z * stepZ;
+                    float vy = 0.0f; // flat plane on y=0
+
+                    mesh.m_vertices.push_back({ vx, vy, vz });
+                    mesh.m_teexCoord.push_back({ float(x) / (resX - 1), float(z) / (resZ - 1) });
+                    mesh.m_colors.push_back(WHITE); // all white
                 }
             }
 
-            // Normals definition
-            mesh.m_normals.resize(vertexCount * sizeof(vec3));
-            for (int n = 0; n < vertexCount; n++)
+            // Generate indices (CCW winding)
+            for (int z = 0; z < resZ - 1; ++z)
             {
-                mesh.m_normals[n + 0] = 0.0f;   // vec3.up;
-                mesh.m_normals[n + 1] = 1.0f;   // vec3.up;
-                mesh.m_normals[n + 2] = 0.0f;   // vec3.up;
-            }
-
-            // TexCoords definition
-            mesh.m_teexCoord.resize(vertexCount * sizeof(vec2));
-            for (int v = 0; v < resZ; v++)
-            {
-                for (int u = 0; u < resX; u++)
+                for (int x = 0; x < resX - 1; ++x)
                 {
-                    mesh.m_teexCoord[u + v * resX + 0] = (float)u / (resX - 1);
-                    mesh.m_teexCoord[u + v * resX + 1] = (float)v / (resZ - 1);
+                    int topLeft = z * resX + x;
+                    int topRight = topLeft + 1;
+                    int bottomLeft = (z + 1) * resX + x;
+                    int bottomRight = bottomLeft + 1;
+
+                    // First triangle
+                    mesh.m_indices.push_back(topLeft);
+                    mesh.m_indices.push_back(bottomLeft);
+                    mesh.m_indices.push_back(topRight);
+
+                    // Second triangle
+                    mesh.m_indices.push_back(topRight);
+                    mesh.m_indices.push_back(bottomLeft);
+                    mesh.m_indices.push_back(bottomRight);
                 }
             }
 
-            // Triangles definition (indices)
-            int numFaces = (resX - 1) * (resZ - 1);
-            mesh.m_indices.resize(numFaces * 6 * sizeof(int));
-            int t = 0;
-            for (int face = 0; face < numFaces; face++)
-            {
-                // Retrieve lower left corner from face ind
-                int i = face + face / (resX - 1);
-
-                mesh.m_indices[t++] = i + resX;
-                mesh.m_indices[t++] = i;
-                mesh.m_indices[t++] = i + 1;
-
-                mesh.m_indices[t++] = i + resX;
-                mesh.m_indices[t++] = i + 1;
-                mesh.m_indices[t++] = i + resX + 1;
-            }
+            // Generate normals (all pointing up)
+            mesh.m_normals.resize(mesh.m_vertices.size(), { 0.0f, 1.0f, 0.0f });
+            
             generateNormals(mesh);
         }
 

@@ -89,6 +89,7 @@ namespace aiko
         PRIMITIVE_FNT(renderNgon, vec3 pos, vec3 size, uint polygons);
 
         // 3d
+        PRIMITIVE_FNT(drawPlane, vec3 pos, vec3 size);
         PRIMITIVE_FNT(drawPyramid, vec3 pos, vec3 size);
         PRIMITIVE_FNT(drawCube, vec3 pos, vec3 size);
         PRIMITIVE_FNT(renderSphere, vec3 pos, vec3 size, int = 25);

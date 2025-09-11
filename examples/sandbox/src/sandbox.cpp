@@ -97,6 +97,8 @@ namespace sandbox
         getRenderSystem()->renderTorus({ 2.0f, 0.0f, 0.0f }, SIZE);
         getRenderSystem()->renderKnot({ 3.0f, 0.0f, 0.0f }, SIZE);
 
+        getRenderSystem()->drawPlane({ 0.0f, -2.0f, 0.0f }, SIZE);
+
 #endif
 
     }

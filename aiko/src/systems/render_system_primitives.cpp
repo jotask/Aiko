@@ -109,6 +109,19 @@ namespace aiko
         m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
 
+    void RenderSystem::drawPlane(vec3 pos, vec3 size, Color color, bool border, float thickness)
+    {
+        setPrimitiveShaderData(border, thickness, color);
+        aiko::Camera* camera = m_cameraSystem->getMainCamera();
+        Transform t;
+        t.position = pos;
+        Mesh mesh;
+        float siz = 10.0f;
+        int res = 5;
+        mesh::generateMeshPlane(mesh, siz, siz, res, res);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+    }
+
     void RenderSystem::drawPyramid(vec3 pos, vec3 size, Color color, bool border, float thickness)
     {
         setPrimitiveShaderData(border, thickness, color);
