@@ -494,8 +494,8 @@ namespace aiko
         {
             mesh.m_vertices.push_back(start);
             mesh.m_vertices.push_back(end);
-            mesh.m_teexCoord.push_back({ 0.0f, 0.0f });
-            mesh.m_teexCoord.push_back({ 0.0f, 0.0f });
+            mesh.m_teexCoord.push_back({ 0.0f, 1.0f });
+            mesh.m_teexCoord.push_back({ 0.0f, 1.0f });
             mesh.m_colors.push_back(WHITE);
             mesh.m_colors.push_back(WHITE);
             mesh.m_indices = { 0, 1 };
@@ -533,6 +533,7 @@ namespace aiko
                 0, 1, 3,
                 1, 2, 3
             };
+
             generateNormals(mesh);
         }
 
@@ -564,8 +565,8 @@ namespace aiko
             for (uint16_t i = 1; i <= segments; ++i)
             {
                 mesh.m_indices.push_back(0);       // center
-                mesh.m_indices.push_back(i);       // current perimeter
                 mesh.m_indices.push_back(i + 1);   // next perimeter (wraps around)
+                mesh.m_indices.push_back(i);       // current perimeter
             }
             generateNormals(mesh);
         }
@@ -595,7 +596,7 @@ namespace aiko
 
             mesh.m_indices =
             {
-                0, 1, 2
+                0, 2, 1
             };
 
             generateNormals(mesh);
