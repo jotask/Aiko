@@ -48,19 +48,7 @@ namespace aiko::bgfx
         // Set transform
         ::bgfx::setTransform(modelMatrix.data());
 
-        // Set default state
-        constexpr const uint64_t state = 0
-            | BGFX_STATE_WRITE_R
-            | BGFX_STATE_WRITE_G
-            | BGFX_STATE_WRITE_B
-            | BGFX_STATE_WRITE_A
-            | BGFX_STATE_WRITE_Z
-            | BGFX_STATE_DEPTH_TEST_LESS
-            // | BGFX_STATE_CULL_CW
-            | BGFX_STATE_MSAA
-        ;
-
-        ::bgfx::setState(state);
+        ::bgfx::setState(shared::default_state);
 
         // Submit draw call
         ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), AIKO_TO_PH(shader->getData()->id));
@@ -82,19 +70,7 @@ namespace aiko::bgfx
         // Set transform
         ::bgfx::setTransform(modelMatrix.data());
 
-        // Set default state
-        constexpr const uint64_t state = 0
-            | BGFX_STATE_WRITE_R
-            | BGFX_STATE_WRITE_G
-            | BGFX_STATE_WRITE_B
-            | BGFX_STATE_WRITE_A
-            | BGFX_STATE_WRITE_Z
-            | BGFX_STATE_DEPTH_TEST_LESS
-            // | BGFX_STATE_CULL_CW
-            | BGFX_STATE_MSAA
-            ;
-
-        ::bgfx::setState(state);
+        ::bgfx::setState(shared::default_state);
 
         const ::bgfx::UniformHandle sampler = AIKO_TO_UH(shader->getUniformLocation("u_texture"));
 
@@ -124,19 +100,7 @@ namespace aiko::bgfx
         // Set transform
         ::bgfx::setTransform(modelMatrix.data());
 
-        // Set default state
-        constexpr const uint64_t state = 0
-            | BGFX_STATE_WRITE_R
-            | BGFX_STATE_WRITE_G
-            | BGFX_STATE_WRITE_B
-            | BGFX_STATE_WRITE_A
-            | BGFX_STATE_WRITE_Z
-            | BGFX_STATE_DEPTH_TEST_LESS
-            // | BGFX_STATE_CULL_CW
-            | BGFX_STATE_MSAA
-            ;
-
-        ::bgfx::setState(state);
+        ::bgfx::setState(shared::default_state);
 
         // Submit draw call
         ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), AIKO_TO_PH(shader->getData()->id));
