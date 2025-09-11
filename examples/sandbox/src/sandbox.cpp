@@ -91,8 +91,8 @@ namespace sandbox
         getRenderSystem()->drawCube({ 1.0f, 0.0f, 0.0f }, SIZE);
         getRenderSystem()->drawPyramid({ 0.0f, 0.0f, 0.0f }, SIZE);
         getRenderSystem()->renderSphere({ -1.0f, 0.0f, 0.0f }, SIZE);
-        getRenderSystem()->renderCylinder({ -2.0f, 0.0f, 0.0f }, SIZE, 10);
-        getRenderSystem()->renderPolygon({ -3.0f, 0.0f, 0.0f }, SIZE, 5, 5);
+        getRenderSystem()->renderCylinder({ -2.0f, 0.0f, 0.0f }, SIZE, 6);
+        getRenderSystem()->renderPolygon({ -3.0f, 0.0f, 0.0f }, SIZE, 6, 6);
 
         getRenderSystem()->renderTorus({ 2.0f, 0.0f, 0.0f }, SIZE);
         getRenderSystem()->renderKnot({ 3.0f, 0.0f, 0.0f }, SIZE);

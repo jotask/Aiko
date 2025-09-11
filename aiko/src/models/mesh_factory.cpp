@@ -289,29 +289,27 @@ namespace aiko
             // Generate side indices
             for (int i = 0; i < slices; ++i)
             {
+                int next = (i + 1) % slices;
+
                 int bottom0 = i * 2;
-                int top0 = bottom0 + 1;
-                int bottom1 = (i + 1) * 2;
-                int top1 = bottom1 + 1;
+                int top0 = i * 2 + 1;
+                int bottom1 = next * 2;
+                int top1 = next * 2 + 1;
 
-                // Side quad (two triangles)
+                // First triangle (CCW outward)
                 mesh.m_indices.push_back(bottom0);
-                mesh.m_indices.push_back(top0);
                 mesh.m_indices.push_back(bottom1);
+                mesh.m_indices.push_back(top0);
 
+                // Second triangle (CCW outward)
                 mesh.m_indices.push_back(top0);
-                mesh.m_indices.push_back(top1);
                 mesh.m_indices.push_back(bottom1);
+                mesh.m_indices.push_back(top1);
             }
 
             // Center vertices for caps
-            const int bottomCenterIndex = int(mesh.m_vertices.size() / 8); // 8 floats per vertex
+            const int bottomCenterIndex = int(mesh.m_vertices.size());
             mesh.m_vertices.push_back({ 0.0f, -halfHeight, 0.0f });
-            mesh.m_teexCoord.push_back({ 0.5f, 0.5f });
-            mesh.m_colors.push_back(WHITE);
-
-            const int topCenterIndex = bottomCenterIndex + 1;
-            mesh.m_vertices.push_back({ 0.0f, halfHeight, 0.0f });
             mesh.m_teexCoord.push_back({ 0.5f, 0.5f });
             mesh.m_colors.push_back(WHITE);
 
@@ -325,11 +323,16 @@ namespace aiko
                 mesh.m_indices.push_back(bottom0);
             }
 
+            const int topCenterIndex = bottomCenterIndex + 1;
+            mesh.m_vertices.push_back({ 0.0f, halfHeight, 0.0f });
+            mesh.m_teexCoord.push_back({ 0.5f, 0.5f });
+            mesh.m_colors.push_back(WHITE);
+
             // Generate top cap
             for (int i = 0; i < slices; ++i)
             {
                 int top0 = i * 2 + 1;
-                int top1 = (i + 1) * 2 + 1;
+                int top1 = ((i + 1) % slices) * 2 + 1; // wrap last slice
                 mesh.m_indices.push_back(topCenterIndex);
                 mesh.m_indices.push_back(top0);
                 mesh.m_indices.push_back(top1);
