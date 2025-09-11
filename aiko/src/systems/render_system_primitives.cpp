@@ -16,6 +16,7 @@
 #include "models/light.h"
 #include "models/mesh_factory.h"
 #include "types/color.h"
+#include "models/time.h"
 
 namespace aiko
 {
@@ -39,7 +40,21 @@ namespace aiko
         m_quadShaderPrimitives.setFloat("u_border_thickness", thickness);
         m_quadShaderPrimitives.setVec4("u_color", { color.r, color.g, color.b, color.a });
         m_quadShaderPrimitives.setFloat("u_ambient", 0.5f );
-        m_quadShaderPrimitives.setVec4("u_lightDir", { 1.0f, 1.0f, 1.0f, 1.0f });
+        static vec4 light_dir = { 1.0f, 1.0f, 1.0f, 1.0f };
+        if constexpr (false)
+        {
+            static float angle = 0.0f;
+            float rotationSpeed = 0.25f; // radians per second
+            auto dt = ::aiko::Time::it().getDeltaTime();
+            angle += rotationSpeed * dt;
+
+            float x = cosf(angle);
+            float y = cosf(angle) * sinf(angle); // keep a bit of upward direction
+            float z = sinf(angle);
+
+            light_dir = { x, y, z, 0.0f };
+        }
+        m_quadShaderPrimitives.setVec4("u_lightDir", light_dir);
         m_quadShaderPrimitives.setVec4("u_lightColor", { 1.0f, 1.0f, 1.0f, 1.0f });
     }
 
