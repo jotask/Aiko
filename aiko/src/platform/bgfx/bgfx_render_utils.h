@@ -22,16 +22,7 @@ namespace aiko
             uint32_t abgr;   // color
         };
 
-        static uint64_t default_state = 0
-            | BGFX_STATE_WRITE_R
-            | BGFX_STATE_WRITE_G
-            | BGFX_STATE_WRITE_B
-            | BGFX_STATE_WRITE_A
-            | BGFX_STATE_WRITE_Z
-            | BGFX_STATE_DEPTH_TEST_LESS
-            | BGFX_STATE_CULL_CCW
-            | BGFX_STATE_MSAA
-        ;
+        static uint64_t default_state = BGFX_STATE_DEFAULT;
 
         extern ::bgfx::VertexLayout s_global_layout;
 
