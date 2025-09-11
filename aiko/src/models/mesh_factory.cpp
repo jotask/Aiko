@@ -8,6 +8,45 @@ namespace aiko
     namespace mesh
     {
 
+        void generateNormals(Mesh& mesh)
+        {
+
+            const int vertexCount = static_cast<int>(mesh.m_vertices.size());
+
+            if (vertexCount < 3)
+            {
+                mesh.m_normals.assign(mesh.m_vertices.size(), vec3(0.0f, 0.0f, 1.0f));
+                return;
+            }
+
+            mesh.m_normals.assign(vertexCount, vec3(0.0f));
+
+            for (size_t t = 0; t < mesh.m_indices.size(); t += 3)
+            {
+                const int i0 = mesh.m_indices[t + 0];
+                const int i1 = mesh.m_indices[t + 1];
+                const int i2 = mesh.m_indices[t + 2];
+
+                const vec3& p0 = mesh.m_vertices[i0];
+                const vec3& p1 = mesh.m_vertices[i1];
+                const vec3& p2 = mesh.m_vertices[i2];
+
+                const vec3 e1 = p1 - p0;
+                const vec3 e2 = p2 - p0;
+
+                vec3 n = math::normalize(math::cross(e1, e2));
+
+                mesh.m_normals[i0] += n;
+                mesh.m_normals[i1] += n;
+                mesh.m_normals[i2] += n;
+            }
+
+            for (auto& n : mesh.m_normals)
+            {
+                n = math::normalize(n);
+            }
+        }
+
         // 3D
 
         void generateCube(Mesh& mesh)
@@ -120,7 +159,7 @@ namespace aiko
                 16, 17, 18, 18, 19, 16, // Right face
                 20, 21, 22, 22, 23, 20  // Left face
             };
-
+            generateNormals(mesh);
         }
 
         void generatePyramid(Mesh& mesh)
@@ -166,6 +205,7 @@ namespace aiko
                 2, 3, 4,           // Front-right triangle
                 3, 0, 4            // Front-left triangle
             };
+            generateNormals(mesh);
         }
 
         void generateMeshSphere(Mesh& mesh, int rings, int slices)
@@ -216,7 +256,7 @@ namespace aiko
                     mesh.m_indices.push_back(first + 1);
                 }
             }
-
+            generateNormals(mesh);
         }
 
         void generateMeshCylinder(Mesh& mesh, int slices)
@@ -294,6 +334,7 @@ namespace aiko
                 mesh.m_indices.push_back(top0);
                 mesh.m_indices.push_back(top1);
             }
+            generateNormals(mesh);
         }
 
         void generateMeshPlane(Mesh& mesh, float width, float length, int resX, int resZ)
@@ -357,7 +398,7 @@ namespace aiko
                 mesh.m_indices[t++] = i + resX + 1;
                 mesh.m_indices[t++] = i + 1;
             }
-
+            generateNormals(mesh);
         }
 
         void generateMeshTorus(Mesh& mesh)
@@ -418,6 +459,7 @@ namespace aiko
                     mesh.m_indices.push_back(first + 1);
                 }
             }
+            generateNormals(mesh);
         }
 
         void generateMeshKnot(Mesh& mesh)
@@ -516,6 +558,7 @@ namespace aiko
                     mesh.m_indices.push_back(first + 1);
                 }
             }
+            generateNormals(mesh);
         }
 
         // 2D
@@ -526,6 +569,7 @@ namespace aiko
             mesh.m_teexCoord.push_back({ 0.0f }); // Not used
             mesh.m_colors.push_back(WHITE);
             mesh.m_indices.push_back(0);
+            generateNormals(mesh);
         }
 
         void generateLine(Mesh& mesh, vec3 start, vec3 end)
@@ -537,6 +581,7 @@ namespace aiko
             mesh.m_colors.push_back(WHITE);
             mesh.m_colors.push_back(WHITE);
             mesh.m_indices = { 0, 1 };
+            generateNormals(mesh);
         }
         
         void generateQuad(Mesh& mesh)
@@ -570,6 +615,7 @@ namespace aiko
                 0, 1, 3,
                 1, 2, 3
             };
+            generateNormals(mesh);
         }
 
         void generateCircle(Mesh& mesh, uint segments)
@@ -603,6 +649,7 @@ namespace aiko
                 mesh.m_indices.push_back(i);       // current perimeter
                 mesh.m_indices.push_back(i + 1);   // next perimeter (wraps around)
             }
+            generateNormals(mesh);
         }
 
         void generateTriangle(Mesh& mesh)
@@ -632,6 +679,9 @@ namespace aiko
             {
                 0, 1, 2
             };
+
+            generateNormals(mesh);
+
         }
 
     }

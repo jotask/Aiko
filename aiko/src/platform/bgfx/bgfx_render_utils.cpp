@@ -16,6 +16,7 @@ namespace aiko
                 .add(::bgfx::Attrib::Position, 3, ::bgfx::AttribType::Float)
                 .add(::bgfx::Attrib::TexCoord0, 2, ::bgfx::AttribType::Float)
                 .add(::bgfx::Attrib::Color0, 4, ::bgfx::AttribType::Uint8, true)
+                .add(::bgfx::Attrib::Normal, 3, ::bgfx::AttribType::Float, true, true)
                 .end();
         }
 
@@ -49,6 +50,12 @@ namespace aiko
 
                 // pack to ABGR
                 v.abgr = (uint32_t(a) << 24) | (uint32_t(b) << 16) | (uint32_t(g) << 8) | uint32_t(r);
+
+                // Normal
+                const auto normal = mesh.m_normals[i];
+                v.n_x = normal.x;
+                v.n_y = normal.y;
+                v.n_z = normal.z;
 
                 vertices.push_back(v);
             }

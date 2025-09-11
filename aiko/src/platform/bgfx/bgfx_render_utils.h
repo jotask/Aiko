@@ -18,6 +18,7 @@ namespace aiko
         {
             float x, y, z;   // position
             float u, v;      // texcoord
+            float n_x, n_y, n_z;   // position
             uint32_t abgr;   // color
         };
 

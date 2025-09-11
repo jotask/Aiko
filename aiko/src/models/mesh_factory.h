@@ -14,6 +14,8 @@ namespace aiko
 
         using VerticesColor = std::vector<aiko::Color>;
 
+        void generateNormals(Mesh& mesh);
+
         // 2D
         void generatePoint(Mesh& mesh);
         void generateLine(Mesh& mesh, vec3 start, vec3 end);

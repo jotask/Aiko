@@ -26,7 +26,10 @@ namespace aiko
         m_quadShaderPrimitives.preLoadUniforms({
             {"u_color", ShaderUniformDataType::SHADER_UNIFORM_VEC4},
             {"u_border", ShaderUniformDataType::SHADER_UNIFORM_FLOAT},
-            {"u_border_thickness", ShaderUniformDataType::SHADER_UNIFORM_FLOAT}
+            {"u_border_thickness", ShaderUniformDataType::SHADER_UNIFORM_FLOAT},
+            {"u_lightDir", ShaderUniformDataType::SHADER_UNIFORM_VEC4},
+            {"u_lightColor", ShaderUniformDataType::SHADER_UNIFORM_VEC4},
+            {"u_ambient", ShaderUniformDataType::SHADER_UNIFORM_FLOAT},
         });
     }
 
@@ -35,6 +38,9 @@ namespace aiko
         m_quadShaderPrimitives.setBool("u_border", border);
         m_quadShaderPrimitives.setFloat("u_border_thickness", thickness);
         m_quadShaderPrimitives.setVec4("u_color", { color.r, color.g, color.b, color.a });
+        m_quadShaderPrimitives.setFloat("u_ambient", 1.0f );
+        m_quadShaderPrimitives.setVec4("u_lightDir", { 0.0f, 0.0f, 1.0f, 1.0f });
+        m_quadShaderPrimitives.setVec4("u_lightColor", { 1.0f, 1.0f, 1.0f, 1.0f });
     }
 
     void RenderSystem::drawPoint(vec3 pos, Color color, bool border, float thickness)
