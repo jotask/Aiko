@@ -89,7 +89,7 @@ namespace sandbox
 
         // 3D
         getRenderSystem()->drawCube({ 1.0f, 0.0f, 0.0f }, SIZE);
-        getRenderSystem()->drawPyramid({ 0.0f, 0.0f, 0.0f }, SIZE, SIZE);
+        getRenderSystem()->drawPyramid({ 0.0f, 0.0f, 0.0f }, SIZE);
         getRenderSystem()->renderSphere({ -1.0f, 0.0f, 0.0f }, SIZE);
         getRenderSystem()->renderCylinder({ -2.0f, 0.0f, 0.0f }, SIZE, 10);
         getRenderSystem()->renderPolygon({ -3.0f, 0.0f, 0.0f }, SIZE, 5, 5);
