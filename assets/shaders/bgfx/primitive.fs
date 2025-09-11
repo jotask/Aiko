@@ -34,14 +34,19 @@ void main()
     vec3 N = normalize(v_normal.xyz);
     vec3 L = normalize(u_lightDir.xyz);
 
-    // Lambert shading
+    // Lambert diffuse
     float NdotL = max(dot(N, L), 0.0);
 
-    vec4 baseColor = v_color0 * u_color;
+    // Convert base color to vec3 (RGB)
+    vec3 base = v_color0.rgb * u_color.rgb;
 
-    // Combine base color with diffuse lighting
-    vec4 shaded = baseColor * (u_ambient.x + NdotL * u_lightColor); // 0.2 = ambient
+    // Ambient + diffuse
+    vec3 ambient = base * u_ambient.x;
+    vec3 diffuse = base * NdotL * u_lightColor.rgb;
 
-    gl_FragColor = shaded;
+    vec3 finalColor = ambient + diffuse;
+
+    // Preserve alpha
+    gl_FragColor = vec4(finalColor, v_color0.a * u_color.a);
 
 }

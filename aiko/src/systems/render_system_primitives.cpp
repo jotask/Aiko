@@ -39,7 +39,7 @@ namespace aiko
         m_quadShaderPrimitives.setFloat("u_border_thickness", thickness);
         m_quadShaderPrimitives.setVec4("u_color", { color.r, color.g, color.b, color.a });
         m_quadShaderPrimitives.setFloat("u_ambient", 1.0f );
-        m_quadShaderPrimitives.setVec4("u_lightDir", { 0.0f, 0.0f, 1.0f, 1.0f });
+        m_quadShaderPrimitives.setVec4("u_lightDir", { 1.0f, 1.0f, 1.0f, 1.0f });
         m_quadShaderPrimitives.setVec4("u_lightColor", { 1.0f, 1.0f, 1.0f, 1.0f });
     }
 

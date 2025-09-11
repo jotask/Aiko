@@ -70,10 +70,7 @@ namespace aiko
     //                   PRIMITIVES
     // ---------------------------------------------------
 
-        #define DEFAULT_2D_COLOR { 1.0f   , 0.686f , 0.8f    , 1.0f }
-        #define DEFAULT_3D_COLOR { 1.0f   , 1.0f   , 1.0f    , 1.0f }
-
-        #define PRIMITIVE_FNT_DEFAULT_ARGS Color color = DEFAULT_2D_COLOR, bool border = false, float border_thickness = 0.05f
+        #define PRIMITIVE_FNT_DEFAULT_ARGS Color color = WHITE, bool border = false, float border_thickness = 0.05f
         #define PRIMITIVE_FNT(method_name, ...) void method_name( __VA_ARGS__, PRIMITIVE_FNT_DEFAULT_ARGS ) 
 
         Shader m_quadShaderPrimitives;
