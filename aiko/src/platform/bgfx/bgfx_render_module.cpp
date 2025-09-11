@@ -228,14 +228,14 @@ namespace aiko::bgfx
             return;
         }
 
-        const auto screenWidth = msg.width;
-        const auto screenHeight = msg.height;
+        const uint16_t screenWidth = msg.width;
+        const uint16_t screenHeight = msg.height;
 
         ::bgfx::reset((uint32_t)screenWidth, (uint32_t)screenHeight, BGFX_RESET_VSYNC);
 
         // FIXME is this correct?
-        ::bgfx::setViewRect(m_kViewMain, 0, 0, ::bgfx::BackbufferRatio::Equal);
-        ::bgfx::setViewRect(m_kViewOffScreen, 0, 0, ::bgfx::BackbufferRatio::Equal);
+        ::bgfx::setViewRect(m_kViewMain, 0, 0, screenWidth, screenHeight);
+        ::bgfx::setViewRect(m_kViewOffScreen, 0, 0, screenWidth, screenHeight);
 
     }
 
