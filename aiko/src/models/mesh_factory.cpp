@@ -52,113 +52,28 @@ namespace aiko
         void generateCube(Mesh& mesh)
         {
 
-            mesh.m_vertices =
-            {
-                {-0.5f,  0.5f,  0.5f},
-                {-0.5f, -0.5f,  0.5f},
-                { 0.5f, -0.5f,  0.5f},
-                { 0.5f,  0.5f,  0.5f},
-
-                {-0.5f, -0.5f, -0.5f},
-                {-0.5f,  0.5f, -0.5f},
-                { 0.5f,  0.5f, -0.5f},
-                { 0.5f, -0.5f, -0.5f},
-
-                { 0.5f,  0.5f,  0.5f},
-                { 0.5f,  0.5f, -0.5f},
-                {-0.5f,  0.5f, -0.5f},
-                {-0.5f,  0.5f,  0.5f},
-                
-                {-0.5f, -0.5f, -0.5f},
-                { 0.5f, -0.5f, -0.5f},
-                { 0.5f, -0.5f,  0.5f},
-                {-0.5f, -0.5f,  0.5f},
-
-                { 0.5f, -0.5f,  0.5f},
-                { 0.5f, -0.5f, -0.5f},
-                { 0.5f,  0.5f, -0.5f},
-                { 0.5f,  0.5f,  0.5f},
-
-                {-0.5f,  0.5f,  0.5f},
-                {-0.5f,  0.5f, -0.5f},
-                {-0.5f, -0.5f, -0.5f},
-                {-0.5f, -0.5f,  0.5f},
+            mesh.m_vertices = {
+                {-0.5f,  0.5f,  0.5f}, {-0.5f, -0.5f,  0.5f}, { 0.5f, -0.5f,  0.5f}, { 0.5f,  0.5f,  0.5f}, // Front
+                {-0.5f, -0.5f, -0.5f}, {-0.5f,  0.5f, -0.5f}, { 0.5f,  0.5f, -0.5f}, { 0.5f, -0.5f, -0.5f}, // Back
+                { 0.5f,  0.5f,  0.5f}, { 0.5f,  0.5f, -0.5f}, {-0.5f,  0.5f, -0.5f}, {-0.5f,  0.5f,  0.5f}, // Top
+                {-0.5f, -0.5f, -0.5f}, { 0.5f, -0.5f, -0.5f}, { 0.5f, -0.5f,  0.5f}, {-0.5f, -0.5f,  0.5f}, // Bottom
+                { 0.5f, -0.5f,  0.5f}, { 0.5f, -0.5f, -0.5f}, { 0.5f,  0.5f, -0.5f}, { 0.5f,  0.5f,  0.5f}, // Right
+                {-0.5f,  0.5f,  0.5f}, {-0.5f,  0.5f, -0.5f}, {-0.5f, -0.5f, -0.5f}, {-0.5f, -0.5f,  0.5f}, // Left
             };
 
-            mesh.m_teexCoord =
-            {
-                {0.0f, 1.0f},
-                {0.0f, 0.0f},
-                {1.0f, 0.0f},
-                {1.0f, 1.0f},
-                {0.0f, 0.0f},
-                {0.0f, 1.0f},
-                {1.0f, 1.0f},
-                {1.0f, 0.0f},
-                
-                {1.0f, 0.0f},
-                {1.0f, 1.0f},
-                {0.0f, 1.0f},
-                {0.0f, 0.0f},
-                
-                {0.0f, 1.0f},
-                {1.0f, 1.0f},
-                {1.0f, 0.0f},
-                {0.0f, 0.0f},
-                
-                {1.0f, 0.0f},
-                {1.0f, 1.0f},
-                {0.0f, 1.0f},
-                {0.0f, 0.0f},
-                
-                {0.0f, 1.0f},
-                {1.0f, 1.0f},
-                {1.0f, 0.0f},
-                {0.0f, 0.0f},
+            mesh.m_teexCoord = std::vector<vec2>(mesh.m_vertices.size(), {0.0f,1.0f});
+
+            mesh.m_colors = std::vector<Color>(mesh.m_vertices.size(), WHITE);
+
+            mesh.m_indices = {
+                0,2,1,      0,3,2,       // Front
+                4,6,5,      4,7,6,       // Back
+                8,10,9,     8,11,10,     // Top
+                12,14,13,   12,15,14,    // Bottom
+                16,18,17,   16,19,18,    // Right
+                20,22,21,   20,23,22     // Left
             };
 
-            mesh.m_colors =
-            {
-                WHITE,
-                WHITE,
-                WHITE,
-                WHITE,
-
-                WHITE,
-                WHITE,
-                WHITE,
-                WHITE,
-
-                WHITE,
-                WHITE,
-                WHITE,
-                WHITE,
-
-                WHITE,
-                WHITE,
-                WHITE,
-                WHITE,
-
-                WHITE,
-                WHITE,
-                WHITE,
-                WHITE,
-
-                WHITE,
-                WHITE,
-                WHITE,
-                WHITE,
-            };
-
-            mesh.m_indices =
-            {
-                0, 1, 2, 2, 3, 0,       // Front face
-                4, 5, 6, 6, 7, 4,       // Back face
-                8, 9, 10, 10, 11, 8,    // Top face
-                12, 13, 14, 14, 15, 12, // Bottom face
-                16, 17, 18, 18, 19, 16, // Right face
-                20, 21, 22, 22, 23, 20  // Left face
-            };
             generateNormals(mesh);
         }
 
@@ -199,7 +114,7 @@ namespace aiko
 
             mesh.m_indices =
             {
-                0, 1, 2, 2, 3, 0, // Bottom face
+                0, 2, 1, 2, 0, 3, // Bottom face
                 0, 1, 4,           // Back-left triangle
                 1, 2, 4,           // Back-right triangle
                 2, 3, 4,           // Front-right triangle
