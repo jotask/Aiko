@@ -43,11 +43,8 @@ namespace aiko
         Transform t;
         t.position = pos;
         Mesh mesh;
-        mesh.m_vertices = {
-            0.0f, 0.0f, 0.0f, 0.0f, 0.0f, color.r, color.g, color.b,
-        };
-        mesh.m_indices = { 0 };
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+        mesh::generatePoint(mesh);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
 
     void RenderSystem::drawTriangle(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -57,7 +54,7 @@ namespace aiko
         t.position = pos;
         Mesh mesh;
         mesh::generateTriangle(mesh);
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
 
     }
 
@@ -69,8 +66,8 @@ namespace aiko
         t.position = pos;
         t.scale = size;
         Mesh mesh;
-        mesh::generateQuad(mesh, WHITE);
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices );
+        mesh::generateQuad(mesh);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
 
     void RenderSystem::renderLine(vec3 start, vec3 end, Color color, bool border, float thickness)
@@ -79,12 +76,8 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         Mesh mesh;
-        mesh.m_vertices = {
-            start.x, start.y, start.z, 0.0f, 0.0f, color.r, color.g, color.b, // start vertex
-            end.x,   end.y,   end.z,   0.0f, 0.0f, color.r, color.g, color.b  // end vertex
-        };
-        mesh.m_indices = { 0, 1 }; // two vertices
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+        mesh::generateLine(mesh, start, end);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
 
     }
 
@@ -96,7 +89,7 @@ namespace aiko
         t.position = pos;
         Mesh mesh;
         mesh::generateCircle(mesh);
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
 
     void RenderSystem::renderNgon(vec3 pos, vec3 size, uint segment, Color color, bool border, float thickness)
@@ -107,7 +100,7 @@ namespace aiko
         t.position = pos;
         Mesh mesh;
         mesh::generateCircle(mesh, segment);
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
 
     void RenderSystem::drawPyramid(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -118,7 +111,7 @@ namespace aiko
         t.position = pos;
         Mesh mesh;
         mesh::generatePyramid(mesh);
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
 
     void RenderSystem::drawCube(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -130,7 +123,7 @@ namespace aiko
         t.scale *= size;
         Mesh mesh;
         mesh::generateCube(mesh);
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
 
     void RenderSystem::renderSphere(vec3 pos, vec3 size, int segments, Color color, bool border, float thickness)
@@ -141,7 +134,7 @@ namespace aiko
         t.position = pos;
         Mesh mesh;
         mesh::generateMeshSphere(mesh, segments, segments);
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
 
     void RenderSystem::renderPolygon(vec3 pos, vec3 size, int rings, int sectors, Color color, bool border, float thickness)
@@ -152,7 +145,7 @@ namespace aiko
         t.position = pos;
         Mesh mesh;
         mesh::generateMeshSphere(mesh, sectors, sectors);
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
 
     void RenderSystem::renderCylinder(vec3 pos, vec3 size, uint sectors, Color color, bool border, float thickness)
@@ -163,7 +156,7 @@ namespace aiko
         t.position = pos;
         Mesh mesh;
         mesh::generateMeshCylinder(mesh, sectors);
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
 
     void RenderSystem::renderTorus(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -174,7 +167,7 @@ namespace aiko
         t.position = pos;
         Mesh mesh;
         mesh::generateMeshTorus(mesh);
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
 
     void RenderSystem::renderKnot(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -185,7 +178,7 @@ namespace aiko
         t.position = pos;
         Mesh mesh;
         mesh::generateMeshKnot(mesh);
-        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh.m_vertices, &mesh.m_indices);
+        m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
 
 }

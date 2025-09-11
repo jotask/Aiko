@@ -31,18 +31,16 @@ namespace aiko
         Mesh();
         ~Mesh() = default;
 
-    //private:
+    // private:
 
-        using Vertices = std::vector<float>;
-        using TeexCoords = std::vector<float>;
-        using TeexCoords2 = std::vector<float>;
-        using Normals = std::vector<float>;
-        using Colors = std::vector<uint8_t>;
+        using Vertices = std::vector<vec3>;
+        using TeexCoords = std::vector<vec2>;
+        using Normals = std::vector<vec3>;
+        using Colors = std::vector<Color>;
         using Indices = std::vector<uint32_t>;
 
         Vertices m_vertices;
         TeexCoords m_teexCoord;
-        TeexCoords2 m_teexCoord2;
         Normals m_normals;
         Colors m_colors;
         Indices m_indices;

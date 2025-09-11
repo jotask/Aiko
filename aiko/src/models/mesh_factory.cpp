@@ -8,49 +8,107 @@ namespace aiko
     namespace mesh
     {
 
-        // CUBE
+        // 3D
 
         void generateCube(Mesh& mesh)
         {
 
             mesh.m_vertices =
             {
-                // positions              // texture coords   // Color
-                // Front face
-                -0.5f,  0.5f,  0.5f,       0.0f, 1.0f,        1.0f, 0.0f, 0.0f, // Top-left
-                -0.5f, -0.5f,  0.5f,       0.0f, 0.0f,        1.0f, 0.0f, 0.0f, // Bottom-left
-                 0.5f, -0.5f,  0.5f,       1.0f, 0.0f,        1.0f, 0.0f, 0.0f, // Bottom-right
-                 0.5f,  0.5f,  0.5f,       1.0f, 1.0f,        1.0f, 0.0f, 0.0f, // Top-right
+                {-0.5f,  0.5f,  0.5f},
+                {-0.5f, -0.5f,  0.5f},
+                { 0.5f, -0.5f,  0.5f},
+                { 0.5f,  0.5f,  0.5f},
 
-                 // Back face                                  
-                 -0.5f, -0.5f, -0.5f,       0.0f, 0.0f,         0.0f, 1.0f, 0.0f, // Bottom-left
-                 -0.5f,  0.5f, -0.5f,       0.0f, 1.0f,         0.0f, 1.0f, 0.0f, // Top-left
-                  0.5f,  0.5f, -0.5f,       1.0f, 1.0f,         0.0f, 1.0f, 0.0f, // Top-right
-                  0.5f, -0.5f, -0.5f,       1.0f, 0.0f,         0.0f, 1.0f, 0.0f, // Bottom-right
+                {-0.5f, -0.5f, -0.5f},
+                {-0.5f,  0.5f, -0.5f},
+                { 0.5f,  0.5f, -0.5f},
+                { 0.5f, -0.5f, -0.5f},
 
-                  // Top face                                   
-                   0.5f,  0.5f,  0.5f,       1.0f, 0.0f,         0.0f, 0.0f, 1.0f, // Front-top-right
-                   0.5f,  0.5f, -0.5f,       1.0f, 1.0f,         0.0f, 0.0f, 1.0f, // Back-top-right
-                  -0.5f,  0.5f, -0.5f,      0.0f, 1.0f,         0.0f, 0.0f, 1.0f, // Back-top-left
-                  -0.5f,  0.5f,  0.5f,      0.0f, 0.0f,         0.0f, 0.0f, 1.0f, // Front-top-left
+                { 0.5f,  0.5f,  0.5f},
+                { 0.5f,  0.5f, -0.5f},
+                {-0.5f,  0.5f, -0.5f},
+                {-0.5f,  0.5f,  0.5f},
+                
+                {-0.5f, -0.5f, -0.5f},
+                { 0.5f, -0.5f, -0.5f},
+                { 0.5f, -0.5f,  0.5f},
+                {-0.5f, -0.5f,  0.5f},
 
-                  // Bottom face                                
-                  -0.5f, -0.5f, -0.5f,      0.0f, 1.0f,         1.0f, 1.0f, 0.0f, // Back-bottom- left
-                   0.5f, -0.5f, -0.5f,       1.0f, 1.0f,         1.0f, 1.0f, 0.0f, // Back-bottom-right
-                   0.5f, -0.5f,  0.5f,       1.0f, 0.0f,         1.0f, 1.0f, 0.0f, // Front-bottom-right
-                  -0.5f, -0.5f,  0.5f,      0.0f, 0.0f,         1.0f, 1.0f, 0.0f, // Front-bottom-left
+                { 0.5f, -0.5f,  0.5f},
+                { 0.5f, -0.5f, -0.5f},
+                { 0.5f,  0.5f, -0.5f},
+                { 0.5f,  0.5f,  0.5f},
 
-                  // Right face                                 
-                   0.5f, -0.5f,  0.5f,      1.0f, 0.0f,         1.0f, 0.0f, 1.0f, // Front-bottom-right
-                   0.5f, -0.5f, -0.5f,      1.0f, 1.0f,         1.0f, 0.0f, 1.0f, // Back-bottom-right
-                   0.5f,  0.5f, -0.5f,      0.0f, 1.0f,         1.0f, 0.0f, 1.0f, // Back-top-right
-                   0.5f,  0.5f,  0.5f,      0.0f, 0.0f,         1.0f, 0.0f, 1.0f, // Front-top-right
+                {-0.5f,  0.5f,  0.5f},
+                {-0.5f,  0.5f, -0.5f},
+                {-0.5f, -0.5f, -0.5f},
+                {-0.5f, -0.5f,  0.5f},
+            };
 
-                   // Left face                                  
-                   -0.5f,  0.5f,  0.5f,      0.0f, 1.0f,         0.0f, 1.0f, 1.0f, // Front-top-left
-                   -0.5f,  0.5f, -0.5f,      1.0f, 1.0f,         0.0f, 1.0f, 1.0f, // Back-top-left
-                   -0.5f, -0.5f, -0.5f,      1.0f, 0.0f,         0.0f, 1.0f, 1.0f, // Back-bottom-left
-                   -0.5f, -0.5f,  0.5f,      0.0f, 0.0f,         0.0f, 1.0f, 1.0f, // Front-bottom-left
+            mesh.m_teexCoord =
+            {
+                {0.0f, 1.0f},
+                {0.0f, 0.0f},
+                {1.0f, 0.0f},
+                {1.0f, 1.0f},
+                {0.0f, 0.0f},
+                {0.0f, 1.0f},
+                {1.0f, 1.0f},
+                {1.0f, 0.0f},
+                
+                {1.0f, 0.0f},
+                {1.0f, 1.0f},
+                {0.0f, 1.0f},
+                {0.0f, 0.0f},
+                
+                {0.0f, 1.0f},
+                {1.0f, 1.0f},
+                {1.0f, 0.0f},
+                {0.0f, 0.0f},
+                
+                {1.0f, 0.0f},
+                {1.0f, 1.0f},
+                {0.0f, 1.0f},
+                {0.0f, 0.0f},
+                
+                {0.0f, 1.0f},
+                {1.0f, 1.0f},
+                {1.0f, 0.0f},
+                {0.0f, 0.0f},
+            };
+
+            mesh.m_colors =
+            {
+                WHITE,
+                WHITE,
+                WHITE,
+                WHITE,
+
+                WHITE,
+                WHITE,
+                WHITE,
+                WHITE,
+
+                WHITE,
+                WHITE,
+                WHITE,
+                WHITE,
+
+                WHITE,
+                WHITE,
+                WHITE,
+                WHITE,
+
+                WHITE,
+                WHITE,
+                WHITE,
+                WHITE,
+
+                WHITE,
+                WHITE,
+                WHITE,
+                WHITE,
             };
 
             mesh.m_indices =
@@ -65,52 +123,6 @@ namespace aiko
 
         }
 
-        // QUAD
-
-        void generateQuad(Mesh& mesh)
-        {
-            VerticesColor colors =
-            {
-                aiko::Color( 1.0f, 0.0f, 0.0f, 1.0f ),
-                aiko::Color( 0.0f, 1.0f, 0.0f, 1.0f ),
-                aiko::Color( 0.0f, 0.0f, 1.0f, 1.0f ),
-                aiko::Color( 1.0f, 1.0f, 0.0f, 1.0f),
-            };
-            return generateQuad(mesh, colors);
-        }
-
-        void generateQuad(Mesh& mesh, aiko::Color color)
-        {
-            VerticesColor colors =
-            {
-                color,
-                color,
-                color,
-                color,
-            };
-            return generateQuad(mesh, colors);
-        }
-
-        void generateQuad(Mesh& mesh, VerticesColor c)
-        {
-            mesh.m_vertices =
-            {
-                  // positions           // texture coords      // colors         
-                   0.5f,  0.5f, 0.0f,     1.0f, 1.0f,            c[0].r, c[0].g, c[0].b, // top right
-                   0.5f, -0.5f, 0.0f,     1.0f, 0.0f,            c[1].r, c[1].g, c[1].b, // bottom right
-                  -0.5f, -0.5f, 0.0f,     0.0f, 0.0f,            c[2].r, c[2].g, c[2].b, // bottom left
-                  -0.5f,  0.5f, 0.0f,     0.0f, 1.0f,            c[3].r, c[3].g, c[3].b, // top left
-            };
-
-            mesh.m_indices =
-            {
-                0, 1, 3, // first triangle
-                1, 2, 3  // second triangle
-            };
-        }
-
-        // Pyramids
-
         void generatePyramid(Mesh& mesh)
         {
 
@@ -118,17 +130,32 @@ namespace aiko
             const float b2 = 1.0f / 2.0f;
 
             mesh.m_vertices =
+            {                              
+                {-b2, -h2, -b2},
+                { b2, -h2, -b2},
+                { b2, -h2,  b2},
+                {-b2, -h2,  b2},
+                {0.0f, h2,  0.0f}
+            };
+
+            mesh.m_teexCoord =
             {
+                {0.0f, 1.0f},
+                {1.0f, 1.0f},
+                {1.0f, 0.0f},
+                {0.0f, 0.0f},
+                          
+                {1.0f, 0.0f},
+            };
 
-                  // Bottom face                                
-                  -b2, -h2, -b2,      0.0f, 1.0f,         1.0f, 1.0f, 0.0f, // Back-bottom- left
-                   b2, -h2, -b2,      1.0f, 1.0f,         1.0f, 1.0f, 0.0f, // Back-bottom-right
-                   b2, -h2,  b2,      1.0f, 0.0f,         1.0f, 1.0f, 0.0f, // Front-bottom-right
-                  -b2, -h2,  b2,      0.0f, 0.0f,         1.0f, 1.0f, 0.0f, // Front-bottom-left
+            mesh.m_colors =
+            {
+                WHITE,
+                WHITE,
+                WHITE,
+                WHITE,
 
-                  // Top                                 
-                   0.0f, h2,  0.0f,      1.0f, 0.0f,         1.0f, 0.0f, 1.0f, // Front-bottom-right
-
+                WHITE
             };
 
             mesh.m_indices =
@@ -140,8 +167,6 @@ namespace aiko
                 3, 0, 4            // Front-left triangle
             };
         }
-
-        // Sphere
 
         void generateMeshSphere(Mesh& mesh, int rings, int slices)
         {
@@ -167,17 +192,10 @@ namespace aiko
                     float u = float(j) / slices;
                     float v = float(i) / rings;
 
-                    // Push vertex: x, y, z, u, v, r, g, b
-                    mesh.m_vertices.push_back(x);
-                    mesh.m_vertices.push_back(y);
-                    mesh.m_vertices.push_back(z);
+                    mesh.m_vertices.push_back({x, y, z});
+                    mesh.m_teexCoord.push_back({ u, v });
+                    mesh.m_colors.push_back(WHITE);
 
-                    mesh.m_vertices.push_back(u);
-                    mesh.m_vertices.push_back(v);
-
-                    mesh.m_vertices.push_back(1.0f); // r
-                    mesh.m_vertices.push_back(1.0f); // g
-                    mesh.m_vertices.push_back(1.0f); // b
                 }
             }
 
@@ -201,8 +219,6 @@ namespace aiko
 
         }
 
-        // Cylinder
-
         void generateMeshCylinder(Mesh& mesh, int slices)
         {
 
@@ -219,24 +235,15 @@ namespace aiko
                 float u = float(i) / slices;
 
                 // Bottom circle vertex
-                mesh.m_vertices.push_back(x);          // x
-                mesh.m_vertices.push_back(-halfHeight); // y
-                mesh.m_vertices.push_back(z);          // z
-                mesh.m_vertices.push_back(u);          // u
-                mesh.m_vertices.push_back(0.0f);      // v
-                mesh.m_vertices.push_back(1.0f);      // r
-                mesh.m_vertices.push_back(1.0f);      // g
-                mesh.m_vertices.push_back(1.0f);      // b
+                mesh.m_vertices.push_back({ x, -halfHeight, z });
+                mesh.m_teexCoord.push_back({ u, 0.0f });
+                mesh.m_colors.push_back(WHITE);
 
                 // Top circle vertex
-                mesh.m_vertices.push_back(x);          // x
-                mesh.m_vertices.push_back(halfHeight); // y
-                mesh.m_vertices.push_back(z);          // z
-                mesh.m_vertices.push_back(u);          // u
-                mesh.m_vertices.push_back(1.0f);      // v
-                mesh.m_vertices.push_back(1.0f);      // r
-                mesh.m_vertices.push_back(1.0f);      // g
-                mesh.m_vertices.push_back(1.0f);      // b
+                mesh.m_vertices.push_back({ x, halfHeight, z });
+                mesh.m_teexCoord.push_back({ u, 1.0f });
+                mesh.m_colors.push_back(WHITE);
+
             }
 
             // Generate side indices
@@ -258,25 +265,15 @@ namespace aiko
             }
 
             // Center vertices for caps
-            int bottomCenterIndex = int(mesh.m_vertices.size() / 8); // 8 floats per vertex
-            mesh.m_vertices.push_back(0.0f);             // x
-            mesh.m_vertices.push_back(-halfHeight);      // y
-            mesh.m_vertices.push_back(0.0f);             // z
-            mesh.m_vertices.push_back(0.5f);             // u
-            mesh.m_vertices.push_back(0.5f);             // v
-            mesh.m_vertices.push_back(1.0f);             // r
-            mesh.m_vertices.push_back(1.0f);             // g
-            mesh.m_vertices.push_back(1.0f);             // b
+            const int bottomCenterIndex = int(mesh.m_vertices.size() / 8); // 8 floats per vertex
+            mesh.m_vertices.push_back({ 0.0f, -halfHeight, 0.0f });
+            mesh.m_teexCoord.push_back({ 0.5f, 0.5f });
+            mesh.m_colors.push_back(WHITE);
 
-            int topCenterIndex = bottomCenterIndex + 1;
-            mesh.m_vertices.push_back(0.0f);             // x
-            mesh.m_vertices.push_back(halfHeight);       // y
-            mesh.m_vertices.push_back(0.0f);             // z
-            mesh.m_vertices.push_back(0.5f);             // u
-            mesh.m_vertices.push_back(0.5f);             // v
-            mesh.m_vertices.push_back(1.0f);             // r
-            mesh.m_vertices.push_back(1.0f);             // g
-            mesh.m_vertices.push_back(1.0f);             // b
+            const int topCenterIndex = bottomCenterIndex + 1;
+            mesh.m_vertices.push_back({ 0.0f, halfHeight, 0.0f });
+            mesh.m_teexCoord.push_back({ 0.5f, 0.5f });
+            mesh.m_colors.push_back(WHITE);
 
             // Generate bottom cap
             for (int i = 0; i < slices; ++i)
@@ -298,69 +295,6 @@ namespace aiko
                 mesh.m_indices.push_back(top1);
             }
         }
-
-        // Circle
-        void generateCircle(Mesh& mesh, uint segments)
-        {
-            constexpr float radius = 1.0f / 2.0f;
-            constexpr Color color = WHITE;
-
-            mesh.m_vertices.reserve((segments + 1) * 8); // 8 floats per vertex (pos+uv+color)
-
-            // Center vertex
-            mesh.m_vertices.push_back(0.0f); // x
-            mesh.m_vertices.push_back(0.0f); // y
-            mesh.m_vertices.push_back(0.0f); // z
-            mesh.m_vertices.push_back(0.5f); // u
-            mesh.m_vertices.push_back(0.5f); // v
-            mesh.m_vertices.push_back(color.r);
-            mesh.m_vertices.push_back(color.g);
-            mesh.m_vertices.push_back(color.b);
-
-            // Circle perimeter vertices
-            for (int i = 0; i <= segments; ++i)
-            {
-                float angle = (2.0f * M_PI * i) / segments;
-                float x = cosf(angle) * radius;
-                float y = sinf(angle) * radius;
-
-                mesh.m_vertices.push_back(x);
-                mesh.m_vertices.push_back(y);
-                mesh.m_vertices.push_back(0.0f); // z
-                mesh.m_vertices.push_back(0.5f + 0.5f * cosf(angle)); // u
-                mesh.m_vertices.push_back(0.5f + 0.5f * sinf(angle)); // v
-                mesh.m_vertices.push_back(color.r);
-                mesh.m_vertices.push_back(color.g);
-                mesh.m_vertices.push_back(color.b);
-            }
-
-            // Indices (triangle fan)
-            mesh.m_indices.reserve(segments * 3);
-            for (uint16_t i = 1; i <= segments; ++i)
-            {
-                mesh.m_indices.push_back(0);       // center
-                mesh.m_indices.push_back(i);       // current perimeter
-                mesh.m_indices.push_back(i + 1);   // next perimeter (wraps around)
-            }
-        }
-
-        // Triangle
-        void generateTriangle(Mesh& mesh)
-        {
-            mesh.m_vertices =
-            {
-                -0.5f, -0.5f,  0.0f,       0.0f, 1.0f,        1.0f, 1.0f, 1.0f, // Top-left
-                 0.5f, -0.5f,  0.0f,       0.0f, 0.0f,        1.0f, 1.0f, 1.0f, // Bottom-left
-                 0.0f,  0.5f,  0.0f,       1.0f, 0.0f,        1.0f, 1.0f, 1.0f, // Bottom-right
-            };
-
-            mesh.m_indices =
-            {
-                0, 1, 2
-            };
-        }
-
-        // Others
 
         void generateMeshPlane(Mesh& mesh, float width, float length, int resX, int resZ)
         {
@@ -460,14 +394,10 @@ namespace aiko
                     float texU = (float)i / radSeg;
                     float texV = (float)j / sides;
 
-                    mesh.m_vertices.push_back(pos.x);
-                    mesh.m_vertices.push_back(pos.y);
-                    mesh.m_vertices.push_back(pos.z);
-                    mesh.m_vertices.push_back(texU);
-                    mesh.m_vertices.push_back(texV);
-                    mesh.m_vertices.push_back(color.r);
-                    mesh.m_vertices.push_back(color.g);
-                    mesh.m_vertices.push_back(color.b);
+                    mesh.m_vertices.push_back(pos);
+                    mesh.m_teexCoord.push_back({ texU , texV });
+                    mesh.m_colors.push_back(WHITE);
+
                 }
             }
 
@@ -563,14 +493,9 @@ namespace aiko
                     float u = (float)i / radSeg;
                     float v = (float)j / sides;
 
-                    mesh.m_vertices.push_back(pos.x);
-                    mesh.m_vertices.push_back(pos.y);
-                    mesh.m_vertices.push_back(pos.z);
-                    mesh.m_vertices.push_back(u);
-                    mesh.m_vertices.push_back(v);
-                    mesh.m_vertices.push_back(color.r);
-                    mesh.m_vertices.push_back(color.g);
-                    mesh.m_vertices.push_back(color.b);
+                    mesh.m_vertices.push_back(pos);
+                    mesh.m_teexCoord.push_back({u, v});
+                    mesh.m_colors.push_back(WHITE);
                 }
             }
 
@@ -597,26 +522,116 @@ namespace aiko
 
         void generatePoint(Mesh& mesh)
         {
-            constexpr const Color color = WHITE;
-
-            mesh.m_vertices.clear();
-            mesh.m_indices.clear();
-
-            // Add vertex: x, y, z, u, v, r, g, b
-            mesh.m_vertices.push_back(0.0f);
-            mesh.m_vertices.push_back(0.0f);
-            mesh.m_vertices.push_back(0.0f);
-
-            mesh.m_vertices.push_back(0.0f); // u (not used)
-            mesh.m_vertices.push_back(0.0f); // v (not used)
-
-            mesh.m_vertices.push_back(color.r);
-            mesh.m_vertices.push_back(color.g);
-            mesh.m_vertices.push_back(color.b);
-
-            // Add a single index
+            mesh.m_vertices.push_back({ 0.0f });
+            mesh.m_teexCoord.push_back({ 0.0f }); // Not used
+            mesh.m_colors.push_back(WHITE);
             mesh.m_indices.push_back(0);
+        }
 
+        void generateLine(Mesh& mesh, vec3 start, vec3 end)
+        {
+            mesh.m_vertices.push_back(start);
+            mesh.m_vertices.push_back(end);
+            mesh.m_teexCoord.push_back({ 0.0f, 0.0f });
+            mesh.m_teexCoord.push_back({ 0.0f, 0.0f });
+            mesh.m_colors.push_back(WHITE);
+            mesh.m_colors.push_back(WHITE);
+            mesh.m_indices = { 0, 1 };
+        }
+        
+        void generateQuad(Mesh& mesh)
+        {
+            mesh.m_vertices =
+            {
+                { 0.5f,  0.5f, 0.0f},
+                { 0.5f, -0.5f, 0.0f},
+                {-0.5f, -0.5f, 0.0f},
+                {-0.5f,  0.5f, 0.0f},
+            };
+
+            mesh.m_teexCoord =
+            {
+                {1.0f, 1.0f},
+                {1.0f, 0.0f},
+                {0.0f, 0.0f},
+                {0.0f, 1.0f},
+            };
+
+            mesh.m_colors =
+            {
+                {1.0f, 1.0f, 1.0f, 1.0f},
+                {1.0f, 1.0f, 1.0f, 1.0f},
+                {1.0f, 1.0f, 1.0f, 1.0f},
+                {1.0f, 1.0f, 1.0f, 1.0f},
+            };
+
+            mesh.m_indices =
+            {
+                0, 1, 3,
+                1, 2, 3
+            };
+        }
+
+        void generateCircle(Mesh& mesh, uint segments)
+        {
+            constexpr float radius = 1.0f / 2.0f;
+            constexpr Color color = WHITE;
+
+            // Center vertex
+            mesh.m_vertices.push_back({ 0.0f });
+            mesh.m_teexCoord.push_back({0.5f});
+            mesh.m_colors.push_back(color);
+
+            // Circle perimeter vertices
+            for (int i = 0; i <= segments; ++i)
+            {
+                float angle = (2.0f * M_PI * i) / segments;
+                float x = cosf(angle) * radius;
+                float y = sinf(angle) * radius;
+
+                mesh.m_vertices.push_back({x, y, 0.0f});
+                mesh.m_teexCoord.push_back({ 0.5f + 0.5f * cosf(angle), 0.5f + 0.5f * sinf(angle) });
+                mesh.m_colors.push_back(color);
+
+            }
+
+            // Indices (triangle fan)
+            mesh.m_indices.reserve(segments * 3);
+            for (uint16_t i = 1; i <= segments; ++i)
+            {
+                mesh.m_indices.push_back(0);       // center
+                mesh.m_indices.push_back(i);       // current perimeter
+                mesh.m_indices.push_back(i + 1);   // next perimeter (wraps around)
+            }
+        }
+
+        void generateTriangle(Mesh& mesh)
+        {
+            mesh.m_vertices =
+            {
+                {-0.5f, -0.5f,  0.0f},
+                { 0.5f, -0.5f,  0.0f},
+                { 0.0f,  0.5f,  0.0f},
+            };
+
+            mesh.m_teexCoord =
+            {
+                {0.0f, 1.0f},
+                {0.0f, 0.0f},
+                {1.0f, 0.0f},
+            };
+
+            mesh.m_colors =
+            {
+                {1.0f, 1.0f, 1.0f},
+                {1.0f, 1.0f, 1.0f},
+                {1.0f, 1.0f, 1.0f},
+            };
+
+            mesh.m_indices =
+            {
+                0, 1, 2
+            };
         }
 
     }

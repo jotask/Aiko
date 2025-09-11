@@ -36,7 +36,8 @@ namespace aiko
 
         void init();
 
-        std::vector<VertexInformation> convertToBgfxVertex(const Mesh& mesh);
+        std::vector<VertexInformation>  convertToBgfxVertex(const Mesh& mesh);
+        std::vector<uint16_t>           convertToBgfxIndices(const Mesh& mesh);
 
 	}
 }

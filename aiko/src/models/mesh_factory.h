@@ -16,11 +16,10 @@ namespace aiko
 
         // 2D
         void generatePoint(Mesh& mesh);
+        void generateLine(Mesh& mesh, vec3 start, vec3 end);
+        void generateQuad(Mesh& mesh);
         void generateCircle(Mesh& mesh, uint segments = 32);
         void generateTriangle(Mesh& mesh);
-        void generateQuad(Mesh& mesh);
-        void generateQuad(Mesh& mesh, Color color);
-        void generateQuad(Mesh& mesh, VerticesColor colors);
 
         // 3D
         void generatePyramid(Mesh& mesh);

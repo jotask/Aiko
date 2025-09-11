@@ -24,29 +24,28 @@ namespace aiko
 
             std::vector<VertexInformation> vertices;
 
-            const size_t stride = 8; // 3 pos + 2 uv + 3 color floats
-            for (size_t i = 0; i < mesh.m_vertices.size(); i += stride)
+            for (size_t i = 0; i < mesh.m_vertices.size(); ++i)
             {
                 VertexInformation v{};
 
                 // position
-                v.x = mesh.m_vertices[i + 0];
-                v.y = mesh.m_vertices[i + 1];
-                v.z = mesh.m_vertices[i + 2];
+                const auto vertex = mesh.m_vertices[i];
+                v.x = vertex.x;
+                v.y = vertex.y;
+                v.z = vertex.z;
 
                 // uv
-                v.u = mesh.m_vertices[i + 3];
-                v.v = mesh.m_vertices[i + 4];
+                const auto textCoord = mesh.m_teexCoord[i];
+                v.u = textCoord.x;
+                v.v = textCoord.y;
 
-                // color floats
-                float rf = mesh.m_vertices[i + 5];
-                float gf = mesh.m_vertices[i + 6];
-                float bf = mesh.m_vertices[i + 7];
+                // color
+                const auto color = mesh.m_colors[i];
 
-                uint8_t r = static_cast<uint8_t>(rf * 255.0f);
-                uint8_t g = static_cast<uint8_t>(gf * 255.0f);
-                uint8_t b = static_cast<uint8_t>(bf * 255.0f);
-                uint8_t a = 255;
+                uint8_t r = static_cast<uint8_t>(color.r * 255.0f);
+                uint8_t g = static_cast<uint8_t>(color.g * 255.0f);
+                uint8_t b = static_cast<uint8_t>(color.b * 255.0f);
+                uint8_t a = static_cast<uint8_t>(color.a * 255.0f);
 
                 // pack to ABGR
                 v.abgr = (uint32_t(a) << 24) | (uint32_t(b) << 16) | (uint32_t(g) << 8) | uint32_t(r);
@@ -57,6 +56,17 @@ namespace aiko
             return vertices;
 
             
+        }
+
+        std::vector<uint16_t> convertToBgfxIndices(const Mesh& mesh)
+        {
+            std::vector<uint16_t> indices16;
+            indices16.reserve(mesh.m_indices.size());
+            for (uint32_t idx : mesh.m_indices)
+            {
+                indices16.push_back(static_cast<uint16_t>(idx));
+            }
+            return indices16;
         }
 
     }
