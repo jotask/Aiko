@@ -29,12 +29,26 @@ namespace sandbox
 
         auto root = Instantiate("Root");
 
-        auto go1 = this->Instantiate(root, "Cube1");
-        go1->transform()->position = { 1.0f, 0.0f, 0.0f };
+        auto go1 = this->Instantiate(root, "Church");
+        go1->transform()->position = { 0.0f, 0.0f, 0.0f };
         go1->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         go1->transform()->scale = { 1.0f, 1.0f, 1.0f };
-        auto model = go1->addComponent<aiko::ModelComponent>();
-        model->load("church.obj");
+        auto model1 = go1->addComponent<aiko::ModelComponent>();
+        model1->load("church.obj");
+
+        auto go2 = this->Instantiate(root, "Barracks");
+        go2->transform()->position = { -15.0f, 0.0f, 0.0f };
+        go2->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        go2->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        auto model2 = go2->addComponent<aiko::ModelComponent>();
+        model2->load("barracks.obj");
+
+        auto go3 = this->Instantiate(root, "Watermill");
+        go3->transform()->position = { 15.0f, 0.0f, 0.0f };
+        go3->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        go3->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        auto model3 = go3->addComponent<aiko::ModelComponent>();
+        model3->load("watermill.obj");
 
 #ifdef TEST_CUBES
         m_go1 = this->Instantiate(root, "Cube1");
