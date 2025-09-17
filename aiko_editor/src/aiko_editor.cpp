@@ -53,6 +53,7 @@ namespace aiko::editor
         m_go2->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
 
+        /*
         auto m_texture = this->Instantiate(root, "Texture");
         m_texture->transform()->position = { 0.0f, -0.55f, 0.0f };
         m_texture->transform()->rotation = { 0.0f, 0.0f, 0.0f };
@@ -70,6 +71,7 @@ namespace aiko::editor
         automatonGO->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         automatonGO->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto automaton = automatonGO->addComponent<ca::CellularAutomatonComponent>();
+        */
 
     }
 

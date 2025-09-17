@@ -46,7 +46,7 @@ namespace aiko
 
         aiko::AikoPtr<Transform> transform();
 
-        // FIXME: For now, so we can easily create components
+        // FIXME: For now, so we can easily get components
         template<class T>
         auto getSystem();
 

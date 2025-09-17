@@ -39,7 +39,7 @@ namespace nes
             case AddressModes::IndirectX:   indirectX();    break;
             case AddressModes::IndirectY:   indirectY();    break;
             case AddressModes::Relative:    relative();     break;
-            default:                        assert(false, "unkown addressing mode");
+            default:                        assert(false && "unkown addressing mode");
         }
 
         switch (op.instruction)
@@ -101,7 +101,7 @@ namespace nes
             case Instruction::txs:      txs();      break;
             case Instruction::tya:      tya();      break;
             case Instruction::xxx:      xxx();      break;
-            default:                    assert(false, "unkown instruction");
+            default:                    assert(false && "unkown instruction");
         }
 
         if constexpr (NES_CPU_LOG)

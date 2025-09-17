@@ -1,7 +1,5 @@
 #pragma once
 
-#include <core/libs.h>
-
 #include "base_module.h"
 
 namespace aiko
@@ -18,8 +16,6 @@ namespace aiko
     
         virtual void init() override;
 
-        void loadMesh(const char* name);
-    
     };
 
 }

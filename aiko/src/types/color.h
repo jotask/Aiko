@@ -63,7 +63,7 @@ namespace aiko
     #define SKYBLUE    CLITERAL(Color){ 102 / 255.0f    , 191 / 255.0f   , 255 / 255.0f     , 255 / 255.0f }   // Sky Blue
     #define BLUE       CLITERAL(Color){ 0 / 255.0f      , 121 / 255.0f   , 241 / 255.0f     , 255 / 255.0f }   // Blue
     #define DARKBLUE   CLITERAL(Color){ 0 / 255.0f      , 82 / 255.0f    , 172 / 255.0f     , 255 / 255.0f }   // Dark Blue
-    #define PURPLE     CLITERAL(Color){ 200 / 255.0f    , 122 / 255.0f   , 255 / 255.0f     , 255 / 255.0f }   // Purple
+    #define PURPLE     CLITERAL(Color){ 200.0f / 255.0f    , 122.0f / 255.0f   , 255.0f / 255.0f     , 255.0f / 255.0f }   // Purple
     #define VIOLET     CLITERAL(Color){ 135 / 255.0f    , 60 / 255.0f    , 190 / 255.0f     , 255 / 255.0f }   // Violet
     #define DARKPURPLE CLITERAL(Color){ 112 / 255.0f    , 31 / 255.0f    , 126 / 255.0f     , 255 / 255.0f }   // Dark Purple
     #define BEIGE      CLITERAL(Color){ 211 / 255.0f    , 176 / 255.0f   , 131 / 255.0f     , 255 / 255.0f }   // Beige

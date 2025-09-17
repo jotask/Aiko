@@ -2,8 +2,10 @@
 
 #include <assert.h>
 
+#include <magic_enum/magic_enum.hpp>
+#include <magic_enum/magic_enum_utility.hpp>
+
 #include <imgui.h>
-#include <magic_enum/magic_enum_all.hpp>
 
 #include "core/imgui_helper.h"
 
@@ -23,7 +25,6 @@ namespace aiko::editor
             Mesh,
             PboTexture,
             Texture,
-            Automaton,
         };
 
         std::vector<aiko::string> getComponents(aiko::GameObject* obj)
@@ -45,7 +46,6 @@ namespace aiko::editor
                 if (isComponent<aiko::MeshComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Mesh); continue; };
                 if (isComponent<aiko::GridXComponent>(tmp, pmt)) { addCmp(ComponentsTypes::GridX); continue; };
                 if (isComponent<aiko::LightComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Light); continue; };;
-                if (isComponent<aiko::ca::CellularAutomatonComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Automaton); continue; };
                 assert(false && "ERROR :: Component is not supported by the editor");
             }
             return tmp;
@@ -131,9 +131,6 @@ namespace aiko::editor
                 case ComponentsTypes::Texture:
                     obj->addComponent<::aiko::TextureComponent>();
                     break;
-                case ComponentsTypes::Automaton:
-                    obj->addComponent<::aiko::ca::CellularAutomatonComponent>();
-                    break;
                 default:
                     assert(false);
                     break;
@@ -150,7 +147,6 @@ namespace aiko::editor
             if (isComponent<aiko::LightComponent>(compt, drawLight)) return;
             if (isComponent<aiko::GridXComponent>(compt, drawGrid)) return;
             if (isComponent<aiko::CameraComponent>(compt, drawCamera)) return;
-            if (isComponent<aiko::ca::CellularAutomatonComponent>(compt, drawAutomaton)) return;
             assert(false && "ERROR :: Component is not supported by the editor");
         }
 
@@ -166,7 +162,7 @@ namespace aiko::editor
         void drawTexture(aiko::TextureComponent* text)
         {
             ImGui::PushID(text);
-            aiko::texture::Texture texture = text->getTexture();
+            aiko::texture::Texture texture = text->getTexture()->m_texture;
             imgui::Image(texture);
             ImGui::PopID();
         }
@@ -204,8 +200,8 @@ namespace aiko::editor
             ImGui::DragFloat3("Position", camera->getCamera()->position, IMGUI_VELOCITY);
             ImGui::DragFloat3("Target", camera->getCamera()->target, IMGUI_VELOCITY);
             ImGui::Spacing();
-            ImGui::DragFloat("Near", &camera->getCamera()->near, IMGUI_VELOCITY);
-            ImGui::DragFloat("Far", &camera->getCamera()->far, IMGUI_VELOCITY);
+            ImGui::DragFloat("Near", &camera->getCamera()->m_near, IMGUI_VELOCITY);
+            ImGui::DragFloat("Far", &camera->getCamera()->m_far, IMGUI_VELOCITY);
             ImGui::Spacing();
 
             if (ImGui::BeginCombo("##comboType", magic_enum::enum_name(camera->getCameraType()).data())) // The second parameter is the label previewed before opening the combo.
@@ -228,7 +224,7 @@ namespace aiko::editor
 
             if (camera->getCameraType() == camera::CameraType::Orthographic)
             {
-                ImGui::DragFloat("OrthoHeight", &camera->getCamera()->orthoHeight, IMGUI_VELOCITY);
+                ImGui::DragFloat("OrthoHeight", &camera->getCamera()->m_orthoHeight, IMGUI_VELOCITY);
             }
 
             ImGui::Spacing();
@@ -263,17 +259,6 @@ namespace aiko::editor
                 break;
             }
 
-            ImGui::PopID();
-        }
-
-        void drawAutomaton(aiko::ca::CellularAutomatonComponent* cmp)
-        {
-            ImGui::PushID(cmp);
-            ImGui::Text("CellularAutomatonComponent");
-            if (ImGui::Button("Regenerate"))
-            {
-                cmp->getWorld().regenerate();
-            }
             ImGui::PopID();
         }
 

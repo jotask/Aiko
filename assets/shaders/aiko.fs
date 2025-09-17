@@ -1,17 +1,18 @@
-#version 330 core
+// aiko.fs - bgfx universal fragment shader
 
-out vec4 FragColor;
+// Varyings coming from vertex shader
+varying vec2 v_texcoord0;
+varying vec3 v_color0;
 
-in vec2 TexCoord;
-in vec3 Color;
-
-// texture samplers
-uniform sampler2D texture1;
-uniform sampler2D texture2;
+// Texture samplers
+uniform sampler2D s_texture1;
+uniform sampler2D s_texture2;
 
 void main()
 {
-	// linearly interpolate between both textures (80% container, 20% awesomeface)
-	// FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2);
-    FragColor = vec4(Color, 1.0f);
+    // Linearly interpolate between textures (optional)
+    // vec4 texColor = mix(texture2D(s_texture1, v_texcoord0), texture2D(s_texture2, v_texcoord0), 0.2);
+    
+    // For now, just output vertex color
+    gl_FragColor = vec4(v_color0, 1.0);
 }

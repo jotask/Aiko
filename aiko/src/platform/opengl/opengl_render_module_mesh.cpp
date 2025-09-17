@@ -20,10 +20,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 namespace aiko::native
 {
 
@@ -85,13 +81,13 @@ namespace aiko::native
 
     }
 
-    void OpenglRenderModule::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, texture::Texture* text)
+    void OpenglRenderModule::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, Texture* text)
     {
         glDisable(GL_CULL_FACE);
 
         // bind textures on corresponding texture units
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, text->id);
+        glBindTexture(GL_TEXTURE_2D, text->m_texture.id);
 
         shader->use();
 
@@ -114,6 +110,11 @@ namespace aiko::native
         shader->unuse();
 
         glEnable(GL_CULL_FACE);
+    }
+
+    void OpenglRenderModule::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, texture::PboTexture* text)
+    {
+        AIKO_DEBUG_BREAK
     }
 
 }

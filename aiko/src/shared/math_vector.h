@@ -80,6 +80,10 @@ namespace aiko
             return vec3(x * scalar, y * scalar, z * scalar);
         }
 
+        vec3 operator*(const vec3& other) const {
+            return vec3{ x * other.x, y * other.y, z * other.z };
+        }
+
         // Division
         vec3 operator/(float scalar) const {
             return vec3(x / scalar, y / scalar, z / scalar);
@@ -106,6 +110,10 @@ namespace aiko
             x *= scalar;
             y *= scalar;
             z *= scalar;
+            return *this;
+        }
+        vec3& operator*=(vec3 other) {
+            *this = *this * other;
             return *this;
         }
 

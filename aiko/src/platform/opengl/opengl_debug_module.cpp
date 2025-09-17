@@ -1,9 +1,14 @@
+#ifdef AIKO_NATIVE
+
 #include "modules/debug_module.h"
 
-#include "models/time.h"
+#include <bgfx/bgfx.h>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
+#include "models/time.h"
 #include "aiko_types.h"
-#include "core/libs.h"
 #include "core/log.h"
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
@@ -31,7 +36,8 @@ namespace aiko
         //ImGui::StyleColorsLight();
 
         GLFWwindow* window = (GLFWwindow*)m_displayModule->getNativeDisplay();
-        ImGui_ImplGlfw_InitForOpenGL(window, true);
+
+        ImGui_ImplGlfw_InitForOther(window, true);
         ImGui_ImplOpenGL3_Init();
 
         EventSystem::it().bind<WindowResizeEvent>(this, &DebugModule::onKeyPressed);
@@ -50,7 +56,8 @@ namespace aiko
 
     void DebugModule::endFrame()
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // FIXME
+        // glBindFramebuffer(GL_FRAMEBUFFER, 0);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
@@ -62,3 +69,5 @@ namespace aiko
     }
 
 }
+
+#endif

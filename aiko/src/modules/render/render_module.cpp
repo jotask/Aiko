@@ -4,13 +4,15 @@
 #include "modules/display_module.h"
 #include "events/events.hpp"
 
+#include "models/shader.h"
+#include "models/mesh.h"
+
 namespace aiko
 {
     RenderModule::RenderModule(Aiko* aiko)
         : BaseModule(aiko)
         , m_displayModule(nullptr)
     {
-
     }
 
     void RenderModule::connect(ModuleConnector* moduleConnector)
@@ -20,6 +22,12 @@ namespace aiko
 
     void RenderModule::init()
     {
+
+        // This just allow us to create instances, without coupling to all system/modules fnt calls
+        Mesh::s_renderModule = this;
+        Shader::s_renderModule = this;
+        Texture::s_renderModule = this;
+
         const AikoConfig cfg = getAiko()->getConfig();
         background_color = cfg.background_color;
         EventSystem::it().bind<WindowResizeEvent>(this, &RenderModule::onWindowResize);
@@ -27,22 +35,22 @@ namespace aiko
 
     void RenderModule::postInit()
     {
-        std::for_each(m_renderers.begin(), m_renderers.end(), [](auto& ctx) { ctx.second->init(); });
+
     }
 
     void RenderModule::beginFrame()
     {
-        std::for_each(m_renderers.begin(), m_renderers.end(), [](auto& ctx) { ctx.second->beginFrame(); });
+
     }
 
     void RenderModule::endFrame()
     {
-        std::for_each(m_renderers.begin(), m_renderers.end(), [](auto& ctx) { ctx.second->endFrame(); });
+
     }
 
     void RenderModule::dispose()
     {
-        std::for_each(m_renderers.begin(), m_renderers.end(), [](auto& ctx) { ctx.second->dispose(); });
+
     }
 
     ivec2 RenderModule::getDisplaySize()
@@ -50,20 +58,10 @@ namespace aiko
         return m_displayModule->getCurrentDisplay().getDisplaySize();
     }
 
-    RenderContext* RenderModule::getRenderer(ContextType ctx)
-    {
-        return m_renderers[ctx].get();
-    }
-
     void RenderModule::onWindowResize(Event& event)
     {
         const auto& msg = static_cast<const WindowResizeEvent&>(event);
         m_displayModule->getCurrentDisplay().setWindowSize(msg.width, msg.height);
-    }
-
-    RenderModule::RenderersCtx& RenderModule::getRenderers()
-    {
-        return m_renderers;
     }
 
 }

@@ -15,29 +15,17 @@
 #include "models/mesh.h"
 #include "models/shader.h"
 #include "components/transform_component.h"
+#include "constants.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 namespace aiko::native
 {
 
-    void OpenglRenderModule::refreshShader(Mesh*)
+    void OpenglRenderModule::refreshShader(Shader*)
     {
 
-    }
-
-    AikoPtr<Shader> OpenglRenderModule::createShader()
-    {
-        AikoPtr<Shader> shader = std::make_shared<Shader>();
-        shader->internalLoadShaderSrc = std::bind(&RenderModule::loadShaderSrc, this, std::placeholders::_1, std::placeholders::_2);
-        shader->internalLoadShaderData = std::bind(&RenderModule::loadShaderData, this, std::placeholders::_1, std::placeholders::_2);
-        shader->internalUnloadShaderData = std::bind(&RenderModule::unloadShader, this, std::placeholders::_1);
-        return shader;
     }
 
     aiko::ShaderData OpenglRenderModule::loadShaderData(const char* vertex, const char* fragment)
@@ -45,14 +33,15 @@ namespace aiko::native
         auto loadFile = [](const char* filename) -> string
             {
 
-
                 assert(filename != nullptr && "Shader file name can't be nullptr");
+                string path = std::string("shaders/native/") + filename;
+                auto file_path = aiko::global::getAssetPath(path.c_str());
 
                 try
                 {
                     std::ifstream shaderFile;
                     shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-                    shaderFile.open(filename);
+                    shaderFile.open(file_path);
                     std::stringstream shaderStream;
                     shaderStream << shaderFile.rdbuf();
                     shaderFile.close();
@@ -130,7 +119,7 @@ namespace aiko::native
 
             GLint size; // size of the variable
             GLenum type; // type of the variable (float, vec3 or mat4, etc)
-
+            
             const GLsizei bufSize = 128; // maximum name length
             GLchar name[bufSize]; // variable name in GLSL
             GLsizei length; // name length
@@ -150,10 +139,31 @@ namespace aiko::native
 
     }
 
+    int OpenglRenderModule::loadShaderUniform(Shader* shader, const string& name, ShaderUniformDataType type)
+    {
+        GLint location = glGetUniformLocation(shader->getData()->id, name.c_str());
+        if (location == -1)
+        {
+            Log::error() << "Warning: uniform 'uTime' not found!";
+        }
+        return location;
+    }
+
     void OpenglRenderModule::unloadShader(aiko::ShaderData& data)
     {
-        // TODO
+        AIKO_DEBUG_BREAK
     }
+
+    void OpenglRenderModule::setShaderUniform(Shader* shader, string name, vec4 value)
+    {
+        const int location = shader->getUniformLocation(name);
+        if (location == -1)
+        {
+            std::cout << "Warning: uniform 'uTime' not found!" << std::endl;
+        }
+        glUniform1f(location, 3.14f);   // float
+    }
+
 
 }
 #endif

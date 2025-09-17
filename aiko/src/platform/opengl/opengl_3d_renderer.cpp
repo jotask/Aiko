@@ -1,4 +1,8 @@
+#ifdef AIKO_NATIVE
+
 #include "opengl_3d_renderer.h"
+
+#ifndef DISABLE_CODE
 
 #include "core/libs.h"
 
@@ -31,3 +35,6 @@ namespace aiko
     }
 
 }
+
+#endif
+#endif

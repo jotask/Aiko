@@ -70,6 +70,11 @@ namespace aiko
             return glm::radians(angle);
         }
 
+        int max(int a, int b)
+        {
+			return glm::max(a, b);
+        }
+
         vec3 cross(vec3 a, vec3 b)
         {
             glm::vec3 aa = toGlm(a);

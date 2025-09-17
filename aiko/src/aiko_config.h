@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <types/color.h>
 
 namespace aiko
@@ -10,7 +9,7 @@ namespace aiko
     {
     public:
 
-        static constexpr Color DEFAULT_BACKGROUND_COLOR = { 0.2f, 0.3f, 0.3f, 1.0f };
+        static constexpr Color DEFAULT_BACKGROUND_COLOR = BLACK;
 
         enum RenderType {
             TwoDimensions = 0,
@@ -18,7 +17,7 @@ namespace aiko
         };
 
         AikoConfig();
-        AikoConfig(string tittle, uint16_t width, uint64_t height, Color = BLACK, bool auto_render = true );
+        AikoConfig(string tittle, uint16_t width, uint64_t height, Color = DEFAULT_BACKGROUND_COLOR, bool auto_render = true );
 
         uint16_t width;
         uint16_t height;

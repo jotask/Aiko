@@ -24,7 +24,6 @@ namespace aiko::editor
         void drawGrid(aiko::GridXComponent*);
         void drawGrid(aiko::GridXComponent*);
         void drawCamera(aiko::CameraComponent*);
-        void drawAutomaton(aiko::ca::CellularAutomatonComponent*);
 
         template <typename T>
         bool isComponent(aiko::Component* compt, void (*fnt)(T*))

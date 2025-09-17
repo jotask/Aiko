@@ -8,7 +8,8 @@
 #include <imgui.h>
 #include <json/json.h>
 #include <imgui_internal.h>
-#include <magic_enum/magic_enum_all.hpp>
+
+#include <magic_enum/magic_enum.hpp>
 
 namespace aiko
 {

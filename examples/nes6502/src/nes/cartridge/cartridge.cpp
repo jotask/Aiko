@@ -43,7 +43,7 @@ namespace nes
         if (stream.is_open() == false)
         {
             aiko::Log::error("Couldn't load binary file: ", file);
-            return;
+            assert(false && "Error loading ROM");
         }
 
         // Parse header
@@ -53,7 +53,6 @@ namespace nes
         {
             aiko::Log::error("Inserted invalid cartridge. Only iNES file are supported");
             assert(false, "UnkownFile");
-            std::exit(-1);
         }
 
         // TODO What to do with the trainer from some roms?

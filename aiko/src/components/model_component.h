@@ -22,6 +22,8 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
 
+        void load(const char*);
+
     public:
         RenderSystem*   m_renderSystem;
         Model m_model;

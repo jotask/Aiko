@@ -128,7 +128,7 @@ namespace nes::test::online
                     if (memoryAddressValue != state.value)
                     {
                         aiko::Log::error("Memory is not the expected. Cycle: " , unsigned(x), " Expected: ", unsigned(state.address), " -> ", unsigned(state.value), " Received: ", unsigned(cpu->program_counter), " -> ", unsigned(memoryAddressValue));
-                        assert(false , "Memory is not the expected" );
+                        assert(false && "Memory is not the expected" );
                     }
                 }
                 i += cpu->waitForCycles;

@@ -41,14 +41,14 @@ namespace aiko
         case camera::CameraType::Perspective:
         {
             auto size = cameraSystem->getDisplaySize();
-            return math::perspective(45.0f, (float)size.x, (float)size.y, near, far );
+            return math::perspective(m_fov, (float)size.x, (float)size.y, m_near, m_far );
         }
         case camera::CameraType::Orthographic:
         {
             ivec2 size = cameraSystem->getDisplaySize();
             float aspectRatio = size.x / size.y;
-            float orthoWidth = orthoHeight * aspectRatio;
-            return math::ortho(-orthoWidth, orthoWidth, -orthoHeight, orthoHeight, near, far);
+            float orthoWidth = m_orthoHeight * aspectRatio;
+            return math::ortho(-orthoWidth, orthoWidth, -m_orthoHeight, m_orthoHeight, m_near, m_far);
         }
             default:
                 std::exception("Not Implemented");

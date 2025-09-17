@@ -3,22 +3,14 @@
 #include <vector>
 
 #include "types/render_types.h"
-
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
+#include "models/model.h"
 
 namespace aiko
 {
     
     void AssetModule::init()
     {
-
-    }
-
-    void AssetModule::loadMesh(const char* name)
-    {
-
+		BaseModule::init();
     }
 
 }

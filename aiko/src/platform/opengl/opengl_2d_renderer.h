@@ -1,8 +1,13 @@
+#ifdef AIKO_NATIVE
+
+#define DISABLE_CODE
+
 #pragma once
+
+#ifndef DISABLE_CODE
 
 #include <vector>
 
-#include "modules/render/2d_renderer.h"
 #include "modules/render/render_module.h"
 #include "models/shader.h"
 
@@ -74,3 +79,6 @@ namespace aiko
 
     };
 }
+
+#endif
+#endif

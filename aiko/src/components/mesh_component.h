@@ -23,10 +23,13 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
 
+        void load(const char*);
+        void refresh();
+
     private:
         RenderSystem*   m_renderSystem;
-        AikoPtr<Mesh>   m_mesh;
-        AikoPtr<Shader> m_shader;
+        Mesh   m_mesh;
+        Shader m_shader;
 
     };
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 
 #include <functional>
 
@@ -15,20 +16,22 @@
 namespace aiko
 {
     class RenderModule;
-    class RenderSystem;
-
     class Shader
     {
-    public:
+    private:
         friend class RenderModule;
-        friend class RenderSystem;
+        static RenderModule* s_renderModule;
+    public:
 
         Shader();
         ~Shader() = default;
 
+        void load(const char* fileCodeName);
         void load(const char* vs, const char* fs);
         void loadFromSource(const char* vs, const char* fs);
         void unload();
+
+        void preLoadUniforms(std::vector<std::pair<string, ShaderUniformDataType>> uniforms);
 
         // Type Helpers
 
@@ -46,14 +49,6 @@ namespace aiko
         void use();
         void unuse();
 
-        // void setShaderValue(int locIndex, const int& value);
-        // void setShaderValue(int locIndex, const float& value);
-        // void setShaderValue(int locIndex, const ivec2& value);
-        // void setShaderValue(int locIndex, const vec2& value);
-        // void setShaderValue(int locIndex, const vec3& value);
-        // void setShaderValue(int locIndex, const vec4& value);
-        // void setShaderValue(int locIndex, const std::vector<vec2>& value);
-
         aiko::ShaderData* getData();
 
         bool isvalid() const { return isValid; }
@@ -66,15 +61,9 @@ namespace aiko
         bool isValid = false;
         aiko::ShaderData m_shaderData;
 
-        using LoadShaderData = std::function<aiko::ShaderData(const char*, const char*)>;//  aiko::ShaderData(RenderModule::*)(const char*, const char*);
-        using LoadShaderSrc  = std::function<aiko::ShaderData(const char*, const char*)>;//  aiko::ShaderData(RenderModule::*)(const char*, const char*);
-        using UnloadShaderData = std::function<void(aiko::ShaderData)>;
+        std::map<string, int> m_uniforms;
 
     public:
-
-        LoadShaderSrc internalLoadShaderSrc = nullptr;
-        LoadShaderData internalLoadShaderData = nullptr;
-        UnloadShaderData internalUnloadShaderData = nullptr;
 
         int getUniformLocation(const string& name);
 

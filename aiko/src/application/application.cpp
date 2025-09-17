@@ -9,8 +9,6 @@
 #include "models/shader.h"
 #include "models/time.h"
 
-#include "core/libs.h"
-
 namespace aiko
 {
 
@@ -100,12 +98,6 @@ namespace aiko
     {
         InputSystem* inputSystem = getInputSystem();
         return inputSystem->isMouseButtonPressed(button);
-    }
-
-    aiko::AikoPtr<aiko::Shader> Application::getShader()
-    {
-        auto* assetSystem = getRenderSystem();
-        return assetSystem->createShader();
     }
 
     GameObject* Application::Instantiate(char* name)

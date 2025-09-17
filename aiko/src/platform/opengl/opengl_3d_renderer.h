@@ -1,4 +1,10 @@
+#ifdef AIKO_NATIVE
+
 #pragma once
+
+#define DISABLE_CODE
+
+#ifndef DISABLE_CODE
 
 #include <vector>
 
@@ -25,3 +31,6 @@ namespace aiko
 
     };
 }
+
+#endif
+#endif
