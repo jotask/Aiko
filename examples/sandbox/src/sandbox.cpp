@@ -37,14 +37,14 @@ namespace sandbox
         model1->load("church.obj");
 
         auto go2 = this->Instantiate(root, "Barracks");
-        go2->transform()->position = { -15.0f, 0.0f, 0.0f };
+        go2->transform()->position = { -50.0f, 0.0f, 0.0f };
         go2->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         go2->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto model2 = go2->addComponent<aiko::ModelComponent>();
         model2->load("barracks.obj");
 
         auto go3 = this->Instantiate(root, "Watermill");
-        go3->transform()->position = { 15.0f, 0.0f, 0.0f };
+        go3->transform()->position = { 50.0f, 0.0f, 0.0f };
         go3->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         go3->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto model3 = go3->addComponent<aiko::ModelComponent>();
