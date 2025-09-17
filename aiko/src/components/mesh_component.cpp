@@ -2,6 +2,7 @@
 
 #include "models/game_object.h"
 #include "systems/render_system.h"
+#include "systems/asset_system.h"
 #include "constants.h"
 
 namespace aiko
@@ -28,7 +29,19 @@ namespace aiko
 
     void MeshComponent::render()
     {
-        m_renderSystem->render( gameobject->transform().get(), &m_mesh, &m_shader);
+        m_renderSystem->render(gameobject->transform().get(), &m_mesh, &m_shader);
+    }
+
+    void MeshComponent::load(const char* filename)
+    {
+        auto ass = gameobject->getSystem<AssetSystem>();
+        m_mesh = ass->loadMesh(filename);
+        m_mesh.refresh();
+    }
+
+    void MeshComponent::refresh()
+    {
+        AIKO_DEBUG_BREAK
     }
 
 }

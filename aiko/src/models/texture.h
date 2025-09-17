@@ -35,6 +35,8 @@ namespace aiko
 
         void loadTextureFromFile(const char*);
 
+		bool isValid() const;
+
     //private:
 
         texture::Texture m_texture;

@@ -3,10 +3,8 @@
 #include <vector>
 
 #include "aiko_types.h"
-#include "types/camera_types.h"
-#include "types/color.h"
-#include "shared/math.h"
 #include "models/shader.h"
+#include "models/texture.h"
 
 namespace aiko
 {
@@ -17,7 +15,7 @@ namespace aiko
 
         enum class MaterialType
         {
-
+			DIFFUESE,
         };
 
         friend class RenderModule;
@@ -28,6 +26,9 @@ namespace aiko
 
     public:
         Shader m_shader;
+        Texture m_diffuse;
+        Texture m_normal;
+        Texture m_specular;
 
     };
 

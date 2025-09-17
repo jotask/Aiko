@@ -7,6 +7,7 @@
 #include "types/color.h"
 #include "shared/math.h"
 #include "models/shader.h"
+#include "models/texture.h"
 
 namespace aiko
 {
@@ -30,6 +31,8 @@ namespace aiko
     
         Mesh();
         ~Mesh() = default;
+
+        void refresh();
 
     // private:
 

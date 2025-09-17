@@ -8,6 +8,8 @@
 #include "models/game_object.h"
 #include "models/camera.h"
 #include "models/shader.h"
+#include "models/mesh.h"
+#include "models/model.h"
 #include "types/camera_types.h"
 #include "shared/math.h"
 #include "types/asset_type.h"
@@ -36,6 +38,9 @@ namespace aiko
         void unload(asset::ID);
 
         RenderSystem* getRenderSystem() const { return m_renderSystem; }
+
+        Mesh loadMesh(const char*);
+        Model loadModel(const char*);
 
     protected:
     

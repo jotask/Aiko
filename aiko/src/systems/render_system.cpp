@@ -114,6 +114,14 @@ namespace aiko
             break;
         }
     }
+
+    void RenderSystem::render(Transform* trans, Model* model)
+    {
+        assert(model != nullptr && "Model is null");
+        assert(trans != nullptr && "Transform is null");
+        assert(model->m_material.m_shader.isvalid() && "Shader not set in material");
+        m_renderModule->renderMesh(getMainCamera(), trans, &model->m_mesh, &model->m_material.m_shader, &model->m_material.m_diffuse);
+    }
    
     void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader)
     {

@@ -23,6 +23,9 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
 
+        void load(const char*);
+        void refresh();
+
     private:
         RenderSystem*   m_renderSystem;
         Mesh   m_mesh;

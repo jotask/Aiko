@@ -9,12 +9,14 @@
 #include "models/mesh.h"
 #include "components/texture_component.h"
 #include "components/pbo_texture_component.h"
+#include "components/model_component.h"
 #include "models/camera.h"
 #include "types/color.h"
 
 #include <aiko_includes.h>
 
 // #define TEST_CUBES
+// #define TEST_PRIMITVES
 
 namespace sandbox
 {
@@ -26,6 +28,13 @@ namespace sandbox
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
 
         auto root = Instantiate("Root");
+
+        auto go1 = this->Instantiate(root, "Cube1");
+        go1->transform()->position = { 1.0f, 0.0f, 0.0f };
+        go1->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        go1->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        auto model = go1->addComponent<aiko::ModelComponent>();
+        model->load("church.obj");
 
 #ifdef TEST_CUBES
         m_go1 = this->Instantiate(root, "Cube1");
@@ -74,7 +83,7 @@ namespace sandbox
         const aiko::vec3 position = { 0.0f,  0.0f, 0.0f };
         const aiko::vec3 size = { 1.0f, 1.0f, 1.0f };
 
-#if true
+#ifdef TEST_PRIMITVES
 
         constexpr const float SIZE = 1.0f;
 

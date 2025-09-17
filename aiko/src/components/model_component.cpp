@@ -2,6 +2,7 @@
 
 #include "models/game_object.h"
 #include "systems/render_system.h"
+#include "systems/asset_system.h"
 #include "constants.h"
 
 namespace aiko
@@ -16,10 +17,11 @@ namespace aiko
     void ModelComponent::init()
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
-        m_model.m_mesh = m_renderSystem->createMesh(Mesh::MeshType::CUBE);
-        m_model.m_material.m_shader.load("aiko.vs", "shaders/aiko.fs");
-        assert(m_model.m_material.m_shader.isvalid() && "Shader is invalid");
-        AIKO_DEBUG_BREAK
+    }
+
+    void ModelComponent::load(const char* filename)
+    {
+        m_model.load(filename);
     }
 
     void ModelComponent::update()
@@ -29,7 +31,7 @@ namespace aiko
 
     void ModelComponent::render()
     {
-        m_renderSystem->render(gameobject->transform().get(), &m_model.m_mesh, &m_model.m_material.m_shader);
+        m_renderSystem->render(gameobject->transform().get(), &m_model);
     }
 
 }

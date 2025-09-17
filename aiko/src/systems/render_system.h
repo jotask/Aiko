@@ -9,6 +9,7 @@
 #include "models/mesh.h"
 #include "models/light.h"
 #include "models/shader.h"
+#include "models/model.h"
 #include "models/texture.h"
 #include "types/textures.h"
 #include "modules/render/render_module.h"
@@ -42,6 +43,7 @@ namespace aiko
         void updatePbo(texture::PboTexture text, std::vector<Color>&);
 
         void add(Light*);
+        void render(Transform* trans, Model* model);
         void render(Transform* trans, Mesh* mesh, Shader* shader);
         void render(Transform* trans, Mesh* mesh, Shader* shader, Texture*);
         void render(Transform* trans, Mesh* mesh, Shader* shader, texture::PboTexture*);

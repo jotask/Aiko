@@ -130,10 +130,7 @@ namespace aiko::bgfx
         std::string base = ::aiko::global::GLOBAL_ASSET_PATH;
         base += std::string(file);
 
-        if (std::filesystem::exists(base) == false)
-        {
-            return {0};
-        }
+        assert(std::filesystem::exists(base) && "Texture don't exist");
 
         int width, height, channels;
         // Load image data with stb_image
@@ -143,7 +140,7 @@ namespace aiko::bgfx
         {
             printf("Failed to load texture: %s\n", file);
             std::runtime_error("Error!");
-            return { 0 };
+            assert(false && "Texture Failed to load texture.");
         }
         
         // Create bgfx memory from image data

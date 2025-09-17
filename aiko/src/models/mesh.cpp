@@ -8,10 +8,15 @@ namespace aiko
 {
 
     RenderModule* Mesh::s_renderModule = nullptr;
-    
+
     Mesh::Mesh()
     {
         s_renderModule->initMesh(this);
+    }
+
+    void Mesh::refresh()
+    {
+        s_renderModule->refreshMesh(this);
     }
 
 }

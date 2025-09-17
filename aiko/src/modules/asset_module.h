@@ -16,8 +16,6 @@ namespace aiko
     
         virtual void init() override;
 
-        void loadMesh(const char* name);
-    
     };
 
 }
