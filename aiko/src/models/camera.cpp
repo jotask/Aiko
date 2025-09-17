@@ -41,7 +41,7 @@ namespace aiko
         case camera::CameraType::Perspective:
         {
             auto size = cameraSystem->getDisplaySize();
-            return math::perspective(45.0f, (float)size.x, (float)size.y, m_near, m_far );
+            return math::perspective(m_fov, (float)size.x, (float)size.y, m_near, m_far );
         }
         case camera::CameraType::Orthographic:
         {
