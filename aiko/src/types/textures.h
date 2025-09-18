@@ -1,24 +1,42 @@
 #pragma once
 
+#include "models/shader.h"
+
 namespace aiko::texture
 {
 
     class Texture
     {
     public:
-        unsigned int id;                  // OpenGL texture id
+        uint id;                  // OpenGL texture id
         int width;                        // Texture base width
         int height;                       // Texture base height
         int mipmaps;                      // Mipmap levels, 1 by default
         int format;                       // Data format (PixelFormat type)
+        int channels;
+    };
+
+    class PboTexture
+    {
+    public:
+        uint pbo;
+        uint data_size;
+        Texture texture;
     };
 
     class RenderTexture2D
     {
     public:
-        unsigned int id;                  // OpenGL framebuffer object id
-        Texture texture;                  // Color buffer attachment texture
-        Texture depth;                    // Depth buffer attachment texture
+        uint framebuffer;
+        Texture texture;
+        Texture depth;
+    };
+
+    struct ScreenFbo
+    {
+        uint vao;
+        uint vbo;
+        texture::RenderTexture2D renderTexture;
     };
 
 }

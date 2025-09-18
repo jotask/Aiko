@@ -2,84 +2,144 @@
 
 #include <stdexcept>
 #include <algorithm>
+#include <array>
 
+#include "aiko.h"
+#include "systems/render_system.h"
+#include "systems/asset_system.h"
+#include "modules/render/render_module.h"
 #include "core/libs.h"
-#include "core/raylib_utils.h"
+#include "core/log.h"
 
-namespace aiko::shader
+namespace aiko
 {
 
-#define AIKO_RETURN_NO_LOC if(locIndex < 0) return;
+    #define AIKO_RETURN_NO_LOC if(locIndex < 0) return;
+
+    RenderModule* Shader::s_renderModule = nullptr;
 
     Shader::Shader()
-        : m_locs( RL_MAX_SHADER_LOCATIONS, -1 )
     {
     
     }
 
+    void Shader::load(const char* fileCodeName)
+    {
+        std::string vs = std::string(fileCodeName) + ".vs";
+        std::string fs = std::string(fileCodeName) + ".fs";
+        this->load(vs.c_str(), fs.c_str());
+        assert(isvalid() && "Shader is invalid");
+    }
+
     void Shader::load(const char* vs, const char* fs)
     {
-        auto data = LoadShader(vs, fs);
-        m_id = data.id;
-        m_locs.clear();
-        m_locs.resize(RL_MAX_SHADER_LOCATIONS);
-        std::copy(data.locs, data.locs + RL_MAX_SHADER_LOCATIONS, m_locs.begin());
+        if (isValid == true)
+        {
+            unload();
+        }
+        isValid = true;
+        m_shaderData = s_renderModule->loadShaderData(vs, fs);
+    }
+
+    void Shader::loadFromSource(const char* vs, const char* fs)
+    {
+        if (isValid == true)
+        {
+            unload();
+        }
+        isValid = true;
+        m_shaderData = s_renderModule->loadShaderData(vs, fs);
     }
 
     void Shader::unload()
     {
-        ::Shader shader = raylib::utils::toRaylibShader(*this, true);
-        UnloadShader(shader);
+        if (isValid == false)
+        {
+            return;
+        }
+        s_renderModule->unloadShader(m_shaderData);
+        isValid = false;
     }
 
-    int Shader::getShaderLocation(const char* locName)
+    int Shader::getUniformLocation(const string& name)
     {
-        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
-        return GetShaderLocation(m_shader, locName);
+        auto value = m_shaderData.locs.find(name);
+        if (value != m_shaderData.locs.end())
+        {
+            return value->second;
+        }
+        Log::error( "UniformNotLoaded %s", name.c_str());
+        assert(false);
+        return { 0 };
     }
 
-    void Shader::setShaderValueV(int locIndex, const void* value, SUDT uniformType, int count)
+    void Shader::setBool(const string& name, bool value)
     {
-        AIKO_RETURN_NO_LOC
-        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
-        SetShaderValueV(m_shader, locIndex, value, uniformType, count);
+        s_renderModule->setShaderUniform(this, name, value);
     }
 
-    void Shader::setShaderValue(int locIndex, const void* value, SUDT uniformType)
+    void Shader::setInt(const string& name, int value)
     {
-        AIKO_RETURN_NO_LOC
-        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
-        SetShaderValue(m_shader, locIndex, value, uniformType);
+        s_renderModule->setShaderUniform(this, name, value);
     }
 
-    void Shader::setShaderValue(int locIndex, const int& value)
+    void Shader::setFloat(const string& name, float value)
     {
-        AIKO_RETURN_NO_LOC
-        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
-        SetShaderValue(m_shader, locIndex, &value, SHADER_UNIFORM_INT);
+        s_renderModule->setShaderUniform(this, name, value);
     }
 
-    void Shader::setShaderValue(int locIndex, const float& value)
+    void Shader::setVec2(const string& name, const vec2& value)
     {
-        AIKO_RETURN_NO_LOC
-            ::Shader m_shader = raylib::utils::toRaylibShader(*this);
-        SetShaderValue(m_shader, locIndex, &value, SHADER_UNIFORM_FLOAT);
+        AIKO_DEBUG_BREAK
     }
 
-    void Shader::setShaderValue(int locIndex, const ivec2& value)
+    void Shader::setVec2(const string& name, float x, float y)
     {
-        AIKO_RETURN_NO_LOC
-            ::Shader m_shader = raylib::utils::toRaylibShader(*this);
-        std::array<float, 2> loc = { static_cast<float>(value.x), static_cast<float>(value.y) };
-        SetShaderValue(m_shader, locIndex, loc.data(), SHADER_UNIFORM_VEC2);
+        AIKO_DEBUG_BREAK
     }
 
-    void Shader::setShaderValue(int locIndex, const vec3& value)
+    void Shader::setVec3(const string& name, const vec3& value)
     {
-        AIKO_RETURN_NO_LOC
-        ::Shader m_shader = raylib::utils::toRaylibShader(*this);
-        std::array<float, 3> loc = { value.x, value.y ,value.z };
-        SetShaderValue(m_shader, locIndex, loc.data(), SHADER_UNIFORM_VEC3);
+        AIKO_DEBUG_BREAK
+    }
+    void Shader::setVec3(const string& name, float x, float y, float z)
+    {
+        AIKO_DEBUG_BREAK
+    }
+
+    void Shader::setVec4(const string& name, const vec4& value)
+    {
+        s_renderModule->setShaderUniform(this, name, value);
+    }
+
+    void Shader::setVec4(const string& name, float x, float y, float z, float w)
+    {
+        AIKO_DEBUG_BREAK
+    }
+
+    void Shader::setMat4(const string& name, const mat4& mat)
+    {
+        AIKO_DEBUG_BREAK
+    }
+
+    void Shader::use()
+    {
+        s_renderModule->beginShaderMode(this);
+    }
+
+    void Shader::unuse()
+    {
+        s_renderModule->endShaderMode();
+    }
+
+    aiko::ShaderData* Shader::getData()
+    {
+        return &m_shaderData;
+    }
+
+    void Shader::connect()
+    {
+        AIKO_DEBUG_BREAK
     }
 
 }

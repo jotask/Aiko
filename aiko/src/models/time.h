@@ -1,26 +1,30 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
-#include "aiko_types.h"
+#include "shared/singleton.h"
 
 namespace aiko
 {
-    
-    class Time
+    class Time : public Singleton<Time>
     {
+        friend class PlatformModule;
+        friend class Aiko;
     public:
-        
-        enum Type
+
+        float getDeltaTime() const
         {
-            Ambient,
-            Directional,
-            Point,
-        };
-    
-        Time();
-        ~Time() = default;
-    
+            return deltaTime;
+        }
+
+        double secondSinceStart() const
+        {
+            return time;
+        }
+
+    private:
+        double time = 0.0f;
+        float deltaTime = 0.0f;
+        float fps = 0.0f;
+        uint frames = 0;
     };
 
 }

@@ -1,36 +1,27 @@
 #include "display_module.h"
 
-#include <core/libs.h>
-
 #include "events/events.hpp"
 
 namespace aiko
 {
-    
-    DisplayModule::~DisplayModule()
+    void DisplayModule::preInit()
     {
-        CloseWindow();
-    }
-    
-    void DisplayModule::init()
-    {
-        SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-        InitWindow(screenWidth, screenHeight, "Aiko");
-        rlImGuiSetup(true);
+        EventSystem::it().bind<WindowResizeEvent>(this, &DisplayModule::onWindowResize);
+
+        const AikoConfig cfg = getAiko()->getConfig();
+        m_curent.setWindowSize(cfg.width, cfg.height);
+        m_curent.setWindowTitle(cfg.window_tittle.c_str());
     }
 
-    void DisplayModule::preUpdate()
+    void* DisplayModule::getNativeDisplay()
     {
-        if (::IsWindowResized())
-        {
-            WindowResizeEvent even(::GetScreenWidth(), GetScreenHeight());
-            aiko::EventSystem::it().sendEvent(even);
-        }
-        if (::WindowShouldClose())
-        {
-            WindowCloseEvent even;
-            aiko::EventSystem::it().sendEvent(even);
-        }
+        return m_curent.getNative();
+    }
+
+    void DisplayModule::onWindowResize(Event& event)
+    {
+        const auto& msg = static_cast<const WindowResizeEvent&>(event);
+        m_curent.setWindowSize( msg.width, msg.height );
     }
 
 }

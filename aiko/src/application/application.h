@@ -9,8 +9,11 @@
 namespace aiko
 {
 
+    class Shader;
     class Camera;
     class RenderSystem;
+    class InputSystem;
+    class AssetSystem;
 
     class Application
     {
@@ -19,6 +22,7 @@ namespace aiko
         friend class Aiko;
 
         Application();
+        Application(AikoConfig cfg);
         virtual ~Application() = default;
 
         void run();
@@ -27,14 +31,18 @@ namespace aiko
 
         float getlDeltaTime() const;
         bool isKeyPressed(Key) const;
+        bool isKeyJustPressed(Key) const;
         vec2 getMousePosition() const;
         bool isMouseButtonPressed(MouseButton) const;
 
-        virtual void init() {};
+        virtual void init() {}
         virtual void update() {}
         virtual void render() {}
 
-        RenderSystem* getRenderSystem();
+        AssetSystem* getAssetSystem() const;
+        InputSystem* getInputSystem() const;
+        RenderSystem* getRenderSystem() const;
+
         Camera* getMainCamera();
         vec2 getViewportSize() const;
         float getAspectRatio() const;
@@ -42,8 +50,13 @@ namespace aiko
 
         aiko::AikoUPtr<Aiko> m_aiko;
 
-    private:
+        GameObject* Instantiate(char* name);
+        GameObject* Instantiate(GameObject* , char* name);
 
+        // Draw text
+        void drawText(string, float, float);
+
+    private:
 
     };
 

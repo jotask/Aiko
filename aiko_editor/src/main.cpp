@@ -3,7 +3,7 @@
 
 int main()
 {
-    editor::AikoEditor editor;
+    aiko::editor::AikoEditor editor;
     editor.run();
     return EXIT_SUCCESS;
 }

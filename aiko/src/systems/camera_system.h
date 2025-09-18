@@ -9,12 +9,12 @@
 #include "models/camera.h"
 #include "types/camera_types.h"
 #include "shared/math.h"
+#include "core/uuid.h"
 
 namespace aiko
 {
 
     class RenderModule;
-    class SceneModule;
     class Camera;
     
     class CameraSystem : public BaseSystem
@@ -32,24 +32,11 @@ namespace aiko
         ivec2 getDisplaySize();
     
     protected:
-    
         virtual void connect(ModuleConnector*, SystemConnector*) override;
-    
-        virtual void init() override;
-    
-        virtual void update() override;
-    
-        virtual void render() override;
-    
     private:
 
-        aiko::AikoPtr<RenderModule> m_renderModule;
-        aiko::AikoPtr<SceneModule> m_sceneModule;
-
+        RenderModule* m_renderModule;
         std::vector<Camera> m_cameras;
-    
-        void setCameraType(camera::CameraType cameraType);
-        void setCameraController(camera::CameraController cameraController);
     
     };
 

@@ -7,11 +7,13 @@ namespace aiko
 {
     
     class Camera;
+    class InputSystem;
     
-    class CameraComponent : public Component
+    class CameraComponent : public Component, public IUpdate, public IRender3D
     {
     public:
         CameraComponent();
+        CameraComponent(camera::CameraController, camera::CameraType type = camera::CameraType::Perspective);
         virtual ~CameraComponent() = default;
     
         camera::CameraType getCameraType() const;
@@ -20,15 +22,30 @@ namespace aiko
         camera::CameraController getCameraController() const;
         void setCameraController(camera::CameraController);
 
-        virtual void update() override { };
+        virtual void update() override;
         virtual void render() override { };
+
+        float& radius() { return m_radius; }
+        float& speed() { return m_speed; }
+
+        Camera* getCamera() { return m_camera; }
     
     protected:
         virtual void init() override;
     
     private:
-    
+
+        InputSystem* m_inputSystem;
+        camera::CameraType m_type;
+
+        // Orbit
+        float m_radius = 3.5f;
+
+        // Fly
+        float m_speed = 3.5f;
+
         Camera* m_camera;
+        camera::CameraController cameraControler = camera::CameraController::Static;
     
     };
 

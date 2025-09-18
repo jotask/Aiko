@@ -1,0 +1,22 @@
+#pragma once
+
+#include <string>
+
+namespace nes
+{
+    namespace global
+    {
+        inline constexpr const char* NES_ASSET_PATH = "${NES_ASSET_PATH}";
+
+        inline std::string getAssetPath(const char* subpath)
+        {
+            std::string buffer;
+            buffer.clear();
+            buffer += NES_ASSET_PATH;
+            buffer += subpath;
+            return buffer;
+
+        }
+
+    }
+}

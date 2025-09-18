@@ -1,43 +1,45 @@
 #include "aiko.h"
 
-
 #include "modules/module_connector.h"
 #include "systems/system_connector.h"
 
 #include "application/application.h"
 #include "events/events.hpp"
 
+#include "platform/platform_builder.hpp"
+
 // Modules
+#include "modules/platform_module.h"
 #include "modules/display_module.h"
-#include "modules/scene_module.h"
-#include "modules/camera_module.h"
+#include "modules/render/render_module.h"
 #include "modules/input_module.h"
-#include "modules/renderer/render_module.h"
+#include "modules/asset_module.h"
+#include "modules/debug_module.h"
 
 // Systems
 #include "systems/entity_component_system.h"
 #include "systems/camera_system.h"
 #include "systems/render_system.h"
+#include "systems/asset_system.h"
+#include "systems/input_system.h"
+#include "systems/particle_system/particle_system.h"
 
+#include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
+#include <bx/bx.h>
+#include <bx/math.h>
 
 namespace aiko
 {
 
-    const AikoConfig default_aiko_cfg;
-
-    Aiko::Aiko(Application* app)
-        : Aiko(app, default_aiko_cfg)
-    {
-
-    }
+    Aiko::Aiko(Application* app) : Aiko(app, AikoConfig()) { }
 
     Aiko::Aiko(Application * app,  AikoConfig cfg)
         : m_application(app)
         , m_shouldStop(false)
         , cfg(cfg)
-        , m_displayModule(nullptr)
     {
-
+        Log::init();
         EventSystem::it().bind<WindowCloseEvent>(this, &Aiko::onWindowClose);
     }
 
@@ -45,16 +47,14 @@ namespace aiko
     {
     }
 
-    GameObject* Aiko::createGameObject(std::string name)
-    {
-        static EntityComponentSystem* ecs = getSystem<EntityComponentSystem>().get();
-        GameObject* obj = ecs->createGameObject(name).get();
-        return obj;
-    }
-
     void Aiko::onWindowClose(Event& event)
     {
         const auto& msg = static_cast<const WindowCloseEvent&>(event);
+        m_shouldStop = true;
+    }
+
+    void Aiko::close()
+    {
         m_shouldStop = true;
     }
 
@@ -73,19 +73,14 @@ namespace aiko
     {
 
         // Modules
-        m_modules.emplace_back(std::make_shared<DisplayModule>());
-        m_modules.emplace_back(std::make_shared<SceneModule>());
-        m_modules.emplace_back(std::make_shared<RenderModule>());
-        m_modules.emplace_back(std::make_shared<InputModule>());
-        m_modules.emplace_back(std::make_shared<CameraModule>());
+        m_modules.emplace_back(std::make_unique<PlatformModule>(this));
+        m_modules.emplace_back(modules::builder::getDisplaySystem(this));
+        m_modules.emplace_back(modules::builder::getRenderSystem(this));
+        m_modules.emplace_back(std::make_unique<InputModule>(this));
+        m_modules.emplace_back(std::make_unique<AssetModule>(this));
+        m_modules.emplace_back(std::make_unique<DebugModule>(this));
 
         ModuleConnector moduleConnector(m_modules);
-
-        // Temporal code
-        {
-            auto ptr = moduleConnector.find<DisplayModule>();
-            m_displayModule = ptr.get();
-        }
 
         for (auto&& module : m_modules) module->connect(&moduleConnector);
 
@@ -94,9 +89,12 @@ namespace aiko
         for (auto&& module : m_modules) module->postInit();
 
         // Systems
-        m_systems.emplace_back(std::make_shared<EntityComponentSystem>());
-        m_systems.emplace_back(std::make_shared<RenderSystem>());
-        m_systems.emplace_back(std::make_shared<CameraSystem>());
+        m_systems.emplace_back(std::make_unique<EntityComponentSystem>());
+        m_systems.emplace_back(std::make_unique<RenderSystem>());
+        m_systems.emplace_back(std::make_unique<CameraSystem>());
+        m_systems.emplace_back(std::make_unique<AssetSystem>());
+        m_systems.emplace_back(std::make_unique<InputSystem>());
+        m_systems.emplace_back(std::make_unique<ParticleSystem>());
 
         SystemConnector systemConnector(m_systems);
         for (auto&& system : m_systems) system->aiko = this;

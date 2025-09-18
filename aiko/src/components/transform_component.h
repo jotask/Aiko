@@ -6,20 +6,21 @@
 
 namespace aiko
 {
-
+    class Camera;
     class Transform : public Component
     {
     public:
         Transform();
         virtual ~Transform() = default;
 
+        Transform* parent;
+        std::vector<Transform*> childs;
+
         vec3 position = vec3(0.0f);
         vec3 rotation = vec3(0.0f);
         vec3 scale = vec3(1.0f);
 
-        // FIXME temporary as component now has all interfaces
-        virtual void update() override { };
-        virtual void render() override { };
+        mat4 getMatrix();
 
     };
 

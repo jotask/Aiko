@@ -1,28 +1,48 @@
 #include "entity_component_system.h"
 
 #include "modules/module_connector.h"
-#include "modules/scene_module.h"
 
 #include "components/transform_component.h"
-
-#include "components/component_renderer.h"
+#include "models/game_object.h"
 
 namespace aiko
 {
     
-    aiko::AikoPtr<GameObject> EntityComponentSystem::createGameObject(std::string name)
+    aiko::AikoPtr<GameObject> EntityComponentSystem::createGameObject(string name)
     {
-        m_gameObjects.emplace_back(std::make_shared<GameObject>());
-        aiko::AikoPtr<GameObject> obj = m_gameObjects.back();
+        auto obj = std::make_shared<GameObject>();
+        m_gameObjects.emplace_back(obj);
+        obj->m_entity = createEntity();
         obj->setName(name);
         obj->aiko = aiko;
         auto trans = obj->addComponent<Transform>();
         return obj;
     }
+
+    aiko::AikoPtr<GameObject> EntityComponentSystem::createGameObject(GameObject* parent, string name)
+    {
+        aiko::AikoPtr<GameObject> obj = createGameObject(name);
+        parent->transform()->childs.push_back(obj->transform().get());
+        obj->transform()->parent = parent->transform().get();
+        return obj;
+    }
+
+    void EntityComponentSystem::destroyGameObject(GameObject* obj)
+    {
+        auto found = std::find_if(m_gameObjects.begin(), m_gameObjects.end(), [obj](const aiko::AikoPtr<GameObject>& gameObject)
+        {
+            return gameObject->uuid() == obj->uuid();
+        });
+
+        if (found != m_gameObjects.end())
+        {
+            m_gameObjects.erase(found);
+        }
+    }
     
     void EntityComponentSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
-        m_sceneModule = moduleConnector->find<SceneModule>();
+        // BIND_MODULE_REQUIRED(SceneModule, moduleConnector, m_sceneModule)
     }
     
     void EntityComponentSystem::init()
@@ -36,30 +56,36 @@ namespace aiko
     
     void EntityComponentSystem::render()
     {
-    
         for (auto& go : m_gameObjects) go->render();
-    
-        /*
-        ImGui::Begin("ECS");
-        for (auto& go : m_gameObjects)
+    }
+
+    std::vector<GameObject*> EntityComponentSystem::getObjects()
+    {
+        std::vector<GameObject*> objs;
+        for (auto& obj : m_gameObjects)
         {
-            ImGui::SetNextItemOpen(true);
-            if (ImGui::TreeNode(go->getName().c_str()) == true )
-            {
-                for (auto& cmp : go->m_components)
-                {
-                    ImGui::SetNextItemOpen(true);
-                    if (ImGui::TreeNode(cmp->m_name.c_str()) == true)
-                    {
-                        ComponentRenderer::render(cmp.get());
-                        ImGui::TreePop();
-                    }
-                }
-                ImGui::TreePop();
-            }
+            objs.push_back(obj.get());
         }
-        ImGui::End();
-        */
+        return objs;
+    }
+
+    template<class T>
+    inline void EntityComponentSystem::onComponentAdded(GameObject* obj, T* c)
+    {
+        int a = 0;
+    }
+
+    template<class T>
+    inline void EntityComponentSystem::onComponentRemoved(GameObject* obj, T* c)
+    {
+        int a = 0;
+    }
+
+    SceneObject EntityComponentSystem::createEntity()
+    {
+        SceneObject so{ };
+        so.ecs = this;
+        return so;
     }
     
 

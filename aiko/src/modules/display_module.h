@@ -1,9 +1,11 @@
 #pragma once
 
+#include "aiko.h"
 #include "aiko_types.h"
 #include "base_module.h"
 #include "shared/math.h"
 #include "models/display.h"
+#include "events/event.hpp"
 
 namespace aiko
 {
@@ -12,22 +14,23 @@ namespace aiko
     {
     
     public:
-    
-        DisplayModule() = default;
-        virtual ~DisplayModule();
+
+        DisplayModule(Aiko* aiko) : BaseModule(aiko) { };
+        virtual ~DisplayModule() = default;
 
         Display& getCurrentDisplay() { return m_curent; };
 
+        void* getNativeDisplay();
+
     protected:
 
-        // TODO Get this size from config
-        const int screenWidth = 800;
-        const int screenHeight = 450;
-    
-        virtual void init() override;
-        virtual void preUpdate() override;
+        virtual void preInit() override;
 
         Display m_curent;
+
+        string m_displayName;
+
+        void onWindowResize(Event&);
     
     };
 

@@ -1,0 +1,159 @@
+#include "nes/cpu/cpu.h"
+
+#include "nes/bus.h"
+#include "nes/memory.h"
+#include "nes/utils/nes_utils.h"
+#include <aiko_includes.h>
+
+namespace nes
+{
+
+    void Cpu::relative()
+    {
+        setCurrentAddressMode(AddressModes::Relative);
+        addr_rel = read(program_counter++);
+        if (addr_rel & 0x80)
+        {
+            addr_rel |= 0xFF00;
+        }
+    }
+
+    void Cpu::implied()
+    {
+        // These instructions act directly on one or more registers or flags internal to the CPU.
+        // Therefor, these instructions are principally single-byte instructions, lacking an
+        // explicit operand. The operand is implied, as it is already provided by the very instruction.
+        setCurrentAddressMode(AddressModes::Implied);
+        memoryFetched = A;
+    }
+
+    void Cpu::immediate()
+    {
+        // A literal operand is given immediately after the instruction.The operand is always
+        // an 8 - bit value and the total instruction length is always 2 bytes.
+        setCurrentAddressMode(AddressModes::Immediate);
+        addr_abs = program_counter++;
+    }
+
+    void Cpu::zeroPage()
+    {
+        // The 16-bit address space available to the 6502 is thought to consist of 256 "pages" of
+        // 256 memory locations each ($00…$FF). In this model the high-byte of an address gives the
+        // page number and the low-byte a location inside this page.
+        setCurrentAddressMode(AddressModes::ZeroPage);
+        addr_abs = read(program_counter++);
+        addr_abs = getLow(addr_abs);
+    }
+
+    void Cpu::zeroPageX()
+    {
+        // Indexed addressing adds the contents of either the X-register or the Y-register to the
+        // provided address to give the effective address, which provides the operand.
+        setCurrentAddressMode(AddressModes::ZeroPageX);
+        addr_abs = (read(program_counter) + X);
+        program_counter++;
+        addr_abs &= 0x00FF;
+    }
+
+    void Cpu::zeroPageY()
+    {
+        // Indexed addressing adds the contents of either the X-register or the Y-register to the
+        // provided address to give the effective address, which provides the operand.
+        setCurrentAddressMode(AddressModes::ZeroPageY);
+        addr_abs = (read(program_counter) + Y);
+        program_counter++;
+        addr_abs &= 0x00FF;
+    }
+
+    void Cpu::absolute()
+    {
+        // Absolute addressing modes provides the 16-bit address of a memory location, the contents
+        // of which used as the operand to the instruction.
+        setCurrentAddressMode(AddressModes::Absolute);
+        Byte lo = read(program_counter++);
+        Byte hi = read(program_counter++);
+        addr_abs = toWord(hi, lo);
+    }
+
+    void Cpu::absoluteX()
+    {
+        setCurrentAddressMode(AddressModes::AbsoluteX);
+        Word lo = read(program_counter++);
+        Word hi = read(program_counter++);
+
+        addr_abs = (hi << 8) | lo;
+        addr_abs += X;
+
+        if ((addr_abs & 0xFF00) != (hi << 8))
+        {
+            waitForCycles++;
+        }
+    }
+
+    void Cpu::absoluteY()
+    {
+        setCurrentAddressMode(AddressModes::AbsoluteY);
+        uint16_t lo = read(program_counter++);
+        uint16_t hi = read(program_counter++);
+
+        addr_abs = (hi << 8) | lo;
+        addr_abs += Y;
+
+        if ((addr_abs & 0xFF00) != (hi << 8))
+        {
+            waitForCycles++;
+        }
+
+    }
+
+    void Cpu::indirect()
+    {
+        setCurrentAddressMode(AddressModes::Indirect);
+        Word ptr_lo = read(program_counter++);
+        Word ptr_hi = read(program_counter++);
+
+        Word ptr = (ptr_hi << 8) | ptr_lo;
+
+        if (ptr_lo == 0x00FF) // Simulate page boundary hardware bug
+        {
+            addr_abs = (read(Word(ptr & 0xFF00)) << 8) | read(Word(ptr + 0));
+        }
+        else // Behave normally
+        {
+            addr_abs = (read(Word(ptr + 1)) << 8) | (Word(ptr + 0));
+        }
+
+    }
+
+    void Cpu::indirectX()
+    {
+        setCurrentAddressMode(AddressModes::IndirectX);
+        Word t = read(program_counter);
+        program_counter++;
+
+        Word lo = read(Word((Word)(t + (Word)X) & 0x00FF));
+        Word hi = read(Word((Word)(t + (Word)X + 1) & 0x00FF));
+
+        addr_abs = (hi << 8) | lo;
+
+    }
+
+    void Cpu::indirectY()
+    {
+        setCurrentAddressMode(AddressModes::IndirectY);
+        uint16_t t = read(program_counter);
+        program_counter++;
+
+        uint16_t lo = read(Word(t & 0x00FF));
+        uint16_t hi = read(Word((t + 1) & 0x00FF));
+
+        addr_abs = (hi << 8) | lo;
+        addr_abs += Y;
+
+        if ((addr_abs & 0xFF00) != (hi << 8))
+        {
+            waitForCycles++;
+        }
+    }
+
+}

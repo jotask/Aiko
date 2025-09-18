@@ -13,7 +13,17 @@ namespace aiko
     {
     public:
         virtual void render() = 0;
+    
+    };
 
+    class IRender2D : public IRender
+    {
+        public:
+    };
+
+    class IRender3D : public IRender
+    {
+        public:
     };
 
 }

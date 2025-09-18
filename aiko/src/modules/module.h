@@ -12,6 +12,8 @@ namespace aiko
         friend class Aiko;
     
     protected:
+
+        Module(Aiko* aiko) : aiko(aiko) { };
     
         virtual void connect(ModuleConnector*) = 0;
         
@@ -32,7 +34,10 @@ namespace aiko
     
         virtual void dispose() = 0;
     
+        Aiko const* getAiko() const { return aiko; }
+
     private:
+        Aiko const* aiko;
     };
 
     }

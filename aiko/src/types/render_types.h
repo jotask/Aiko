@@ -1,5 +1,10 @@
 #pragma once
 
+#include <map>
+
+
+#include "aiko_types.h"
+
 namespace aiko
 {
 
@@ -15,6 +20,7 @@ namespace aiko
         SHADER_UNIFORM_IVEC2,           // Shader uniform type: ivec2 (2 int)
         SHADER_UNIFORM_IVEC3,           // Shader uniform type: ivec3 (3 int)
         SHADER_UNIFORM_IVEC4,           // Shader uniform type: ivec4 (4 int)
+        SHADER_UNIFORM_MAT4,           // Shader uniform type: ivec4 (4 int)
         SHADER_UNIFORM_SAMPLER2D        // Shader uniform type: sampler2d
     } ShaderUniformDataType;
 
@@ -29,6 +35,11 @@ namespace aiko
         BLEND_CUSTOM_SEPARATE           // Blend textures using custom rgb/alpha separate src/dst factors (use rlSetBlendFactorsSeparate())
     } BlendMode;
 
+    enum class ContextType
+    {
+        Render2D,
+        Render3D,
+    };
 
     class Rectangle
     {
@@ -39,6 +50,22 @@ namespace aiko
         float y;
         float width;
         float height;
+    };
+
+    class ShaderData
+    {
+    public:
+        unsigned int id;
+        std::map<string, int> locs;
+    };
+
+    class MeshData
+    {
+    public:
+        // OpenGL identifiers
+        unsigned int vbo;
+        unsigned int vao;
+        unsigned int ebo;
     };
 
 }

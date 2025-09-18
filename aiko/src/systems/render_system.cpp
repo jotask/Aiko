@@ -1,4 +1,4 @@
-#include "entity_component_system.h"
+#include "render_system.h"
 
 #include <stdexcept>
 #include <memory>
@@ -8,12 +8,17 @@
 #include <iostream>
 
 #include "aiko_types.h"
+#include "shared/math.h"
 #include "modules/module_connector.h"
-#include "modules/scene_module.h"
+#include "systems/system_connector.h"
 #include "components/transform_component.h"
-#include "components/component_renderer.h"
-#include "render_system.h"
+#include "components/mesh_component.h"
+#include "systems/camera_system.h"
 #include "models/light.h"
+#include "models/mesh_factory.h"
+#include "types/color.h"
+
+#include "platform/bgfx/bgfx_platform_helper.h"
 
 namespace aiko
 {
@@ -21,10 +26,10 @@ namespace aiko
     RenderSystem::RenderSystem()
     {
     }
-    
+
     void RenderSystem::init()
     {
-
+        this->initPrimitives();
     }
 
     void RenderSystem::update()
@@ -36,22 +41,53 @@ namespace aiko
     {
 
     }
-    
-    aiko::AikoPtr<Mesh> RenderSystem::createMesh()
+
+    Mesh RenderSystem::createMesh(Mesh::MeshType type)
     {
-        auto mesh = std::make_unique<Mesh>();
+        auto mesh = Mesh();
+        switch (type)
+        {
+        case aiko::Mesh::MeshType::CUBE:
+            mesh::generateCube(mesh);
+            break;
+        case aiko::Mesh::MeshType::QUAD:
+            mesh::generateQuad(mesh);
+            break;
+        case aiko::Mesh::MeshType::CUSTOM:
+            break;
+        default:
+            break;
+        }
+        refreshMesh(&mesh);
         return mesh;
     }
     
+
+    void RenderSystem::refreshMesh(Mesh* mesh)
+    {
+        m_renderModule->refreshMesh(mesh);
+    }
+
     aiko::AikoPtr<Light> RenderSystem::createLight()
     {
         auto light = std::make_unique<Light>();
         return light;
     }
-    
+
+    texture::PboTexture RenderSystem::createPboTexture(uint16_t width, uint16_t height)
+    {
+        return m_renderModule->createPboTexture(width, height);
+    }
+
+    void RenderSystem::updatePbo(texture::PboTexture text, std::vector<Color>& pixels)
+    {
+        m_renderModule->updatePboTexture(text, pixels);
+    }
+
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
-        m_renderModule = moduleConnector->find<RenderModule>();
+        BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
+        BIND_SYSTEM_REQUIRED(CameraSystem, systemConnector, m_cameraSystem)
     }
     
     void RenderSystem::add(Light* light)
@@ -78,10 +114,28 @@ namespace aiko
             break;
         }
     }
-   
-    void RenderSystem::render(MeshComponent* mesh)
-    {
 
+    void RenderSystem::render(Transform* trans, Model* model)
+    {
+        assert(model != nullptr && "Model is null");
+        assert(trans != nullptr && "Transform is null");
+        assert(model->m_material.m_shader.isvalid() && "Shader not set in material");
+        m_renderModule->renderModel(getMainCamera(), trans, model);
+    }
+   
+    void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader)
+    {
+        m_renderModule->renderMesh(getMainCamera() , trans, mesh, shader);
+    }
+
+    void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader, Texture* texture)
+    {
+        m_renderModule->renderMesh(getMainCamera(), trans, mesh, shader, texture);
+    }
+
+    void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader, texture::PboTexture* texture)
+    {
+        m_renderModule->renderMesh(getMainCamera(), trans, mesh, shader, texture);
     }
 
     texture::RenderTexture2D* RenderSystem::getTargetTexture() const
@@ -89,11 +143,47 @@ namespace aiko
         return m_renderModule->getRenderTexture();
     }
 
-    void RenderSystem::render(texture::RenderTexture2D& target, shader::Shader& shader)
+    void RenderSystem::renderToFullScreen(Shader* shader)
     {
-        m_renderModule->beginShaderMode(&shader);
-        m_renderModule->drawTextureEx(target.texture, { 0.0f, 0.0f }, 0.0f, 1.0f, WHITE);
+        m_renderModule->beginShaderMode(shader);
+        m_renderModule->beginTextureMode();
+        m_renderModule->beginMode2D();
+        m_renderModule->endMode2D();
+        m_renderModule->endTextureMode();
         m_renderModule->endShaderMode();
+    }
+
+    void RenderSystem::render(texture::RenderTexture2D& target, Shader* shader)
+    {
+        /*
+        m_renderModule->beginShaderMode(shader);
+
+        Camera* cam = this->getMainCamera();
+
+        auto projection = cam->getProjectionMatrix();
+        shader->setMat4("projection", projection);
+
+        auto view = cam->getViewMatrix();
+        shader->setMat4("view", view);
+
+        Transform trans;
+        shader->setMat4("model", trans.getMatrix());
+
+        m_renderModule->drawRenderTextureEx(target, vec2(), 0.0f, 1.0f, WHITE );
+
+        m_renderModule->endShaderMode();
+        */
+        AIKO_DEBUG_BREAK
+    }
+
+    Camera* RenderSystem::getMainCamera()
+    {
+        return m_cameraSystem->getMainCamera();
+    }
+
+    void RenderSystem::renderText(string str, float x, float y)
+    {
+        m_renderModule->drawText(str, x, y);
     }
 
 }
