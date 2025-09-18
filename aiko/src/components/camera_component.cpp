@@ -114,8 +114,16 @@ namespace aiko
                 moveDir += right;
             }
 
-            m_camera->position += moveDir * (m_speed * dt);
-            m_camera->target += moveDir * (m_speed * dt);
+            float speed = m_speed;
+
+
+            if (m_inputSystem->isKeyPressed(Key::KEY_LEFT_SHIFT))
+            {
+                speed *= 2.0f;
+            }
+
+            m_camera->position += moveDir * (speed * dt);
+            m_camera->target += moveDir * (speed * dt);
 
         }
         break;
