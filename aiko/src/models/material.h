@@ -13,11 +13,6 @@ namespace aiko
     {
     public:
 
-        enum class MaterialType
-        {
-			DIFFUESE,
-        };
-
         friend class RenderModule;
         friend class RenderSystem;
 
@@ -30,8 +25,6 @@ namespace aiko
 		Color m_baseColor;
 
         Texture m_diffuse;
-        Texture m_normal;
-        Texture m_specular;
 
     };
 
