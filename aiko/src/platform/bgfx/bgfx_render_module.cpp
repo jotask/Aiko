@@ -237,6 +237,15 @@ namespace aiko::bgfx
         ::bgfx::setViewRect(m_kViewMain, 0, 0, screenWidth, screenHeight);
         ::bgfx::setViewRect(m_kViewOffScreen, 0, 0, screenWidth, screenHeight);
 
+        ::bgfx::FrameBufferHandle fbh = AIKO_TO_FBH(m_screenFbo.renderTexture.framebuffer);
+
+        if (::bgfx::isValid(fbh) == true)
+        {
+            ::bgfx::destroy(fbh);
+        }
+
+        initScreenFbo();
+
     }
 
     void BgfxRenderModule::clearBackground(Color color)
