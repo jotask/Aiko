@@ -61,24 +61,14 @@ namespace aiko
         isValid = false;
     }
 
-    void Shader::preLoadUniforms(std::vector<std::pair<string, ShaderUniformDataType>> uniforms)
-    {
-        m_uniforms.clear();
-        for (auto u : uniforms)
-        {
-            const int val = s_renderModule->loadShaderUniform(this, u.first, u.second);
-            m_uniforms.insert(std::make_pair(u.first, int(val)));
-        }
-    }
-
     int Shader::getUniformLocation(const string& name)
     {
-        auto value = m_uniforms.find(name);
-        if (value != m_uniforms.end())
+        auto value = m_shaderData.locs.find(name);
+        if (value != m_shaderData.locs.end())
         {
             return value->second;
         }
-        assert(false && "UniformNotLoaded");
+        AIKO_ASSERT_MSG(false, "UniformNotLoaded %s", name.c_str());
         return { 0 };
     }
 
