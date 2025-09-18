@@ -131,7 +131,7 @@ namespace aiko::bgfx
 
             ::bgfx::setState(shared::default_state);
 
-		    const auto co = material->m_baseColor;
+            const auto co = material->m_baseColor;
             const auto u_baseColor = AIKO_TO_UH(material->m_shader.getUniformLocation("u_baseColor"));
             const float c[4] = { co.r, co.g, co.b, co.a };
             ::bgfx::setUniform(u_baseColor, &c);
@@ -143,7 +143,7 @@ namespace aiko::bgfx
 
 		    const bool useTexture = material->m_diffuse.isValid();
 		    const bool useVertexColor = false;
-		    const bool useLighting = false;
+		    const bool useLighting = true;
 
             const float flags[4] = { useTexture, useVertexColor, useLighting, 0.0f };
             ::bgfx::setUniform(u_flags, &flags);
