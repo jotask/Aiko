@@ -136,7 +136,12 @@ namespace aiko
 
         Model model;
 
-        assert(pScene->mNumMeshes == 1 && "Multiple meshes not supported for now");
+        /*
+            Append their vertices, normals, UVs, colors to your single model.m_mesh.
+            When appending indices, offset them by the number of vertices already added.
+        */
+
+        uint32_t vertexOffset = 0;
 
         // Initialize the meshes in the scene one by one
         for (uint i = 0; i < pScene->mNumMeshes; i++)
@@ -145,7 +150,7 @@ namespace aiko
             const aiMesh* paiMesh = pScene->mMeshes[i]; // For now, just take the first mesh
 
             // ----Vertices----
-            for (unsigned int v = 0; v < paiMesh->mNumVertices; ++v)
+            for (uint v = 0; v < paiMesh->mNumVertices; ++v)
             {
                 aiVector3D vert = paiMesh->mVertices[v];
                 model.m_mesh.m_vertices.push_back({ vert.x, vert.y, vert.z });
@@ -172,7 +177,7 @@ namespace aiko
                     model.m_mesh.m_teexCoord.push_back({ 0.0f, 0.0f });
                 }
 
-                // Optional: vertex color
+                // Vertex color
                 if (paiMesh->HasVertexColors(0))
                 {
                     aiColor4D c = paiMesh->mColors[0][v];
@@ -180,7 +185,7 @@ namespace aiko
                 }
                 else
                 {
-                    model.m_mesh.m_colors.push_back({ 1.0f, 1.0f, 1.0f, 1.0f });
+                    model.m_mesh.m_colors.push_back(MAGENTA);
                 }
 
             }
@@ -191,7 +196,7 @@ namespace aiko
                 const aiFace& face = paiMesh->mFaces[f];
                 for (unsigned int i = 0; i < face.mNumIndices; ++i)
                 {
-                    model.m_mesh.m_indices.push_back(face.mIndices[i]);
+                    model.m_mesh.m_indices.push_back(face.mIndices[i] + vertexOffset);
                 }
             }
 
@@ -203,6 +208,8 @@ namespace aiko
                 std::string texFile = string("models/") + texturePath.C_Str();
                 model.m_material.m_diffuse.loadTextureFromFile(texFile.c_str());
             }
+
+            vertexOffset += paiMesh->mNumVertices;
 
         }
 
