@@ -36,6 +36,8 @@
 namespace aiko::bgfx
 {
 
+    #define AIKO_VSYNC_MACRO (false ? BGFX_RESET_VSYNC : BGFX_RESET_NONE)
+
     BgfxRenderModule::BgfxRenderModule(Aiko* aiko)
         : RenderModule(aiko)
         , m_kViewMain(0)
@@ -69,7 +71,7 @@ namespace aiko::bgfx
         init.platformData.nwh = glfwGetWin32Window(window);
         init.resolution.width = displaySize.x;
         init.resolution.height = displaySize.y;
-        init.resolution.reset = BGFX_RESET_VSYNC;
+        init.resolution.reset = AIKO_VSYNC_MACRO;
         if (::bgfx::init(init) == false)
         {
             return std::exit(99);
@@ -231,7 +233,7 @@ namespace aiko::bgfx
         const uint16_t screenWidth = msg.width;
         const uint16_t screenHeight = msg.height;
 
-        ::bgfx::reset((uint32_t)screenWidth, (uint32_t)screenHeight, BGFX_RESET_VSYNC);
+        ::bgfx::reset((uint32_t)screenWidth, (uint32_t)screenHeight, AIKO_VSYNC_MACRO);
 
         // FIXME is this correct?
         ::bgfx::setViewRect(m_kViewMain, 0, 0, screenWidth, screenHeight);
