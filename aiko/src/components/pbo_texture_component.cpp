@@ -35,7 +35,6 @@ namespace aiko
             m_mesh = m_renderSystem->createMesh(Mesh::MeshType::QUAD);
             m_shader.load("aiko");
             assert(m_shader.isvalid() && "Shader is invalid");
-            m_shader.preLoadUniforms({ {"u_texture", ShaderUniformDataType::SHADER_UNIFORM_SAMPLER2D} });
         }
         m_texture = m_renderSystem->createPboTexture(m_texture.texture.width, m_texture.texture.height);
         pixels.reserve(m_texture.texture.width * m_texture.texture.height);

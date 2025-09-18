@@ -119,6 +119,40 @@ namespace aiko::bgfx
 
         ShaderData data = {};
         data.id = program.idx;
+
+        {
+
+            auto dumpUniforms = [&](::bgfx::ShaderHandle shader, const char* str)
+                {
+                    ::bgfx::UniformHandle uniforms[32];
+                    uint16_t count = ::bgfx::getShaderUniforms(shader, uniforms, 32);
+
+                    for (uint16_t i = 0; i < count; ++i)
+                    {
+                        ::bgfx::UniformInfo info;
+                        ::bgfx::getUniformInfo(uniforms[i], info);
+
+                        Log::info("[%d] %s  -->  %s (type=%d, num=%d)", data.id, str, info.name, info.type, info.num);
+
+						::bgfx::UniformType::Enum type = info.type;
+                        
+                        ::bgfx::UniformHandle u = ::bgfx::createUniform(info.name, type);
+
+						data.locs.insert(std::make_pair(std::string(info.name), u.idx));
+
+                    }
+                };
+
+            dumpUniforms(vsh, vertex);  // Vertex shader uniforms
+            dumpUniforms(fsh, fragment);  // Fragment shader uniforms
+
+        }
+
+        if(data.locs.size() == 0)
+        {
+            Log::info("[%d] %s / %s --> %s", data.id, vertex, fragment, "Shader with no uniforms");
+        }
+
         return data;
 
     }

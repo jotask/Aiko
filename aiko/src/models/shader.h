@@ -31,8 +31,6 @@ namespace aiko
         void loadFromSource(const char* vs, const char* fs);
         void unload();
 
-        void preLoadUniforms(std::vector<std::pair<string, ShaderUniformDataType>> uniforms);
-
         // Type Helpers
 
         void setBool(const string& name, bool value);
@@ -60,8 +58,6 @@ namespace aiko
 
         bool isValid = false;
         aiko::ShaderData m_shaderData;
-
-        std::map<string, int> m_uniforms;
 
     public:
 

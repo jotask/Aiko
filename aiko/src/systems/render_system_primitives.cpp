@@ -24,14 +24,6 @@ namespace aiko
     void RenderSystem::initPrimitives()
     {
         m_quadShaderPrimitives.load("primitive");
-        m_quadShaderPrimitives.preLoadUniforms({
-            {"u_color", ShaderUniformDataType::SHADER_UNIFORM_VEC4},
-            {"u_border", ShaderUniformDataType::SHADER_UNIFORM_FLOAT},
-            {"u_border_thickness", ShaderUniformDataType::SHADER_UNIFORM_FLOAT},
-            {"u_lightDir", ShaderUniformDataType::SHADER_UNIFORM_VEC4},
-            {"u_lightColor", ShaderUniformDataType::SHADER_UNIFORM_VEC4},
-            {"u_ambient", ShaderUniformDataType::SHADER_UNIFORM_FLOAT},
-        });
     }
 
     void RenderSystem::setPrimitiveShaderData(bool border, float thickness, Color color)

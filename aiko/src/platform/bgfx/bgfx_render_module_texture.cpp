@@ -31,11 +31,7 @@ namespace aiko::bgfx
 
         // Postprocessing shader
         m_passthrought.load("posprocessing");
-        if (m_passthrought.isvalid() == false)
-        {
-            int a = 9;
-        }
-        m_passthrought.preLoadUniforms({ {"u_texture", ShaderUniformDataType::SHADER_UNIFORM_SAMPLER2D} });
+        assert(m_passthrought.isvalid() && "Processing shader invalid!");
 
         // VAO// IBH -> Not Needed we are rendering to full 
 
