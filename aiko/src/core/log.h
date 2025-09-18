@@ -52,12 +52,12 @@ namespace aiko
             std::stringstream m_stream;  // buffer for the message
         };
 
-        template<typename... Args> static constexpr void trace(const Args&... args)     { logMessage(Type::Critical, args...); };
-        template<typename... Args> static constexpr void debug(const Args&... args)     { logMessage(Type::Critical, args...); };
-        template<typename... Args> static constexpr void info(const Args&... args)      { logMessage(Type::Critical, args...); };
-        template<typename... Args> static constexpr void warning(const Args&... args)   { logMessage(Type::Critical, args...); };
-        template<typename... Args> static constexpr void error(const Args&... args)     { logMessage(Type::Critical, args...); };
-        template<typename... Args> static constexpr void critical(const Args&... args)  { logMessage(Type::Critical, args...); };
+        template<typename... Args> static constexpr void trace(const string& fmt, const Args&... args)     { logMessage(Type::Trace, fmt, args...); };
+        template<typename... Args> static constexpr void debug(const string& fmt, const Args&... args)     { logMessage(Type::Debug, fmt, args...); };
+        template<typename... Args> static constexpr void info(const string& fmt, const Args&... args)      { logMessage(Type::Info, fmt, args...); };
+        template<typename... Args> static constexpr void warning(const string& fmt, const Args&... args)   { logMessage(Type::Warning, fmt, args...); };
+        template<typename... Args> static constexpr void error(const string& fmt, const Args&... args)     { logMessage(Type::Error, fmt, args...); };
+        template<typename... Args> static constexpr void critical(const string& fmt, const Args&... args)  { logMessage(Type::Critical, fmt, args...); };
 
         static LogStream trace() { return LogStream(Type::Trace); }
         static LogStream debug() { return LogStream(Type::Debug); }
@@ -69,11 +69,11 @@ namespace aiko
     private:
 
         template<typename... Args>
-        static void logMessage(Type type, const Args&... args)
+        static void logMessage(Type type, const std::string& fmt, const Args&... args)
         {
-            std::stringstream ss;
-            (ss << ... << args);
-            log(type, ss.str().c_str());
+            char buffer[1024];
+            std::snprintf(buffer, sizeof(buffer), fmt.c_str(), args...);
+            log(type, buffer);
         }
 
         static void log(Type, const char* message);
