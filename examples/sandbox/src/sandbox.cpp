@@ -15,8 +15,8 @@
 
 #include <aiko_includes.h>
 
-// #define TEST_CUBES
-// #define TEST_PRIMITVES
+#define TEST_CUBES
+#define TEST_PRIMITVES
 
 namespace sandbox
 {
@@ -30,21 +30,21 @@ namespace sandbox
         auto root = Instantiate("Root");
 
         auto go1 = this->Instantiate(root, "Church");
-        go1->transform()->position = { 0.0f, 0.0f, 0.0f };
+        go1->transform()->position = { 0.0f, 0.0f, -15.0f };
         go1->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         go1->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto model1 = go1->addComponent<aiko::ModelComponent>();
         model1->load("church.obj");
 
         auto go2 = this->Instantiate(root, "Barracks");
-        go2->transform()->position = { -50.0f, 0.0f, 0.0f };
+        go2->transform()->position = { -50.0f, 0.0f, -15.0f };
         go2->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         go2->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto model2 = go2->addComponent<aiko::ModelComponent>();
         model2->load("barracks.obj");
 
         auto go3 = this->Instantiate(root, "Watermill");
-        go3->transform()->position = { 50.0f, 0.0f, 0.0f };
+        go3->transform()->position = { 50.0f, 0.0f, -15.0f };
         go3->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         go3->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto model3 = go3->addComponent<aiko::ModelComponent>();
@@ -52,25 +52,25 @@ namespace sandbox
 
 #ifdef TEST_CUBES
         m_go1 = this->Instantiate(root, "Cube1");
-        m_go1->transform()->position = { 1.0f, 0.0f, 0.0f };
+        m_go1->transform()->position = { 1.0f, 0.0f, 5.0f };
         m_go1->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
         
         m_go2 = this->Instantiate(root, "Cube2");
-        m_go2->transform()->position = { -1.0f, 0.0f, 0.0f };
+        m_go2->transform()->position = { -1.0f, 0.0f, 5.0f };
         m_go2->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         m_go2->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
 
         m_texture = this->Instantiate(root, "Texture");
-        m_texture->transform()->position = { 0.0f, -0.55f, 0.0f };
+        m_texture->transform()->position = { 0.0f, -0.55f, 5.0f };
         m_texture->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         m_texture->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh3 = m_texture->addComponent<aiko::TextureComponent>();
         
         m_texturePbo = this->Instantiate(root, "PboTexture");
-        m_texturePbo->transform()->position = { 0.0f, 0.55f, 0.0f };
+        m_texturePbo->transform()->position = { 0.0f, 0.55f, 5.0f };
         m_texturePbo->transform()->rotation = { 0.0f, 0.0f, 0.0f };
         m_texturePbo->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto mesh4 = m_texturePbo->addComponent<aiko::PboTextureComponent>();
