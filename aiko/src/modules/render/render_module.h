@@ -5,7 +5,8 @@
 #include "aiko_types.h"
 #include "modules/base_module.h"
 #include "types/textures.h"
-#include "models/shader.h"
+#include "models/shader.h" 
+#include "models/model.h" 
 #include "models/texture.h"
 #include "events/event.hpp"
 #include "types/color.h"
@@ -49,6 +50,7 @@ namespace aiko
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, Texture*) = 0;
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::PboTexture*) = 0;
         virtual void renderTransientBuffer(Camera*, Transform*, Shader*, Mesh*) = 0;
+        virtual void renderModel(Camera*, Transform*, Model*) = 0;
 
         virtual texture::RenderTexture2D* getRenderTexture() = 0;
 

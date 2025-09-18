@@ -9,6 +9,7 @@
 #include "modules/render/render_module.h"
 #include "types/textures.h"
 #include "models/shader.h"
+#include "models/model.h"
 #include "models/texture.h"
 #include "events/event.hpp"
 #include "types/color.h"
@@ -55,6 +56,7 @@ namespace aiko::bgfx
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, Texture*) override;
         virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, texture::PboTexture*) override;
         virtual void renderTransientBuffer(Camera*, Transform*, Shader*, Mesh*) override;
+        virtual void renderModel(Camera*, Transform*, Model*) override;
 
         virtual texture::RenderTexture2D* getRenderTexture() override;
 

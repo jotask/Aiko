@@ -120,7 +120,7 @@ namespace aiko
         assert(model != nullptr && "Model is null");
         assert(trans != nullptr && "Transform is null");
         assert(model->m_material.m_shader.isvalid() && "Shader not set in material");
-        m_renderModule->renderMesh(getMainCamera(), trans, &model->m_mesh, &model->m_material.m_shader, &model->m_material.m_diffuse);
+        m_renderModule->renderModel(getMainCamera(), trans, model);
     }
    
     void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader)
