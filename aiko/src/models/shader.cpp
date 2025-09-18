@@ -68,7 +68,8 @@ namespace aiko
         {
             return value->second;
         }
-        AIKO_ASSERT_MSG(false, "UniformNotLoaded %s", name.c_str());
+        Log::error( "UniformNotLoaded %s", name.c_str());
+        assert(false);
         return { 0 };
     }
 
