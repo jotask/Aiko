@@ -26,6 +26,9 @@ namespace aiko
 
     public:
         Shader m_shader;
+
+		Color m_baseColor;
+
         Texture m_diffuse;
         Texture m_normal;
         Texture m_specular;

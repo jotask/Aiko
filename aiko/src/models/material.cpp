@@ -6,6 +6,7 @@ namespace aiko
 {
 
     Material::Material()
+		: m_baseColor(WHITE)
     {
     
     }
