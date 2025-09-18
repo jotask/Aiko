@@ -20,9 +20,8 @@ namespace aiko
 		auto model = s_assetSystem->loadModel(filename);
         this->m_mesh = model.m_mesh;
         this->m_material = model.m_material;
-        this->m_material.m_shader.load("aiko");
+        this->m_material.m_shader.load("model");
         assert(this->m_material.m_shader.isvalid() && "Shader is invalid");
-        this->m_material.m_shader.preLoadUniforms({ {"u_texture", ShaderUniformDataType::SHADER_UNIFORM_SAMPLER2D} });
     }
 
 }
