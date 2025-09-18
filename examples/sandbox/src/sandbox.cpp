@@ -16,8 +16,8 @@
 #include <aiko_includes.h>
 
 #define TEST_LOAD_MESHES
-// #define TEST_CUBES
-// #define TEST_PRIMITVES
+#define TEST_COMPONENTS
+#define TEST_PRIMITVES
 
 namespace sandbox
 {
@@ -65,7 +65,7 @@ namespace sandbox
 
 #endif
 
-#ifdef TEST_CUBES
+#ifdef TEST_COMPONENTS
         m_go1 = this->Instantiate(root, "Cube1");
         m_go1->transform()->position = { 1.0f, 0.0f, 5.0f };
         m_go1->transform()->rotation = { 0.0f, 0.0f, 0.0f };
@@ -96,7 +96,7 @@ namespace sandbox
     void Sandbox::update()
     {
         Application::update();
-#ifdef TEST_CUBES
+#ifdef TEST_COMPONENTS
         static float angle = 0.0f;
         angle += 25.0f * getlDeltaTime();
         angle = fmod(angle, 360.0f);
