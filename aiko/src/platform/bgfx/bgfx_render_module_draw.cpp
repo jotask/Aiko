@@ -132,11 +132,17 @@ namespace aiko::bgfx
 
         // x: use texture
         // y: use vertex color
+        // z: basic lighting
         const auto u_flags = AIKO_TO_UH(model->m_material.m_shader.getUniformLocation("u_flags"));
-        const float flags[4] = { model->m_material.m_diffuse.isValid(), false, 0.0f, 0.0f };
+
+		const bool useTexture = model->m_material.m_diffuse.isValid();
+		const bool useVertexColor = false;
+		const bool useLighting = false;
+
+        const float flags[4] = { useTexture, useVertexColor, useLighting, 0.0f };
         ::bgfx::setUniform(u_flags, &flags);
 
-        if (model->m_material.m_diffuse.isValid() == true)
+        if (useTexture == true)
         {
             const ::bgfx::UniformHandle sampler = AIKO_TO_UH(model->m_material.m_shader.getUniformLocation("u_texture"));
             ::bgfx::setTexture(0, sampler, AIKO_TO_TH(model->m_material.m_diffuse.m_texture.id));
