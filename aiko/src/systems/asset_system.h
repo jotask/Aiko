@@ -40,7 +40,7 @@ namespace aiko
         RenderSystem* getRenderSystem() const { return m_renderSystem; }
 
         Mesh loadMesh(const char*);
-        Model loadModel(const char*);
+        std::vector<Model::MeshMatData> loadModel(const char*);
 
     protected:
     

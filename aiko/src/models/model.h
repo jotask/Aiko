@@ -10,11 +10,20 @@ namespace aiko
         friend class AssetSystem;
         static AssetSystem* s_assetSystem;
     public:
+
+        struct MeshMatData
+        {
+            Mesh mesh;
+            Material material;
+        };
+
         Model();
         ~Model() = default;
         void load(const char*);
-    public:
-        Mesh m_mesh;
-        Material m_material;
+
+    // private:
+
+		std::vector<MeshMatData> m_meshes;
+
     };
 }

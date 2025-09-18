@@ -116,40 +116,48 @@ namespace aiko::bgfx
 
         ::bgfx::setViewTransform(AIKO_TO_VIEWID(currentViewId), viewMatrix.data(), projMatrix.data());
 
-        // Set buffers
-        ::bgfx::setVertexBuffer(0, AIKO_TO_VBH(model->m_mesh.m_data.vao));
-        ::bgfx::setIndexBuffer(AIKO_TO_IBH(model->m_mesh.m_data.vbo));
-
-        // Set transform
-        ::bgfx::setTransform(modelMatrix.data());
-
-        ::bgfx::setState(shared::default_state);
-
-		const auto co = model->m_material.m_baseColor;
-        const auto u_baseColor = AIKO_TO_UH(model->m_material.m_shader.getUniformLocation("u_baseColor"));
-        const float c[4] = { co.r, co.g, co.b, co.a };
-        ::bgfx::setUniform(u_baseColor, &c);
-
-        // x: use texture
-        // y: use vertex color
-        // z: basic lighting
-        const auto u_flags = AIKO_TO_UH(model->m_material.m_shader.getUniformLocation("u_flags"));
-
-		const bool useTexture = model->m_material.m_diffuse.isValid();
-		const bool useVertexColor = false;
-		const bool useLighting = false;
-
-        const float flags[4] = { useTexture, useVertexColor, useLighting, 0.0f };
-        ::bgfx::setUniform(u_flags, &flags);
-
-        if (useTexture == true)
+        for (auto mod : model->m_meshes)
         {
-            const ::bgfx::UniformHandle sampler = AIKO_TO_UH(model->m_material.m_shader.getUniformLocation("u_texture"));
-            ::bgfx::setTexture(0, sampler, AIKO_TO_TH(model->m_material.m_diffuse.m_texture.id));
-        }
 
-        // Submit draw call
-        ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), AIKO_TO_PH(model->m_material.m_shader.getData()->id));
+            const auto* mesh = &mod.mesh;
+            auto* material = &mod.material;
+
+            // Set buffers
+            ::bgfx::setVertexBuffer(0, AIKO_TO_VBH(mesh->m_data.vao));
+            ::bgfx::setIndexBuffer(AIKO_TO_IBH(mesh->m_data.vbo));
+
+            // Set transform
+            ::bgfx::setTransform(modelMatrix.data());
+
+            ::bgfx::setState(shared::default_state);
+
+		    const auto co = material->m_baseColor;
+            const auto u_baseColor = AIKO_TO_UH(material->m_shader.getUniformLocation("u_baseColor"));
+            const float c[4] = { co.r, co.g, co.b, co.a };
+            ::bgfx::setUniform(u_baseColor, &c);
+
+            // x: use texture
+            // y: use vertex color
+            // z: basic lighting
+            const auto u_flags = AIKO_TO_UH(material->m_shader.getUniformLocation("u_flags"));
+
+		    const bool useTexture = material->m_diffuse.isValid();
+		    const bool useVertexColor = false;
+		    const bool useLighting = false;
+
+            const float flags[4] = { useTexture, useVertexColor, useLighting, 0.0f };
+            ::bgfx::setUniform(u_flags, &flags);
+
+            if (useTexture == true)
+            {
+                const ::bgfx::UniformHandle sampler = AIKO_TO_UH(material->m_shader.getUniformLocation("u_texture"));
+                ::bgfx::setTexture(0, sampler, AIKO_TO_TH(material->m_diffuse.m_texture.id));
+            }
+
+            // Submit draw call
+            ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), AIKO_TO_PH(material->m_shader.getData()->id));
+
+        }
     }
 
     void BgfxRenderModule::renderTransientBuffer(Camera* cam, Transform* transform, Shader* shader, Mesh* mesh)

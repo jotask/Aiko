@@ -16,12 +16,11 @@ namespace aiko
 
     void Model::load(const char* filename)
     {
-        // FIXME
-		auto model = s_assetSystem->loadModel(filename);
-        this->m_mesh = model.m_mesh;
-        this->m_material = model.m_material;
-        this->m_material.m_shader.load("model");
-        assert(this->m_material.m_shader.isvalid() && "Shader is invalid");
+        m_meshes = s_assetSystem->loadModel(filename);
+        for (auto& mesh : m_meshes)
+        {
+            mesh.material.m_shader.load("model");
+        }
     }
 
 }
