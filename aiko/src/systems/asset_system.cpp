@@ -204,6 +204,14 @@ namespace aiko
                 model.material.m_diffuse.loadTextureFromFile(texFile.c_str());
             }
 
+            aiColor3D diffuse(1.0f, 1.0f, 1.0f); // default white
+            if (AI_SUCCESS != material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse))
+            {
+                diffuse = aiColor3D(1.0f, 1.0f, 1.0f); // fallback
+            }
+
+			model.material.m_baseColor = { diffuse.r, diffuse.g, diffuse.b, 1.0f };
+
 		    model.mesh.refresh(); 
 			models.push_back(model);
 
