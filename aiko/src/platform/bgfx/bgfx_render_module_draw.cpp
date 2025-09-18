@@ -133,12 +133,14 @@ namespace aiko::bgfx
         // x: use texture
         // y: use vertex color
         const auto u_flags = AIKO_TO_UH(model->m_material.m_shader.getUniformLocation("u_flags"));
-        const float val[4] = { false, true, 0.0f, 0.0f };
-        ::bgfx::setUniform(u_flags, &val);
+        const float flags[4] = { model->m_material.m_diffuse.isValid(), false, 0.0f, 0.0f };
+        ::bgfx::setUniform(u_flags, &flags);
 
-        const ::bgfx::UniformHandle sampler = AIKO_TO_UH(model->m_material.m_shader.getUniformLocation("u_texture"));
-
-        ::bgfx::setTexture(0, sampler, AIKO_TO_TH(model->m_material.m_diffuse.m_texture.id));
+        if (model->m_material.m_diffuse.isValid() == true)
+        {
+            const ::bgfx::UniformHandle sampler = AIKO_TO_UH(model->m_material.m_shader.getUniformLocation("u_texture"));
+            ::bgfx::setTexture(0, sampler, AIKO_TO_TH(model->m_material.m_diffuse.m_texture.id));
+        }
 
         // Submit draw call
         ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), AIKO_TO_PH(model->m_material.m_shader.getData()->id));
