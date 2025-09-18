@@ -15,8 +15,9 @@
 
 #include <aiko_includes.h>
 
-#define TEST_CUBES
-#define TEST_PRIMITVES
+#define TEST_LOAD_MESHES
+// #define TEST_CUBES
+// #define TEST_PRIMITVES
 
 namespace sandbox
 {
@@ -26,8 +27,12 @@ namespace sandbox
 
         auto camera = this->Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
+		camera->transform()->position = { 0.0f, 1.0f, 3.0f };
+		cam->getCamera()->position = camera->transform()->position;
 
         auto root = Instantiate("Root");
+
+#ifdef TEST_LOAD_MESHES
 
         auto go1 = this->Instantiate(root, "Church");
         go1->transform()->position = { 0.0f, 0.0f, -15.0f };
@@ -49,6 +54,16 @@ namespace sandbox
         go3->transform()->scale = { 1.0f, 1.0f, 1.0f };
         auto model3 = go3->addComponent<aiko::ModelComponent>();
         model3->load("watermill.obj");
+
+        auto go4 = this->Instantiate(root, "Robot");
+        go4->transform()->position = { 0.0f, 0.0f, 0.0f };
+        go4->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        const float scale = 0.25f;
+        go4->transform()->scale = { scale, scale, scale };
+        auto model4 = go4->addComponent<aiko::ModelComponent>();
+        model4->load("robot.glb");
+
+#endif
 
 #ifdef TEST_CUBES
         m_go1 = this->Instantiate(root, "Cube1");
