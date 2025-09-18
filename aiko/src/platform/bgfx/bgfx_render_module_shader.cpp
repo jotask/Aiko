@@ -131,7 +131,10 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::unloadShader(aiko::ShaderData& data)
     {
-        AIKO_DEBUG_BREAK
+		::bgfx::ProgramHandle shader = AIKO_TO_PH(data.id);
+        assert(::bgfx::isValid(shader));
+		::bgfx::destroy(shader);
+        data = { 0 };
     }
 
     int BgfxRenderModule::loadShaderUniform(Shader* shader, const string& name, ShaderUniformDataType type)
