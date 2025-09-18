@@ -12,12 +12,18 @@ namespace aiko
     Texture::Texture()
         : m_texture({0})
     {
-        // s_renderModule->createTexture();
+
     }
 
     void Texture::loadTextureFromFile(const char* file)
     {
         m_texture = s_renderModule->loadTexture(file);
     }
+
+
+    bool Texture::isValid() const
+    {
+        return m_texture.id != 0;
+    };
 
 }
