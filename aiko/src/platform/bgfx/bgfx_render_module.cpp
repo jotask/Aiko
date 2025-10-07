@@ -107,6 +107,8 @@ namespace aiko::bgfx
 
         ::aiko::bgfx::shared::init();
 
+        ::bgfx::setDebug(BGFX_DEBUG_STATS);
+
         initScreenFbo();
 
     }
