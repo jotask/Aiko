@@ -63,7 +63,9 @@ set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(assimp)
 set_target_properties(assimp PROPERTIES FOLDER "Dependencies")
 set_target_properties(zlibstatic PROPERTIES FOLDER "Dependencies")
-set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "Dependencies")
+if (TARGET UpdateAssimpLibsDebugSymbolsAndDLLs)
+    set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "Dependencies")
+endif()
 
 #----------------------------------------------------------------------
 
