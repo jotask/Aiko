@@ -2,6 +2,7 @@
 
 #include "types/asset_type.h"
 #include <vector>
+#include <algorithm>
 
 namespace aiko
 {

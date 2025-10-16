@@ -10,6 +10,7 @@
 #endif
 
 #include <random>
+#include <algorithm>
 
 #include "core/libs.h"
 

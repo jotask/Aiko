@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <algorithm>
 
 #include "aiko_types.h"
 #include "systems/sytem.h"

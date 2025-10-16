@@ -1,6 +1,8 @@
 #pragma once
 
-#include <types/color.h>
+#include "types/color.h"
+
+#include <cstdint>
 
 namespace aiko
 {

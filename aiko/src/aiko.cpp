@@ -24,6 +24,8 @@
 #include "systems/input_system.h"
 #include "systems/particle_system/particle_system.h"
 
+#include <algorithm>
+
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 #include <bx/bx.h>

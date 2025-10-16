@@ -3,6 +3,7 @@
 namespace aiko
 {
     
+    class Aiko;
     class ModuleConnector;
     class SystemConnector;
     

@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include <functional>
+#include <algorithm>
 
 #include "aiko.h"
 #include "core/uuid.h"

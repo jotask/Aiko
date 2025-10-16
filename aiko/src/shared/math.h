@@ -3,6 +3,7 @@
 #include <iostream> //  For Log::error
 #include <iomanip> // For std::setw
 #include <cstring> // For std::memcpy
+#include <cmath> // For std::sqrt
 
 #include "core/log.h"
 #include "shared/math_vector.h"

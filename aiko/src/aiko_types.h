@@ -7,6 +7,7 @@
 #include <type_traits>
 
 #include <memory>
+#include <stdint.h>
 
 #include <stdexcept>
 
@@ -22,6 +23,7 @@ namespace aiko
 {
 
     using uint = unsigned int;
+    using u8 = uint8_t;
     using u32 = uint32_t;
     using u64 = uint64_t;
     using string = std::string;

@@ -1,7 +1,6 @@
-#pragma once
+#include "asset_connector.h"
 
 #include "types/asset_type.h"
-#include "asset_connector.h"
 
 namespace aiko
 {

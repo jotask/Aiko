@@ -10,6 +10,7 @@
 #include <functional>
 #include <map>
 #include <iostream>
+#include <algorithm>
 
 namespace aiko
 {
@@ -99,18 +100,25 @@ namespace aiko
     template<class Evnt, class T>
     inline void EventSystem::unbind(T* const object, void(T::* const mf)(Event&))
     {
-        using BoundType = decltype(std::bind(mf, object, std::placeholders::_1));
-        const auto found = [](const CallbackFnt& f) {
-            const auto result = f.target<BoundType>() != nullptr;
-            return result;
-            };
-        auto it = std::remove_if(m_callbacks.begin(), m_callbacks.end(), found);
-        if (it == m_callbacks.end())
+        const Evnt evnt;
+        auto found = m_map.find(evnt.getId());
+        if (found == m_map.end())
         {
-            Log::error("unbind error");
             return;
         }
-        m_callbacks.erase(it);
+
+        using BoundType = decltype(std::bind(mf, object, std::placeholders::_1));
+
+        auto& callbacks = found->second;
+        callbacks.erase(std::remove_if(callbacks.begin(), callbacks.end(), [&](const CallbackFnt& f) {
+            // Check if the target matches the bound type
+            return f.target<BoundType>() != nullptr;
+        }), callbacks.end());
+
+        if (callbacks.empty())
+        {
+            m_map.erase(found);
+        }
     }
 
     template<class Evnt>
