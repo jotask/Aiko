@@ -1,8 +1,8 @@
 #include "utils.h"
 
-#ifdef WIN32
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
     #include <windows.h>
-#elif LINUX
+#elif defined(__linux__)
     #include <limits.h>
     #include <unistd.h>
 #else
@@ -85,10 +85,10 @@ namespace aiko
 
         string getExePath()
         {
-            #ifdef WIN32
+            #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
             char result[MAX_PATH];
             return string(result, GetModuleFileName(NULL, result, MAX_PATH));
-            #elif LINUX
+            #elif defined(__linux__)
             char result[PATH_MAX];
             ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
             return string(result, (count > 0) ? count : 0);

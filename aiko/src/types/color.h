@@ -20,8 +20,8 @@ namespace aiko
         float b;
         float a;
 
-        constexpr bool Color::operator==(const Color& other) { return r == other.r && g == other.g && b == other.b && a == other.a; }
-        constexpr bool Color::operator!=(const Color& other) { return !(*this == other); }
+    constexpr bool operator==(const Color& other) const { return r == other.r && g == other.g && b == other.b && a == other.a; }
+    constexpr bool operator!=(const Color& other) const { return !(*this == other); }
 
         const u32 rgba()
         {

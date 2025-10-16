@@ -62,11 +62,11 @@ namespace aiko
     template<class T>
     inline T* AssetSystem::load()
     {
-        static_assert(std::is_base_of<BaseAsset, T>::value, "T must be derived from Asset");
-        AikoPtr<asset::Asset> ass = std::make_shared<T>();
-        m_assets.push_back(ass);
+        static_assert(std::is_base_of<asset::Asset, T>::value, "T must be derived from asset::Asset");
+        auto ass = std::make_shared<T>();
+        m_assets.push_back(std::static_pointer_cast<asset::Asset>(ass));
         ass->connect(nullptr);
-        return nullptr;
+        return ass.get();
     }
 
 }
