@@ -35,14 +35,7 @@ namespace aiko
     using AikoUPtr = std::unique_ptr<T>;
 
     #define AIKO_NOT_IMPLEMENTED static_assert(false, "NOT IMPLEMENTED");
-#if defined(_MSC_VER)
     #define AIKO_DEBUG_BREAK __debugbreak();
-#elif defined(__GNUC__) || defined(__clang__)
-    #include <signal.h>
-    #define AIKO_DEBUG_BREAK raise(SIGTRAP)
-#else
-    #define AIKO_DEBUG_BREAK ((void)0)
-#endif
     #define AIKO_ASSERT(cond, msg) assert(cond && msg);
 
     template < typename C, C beginVal, C endVal>
