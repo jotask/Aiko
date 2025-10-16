@@ -27,7 +27,13 @@
 #include <bx/bx.h>
 #include <bgfx/platform.h>
 #include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
+
+// Expose the correct native accessors depending on the platform.
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+#  define GLFW_EXPOSE_NATIVE_WIN32
+#elif defined(__linux__)
+#  define GLFW_EXPOSE_NATIVE_X11
+#endif
 #include <GLFW/glfw3native.h>
 
 #include "platform/bgfx/bgfx_platform_helper.h"
@@ -66,9 +72,17 @@ namespace aiko::bgfx
 
         GLFWwindow* window = static_cast<GLFWwindow*>(m_displayModule->getNativeDisplay());
         const ivec2 displaySize = m_displayModule->getCurrentDisplay().getDisplaySize();
-        ::bgfx::Init init;
-        init.type = ::bgfx::RendererType::Count; // auto choose renderer (DirectX, OpenGL, etc.)
-        init.platformData.nwh = glfwGetWin32Window(window);
+    ::bgfx::Init init;
+    init.type = ::bgfx::RendererType::Count; // auto choose renderer (DirectX, OpenGL, etc.)
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+    init.platformData.nwh = glfwGetWin32Window(window);
+#elif defined(__linux__)
+    // On Linux with X11, pass the X11 window and display
+    init.platformData.nwh = (void*)(uintptr_t)glfwGetX11Window(window);
+    init.platformData.ndt = glfwGetX11Display();
+#else
+    init.platformData.nwh = nullptr;
+#endif
         init.resolution.width = displaySize.x;
         init.resolution.height = displaySize.y;
         init.resolution.reset = AIKO_VSYNC_MACRO;
@@ -259,12 +273,12 @@ namespace aiko::bgfx
 
     void BgfxRenderModule::beginMode2D()
     {
-        AIKO_DEBUG_BREAK
+        AIKO_DEBUG_BREAK;
     }
 
     void BgfxRenderModule::endMode2D()
     {
-        AIKO_DEBUG_BREAK
+        AIKO_DEBUG_BREAK;
     }
 
     void BgfxRenderModule::beginMode3D()
@@ -280,37 +294,37 @@ namespace aiko::bgfx
     void BgfxRenderModule::beginTextureMode()
     {
 
-        AIKO_DEBUG_BREAK
+        AIKO_DEBUG_BREAK;
     }
 
     void BgfxRenderModule::beginTextureMode(texture::RenderTexture2D& target)
     {
-        AIKO_DEBUG_BREAK
+        AIKO_DEBUG_BREAK;
     }
 
     void BgfxRenderModule::endTextureMode(void)
     {
-        AIKO_DEBUG_BREAK
+        AIKO_DEBUG_BREAK;
     }
 
     void BgfxRenderModule::beginShaderMode(aiko::Shader* shader)
     {
-        AIKO_DEBUG_BREAK
+        AIKO_DEBUG_BREAK;
     }
 
     void BgfxRenderModule::endShaderMode(void)
     {
-        AIKO_DEBUG_BREAK
+        AIKO_DEBUG_BREAK;
     }
 
     void BgfxRenderModule::beginBlendMode(BlendMode mode)
     {
-        AIKO_DEBUG_BREAK
+        AIKO_DEBUG_BREAK;
     }
 
     void BgfxRenderModule::endBlendMode(void)
     {
-        AIKO_DEBUG_BREAK
+        AIKO_DEBUG_BREAK;
     }
 
 }
