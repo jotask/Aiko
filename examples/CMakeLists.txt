@@ -2,7 +2,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/sandbox")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/sandbox2D")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/cellular_automaton")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/nes6502")
-# add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/loop_recorder")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/loop_recorder")
 
 if(AIKO_PLATFORM STREQUAL "AIKO_NATIVE")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/shader_toy")
