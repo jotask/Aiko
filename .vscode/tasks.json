@@ -29,7 +29,8 @@
                 "--config",
                 "Debug"
             ],
-            "group": "build"    
+            "group": "build",
+            "problemMatcher": ["$gcc"]
         },
         {
             "label": "Aiko Full Build",
@@ -39,7 +40,7 @@
             ],
             "dependsOrder": "sequence",
             "group": "build",
-            "problemMatcher": []
+            "problemMatcher": ["$gcc"]
         }
     ]
 }
