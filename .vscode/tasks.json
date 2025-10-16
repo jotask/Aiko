@@ -4,7 +4,19 @@
         {
             "label": "Aiko Configure",
             "type": "shell",
-            "command": "cmake -S . -B build -G Ninja -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_STANDARD_REQUIRED=ON",
+            "command": "cmake",
+            "args": [
+                "-S", ".",
+                "-B", "build",
+                "-G", "Ninja",
+                "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+                "-DCMAKE_C_COMPILER=/usr/bin/gcc",
+                "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+                "-DCMAKE_CXX_STANDARD=17",
+                "-DCMAKE_CXX_STANDARD_REQUIRED=ON",
+                "-DCMAKE_CXX_FLAGS=-Wno-error",
+                "-DASSIMP_WARNINGS_AS_ERRORS=OFF"
+            ],
             "problemMatcher": ["$gcc"]
         },
         {
