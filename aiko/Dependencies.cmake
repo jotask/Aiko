@@ -32,15 +32,16 @@ FetchContent_Declare(
     GIT_PROGRESS   TRUE
 )
 
+set(GLAD_PROFILE "core" CACHE STRING "OpenGL profile")
+set(GLAD_API "gl=4.6" CACHE STRING "API type/version pairs, like \"gl=4.6\", no version means latest")
+set(GLAD_GENERATOR "c" CACHE STRING "Language to generate the binding for")
+set(GLAD_EXTENSIONS "GL_ARB_bindless_texture" CACHE STRING "Extensions to take into consideration when generating the bindings")
+
 FetchContent_GetProperties(glad)
+
 if(NOT glad_POPULATED)
     message("Fetching glad")
-    FetchContent_Populate(glad)
-    set(GLAD_PROFILE "core" CACHE STRING "OpenGL profile")
-    set(GLAD_API "gl=4.6" CACHE STRING "API type/version pairs, like \"gl=4.6\", no version means latest")
-    set(GLAD_GENERATOR "c" CACHE STRING "Language to generate the binding for")
-    set(GLAD_EXTENSIONS "GL_ARB_bindless_texture" CACHE STRING "Extensions to take into consideration when generating the bindings")
-    add_subdirectory(${glad_SOURCE_DIR} ${glad_BINARY_DIR})
+    FetchContent_MakeAvailable(glad)
 endif()
 set_target_properties(glad PROPERTIES FOLDER "Dependencies")
 set_target_properties(glad-generate-files PROPERTIES FOLDER "Dependencies")
@@ -114,7 +115,7 @@ FetchContent_Declare(
 FetchContent_GetProperties(imgui)
 if(NOT imgui_POPULATED)
     message("Fetching imgui")
-    FetchContent_Populate(imgui)
+    FetchContent_MakeAvailable(imgui)
 
     add_library(imgui
         ${imgui_SOURCE_DIR}/imgui.cpp
@@ -160,7 +161,7 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(stb)
 if(NOT stb_POPULATED)
-    FetchContent_Populate(stb)
+    FetchContent_MakeAvailable(stb)
     message("Fetching stb")
 
     add_library(stb INTERFACE ${stb_SOURCE_DIR})

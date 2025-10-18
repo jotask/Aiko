@@ -24,8 +24,8 @@ namespace aiko
 
         void AssetManager::render()
         {
-            constexpr const const char* Left_Window = "Left Window";
-            constexpr const const char* Right_Window = "Right Window";
+            constexpr const char* Left_Window = "Left Window";
+            constexpr const char* Right_Window = "Right Window";
 
             ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoCollapse;
             if (ImGui::Begin("AssetManager", &is_open, window_flags))
