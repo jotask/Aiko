@@ -1,5 +1,3 @@
-#pragma once
-
 #include <random>
 #include <sstream>
 #include "display.h"
