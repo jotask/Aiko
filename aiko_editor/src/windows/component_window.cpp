@@ -19,7 +19,7 @@ namespace aiko
             : Window(editor, "ComponentWindow")
             , selectedGo(nullptr)
         {
-            aiko::EventSystem::it().bind<::editor::HirearchyGameObjectSelectedEvent>(this, &aiko::editor::ComponentWindow::onGameObjectSelected);
+            aiko::EventSystem::it().bind<HirearchyGameObjectSelectedEvent>(this, &ComponentWindow::onGameObjectSelected);
         }
 
         void ComponentWindow::render()
@@ -94,7 +94,7 @@ namespace aiko
 
         void ComponentWindow::onGameObjectSelected(aiko::Event& envt)
         {
-            const auto& msg = static_cast<const ::editor::HirearchyGameObjectSelectedEvent&>(envt);
+            auto& msg = static_cast<HirearchyGameObjectSelectedEvent&>(envt);
             selectedGo = msg.selected;
         }
 

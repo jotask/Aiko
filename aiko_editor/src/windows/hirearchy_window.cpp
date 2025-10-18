@@ -24,10 +24,11 @@ namespace aiko
             static auto* ecs = m_editor->getAiko()->getSystem<aiko::EntityComponentSystem>();
             static GameObject* selectedGo = nullptr;
 
-            static constexpr const auto selectGo = [&](GameObject* ptr)
+            static const auto selectGo = [&](GameObject* ptr)
             {
                 selectedGo = ptr;
-                aiko::EventSystem::it().sendEvent(::editor::HirearchyGameObjectSelectedEvent(selectedGo));
+                HirearchyGameObjectSelectedEvent ev(selectedGo);
+                aiko::EventSystem::it().sendEvent(ev);
             };
 
             if (ImGui::Begin("Hirearchy"))

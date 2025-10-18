@@ -4,17 +4,19 @@
 
 #include "events/event.hpp"
 
-namespace editor
+namespace aiko
 {
-
-    class HirearchyGameObjectSelectedEvent : public aiko::Event
+    namespace editor
     {
-    public:
-        HirearchyGameObjectSelectedEvent() = default;
-        HirearchyGameObjectSelectedEvent(aiko::GameObject* obj) : selected(obj) {};
-        virtual ~HirearchyGameObjectSelectedEvent() = default;
-        aiko::GameObject* selected = nullptr;
-        virtual EventId     getId() const { return "HirearchyGameObjectSelectedEvent"; }
-    };
-
+        
+        class HirearchyGameObjectSelectedEvent : public Event
+        {
+        public:
+            HirearchyGameObjectSelectedEvent() = default;
+            HirearchyGameObjectSelectedEvent(GameObject* obj) : selected(obj) {};
+            virtual ~HirearchyGameObjectSelectedEvent() = default;
+            virtual EventId     getId() const { return "HirearchyGameObjectSelectedEvent"; }
+            GameObject* selected = nullptr;
+       };    
+    }
 }
