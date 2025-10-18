@@ -1,7 +1,6 @@
 #include "mesh_factory.h"
 
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include "shared/math.h"
 
 namespace aiko
 {
@@ -406,7 +405,7 @@ namespace aiko
             }
 
             // Find bounding box and compute scale
-            vec3 minV(FLT_MAX), maxV(-FLT_MAX);
+            vec3 minV(FLOAT_MAX), maxV(-FLOAT_MAX);
             for (auto& p : positions)
             {
                 minV.x = std::min(minV.x, p.x);
@@ -417,7 +416,7 @@ namespace aiko
                 maxV.y = std::max(maxV.y, p.y);
                 maxV.z = std::max(maxV.z, p.z);
             }
-            float maxExtent = std::max({ maxV.x - minV.x, maxV.y - minV.y, maxV.z - minV.z });
+            float maxExtent = std::max( maxV.x - minV.x, std::max( maxV.y - minV.y, maxV.z - minV.z ));
             float scale = size / maxExtent;
 
             // Write final vertices into mesh

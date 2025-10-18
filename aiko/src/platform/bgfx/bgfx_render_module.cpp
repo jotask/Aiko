@@ -27,8 +27,16 @@
 #include <bx/bx.h>
 #include <bgfx/platform.h>
 #include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
+
+#if defined(AIKO_WINDOWS)
+    #define GLFW_EXPOSE_NATIVE_WIN32
+    #include <GLFW/glfw3native.h>
+#elif defined(AIKO_LINUX)
+    #define GLFW_EXPOSE_NATIVE_X11
+    #include <GLFW/glfw3native.h>
+#else
+    #error OS unsupported!
+#endif
 
 #include "platform/bgfx/bgfx_platform_helper.h"
 #include "platform/bgfx/bgfx_render_utils.h"
@@ -68,7 +76,14 @@ namespace aiko::bgfx
         const ivec2 displaySize = m_displayModule->getCurrentDisplay().getDisplaySize();
         ::bgfx::Init init;
         init.type = ::bgfx::RendererType::Count; // auto choose renderer (DirectX, OpenGL, etc.)
-        init.platformData.nwh = glfwGetWin32Window(window);
+        #if defined(AIKO_WINDOWS)
+            init.platformData.nwh = glfwGetWin32Window(window);
+        #elif defined(AIKO_LINUX)
+            init.platformData.nwh = (void*)(uintptr_t)glfwGetX11Window(window);
+            init.platformData.ndt = glfwGetX11Display();
+        #else
+            #error OS unsupported!
+        #endif
         init.resolution.width = displaySize.x;
         init.resolution.height = displaySize.y;
         init.resolution.reset = AIKO_VSYNC_MACRO;

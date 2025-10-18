@@ -50,8 +50,7 @@ namespace aiko
             float orthoWidth = m_orthoHeight * aspectRatio;
             return math::ortho(-orthoWidth, orthoWidth, -m_orthoHeight, m_orthoHeight, m_near, m_far);
         }
-            default:
-                std::exception("Not Implemented");
+        default:
                 assert(false);
                 return mat4(1.0f);
         }

@@ -21,6 +21,7 @@ namespace aiko
 {
 
     class RenderSystem;
+    class BaseAsset;
     
     class AssetSystem : public BaseSystem
     {
@@ -62,7 +63,7 @@ namespace aiko
     template<class T>
     inline T* AssetSystem::load()
     {
-        static_assert(std::is_base_of<BaseAsset, T>::value, "T must be derived from Asset");
+        static_assert(std::is_base_of<asset::Asset, T>::value, "T must be derived from Asset");
         AikoPtr<asset::Asset> ass = std::make_shared<T>();
         m_assets.push_back(ass);
         ass->connect(nullptr);

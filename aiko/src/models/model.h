@@ -5,6 +5,7 @@
 
 namespace aiko
 {
+    class AssetSystem;
     class Model
     {
         friend class AssetSystem;

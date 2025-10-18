@@ -13,11 +13,6 @@ namespace aiko
 
         static constexpr Color DEFAULT_BACKGROUND_COLOR = BLACK;
 
-        enum RenderType {
-            TwoDimensions = 0,
-            ThreeDimensions = 1,
-        };
-
         AikoConfig();
         AikoConfig(string tittle, uint16_t width, uint64_t height, Color = DEFAULT_BACKGROUND_COLOR, bool auto_render = true );
 
@@ -26,8 +21,6 @@ namespace aiko
         string window_tittle;
         Color background_color;
         bool auto_render = true;
-
-        RenderType render_type = RenderType::TwoDimensions;
 
     };
 

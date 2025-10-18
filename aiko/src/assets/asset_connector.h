@@ -24,10 +24,10 @@ namespace aiko
         template<class T>
         inline T* AssetConnector::findSystem()
         {
-            auto it = std::find_if(m_modules.begin(), m_modules.end(), [](const aiko::AikoUPtr<Module>& module) {
-                return dynamic_cast<T*>(module.get()) != nullptr;
+            auto it = std::find_if(m_systems.begin(), m_systems.end(), [](System* system) {
+                return dynamic_cast<T*>(system) != nullptr;
                 });
-            return (it != m_modules.end()) ? dynamic_cast<T*>(it->get()) : nullptr;
+            return (it != m_systems.end()) ? dynamic_cast<T*>(*it) : nullptr;
         }
 
     }
