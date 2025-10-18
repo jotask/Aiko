@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
 project(AikoFramework LANGUAGES CXX)
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/aiko")
