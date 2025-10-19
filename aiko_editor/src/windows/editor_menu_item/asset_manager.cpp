@@ -181,7 +181,8 @@ namespace aiko
             Json::Value root;
             file >> root;
 
-            for (const auto& item : root) {
+            for (const auto& item : root)
+            {
                 Asset s =
                 {
                     item["uuid"].asString(),
