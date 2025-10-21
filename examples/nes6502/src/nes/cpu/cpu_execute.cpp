@@ -45,7 +45,7 @@ namespace nes
         switch (op.instruction)
         {
             case Instruction::adc:      adc();      break;
-            case Instruction::and:      and();      break;
+            case Instruction::and_op:      and_op();      break;
             case Instruction::asl:      asl();      break;
             case Instruction::bcc:      bcc();      break;
             case Instruction::bcs:      bcs();      break;

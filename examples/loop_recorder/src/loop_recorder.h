@@ -2,6 +2,7 @@
 
 #include "application/application.h"
 
+#include <atomic>
 #include <vector>
 #include <string>
 #include <assert.h>

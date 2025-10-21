@@ -61,7 +61,8 @@ namespace nes
             cpu.clock();
         }
         nOfcycles++;
-        aiko::EventSystem::it().sendEvent(NesOnClockEvent());
+        auto msg = NesOnClockEvent();
+        aiko::EventSystem::it().sendEvent(msg);
     }
 
     void Nes::insertCartridge(const char* file)
