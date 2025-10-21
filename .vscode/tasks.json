@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Aiko Configure",
+            "label": "Aiko: Configure",
             "type": "shell",
             "command": "cmake",
             "args": [
@@ -15,32 +15,78 @@
                 "-DCMAKE_CXX_STANDARD=17",
                 "-DCMAKE_CXX_STANDARD_REQUIRED=ON",
                 "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+                "-DCMAKE_BUILD_TYPE=Debug",
                 "-DCMAKE_CXX_FLAGS=-Wno-error",
-                "-DASSIMP_WARNINGS_AS_ERRORS=OFF"
+                "-Wno-dev"
             ],
             "problemMatcher": ["$gcc"]
         },
         {
-            "label": "Aiko Build",
+            "label": "Aiko: Build Sandbox",
             "type": "shell",
             "command": "cmake",
             "args": [
-                "--build",
-                "build",
-                "--config",
-                "Debug"
+                "--build", "${workspaceFolder}/build",
+                "--target", "Sandbox",
+                "--parallel"
             ],
             "group": "build",
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Aiko: Build",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build", "${workspaceFolder}/build",
+                "--config", "Debug",
+                "-j", "--parallel"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": ["$gcc"]
         },
         {
-            "label": "Aiko Full Build",
-            "dependsOn": [
-                "Aiko Configure",
-                "Aiko Build"
+            "label": "Aiko: Clean",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build", "build",
+                "--target", "clean"
             ],
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Aiko: Reconfigure",
+            "dependsOn": ["Aiko: Clean", "Aiko: Configure"],
             "dependsOrder": "sequence",
-            "group": "build",
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Aiko: Full Build",
+            "dependsOn": ["Aiko: Configure", "Aiko: Build"],
+            "dependsOrder": "sequence",
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Aiko: Lint",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "find . -type f -name \"*.cpp\" ! -path \"./build/*\" ! -path \"./deps_cache/*\" -print0 | xargs -0 clang-tidy -p build"
+            ],
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Aiko: Format",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "find . -type f \\( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' \\) ! -path './build/*' ! -path './deps_cache/*' -exec clang-format -i {} +"            ],
             "problemMatcher": ["$gcc"]
         }
     ]
