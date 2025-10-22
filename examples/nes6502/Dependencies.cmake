@@ -22,6 +22,8 @@ FetchContent_Declare(
 
 message("Fetching jsoncpp")
 FetchContent_MakeAvailable(jsoncpp)
+target_compile_features(jsoncpp_static PUBLIC cxx_std_17)
+target_compile_options(jsoncpp_static PRIVATE -Wno-uninitialized -Wno-error)
 set_target_properties(jsoncpp_static PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------
