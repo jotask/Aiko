@@ -2,11 +2,10 @@ from pathlib import Path
 import sys
 import os
 import subprocess
+import platform
 from rich import print
 
-class bcolors:
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
+SYSTEM = platform.system().lower()  # 'windows', 'linux', or 'darwin'
 
 class Profile:
     def __init__(self, platform: str, profile: str, folder: str):
@@ -52,23 +51,26 @@ def compileshader(shader: Path):
 
     shaderc_path = getshadercpath()
 
-    print(shader.suffix)
+    # detect platform constants
+    if SYSTEM == "windows":
+        folder = "dx11"
+        platform = "windows"
+        profile = "s_5_0"
+    elif SYSTEM == "linux":
+        folder = "spirv"
+        platform = "linux"
+        profile = "spirv"
 
     # detect type by filename suffiax
     if shader.suffix == ".vs":
         shader_type = "vertex"
-        profile = "s_5_0"
     elif shader.suffix == ".fs":
         shader_type = "fragment"
-        profile = "s_5_0"
     elif shader.suffix  == ".cs":
         shader_type = "compute"
     else:
         print(f"Skipping {shader.name} (unknown shader type)")
         return
-    
-    folder = "dx11"
-    platform = "windows"
 
     # compile profiler
     output_dir = Path(__file__).parents[1].resolve() / f"assets/build/shaders/{folder}"
@@ -92,7 +94,7 @@ def compileshader(shader: Path):
     print("[bold yellow]Running:[/bold yellow]", " ".join(cmd))
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
-        print(bcolors.FAIL + "Shader compilation failed!" + bcolors.ENDC)
+        print("[red]Shader compilation failed![/red]")
         print("[bold red]STDOUT:[/bold red]", result.stdout)
         sys.exit(420);
     else:
@@ -107,8 +109,8 @@ def getshaderincludesCommon() -> Path:
     return Path(__file__).parents[1].resolve() / "deps_cache/bgfx-src/bgfx/examples/common"
 
 def getshadercpath() -> Path:
-    currentpath = Path(__file__).parents[1].resolve() / "deps_cache/bgfx-build/cmake/bgfx/Debug"
-    shaderc_path = Path(currentpath) / "shaderc.exe"
+    currentpath = Path(__file__).parents[1].resolve() / "deps_cache/bgfx-build/cmake/bgfx"
+    shaderc_path = Path(currentpath) / "shaderc"
     if not shaderc_path.exists():
         print("Shaderc not compiled?")
         sys.exit(3)
