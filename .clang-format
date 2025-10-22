@@ -1,0 +1,29 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 120
+AccessModifierOffset: -4
+AlignAfterOpenBracket: Align
+AlignOperands: true
+AllowShortFunctionsOnASingleLine: None
+DerivePointerAlignment: false
+PointerAlignment: Left
+IncludeBlocks: Regroup
+SortIncludes: true
+SpacesInParentheses: false
+SpaceBeforeParens: ControlStatements
+Cpp11BracedListStyle: true
+ReflowComments: true
+Standard: c++17
+NamespaceIndentation: All
+FixNamespaceComments: false
+
+BreakBeforeBraces: Allman
+AlwaysBreakAfterDefinitionReturnType: TopLevel
+
+# --- Constructor formatting ---
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+AllowAllConstructorInitializersOnNextLine: false
+BreakConstructorInitializers: BeforeComma
+BreakConstructorInitializersBeforeComma: true

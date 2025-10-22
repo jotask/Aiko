@@ -71,23 +71,35 @@
             "problemMatcher": ["$gcc"]
         },
         {
-            "label": "Aiko: Lint",
+            "label": "Run clang-format",
             "type": "shell",
             "command": "bash",
             "args": [
                 "-c",
-                "find . -type f -name \"*.cpp\" ! -path \"./build/*\" ! -path \"./deps_cache/*\" -print0 | xargs -0 clang-tidy -p build"
+                "find . -type f \\( -name \"*.cpp\" -o -name \"*.h\" \\) ! -path \"./build/*\" ! -path \"./deps_cache/*\" -print0 | xargs -0 clang-format -i"
             ],
-            "problemMatcher": ["$gcc"]
-        },
-        {
-            "label": "Aiko: Format",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "-c",
-                "find . -type f \\( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' \\) ! -path './build/*' ! -path './deps_cache/*' -exec clang-format -i {} +"            ],
-            "problemMatcher": ["$gcc"]
+            "group": "build",
+            "problemMatcher": [
+                {
+                    "owner": "cpp",
+                    "fileLocation": ["relative", "${workspaceFolder}"],
+                    "pattern": [
+                        {
+                            "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                            "file": 1,
+                            "line": 2,
+                            "column": 3,
+                            "severity": 4,
+                            "message": 5
+                        }
+                    ]
+                },
+                "$gcc"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
         }
     ]
 }
