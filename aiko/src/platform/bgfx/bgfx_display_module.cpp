@@ -45,89 +45,73 @@ namespace aiko::bgfx
             return;
         }
 
+        
         auto glfwSetWindowCenter = [](GLFWwindow* window) -> bool
         {
-
-            if (!window)
+            
+            if (window == nullptr)
                 return false;
 
-            int sx = 0, sy = 0;
-            int px = 0, py = 0;
-            int mx = 0, my = 0;
-            int monitor_count = 0;
-            int best_area = 0;
-            int final_x = 0, final_y = 0;
+            int windowWidth, windowHeight;
+            glfwGetWindowSize(window, &windowWidth, &windowHeight);
 
-            glfwGetWindowSize(window, &sx, &sy);
-            glfwGetWindowPos(window, &px, &py);
-
-            // Iterate throug all monitors
-            GLFWmonitor** m = glfwGetMonitors(&monitor_count);
-            if (!m)
+            int monitorCount;
+            GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
+            if (!monitors || monitorCount == 0)
+            {
                 return false;
+            }
 
-            for (int j = 0; j < monitor_count; ++j)
+            // Pick the monitor with the biggest intersection with the window
+            GLFWmonitor* bestMonitor = monitors[0];
+            int bestArea = 0;
+
+            int wx, wy;
+            glfwGetWindowPos(window, &wx, &wy);
+
+            for (int i = 0; i < monitorCount; ++i)
             {
+                int mx, my;
+                glfwGetMonitorPos(monitors[i], &mx, &my);
+                const GLFWvidmode* mode = glfwGetVideoMode(monitors[i]);
+                if (!mode) continue;
 
-                glfwGetMonitorPos(m[j], &mx, &my);
-                const GLFWvidmode* mode = glfwGetVideoMode(m[j]);
-                if (!mode)
-                    continue;
+                int overlapX = std::max(0, std::min(wx + windowWidth, mx + mode->width) - std::max(wx, mx));
+                int overlapY = std::max(0, std::min(wy + windowHeight, my + mode->height) - std::max(wy, my));
+                int area = overlapX * overlapY;
 
-                // Get intersection of two rectangles - screen and window
-                int minX = aiko::math::max(mx, px);
-                int minY = aiko::math::max(my, py);
-
-                int maxX = aiko::math::max(mx + mode->width, px + sx);
-                int maxY = aiko::math::max(my + mode->height, py + sy);
-
-                // Calculate area of the intersection
-                int area = aiko::math::max(maxX - minX, 0) * aiko::math::max(maxY - minY, 0);
-
-                // If its bigger than actual (window covers more space on this monitor)
-                if (area > best_area)
+                if (area > bestArea)
                 {
-                    // Calculate proper position in this monitor
-                    final_x = mx + (mode->width - sx) / 2;
-                    final_y = my + (mode->height - sy) / 2;
-
-                    best_area = area;
+                    bestArea = area;
+                    bestMonitor = monitors[i];
                 }
-
             }
 
-            // We found something
-            if (best_area)
+            // Center on the best monitor
+            const GLFWvidmode* mode = glfwGetVideoMode(bestMonitor);
+            if (mode == nullptr)
             {
-                glfwSetWindowPos(window, final_x, final_y);
+                return false;
             }
 
-            // Something is wrong - current window has NOT any intersection with any monitors. Move it to the default one.
-            else
-            {
-                GLFWmonitor* primary = glfwGetPrimaryMonitor();
-                if (primary)
-                {
-                    const GLFWvidmode* desktop = glfwGetVideoMode(primary);
+            int mx, my;
+            glfwGetMonitorPos(bestMonitor, &mx, &my);
 
-                    if (desktop)
-                        glfwSetWindowPos(window, (desktop->width - sx) / 2, (desktop->height - sy) / 2);
-                    else
-                        return false;
-                }
-                else
-                    return false;
-            }
+            int posX = mx + (mode->width - windowWidth) / 2;
+            int posY = my + (mode->height - windowHeight) / 2;
+
+            glfwSetWindowPos(window, posX, posY);
 
             return true;
-
+            
         };
-
+        
         glfwSetWindowCenter(window);
-
+        
         glfwMakeContextCurrent(window);
         glfwSwapInterval(0);
-
+        glfwShowWindow(window);
+        
         // window resize
         auto lamba = [](GLFWwindow* window, int width, int height)
         {
