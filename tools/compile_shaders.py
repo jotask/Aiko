@@ -73,7 +73,7 @@ def compileshader(shader: Path):
         return
 
     # compile profiler
-    output_dir = Path(__file__).parents[1].resolve() / f"assets/build/shaders/{folder}"
+    output_dir = getprojectrootdir() / f"assets/build/shaders/{folder}"
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / f"{shader.stem}.{shader.suffix[1:]}.bin"
 
@@ -102,14 +102,20 @@ def compileshader(shader: Path):
 
     print("[bold yellow]" + "-" * 150 + "[/bold yellow]")
 
+def getprojectrootdir():
+    return Path(__file__).parents[1].resolve()
+
+def getLibsPath():
+    return getprojectrootdir() / "build/aiko/libs/"
+
 def getshaderincludesBgfxShader() -> Path:
-    return Path(__file__).parents[1].resolve() / "deps_cache/bgfx-src/bgfx/src"
+    return getLibsPath() / "bgfx-src/bgfx/src"
 
 def getshaderincludesCommon() -> Path:
-    return Path(__file__).parents[1].resolve() / "deps_cache/bgfx-src/bgfx/examples/common"
+    return getLibsPath() / "bgfx-src/bgfx/examples/common"
 
 def getshadercpath() -> Path:
-    currentpath = Path(__file__).parents[1].resolve() / "deps_cache/bgfx-build/cmake/bgfx"
+    currentpath = getLibsPath() / "bgfx-build/cmake/bgfx"
     shaderc_path = Path(currentpath) / "shaderc"
     if not shaderc_path.exists():
         print("Shaderc not compiled?")
@@ -117,7 +123,7 @@ def getshadercpath() -> Path:
     return shaderc_path
 
 def main():
-    shader_dir = Path(__file__).parents[1].resolve() / "assets/shaders/bgfx"
+    shader_dir = getprojectrootdir() / "assets/shaders/bgfx"
     onlyfiles = [f for f in shader_dir.iterdir() if f.is_file() and f.suffix in (".vs", ".fs", ".cs")]
 
     if not onlyfiles:
