@@ -122,7 +122,7 @@ namespace aiko::bgfx
 
         ::aiko::bgfx::shared::init();
 
-        ::bgfx::setDebug(BGFX_DEBUG_STATS);
+        // ::bgfx::setDebug(BGFX_DEBUG_WIREFRAME | BGFX_DEBUG_STATS | BGFX_DEBUG_TEXT);
 
         initScreenFbo();
 
