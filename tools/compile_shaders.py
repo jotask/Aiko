@@ -79,6 +79,12 @@ def compileshader(shader: Path):
 
     print(f"[red]output:[/red] {output_file}")
 
+     # determine varying.def.sc for this shader
+    local_varying = shader.parent / "varying.def.sc"
+    if not local_varying.exists():
+        # fallback to common include if no local varying
+        local_varying = getshaderincludesCommon() / "varying.def.sc"
+
     cmd = [
         str(shaderc_path),
         "-f", str(shader),
@@ -89,6 +95,7 @@ def compileshader(shader: Path):
         "-i", str(shader.parent),
         "-i", str(getshaderincludesBgfxShader()),
         "-i", str(getshaderincludesCommon()),
+        "--varyingdef", str(local_varying),
     ]
 
     print("[bold yellow]Running:[/bold yellow]", " ".join(cmd))
@@ -124,7 +131,7 @@ def getshadercpath() -> Path:
 
 def main():
     shader_dir = getprojectrootdir() / "assets/shaders/bgfx"
-    onlyfiles = [f for f in shader_dir.iterdir() if f.is_file() and f.suffix in (".vs", ".fs", ".cs")]
+    onlyfiles = [f for f in shader_dir.rglob("*") if f.is_file() and f.suffix in (".vs", ".fs", ".cs")]
 
     if not onlyfiles:
         sys.exit(1)
