@@ -107,6 +107,15 @@
             "program": "${workspaceFolder}/tools/compile_shaders.py",
             "args": ["${workspaceFolder}/tools/compile_shaders.py"],
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Run clang-format",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/dummy",
+            "preLaunchTask": "Run clang-format",
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
