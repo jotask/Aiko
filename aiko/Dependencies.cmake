@@ -174,7 +174,7 @@ set_target_properties(stb PROPERTIES FOLDER "Dependencies")
 FetchContent_Declare(
     EnTT
     GIT_REPOSITORY  https://github.com/skypjack/entt.git
-    GIT_TAG         master
+    GIT_TAG         main
     GIT_SHALLOW     TRUE
     GIT_PROGRESS    TRUE
 )
