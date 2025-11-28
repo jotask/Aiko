@@ -124,6 +124,8 @@ def getshaderincludesCommon() -> Path:
 def getshadercpath() -> Path:
     currentpath = getLibsPath() / "bgfx-build/cmake/bgfx"
     shaderc_path = Path(currentpath) / "shaderc"
+    if SYSTEM == "windows":
+        shaderc_path = shaderc_path.with_suffix(".exe")
     if not shaderc_path.exists():
         print("Shaderc not compiled?")
         sys.exit(3)
