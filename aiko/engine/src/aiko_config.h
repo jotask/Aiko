@@ -1,0 +1,27 @@
+#pragma once
+
+#include "types/color.h"
+
+#include <cstdint>
+
+namespace aiko
+{
+
+    class AikoConfig
+    {
+    public:
+
+        static constexpr Color DEFAULT_BACKGROUND_COLOR = BLACK;
+
+        AikoConfig();
+        AikoConfig(string tittle, uint16_t width, uint64_t height, Color = DEFAULT_BACKGROUND_COLOR, bool auto_render = true );
+
+        uint16_t width;
+        uint16_t height;
+        string window_tittle;
+        Color background_color;
+        bool auto_render = true;
+
+    };
+
+}
