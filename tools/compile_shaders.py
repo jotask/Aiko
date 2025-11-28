@@ -113,7 +113,7 @@ def getprojectrootdir():
     return Path(__file__).parents[1].resolve()
 
 def getLibsPath():
-    return getprojectrootdir() / "build/aiko/libs/"
+    return getprojectrootdir() / "build/debug/aiko/libs/"
 
 def getshaderincludesBgfxShader() -> Path:
     return getLibsPath() / "bgfx-src/bgfx/src"
