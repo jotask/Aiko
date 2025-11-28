@@ -27,16 +27,15 @@ namespace aiko
     public:
 
         AikoRenderer();
-        virtual ~AikoRenderer() = default;
+        ~AikoRenderer() = default;
 
     protected:
 
-        virtual void init();
-        virtual void postInit();
+        void init();
 
-        virtual void beginFrame();
-        virtual void endFrame();
-        virtual void dispose();
+        void beginFrame();
+        void endFrame();
+        void dispose();
 
     public:
 
@@ -85,6 +84,8 @@ namespace aiko
         virtual int loadShaderUniform(Shader* shader, const string& name, ShaderUniformDataType type) = 0;
         virtual void setShaderUniform(Shader*, string name, vec4 value) = 0;
         virtual void refreshShader(Shader*) = 0;
+
+        void setBackgroundColor(const Color color);
 
     protected:
 

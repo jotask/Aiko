@@ -13,13 +13,6 @@ namespace aiko
 
     void AikoRenderer::init()
     {
-        const AikoConfig cfg = getAiko()->getConfig();
-        background_color = cfg.background_color;
-        EventSystem::it().bind<WindowResizeEvent>(this, &AikoRenderer::onWindowResize);
-    }
-
-    void AikoRenderer::postInit()
-    {
 
     }
 
@@ -40,13 +33,14 @@ namespace aiko
 
     ivec2 AikoRenderer::getDisplaySize()
     {
-        return m_displayModule->getCurrentDisplay().getDisplaySize();
+        //return m_displayModule->getCurrentDisplay().getDisplaySize();
+        AIKO_NOT_IMPLEMENTED;
+        return {0};
     }
 
-    void AikoRenderer::onWindowResize(Event& event)
+    void AikoRenderer::setBackgroundColor(const Color color)
     {
-        const auto& msg = static_cast<const WindowResizeEvent&>(event);
-        m_displayModule->getCurrentDisplay().setWindowSize(msg.width, msg.height);
+        background_color = color;
     }
 
 }
