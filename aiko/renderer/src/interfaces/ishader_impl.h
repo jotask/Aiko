@@ -8,13 +8,14 @@ namespace aiko
         {
             virtual ~IShaderImpl() = default;
 
-            virtual void use() const = 0;
-            virtual void unuse() const = 0;
+            virtual void use() = 0;
+            virtual void unuse() = 0;
             virtual bool isValid() const = 0;
             virtual uint id() const = 0;
 
             // load
-            virtual void loadShaderData(const char*, const char*);
+            virtual void load(const char*, const char*) = 0;
+            virtual void unload() = 0;
 
             // Uniforms
             virtual void setBool(const string& name, bool value) = 0;

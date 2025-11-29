@@ -16,9 +16,10 @@ namespace aiko::bgfx
     public:
 
         BgfxShaderImpl();
-        virtual ~BgfxShaderImpl() = default;
+        virtual ~BgfxShaderImpl() override = default;
 
         virtual void load(const char*, const char*) override;
+        virtual void unload() override;
 
         virtual void use() override;
         virtual void unuse() override;

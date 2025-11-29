@@ -2,11 +2,11 @@
 
 #include <stdexcept>
 #include <algorithm>
-#include <cstring>
 
 #include <logger/logger.h>
-
 #include <core/file.h>
+
+#include "constants.h"
 
 namespace aiko::bgfx
 {
@@ -19,31 +19,54 @@ namespace aiko::bgfx
     void BgfxShaderImpl::load(const char* vs, const char* fs)
     {
 
-        const auto vs_bytes = files::readFileBytes(vs);
-        const auto fs_bytes = files::readFileBytes(fs);
 
-        auto vs_mem = ::bgfx::makeRef(vs_bytes.data(), vs_bytes.size());
-        auto fs_mem = ::bgfx::makeRef(fs_bytes.data(), fs_bytes.size());
+        auto getShaderDir = []() -> std::string
+        {
+
+            std::string base = global::GLOBAL_ASSET_PATH + "/build/shaders/";
+
+            switch (::bgfx::getRendererType())
+            {
+                case ::bgfx::RendererType::Direct3D11:
+                case ::bgfx::RendererType::Direct3D12:  base += "dx11/"; break;
+                case ::bgfx::RendererType::Metal:       base += "metal/"; break;
+                case ::bgfx::RendererType::OpenGL:      base += "glsl/"; break;
+                case ::bgfx::RendererType::OpenGLES:    base += "essl/"; break;
+                case ::bgfx::RendererType::Vulkan:      base += "spirv/"; break;
+                case ::bgfx::RendererType::Agc:
+                case ::bgfx::RendererType::Gnm:         base += "pssl/"; break;
+                case ::bgfx::RendererType::Nvn:         base += "nvn/"; break;
+                case ::bgfx::RendererType::Noop:
+                case ::bgfx::RendererType::Count:
+                default:
+                    throw std::runtime_error("Unsupported bgfx renderer or Noop.");
+            }
+
+            return base;
+        };
+
+        std::string dir = getShaderDir();
+        std::filesystem::path vshaderPath = dir + vs + std::string(".bin");
+        std::filesystem::path fshaderPath = dir + fs + std::string(".bin");
+
+        AIKO_ASSERT(std::filesystem::exists(vshaderPath), "Vertex shader file not found!");
+        AIKO_ASSERT(std::filesystem::exists(fshaderPath), "Fragment shader file not found!");
+
+        const auto vs_bytes = files::readFileBytes(vshaderPath.string().c_str());
+        const auto fs_bytes = files::readFileBytes(fshaderPath.string().c_str());
+
+        const auto vs_mem = ::bgfx::makeRef(vs_bytes.data(), vs_bytes.size());
+        const auto fs_mem = ::bgfx::makeRef(fs_bytes.data(), fs_bytes.size());
 
         ::bgfx::ShaderHandle vsh = ::bgfx::createShader(vs_mem);
         ::bgfx::ShaderHandle fsh = ::bgfx::createShader(fs_mem);
 
-        if (::bgfx::isValid(vsh) == false)
-        {
-            throw std::runtime_error("Failed to create vertex shaders!");
-        }
-
-        if (::bgfx::isValid(fsh) == false)
-        {
-            throw std::runtime_error("Failed to create fragment shaders!");
-        }
+        AIKO_ASSERT(::bgfx::isValid(vsh) == false, "Failed to create vertex shaders!");
+        AIKO_ASSERT(::bgfx::isValid(fsh) == false, "Failed to create fragment shaders!");
 
         m_programHandle = ::bgfx::createProgram(vsh, fsh, true);
 
-        if (::bgfx::isValid(m_programHandle) == false)
-        {
-            throw std::runtime_error("Failed to create fragment shaders!");
-        }
+        AIKO_ASSERT( ::bgfx::isValid(m_programHandle) == false, "Failed to create fragment shaders!");
 
         {
             auto dumpUniforms = [&](::bgfx::ShaderHandle shader, const char* str)

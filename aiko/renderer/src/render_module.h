@@ -77,14 +77,6 @@ namespace aiko
         virtual texture::PboTexture createPboTexture(uint16_t, uint16_t) = 0;
         virtual void updatePboTexture(texture::PboTexture texture, std::vector<Color>&) = 0;
 
-        // Shader
-        virtual aiko::ShaderData loadShaderData(const char*, const char*) = 0;
-        virtual aiko::ShaderData loadShaderSrc(const char*, const char*) = 0;
-        virtual void unloadShader(aiko::ShaderData&) = 0;
-        virtual int loadShaderUniform(Shader* shader, const string& name, ShaderUniformDataType type) = 0;
-        virtual void setShaderUniform(Shader*, string name, vec4 value) = 0;
-        virtual void refreshShader(Shader*) = 0;
-
         void setBackgroundColor(const Color color);
 
     protected:
