@@ -1,18 +1,22 @@
 #include "shader.h"
 
-#include <stdexcept>
 #include <algorithm>
 
-#include <logger/logger.h>
+#include <core/file.h>
+
+#include "render_factory.h"
 
 namespace aiko
 {
 
-    #define AIKO_RETURN_NO_LOC if(locIndex < 0) return;
-
     Shader::Shader()
+        : backend(renderer::RendererFactory::createShaderImpl())
     {
-    
+    }
+
+    uint Shader::id() const
+    {
+        return backend->id();
     }
 
     void Shader::load(const char* fileCodeName)
@@ -20,118 +24,85 @@ namespace aiko
         std::string vs = std::string(fileCodeName) + ".vs";
         std::string fs = std::string(fileCodeName) + ".fs";
         this->load(vs.c_str(), fs.c_str());
-        assert(isvalid() && "Shader is invalid");
+        AIKO_ASSERT(isvalid(), "Shader is invalid");
     }
 
     void Shader::load(const char* vs, const char* fs)
     {
-        if (isValid == true)
+        if (backend->isValid() == true)
         {
             unload();
         }
-        isValid = true;
-        // m_shaderData = s_renderModule->loadShaderData(vs, fs);
-    }
-
-    void Shader::loadFromSource(const char* vs, const char* fs)
-    {
-        if (isValid == true)
-        {
-            unload();
-        }
-        isValid = true;
-        // m_shaderData = s_renderModule->loadShaderData(vs, fs);
+        backend->loadShaderData(vs, fs);
+        AIKO_ASSERT(isvalid(), "Shader is invalid");
     }
 
     void Shader::unload()
     {
-        if (isValid == false)
+        if (backend->isValid() == true)
         {
-            return;
+            backend->unload();
         }
-        // s_renderModule->unloadShader(m_shaderData);
-        isValid = false;
-    }
-
-    int Shader::getUniformLocation(const string& name)
-    {
-        auto value = m_shaderData.locs.find(name);
-        if (value != m_shaderData.locs.end())
-        {
-            return value->second;
-        }
-        logger::Log::error( "UniformNotLoaded %s", name.c_str());
-        assert(false);
-        return { 0 };
     }
 
     void Shader::setBool(const string& name, bool value)
     {
-        // s_renderModule->setShaderUniform(this, name, value);
+        backend->setBool(name, value);
     }
 
     void Shader::setInt(const string& name, int value)
     {
-        // s_renderModule->setShaderUniform(this, name, value);
+        backend->setInt(name, value);
     }
 
     void Shader::setFloat(const string& name, float value)
     {
-        // s_renderModule->setShaderUniform(this, name, value);
+        backend->setFloat(name, value);
     }
 
     void Shader::setVec2(const string& name, const vec2& value)
     {
-        AIKO_DEBUG_BREAK
+        backend->setVec2(name, value);
     }
 
     void Shader::setVec2(const string& name, float x, float y)
     {
-        AIKO_DEBUG_BREAK
+        backend->setVec2(name, {x, y});
     }
 
     void Shader::setVec3(const string& name, const vec3& value)
     {
-        AIKO_DEBUG_BREAK
+        backend->setVec3(name, value);
     }
+
     void Shader::setVec3(const string& name, float x, float y, float z)
     {
-        AIKO_DEBUG_BREAK
+        backend->setVec3(name, {x, y, z});
     }
 
     void Shader::setVec4(const string& name, const vec4& value)
     {
-        // s_renderModule->setShaderUniform(this, name, value);
+        backend->setVec4(name, value);
     }
 
     void Shader::setVec4(const string& name, float x, float y, float z, float w)
     {
-        AIKO_DEBUG_BREAK
+        backend->setVec4(name, {x, y, z, w});
     }
 
     void Shader::setMat4(const string& name, const mat4& mat)
     {
-        AIKO_DEBUG_BREAK
+        backend->setMat4(name, mat);
     }
 
     void Shader::use()
     {
-        // s_renderModule->beginShaderMode(this);
+        backend->use();
     }
 
     void Shader::unuse()
     {
-        // s_renderModule->endShaderMode();
-    }
-
-    aiko::ShaderData* Shader::getData()
-    {
-        return &m_shaderData;
-    }
-
-    void Shader::connect()
-    {
-        AIKO_DEBUG_BREAK
+        backend->unuse();
     }
 
 }

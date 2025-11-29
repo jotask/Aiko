@@ -3,17 +3,34 @@
 #include <aiko_types.h>
 #include <math/math.h>
 
+#include "interfaces/ishader_impl.h"
 #include "types/render_types.h"
 
 namespace aiko
 {
+    namespace renderer
+    {
+        class RendererFactory;
+    }
 
     class Shader
     {
     public:
 
+        friend class renderer::RendererFactory;
+
+        // Copy
+        Shader(const Shader&) = default;
+        Shader& operator=(const Shader&) = default;
+
+        // Move
+        Shader(Shader&&) noexcept = default;
+        Shader& operator=(Shader&&) noexcept = default;
+
         Shader();
         ~Shader() = default;
+
+        uint id() const;
 
         void load(const char* fileCodeName);
         void load(const char* vs, const char* fs);
@@ -36,21 +53,14 @@ namespace aiko
         void use();
         void unuse();
 
-        aiko::ShaderData* getData();
-
-        bool isvalid() const { return isValid; }
-
-    protected:
-        virtual void connect();
+        bool isvalid() const;
 
     private:
 
-        bool isValid = false;
-        aiko::ShaderData m_shaderData;
+        AikoPtr<interfaces::IShaderImpl> backend;
 
     public:
 
-        int getUniformLocation(const string& name);
 
     };
 }

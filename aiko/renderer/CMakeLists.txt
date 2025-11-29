@@ -10,10 +10,7 @@ include(Dependencies.cmake)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # generate constant file
-set(GLOBAL_PATH ${CMAKE_SOURCE_DIR}/)
-set(GLOBAL_ASSET_PATH ${CMAKE_SOURCE_DIR}/assets/)
-set(AIKORENDERER_RENDER AIKORENDERER_BGFX) #AIKORENDERER_NATIVE AIKORENDERER_BGFX
-configure_file(constants.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/constants.h)
+set(AIKORENDERER_RENDER AIKO_BGFX) #AIKOR_NATIVE AIKO_BGFX
 
 # Files
 file(GLOB_RECURSE AIKORENDERER_SRC "src/*.h" "src/*.cpp" "src/*.hpp")
