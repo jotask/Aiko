@@ -1,0 +1,30 @@
+#pragma once
+
+#include <vector>
+
+#include "types/color.h"
+
+namespace aiko
+{
+    namespace interfaces
+    {
+        struct ITextureImpl
+        {
+            virtual ~ITextureImpl() = default;
+
+            virtual void use() = 0;
+            virtual void unuse() = 0;
+            virtual bool isValid() const = 0;
+            virtual uint id() const = 0;
+
+            // load
+            virtual void create(int width, int height) = 0;
+            virtual void load(const char*) = 0;
+            virtual void unload() = 0;
+
+            // Modify
+            virtual void setPixels(std::vector<Color>& pixels) = 0;
+
+        };
+    }
+}

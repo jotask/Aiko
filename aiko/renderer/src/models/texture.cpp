@@ -1,22 +1,54 @@
 #include "texture.h"
 
+#include "render_factory.h"
+
 namespace aiko
 {
 
     Texture::Texture()
-        : m_texture({0})
+        : backend(renderer::RendererFactory::createTextureImpl())
     {
 
     }
 
-    void Texture::loadTextureFromFile(const char* file)
+    void Texture::use()
     {
-
+        backend->use();
     }
 
-    bool Texture::isValid() const
+    void Texture::unuse()
     {
-        return m_texture.id != 0;
-    };
+        backend->unuse();
+    }
+
+    bool Texture::isValid()
+    {
+        return backend->isValid();
+    }
+
+    uint Texture::id() const
+    {
+        return backend->id();
+    }
+
+    void Texture::create()
+    {
+        this->create(1, 1);
+    }
+
+    void Texture::create(int width, int height)
+    {
+        backend->create(width, height);
+    }
+
+    void Texture::load(const char * file_path)
+    {
+        backend->load(file_path);
+    }
+
+    void Texture::unload()
+    {
+        backend->unload();
+    }
 
 }

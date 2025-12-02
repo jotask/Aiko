@@ -1,35 +1,39 @@
  #pragma once
 
-#include "types/textures.h"
+#include <aiko_types.h>
+
+#include "interfaces/itexture_impl.h"
 
 namespace aiko
 {
-    class RenderModule;
+    namespace renderer
+    {
+        class RendererFactory;
+    }
+
     class Texture
     {
     public:
 
-        enum class MeshType
-        {
-            TEST,
-            QUAD,
-            CUSTOM,
-        };
-
-        friend class RenderModule;
-        friend class RenderSystem;
+        friend class renderer::RendererFactory;
     
         Texture();
-        ~Texture() = default;
+        virtual ~Texture() = default;
 
+        void use();
+        void unuse();
+        bool isValid();
+        uint id() const;
 
-        void loadTextureFromFile(const char*);
+        // load
+        void create();
+        void create(int width, int height);
+        void load(const char*);
+        void unload();
 
-		bool isValid() const;
+    private:
 
-    //private:
-
-        texture::Texture m_texture;
+        AikoPtr<interfaces::ITextureImpl> backend;
 
     };
 

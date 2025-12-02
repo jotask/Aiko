@@ -1,6 +1,7 @@
 #pragma once
 
 #include "models/shader.h"
+#include "models/texture.h"
 
 namespace aiko
 {
@@ -10,6 +11,7 @@ namespace aiko
         {
         public:
             static AikoPtr<interfaces::IShaderImpl> createShaderImpl();
+            static AikoPtr<interfaces::ITextureImpl> createTextureImpl();
         };
     }
 }

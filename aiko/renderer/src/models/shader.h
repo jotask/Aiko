@@ -4,7 +4,6 @@
 #include <math/math.h>
 
 #include "interfaces/ishader_impl.h"
-#include "types/render_types.h"
 
 namespace aiko
 {
@@ -58,9 +57,6 @@ namespace aiko
     private:
 
         AikoPtr<interfaces::IShaderImpl> backend;
-
-    public:
-
 
     };
 }
