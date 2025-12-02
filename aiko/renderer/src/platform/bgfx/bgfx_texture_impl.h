@@ -16,10 +16,10 @@ namespace aiko::bgfx
         BgfxTextureImpl();
         virtual ~BgfxTextureImpl() override = default;
 
+        virtual uint id() const override;
         virtual void use() override;
         virtual void unuse() override;
-        virtual bool isValid() override;
-        virtual uint id() override;
+        virtual bool isValid() const override;
 
         // load
         virtual void create(int width, int height) override;

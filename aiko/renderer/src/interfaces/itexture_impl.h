@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <aiko_types.h>
 
 #include "types/color.h"
 
@@ -12,10 +13,10 @@ namespace aiko
         {
             virtual ~ITextureImpl() = default;
 
+            virtual uint id() const = 0;
             virtual void use() = 0;
             virtual void unuse() = 0;
             virtual bool isValid() const = 0;
-            virtual uint id() const = 0;
 
             // load
             virtual void create(int width, int height) = 0;

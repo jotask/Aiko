@@ -8,10 +8,10 @@ namespace aiko
         {
             virtual ~IShaderImpl() = default;
 
+            virtual uint id() const = 0;
             virtual void use() = 0;
             virtual void unuse() = 0;
             virtual bool isValid() const = 0;
-            virtual uint id() const = 0;
 
             // load
             virtual void load(const char*, const char*) = 0;

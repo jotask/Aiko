@@ -21,6 +21,11 @@ namespace aiko::bgfx
     {
     }
 
+    uint BgfxTextureImpl::id() const
+    {
+        return m_textureHandle.idx;
+    }
+
     void BgfxTextureImpl::use()
     {
 
@@ -31,14 +36,9 @@ namespace aiko::bgfx
 
     }
 
-    bool BgfxTextureImpl::isValid()
+    bool BgfxTextureImpl::isValid() const
     {
         return ::bgfx::isValid(m_textureHandle) == false;
-    }
-
-    uint BgfxTextureImpl::id()
-    {
-        return m_textureHandle.idx;
     }
 
     void BgfxTextureImpl::create(int width, int height)

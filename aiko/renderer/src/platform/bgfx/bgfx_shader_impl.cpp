@@ -114,6 +114,11 @@ namespace aiko::bgfx
     }
 
 
+    uint BgfxShaderImpl::id() const
+    {
+        return m_programHandle.idx;
+    }
+
     void BgfxShaderImpl::use()
     {
         // s_renderModule->beginShaderMode(this);

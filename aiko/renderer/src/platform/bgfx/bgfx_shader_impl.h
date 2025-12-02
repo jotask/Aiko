@@ -18,12 +18,13 @@ namespace aiko::bgfx
         BgfxShaderImpl();
         virtual ~BgfxShaderImpl() override = default;
 
-        virtual void load(const char*, const char*) override;
-        virtual void unload() override;
-
+        virtual uint id() const override;
         virtual void use() override;
         virtual void unuse() override;
         virtual bool isValid() const override;
+
+        virtual void load(const char*, const char*) override;
+        virtual void unload() override;
 
         virtual void setBool(const string& name, bool value) override;
         virtual void setInt(const string& name, int value) override;
