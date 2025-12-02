@@ -35,12 +35,6 @@ namespace aiko
         BLEND_CUSTOM_SEPARATE           // Blend textures using custom rgb/alpha separate src/dst factors (use rlSetBlendFactorsSeparate())
     } BlendMode;
 
-    enum class ContextType
-    {
-        Render2D,
-        Render3D,
-    };
-
     class Rectangle
     {
     public:
@@ -50,22 +44,6 @@ namespace aiko
         float y;
         float width;
         float height;
-    };
-
-    class ShaderData
-    {
-    public:
-        unsigned int id;
-        std::map<string, int> locs;
-    };
-
-    class MeshData
-    {
-    public:
-        // OpenGL identifiers
-        unsigned int vbo;
-        unsigned int vao;
-        unsigned int ebo;
     };
 
 }

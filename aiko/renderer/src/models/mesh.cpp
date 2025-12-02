@@ -1,16 +1,29 @@
 #include "mesh.h"
 
+#include "render_factory.h"
+
 namespace aiko
 {
 
     Mesh::Mesh()
+        : backend(nullptr)
     {
-        AIKO_NOT_IMPLEMENTED;
+        backend=renderer::RendererFactory::createMeshImpl(this);
     }
 
     void Mesh::refresh()
     {
-        AIKO_NOT_IMPLEMENTED;
+        backend->refresh();
+    }
+
+    bool Mesh::isValid()
+    {
+        return backend->isValid();
+    }
+
+    void Mesh::unload()
+    {
+        backend->unload();
     }
 
 }

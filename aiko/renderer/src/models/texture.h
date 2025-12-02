@@ -16,7 +16,15 @@ namespace aiko
     public:
 
         friend class renderer::RendererFactory;
-    
+
+        // Copy
+        Texture(const Texture&) = default;
+        Texture& operator=(const Texture&) = default;
+
+        // Move
+        Texture(Texture&&) noexcept = default;
+        Texture& operator=(Texture&&) noexcept = default;
+
         Texture();
         virtual ~Texture() = default;
 

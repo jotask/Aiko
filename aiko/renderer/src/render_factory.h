@@ -2,6 +2,7 @@
 
 #include "models/shader.h"
 #include "models/texture.h"
+#include "models/mesh.h"
 
 namespace aiko
 {
@@ -12,6 +13,7 @@ namespace aiko
         public:
             static AikoPtr<interfaces::IShaderImpl> createShaderImpl();
             static AikoPtr<interfaces::ITextureImpl> createTextureImpl();
+            static AikoPtr<interfaces::IMeshImpl> createMeshImpl(Mesh*);
         };
     }
 }

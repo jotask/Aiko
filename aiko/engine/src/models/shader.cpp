@@ -19,6 +19,7 @@ namespace aiko
     RenderModule* Shader::s_renderModule = nullptr;
 
     Shader::Shader()
+
     {
     
     }

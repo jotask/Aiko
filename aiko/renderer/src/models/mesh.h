@@ -6,30 +6,38 @@
 
 #include "aiko_types.h"
 #include "types/color.h"
-#include "models/shader.h"
+#include "interfaces/imesh_impl.h"
 
  namespace aiko
 {
+
+     namespace renderer
+     {
+         class RendererFactory;
+     }
+
     class Mesh
     {
     public:
 
-        enum class MeshType
-        {
-            CUBE,
-            QUAD,
-            CUSTOM,
-        };
+        friend class renderer::RendererFactory;
 
-        friend class RenderModule;
-        friend class RenderSystem;
-    
+         // Copy
+         Mesh(const Mesh&) = default;
+         Mesh& operator=(const Mesh&) = default;
+
+         // Move
+         Mesh(Mesh&&) noexcept = default;
+         Mesh& operator=(Mesh&&) noexcept = default;
+
         Mesh();
         ~Mesh() = default;
 
-        void refresh();
+         virtual bool isValid();
+         virtual void unload();
+         virtual void refresh();
 
-    // private:
+    private:
 
         using Vertices = std::vector<vec3>;
         using TeexCoords = std::vector<vec2>;
@@ -43,8 +51,7 @@
         Colors m_colors;
         Indices m_indices;
 
-        MeshData m_data;
-        Shader* m_shader;
+        AikoPtr<interfaces::IMeshImpl> backend;
 
     };
 
