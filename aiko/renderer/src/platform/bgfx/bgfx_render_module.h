@@ -4,16 +4,15 @@
 
 #include <stack>
 
-#include "aiko.h"
-#include "aiko_types.h"
+#include <aiko_types.h>
+#include <events/events.hpp>
+
 #include "modules/render/render_module.h"
 #include "types/textures.h"
 #include "models/shader.h"
 #include "models/model.h"
 #include "models/texture.h"
-#include "events/event.hpp"
 #include "types/color.h"
-#include "types/textures.h"
 
 namespace aiko
 {

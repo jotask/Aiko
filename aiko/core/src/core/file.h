@@ -1,4 +1,4 @@
-#pragme once
+#pragma once
 
 #include "aiko_types.h"
 

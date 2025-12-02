@@ -37,7 +37,7 @@
          virtual void unload();
          virtual void refresh();
 
-    private:
+    // private:
 
         using Vertices = std::vector<vec3>;
         using TeexCoords = std::vector<vec2>;
@@ -50,6 +50,8 @@
         Normals m_normals;
         Colors m_colors;
         Indices m_indices;
+
+     private:
 
         AikoPtr<interfaces::IMeshImpl> backend;
 

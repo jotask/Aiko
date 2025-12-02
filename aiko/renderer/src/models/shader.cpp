@@ -33,7 +33,7 @@ namespace aiko
         {
             unload();
         }
-        backend->loadShaderData(vs, fs);
+        backend->load(vs, fs);
         AIKO_ASSERT(isvalid(), "Shader is invalid");
     }
 
