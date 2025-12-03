@@ -1,56 +1,37 @@
-#ifdef AIKO_BGFX
+#include "display_manager.h"
 
-#include "bgfx_display_module.h"
+#include "display/display_events.hpp"
 
-#include "aiko.h"
-#include "core/libs.h"
-#include "core/log.h"
-#include "aiko_types.h"
-#include "shared/math_transform.h"
-
-#include "events/events.hpp"
+#include <logger/logger.h>
+#include <aiko_types.h>
+#include <events/events.hpp>
 
 #include <GLFW/glfw3.h>
 
-namespace aiko::bgfx
+namespace aiko
 {
 
-    GLFWwindow* getNative(void* ptr)
-    {
-        return (GLFWwindow*)ptr;
-    }
-
-    BgfxDisplayModule::~BgfxDisplayModule()
+    void DisplayManager::init(string title, const uint width, uint height)
     {
 
-    }
+        AIKO_ASSERT(glfwInit() == GLFW_TRUE, "Failed to init Window")
 
-    void BgfxDisplayModule::preInit()
-    {
-
-        DisplayModule::init();
-
-        if (glfwInit() == GLFW_FALSE) return exitWithCode(EXIT_CODE::GLFW_INIT);
-
-        const AikoConfig cfg = getAiko()->getConfig();
-        const ivec2 size = { cfg.width, cfg.height };
-        m_displayName = cfg.window_tittle;
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // no OpenGL
-        GLFWwindow* window = glfwCreateWindow(size.x, size.y, m_displayName.c_str(), NULL, NULL);
+        GLFWwindow* window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
         if (window == NULL)
         {
-            Log::critical("Failed to create GLFW window");
+            logger::Log::critical("Failed to create GLFW window");
             glfwTerminate();
-            // Throw exception and/or exit
-            return;
+            AIKO_ASSERT(false, "Failed to create GLFW window")
         }
 
-        
         auto glfwSetWindowCenter = [](GLFWwindow* window) -> bool
         {
             
             if (window == nullptr)
+            {
                 return false;
+            }
 
             int windowWidth, windowHeight;
             glfwGetWindowSize(window, &windowWidth, &windowHeight);
@@ -76,9 +57,9 @@ namespace aiko::bgfx
                 const GLFWvidmode* mode = glfwGetVideoMode(monitors[i]);
                 if (!mode) continue;
 
-                int overlapX = std::max(0, std::min(wx + windowWidth, mx + mode->width) - std::max(wx, mx));
-                int overlapY = std::max(0, std::min(wy + windowHeight, my + mode->height) - std::max(wy, my));
-                int area = overlapX * overlapY;
+                const int overlapX = std::max(0, std::min(wx + windowWidth, mx + mode->width) - std::max(wx, mx));
+                const int overlapY = std::max(0, std::min(wy + windowHeight, my + mode->height) - std::max(wy, my));
+                const int area = overlapX * overlapY;
 
                 if (area > bestArea)
                 {
@@ -152,56 +133,33 @@ namespace aiko::bgfx
             };
         glfwSetCursorPosCallback(window, cursor_position_callback);
 
-        m_curent.setNative(window);
-        m_curent.setWindowSize(size.x, size.y);
-
         int glfw_major, glfw_minor, glfw_patch;
         glfwGetVersion(&glfw_major, &glfw_minor, &glfw_patch);
-        Log::info() << "GLFW Version: " << glfw_major << "." << glfw_minor << "." << glfw_patch;
+        logger::Log::info() << "GLFW Version: " << glfw_major << "." << glfw_minor << "." << glfw_patch;
+
+        m_display.setWindowTitle(title);
+        m_display.setWindowSize(width, height);
+
+        m_native = window;
 
     }
 
-    void BgfxDisplayModule::beginFrame()
+
+    void DisplayManager::swap()
     {
+        glfwSwapBuffers(m_native);
     }
 
-    void BgfxDisplayModule::endFrame()
+    void DisplayManager::dispose()
     {
-        glfwSwapBuffers(getNative(m_curent.getNative()));
-    }
-
-    void BgfxDisplayModule::dispose()
-    {
-        glfwDestroyWindow(getNative(m_curent.getNative()));
+        glfwDestroyWindow(m_native);
         glfwTerminate();
     }
 
-    void BgfxDisplayModule::preUpdate()
+    void DisplayManager::update()
     {
-
-        static float lastTime;
-        static long nbFrames;
-
-        // Measure speed
-        double currentTime = glfwGetTime();
-        double delta = currentTime - lastTime;
-        nbFrames++;
-        if (delta >= 0.15)
-        {
-
-            double fps = double(nbFrames) / delta;
-
-            std::stringstream ss;
-            ss << m_displayName.c_str() << " [" << fps << " FPS]";
-
-            glfwSetWindowTitle(getNative(m_curent.getNative()), ss.str().c_str());
-
-            nbFrames = 0;
-            lastTime = currentTime;
-        }
-
         glfwPollEvents();
-        if ( glfwWindowShouldClose(getNative(m_curent.getNative())) == true )
+        if ( glfwWindowShouldClose(m_native) == true )
         {
             WindowCloseEvent even;
             aiko::EventSystem::it().sendEvent(even);
@@ -209,5 +167,3 @@ namespace aiko::bgfx
     }
 
 }
-
-#endif
