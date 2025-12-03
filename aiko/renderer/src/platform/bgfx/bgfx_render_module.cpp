@@ -10,7 +10,6 @@
 
 #include <algorithm>
 
-#include "aiko.h"
 #include "constants.h"
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
@@ -60,7 +59,6 @@ namespace aiko::bgfx
     {
         
     }
-
 
     void BgfxRenderModule::preInit()
     {
@@ -114,10 +112,10 @@ namespace aiko::bgfx
                     return std::string{ "Unknown" };
                 };
 
-            uint32_t vendorId = ::bgfx::getCaps()->vendorId;
-            uint32_t deviceId = ::bgfx::getCaps()->deviceId;
-            Log::info() << "GPU: " << getVendorName(vendorId) << ", Vendor ID: 0x" << std::hex << vendorId << ", Device ID: 0x" << deviceId<< std::dec;
-            Log::info() << "BGFX Renderer: " << ::bgfx::getRendererName(::bgfx::getRendererType());
+            const uint32_t vendorId = ::bgfx::getCaps()->vendorId;
+            const uint32_t deviceId = ::bgfx::getCaps()->deviceId;
+            logger::Log::info() << "GPU: " << getVendorName(vendorId) << ", Vendor ID: 0x" << std::hex << vendorId << ", Device ID: 0x" << deviceId<< std::dec;
+            logger::Log::info() << "BGFX Renderer: " << ::bgfx::getRendererName(::bgfx::getRendererType());
         }
 
         ::aiko::bgfx::shared::init();

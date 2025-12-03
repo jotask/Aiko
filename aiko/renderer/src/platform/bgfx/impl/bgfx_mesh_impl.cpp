@@ -1,6 +1,5 @@
 #include "bgfx_mesh_impl.h"
 
-#include <logger/logger.h>
 #include <core/file.h>
 
 #include <bgfx/bgfx.h>

@@ -7,7 +7,7 @@
 #include <aiko_types.h>
 #include <events/events.hpp>
 
-#include "modules/render/render_module.h"
+#include "render_module.h"
 #include "types/textures.h"
 #include "models/shader.h"
 #include "models/model.h"
@@ -27,7 +27,7 @@ namespace aiko
 namespace aiko::bgfx
 {
 
-    class BgfxRenderModule : public aiko::RenderModule
+    class BgfxRenderModule : public aiko::AikoRenderer
     {
     
     public:

@@ -40,7 +40,7 @@ namespace aiko
 
     void AikoRenderer::setBackgroundColor(const Color color)
     {
-        background_color = color;
+        m_background_color = color;
     }
 
 }

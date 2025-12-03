@@ -26,8 +26,8 @@ namespace aiko
     
     public:
 
-        AikoRenderer();
-        ~AikoRenderer() = default;
+        AikoRenderer() = default;
+        virtual ~AikoRenderer() = default;
 
     protected:
 
@@ -78,7 +78,7 @@ namespace aiko
 
     protected:
 
-        Color background_color;
+        Color m_background_color;
         bool m_scale;
 
         texture::ScreenFbo m_screenFbo;
