@@ -9,8 +9,6 @@
 #include "models/camera.h"
 #include "types/textures.h"
 #include "events/events.hpp"
-#include "types/render_types.h"
-#include "models/camera.h"
 #include "models/mesh.h"
 #include "models/shader.h"
 #include "components/transform_component.h"

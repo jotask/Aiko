@@ -1,6 +1,7 @@
 #pragma once
 
 #include <aiko_types.h>
+#include <core/singleton.h>
 
 #include "display/display.h"
 
@@ -9,7 +10,7 @@ class GLFWwindow;
 namespace aiko
 {
 
-    class DisplayManager
+    class DisplayManager : public Singleton<DisplayManager>
     {
 
     public:
@@ -21,6 +22,11 @@ namespace aiko
         void update();
         void swap();
         void dispose();
+
+        Display* getDisplay();
+        GLFWwindow* getNativeWindow() const;
+
+    private:
 
         Display m_display;
         GLFWwindow* m_native;

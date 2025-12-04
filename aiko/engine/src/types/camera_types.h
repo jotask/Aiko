@@ -4,7 +4,6 @@
 
 namespace aiko::camera
 {
-    enum CameraType { Perspective, Orthographic };
     enum CameraController { Static, Orbit, Fly, Drag };
 
 }

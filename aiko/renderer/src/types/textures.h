@@ -5,9 +5,8 @@
 namespace aiko::texture
 {
 
-    class Texture
+    struct  Texture
     {
-    public:
         uint id;                  // Texture id
         int width;                // Texture base width
         int height;               // Texture base height

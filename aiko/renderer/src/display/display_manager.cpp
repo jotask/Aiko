@@ -156,6 +156,16 @@ namespace aiko
         glfwTerminate();
     }
 
+    Display* DisplayManager::getDisplay()
+    {
+        return &m_display;
+    }
+
+    GLFWwindow * DisplayManager::getNativeWindow() const
+    {
+        return m_native;
+    }
+
     void DisplayManager::update()
     {
         glfwPollEvents();

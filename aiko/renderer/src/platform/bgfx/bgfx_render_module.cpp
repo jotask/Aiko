@@ -2,29 +2,14 @@
 
 #include "bgfx_render_module.h"
 
-#include <fstream>
+#include <logger/logger.h>
+#include <events/events.hpp>
 
-#include <iostream>
-#include <set>
-#include <vector>
-
-#include <algorithm>
-
-#include "constants.h"
-#include "modules/module_connector.h"
-#include "modules/display_module.h"
-#include "types/textures.h"
-#include "events/events.hpp"
-#include "types/render_types.h"
-#include "models/mesh.h"
-#include "models/shader.h"
-#include "components/transform_component.h"
-#include "core/libs.h"
-#include "core/log.h"
+#include "display/display_manager.h"
+#include "display/display_events.hpp"
 
 #include <bgfx/bgfx.h>
 #include <bx/bx.h>
-#include <bgfx/platform.h>
 #include <GLFW/glfw3.h>
 
 #if defined(AIKO_WINDOWS)
@@ -38,40 +23,33 @@
 #endif
 
 #include "platform/bgfx/bgfx_platform_helper.h"
-#include "platform/bgfx/bgfx_render_utils.h"
 
 namespace aiko::bgfx
 {
 
     #define AIKO_VSYNC_MACRO (false ? BGFX_RESET_VSYNC : BGFX_RESET_NONE)
 
-    BgfxRenderModule::BgfxRenderModule(Aiko* aiko)
-        : RenderModule(aiko)
+    BgfxRenderer::BgfxRenderer()
+        : AikoRenderer()
         , m_kViewMain(0)
         , m_kViewOffScreen(1)
         , currentViewId(m_kViewMain)
     {
-        static_assert(sizeof(::bgfx::ViewId) == sizeof(BgfxRenderModule::ViewId),    "Bgfx ViewId type has changed");
-        static_assert(std::is_same<::bgfx::ViewId, BgfxRenderModule::ViewId>::value, "Bgfx ViewId type has changed");
+        static_assert(sizeof(::bgfx::ViewId) == sizeof(BgfxRenderer::ViewId),    "Bgfx ViewId type has changed");
+        static_assert(std::is_same<::bgfx::ViewId, BgfxRenderer::ViewId>::value, "Bgfx ViewId type has changed");
     }
 
-    BgfxRenderModule::~BgfxRenderModule()
+    BgfxRenderer::~BgfxRenderer()
     {
         
     }
 
-    void BgfxRenderModule::preInit()
-    {
-        // FIXME
-    }
-
-    void BgfxRenderModule::init()
+    void BgfxRenderer::init()
     {
 
-        RenderModule::init();
+        auto* window = DisplayManager::it().getNativeWindow();
+        const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
 
-        GLFWwindow* window = static_cast<GLFWwindow*>(m_displayModule->getNativeDisplay());
-        const ivec2 displaySize = m_displayModule->getCurrentDisplay().getDisplaySize();
         ::bgfx::Init init;
         init.type = ::bgfx::RendererType::Count; // auto choose renderer (DirectX, OpenGL, etc.)
         #if defined(AIKO_WINDOWS)
@@ -82,13 +60,11 @@ namespace aiko::bgfx
         #else
             #error OS unsupported!
         #endif
-        init.resolution.width = displaySize.x;
-        init.resolution.height = displaySize.y;
+        init.resolution.width = size.x;
+        init.resolution.height = size.y;
         init.resolution.reset = AIKO_VSYNC_MACRO;
-        if (::bgfx::init(init) == false)
-        {
-            return std::exit(99);
-        }
+
+        AIKO_ASSERT(::bgfx::init(init), "Failed to init BGFX")
         
         // Log Init
         {
@@ -118,34 +94,29 @@ namespace aiko::bgfx
             logger::Log::info() << "BGFX Renderer: " << ::bgfx::getRendererName(::bgfx::getRendererType());
         }
 
-        ::aiko::bgfx::shared::init();
-
         // ::bgfx::setDebug(BGFX_DEBUG_WIREFRAME | BGFX_DEBUG_STATS | BGFX_DEBUG_TEXT);
 
         initScreenFbo();
 
     }
 
-    void BgfxRenderModule::beginFrame()
+    void BgfxRenderer::beginFrame()
     {
         // Set view to the fbo
         currentViewId = m_kViewOffScreen;
         ::bgfx::setViewFrameBuffer(currentViewId, AIKO_TO_FBH(m_screenFbo.renderTexture.framebuffer));
-        const auto size = m_displayModule->getCurrentDisplay().getDisplaySize();
+        const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
         ::bgfx::setViewRect(currentViewId, 0, 0, size.x, size.y);
-        clearBackground(background_color);
+        clearBackground(m_background_color);
         ::bgfx::touch(currentViewId);
     }
 
-    void BgfxRenderModule::endFrame()
+    void BgfxRenderer::endFrame()
     {
-
         currentViewId = m_kViewMain;
-
-        const auto size = m_displayModule->getCurrentDisplay().getDisplaySize();
-
+        const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
         ::bgfx::setViewRect(currentViewId, 0, 0, size.x, size.y);
-        clearBackground(background_color);
+        clearBackground(m_background_color);
         ::bgfx::touch(currentViewId);
 
         // Bind the offscreen texture to a sampler
@@ -218,25 +189,18 @@ namespace aiko::bgfx
 
     }
 
-    void BgfxRenderModule::drawText(string texto, float x, float y , float scale, Color color)
+    void BgfxRenderer::drawText(string texto, float x, float y , float scale, Color color)
     {
 
     }
 
-    void BgfxRenderModule::dispose()
+    void BgfxRenderer::dispose()
     {
         ::bgfx::shutdown();
     }
 
-    texture::RenderTexture2D* BgfxRenderModule::getRenderTexture()
+    void BgfxRenderer::onWindowResize(Event& event)
     {
-        return &m_screenFbo.renderTexture;
-    }
-
-    void BgfxRenderModule::onWindowResize(Event& event)
-    {
-
-        RenderModule::onWindowResize(event);
 
         const auto& msg = static_cast<const WindowResizeEvent&>(event);
 
@@ -265,65 +229,9 @@ namespace aiko::bgfx
 
     }
 
-    void BgfxRenderModule::clearBackground(Color color)
+    void BgfxRenderer::clearBackground(Color color)
     {
         ::bgfx::setViewClear(currentViewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, convertColorToBgfx(color), 1.0f, 0);
-    }
-
-    void BgfxRenderModule::beginMode2D()
-    {
-        AIKO_DEBUG_BREAK
-    }
-
-    void BgfxRenderModule::endMode2D()
-    {
-        AIKO_DEBUG_BREAK
-    }
-
-    void BgfxRenderModule::beginMode3D()
-    {
-        //AIKO_DEBUG_BREAK
-    }
-
-    void BgfxRenderModule::endMode3D()
-    {
-        //AIKO_DEBUG_BREAK
-    }
-
-    void BgfxRenderModule::beginTextureMode()
-    {
-
-        AIKO_DEBUG_BREAK
-    }
-
-    void BgfxRenderModule::beginTextureMode(texture::RenderTexture2D& target)
-    {
-        AIKO_DEBUG_BREAK
-    }
-
-    void BgfxRenderModule::endTextureMode(void)
-    {
-        AIKO_DEBUG_BREAK
-    }
-
-    void BgfxRenderModule::beginShaderMode(aiko::Shader* shader)
-    {
-        AIKO_DEBUG_BREAK
-    }
-
-    void BgfxRenderModule::endShaderMode(void)
-    {
-        AIKO_DEBUG_BREAK
-    }
-
-    void BgfxRenderModule::beginBlendMode(BlendMode mode)
-    {
-        AIKO_DEBUG_BREAK
-    }
-
-    void BgfxRenderModule::endBlendMode(void)
-    {
-        AIKO_DEBUG_BREAK
     }
 
 }
