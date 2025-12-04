@@ -6,8 +6,8 @@
 #include "types/camera_types.h"
 #include "types/color.h"
 #include "math/math.h"
-#include "time/shader.h"
-#include "time/texture.h"
+#include "models/shader.h"
+#include "models/texture.h"
 
  namespace aiko
 {

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream> //  For Log::error
 #include <iomanip> // For std::setw
 #include <cstring> // For std::memcpy
 #include <cmath> // For std::memcpy

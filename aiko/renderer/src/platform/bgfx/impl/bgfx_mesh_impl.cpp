@@ -5,6 +5,7 @@
 #include <bgfx/bgfx.h>
 
 #include "models/mesh.h"
+#include "platform/bgfx/bgfx_types.h"
 
 namespace aiko::bgfx
 {
@@ -17,15 +18,8 @@ namespace aiko::bgfx
         , m_vertexBuffer({::bgfx::kInvalidHandle})
         , m_indexBuffer({::bgfx::kInvalidHandle})
     {
-        m_global_layout
-                .begin()
-                .add(::bgfx::Attrib::Position, 3, ::bgfx::AttribType::Float)
-                .add(::bgfx::Attrib::TexCoord0, 2, ::bgfx::AttribType::Float)
-                .add(::bgfx::Attrib::Normal, 3, ::bgfx::AttribType::Float, true, true)
-                .add(::bgfx::Attrib::Color0, 4, ::bgfx::AttribType::Uint8, true)
-                .end();
-    }
 
+    }
 
     bool BgfxMeshImpl::isValid() const
     {
@@ -43,7 +37,7 @@ namespace aiko::bgfx
 
         const auto vertices = convertToVBH();
         const ::bgfx::Memory* memV = ::bgfx::copy(vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(VertexInformation)));
-        m_vertexBuffer = ::bgfx::createVertexBuffer(memV, m_global_layout);;
+        m_vertexBuffer = ::bgfx::createVertexBuffer(memV, s_global_layout);;
 
         const auto indices = convertToIBH();
         const ::bgfx::Memory* memI = ::bgfx::copy(indices.data(), static_cast<uint32_t>(indices.size() * sizeof(uint16_t)));
@@ -51,7 +45,7 @@ namespace aiko::bgfx
 
     }
 
-    std::vector<BgfxMeshImpl::VertexInformation> BgfxMeshImpl::convertToVBH()
+    std::vector<VertexInformation> BgfxMeshImpl::convertToVBH()
     {
 
         std::vector<VertexInformation> vertices;

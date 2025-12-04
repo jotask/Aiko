@@ -1,7 +1,7 @@
 #pragma once
 
-#include "time/mesh.h"
-#include "time/material.h"
+#include "models/mesh.h"
+#include "models/material.h"
 
 namespace aiko
 {

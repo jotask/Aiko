@@ -3,7 +3,7 @@
 #include <aiko_types.h>
 #include <bgfx/bgfx.h>
 
-#include <models/mesh.h>
+#include <platform/bgfx/bgfx_types.h>
 #include "interfaces/imesh_impl.h"
 
 namespace aiko::bgfx
@@ -23,16 +23,6 @@ namespace aiko::bgfx
         ::bgfx::IndexBufferHandle getIndexBuffferHandler() const { return m_indexBuffer; }
 
     private:
-
-        struct VertexInformation
-        {
-            float x, y, z;   // position
-            float u, v;      // texcoord
-            float n_x, n_y, n_z;   // position
-            uint32_t abgr;   // color
-        };
-
-        ::bgfx::VertexLayout m_global_layout;
 
         ::bgfx::VertexBufferHandle m_vertexBuffer;
         ::bgfx::IndexBufferHandle m_indexBuffer;

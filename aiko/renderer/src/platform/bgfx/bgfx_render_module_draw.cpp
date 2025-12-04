@@ -6,10 +6,10 @@
 
 #include "display/display_manager.h"
 #include "models/camera.h"
-#include "types/textures.h"
 #include "models/mesh.h"
 #include "models/shader.h"
 
+#include "platform/bgfx/bgfx_types.h"
 #include "platform/bgfx/impl/bgfx_shader_impl.h"
 #include "platform/bgfx/impl/bgfx_mesh_impl.h"
 #include "platform/bgfx/impl/bgfx_texture_impl.h"
@@ -39,7 +39,7 @@ namespace aiko::bgfx
         // Set transform
         ::bgfx::setTransform(modelMatrix.data());
 
-        ::bgfx::setState(shared::default_state);
+        ::bgfx::setState(s_default_state);
 
         // Submit draw call
         GET_BACKEND_IMPL(shader->getImpl(), BgfxShaderImpl, program);
@@ -64,7 +64,7 @@ namespace aiko::bgfx
         // Set transform
         ::bgfx::setTransform(modelMatrix.data());
 
-        ::bgfx::setState(shared::default_state);
+        ::bgfx::setState(s_default_state);
 
         const ::bgfx::UniformHandle sampler = AIKO_TO_UH(shader->getUniformLocation("u_texture"));
 
@@ -99,7 +99,7 @@ namespace aiko::bgfx
         // Set transform
         ::bgfx::setTransform(modelMatrix.data());
 
-        ::bgfx::setState(shared::default_state);
+        ::bgfx::setState(s_default_state);
 
         // Submit draw call
         GET_BACKEND_IMPL(shader->getImpl(), BgfxShaderImpl, program);
@@ -130,7 +130,7 @@ namespace aiko::bgfx
             // Set transform
             ::bgfx::setTransform(modelMatrix.data());
 
-            ::bgfx::setState(shared::default_state);
+            ::bgfx::setState(s_default_state);
 
             const auto co = material->m_baseColor;
             const auto u_baseColor = AIKO_TO_UH(material->m_shader.getUniformLocation("u_baseColor"));
@@ -209,7 +209,7 @@ namespace aiko::bgfx
 
             ::bgfx::setTransform(modelMatrix.data());
 
-            uint64_t state = shared::default_state;
+            uint64_t state = s_default_state;
 
             if (numVertices == 1)
             {

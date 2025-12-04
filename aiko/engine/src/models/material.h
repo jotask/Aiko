@@ -3,8 +3,8 @@
 #include <vector>
 
 #include "aiko_types.h"
-#include "time/shader.h"
-#include "time/texture.h"
+#include "models/shader.h"
+#include "models/texture.h"
 
  namespace aiko
 {
