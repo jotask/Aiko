@@ -26,6 +26,7 @@
 #endif
 
 #include "platform/bgfx/bgfx_platform_helper.h"
+#include "platform/bgfx/bgfx_types.h"
 
 namespace aiko::bgfx
 {
@@ -121,7 +122,8 @@ namespace aiko::bgfx
         ::bgfx::touch(currentViewId);
 
         // Bind the offscreen texture to a sampler
-        const ::bgfx::UniformHandle sampler = AIKO_TO_UH(m_passThrough.getUniformLocation("u_texture"));
+        GET_BACKEND_IMPL(m_passThrough.getImpl(), BgfxShaderImpl, pass)
+        const ::bgfx::UniformHandle sampler = pass->getUniformHandle("u_texture");
 
         ::bgfx::setTexture(0, sampler, AIKO_TO_TH(m_screenFbo.renderTexture.texture.id));
         
@@ -184,8 +186,7 @@ namespace aiko::bgfx
 
         screenSpaceQuad((float)size.x, (float)size.y);
 
-        GET_BACKEND_IMPL(m_passThrough, BgfxShaderImpl, shader )
-        ::bgfx::submit(currentViewId, shader->getProgramHandler());
+        ::bgfx::submit(currentViewId, pass->getProgramHandler());
 
         ::bgfx::frame();
 
