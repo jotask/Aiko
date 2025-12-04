@@ -33,6 +33,8 @@
         Mesh();
         ~Mesh() = default;
 
+        void* getImpl() const { return backend.get(); }
+
          virtual bool isValid();
          virtual void unload();
          virtual void refresh();

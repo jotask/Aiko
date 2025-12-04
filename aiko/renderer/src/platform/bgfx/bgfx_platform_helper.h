@@ -9,6 +9,12 @@ namespace aiko
 
 		#define AIKO_DISABLE_CODE if constexpr(false)
 
+		#define GET_BACKEND_IMPL(obj, Type, name) \
+			Type* name = static_cast<Type*>(obj);\
+			AIKO_ASSERT(name != nullptr, "Invalid native");
+
+		#define AIKO_VSYNC_MACRO (false ? BGFX_RESET_VSYNC : BGFX_RESET_NONE)
+
 		u32 convertColorToBgfx(Color c)
 		{
 			uint8_t red = static_cast<uint8_t>(c.r * 255.0f);

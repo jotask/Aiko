@@ -29,6 +29,8 @@ namespace aiko
         Shader();
         ~Shader() = default;
 
+        void* getImpl() const { return backend.get(); }
+
         uint id() const;
 
         void load(const char* fileCodeName);

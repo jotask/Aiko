@@ -28,6 +28,8 @@ namespace aiko
         Texture();
         virtual ~Texture() = default;
 
+        void* getImpl() const { return backend.get(); }
+
         void use();
         void unuse();
         bool isValid();

@@ -29,6 +29,8 @@ namespace aiko::bgfx
         // Modify
         virtual void setPixels(std::vector<Color>& pixels) override;
 
+        ::bgfx::TextureHandle getTextureHandler() const { return m_textureHandle; }
+
     private:
 
         ::bgfx::TextureHandle m_textureHandle;

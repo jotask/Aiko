@@ -28,6 +28,10 @@ namespace aiko::bgfx
 
         virtual void unload() override;
 
+        ::bgfx::TextureHandle getColorTextureHandler() const { return m_colorTexture; }
+        ::bgfx::TextureHandle getDepthTextureHandler() const { return m_depthTexture; }
+        ::bgfx::FrameBufferHandle getTextureHandler() const { return m_frameBuffer; }
+
     private:
         ::bgfx::TextureHandle m_colorTexture;
         ::bgfx::TextureHandle m_depthTexture;

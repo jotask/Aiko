@@ -54,9 +54,6 @@ namespace aiko::bgfx
 
         virtual void clearBackground(Color) override;
 
-        virtual void initScreenFbo() override;
-        virtual AikoPtr<ScreenFbo> getScreenFbo() override;
-
         // Font
         virtual void drawText(string, float, float, float = 1.0f, Color = WHITE) override;
 

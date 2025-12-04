@@ -29,6 +29,8 @@
         FrameBuffer();
         virtual ~FrameBuffer() = default;
 
+        void* getImpl() const { return backend.get(); }
+
         virtual void use() = 0;
         virtual void unuse() = 0;
         virtual bool isValid() = 0;

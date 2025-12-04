@@ -31,4 +31,10 @@ namespace aiko
         m_background_color = color;
     }
 
+    void AikoRenderer::initScreenFbo()
+    {
+        // Postprocessing shader
+        m_passThrough.load("posprocessing");
+        AIKO_ASSERT(m_passThrough.isvalid(), "Processing shader invalid!");
+    }
 }

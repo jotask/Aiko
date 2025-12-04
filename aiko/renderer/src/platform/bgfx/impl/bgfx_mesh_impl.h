@@ -19,6 +19,9 @@ namespace aiko::bgfx
         virtual void unload() override;
         virtual void refresh() override;
 
+        ::bgfx::VertexBufferHandle getVertexBuffferHandler() const { return m_vertexBuffer; }
+        ::bgfx::IndexBufferHandle getIndexBuffferHandler() const { return m_indexBuffer; }
+
     private:
 
         struct VertexInformation

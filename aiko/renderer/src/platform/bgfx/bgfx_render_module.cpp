@@ -12,6 +12,9 @@
 #include <bx/bx.h>
 #include <GLFW/glfw3.h>
 
+#include "impl/bgfx_screenfbo_impl.h"
+#include "impl/bgfx_shader_impl.h"
+
 #if defined(AIKO_WINDOWS)
     #define GLFW_EXPOSE_NATIVE_WIN32
     #include <GLFW/glfw3native.h>
@@ -26,8 +29,6 @@
 
 namespace aiko::bgfx
 {
-
-    #define AIKO_VSYNC_MACRO (false ? BGFX_RESET_VSYNC : BGFX_RESET_NONE)
 
     BgfxRenderer::BgfxRenderer()
         : AikoRenderer()
@@ -120,7 +121,7 @@ namespace aiko::bgfx
         ::bgfx::touch(currentViewId);
 
         // Bind the offscreen texture to a sampler
-        const ::bgfx::UniformHandle sampler = AIKO_TO_UH(m_passthrought.getUniformLocation("u_texture"));
+        const ::bgfx::UniformHandle sampler = AIKO_TO_UH(m_passThrough.getUniformLocation("u_texture"));
 
         ::bgfx::setTexture(0, sampler, AIKO_TO_TH(m_screenFbo.renderTexture.texture.id));
         
@@ -183,7 +184,8 @@ namespace aiko::bgfx
 
         screenSpaceQuad((float)size.x, (float)size.y);
 
-        ::bgfx::submit(currentViewId, AIKO_TO_PH(m_passthrought.getData()->id));
+        GET_BACKEND_IMPL(m_passThrough, BgfxShaderImpl, shader )
+        ::bgfx::submit(currentViewId, shader->getProgramHandler());
 
         ::bgfx::frame();
 

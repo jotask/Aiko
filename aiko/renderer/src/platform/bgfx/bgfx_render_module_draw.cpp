@@ -2,33 +2,27 @@
 
 #include "bgfx_render_module.h"
 
-#include <fstream>
+#include <core/transform.h>
 
-#include "modules/module_connector.h"
-#include "modules/display_module.h"
+#include "display/display_manager.h"
 #include "models/camera.h"
 #include "types/textures.h"
-#include "events/events.hpp"
 #include "models/mesh.h"
 #include "models/shader.h"
-#include "components/transform_component.h"
+
+#include "platform/bgfx/impl/bgfx_shader_impl.h"
+#include "platform/bgfx/impl/bgfx_mesh_impl.h"
+#include "platform/bgfx/impl/bgfx_texture_impl.h"
 #include "platform/bgfx/bgfx_platform_helper.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include <bgfx/bgfx.h>
-
-#include "bgfx_platform_helper.h"
-#include "bgfx_render_utils.h"
 
 namespace aiko::bgfx
 {
 
     #define AIKO_TO_VIEWID(view) static_cast<::bgfx::ViewId>(view)
 
-    void BgfxRenderModule::renderMesh(Camera* cam,  Transform* transform, Mesh* mesh, Shader* shader)
+    void BgfxRenderer::renderMesh(Camera* cam,  Transform* transform, Mesh* mesh, Shader* shader)
     {
 
         const mat4 projMatrix = cam->getProjectionMatrix();
@@ -38,8 +32,9 @@ namespace aiko::bgfx
         ::bgfx::setViewTransform(AIKO_TO_VIEWID(currentViewId), viewMatrix.data(), projMatrix.data());
 
         // Set buffers
-        ::bgfx::setVertexBuffer(0, AIKO_TO_VBH(mesh->m_data.vao));
-        ::bgfx::setIndexBuffer(AIKO_TO_IBH(mesh->m_data.vbo));
+        GET_BACKEND_IMPL(mesh->getImpl(), BgfxMeshImpl, m)
+        ::bgfx::setVertexBuffer(0, m->getVertexBuffferHandler());
+        ::bgfx::setIndexBuffer(m->getIndexBuffferHandler());
 
         // Set transform
         ::bgfx::setTransform(modelMatrix.data());
@@ -47,10 +42,12 @@ namespace aiko::bgfx
         ::bgfx::setState(shared::default_state);
 
         // Submit draw call
-        ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), AIKO_TO_PH(shader->getData()->id));
+        GET_BACKEND_IMPL(shader->getImpl(), BgfxShaderImpl, program);
+        ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), program->getProgramHandler());
+
     }
 
-    void BgfxRenderModule::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, Texture* text)
+    void BgfxRenderer::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, Texture* text)
     {
 
         const mat4 projMatrix = cam->getProjectionMatrix();
@@ -60,8 +57,9 @@ namespace aiko::bgfx
         ::bgfx::setViewTransform(AIKO_TO_VIEWID(currentViewId), viewMatrix.data(), projMatrix.data());
 
         // Set buffers
-        ::bgfx::setVertexBuffer(0, AIKO_TO_VBH(mesh->m_data.vao));
-        ::bgfx::setIndexBuffer(AIKO_TO_IBH(mesh->m_data.vbo));
+        GET_BACKEND_IMPL(mesh->getImpl(), BgfxMeshImpl, m)
+        ::bgfx::setVertexBuffer(0, m->getVertexBuffferHandler());
+        ::bgfx::setIndexBuffer(m->getIndexBuffferHandler());
 
         // Set transform
         ::bgfx::setTransform(modelMatrix.data());
@@ -70,14 +68,16 @@ namespace aiko::bgfx
 
         const ::bgfx::UniformHandle sampler = AIKO_TO_UH(shader->getUniformLocation("u_texture"));
 
-        ::bgfx::setTexture(0, sampler, AIKO_TO_TH(text->m_texture.id));
+        GET_BACKEND_IMPL(text->getImpl(), BgfxTextureImpl, texture)
+        ::bgfx::setTexture(0, sampler, texture->getTextureHandler());
 
         // Submit draw call
-        ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), AIKO_TO_PH(shader->getData()->id));
+        GET_BACKEND_IMPL(shader->getImpl(), BgfxShaderImpl, program);
+        ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), program->getProgramHandler());
 
     }
 
-    void BgfxRenderModule::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, texture::PboTexture* texture)
+    void BgfxRenderer::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, AikoPtr<FrameBuffer> texture)
     {
 
         const mat4 projMatrix = cam->getProjectionMatrix();
@@ -87,11 +87,14 @@ namespace aiko::bgfx
         ::bgfx::setViewTransform(AIKO_TO_VIEWID(currentViewId), viewMatrix.data(), projMatrix.data());
 
         const ::bgfx::UniformHandle sampler = AIKO_TO_UH(shader->getUniformLocation("u_texture"));
-        ::bgfx::setTexture(0, sampler, AIKO_TO_TH(texture->texture.id), BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT | BGFX_SAMPLER_MIP_POINT);
+
+        GET_BACKEND_IMPL(texture->getImpl(), BgfxTextureImpl, text)
+        ::bgfx::setTexture(0, sampler, text->getTextureHandler(), BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT | BGFX_SAMPLER_MIP_POINT);
 
         // Set buffers
-        ::bgfx::setVertexBuffer(0, AIKO_TO_VBH(mesh->m_data.vao));
-        ::bgfx::setIndexBuffer(AIKO_TO_IBH(mesh->m_data.vbo));
+        GET_BACKEND_IMPL(mesh->getImpl(), BgfxMeshImpl, m)
+        ::bgfx::setVertexBuffer(0, m->getVertexBuffferHandler());
+        ::bgfx::setIndexBuffer(m->getIndexBuffferHandler());
 
         // Set transform
         ::bgfx::setTransform(modelMatrix.data());
@@ -99,12 +102,13 @@ namespace aiko::bgfx
         ::bgfx::setState(shared::default_state);
 
         // Submit draw call
-        ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), AIKO_TO_PH(shader->getData()->id));
+        GET_BACKEND_IMPL(shader->getImpl(), BgfxShaderImpl, program);
+        ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), program->getProgramHandler());
 
     }
 
 
-    void BgfxRenderModule::renderModel(Camera* cam, Transform* transform, Model* model)
+    void BgfxRenderer::renderModel(Camera* cam, Transform* transform, Model* model)
     {
         const mat4 projMatrix = cam->getProjectionMatrix();
         const mat4 viewMatrix = cam->getViewMatrix();
@@ -119,8 +123,9 @@ namespace aiko::bgfx
             auto* material = &mod.material;
 
             // Set buffers
-            ::bgfx::setVertexBuffer(0, AIKO_TO_VBH(mesh->m_data.vao));
-            ::bgfx::setIndexBuffer(AIKO_TO_IBH(mesh->m_data.vbo));
+            GET_BACKEND_IMPL(mesh->getImpl(), BgfxMeshImpl, m)
+            ::bgfx::setVertexBuffer(0, m->getVertexBuffferHandler());
+            ::bgfx::setIndexBuffer(m->getIndexBuffferHandler());
 
             // Set transform
             ::bgfx::setTransform(modelMatrix.data());
@@ -147,16 +152,19 @@ namespace aiko::bgfx
             if (useTexture == true)
             {
                 const ::bgfx::UniformHandle sampler = AIKO_TO_UH(material->m_shader.getUniformLocation("u_texture"));
-                ::bgfx::setTexture(0, sampler, AIKO_TO_TH(material->m_diffuse.m_texture.id));
+
+                GET_BACKEND_IMPL(material->m_diffuse.getImpl(), BgfxTextureImpl, texture)
+                ::bgfx::setTexture(0, sampler, texture->getTextureHandler());
             }
 
             // Submit draw call
-            ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), AIKO_TO_PH(material->m_shader.getData()->id));
+            GET_BACKEND_IMPL(material->m_shader.getImpl(), BgfxShaderImpl, program);
+            ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), program->getProgramHandler());
 
         }
     }
 
-    void BgfxRenderModule::renderTransientBuffer(Camera* cam, Transform* transform, Shader* shader, Mesh* mesh)
+    void BgfxRenderer::renderTransientBuffer(Camera* cam, Transform* transform, Shader* shader, Mesh* mesh)
     {
 
         const mat4 projMatrix = cam->getProjectionMatrix();
@@ -213,7 +221,9 @@ namespace aiko::bgfx
             }
 
             ::bgfx::setState(state);
-            ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), AIKO_TO_PH(shader->getData()->id));
+
+            GET_BACKEND_IMPL(shader->getImpl(), BgfxShaderImpl, program);
+            ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), program->getProgramHandler());
         }
     }
 

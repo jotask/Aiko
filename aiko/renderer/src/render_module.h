@@ -40,7 +40,7 @@ namespace aiko
         void setBackgroundColor(const Color color);
         virtual void clearBackground(Color) = 0;
 
-        virtual void initScreenFbo() = 0;
+        void initScreenFbo();
         virtual AikoPtr<ScreenFbo> getScreenFbo() = 0;
 
         // Render models

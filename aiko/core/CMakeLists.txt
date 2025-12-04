@@ -16,7 +16,8 @@ file(GLOB_RECURSE AIKOCORE_SRC "src/*.h" "src/*.cpp" "src/*.hpp")
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${AIKOCORE_SRC})
 
 # Main Library
-add_library(AikoCore STATIC ${AIKOCORE_SRC})
+add_library(AikoCore STATIC ${AIKOCORE_SRC}
+        src/core/transform.h)
 target_compile_definitions(AikoCore PRIVATE ${AIKOCORE_CORE} )
 target_compile_definitions(AikoCore PRIVATE ${AIKO_CURRENT_PLATFORM} )
 target_compile_definitions(AikoCore PUBLIC NOMINMAX )
