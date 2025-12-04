@@ -201,4 +201,9 @@ namespace aiko::bgfx
         AIKO_DEBUG_BREAK
     }
 
+    ::bgfx::UniformHandle BgfxShaderImpl::getUniformHandle(const string &name)
+    {
+        return m_uniforms[name];
+    }
+
 }

@@ -19,6 +19,9 @@ namespace aiko::bgfx
         virtual void unload() override;
         virtual void refresh() override;
 
+        std::vector<VertexInformation> convertToVBH();
+        std::vector<uint16_t> convertToIBH();
+
         ::bgfx::VertexBufferHandle getVertexBuffferHandler() const { return m_vertexBuffer; }
         ::bgfx::IndexBufferHandle getIndexBuffferHandler() const { return m_indexBuffer; }
 
@@ -26,9 +29,6 @@ namespace aiko::bgfx
 
         ::bgfx::VertexBufferHandle m_vertexBuffer;
         ::bgfx::IndexBufferHandle m_indexBuffer;
-
-        std::vector<VertexInformation> convertToVBH();
-        std::vector<uint16_t> convertToIBH();
 
     };
 }

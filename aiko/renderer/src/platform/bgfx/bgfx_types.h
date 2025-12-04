@@ -5,6 +5,19 @@
 namespace aiko
 {
 
+    #define BGFX_TRUE 1.0f
+    #define BGFX_FALSE 0.0f
+
+    #define TO_BGFX_BOOL(value) (value > 0.5f ? BGFX_TRUE : BGFX_FALSE)
+
+    #define AIKO_DISABLE_CODE if constexpr(false)
+
+    #define GET_BACKEND_IMPL(obj, Type, name) \
+        Type* name = static_cast<Type*>(obj);\
+        AIKO_ASSERT(name != nullptr, "Invalid native");
+
+    #define AIKO_VSYNC_MACRO (false ? BGFX_RESET_VSYNC : BGFX_RESET_NONE)
+
     struct VertexInformation
     {
         float x, y, z;   // position

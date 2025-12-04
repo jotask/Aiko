@@ -36,6 +36,8 @@ namespace aiko::bgfx
 
         ::bgfx::ProgramHandle getProgramHandler() const { return m_programHandle; }
 
+        ::bgfx::UniformHandle getUniformHandle(const string& name);
+
     private:
 
         ::bgfx::ProgramHandle m_programHandle;

@@ -66,13 +66,13 @@ namespace aiko::bgfx
 
         ::bgfx::setState(s_default_state);
 
-        const ::bgfx::UniformHandle sampler = AIKO_TO_UH(shader->getUniformLocation("u_texture"));
+        GET_BACKEND_IMPL(shader->getImpl(), BgfxShaderImpl, program);
+        const ::bgfx::UniformHandle sampler = program->getUniformHandle("u_texture");
 
         GET_BACKEND_IMPL(text->getImpl(), BgfxTextureImpl, texture)
         ::bgfx::setTexture(0, sampler, texture->getTextureHandler());
 
         // Submit draw call
-        GET_BACKEND_IMPL(shader->getImpl(), BgfxShaderImpl, program);
         ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), program->getProgramHandler());
 
     }
@@ -86,7 +86,8 @@ namespace aiko::bgfx
 
         ::bgfx::setViewTransform(AIKO_TO_VIEWID(currentViewId), viewMatrix.data(), projMatrix.data());
 
-        const ::bgfx::UniformHandle sampler = AIKO_TO_UH(shader->getUniformLocation("u_texture"));
+        GET_BACKEND_IMPL(shader->getImpl(), BgfxShaderImpl, program);
+        const ::bgfx::UniformHandle sampler = program->getUniformHandle("u_texture");
 
         GET_BACKEND_IMPL(texture->getImpl(), BgfxTextureImpl, text)
         ::bgfx::setTexture(0, sampler, text->getTextureHandler(), BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT | BGFX_SAMPLER_MIP_POINT);
@@ -102,7 +103,6 @@ namespace aiko::bgfx
         ::bgfx::setState(s_default_state);
 
         // Submit draw call
-        GET_BACKEND_IMPL(shader->getImpl(), BgfxShaderImpl, program);
         ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), program->getProgramHandler());
 
     }
@@ -132,33 +132,34 @@ namespace aiko::bgfx
 
             ::bgfx::setState(s_default_state);
 
+            GET_BACKEND_IMPL(material->m_shader.getImpl(), BgfxShaderImpl, program);
+
             const auto co = material->m_baseColor;
-            const auto u_baseColor = AIKO_TO_UH(material->m_shader.getUniformLocation("u_baseColor"));
+            const ::bgfx::UniformHandle u_baseColor = program->getUniformHandle("u_baseColor");
             const float c[4] = { co.r, co.g, co.b, co.a };
             ::bgfx::setUniform(u_baseColor, &c);
 
             // x: use texture
             // y: use vertex color
             // z: basic lighting
-            const auto u_flags = AIKO_TO_UH(material->m_shader.getUniformLocation("u_flags"));
+            const ::bgfx::UniformHandle u_flags = program->getUniformHandle("u_flags");
 
 		    const bool useTexture = material->m_diffuse.isValid();
 		    const bool useVertexColor = false;
 		    const bool useLighting = true;
 
-            const float flags[4] = { useTexture, useVertexColor, useLighting, 0.0f };
+            const float flags[4] = { TO_BGFX_BOOL(useTexture), TO_BGFX_BOOL(useVertexColor), TO_BGFX_BOOL(useLighting), 0.0f };
             ::bgfx::setUniform(u_flags, &flags);
 
             if (useTexture == true)
             {
-                const ::bgfx::UniformHandle sampler = AIKO_TO_UH(material->m_shader.getUniformLocation("u_texture"));
+                const ::bgfx::UniformHandle sampler = program->getUniformHandle("u_texture");
 
                 GET_BACKEND_IMPL(material->m_diffuse.getImpl(), BgfxTextureImpl, texture)
                 ::bgfx::setTexture(0, sampler, texture->getTextureHandler());
             }
 
             // Submit draw call
-            GET_BACKEND_IMPL(material->m_shader.getImpl(), BgfxShaderImpl, program);
             ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), program->getProgramHandler());
 
         }
@@ -177,19 +178,21 @@ namespace aiko::bgfx
         const uint32_t numIndices  = mesh->m_indices.size();
 
         // Check if enough space is available for this frame
-        if (::bgfx::getAvailTransientVertexBuffer(numVertices, shared::s_global_layout) >= numVertices &&
+        if (::bgfx::getAvailTransientVertexBuffer(numVertices, s_global_layout) >= numVertices &&
             ::bgfx::getAvailTransientIndexBuffer(numIndices) >= numIndices)
         {
             // Allocate per-frame buffers
             ::bgfx::TransientVertexBuffer tvb;
             ::bgfx::TransientIndexBuffer tib;
 
-            ::bgfx::allocTransientVertexBuffer(&tvb, numVertices, shared::s_global_layout);
+            ::bgfx::allocTransientVertexBuffer(&tvb, numVertices, s_global_layout);
             ::bgfx::allocTransientIndexBuffer(&tib, numIndices);
 
             // Vertices
-            shared::VertexInformation* verts = (shared::VertexInformation*)tvb.data;
-            const auto localVertex = shared::convertToBgfxVertex(*mesh);
+            VertexInformation* verts = (VertexInformation*)tvb.data;
+            GET_BACKEND_IMPL(mesh->getImpl(), BgfxMeshImpl, m)
+
+            const auto localVertex = m->convertToVBH();
             for (size_t i = 0; i < numVertices; ++i)
             {
                 verts[i] = localVertex[i];
@@ -197,10 +200,10 @@ namespace aiko::bgfx
 
             // Indices
             uint16_t* ind = (uint16_t*)tib.data;
-            const auto localIndice = shared::convertToBgfxIndices(*mesh);
+            const auto localIndices = m->convertToIBH();
             for (size_t i = 0; i < numIndices; ++i)
             {
-                ind[i] = localIndice[i];
+                ind[i] = localIndices[i];
             }
 
             // Submit draw
