@@ -30,7 +30,7 @@ namespace aiko::bgfx
 
         ::bgfx::TextureHandle getColorTextureHandler() const { return m_colorTexture; }
         ::bgfx::TextureHandle getDepthTextureHandler() const { return m_depthTexture; }
-        ::bgfx::FrameBufferHandle getTextureHandler() const { return m_frameBuffer; }
+        ::bgfx::FrameBufferHandle getFrameBufferHandler() const { return m_frameBuffer; }
 
     private:
         ::bgfx::TextureHandle m_colorTexture;

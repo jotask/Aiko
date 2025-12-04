@@ -14,6 +14,7 @@
 
 #include "impl/bgfx_screenfbo_impl.h"
 #include "impl/bgfx_shader_impl.h"
+#include "impl/bgfx_framebuffer_impl.h"
 
 #if defined(AIKO_WINDOWS)
     #define GLFW_EXPOSE_NATIVE_WIN32
@@ -106,7 +107,11 @@ namespace aiko::bgfx
     {
         // Set view to the fbo
         currentViewId = m_kViewOffScreen;
-        ::bgfx::setViewFrameBuffer(currentViewId, AIKO_TO_FBH(m_screenFbo.renderTexture.framebuffer));
+
+        GET_BACKEND_IMPL(m_screenFbo->getImpl(), BgfxScreenFboImpl, screen);
+        GET_BACKEND_IMPL(screen->getFrameBuffer()->getImpl(), BgfxFrameBufferImpl, fbo);
+        ::bgfx::setViewFrameBuffer(currentViewId, fbo->getFrameBufferHandler());
+
         const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
         ::bgfx::setViewRect(currentViewId, 0, 0, size.x, size.y);
         clearBackground(m_background_color);
@@ -125,7 +130,9 @@ namespace aiko::bgfx
         GET_BACKEND_IMPL(m_passThrough.getImpl(), BgfxShaderImpl, pass)
         const ::bgfx::UniformHandle sampler = pass->getUniformHandle("u_texture");
 
-        ::bgfx::setTexture(0, sampler, AIKO_TO_TH(m_screenFbo.renderTexture.texture.id));
+        GET_BACKEND_IMPL(m_screenFbo->getImpl(), BgfxScreenFboImpl, screen);
+        GET_BACKEND_IMPL(screen->getFrameBuffer()->getImpl(), BgfxFrameBufferImpl, fbo);
+        ::bgfx::setTexture(0, sampler, fbo->getColorTextureHandler());
         
         auto screenSpaceQuad = [](float width, float heigh)
             {
@@ -221,13 +228,7 @@ namespace aiko::bgfx
         ::bgfx::setViewRect(m_kViewMain, 0, 0, screenWidth, screenHeight);
         ::bgfx::setViewRect(m_kViewOffScreen, 0, 0, screenWidth, screenHeight);
 
-        ::bgfx::FrameBufferHandle fbh = AIKO_TO_FBH(m_screenFbo.renderTexture.framebuffer);
-
-        if (::bgfx::isValid(fbh) == true)
-        {
-            ::bgfx::destroy(fbh);
-        }
-
+        m_screenFbo->destroy();
         initScreenFbo();
 
     }

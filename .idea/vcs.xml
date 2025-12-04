@@ -16,21 +16,14 @@
     <mapping directory="$PROJECT_DIR$/build/debug/aiko/renderer/libs/glad-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/build/debug/aiko/renderer/libs/stb-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/build/debug/examples/loop_recorder/libs/portaudio-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/core/libs/glm-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/core/libs/spdlog-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/editor/libs/jsoncpp-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/engine/libs/assimp-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/engine/libs/glfw-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/engine/libs/imgui-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/engine/libs/tracy-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/renderer/libs/bgfx-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/renderer/libs/bgfx-src/bgfx" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/renderer/libs/bgfx-src/bimg" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/renderer/libs/bgfx-src/bx" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/renderer/libs/glad-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/aiko/renderer/libs/stb-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/build/release/examples/loop_recorder/libs/portaudio-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps_cache/assimp-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps_cache/entt-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/deps_cache/glad-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/deps_cache/glfw-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps_cache/glm-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps_cache/imgui-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps_cache/spdlog-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps_cache/stb-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps_cache/tracy-src" vcs="Git" />
   </component>
 </project>

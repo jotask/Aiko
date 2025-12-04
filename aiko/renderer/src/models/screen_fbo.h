@@ -29,16 +29,17 @@ namespace aiko
         ScreenFbo();
         virtual ~ScreenFbo() = default;
 
-        void* getImpl() const { return backend.get(); }
-
         virtual void use() = 0;
         virtual void unuse() = 0;
         virtual bool isValid() = 0;
         virtual uint id() const = 0;
+        virtual void destroy() = 0;
 
         // load
         virtual void create(int width, int height) = 0;
         virtual void unload() = 0;
+
+        void* getImpl() const { return backend.get(); }
 
     private:
 

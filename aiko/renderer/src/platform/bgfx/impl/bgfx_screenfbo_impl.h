@@ -25,6 +25,8 @@ namespace aiko::bgfx
         virtual void create(int width, int height) override;
         virtual void unload() override;
 
+        FrameBuffer* getFrameBuffer() const { return m_frameBuffer.get(); }
+
     private:
 
         uint vao;
