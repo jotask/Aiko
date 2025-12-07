@@ -1,9 +1,9 @@
 #include "application/application.h"
 
 #include <time/time.h>
+#include <aiko_renderer.h>
 
 #include "aiko.h"
-#include "systems/camera_system.h"
 #include "systems/asset_system.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"

@@ -21,7 +21,7 @@ namespace aiko
 
             // load
             virtual void create(int width, int height) = 0;
-            virtual void load(const char*) = 0;
+            virtual void load(string) = 0;
             virtual void unload() = 0;
 
             // Modify

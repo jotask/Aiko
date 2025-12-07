@@ -9,7 +9,7 @@
 #include <models/light.h>
 #include <models/texture.h>
 #include <types/textures.h>
-#include <render_module.h>
+#include <aiko_renderer.h>
 
 #include "systems/base_system.h"
 #include "models/game_object.h"

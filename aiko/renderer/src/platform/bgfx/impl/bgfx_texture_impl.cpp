@@ -66,7 +66,7 @@ namespace aiko::bgfx
         m_texture.format = ::bgfx::TextureFormat::RGBA8;
     }
 
-    void BgfxTextureImpl::load(const char * file_path)
+    void BgfxTextureImpl::load(string file_path)
     {
         std::string base = global::GLOBAL_ASSET_PATH;
         base += std::string(file_path);

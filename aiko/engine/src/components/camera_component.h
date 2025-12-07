@@ -30,7 +30,7 @@ namespace aiko
         float& radius() { return m_radius; }
         float& speed() { return m_speed; }
 
-        Camera* getCamera() { return m_camera; }
+        Camera& getCamera() { return m_camera; }
     
     protected:
         virtual void init() override;
@@ -40,13 +40,15 @@ namespace aiko
         InputSystem* m_inputSystem;
         Camera::CameraType m_type;
 
+        bool isMainCamera;
+
         // Orbit
         float m_radius = 3.5f;
 
         // Fly
         float m_speed = 3.5f;
 
-        Camera* m_camera;
+        Camera m_camera;
         camera::CameraController cameraControler = camera::CameraController::Static;
     
     };

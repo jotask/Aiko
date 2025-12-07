@@ -2,15 +2,14 @@
 
 #include <algorithm>
 
+#include <models/camera.h>
+#include <models/shader.h>
+
 #include "modules/module_connector.h"
 #include "systems/system_connector.h"
-
-#include "modules/render/render_module.h"
 #include "components/transform_component.h"
 #include "components/camera_component.h"
 #include "types/camera_controller_types.h"
-#include "models/camera.h"
-#include "models/shader.h"
 #include "constants.h"
 #include "systems/render_system.h"
 
@@ -50,12 +49,12 @@ namespace aiko
 
         if (pScene == nullptr || pScene->mNumMeshes == 0)
         {
-            assert(false && "Failed  to load mesh or no meshes found");
+            AIKO_ASSERT(false, "Failed  to load mesh or no meshes found");
         }
 
-        Mesh mesh;
+        Mesh::MeshData data;
         
-        assert(pScene->mNumMeshes == 1 && "Multiple meshes not supported for now");
+        AIKO_ASSERT(pScene->mNumMeshes == 1, "Multiple meshes not supported for now");
 
         // Initialize the meshes in the scene one by one
         for (uint i = 0; i < pScene->mNumMeshes; i++)
@@ -67,39 +66,39 @@ namespace aiko
             for (unsigned int v = 0; v < paiMesh->mNumVertices; ++v)
             {
                 aiVector3D vert = paiMesh->mVertices[v];
-                mesh.m_vertices.push_back({ vert.x, vert.y, vert.z });
+                data.m_vertices.push_back({ vert.x, vert.y, vert.z });
 
                 // Normals
                 if (paiMesh->HasNormals())
                 {
                     aiVector3D n = paiMesh->mNormals[v];
-                    mesh.m_normals.push_back({ n.x, n.y, n.z });
+                    data.m_normals.push_back({ n.x, n.y, n.z });
                 }
                 else
                 {
-                    mesh.m_normals.push_back({ 0.0f, 0.0f, 0.0f });
+                    data.m_normals.push_back({ 0.0f, 0.0f, 0.0f });
                 }
 
                 // Texture coordinates
                 if (paiMesh->HasTextureCoords(0))
                 {
                     aiVector3D uv = paiMesh->mTextureCoords[0][v];
-                    mesh.m_teexCoord.push_back({ uv.x, uv.y });
+                    data.m_teexCoord.push_back({ uv.x, uv.y });
                 }
                 else
                 {
-                    mesh.m_teexCoord.push_back({ 0.0f, 0.0f });
+                    data.m_teexCoord.push_back({ 0.0f, 0.0f });
                 }
 
                 // Optional: vertex color
                 if (paiMesh->HasVertexColors(0))
                 {
                     aiColor4D c = paiMesh->mColors[0][v];
-                    mesh.m_colors.push_back({ c.r, c.g, c.b, c.a });
+                    data.m_colors.push_back({ c.r, c.g, c.b, c.a });
                 }
                 else
                 {
-                    mesh.m_colors.push_back({ 1.0f, 1.0f, 1.0f, 1.0f });
+                    data.m_colors.push_back({ 1.0f, 1.0f, 1.0f, 1.0f });
                 }
 
             }
@@ -110,12 +109,14 @@ namespace aiko
                 const aiFace& face = paiMesh->mFaces[f];
                 for (unsigned int i = 0; i < face.mNumIndices; ++i)
                 {
-                    mesh.m_indices.push_back(face.mIndices[i]);
+                    data.m_indices.push_back(face.mIndices[i]);
                 }
             }
         
         }
 
+        Mesh mesh;
+        mesh.setData(data);
         return mesh;
         
     }
@@ -131,7 +132,7 @@ namespace aiko
 
         if (pScene == nullptr || pScene->mNumMeshes == 0)
         {
-            assert(false && "Failed  to load mesh or no meshes found");
+            AIKO_ASSERT(false, "Failed  to load mesh or no meshes found");
         }
 
         std::vector<Model::MeshMatData> models;
@@ -141,46 +142,48 @@ namespace aiko
         {
 
             Model::MeshMatData model;
+            Mesh::MeshData data;
 
             const aiMesh* paiMesh = pScene->mMeshes[i]; // For now, just take the first mesh
 
             // ----Vertices----
             for (uint v = 0; v < paiMesh->mNumVertices; ++v)
             {
+
                 aiVector3D vert = paiMesh->mVertices[v];
-                model.mesh.m_vertices.push_back({ vert.x, vert.y, vert.z });
+                data.m_vertices.push_back({ vert.x, vert.y, vert.z });
 
                 // Normals
                 if (paiMesh->HasNormals())
                 {
                     aiVector3D n = paiMesh->mNormals[v];
-                    model.mesh.m_normals.push_back({ n.x, n.y, n.z });
+                    data.m_normals.push_back({ n.x, n.y, n.z });
                 }
                 else
                 {
-                    model.mesh.m_normals.push_back({ 0.0f, 0.0f, 0.0f });
+                    data.m_normals.push_back({ 0.0f, 0.0f, 0.0f });
                 }
 
                 // Texture coordinates
                 if (paiMesh->HasTextureCoords(0))
                 {
                     aiVector3D uv = paiMesh->mTextureCoords[0][v];
-                    model.mesh.m_teexCoord.push_back({ uv.x, - uv.y });
+                    data.m_teexCoord.push_back({ uv.x, - uv.y });
                 }
                 else
                 {
-                    model.mesh.m_teexCoord.push_back({ 0.0f, 0.0f });
+                    data.m_teexCoord.push_back({ 0.0f, 0.0f });
                 }
 
                 // Vertex color
                 if (paiMesh->HasVertexColors(0))
                 {
                     aiColor4D c = paiMesh->mColors[0][v];
-                    model.mesh.m_colors.push_back({ c.r, c.g, c.b, c.a });
+                    data.m_colors.push_back({ c.r, c.g, c.b, c.a });
                 }
                 else
                 {
-                    model.mesh.m_colors.push_back(MAGENTA);
+                    data.m_colors.push_back(MAGENTA);
                 }
 
             }
@@ -191,9 +194,11 @@ namespace aiko
                 const aiFace& face = paiMesh->mFaces[f];
                 for (unsigned int i = 0; i < face.mNumIndices; ++i)
                 {
-                    model.mesh.m_indices.push_back(face.mIndices[i]);
+                    data.m_indices.push_back(face.mIndices[i]);
                 }
             }
+
+            model.mesh.setData(data);
 
             const aiMaterial* material = pScene->mMaterials[paiMesh->mMaterialIndex];
 
@@ -201,7 +206,7 @@ namespace aiko
             if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS)
             {
                 std::string texFile = string("models/") + texturePath.C_Str();
-                model.material.m_diffuse.loadTextureFromFile(texFile.c_str());
+                model.material.m_diffuse.load(texFile);
             }
 
             aiColor3D diffuse(1.0f, 1.0f, 1.0f); // default white

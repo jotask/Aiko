@@ -15,7 +15,6 @@
 
 // Systems
 #include "systems/entity_component_system.h"
-#include "systems/camera_system.h"
 #include "systems/render_system.h"
 #include "systems/asset_system.h"
 #include "systems/input_system.h"

@@ -2,6 +2,7 @@
 
 #include <events/event.hpp>
 #include <aiko_types.h>
+#include <core/singleton.h>
 
 #include "models/shader.h"
 #include "models/model.h"

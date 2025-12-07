@@ -24,7 +24,7 @@ namespace aiko::bgfx
 
         // load
         virtual void create(int width, int height) override;
-        virtual void load(const char*) override;
+        virtual void load(string) override;
         virtual void unload() override;
 
         // Modify

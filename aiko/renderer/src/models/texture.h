@@ -40,7 +40,7 @@ namespace aiko
         // load
         void create();
         void create(int width, int height);
-        void load(const char*);
+        void load(string);
         void unload();
 
     private:

@@ -46,7 +46,7 @@ namespace aiko
         backend->create(width, height);
     }
 
-    void Texture::load(const char * file_path)
+    void Texture::load(string file_path)
     {
         backend->load(file_path);
     }
