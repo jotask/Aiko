@@ -1,10 +1,11 @@
 #pragma once
 
-#include "aiko_types.h"
+#include <aiko_types.h>
+#include <math/math.h>
+#include <types/textures.h>
+
 #include "aiko.h"
-#include "types/textures.h"
 #include "types/inputs.h"
-#include "shared/math.h"
 
 namespace aiko
 {
@@ -46,7 +47,6 @@ namespace aiko
         Camera* getMainCamera();
         vec2 getViewportSize() const;
         float getAspectRatio() const;
-        texture::RenderTexture2D* getTargetTexture() const;
 
         aiko::AikoUPtr<Aiko> m_aiko;
 

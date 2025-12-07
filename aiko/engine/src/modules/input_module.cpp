@@ -1,13 +1,12 @@
 #include "modules/input_module.h"
 
-#include "models/time.h"
+#include <time/time.h>
+#include <aiko_types.h>
+#include <logger/logger.h>
+#include <events/events.hpp>
 
-#include "aiko_types.h"
-#include "core/libs.h"
-#include "core/log.h"
 #include "modules/module_connector.h"
 #include "modules/display_module.h"
-#include "events/events.hpp"
 
 #include <magic_enum/magic_enum.hpp>
 #include <GLFW/glfw3.h>

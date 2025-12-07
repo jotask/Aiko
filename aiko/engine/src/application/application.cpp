@@ -1,13 +1,13 @@
 #include "application/application.h"
 
+#include <time/time.h>
+
 #include "aiko.h"
 #include "systems/camera_system.h"
 #include "systems/asset_system.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
 #include "systems/entity_component_system.h"
-#include "models/shader.h"
-#include "models/time.h"
 
 namespace aiko
 {

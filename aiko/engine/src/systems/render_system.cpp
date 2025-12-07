@@ -3,22 +3,17 @@
 #include <stdexcept>
 #include <memory>
 #include <cassert>
-#include <iostream>
 #include <format>
-#include <iostream>
 
-#include "aiko_types.h"
-#include "shared/math.h"
+#include <aiko_types.h>
+#include <math//math.h>
+#include <models/light.h>
+
 #include "modules/module_connector.h"
 #include "systems/system_connector.h"
 #include "components/transform_component.h"
 #include "components/mesh_component.h"
 #include "systems/camera_system.h"
-#include "models/light.h"
-#include "models/mesh_factory.h"
-#include "types/color.h"
-
-#include "platform/bgfx/bgfx_platform_helper.h"
 
 namespace aiko
 {
@@ -42,51 +37,8 @@ namespace aiko
 
     }
 
-    Mesh RenderSystem::createMesh(Mesh::MeshType type)
-    {
-        auto mesh = Mesh();
-        switch (type)
-        {
-        case aiko::Mesh::MeshType::CUBE:
-            mesh::generateCube(mesh);
-            break;
-        case aiko::Mesh::MeshType::QUAD:
-            mesh::generateQuad(mesh);
-            break;
-        case aiko::Mesh::MeshType::CUSTOM:
-            break;
-        default:
-            break;
-        }
-        refreshMesh(&mesh);
-        return mesh;
-    }
-    
-
-    void RenderSystem::refreshMesh(Mesh* mesh)
-    {
-        m_renderModule->refreshMesh(mesh);
-    }
-
-    aiko::AikoPtr<Light> RenderSystem::createLight()
-    {
-        auto light = std::make_unique<Light>();
-        return light;
-    }
-
-    texture::PboTexture RenderSystem::createPboTexture(uint16_t width, uint16_t height)
-    {
-        return m_renderModule->createPboTexture(width, height);
-    }
-
-    void RenderSystem::updatePbo(texture::PboTexture text, std::vector<Color>& pixels)
-    {
-        m_renderModule->updatePboTexture(text, pixels);
-    }
-
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
-        BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
         BIND_SYSTEM_REQUIRED(CameraSystem, systemConnector, m_cameraSystem)
     }
     
@@ -115,42 +67,27 @@ namespace aiko
         }
     }
 
-    void RenderSystem::render(Transform* trans, Model* model)
+    void RenderSystem::render( const Transform& trans, const Model& model)
     {
         m_renderModule->renderModel(getMainCamera(), trans, model);
     }
    
-    void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader)
+    void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Shader& shader)
     {
         m_renderModule->renderMesh(getMainCamera() , trans, mesh, shader);
     }
 
-    void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader, Texture* texture)
+    void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Shader& shader, const Texture& texture)
     {
         m_renderModule->renderMesh(getMainCamera(), trans, mesh, shader, texture);
     }
 
-    void RenderSystem::render(Transform* trans, Mesh* mesh, Shader* shader, texture::PboTexture* texture)
-    {
-        m_renderModule->renderMesh(getMainCamera(), trans, mesh, shader, texture);
-    }
-
-    texture::RenderTexture2D* RenderSystem::getTargetTexture() const
+    AikoPtr<FrameBuffer> RenderSystem::getTargetTexture() const
     {
         return m_renderModule->getRenderTexture();
     }
 
-    void RenderSystem::renderToFullScreen(Shader* shader)
-    {
-        m_renderModule->beginShaderMode(shader);
-        m_renderModule->beginTextureMode();
-        m_renderModule->beginMode2D();
-        m_renderModule->endMode2D();
-        m_renderModule->endTextureMode();
-        m_renderModule->endShaderMode();
-    }
-
-    void RenderSystem::render(texture::RenderTexture2D& target, Shader* shader)
+    void RenderSystem::render(AikoPtr<FrameBuffer> target, AikoPtr<Shader> shader)
     {
         /*
         m_renderModule->beginShaderMode(shader);
@@ -171,6 +108,7 @@ namespace aiko
         m_renderModule->endShaderMode();
         */
         AIKO_DEBUG_BREAK
+        AIKO_NOT_IMPLEMENTED;
     }
 
     Camera* RenderSystem::getMainCamera()
@@ -180,7 +118,7 @@ namespace aiko
 
     void RenderSystem::renderText(string str, float x, float y)
     {
-        m_renderModule->drawText(str, x, y);
+        AIKO_NOT_IMPLEMENTED;
     }
 
 }

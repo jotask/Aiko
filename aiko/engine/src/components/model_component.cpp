@@ -26,12 +26,12 @@ namespace aiko
 
     void ModelComponent::update()
     {
-        aiko::AikoPtr<Transform> transform = gameobject->transform();
+
     }
 
     void ModelComponent::render()
     {
-        m_renderSystem->render(gameobject->transform().get(), &m_model);
+        m_renderSystem->render(gameobject->transform(), m_model);
     }
 
 }

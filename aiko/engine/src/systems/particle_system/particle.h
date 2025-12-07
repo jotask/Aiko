@@ -1,7 +1,7 @@
 #pragma once
 
-#include "shared/math.h"
-#include "types/color.h"
+#include <math/math.h>
+#include <types/color.h>
 
 namespace aiko
 {

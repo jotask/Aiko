@@ -1,10 +1,11 @@
 #pragma once
 
-#include "aiko_types.h"
+#include <aiko_types.h>
+#include <models/mesh.h>
+#include <models/shader.h>
+#include <models/texture.h>
+
 #include "models/component.h"
-#include "models/mesh.h"
-#include "models/shader.h"
-#include "models/texture.h"
 
 namespace aiko
 {
@@ -24,7 +25,7 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
 
-        const Texture* getTexture() { return &m_texture; };
+        const Texture getTexture() { return m_texture; };
 
     private:
         RenderSystem* m_renderSystem;

@@ -3,13 +3,15 @@
 #include <memory>
 #include <vector>
 
-#include "aiko_types.h"
+#include <aiko_types.h>
+#include <math/math.h>
+#include <utils/enum_iterator.h>
+
 #include "systems/base_system.h"
 #include "models/game_object.h"
-#include "types/camera_types.h"
+#include "types/camera_controller_types.h"
 #include "models/camera.h"
-#include "types/camera_types.h"
-#include "shared/math.h"
+#include "types/camera_controller_types.h"
 #include "types/inputs.h"
 
 namespace aiko

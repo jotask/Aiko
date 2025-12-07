@@ -1,15 +1,15 @@
 #include "pbo_texture_component.h"
 
-#include  <algorithm>
-#include <assert.h>
+#include <algorithm>
 #include <chrono>
 
-#include "shared/math.h"
-#include "shared/math_transform.h"
-#include "core/utils.h"
+#include <math/math.h>
+#include <math/math_transform.h>
+#include <core/utils.h>
 
 #include "models/game_object.h"
 #include "systems/render_system.h"
+#include "models/mesh_factory.h"
 
 #include "constants.h"
 
@@ -21,24 +21,21 @@ namespace aiko
         : Component(str)
         , auto_render(autoRender)
     {
-        m_texture.texture.width = width;
-        m_texture.texture.height = height;
-        auto_render = autoRender;
+        m_texture.create(width, height);
     }
-
 
     void PboTextureComponent::init()
     {
-        m_renderSystem = gameobject->getSystem<RenderSystem>();
+
         if (auto_render)
         {
-            m_mesh = m_renderSystem->createMesh(Mesh::MeshType::QUAD);
+            const Mesh::MeshData data = mesh::factory::generateQuad();
+            m_mesh.setData(data);
             m_shader.load("aiko");
             assert(m_shader.isvalid() && "Shader is invalid");
         }
-        m_texture = m_renderSystem->createPboTexture(m_texture.texture.width, m_texture.texture.height);
-        pixels.reserve(m_texture.texture.width * m_texture.texture.height);
-        pixels.resize(m_texture.texture.width * m_texture.texture.height);
+        const auto texture_info = m_texture.getInfo();
+        pixels.resize(texture_info.width * texture_info.height);
         std::fill(pixels.begin(), pixels.end(), BLACK);
         is_dirty = true;
     }
@@ -47,6 +44,7 @@ namespace aiko
     {
 
         static auto lastTime = std::chrono::steady_clock::now();
+
         static double accumulatedTime = 0.0;
         static const double interval = 1 / 60.0f;
 
@@ -78,8 +76,10 @@ namespace aiko
 
             static std::vector<Particle> s_particles;
 
-            const int w = m_texture.texture.width - 1;
-            const int h = m_texture.texture.height - 1;
+            const auto texture_info = m_texture.getInfo();
+
+            const int w = texture_info.width - 1;
+            const int h = texture_info.height - 1;
 
             if (s_particles.size() != N_PARTICLES)
             {
@@ -135,7 +135,7 @@ namespace aiko
         {
             return;
         }
-        m_renderSystem->render(gameobject->transform().get(), &m_mesh, &m_shader, &m_texture);
+        m_renderSystem->render(gameobject->transform(), m_mesh, m_shader, m_texture);
     }
 
     void PboTextureComponent::refreshPixels(bool force)
@@ -149,7 +149,8 @@ namespace aiko
 
     void PboTextureComponent::updatePixel(uint16_t x, uint16_t y, Color c)
     {
-        const uint16_t index = y * m_texture.texture.width + x;
+        const auto texture_info = m_texture.getInfo();
+        const uint16_t index = y * texture_info.width + x;
         if (pixels[index] == c)
         {
             return;
@@ -166,7 +167,7 @@ namespace aiko
         is_dirty = true;
     }
 
-    const texture::PboTexture& PboTextureComponent::getPboTexture()
+    const Texture& PboTextureComponent::getPboTexture()
     {
         return m_texture;
     }

@@ -11,10 +11,6 @@ namespace aiko
     namespace logger {
         class Log
         {
-        private:
-            friend class Aiko;
-            static void init();
-
         public:
 
             enum class Type
@@ -66,6 +62,8 @@ namespace aiko
             static LogStream warning() { return LogStream(Type::Warning); }
             static LogStream error() { return LogStream(Type::Error); }
             static LogStream critical() { return LogStream(Type::Critical); }
+
+            static void init();
 
         private:
 

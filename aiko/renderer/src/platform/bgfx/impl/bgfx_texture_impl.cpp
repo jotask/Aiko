@@ -41,6 +41,11 @@ namespace aiko::bgfx
         return ::bgfx::isValid(m_textureHandle) == false;
     }
 
+    texture::Texture BgfxTextureImpl::getInfo()
+    {
+        return m_texture;
+    }
+
     void BgfxTextureImpl::create(int width, int height)
     {
         m_textureHandle = ::bgfx::createTexture2D(

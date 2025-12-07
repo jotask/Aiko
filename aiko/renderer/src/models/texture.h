@@ -2,6 +2,7 @@
 
 #include <aiko_types.h>
 
+#include "types/textures.h"
 #include "interfaces/itexture_impl.h"
 
 namespace aiko
@@ -34,6 +35,7 @@ namespace aiko
         void unuse();
         bool isValid();
         uint id() const;
+        texture::Texture getInfo() const;
 
         // load
         void create();

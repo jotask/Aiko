@@ -1,5 +1,6 @@
 #include "texture_component.h"
 
+#include "models/mesh_factory.h"
 #include "models/game_object.h"
 #include "systems/render_system.h"
 #include "constants.h"
@@ -16,19 +17,22 @@ namespace aiko
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
         m_shader.load("aiko");
-        m_mesh = m_renderSystem->createMesh(Mesh::MeshType::QUAD);
-        assert(m_shader.isvalid() && "Shader is invalid");
-        m_texture.loadTextureFromFile("texel_checker.png");
+        AIKO_ASSERT(m_shader.isvalid(), "Shader is invalid");
+        const Mesh::MeshData data = mesh::factory::generateQuad();
+        m_mesh.setData(data);
+        AIKO_ASSERT(m_mesh.isValid(), "Mesh is invalid");
+        m_texture.load("texel_checker.png");
+        AIKO_ASSERT(m_mesh.isValid(), "Texture is invalid");
     }
 
     void TextureComponent::update()
     {
-        aiko::AikoPtr<Transform> transform = gameobject->transform();
+
     }
 
     void TextureComponent::render()
     {
-        m_renderSystem->render(gameobject->transform().get(), &m_mesh, &m_shader, &m_texture);
+        m_renderSystem->render(gameobject->transform(), m_mesh, m_shader, m_texture);
     }
 
 }

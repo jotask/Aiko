@@ -3,13 +3,14 @@
 #include <memory>
 #include <vector>
 
-#include "aiko_types.h"
+#include <aiko_types.h>
+#include <math/math.h>
+#include <core/uuid.h>
+#include <models/camera.h>
+
 #include "systems/base_system.h"
 #include "models/game_object.h"
-#include "models/camera.h"
-#include "types/camera_types.h"
-#include "shared/math.h"
-#include "core/uuid.h"
+#include "types/camera_controller_types.h"
 
 namespace aiko
 {

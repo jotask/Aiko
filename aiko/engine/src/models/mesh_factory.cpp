@@ -1,46 +1,46 @@
 #include "mesh_factory.h"
 
-#include "math/math.h"
+#include <math/math.h>
 
 namespace aiko
 {
-    namespace mesh
+    namespace mesh::factory
     {
 
-        void generateNormals(Mesh& mesh)
+        void recalculateNormals(Mesh::MeshData& data)
         {
 
-            const int vertexCount = static_cast<int>(mesh.m_vertices.size());
+            const int vertexCount = static_cast<int>(data.m_vertices.size());
 
             if (vertexCount < 3)
             {
-                mesh.m_normals.assign(mesh.m_vertices.size(), vec3(0.0f, 0.0f, 1.0f));
+                data.m_normals.assign(data.m_vertices.size(), vec3(0.0f, 0.0f, 1.0f));
                 return;
             }
 
-            mesh.m_normals.assign(vertexCount, vec3(0.0f));
+            data.m_normals.assign(vertexCount, vec3(0.0f));
 
-            for (size_t t = 0; t < mesh.m_indices.size(); t += 3)
+            for (size_t t = 0; t < data.m_indices.size(); t += 3)
             {
-                const int i0 = mesh.m_indices[t + 0];
-                const int i1 = mesh.m_indices[t + 1];
-                const int i2 = mesh.m_indices[t + 2];
+                const int i0 = data.m_indices[t + 0];
+                const int i1 = data.m_indices[t + 1];
+                const int i2 = data.m_indices[t + 2];
 
-                const vec3& p0 = mesh.m_vertices[i0];
-                const vec3& p1 = mesh.m_vertices[i1];
-                const vec3& p2 = mesh.m_vertices[i2];
+                const vec3& p0 = data.m_vertices[i0];
+                const vec3& p1 = data.m_vertices[i1];
+                const vec3& p2 = data.m_vertices[i2];
 
                 const vec3 e1 = p1 - p0;
                 const vec3 e2 = p2 - p0;
 
                 vec3 n = math::normalize(math::cross(e1, e2));
 
-                mesh.m_normals[i0] += n;
-                mesh.m_normals[i1] += n;
-                mesh.m_normals[i2] += n;
+                data.m_normals[i0] += n;
+                data.m_normals[i1] += n;
+                data.m_normals[i2] += n;
             }
 
-            for (auto& n : mesh.m_normals)
+            for (auto& n : data.m_normals)
             {
                 n = math::normalize(n);
             }
@@ -48,10 +48,12 @@ namespace aiko
 
         // 3D
 
-        void generateCube(Mesh& mesh)
+        Mesh::MeshData generateCube(Mesh& mesh)
         {
 
-            mesh.m_vertices = {
+            Mesh::MeshData data;
+
+            data.m_vertices = {
                 {-0.5f,  0.5f,  0.5f}, {-0.5f, -0.5f,  0.5f}, { 0.5f, -0.5f,  0.5f}, { 0.5f,  0.5f,  0.5f}, // Front
                 {-0.5f, -0.5f, -0.5f}, {-0.5f,  0.5f, -0.5f}, { 0.5f,  0.5f, -0.5f}, { 0.5f, -0.5f, -0.5f}, // Back
                 { 0.5f,  0.5f,  0.5f}, { 0.5f,  0.5f, -0.5f}, {-0.5f,  0.5f, -0.5f}, {-0.5f,  0.5f,  0.5f}, // Top
@@ -60,11 +62,11 @@ namespace aiko
                 {-0.5f,  0.5f,  0.5f}, {-0.5f,  0.5f, -0.5f}, {-0.5f, -0.5f, -0.5f}, {-0.5f, -0.5f,  0.5f}, // Left
             };
 
-            mesh.m_teexCoord = std::vector<vec2>(mesh.m_vertices.size(), {0.0f,1.0f});
+            data.m_teexCoord = std::vector<vec2>(data.m_vertices.size(), {0.0f,1.0f});
 
-            mesh.m_colors = std::vector<Color>(mesh.m_vertices.size(), WHITE);
+            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
 
-            mesh.m_indices = {
+            data.m_indices = {
                 0,1,2,      0,2,3,       // Front
                 4,5,6,      4,6,7,       // Back
                 8,9,10,     8,10,11,     // Top
@@ -72,17 +74,19 @@ namespace aiko
                 16,17,18,   16,18,19,    // Right
                 20,21,22,   20,22,23     // Left
             };
-
-            generateNormals(mesh);
+            recalculateNormals(data);
+            return data;
         }
 
-        void generatePyramid(Mesh& mesh)
+        Mesh::MeshData generatePyramid(Mesh& mesh)
         {
+
+            Mesh::MeshData data;
 
             const float h2 = 1.0f / 2.0f;
             const float b2 = 1.0f / 2.0f;
 
-            mesh.m_vertices =
+            data.m_vertices =
             {                              
                 {-b2, -h2, -b2},
                 { b2, -h2, -b2},
@@ -91,7 +95,7 @@ namespace aiko
                 {0.0f, h2,  0.0f}
             };
 
-            mesh.m_teexCoord =
+            data.m_teexCoord =
             {
                 {0.0f, 1.0f},
                 {1.0f, 1.0f},
@@ -101,9 +105,9 @@ namespace aiko
                 {1.0f, 0.0f},
             };
 
-            mesh.m_colors = std::vector<Color>(mesh.m_vertices.size(), WHITE);
+            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
 
-            mesh.m_indices =
+            data.m_indices =
             {
                 0, 1, 2, 2, 3, 0, // Bottom face
                 0, 4, 1,           // Back-left triangle
@@ -111,16 +115,19 @@ namespace aiko
                 2, 4, 3,           // Front-right triangle
                 3, 4, 0            // Front-left triangle
             };
-            generateNormals(mesh);
+            recalculateNormals(data);
+            return data;
         }
 
-        void generateMeshSphere(Mesh& mesh, int rings, int slices)
+        Mesh::MeshData generateMeshSphere(Mesh& mesh, int rings, int slices)
         {
+
+            Mesh::MeshData data;
 
             constexpr const float r2 = 1.0f / 2.0f;
 
-            auto vertices = mesh.m_vertices;
-            auto indices = mesh.m_indices;
+            auto vertices = data.m_vertices;
+            auto indices = data.m_indices;
 
             // Vertices
             for (int i = 0; i <= rings; ++i)
@@ -138,9 +145,9 @@ namespace aiko
                     float u = float(j) / slices;
                     float v = float(i) / rings;
 
-                    mesh.m_vertices.push_back({x, y, z});
-                    mesh.m_teexCoord.push_back({ u, v });
-                    mesh.m_colors.push_back(WHITE);
+                    data.m_vertices.push_back({x, y, z});
+                    data.m_teexCoord.push_back({ u, v });
+                    data.m_colors.push_back(WHITE);
 
                 }
             }
@@ -153,20 +160,23 @@ namespace aiko
                     int first = i * (slices + 1) + j;
                     int second = first + slices + 1;
 
-                    mesh.m_indices.push_back(first);
-                    mesh.m_indices.push_back(first + 1);
-                    mesh.m_indices.push_back(second);
+                    data.m_indices.push_back(first);
+                    data.m_indices.push_back(first + 1);
+                    data.m_indices.push_back(second);
 
-                    mesh.m_indices.push_back(second);
-                    mesh.m_indices.push_back(first + 1);
-                    mesh.m_indices.push_back(second + 1);
+                    data.m_indices.push_back(second);
+                    data.m_indices.push_back(first + 1);
+                    data.m_indices.push_back(second + 1);
                 }
             }
-            generateNormals(mesh);
+            recalculateNormals(data);
+            return data;
         }
 
-        void generateMeshCylinder(Mesh& mesh, int slices)
+        Mesh::MeshData generateMeshCylinder(Mesh& mesh, int slices)
         {
+
+            Mesh::MeshData data;
 
             constexpr const float r2 = 1.0f / 2.0f;
             constexpr const float halfHeight = 1.0f / 2.0f;
@@ -181,14 +191,14 @@ namespace aiko
                 float u = float(i) / slices;
 
                 // Bottom circle vertex
-                mesh.m_vertices.push_back({ x, -halfHeight, z });
-                mesh.m_teexCoord.push_back({ u, 0.0f });
-                mesh.m_colors.push_back(WHITE);
+                data.m_vertices.push_back({ x, -halfHeight, z });
+                data.m_teexCoord.push_back({ u, 0.0f });
+                data.m_colors.push_back(WHITE);
 
                 // Top circle vertex
-                mesh.m_vertices.push_back({ x, halfHeight, z });
-                mesh.m_teexCoord.push_back({ u, 1.0f });
-                mesh.m_colors.push_back(WHITE);
+                data.m_vertices.push_back({ x, halfHeight, z });
+                data.m_teexCoord.push_back({ u, 1.0f });
+                data.m_colors.push_back(WHITE);
 
             }
 
@@ -203,51 +213,54 @@ namespace aiko
                 int top1 = next * 2 + 1;
 
                 // First triangle (CW outward)
-                mesh.m_indices.push_back(bottom0);
-                mesh.m_indices.push_back(top0);
-                mesh.m_indices.push_back(bottom1);
+                data.m_indices.push_back(bottom0);
+                data.m_indices.push_back(top0);
+                data.m_indices.push_back(bottom1);
 
                 // Second triangle (CW outward)
-                mesh.m_indices.push_back(top0);
-                mesh.m_indices.push_back(top1);
-                mesh.m_indices.push_back(bottom1);
+                data.m_indices.push_back(top0);
+                data.m_indices.push_back(top1);
+                data.m_indices.push_back(bottom1);
             }
 
             // Center vertices for caps
-            const int bottomCenterIndex = int(mesh.m_vertices.size());
-            mesh.m_vertices.push_back({ 0.0f, -halfHeight, 0.0f });
-            mesh.m_teexCoord.push_back({ 0.5f, 0.5f });
-            mesh.m_colors.push_back(WHITE);
+            const int bottomCenterIndex = int(data.m_vertices.size());
+            data.m_vertices.push_back({ 0.0f, -halfHeight, 0.0f });
+            data.m_teexCoord.push_back({ 0.5f, 0.5f });
+            data.m_colors.push_back(WHITE);
 
             // Generate bottom cap
             for (int i = 0; i < slices; ++i)
             {
                 int bottom0 = i * 2;
                 int bottom1 = (i + 1) * 2;
-                mesh.m_indices.push_back(bottomCenterIndex);
-                mesh.m_indices.push_back(bottom0);
-                mesh.m_indices.push_back(bottom1);
+                data.m_indices.push_back(bottomCenterIndex);
+                data.m_indices.push_back(bottom0);
+                data.m_indices.push_back(bottom1);
             }
 
             const int topCenterIndex = bottomCenterIndex + 1;
-            mesh.m_vertices.push_back({ 0.0f, halfHeight, 0.0f });
-            mesh.m_teexCoord.push_back({ 0.5f, 0.5f });
-            mesh.m_colors.push_back(WHITE);
+            data.m_vertices.push_back({ 0.0f, halfHeight, 0.0f });
+            data.m_teexCoord.push_back({ 0.5f, 0.5f });
+            data.m_colors.push_back(WHITE);
 
             // Generate top cap
             for (int i = 0; i < slices; ++i)
             {
                 int top0 = i * 2 + 1;
                 int top1 = ((i + 1) % slices) * 2 + 1; // wrap last slice
-                mesh.m_indices.push_back(topCenterIndex);
-                mesh.m_indices.push_back(top1);
-                mesh.m_indices.push_back(top0);
+                data.m_indices.push_back(topCenterIndex);
+                data.m_indices.push_back(top1);
+                data.m_indices.push_back(top0);
             }
-            generateNormals(mesh);
+            recalculateNormals(data);
+            return data;
         }
 
-        void generateMeshPlane(Mesh& mesh, float width, float length, int resX, int resZ)
+        Mesh::MeshData generateMeshPlane(Mesh& mesh, float width, float length, int resX, int resZ)
         {
+
+            Mesh::MeshData data;
 
             // Step size per grid cell
             float stepX = width / float(resX - 1);
@@ -262,9 +275,9 @@ namespace aiko
                     float vz = -length / 2.0f + z * stepZ;
                     float vy = 0.0f; // flat plane on y=0
 
-                    mesh.m_vertices.push_back({ vx, vy, vz });
-                    mesh.m_teexCoord.push_back({ float(x) / (resX - 1), float(z) / (resZ - 1) });
-                    mesh.m_colors.push_back(WHITE); // all white
+                    data.m_vertices.push_back({ vx, vy, vz });
+                    data.m_teexCoord.push_back({ float(x) / (resX - 1), float(z) / (resZ - 1) });
+                    data.m_colors.push_back(WHITE); // all white
                 }
             }
 
@@ -279,25 +292,28 @@ namespace aiko
                     int bottomRight = bottomLeft + 1;
 
                     // First triangle
-                    mesh.m_indices.push_back(topLeft);
-                    mesh.m_indices.push_back(bottomLeft);
-                    mesh.m_indices.push_back(topRight);
+                    data.m_indices.push_back(topLeft);
+                    data.m_indices.push_back(bottomLeft);
+                    data.m_indices.push_back(topRight);
 
                     // Second triangle
-                    mesh.m_indices.push_back(topRight);
-                    mesh.m_indices.push_back(bottomLeft);
-                    mesh.m_indices.push_back(bottomRight);
+                    data.m_indices.push_back(topRight);
+                    data.m_indices.push_back(bottomLeft);
+                    data.m_indices.push_back(bottomRight);
                 }
             }
 
             // Generate normals (all pointing up)
-            mesh.m_normals.resize(mesh.m_vertices.size(), { 0.0f, 1.0f, 0.0f });
+            data.m_normals.resize(data.m_vertices.size(), { 0.0f, 1.0f, 0.0f });
             
-            generateNormals(mesh);
+            recalculateNormals(data);
+            return data;
         }
 
-        void generateMeshTorus(Mesh& mesh)
+        Mesh::MeshData generateMeshTorus(Mesh& mesh)
         {
+
+            Mesh::MeshData data;
 
             constexpr const float majorRadius   = 1.0f;
             constexpr const float minorRadius   = 0.3f;
@@ -330,9 +346,9 @@ namespace aiko
                     float texU = (float)i / radSeg;
                     float texV = (float)j / sides;
 
-                    mesh.m_vertices.push_back(pos);
-                    mesh.m_teexCoord.push_back({ texU , texV });
-                    mesh.m_colors.push_back(WHITE);
+                    data.m_vertices.push_back(pos);
+                    data.m_teexCoord.push_back({ texU , texV });
+                    data.m_colors.push_back(WHITE);
 
                 }
             }
@@ -345,20 +361,23 @@ namespace aiko
                     int first = i * (sides + 1) + j;
                     int second = first + sides + 1;
 
-                    mesh.m_indices.push_back(first);
-                    mesh.m_indices.push_back(first + 1);
-                    mesh.m_indices.push_back(second);
+                    data.m_indices.push_back(first);
+                    data.m_indices.push_back(first + 1);
+                    data.m_indices.push_back(second);
 
-                    mesh.m_indices.push_back(second);
-                    mesh.m_indices.push_back(first + 1);
-                    mesh.m_indices.push_back(second + 1);
+                    data.m_indices.push_back(second);
+                    data.m_indices.push_back(first + 1);
+                    data.m_indices.push_back(second + 1);
                 }
             }
-            generateNormals(mesh);
+            recalculateNormals(data);
+            return data;
         }
 
-        void generateMeshKnot(Mesh& mesh)
+        Mesh::MeshData generateMeshKnot(Mesh& mesh)
         {
+
+            Mesh::MeshData data;
 
             constexpr const int p = 2;
             constexpr const int q = 3;
@@ -430,9 +449,9 @@ namespace aiko
                     float u = (float)i / radSeg;
                     float v = (float)j / sides;
 
-                    mesh.m_vertices.push_back(pos);
-                    mesh.m_teexCoord.push_back({u, v});
-                    mesh.m_colors.push_back(WHITE);
+                    data.m_vertices.push_back(pos);
+                    data.m_teexCoord.push_back({u, v});
+                    data.m_colors.push_back(WHITE);
                 }
             }
 
@@ -444,44 +463,54 @@ namespace aiko
                     int first = i * (sides + 1) + j;
                     int second = first + sides + 1;
 
-                    mesh.m_indices.push_back(first);
-                    mesh.m_indices.push_back(first + 1);
-                    mesh.m_indices.push_back(second);
+                    data.m_indices.push_back(first);
+                    data.m_indices.push_back(first + 1);
+                    data.m_indices.push_back(second);
 
-                    mesh.m_indices.push_back(second);
-                    mesh.m_indices.push_back(first + 1);
-                    mesh.m_indices.push_back(second + 1);
+                    data.m_indices.push_back(second);
+                    data.m_indices.push_back(first + 1);
+                    data.m_indices.push_back(second + 1);
                 }
             }
-            generateNormals(mesh);
+            recalculateNormals(data);
+            return data;
         }
 
         // 2D
 
-        void generatePoint(Mesh& mesh)
+        Mesh::MeshData generatePoint(Mesh& mesh)
         {
-            mesh.m_vertices.push_back({ 0.0f });
-            mesh.m_teexCoord.push_back({ 0.0f }); // Not used
-            mesh.m_colors.push_back(WHITE);
-            mesh.m_indices.push_back(0);
-            generateNormals(mesh);
+
+            Mesh::MeshData data;
+
+            data.m_vertices.push_back({ 0.0f });
+            data.m_teexCoord.push_back({ 0.0f }); // Not used
+            data.m_colors.push_back(WHITE);
+            data.m_indices.push_back(0);
+            recalculateNormals(data);
+            return data;
         }
 
-        void generateLine(Mesh& mesh, vec3 start, vec3 end)
+        Mesh::MeshData generateLine(Mesh& mesh, vec3 start, vec3 end)
         {
-            mesh.m_vertices.push_back(start);
-            mesh.m_vertices.push_back(end);
-            mesh.m_teexCoord.push_back({ 0.0f, 1.0f });
-            mesh.m_teexCoord.push_back({ 0.0f, 1.0f });
-            mesh.m_colors.push_back(WHITE);
-            mesh.m_colors.push_back(WHITE);
-            mesh.m_indices = { 0, 1 };
-            generateNormals(mesh);
+            Mesh::MeshData data;
+            data.m_vertices.push_back(start);
+            data.m_vertices.push_back(end);
+            data.m_teexCoord.push_back({ 0.0f, 1.0f });
+            data.m_teexCoord.push_back({ 0.0f, 1.0f });
+            data.m_colors.push_back(WHITE);
+            data.m_colors.push_back(WHITE);
+            data.m_indices = { 0, 1 };
+            recalculateNormals(data);
+            return data;
         }
         
-        void generateQuad(Mesh& mesh)
+        Mesh::MeshData generateQuad(Mesh& mesh)
         {
-            mesh.m_vertices =
+
+            Mesh::MeshData data;
+
+            data.m_vertices =
             {
                 { 0.5f,  0.5f, 0.0f},
                 { 0.5f, -0.5f, 0.0f},
@@ -489,7 +518,7 @@ namespace aiko
                 {-0.5f,  0.5f, 0.0f},
             };
 
-            mesh.m_teexCoord =
+            data.m_teexCoord =
             {
                 {1.0f, 1.0f},
                 {1.0f, 0.0f},
@@ -497,26 +526,29 @@ namespace aiko
                 {0.0f, 1.0f},
             };
 
-            mesh.m_colors = std::vector<Color>(mesh.m_vertices.size(), WHITE);
+            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
 
-            mesh.m_indices =
+            data.m_indices =
             {
                 0, 3, 1,
                 1, 3, 2
             };
-
-            generateNormals(mesh);
+            recalculateNormals(data);
+            return data;
         }
 
-        void generateCircle(Mesh& mesh, uint segments)
+        Mesh::MeshData generateCircle(Mesh& mesh, uint segments)
         {
+
+            Mesh::MeshData data;
+
             constexpr float radius = 1.0f / 2.0f;
             constexpr Color color = WHITE;
 
             // Center vertex
-            mesh.m_vertices.push_back({ 0.0f });
-            mesh.m_teexCoord.push_back({0.5f});
-            mesh.m_colors.push_back(color);
+            data.m_vertices.push_back({ 0.0f });
+            data.m_teexCoord.push_back({0.5f});
+            data.m_colors.push_back(color);
 
             // Circle perimeter vertices
             for (int i = 0; i <= segments; ++i)
@@ -525,47 +557,52 @@ namespace aiko
                 float x = cosf(angle) * radius;
                 float y = sinf(angle) * radius;
 
-                mesh.m_vertices.push_back({x, y, 0.0f});
-                mesh.m_teexCoord.push_back({ 0.5f + 0.5f * cosf(angle), 0.5f + 0.5f * sinf(angle) });
-                mesh.m_colors.push_back(color);
+                data.m_vertices.push_back({x, y, 0.0f});
+                data.m_teexCoord.push_back({ 0.5f + 0.5f * cosf(angle), 0.5f + 0.5f * sinf(angle) });
+                data.m_colors.push_back(color);
 
             }
 
             // Indices (triangle fan)
-            mesh.m_indices.reserve(segments * 3);
+            data.m_indices.reserve(segments * 3);
             for (uint16_t i = 1; i <= segments; ++i)
             {
-                mesh.m_indices.push_back(0);       // center
-                mesh.m_indices.push_back(i);       // current perimeter
-                mesh.m_indices.push_back(i + 1);   // next perimeter (wraps around)
+                data.m_indices.push_back(0);       // center
+                data.m_indices.push_back(i);       // current perimeter
+                data.m_indices.push_back(i + 1);   // next perimeter (wraps around)
             }
-            generateNormals(mesh);
+            recalculateNormals(data);
+            return data;
         }
 
-        void generateTriangle(Mesh& mesh)
+        Mesh::MeshData generateTriangle(Mesh& mesh)
         {
-            mesh.m_vertices =
+
+            Mesh::MeshData data;
+
+            data.m_vertices =
             {
                 {-0.5f, -0.5f,  0.0f},
                 { 0.5f, -0.5f,  0.0f},
                 { 0.0f,  0.5f,  0.0f},
             };
 
-            mesh.m_teexCoord =
+            data.m_teexCoord =
             {
                 {0.0f, 1.0f},
                 {0.0f, 0.0f},
                 {1.0f, 0.0f},
             };
 
-            mesh.m_colors = std::vector<Color>(mesh.m_vertices.size(), WHITE);
+            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
 
-            mesh.m_indices =
+            data.m_indices =
             {
                 0, 1, 2
             };
 
-            generateNormals(mesh);
+            recalculateNormals(data);
+            return data;
 
         }
 

@@ -22,8 +22,8 @@ namespace aiko
     
     void LightComponent::update()
     {
-        aiko::AikoPtr<Transform> transform = gameobject->transform();
-        m_light->vector = transform->position;
+        const Transform transform = gameobject->transform();
+        m_light->vector = transform.position;
         m_light->color = color;
         m_light->intensity = intensity;
         m_light->update();

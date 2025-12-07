@@ -26,7 +26,7 @@
 #include "models/input.h"
 
 #include "types/render_types.h"
-#include "types/camera_types.h"
+#include "types/camera_controller_types.h"
 #include "types/textures.h"
 #include "types/color.h"
 

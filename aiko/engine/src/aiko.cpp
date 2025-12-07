@@ -1,20 +1,17 @@
 #include "aiko.h"
 
+#include <events/events.hpp>
+#include <logger/logger.h>
+#include <display/display_events.hpp>
+
 #include "modules/module_connector.h"
 #include "systems/system_connector.h"
 
 #include "application/application.h"
-#include "events/events.hpp"
-
-#include "platform/platform_builder.hpp"
 
 // Modules
-#include "modules/platform_module.h"
 #include "modules/display_module.h"
-#include "modules/render/render_module.h"
 #include "modules/input_module.h"
-#include "modules/asset_module.h"
-#include "modules/debug_module.h"
 
 // Systems
 #include "systems/entity_component_system.h"
@@ -34,7 +31,7 @@ namespace aiko
         , m_shouldStop(false)
         , cfg(cfg)
     {
-        Log::init();
+        logger::Log::init();
         EventSystem::it().bind<WindowCloseEvent>(this, &Aiko::onWindowClose);
     }
 
@@ -68,12 +65,7 @@ namespace aiko
     {
 
         // Modules
-        m_modules.emplace_back(std::make_unique<PlatformModule>(this));
-        m_modules.emplace_back(modules::builder::getDisplaySystem(this));
-        m_modules.emplace_back(modules::builder::getRenderSystem(this));
         m_modules.emplace_back(std::make_unique<InputModule>(this));
-        m_modules.emplace_back(std::make_unique<AssetModule>(this));
-        m_modules.emplace_back(std::make_unique<DebugModule>(this));
 
         ModuleConnector moduleConnector(m_modules);
 

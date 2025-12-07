@@ -4,6 +4,7 @@
 #include "systems/render_system.h"
 #include "systems/asset_system.h"
 #include "constants.h"
+#include "models/mesh_factory.h"
 
 namespace aiko
 {
@@ -18,18 +19,20 @@ namespace aiko
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
         m_shader.load("cubes.vs", "cubes.fs");
-        m_mesh = m_renderSystem->createMesh(Mesh::MeshType::CUBE);
-        assert(m_shader.isvalid() && "Shader is invalid");
+        AIKO_ASSERT(m_shader.isvalid(), "Shader is invalid");
+        const Mesh::MeshData meshData = mesh::factory::generateCube();
+        m_mesh.setData(meshData);
+        AIKO_ASSERT(m_mesh.isValid(), "Mesh is invalid");
     }
 
     void MeshComponent::update()
     {
-        aiko::AikoPtr<Transform> transform = gameobject->transform();
+
     }
 
     void MeshComponent::render()
     {
-        m_renderSystem->render(gameobject->transform().get(), &m_mesh, &m_shader);
+        m_renderSystem->render(gameobject->transform(), m_mesh, m_shader);
     }
 
     void MeshComponent::load(const char* filename)

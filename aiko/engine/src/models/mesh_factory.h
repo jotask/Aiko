@@ -1,36 +1,30 @@
  #pragma once
 
-#include <vector>
-#include <array>
-
-#include "aiko_types.h"
-#include "time/mesh.h"
-#include "types/color.h"
+#include <aiko_types.h>
+#include <models/mesh.h>
 
 namespace aiko
 {
-    namespace mesh
+    namespace mesh::factory
     {
 
-        using VerticesColor = std::vector<aiko::Color>;
-
-        void generateNormals(Mesh& mesh);
+        void recalculateNormals(Mesh::MeshData& data);
 
         // 2D
-        void generatePoint(Mesh& mesh);
-        void generateLine(Mesh& mesh, vec3 start, vec3 end);
-        void generateQuad(Mesh& mesh);
-        void generateCircle(Mesh& mesh, uint segments = 32);
-        void generateTriangle(Mesh& mesh);
+        Mesh::MeshData generatePoint();
+        Mesh::MeshData generateLine(vec3 start, vec3 end);
+        Mesh::MeshData generateQuad();
+        Mesh::MeshData generateCircle(uint segments = 32);
+        Mesh::MeshData generateTriangle();
 
         // 3D
-        void generatePyramid(Mesh& mesh);
-        void generateMeshSphere(Mesh& mesh, int rings, int slices);
-        void generateCube(Mesh& mesh);
-        void generateMeshCylinder(Mesh& mesh, int slices);
-        void generateMeshPlane(Mesh& mesh, float width, float length, int resX, int resZ);
-        void generateMeshTorus(Mesh& mesh);
-        void generateMeshKnot(Mesh& mesh);
+        Mesh::MeshData generatePyramid();
+        Mesh::MeshData generateMeshSphere(int rings, int slices);
+        Mesh::MeshData generateCube();
+        Mesh::MeshData generateMeshCylinder();
+        Mesh::MeshData generateMeshPlane(float width, float length, int resX, int resZ);
+        Mesh::MeshData generateMeshTorus();
+        Mesh::MeshData generateMeshKnot();
 
     }
 

@@ -1,13 +1,13 @@
 #include "game_object.h"
 
-#include <stdexcept>
+#include "components/transform_component.h"
 
 namespace aiko
 {
 
-    aiko::AikoPtr<Transform> GameObject::transform()
+    Transform GameObject::transform()
     {
-        return getComponent<Transform>();
+        return getComponent<TransforComponent>()->transform;
     }
 
     void GameObject::update()

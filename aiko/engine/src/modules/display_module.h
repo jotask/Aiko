@@ -1,11 +1,11 @@
 #pragma once
 
-#include "aiko.h"
-#include "aiko_types.h"
+#include <aiko_types.h>
+#include <display/display.h>
+#include <math/math.h>
+#include <events/event.hpp>
+
 #include "base_module.h"
-#include "shared/math.h"
-#include "models/display.h"
-#include "events/event.hpp"
 
 namespace aiko
 {
@@ -20,15 +20,11 @@ namespace aiko
 
         Display& getCurrentDisplay() { return m_curent; };
 
-        void* getNativeDisplay();
-
     protected:
 
         virtual void preInit() override;
 
         Display m_curent;
-
-        string m_displayName;
 
         void onWindowResize(Event&);
     

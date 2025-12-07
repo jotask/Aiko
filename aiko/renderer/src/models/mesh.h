@@ -20,6 +20,22 @@
     {
     public:
 
+         struct MeshData
+         {
+
+             using Vertices = std::vector<vec3>;
+             using TeexCoords = std::vector<vec2>;
+             using Normals = std::vector<vec3>;
+             using Colors = std::vector<Color>;
+             using Indices = std::vector<uint32_t>;
+
+             Vertices m_vertices;
+             TeexCoords m_teexCoord;
+             Normals m_normals;
+             Colors m_colors;
+             Indices m_indices;
+         };
+
         friend class renderer::RendererFactory;
 
          // Copy
@@ -35,27 +51,17 @@
 
         void* getImpl() const { return backend.get(); }
 
-         virtual bool isValid();
-         virtual void unload();
-         virtual void refresh();
+        virtual bool isValid();
+        virtual void unload();
+        virtual void refresh();
 
-    // private:
-
-        using Vertices = std::vector<vec3>;
-        using TeexCoords = std::vector<vec2>;
-        using Normals = std::vector<vec3>;
-        using Colors = std::vector<Color>;
-        using Indices = std::vector<uint32_t>;
-
-        Vertices m_vertices;
-        TeexCoords m_teexCoord;
-        Normals m_normals;
-        Colors m_colors;
-        Indices m_indices;
+        MeshData getData() const;
+        void setData(const MeshData data);
 
      private:
 
         AikoPtr<interfaces::IMeshImpl> backend;
+        MeshData m_data;
 
     };
 

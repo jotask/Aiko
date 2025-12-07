@@ -1,26 +1,26 @@
 #pragma once
 
-#include "aiko_types.h"
+#include <vector>
+
+#include <aiko_types.h>
+#include <math/math.h>
+#include <core/transform.h>
+
 #include "models/component.h"
-#include "shared/math.h"
 
 namespace aiko
 {
-    class Camera;
-    class Transform : public Component
+
+    class TransforComponent : public Component
     {
     public:
-        Transform();
-        virtual ~Transform() = default;
+        TransforComponent();
+        virtual ~TransforComponent() = default;
 
-        Transform* parent;
-        std::vector<Transform*> childs;
+        TransforComponent* parent;
+        std::vector<TransforComponent*> childs;
 
-        vec3 position = vec3(0.0f);
-        vec3 rotation = vec3(0.0f);
-        vec3 scale = vec3(1.0f);
-
-        mat4 getMatrix();
+        Transform transform;
 
     };
 

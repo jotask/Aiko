@@ -2,10 +2,11 @@
 
 #include <map>
 
+#include <math/math.h>
+#include <events/event.hpp>
+
 #include "base_module.h"
 #include "types/inputs.h"
-#include "shared/math.h"
-#include "events/event.hpp"
 
 namespace aiko
 {

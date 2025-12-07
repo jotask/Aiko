@@ -20,6 +20,7 @@ namespace aiko::bgfx
         virtual void use() override;
         virtual void unuse() override;
         virtual bool isValid() const override;
+        virtual texture::Texture getInfo() override;
 
         // load
         virtual void create(int width, int height) override;

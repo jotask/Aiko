@@ -31,6 +31,11 @@ namespace aiko
         return backend->id();
     }
 
+    texture::Texture Texture::getInfo() const
+    {
+        return backend->getInfo();
+    }
+
     void Texture::create()
     {
         this->create(1, 1);

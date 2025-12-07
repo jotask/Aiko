@@ -35,9 +35,19 @@ namespace aiko::bgfx
     void BgfxMeshImpl::refresh()
     {
 
+        if (::bgfx::isValid(m_vertexBuffer) == true)
+        {
+            ::bgfx::destroy(m_vertexBuffer);
+        }
+
         const auto vertices = convertToVBH();
         const ::bgfx::Memory* memV = ::bgfx::copy(vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(VertexInformation)));
         m_vertexBuffer = ::bgfx::createVertexBuffer(memV, s_global_layout);;
+
+        if (::bgfx::isValid(m_indexBuffer) == true)
+        {
+            ::bgfx::destroy(m_indexBuffer);
+        }
 
         const auto indices = convertToIBH();
         const ::bgfx::Memory* memI = ::bgfx::copy(indices.data(), static_cast<uint32_t>(indices.size() * sizeof(uint16_t)));
@@ -48,25 +58,26 @@ namespace aiko::bgfx
     std::vector<VertexInformation> BgfxMeshImpl::convertToVBH()
     {
 
+        const Mesh::MeshData data = m_mesh->getData();
         std::vector<VertexInformation> vertices;
 
-        for (size_t i = 0; i < m_mesh->m_vertices.size(); ++i)
+        for (size_t i = 0; i < data.m_vertices.size(); ++i)
         {
             VertexInformation v{0};
 
             // position
-            const auto vertex = m_mesh->m_vertices[i];
+            const auto vertex = data.m_vertices[i];
             v.x = vertex.x;
             v.y = vertex.y;
             v.z = vertex.z;
 
             // uv
-            const auto textCoord = m_mesh->m_teexCoord[i];
+            const auto textCoord = data.m_teexCoord[i];
             v.u = textCoord.x;
             v.v = textCoord.y;
 
             // color
-            const auto color = m_mesh->m_colors[i];
+            const auto color = data.m_colors[i];
 
             uint8_t r = static_cast<uint8_t>(color.r * 255.0f);
             uint8_t g = static_cast<uint8_t>(color.g * 255.0f);
@@ -77,7 +88,7 @@ namespace aiko::bgfx
             v.abgr = (uint32_t(a) << 24) | (uint32_t(b) << 16) | (uint32_t(g) << 8) | uint32_t(r);
 
             // Normal
-            const auto normal = m_mesh->m_normals[i];
+            const auto normal = data.m_normals[i];
             v.n_x = normal.x;
             v.n_y = normal.y;
             v.n_z = normal.z;
@@ -91,9 +102,12 @@ namespace aiko::bgfx
 
     std::vector<uint16_t> BgfxMeshImpl::convertToIBH()
     {
+
+        const Mesh::MeshData data = m_mesh->getData();
+
         std::vector<uint16_t> indices16;
-        indices16.reserve(m_mesh->m_indices.size());
-        for (uint32_t idx : m_mesh->m_indices)
+        indices16.reserve(data.m_indices.size());
+        for (uint32_t idx : data.m_indices)
         {
             indices16.push_back(static_cast<uint16_t>(idx));
         }

@@ -45,7 +45,7 @@ namespace aiko
         string getName() const { return name; }
         void setName( string newName ) { name = newName; }
 
-        aiko::AikoPtr<Transform> transform();
+        Transform transform();
 
         // FIXME: For now, so we can easily get components
         template<class T>

@@ -1,10 +1,11 @@
 #include "components/camera_component.h"
 
+#include <time/time.h>
+#include <math/math.h>
+
 #include "systems/camera_system.h"
 #include "systems/input_system.h"
 #include "models/camera.h"
-#include "models/time.h"
-#include "shared/math.h"
 
 namespace aiko
 {
@@ -14,7 +15,7 @@ namespace aiko
     {
     }
 
-    CameraComponent::CameraComponent(camera::CameraController controller, camera::CameraType type)
+    CameraComponent::CameraComponent(camera::CameraController controller, Camera::CameraType type)
         : Component("Camera")
         , m_camera(nullptr)
         , cameraControler(controller)
@@ -23,12 +24,12 @@ namespace aiko
 
     }
     
-    camera::CameraType CameraComponent::getCameraType() const
+    Camera::CameraType CameraComponent::getCameraType() const
     {
         return m_camera->getCameraType();
     }
     
-    void CameraComponent::setCameraType(camera::CameraType newType)
+    void CameraComponent::setCameraType(Camera::CameraType newType)
     {
         m_camera->setCameraType(newType);
     }
@@ -197,7 +198,7 @@ namespace aiko
         }
         break;
         default:
-            Log::error("CAMERA :: UPDATE :: UNKNOW CONTROLLER");
+            logger::Log::error("CAMERA :: UPDATE :: UNKNOW CONTROLLER");
             break;
         }
     }

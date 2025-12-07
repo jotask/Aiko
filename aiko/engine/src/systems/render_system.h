@@ -3,17 +3,17 @@
 #include <memory>
 #include <vector>
 
-#include "aiko_types.h"
+#include <aiko_types.h>
+#include <models/shader.h>
+#include <models/mesh.h>
+#include <models/light.h>
+#include <models/texture.h>
+#include <types/textures.h>
+#include <render_module.h>
+
 #include "systems/base_system.h"
 #include "models/game_object.h"
-#include "models/mesh.h"
-#include "models/light.h"
-#include "models/shader.h"
 #include "models/model.h"
-#include "models/texture.h"
-#include "types/textures.h"
-#include "modules/render/render_module.h"
-#include "types/asset_type.h"
 
 namespace aiko
 {
@@ -35,24 +35,13 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
 
-        Mesh createMesh(Mesh::MeshType type);
-        void refreshMesh(Mesh*);
-        aiko::AikoPtr<Light> createLight();
-        texture::PboTexture createPboTexture(uint16_t width, uint16_t height);
-
-        void updatePbo(texture::PboTexture text, std::vector<Color>&);
-
         void add(Light*);
-        void render(Transform* trans, Model* model);
-        void render(Transform* trans, Mesh* mesh, Shader* shader);
-        void render(Transform* trans, Mesh* mesh, Shader* shader, Texture*);
-        void render(Transform* trans, Mesh* mesh, Shader* shader, texture::PboTexture*);
-        void render(texture::RenderTexture2D&, Shader*);
-        void renderToFullScreen(Shader*);
+        void render(const Transform& trans, const Model& model);
+        void render(const Transform& trans, const Mesh&, const Shader&);
+        void render(const Transform& trans, const Mesh&, const Shader&, const Texture&);
+        void render(const FrameBuffer&, const Shader&);
 
-        texture::RenderTexture2D* getTargetTexture() const;
-
-        void unloadShader(Shader* data);
+        AikoPtr<FrameBuffer> getTargetTexture() const;
 
         Camera* getMainCamera();
 
@@ -64,8 +53,7 @@ namespace aiko
         virtual void connect(ModuleConnector*, SystemConnector*) override;
     
     private:
-    
-        RenderModule* m_renderModule;
+
         CameraSystem* m_cameraSystem;
 
     // ---------------------------------------------------

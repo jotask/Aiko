@@ -7,7 +7,7 @@ namespace aiko
 	namespace bgfx
 	{
 
-		u32 convertColorToBgfx(Color c)
+		inline u32 convertColorToBgfx(Color c)
 		{
 			uint8_t red = static_cast<uint8_t>(c.r * 255.0f);
 			uint8_t green = static_cast<uint8_t>(c.g * 255.0f);

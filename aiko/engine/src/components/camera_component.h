@@ -1,7 +1,9 @@
 #pragma once
 
+#include <models/camera.h>
+
 #include "models/component.h"
-#include "types/camera_types.h"
+#include "types/camera_controller_types.h"
 
 namespace aiko
 {
@@ -13,11 +15,11 @@ namespace aiko
     {
     public:
         CameraComponent();
-        CameraComponent(camera::CameraController, camera::CameraType type = camera::CameraType::Perspective);
+        CameraComponent(camera::CameraController, Camera::CameraType type = Camera::CameraType::Perspective);
         virtual ~CameraComponent() = default;
     
-        camera::CameraType getCameraType() const;
-        void setCameraType(camera::CameraType);
+        Camera::CameraType getCameraType() const;
+        void setCameraType(Camera::CameraType);
     
         camera::CameraController getCameraController() const;
         void setCameraController(camera::CameraController);
@@ -36,7 +38,7 @@ namespace aiko
     private:
 
         InputSystem* m_inputSystem;
-        camera::CameraType m_type;
+        Camera::CameraType m_type;
 
         // Orbit
         float m_radius = 3.5f;

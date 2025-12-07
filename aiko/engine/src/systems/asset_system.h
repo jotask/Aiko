@@ -10,8 +10,8 @@
 #include "models/shader.h"
 #include "models/mesh.h"
 #include "models/model.h"
-#include "types/camera_types.h"
-#include "shared/math.h"
+#include "types/camera_controller_types.h"
+#include <math/math.h>
 #include "types/asset_type.h"
 #include "core/uuid.h"
 

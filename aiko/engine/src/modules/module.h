@@ -35,7 +35,7 @@ namespace aiko
     
         virtual void dispose() = 0;
     
-        Aiko const* getAiko() const { return aiko; }
+        [[nodiscard]] Aiko const* getAiko() const { return aiko; }
 
     private:
         Aiko const* aiko;

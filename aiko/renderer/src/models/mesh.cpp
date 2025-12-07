@@ -16,6 +16,17 @@ namespace aiko
         backend->refresh();
     }
 
+    Mesh::MeshData Mesh::getData() const
+    {
+        return m_data;
+    }
+
+    void Mesh::setData(const MeshData data)
+    {
+        m_data = data;
+        refresh();
+    }
+
     bool Mesh::isValid()
     {
         return backend->isValid();

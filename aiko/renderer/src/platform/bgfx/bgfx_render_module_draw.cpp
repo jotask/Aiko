@@ -145,8 +145,8 @@ namespace aiko::bgfx
             const ::bgfx::UniformHandle u_flags = program->getUniformHandle("u_flags");
 
 		    const bool useTexture = material->m_diffuse.isValid();
-		    const bool useVertexColor = false;
-		    const bool useLighting = true;
+		    constexpr bool useVertexColor = false;
+		    constexpr bool useLighting = true;
 
             const float flags[4] = { TO_BGFX_BOOL(useTexture), TO_BGFX_BOOL(useVertexColor), TO_BGFX_BOOL(useLighting), 0.0f };
             ::bgfx::setUniform(u_flags, &flags);
@@ -174,8 +174,10 @@ namespace aiko::bgfx
 
         ::bgfx::setViewTransform(AIKO_TO_VIEWID(currentViewId), viewMatrix.data(), projMatrix.data());
 
-        const uint32_t numVertices = mesh->m_vertices.size();
-        const uint32_t numIndices  = mesh->m_indices.size();
+        const Mesh::MeshData data = mesh->getData();
+
+        const uint32_t numVertices = data.m_vertices.size();
+        const uint32_t numIndices  = data.m_indices.size();
 
         // Check if enough space is available for this frame
         if (::bgfx::getAvailTransientVertexBuffer(numVertices, s_global_layout) >= numVertices &&
@@ -189,7 +191,7 @@ namespace aiko::bgfx
             ::bgfx::allocTransientIndexBuffer(&tib, numIndices);
 
             // Vertices
-            VertexInformation* verts = (VertexInformation*)tvb.data;
+            VertexInformation* verts = (VertexInformation *)tvb.data;
             GET_BACKEND_IMPL(mesh->getImpl(), BgfxMeshImpl, m)
 
             const auto localVertex = m->convertToVBH();

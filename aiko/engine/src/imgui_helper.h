@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #include <aiko_types.h>
 #include "types/color.h"
 
