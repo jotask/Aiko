@@ -1,6 +1,7 @@
  #pragma once
 
 #include <aiko_types.h>
+#include <math/math.h>
 
 #include "models/texture.h"
 #include "interfaces/iframebuffer_impl.h"
@@ -31,14 +32,17 @@
 
         void* getImpl() const { return backend.get(); }
 
-        virtual void use() = 0;
-        virtual void unuse() = 0;
-        virtual bool isValid() = 0;
-        virtual uint id() const = 0;
+        void use();
+        void unuse();
+        bool isValid();
+        uint id() const;
 
         // load
-        virtual void create(int width, int height) = 0;
-        virtual void unload() = 0;
+        void create(int width, int height);
+        void unload();
+
+        // getter
+        ivec2 getSize() const;
 
     private:
 

@@ -4,6 +4,7 @@
 #include <aiko_renderer.h>
 
 #include "aiko.h"
+#include "display/display_manager.h"
 #include "systems/asset_system.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
@@ -26,20 +27,14 @@ namespace aiko
 
     vec2 Application::getViewportSize() const
     {
-        auto target = getTargetTexture();
-        return { static_cast<float>(target->texture.width) , static_cast<float>(target->texture.height) };
+        auto screen = AikoRenderer::it().getScreenFbo();
+        return screen->getViewportSize();
     }
 
     float Application::getAspectRatio() const
     {
-        auto target = getTargetTexture();
-        return static_cast<float>(target->texture.width) / static_cast<float>(target->texture.height);
-    }
-
-    texture::RenderTexture2D* Application::getTargetTexture() const
-    {
-        static auto rs = m_aiko->getSystem<RenderSystem>();
-        return rs->getTargetTexture();
+        auto target = getViewportSize();
+        return target.x / target.x;
     }
 
     AssetSystem* Application::getAssetSystem() const

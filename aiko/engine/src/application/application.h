@@ -2,10 +2,8 @@
 
 #include <aiko_types.h>
 #include <math/math.h>
-#include <types/textures.h>
 
 #include "aiko.h"
-#include "types/inputs.h"
 
 namespace aiko
 {

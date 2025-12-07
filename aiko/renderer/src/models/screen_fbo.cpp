@@ -41,4 +41,8 @@ namespace aiko
         backend->unload();
     }
 
+    ivec2 ScreenFbo::getViewportSize() const
+    {
+        return backend->getViewportSize();
+    }
 }

@@ -22,6 +22,9 @@ namespace aiko
             virtual void create(int width, int height) = 0;
             virtual void unload() = 0;
 
+            // getter
+            virtual ivec2 getViewportSize() const = 0;
+
         };
     }
 }

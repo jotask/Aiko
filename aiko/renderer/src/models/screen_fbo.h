@@ -1,6 +1,7 @@
  #pragma once
 
 #include <aiko_types.h>
+#include <math/math.h>
 
 #include "models/texture.h"
 #include "interfaces/iscreenfbo_impl.h"
@@ -27,17 +28,20 @@ namespace aiko
         ScreenFbo& operator=(ScreenFbo&&) noexcept = default;
 
         ScreenFbo();
-        virtual ~ScreenFbo() = default;
+        ~ScreenFbo() = default;
 
-        virtual void use() = 0;
-        virtual void unuse() = 0;
-        virtual bool isValid() = 0;
-        virtual uint id() const = 0;
-        virtual void destroy() = 0;
+        void use();
+        void unuse();
+        bool isValid();
+        uint id() const;
+        void destroy();
 
         // load
-        virtual void create(int width, int height) = 0;
-        virtual void unload() = 0;
+        void create(int width, int height);
+        void unload();
+
+        // getters
+        ivec2 getViewportSize() const;
 
         void* getImpl() const { return backend.get(); }
 

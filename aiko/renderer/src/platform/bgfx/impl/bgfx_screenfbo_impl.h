@@ -1,10 +1,12 @@
 #pragma once
 
 #include <aiko_types.h>
-#include <bgfx/bgfx.h>
+#include <math/math.h>
 
 #include "interfaces/iscreenfbo_impl.h"
 #include "models/frame_buffer.h"
+
+#include <bgfx/bgfx.h>
 
 namespace aiko::bgfx
 {
@@ -24,6 +26,9 @@ namespace aiko::bgfx
         // load
         virtual void create(int width, int height) override;
         virtual void unload() override;
+
+        // getter
+        virtual ivec2 getViewportSize() const override;
 
         FrameBuffer* getFrameBuffer() const { return m_frameBuffer.get(); }
 

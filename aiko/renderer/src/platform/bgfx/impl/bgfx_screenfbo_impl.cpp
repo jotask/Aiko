@@ -1,5 +1,7 @@
 #include "bgfx_screenfbo_impl.h"
 
+#include "platform/bgfx/impl/bgfx_framebuffer_impl.h"
+
 #include <logger/logger.h>
 
 #include <bgfx/bgfx.h>
@@ -45,4 +47,8 @@ namespace aiko::bgfx
         // TODO
     }
 
+    ivec2 BgfxScreenFboImpl::getViewportSize() const
+    {
+        return m_frameBuffer->getSize();
+    }
 }

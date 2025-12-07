@@ -4,19 +4,18 @@
 
 #include <math/math.h>
 #include <events/event.hpp>
+#include <core/singleton.h>
 
-#include "base_module.h"
-#include "types/inputs.h"
+#include "inputs_types.h"
 
 namespace aiko
 {
-    class DisplayModule;
-    class InputModule : public BaseModule
+    class AikoInput : public Singleton<AikoInput>
     {
     public:
 
-        InputModule(Aiko* aiko) : BaseModule(aiko) { };
-        virtual ~InputModule() = default;
+        AikoInput();
+        ~AikoInput() = default;
 
         bool isKeyPressed(Key) const;
         bool isKeyJustPressed(Key) const;
@@ -30,22 +29,13 @@ namespace aiko
 
     protected:
 
-        virtual void connect(ModuleConnector*);
-
-        virtual void init() override;
-        virtual void endFrame() override;
+        void init();
+        void pollEvents();
 
     private:
 
         struct InputType
         {
-            enum class PressedType
-            {
-                RELEASE, // The key or mouse button was released.
-                PRESS, // The key or mouse button was pressed.
-                REPEAT, // The key was held down until it repeated.
-            };
-
             PressedType Type;
             bool justPressed;
         };
@@ -58,9 +48,7 @@ namespace aiko
         void onMouseMoved(Event& event);
         void OnMouseScrollCallback(Event& event);
 
-        InputType::PressedType convertToAction(int code);
-
-        DisplayModule* m_displayModule;
+        PressedType convertToAction(int code);
 
         vec2 m_mousePosition;
         vec2 m_mouseScrollBack;
