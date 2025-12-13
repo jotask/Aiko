@@ -7,8 +7,7 @@
 #include <aiko_types.h>
 #include <events/events.hpp>
 
-#include "aiko_renderer.h"
-#include "types/textures.h"
+#include "renderer/Irenderer.h"
 #include "models/shader.h"
 #include "models/model.h"
 #include "models/texture.h"
@@ -25,7 +24,7 @@ namespace aiko
 namespace aiko::bgfx
 {
 
-    class BgfxRenderer : public AikoRenderer
+    class BgfxRenderer : public interfaces::IAikoRenderer
     {
     
     public:
@@ -33,26 +32,23 @@ namespace aiko::bgfx
         using ViewId = uint16_t;
 
         BgfxRenderer();
-        virtual ~BgfxRenderer();
+        virtual ~BgfxRenderer() override;
 
-    protected:
-
-        virtual void init() override;
-
-        virtual void beginFrame() override;
-        virtual void endFrame() override;
-
-        virtual void dispose() override;
-    
     public:
 
-        virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*) override;
-        virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, Texture*) override;
-        virtual void renderMesh(Camera*, Transform*, Mesh*, Shader*, AikoPtr<FrameBuffer>) override;
-        virtual void renderTransientBuffer(Camera*, Transform*, Shader*, Mesh*) override;
-        virtual void renderModel(Camera*, Transform*, Model*) override;
+        virtual void init() override;
+        virtual void beginFrame() override;
+        virtual void endFrame() override;
+        virtual void dispose() override;
 
         virtual void clearBackground(Color) override;
+
+        virtual void render(Camera*, Transform*, Mesh*, Shader*) override;
+        virtual void render(Camera*, Transform*, Mesh*, Shader*, Texture*) override;
+        virtual void render(Camera*, Transform*, Model*) override;
+        virtual void render(Camera*, Transform*, Mesh*, Shader*, FrameBuffer) override;
+
+        virtual void renderTransientBuffer(Camera*, Transform*, Shader*, Mesh*) override;
 
         // Font
         virtual void drawText(string, float, float, float = 1.0f, Color = WHITE) override;

@@ -1,6 +1,6 @@
 #ifdef AIKO_BGFX
 
-#include "bgfx_render_module.h"
+#include "bgfx_aiko_renderer.h"
 
 #include <logger/logger.h>
 #include <events/events.hpp>
@@ -33,7 +33,7 @@ namespace aiko::bgfx
 {
 
     BgfxRenderer::BgfxRenderer()
-        : AikoRenderer()
+        : IAikoRenderer()
         , m_kViewMain(0)
         , m_kViewOffScreen(1)
         , currentViewId(m_kViewMain)
@@ -108,7 +108,7 @@ namespace aiko::bgfx
         // Set view to the fbo
         currentViewId = m_kViewOffScreen;
 
-        GET_BACKEND_IMPL(m_screenFbo->getImpl(), BgfxScreenFboImpl, screen);
+        GET_BACKEND_IMPL(m_screenFbo.getImpl(), BgfxScreenFboImpl, screen);
         GET_BACKEND_IMPL(screen->getFrameBuffer()->getImpl(), BgfxFrameBufferImpl, fbo);
         ::bgfx::setViewFrameBuffer(currentViewId, fbo->getFrameBufferHandler());
 
@@ -130,7 +130,7 @@ namespace aiko::bgfx
         GET_BACKEND_IMPL(m_passThrough.getImpl(), BgfxShaderImpl, pass)
         const ::bgfx::UniformHandle sampler = pass->getUniformHandle("u_texture");
 
-        GET_BACKEND_IMPL(m_screenFbo->getImpl(), BgfxScreenFboImpl, screen);
+        GET_BACKEND_IMPL(m_screenFbo.getImpl(), BgfxScreenFboImpl, screen);
         GET_BACKEND_IMPL(screen->getFrameBuffer()->getImpl(), BgfxFrameBufferImpl, fbo);
         ::bgfx::setTexture(0, sampler, fbo->getColorTextureHandler());
         
@@ -214,11 +214,6 @@ namespace aiko::bgfx
 
         const auto& msg = static_cast<const WindowResizeEvent&>(event);
 
-        if (m_scale == true)
-        {
-            return;
-        }
-
         const uint16_t screenWidth = msg.width;
         const uint16_t screenHeight = msg.height;
 
@@ -228,7 +223,7 @@ namespace aiko::bgfx
         ::bgfx::setViewRect(m_kViewMain, 0, 0, screenWidth, screenHeight);
         ::bgfx::setViewRect(m_kViewOffScreen, 0, 0, screenWidth, screenHeight);
 
-        m_screenFbo->destroy();
+        m_screenFbo.destroy();
         initScreenFbo();
 
     }

@@ -1,6 +1,6 @@
 #ifdef AIKO_BGFX
 
-#include "bgfx_render_module.h"
+#include "bgfx_aiko_renderer.h"
 
 #include <core/transform.h>
 
@@ -22,7 +22,7 @@ namespace aiko::bgfx
 
     #define AIKO_TO_VIEWID(view) static_cast<::bgfx::ViewId>(view)
 
-    void BgfxRenderer::renderMesh(Camera* cam,  Transform* transform, Mesh* mesh, Shader* shader)
+    void BgfxRenderer::render(Camera* cam,  Transform* transform, Mesh* mesh, Shader* shader)
     {
 
         const mat4 projMatrix = cam->getProjectionMatrix();
@@ -47,7 +47,7 @@ namespace aiko::bgfx
 
     }
 
-    void BgfxRenderer::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, Texture* text)
+    void BgfxRenderer::render(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, Texture* text)
     {
 
         const mat4 projMatrix = cam->getProjectionMatrix();
@@ -77,7 +77,7 @@ namespace aiko::bgfx
 
     }
 
-    void BgfxRenderer::renderMesh(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, AikoPtr<FrameBuffer> texture)
+    void BgfxRenderer::render(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, FrameBuffer texture)
     {
 
         const mat4 projMatrix = cam->getProjectionMatrix();
@@ -89,7 +89,7 @@ namespace aiko::bgfx
         GET_BACKEND_IMPL(shader->getImpl(), BgfxShaderImpl, program);
         const ::bgfx::UniformHandle sampler = program->getUniformHandle("u_texture");
 
-        GET_BACKEND_IMPL(texture->getImpl(), BgfxTextureImpl, text)
+        GET_BACKEND_IMPL(texture.getImpl(), BgfxTextureImpl, text)
         ::bgfx::setTexture(0, sampler, text->getTextureHandler(), BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT | BGFX_SAMPLER_MIP_POINT);
 
         // Set buffers
@@ -108,7 +108,7 @@ namespace aiko::bgfx
     }
 
 
-    void BgfxRenderer::renderModel(Camera* cam, Transform* transform, Model* model)
+    void BgfxRenderer::render(Camera* cam, Transform* transform, Model* model)
     {
         const mat4 projMatrix = cam->getProjectionMatrix();
         const mat4 viewMatrix = cam->getViewMatrix();
