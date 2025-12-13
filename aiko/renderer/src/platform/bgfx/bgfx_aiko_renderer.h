@@ -59,6 +59,8 @@ namespace aiko::bgfx
     
     private:
 
+        void initScreenFbo();
+
         const ViewId m_kViewOffScreen;
         const ViewId m_kViewMain;
 

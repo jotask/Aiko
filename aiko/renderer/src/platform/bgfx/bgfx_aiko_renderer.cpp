@@ -228,6 +228,11 @@ namespace aiko::bgfx
 
     }
 
+    void BgfxRenderer::initScreenFbo()
+    {
+        AIKO_NOT_IMPLEMENTED;
+    }
+
     void BgfxRenderer::clearBackground(Color color)
     {
         ::bgfx::setViewClear(currentViewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, convertColorToBgfx(color), 1.0f, 0);
