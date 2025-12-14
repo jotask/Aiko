@@ -4,6 +4,7 @@
 #include <aiko_types.h>
 
 #include "types/color.h"
+#include "models/frame_buffer.h"
 
 namespace aiko
 {
@@ -24,6 +25,8 @@ namespace aiko
 
             // getter
             virtual ivec2 getViewportSize() const = 0;
+
+            virtual FrameBuffer getFrameBuffer() const = 0;
 
         };
     }

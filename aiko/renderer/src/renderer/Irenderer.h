@@ -32,15 +32,20 @@ namespace aiko::interfaces
         virtual void clearBackground(Color) = 0;
 
         // Render models
-        virtual void render(Camera*, Transform*, Mesh*, Shader*) = 0;
-        virtual void render(Camera*, Transform*, Mesh*, Shader*, Texture*) = 0;
-        virtual void render(Camera*, Transform*, Model*) = 0;
-        virtual void render(Camera*, Transform*, Mesh*, Shader*, FrameBuffer) = 0;
+        virtual void render(const Camera*, const Transform*, const Mesh*, const Shader*) = 0;
+        virtual void render(const Camera*, const Transform*, const Mesh*, const Shader*, const Texture*) = 0;
+        virtual void render(const Camera*, const Transform*, const Model*) = 0;
+        virtual void render(const Camera*, const Transform*, const Mesh*, const Shader*, const FrameBuffer) = 0;
 
         virtual void renderTransientBuffer(Camera*, Transform*, Shader*, Mesh*) = 0;
 
         // Font
         virtual void drawText(string, float, float, float = 1.0f, Color = WHITE) = 0;
+
+        FrameBuffer getFrameBuffer() const
+        {
+            return m_screenFbo.getFrameBuffer();
+        }
 
     protected:
 

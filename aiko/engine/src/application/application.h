@@ -3,6 +3,8 @@
 #include <aiko_types.h>
 #include <math/math.h>
 
+#include <input/inputs_types.h>
+
 #include "aiko.h"
 
 namespace aiko

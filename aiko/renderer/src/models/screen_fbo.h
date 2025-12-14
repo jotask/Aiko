@@ -45,6 +45,8 @@ namespace aiko
 
         void* getImpl() const { return backend.get(); }
 
+        FrameBuffer getFrameBuffer() const;
+
     private:
 
         AikoPtr<interfaces::IScreenFboImpl> backend;

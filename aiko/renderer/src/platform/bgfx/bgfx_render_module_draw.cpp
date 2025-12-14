@@ -22,7 +22,7 @@ namespace aiko::bgfx
 
     #define AIKO_TO_VIEWID(view) static_cast<::bgfx::ViewId>(view)
 
-    void BgfxRenderer::render(Camera* cam,  Transform* transform, Mesh* mesh, Shader* shader)
+    void BgfxRenderer::render(const Camera* cam, const Transform* transform, const Mesh* mesh, const Shader* shader)
     {
 
         const mat4 projMatrix = cam->getProjectionMatrix();
@@ -47,7 +47,7 @@ namespace aiko::bgfx
 
     }
 
-    void BgfxRenderer::render(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, Texture* text)
+    void BgfxRenderer::render(const Camera* cam, const Transform* transform, const Mesh* mesh, const Shader* shader, const Texture* text)
     {
 
         const mat4 projMatrix = cam->getProjectionMatrix();
@@ -77,7 +77,7 @@ namespace aiko::bgfx
 
     }
 
-    void BgfxRenderer::render(Camera* cam, Transform* transform, Mesh* mesh, Shader* shader, FrameBuffer texture)
+    void BgfxRenderer::render(const Camera* cam, const Transform* transform, const Mesh* mesh, const Shader* shader, const FrameBuffer texture)
     {
 
         const mat4 projMatrix = cam->getProjectionMatrix();
@@ -108,7 +108,7 @@ namespace aiko::bgfx
     }
 
 
-    void BgfxRenderer::render(Camera* cam, Transform* transform, Model* model)
+    void BgfxRenderer::render(const Camera* cam, const Transform* transform, const Model* model)
     {
         const mat4 projMatrix = cam->getProjectionMatrix();
         const mat4 viewMatrix = cam->getViewMatrix();

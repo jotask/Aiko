@@ -45,4 +45,9 @@ namespace aiko
     {
         return backend->getViewportSize();
     }
+
+    FrameBuffer ScreenFbo::getFrameBuffer() const
+    {
+        return backend->getFrameBuffer();
+    }
 }

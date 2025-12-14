@@ -28,7 +28,7 @@ target_compile_definitions(Aiko PRIVATE ${AIKO_RENDER} )
 target_compile_definitions(Aiko PUBLIC NOMINMAX )
  
 target_compile_features(Aiko PRIVATE cxx_std_17)
-target_link_libraries(Aiko PRIVATE AikoCore AikoRenderer glfw TracyClient imgui EnTT assimp )
-target_link_libraries(Aiko PUBLIC magic_enum )
+target_link_libraries(Aiko PRIVATE AikoRenderer TracyClient EnTT assimp )
+target_link_libraries(Aiko PUBLIC AikoCore magic_enum )
 
 target_include_directories(Aiko PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

@@ -5,7 +5,7 @@
 namespace aiko
 {
 
-    Transform GameObject::transform()
+    Transform& GameObject::transform()
     {
         return getComponent<TransforComponent>()->transform;
     }

@@ -30,7 +30,7 @@ namespace aiko
         return view;
     }
 
-    mat4 Camera::getProjectionMatrix()
+    mat4 Camera::getProjectionMatrix() const
     {
         const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
         switch (m_cameraType)

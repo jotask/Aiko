@@ -15,15 +15,15 @@ namespace aiko
         obj->m_entity = createEntity();
         obj->setName(name);
         obj->aiko = aiko;
-        auto trans = obj->addComponent<Transform>();
+        auto trans = obj->addComponent<TransforComponent>();
         return obj;
     }
 
     aiko::AikoPtr<GameObject> EntityComponentSystem::createGameObject(GameObject* parent, string name)
     {
         aiko::AikoPtr<GameObject> obj = createGameObject(name);
-        parent->transform()->childs.push_back(obj->transform().get());
-        obj->transform()->parent = parent->transform().get();
+        parent->transform().childs.push_back(&obj->transform());
+        obj->transform().parent = &parent->transform();
         return obj;
     }
 

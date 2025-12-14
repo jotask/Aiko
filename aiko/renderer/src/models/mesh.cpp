@@ -5,6 +5,12 @@
 namespace aiko
 {
 
+    Mesh::Mesh(const MeshData data)
+        : Mesh()
+    {
+        setData(data);
+    }
+
     Mesh::Mesh()
         : backend(nullptr)
     {

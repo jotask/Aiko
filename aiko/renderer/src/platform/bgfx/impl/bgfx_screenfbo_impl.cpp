@@ -18,7 +18,7 @@ namespace aiko::bgfx
 
     uint BgfxScreenFboImpl::id() const
     {
-        return m_frameBuffer->id();
+        return m_frameBuffer.id();
     }
 
     void BgfxScreenFboImpl::use()
@@ -49,6 +49,6 @@ namespace aiko::bgfx
 
     ivec2 BgfxScreenFboImpl::getViewportSize() const
     {
-        return m_frameBuffer->getSize();
+        return m_frameBuffer.getSize();
     }
 }

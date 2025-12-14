@@ -12,7 +12,7 @@ PointerAlignment: Left
 IncludeBlocks: Regroup
 SortIncludes: true
 SpacesInParentheses: false
-SpaceBeforeParens: ControlStatements
+SpaceBeforeParens: Always
 Cpp11BracedListStyle: true
 ReflowComments: true
 Standard: c++17

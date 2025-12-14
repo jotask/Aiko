@@ -3,8 +3,6 @@
 #include <iostream>
 
 #include <fstream>
-#include <string>
-#include <cassert>
 #include <cstring> // For strcmp
 
 #include "aiko_includes.h"

@@ -43,10 +43,10 @@ namespace aiko::bgfx
 
         virtual void clearBackground(Color) override;
 
-        virtual void render(Camera*, Transform*, Mesh*, Shader*) override;
-        virtual void render(Camera*, Transform*, Mesh*, Shader*, Texture*) override;
-        virtual void render(Camera*, Transform*, Model*) override;
-        virtual void render(Camera*, Transform*, Mesh*, Shader*, FrameBuffer) override;
+        virtual void render(const Camera*, const Transform*, const Mesh*, const Shader*) override;
+        virtual void render(const Camera*, const Transform*, const Mesh*, const Shader*, const Texture*) override;
+        virtual void render(const Camera*, const Transform*, const Model*) override;
+        virtual void render(const Camera*, const Transform*, const Mesh*, const Shader*, const FrameBuffer) override;
 
         virtual void renderTransientBuffer(Camera*, Transform*, Shader*, Mesh*) override;
 

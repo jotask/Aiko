@@ -2,9 +2,10 @@
 
 #include <time/time.h>
 #include <aiko_renderer.h>
+#include <input/inputs_types.h>
 
 #include "aiko.h"
-#include "display/display_manager.h"
+#include "systems/camera_system.h"
 #include "systems/asset_system.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
@@ -27,8 +28,10 @@ namespace aiko
 
     vec2 Application::getViewportSize() const
     {
-        auto screen = AikoRenderer::it().getScreenFbo();
-        return screen->getViewportSize();
+        AIKO_NOT_IMPLEMENTED
+        // auto screen = AikoRenderer::it().getScreenFbo();
+        //return screen->getViewportSize();
+        return {};
     }
 
     float Application::getAspectRatio() const
@@ -57,7 +60,7 @@ namespace aiko
 
     Camera* Application::getMainCamera()
     {
-        static auto cs = m_aiko->getSystem<CameraSystem>();
+        auto cs = m_aiko->getSystem<CameraSystem>();
         return cs->getMainCamera();
     }
 

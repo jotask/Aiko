@@ -46,6 +46,7 @@
          Mesh(Mesh&&) noexcept = default;
          Mesh& operator=(Mesh&&) noexcept = default;
 
+        Mesh(const MeshData data);
         Mesh();
         ~Mesh() = default;
 

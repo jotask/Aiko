@@ -30,13 +30,13 @@ namespace aiko::bgfx
         // getter
         virtual ivec2 getViewportSize() const override;
 
-        FrameBuffer* getFrameBuffer() const { return m_frameBuffer.get(); }
+        FrameBuffer getFrameBuffer() const { return m_frameBuffer; }
 
     private:
 
         uint vao;
         uint vbo;
-        AikoPtr<FrameBuffer> m_frameBuffer;
+        FrameBuffer m_frameBuffer;
 
     };
 }

@@ -2,11 +2,11 @@
 
 #include <stdexcept>
 #include <memory>
-#include <cassert>
+
 #include <format>
 
 #include <aiko_types.h>
-#include <math//math.h>
+#include <math/math.h>
 #include <models/light.h>
 
 #include "modules/module_connector.h"
@@ -69,27 +69,28 @@ namespace aiko
 
     void RenderSystem::render( const Transform& trans, const Model& model)
     {
-        m_renderModule->renderModel(getMainCamera(), trans, model);
+        AikoRenderer::it().render(getMainCamera(), &trans, &model);
     }
    
     void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Shader& shader)
     {
-        m_renderModule->renderMesh(getMainCamera() , trans, mesh, shader);
+        AikoRenderer::it().render(getMainCamera(), &trans, &mesh, &shader);
     }
 
     void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Shader& shader, const Texture& texture)
     {
-        m_renderModule->renderMesh(getMainCamera(), trans, mesh, shader, texture);
+        AikoRenderer::it().render(getMainCamera(), &trans, &mesh, &shader, &texture);
     }
 
-    AikoPtr<FrameBuffer> RenderSystem::getTargetTexture() const
+    FrameBuffer RenderSystem::getTargetTexture() const
     {
-        return m_renderModule->getRenderTexture();
+        return AikoRenderer::it().getTargetTexture();
     }
 
+
+    /*
     void RenderSystem::render(AikoPtr<FrameBuffer> target, AikoPtr<Shader> shader)
     {
-        /*
         m_renderModule->beginShaderMode(shader);
 
         Camera* cam = this->getMainCamera();
@@ -106,10 +107,10 @@ namespace aiko
         m_renderModule->drawRenderTextureEx(target, vec2(), 0.0f, 1.0f, WHITE );
 
         m_renderModule->endShaderMode();
-        */
         AIKO_DEBUG_BREAK
         AIKO_NOT_IMPLEMENTED;
     }
+    */
 
     Camera* RenderSystem::getMainCamera()
     {

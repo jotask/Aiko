@@ -109,7 +109,7 @@ namespace aiko::bgfx
         currentViewId = m_kViewOffScreen;
 
         GET_BACKEND_IMPL(m_screenFbo.getImpl(), BgfxScreenFboImpl, screen);
-        GET_BACKEND_IMPL(screen->getFrameBuffer()->getImpl(), BgfxFrameBufferImpl, fbo);
+        GET_BACKEND_IMPL(screen->getFrameBuffer().getImpl(), BgfxFrameBufferImpl, fbo);
         ::bgfx::setViewFrameBuffer(currentViewId, fbo->getFrameBufferHandler());
 
         const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
@@ -131,7 +131,7 @@ namespace aiko::bgfx
         const ::bgfx::UniformHandle sampler = pass->getUniformHandle("u_texture");
 
         GET_BACKEND_IMPL(m_screenFbo.getImpl(), BgfxScreenFboImpl, screen);
-        GET_BACKEND_IMPL(screen->getFrameBuffer()->getImpl(), BgfxFrameBufferImpl, fbo);
+        GET_BACKEND_IMPL(screen->getFrameBuffer().getImpl(), BgfxFrameBufferImpl, fbo);
         ::bgfx::setTexture(0, sampler, fbo->getColorTextureHandler());
         
         auto screenSpaceQuad = [](float width, float heigh)

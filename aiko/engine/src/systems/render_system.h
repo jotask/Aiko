@@ -39,9 +39,8 @@ namespace aiko
         void render(const Transform& trans, const Model& model);
         void render(const Transform& trans, const Mesh&, const Shader&);
         void render(const Transform& trans, const Mesh&, const Shader&, const Texture&);
-        void render(const FrameBuffer&, const Shader&);
 
-        AikoPtr<FrameBuffer> getTargetTexture() const;
+        FrameBuffer getTargetTexture() const;
 
         Camera* getMainCamera();
 

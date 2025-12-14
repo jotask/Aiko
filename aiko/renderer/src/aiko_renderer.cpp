@@ -47,22 +47,22 @@ namespace aiko
         m_renderer->setBackgroundColor(color);
     }
 
-    void AikoRenderer::render(Camera* cam, Transform* trans, Mesh* mesh, Shader* shader)
+    void AikoRenderer::render(const Camera* cam, const Transform* trans, const Mesh* mesh, const Shader* shader)
     {
         m_renderer->render(cam, trans, mesh, shader);
     }
 
-    void AikoRenderer::render(Camera* cam, Transform* trans, Mesh* mesh, Shader* shader, Texture* texture)
+    void AikoRenderer::render(const Camera* cam, const Transform* trans, const Mesh* mesh, const Shader* shader, const Texture* texture)
     {
         m_renderer->render(cam, trans, mesh, shader, texture);
     }
 
-    void AikoRenderer::render(Camera* cam, Transform* trans, Model* model)
+    void AikoRenderer::render(const Camera* cam, const Transform* trans, const Model* model)
     {
         m_renderer->render(cam, trans, model);
     }
 
-    void AikoRenderer::render(Camera* cam, Transform* trans, Mesh* mesh, Shader* shader, FrameBuffer frame_buffer)
+    void AikoRenderer::render(const Camera* cam, const Transform* trans, const Mesh* mesh, const Shader* shader, const FrameBuffer frame_buffer)
     {
         m_renderer->render(cam, trans, mesh, shader, frame_buffer);
     }
@@ -70,5 +70,10 @@ namespace aiko
     void AikoRenderer::drawText(string str, float x, float y, float size, Color color)
     {
         m_renderer->drawText(str, x, y, size, color);
+    }
+
+    FrameBuffer AikoRenderer::getTargetTexture() const
+    {
+        return m_renderer->getFrameBuffer();
     }
 }

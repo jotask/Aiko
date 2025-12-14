@@ -11,12 +11,14 @@
 
 // Modules
 #include "modules/display_module.h"
+#include "modules/render_module.h"
 #include "modules/input_module.h"
 
 // Systems
 #include "systems/entity_component_system.h"
 #include "systems/render_system.h"
 #include "systems/asset_system.h"
+#include "systems/camera_system.h"
 #include "systems/input_system.h"
 #include "systems/particle_system/particle_system.h"
 
@@ -64,6 +66,8 @@ namespace aiko
     {
 
         // Modules
+        m_modules.emplace_back(std::make_unique<DisplayModule>(this));
+        m_modules.emplace_back(std::make_unique<RenderModule>(this));
         m_modules.emplace_back(std::make_unique<InputModule>(this));
 
         ModuleConnector moduleConnector(m_modules);
