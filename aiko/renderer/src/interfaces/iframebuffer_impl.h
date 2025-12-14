@@ -22,6 +22,8 @@ namespace aiko
             virtual void create(int width, int height) = 0;
             virtual void unload() = 0;
 
+            virtual ivec2 getSize() const = 0;
+
         };
     }
 }

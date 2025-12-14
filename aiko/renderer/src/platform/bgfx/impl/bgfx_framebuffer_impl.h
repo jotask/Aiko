@@ -2,6 +2,9 @@
 
 #include <aiko_types.h>
 #include <bgfx/bgfx.h>
+#include <math/math.h>
+
+#include <types/textures.h>
 
 #include "interfaces/iframebuffer_impl.h"
 
@@ -28,6 +31,8 @@ namespace aiko::bgfx
 
         virtual void unload() override;
 
+        virtual ivec2 getSize() const override;
+
         ::bgfx::TextureHandle getColorTextureHandler() const { return m_colorTexture; }
         ::bgfx::TextureHandle getDepthTextureHandler() const { return m_depthTexture; }
         ::bgfx::FrameBufferHandle getFrameBufferHandler() const { return m_frameBuffer; }
@@ -35,6 +40,10 @@ namespace aiko::bgfx
     private:
         ::bgfx::TextureHandle m_colorTexture;
         ::bgfx::TextureHandle m_depthTexture;
+
+        texture::Texture colorTextureInfo;
+        texture::Texture depthTextureInfo;
+
         ::bgfx::FrameBufferHandle m_frameBuffer;
     };
 }

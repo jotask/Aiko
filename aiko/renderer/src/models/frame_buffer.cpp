@@ -41,4 +41,9 @@ namespace aiko
         backend->unload();
     }
 
+    ivec2 FrameBuffer::getSize() const
+    {
+        return backend->getSize();
+    }
+
 }

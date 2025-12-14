@@ -178,7 +178,7 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         t.position = pos;
-        const Mesh mesh(mesh::factory::generateMeshCylinder());
+        const Mesh mesh(mesh::factory::generateMeshCylinder(sectors));
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }

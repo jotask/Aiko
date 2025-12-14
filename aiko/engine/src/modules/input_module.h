@@ -9,10 +9,7 @@ namespace aiko
     public:
 
         InputModule(Aiko* aiko) : BaseModule(aiko) { };
-        virtual ~InputModule() = default;
-
-        virtual void init() override;
-        virtual void endFrame() override;
+        virtual ~InputModule() override = default;
 
     };
 

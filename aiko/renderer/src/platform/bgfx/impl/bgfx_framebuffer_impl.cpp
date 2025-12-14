@@ -48,6 +48,14 @@ namespace aiko::bgfx
             BGFX_TEXTURE_RT        // mark as render target
         );
 
+        colorTextureInfo = {0};
+        colorTextureInfo.id = m_colorTexture.idx;
+        colorTextureInfo.width = width;
+        colorTextureInfo.height = height;
+        colorTextureInfo.channels = 1;
+        colorTextureInfo.format = ::bgfx::TextureFormat::RGBA8;
+        colorTextureInfo.mipmaps = false;
+
         // Example: create a depth buffer texture
         m_depthTexture = ::bgfx::createTexture2D(
             width, height,         // width, height
@@ -56,6 +64,14 @@ namespace aiko::bgfx
             ::bgfx::TextureFormat::D24S8,
             BGFX_TEXTURE_RT
         );
+
+        depthTextureInfo = {0};
+        depthTextureInfo.id = m_colorTexture.idx;
+        depthTextureInfo.width = width;
+        depthTextureInfo.height = height;
+        depthTextureInfo.channels = 1;
+        depthTextureInfo.format = ::bgfx::TextureFormat::D24S8;
+        depthTextureInfo.mipmaps = false;
 
         std::vector<::bgfx::TextureHandle> fbTextures = { m_colorTexture, m_depthTexture };
         m_frameBuffer = ::bgfx::createFrameBuffer(fbTextures.size(), fbTextures.data(), true);
@@ -66,6 +82,11 @@ namespace aiko::bgfx
         ::bgfx::destroy(m_colorTexture);
         ::bgfx::destroy(m_depthTexture);
         ::bgfx::destroy(m_frameBuffer);
+    }
+
+    ivec2 BgfxFrameBufferImpl::getSize() const
+    {
+        return {colorTextureInfo.width, colorTextureInfo.height};
     }
 
 }

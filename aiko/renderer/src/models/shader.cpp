@@ -29,7 +29,7 @@ namespace aiko
 
     void Shader::load(const char* vs, const char* fs)
     {
-        if (backend->isValid() == true)
+        if (isvalid() == true)
         {
             unload();
         }
@@ -103,6 +103,11 @@ namespace aiko
     void Shader::unuse()
     {
         backend->unuse();
+    }
+
+    bool Shader::isvalid () const
+    {
+        return backend->isValid();
     }
 
 }

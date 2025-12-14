@@ -48,7 +48,7 @@ namespace aiko
 
         // 3D
 
-        Mesh::MeshData generateCube(Mesh& mesh)
+        Mesh::MeshData generateCube()
         {
 
             Mesh::MeshData data;
@@ -78,7 +78,7 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generatePyramid(Mesh& mesh)
+        Mesh::MeshData generatePyramid()
         {
 
             Mesh::MeshData data;
@@ -119,7 +119,7 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshSphere(Mesh& mesh, int rings, int slices)
+        Mesh::MeshData generateMeshSphere(int rings, int slices)
         {
 
             Mesh::MeshData data;
@@ -173,7 +173,7 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshCylinder(Mesh& mesh, int slices)
+        Mesh::MeshData generateMeshCylinder(int slices)
         {
 
             Mesh::MeshData data;
@@ -257,7 +257,7 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshPlane(Mesh& mesh, float width, float length, int resX, int resZ)
+        Mesh::MeshData generateMeshPlane(float width, float length, int resX, int resZ)
         {
 
             Mesh::MeshData data;
@@ -310,7 +310,7 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshTorus(Mesh& mesh)
+        Mesh::MeshData generateMeshTorus()
         {
 
             Mesh::MeshData data;
@@ -374,7 +374,7 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshKnot(Mesh& mesh)
+        Mesh::MeshData generateMeshKnot()
         {
 
             Mesh::MeshData data;
@@ -478,7 +478,7 @@ namespace aiko
 
         // 2D
 
-        Mesh::MeshData generatePoint(Mesh& mesh)
+        Mesh::MeshData generatePoint()
         {
 
             Mesh::MeshData data;
@@ -491,7 +491,7 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateLine(Mesh& mesh, vec3 start, vec3 end)
+        Mesh::MeshData generateLine(vec3 start, vec3 end)
         {
             Mesh::MeshData data;
             data.m_vertices.push_back(start);
@@ -505,7 +505,7 @@ namespace aiko
             return data;
         }
         
-        Mesh::MeshData generateQuad(Mesh& mesh)
+        Mesh::MeshData generateQuad()
         {
 
             Mesh::MeshData data;
@@ -537,7 +537,7 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateCircle(Mesh& mesh, uint segments)
+        Mesh::MeshData generateCircle(uint segments)
         {
 
             Mesh::MeshData data;
@@ -575,7 +575,7 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateTriangle(Mesh& mesh)
+        Mesh::MeshData generateTriangle()
         {
 
             Mesh::MeshData data;

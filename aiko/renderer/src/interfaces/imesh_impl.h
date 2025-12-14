@@ -12,7 +12,12 @@ namespace aiko
     {
         struct IMeshImpl
         {
-            IMeshImpl(const Mesh*);
+            IMeshImpl(const Mesh* mesh)
+                : m_mesh(mesh)
+            {
+
+            }
+
             virtual ~IMeshImpl() = default;
 
             virtual bool isValid() const = 0;

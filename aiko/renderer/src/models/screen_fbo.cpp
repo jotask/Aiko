@@ -31,6 +31,11 @@ namespace aiko
         return backend->id();
     }
 
+    void ScreenFbo::destroy()
+    {
+
+    }
+
     void ScreenFbo::create(int width, int height)
     {
         backend->create(width, height);

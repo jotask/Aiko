@@ -21,7 +21,7 @@ namespace aiko
         Mesh::MeshData generatePyramid();
         Mesh::MeshData generateMeshSphere(int rings, int slices);
         Mesh::MeshData generateCube();
-        Mesh::MeshData generateMeshCylinder();
+        Mesh::MeshData generateMeshCylinder(int slices);
         Mesh::MeshData generateMeshPlane(float width, float length, int resX, int resZ);
         Mesh::MeshData generateMeshTorus();
         Mesh::MeshData generateMeshKnot();
