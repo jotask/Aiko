@@ -12,7 +12,7 @@
 #include "types/camera_controller_types.h"
 #include "models/camera.h"
 #include "types/camera_controller_types.h"
-#include "input/inputs_types.h"
+#include "../../../renderer/src/input/inputs_types.h"
 
 namespace aiko
 {

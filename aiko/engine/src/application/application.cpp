@@ -98,14 +98,14 @@ namespace aiko
         return inputSystem->isMouseButtonPressed(button);
     }
 
-    GameObject* Application::Instantiate(char* name)
+    GameObject* Application::Instantiate(string name)
     {
         EntityComponentSystem* ecs = m_aiko->getSystem<EntityComponentSystem>();
         GameObject* obj = ecs->createGameObject(name).get();
         return obj;
     }
 
-    GameObject* Application::Instantiate(GameObject* parent, char* name)
+    GameObject* Application::Instantiate(GameObject* parent, string name)
     {
         EntityComponentSystem* ecs = m_aiko->getSystem<EntityComponentSystem>();
         GameObject* obj = ecs->createGameObject(parent, name).get();

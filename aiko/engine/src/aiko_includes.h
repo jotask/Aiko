@@ -4,9 +4,9 @@
 #include "aiko.h"
 #include "constants.h"
 
-#include "core/uuid.h"
-#include "core/log.h"
-#include "core/utils.h"
+#include <core/uuid.h>
+#include <logger/logger.h>
+#include <core/utils.h>
 
 #include "events/event_dispatcher.hpp"
 
@@ -14,7 +14,6 @@
 #include "components/mesh_component.h"
 #include "components/light_component.h"
 #include "components/texture_component.h"
-#include "components/pbo_texture_component.h"
 #include "components/grid_component.h"
 #include "components/2d/sprite_component.h"
 
@@ -22,8 +21,8 @@
 #include "models/mesh.h"
 #include "models/camera.h"
 #include "models/game_object.h"
-#include "models/time.h"
-#include "models/input.h"
+#include "time/time.h"
+#include "input/inputs_types.h"
 
 #include "types/render_types.h"
 #include "types/camera_controller_types.h"
@@ -35,5 +34,5 @@
 #include "systems/input_system.h"
 #include "systems/entity_component_system.h"
 
-#include "shared/singleton.h"
-#include "shared/math.h"
+#include "core/singleton.h"
+#include "math/math.h"

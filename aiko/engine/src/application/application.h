@@ -50,8 +50,8 @@ namespace aiko
 
         aiko::AikoUPtr<Aiko> m_aiko;
 
-        GameObject* Instantiate(char* name);
-        GameObject* Instantiate(GameObject* , char* name);
+        GameObject* Instantiate(string name);
+        GameObject* Instantiate(GameObject* , string name);
 
         // Draw text
         void drawText(string, float, float);
