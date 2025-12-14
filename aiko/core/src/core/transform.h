@@ -6,7 +6,7 @@
 
 namespace aiko
 {
-    struct Transform
+    struct AIKO_API Transform
     {
         Transform* parent;
         std::vector<Transform*> childs;

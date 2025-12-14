@@ -9,7 +9,7 @@ namespace aiko
 {
     namespace interfaces
     {
-        struct IFrameBufferImpl
+        struct AIKO_API IFrameBufferImpl
         {
             virtual ~IFrameBufferImpl() = default;
 

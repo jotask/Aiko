@@ -1,10 +1,12 @@
 #pragma once
 
+#include <aiko_types.h>
+
 class GLFWwindow;
 
 namespace aiko
 {
-    class AikoImgui
+    class AIKO_API AikoImgui
     {
         friend class AikoRenderer;
         static void init(GLFWwindow* window);

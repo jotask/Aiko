@@ -12,7 +12,7 @@ namespace aiko
         class RendererFactory;
     }
 
-    class Shader
+    class AIKO_API Shader
     {
     public:
 

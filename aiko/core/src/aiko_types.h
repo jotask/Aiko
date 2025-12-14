@@ -37,6 +37,13 @@ namespace aiko
     #endif
     #define AIKO_ASSERT(cond, msg) assert(cond && msg);
 
+    #ifdef _WIN32
+    #define AIKO_API __declspec(dllexport)
+    // TODO RELEASE sets to dllimport
+    #else
+    #define AIKO_API
+    #endif
+
     template<typename ... Args>
     string string_format(const string& format, Args ... args)
     {

@@ -13,7 +13,7 @@
 namespace aiko
 {
 
-    class AikoRenderer : public Singleton<AikoRenderer>
+    class AIKO_API AikoRenderer : public Singleton<AikoRenderer>
     {
     
     public:
@@ -21,7 +21,7 @@ namespace aiko
         AikoRenderer();
         virtual ~AikoRenderer() override = default;
 
-    protected:
+    public:
 
         void init();
         void beginFrame();

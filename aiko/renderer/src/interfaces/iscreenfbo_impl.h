@@ -10,7 +10,7 @@ namespace aiko
 {
     namespace interfaces
     {
-        struct IScreenFboImpl
+        struct AIKO_API IScreenFboImpl
         {
             virtual ~IScreenFboImpl() = default;
 

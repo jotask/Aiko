@@ -15,7 +15,7 @@
 
 namespace aiko::interfaces
 {
-    class IAikoRenderer
+    class AIKO_API IAikoRenderer
     {
 
     public:

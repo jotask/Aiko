@@ -6,7 +6,7 @@
 namespace aiko
 {
 
-    struct MaterialData
+    struct AIKO_API MaterialData
     {
         vec3 ambient;
         vec3 diffuse;

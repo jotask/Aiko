@@ -13,7 +13,7 @@
         class RendererFactory;
     }
 
-    class FrameBuffer
+    class AIKO_API FrameBuffer
     {
     public:
 

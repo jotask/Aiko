@@ -11,7 +11,7 @@
 namespace aiko::bgfx
 {
 
-    class BgfxShaderImpl : public interfaces::IShaderImpl
+    class AIKO_API BgfxShaderImpl : public interfaces::IShaderImpl
     {
     public:
 

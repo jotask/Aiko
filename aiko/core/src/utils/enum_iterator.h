@@ -8,7 +8,7 @@ namespace aiko
 {
     
     template < typename C, C beginVal, C endVal>
-    class EnumIterator
+    class AIKO_API EnumIterator
     {
         typedef typename std::underlying_type<C>::type val_t;
         int val;

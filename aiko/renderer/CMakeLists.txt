@@ -25,7 +25,7 @@ file(GLOB_RECURSE AIKORENDERER_SRC "src/*.h" "src/*.cpp" "src/*.hpp")
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${AIKORENDERER_SRC})
 
 # Main Library
-add_library(AikoRenderer STATIC ${AIKORENDERER_SRC})
+add_library(AikoRenderer SHARED ${AIKORENDERER_SRC})
 target_compile_definitions(AikoRenderer PRIVATE ${AIKORENDERER_RENDER} )
 
 if (WIN32)

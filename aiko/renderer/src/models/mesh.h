@@ -16,7 +16,7 @@
          class RendererFactory;
      }
 
-    class Mesh
+    class AIKO_API Mesh
     {
     public:
 

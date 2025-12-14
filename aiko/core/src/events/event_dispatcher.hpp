@@ -11,7 +11,7 @@
 namespace aiko
 {
 
-    class EventSystem : public Singleton<EventSystem>
+    class AIKO_API EventSystem : public Singleton<EventSystem>
     {
     public:
 

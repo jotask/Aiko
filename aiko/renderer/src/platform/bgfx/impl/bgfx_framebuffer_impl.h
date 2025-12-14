@@ -11,7 +11,7 @@
 namespace aiko::bgfx
 {
 
-    class BgfxFrameBufferImpl : public interfaces::IFrameBufferImpl
+    class AIKO_API BgfxFrameBufferImpl : public interfaces::IFrameBufferImpl
     {
     public:
         BgfxFrameBufferImpl();

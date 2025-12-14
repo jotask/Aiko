@@ -5,7 +5,7 @@
 namespace aiko::texture
 {
 
-    struct  Texture
+    struct AIKO_API Texture
     {
         uint id;                  // Texture id
         int width;                // Texture base width

@@ -6,7 +6,7 @@
 namespace aiko
 {
     class AssetSystem;
-    class Model
+    class AIKO_API Model
     {
         friend class AssetSystem;
         static AssetSystem* s_assetSystem;

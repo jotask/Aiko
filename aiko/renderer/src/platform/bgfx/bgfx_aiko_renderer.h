@@ -24,7 +24,7 @@ namespace aiko
 namespace aiko::bgfx
 {
 
-    class BgfxRenderer : public interfaces::IAikoRenderer
+    class AIKO_API BgfxRenderer : public interfaces::IAikoRenderer
     {
     
     public:

@@ -11,7 +11,7 @@
 namespace aiko::bgfx
 {
 
-    class BgfxScreenFboImpl : public interfaces::IScreenFboImpl
+    class AIKO_API BgfxScreenFboImpl : public interfaces::IScreenFboImpl
     {
     public:
 

@@ -7,7 +7,7 @@
  namespace aiko
 {
 
-    class Material
+    class AIKO_API Material
     {
     public:
 

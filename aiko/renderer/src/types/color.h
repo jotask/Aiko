@@ -6,7 +6,7 @@
 namespace aiko
 {
 
-    class Color
+    class AIKO_API Color
     {
     public:
         constexpr Color() : Color(0.0f, 1.0f) { };
