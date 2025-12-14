@@ -4,7 +4,7 @@ namespace aiko
 {
     
     template<typename T>
-    class AIKO_API Singleton {
+    class Singleton {
     public:
         static T& it() {
             static T instance;

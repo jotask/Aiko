@@ -10,7 +10,7 @@ namespace aiko
 {
     namespace renderer
     {
-        class AIKO_API RendererFactory
+        class RendererFactory
         {
         public:
             static AikoPtr<interfaces::IShaderImpl> createShaderImpl();

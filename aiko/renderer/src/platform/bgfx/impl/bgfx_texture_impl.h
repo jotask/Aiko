@@ -9,7 +9,7 @@
 namespace aiko::bgfx
 {
 
-    class AIKO_API BgfxTextureImpl : public interfaces::ITextureImpl
+    class BgfxTextureImpl : public interfaces::ITextureImpl
     {
     public:
 

@@ -2,8 +2,6 @@
 
 #include "modules/module_connector.h"
 
-#include <aiko_renderer.h>
-
 namespace aiko
 {
     RenderModule::RenderModule(Aiko* aiko)
@@ -14,22 +12,26 @@ namespace aiko
     void RenderModule::init()
     {
         AIKO_NOT_IMPLEMENTED;
-        AikoRenderer::it().init();
+    }
+
+    void RenderModule::postInit()
+    {
+        AIKO_NOT_IMPLEMENTED;
     }
 
     void RenderModule::beginFrame()
     {
-        AikoRenderer::it().beginFrame();
+        AIKO_NOT_IMPLEMENTED;
     }
 
     void RenderModule::endFrame()
     {
-        AikoRenderer::it().endFrame();
+        AIKO_NOT_IMPLEMENTED;
     }
 
     void RenderModule::dispose()
     {
-        AikoRenderer::it().dispose();
+        AIKO_NOT_IMPLEMENTED;
     }
 
 }

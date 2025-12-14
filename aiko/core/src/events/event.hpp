@@ -1,10 +1,8 @@
 #pragma once
 
-#include <aiko_types.h>
-
 namespace aiko
 {
-    class AIKO_API Event
+    class Event
     {
     public:
         using EventId = const char*;

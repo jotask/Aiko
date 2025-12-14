@@ -12,7 +12,7 @@ namespace aiko
         class RendererFactory;
     }
 
-    class AIKO_API Texture
+    class Texture
     {
     public:
 

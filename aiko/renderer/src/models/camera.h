@@ -5,7 +5,7 @@
 namespace aiko
 {
 
-    class AIKO_API Camera
+    class Camera
     {
     public:
 

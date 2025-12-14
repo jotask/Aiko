@@ -22,23 +22,23 @@ namespace aiko
         }
 
 
-        AIKO_API float cos(float);
-        AIKO_API float sin(float);
-        AIKO_API float radians(float);
+        float cos(float);
+        float sin(float);
+        float radians(float);
 
-        AIKO_API int max(int, int);
+        int max(int, int);
 
-        AIKO_API vec3 cross(vec3, vec3);
-        AIKO_API vec3 normalize(vec3);
+        vec3 cross(vec3, vec3);
+        vec3 normalize(vec3);
 
-        AIKO_API mat4 scale(mat4, vec3);
-        AIKO_API mat4 translate(mat4, vec3);
-        AIKO_API mat4 rotate(mat4, float, vec3);
-        AIKO_API vec3 rotate(vec3, float, vec3);
-        AIKO_API mat4 lookAt(vec3, vec3, vec3);
+        mat4 scale(mat4, vec3);
+        mat4 translate(mat4, vec3);
+        mat4 rotate(mat4, float, vec3);
+        vec3 rotate(vec3, float, vec3);
+        mat4 lookAt(vec3, vec3, vec3);
 
-        AIKO_API mat4 perspective(float, float, float, float, float);
-        AIKO_API mat4 ortho(float, float, float, float, float, float);
+        mat4 perspective(float, float, float, float, float);
+        mat4 ortho(float, float, float, float, float, float);
 
     }
 }

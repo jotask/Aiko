@@ -8,7 +8,7 @@
 namespace aiko
 {
     
-    class AIKO_API Light
+    class Light
     {
     public:
         

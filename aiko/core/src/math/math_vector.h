@@ -9,7 +9,7 @@
 namespace aiko
 {
 
-    class AIKO_API ivec2
+    class ivec2
     {
     public:
         constexpr ivec2() : ivec2(0) { };
@@ -29,7 +29,7 @@ namespace aiko
 
     };
 
-    class AIKO_API vec2
+    class vec2
     {
     public:
         vec2() : vec2(0.0f) { };
@@ -48,7 +48,7 @@ namespace aiko
 
     };
 
-    class AIKO_API vec3
+    class vec3
     {
     public:
         vec3() : vec3(0.0f) { };
@@ -127,7 +127,7 @@ namespace aiko
 
     };
 
-    class AIKO_API vec4
+    class vec4
     {
     public:
         vec4() : vec4(0.0f) { };
@@ -139,7 +139,7 @@ namespace aiko
         float w;
     };
 
-    class AIKO_API mat4
+    class mat4
     {
     public:
         // Constructor

@@ -10,7 +10,7 @@ namespace aiko
     namespace uuid
     {
 
-        class AIKO_API Uuid
+        class Uuid
         {
         public:
 

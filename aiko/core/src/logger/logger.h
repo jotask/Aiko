@@ -9,7 +9,7 @@ namespace aiko
 {
 
     namespace logger {
-        class AIKO_API Log
+        class Log
         {
         public:
 

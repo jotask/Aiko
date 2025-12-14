@@ -9,7 +9,7 @@
 namespace aiko::bgfx
 {
 
-    class AIKO_API BgfxMeshImpl : public interfaces::IMeshImpl
+    class BgfxMeshImpl : public interfaces::IMeshImpl
     {
     public:
         explicit BgfxMeshImpl(const Mesh* mesh);

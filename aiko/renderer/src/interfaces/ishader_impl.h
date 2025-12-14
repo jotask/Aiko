@@ -4,7 +4,7 @@ namespace aiko
 {
     namespace interfaces
     {
-        struct AIKO_API IShaderImpl
+        struct IShaderImpl
         {
             virtual ~IShaderImpl() = default;
 

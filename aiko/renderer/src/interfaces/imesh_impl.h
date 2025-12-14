@@ -10,7 +10,7 @@ namespace aiko
     class Mesh;
     namespace interfaces
     {
-        struct AIKO_API IMeshImpl
+        struct IMeshImpl
         {
             IMeshImpl(const Mesh* mesh)
                 : m_mesh(mesh)

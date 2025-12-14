@@ -1,10 +1,8 @@
 #pragma once
 
-#include <aiko_types.h>
-
 namespace aiko
 {
-    struct AIKO_API ImplBase
+    struct ImplBase
     {
         virtual void* nativeHandle() const = 0;
     };

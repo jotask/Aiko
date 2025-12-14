@@ -9,7 +9,7 @@ namespace aiko
 {
     namespace interfaces
     {
-        struct AIKO_API ITextureImpl
+        struct ITextureImpl
         {
             virtual ~ITextureImpl() = default;
 

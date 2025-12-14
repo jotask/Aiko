@@ -10,7 +10,7 @@
 
 namespace aiko
 {
-    class AIKO_API AikoInput : public Singleton<AikoInput>
+    class AikoInput : public Singleton<AikoInput>
     {
     public:
 

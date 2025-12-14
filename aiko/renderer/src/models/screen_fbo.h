@@ -13,7 +13,7 @@ namespace aiko
         class RendererFactory;
     }
 
-    class AIKO_API ScreenFbo
+    class ScreenFbo
     {
     public:
 

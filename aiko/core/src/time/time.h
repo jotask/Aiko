@@ -5,7 +5,7 @@
 
 namespace aiko
 {
-    class AIKO_API Time : public Singleton<Time>
+    class Time : public Singleton<Time>
     {
     public:
 

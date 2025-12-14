@@ -5,7 +5,7 @@
 namespace aiko
 {
 
-    class AIKO_API WindowCloseEvent : public Event
+    class WindowCloseEvent : public Event
     {
     public:
         WindowCloseEvent() = default;
@@ -13,7 +13,7 @@ namespace aiko
         virtual EventId     getId() const { return "WindowCloseEvent"; }
     };
 
-    class AIKO_API WindowResizeEvent : public Event
+    class WindowResizeEvent : public Event
     {
     public:
         WindowResizeEvent()
@@ -37,7 +37,7 @@ namespace aiko
         const int height;
     };
 
-    class AIKO_API OnMouseEnterEvent : public Event
+    class OnMouseEnterEvent : public Event
     {
     public:
         OnMouseEnterEvent() : entered(false) {};
@@ -47,7 +47,7 @@ namespace aiko
         const bool entered;
     };
 
-    class AIKO_API OnKeyPressedEvent : public Event
+    class OnKeyPressedEvent : public Event
     {
     public:
         OnKeyPressedEvent() { };
@@ -57,7 +57,7 @@ namespace aiko
         int key; int scancode; int action; int mods;
     };
 
-    class AIKO_API OnMouseKeyPressedEvent : public Event
+    class OnMouseKeyPressedEvent : public Event
     {
     public:
         OnMouseKeyPressedEvent() { };
@@ -67,7 +67,7 @@ namespace aiko
         int button; int action; int mods;
     };
 
-    class AIKO_API OnMouseMoveEvent : public Event
+    class OnMouseMoveEvent : public Event
     {
     public:
         OnMouseMoveEvent() { };
@@ -77,7 +77,7 @@ namespace aiko
         float x; float y;
     };
 
-    class AIKO_API OnMouseScrollCallbackEvent : public Event
+    class OnMouseScrollCallbackEvent : public Event
     {
     public:
         OnMouseScrollCallbackEvent() { };

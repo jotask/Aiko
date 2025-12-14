@@ -13,7 +13,7 @@ namespace aiko
         Spot,
     };
 
-    struct AIKO_API LightData
+    struct LightData
     {
 
         LightType type;

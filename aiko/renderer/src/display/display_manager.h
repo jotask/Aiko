@@ -10,7 +10,7 @@ class GLFWwindow;
 namespace aiko
 {
 
-    class AIKO_API DisplayManager : public Singleton<DisplayManager>
+    class DisplayManager : public Singleton<DisplayManager>
     {
 
     public:

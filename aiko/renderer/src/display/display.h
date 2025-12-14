@@ -4,7 +4,7 @@
 
 namespace aiko
 {
-    class AIKO_API Display
+    class Display
     {
     public:
         ivec2 getDisplaySize() const;
