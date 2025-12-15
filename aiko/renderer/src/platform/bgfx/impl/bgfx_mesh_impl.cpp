@@ -2,8 +2,6 @@
 
 #include <core/file.h>
 
-#include <bgfx/bgfx.h>
-
 #include "models/mesh.h"
 #include "platform/bgfx/bgfx_types.h"
 

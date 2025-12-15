@@ -2,10 +2,6 @@
 
 #include "platform/bgfx/impl/bgfx_framebuffer_impl.h"
 
-#include <logger/logger.h>
-
-#include <bgfx/bgfx.h>
-
 namespace aiko::bgfx
 {
 

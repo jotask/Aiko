@@ -8,10 +8,6 @@
 #include "display/display_manager.h"
 #include "display/display_events.hpp"
 
-#include <bgfx/bgfx.h>
-#include <bx/bx.h>
-#include <GLFW/glfw3.h>
-
 #include "impl/bgfx_screenfbo_impl.h"
 #include "impl/bgfx_shader_impl.h"
 #include "impl/bgfx_framebuffer_impl.h"

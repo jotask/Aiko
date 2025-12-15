@@ -15,8 +15,6 @@
 #include "platform/bgfx/impl/bgfx_texture_impl.h"
 #include "platform/bgfx/bgfx_platform_helper.h"
 
-#include <bgfx/bgfx.h>
-
 namespace aiko::bgfx
 {
 

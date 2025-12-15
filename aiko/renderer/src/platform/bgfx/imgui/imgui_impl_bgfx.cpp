@@ -17,12 +17,6 @@
 #include "imgui_impl_bgfx.h"
 #include "imgui.h"
 
-// BGFX/BX
-#include "bgfx/bgfx.h"
-#include "bgfx/embedded_shader.h"
-#include "bx/math.h"
-#include "bx/timer.h"
-
 // Data
 static uint8_t g_View = 255;
 static bgfx::TextureHandle g_FontTexture = BGFX_INVALID_HANDLE;

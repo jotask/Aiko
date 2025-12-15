@@ -2,10 +2,7 @@
 
 #include <random>
 
-#include <logger/logger.h>
 #include <core/file.h>
-
-#include <bgfx/bgfx.h>
 
 namespace aiko::bgfx
 {

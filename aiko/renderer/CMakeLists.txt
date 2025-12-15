@@ -28,6 +28,8 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${AIKORENDERER_SRC})
 add_library(AikoRenderer STATIC ${AIKORENDERER_SRC})
 target_compile_definitions(AikoRenderer PRIVATE ${AIKORENDERER_RENDER} )
 
+target_precompile_headers(AikoRenderer PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/aiko_pch.h>")
+
 if (WIN32)
     target_compile_definitions(AikoRenderer PUBLIC ${AIKO_CURRENT_PLATFORM})
     message("Compiling for Windows")

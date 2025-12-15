@@ -6,8 +6,6 @@
 #include <aiko_types.h>
 #include <events/events.hpp>
 
-#include <GLFW/glfw3.h>
-
 namespace aiko
 {
 

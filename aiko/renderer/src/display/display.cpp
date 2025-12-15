@@ -1,6 +1,5 @@
 #include "display.h"
 
-
 namespace aiko
 {
 

@@ -8,9 +8,6 @@
 #include "display/display_events.hpp"
 #include "display/display_manager.h"
 
-#include <magic_enum/magic_enum.hpp>
-#include <GLFW/glfw3.h>
-
 #define LOG_INPUT false
 
 namespace aiko
