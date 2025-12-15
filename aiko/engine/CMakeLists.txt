@@ -24,11 +24,14 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${AIKO_SRC})
 # Main Library
 add_library(Aiko STATIC ${AIKO_SRC})
 target_compile_definitions(Aiko PRIVATE ${AIKO_RENDER} )
-
 target_compile_definitions(Aiko PUBLIC NOMINMAX )
+
+target_precompile_headers(Aiko PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/aiko_pch.h>")
  
 target_compile_features(Aiko PRIVATE cxx_std_17)
 target_link_libraries(Aiko PRIVATE TracyClient EnTT assimp )
 target_link_libraries(Aiko PUBLIC AikoCore AikoRenderer magic_enum )
+
+set_target_properties(Aiko PROPERTIES UNITY_BUILD ON)
 
 target_include_directories(Aiko PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

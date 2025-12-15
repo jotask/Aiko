@@ -46,4 +46,6 @@ target_compile_features(AikoRenderer PRIVATE cxx_std_17)
 target_link_libraries(AikoRenderer PRIVATE AikoCore glfw glad imgui stb bx bimg bgfx )
 target_link_libraries(AikoRenderer PUBLIC magic_enum )
 
+set_target_properties(AikoRenderer PROPERTIES UNITY_BUILD ON)
+
 target_include_directories(AikoRenderer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

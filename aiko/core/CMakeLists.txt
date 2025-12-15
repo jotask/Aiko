@@ -25,4 +25,6 @@ target_compile_definitions(AikoCore PUBLIC NOMINMAX )
 target_compile_features(AikoCore PRIVATE cxx_std_17)
 target_link_libraries(AikoCore PRIVATE glm spdlog )
 
+set_target_properties(AikoCore PROPERTIES UNITY_BUILD ON)
+
 target_include_directories(AikoCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
