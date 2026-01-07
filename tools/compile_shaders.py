@@ -113,7 +113,13 @@ def getprojectrootdir():
     return Path(__file__).parents[1].resolve()
 
 def getLibsPath():
-    return getprojectrootdir() / "build/debug/aiko/libs/"
+    if SYSTEM == "windows":
+        return getprojectrootdir() / "build/debug/aiko/libs/"
+    elif SYSTEM == "linux":
+        return getprojectrootdir() / "build/debug/aiko/renderer/libs/"
+    else:
+        print("UNKNOWN system")
+        sys.exit(4)
 
 def getshaderincludesBgfxShader() -> Path:
     return getLibsPath() / "bgfx-src/bgfx/src"
@@ -126,6 +132,12 @@ def getshadercpath() -> Path:
     shaderc_path = Path(currentpath) / "shaderc"
     if SYSTEM == "windows":
         shaderc_path = shaderc_path.with_suffix(".exe")
+
+    caca = "/home/jose/Projects/Aiko/build/debug/aiko/renderer/libs/bgfx-build/cmake/bgfx/shaderc"
+    if Path(caca) != shaderc_path:
+        print("Shit")
+        sys.exit(5)
+
     if not shaderc_path.exists():
         print("Shaderc not compiled?")
         sys.exit(3)
