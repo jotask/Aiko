@@ -184,6 +184,12 @@ static const uint8_t fs_ocornut_imgui_mtl[609] =
 	0x74, 0x75, 0x72, 0x6e, 0x20, 0x6f, 0x75, 0x74, 0x3b, 0x0a, 0x7d, 0x0a, 0x0a, 0x00, 0x00, 0x20, // turn out;.}....
 	0x00,                                                                                           // .
 };
+
+// NOT IMPLEMENTED
+static const uint8_t fs_ocornut_imgui_wgsl[1] =
+{
+	0x00
+};
 extern const uint8_t* fs_ocornut_imgui_pssl;
 extern const uint32_t fs_ocornut_imgui_pssl_size;
 
