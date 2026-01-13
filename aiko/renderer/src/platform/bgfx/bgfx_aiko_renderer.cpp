@@ -25,6 +25,8 @@
 #include "platform/bgfx/bgfx_platform_helper.h"
 #include "platform/bgfx/bgfx_types.h"
 
+#include <bgfx/platform.h>
+
 namespace aiko::bgfx
 {
 
@@ -49,6 +51,9 @@ namespace aiko::bgfx
         auto* window = DisplayManager::it().getNativeWindow();
         AIKO_ASSERT(window, "No window created!")
         const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
+
+        AIKO_TODO("Enable render multi-thread only on release");
+        ::bgfx::renderFrame();
 
         ::bgfx::Init init;
         init.type = ::bgfx::RendererType::Count; // auto choose renderer (DirectX, OpenGL, etc.)
