@@ -10,6 +10,7 @@ namespace aiko
     
     class Camera;
     class InputSystem;
+    class CameraSystem;
     
     class CameraComponent : public Component, public IUpdate, public IRender3D
     {
@@ -30,7 +31,7 @@ namespace aiko
         float& radius() { return m_radius; }
         float& speed() { return m_speed; }
 
-        Camera& getCamera() { return m_camera; }
+        Camera& getCamera() { return *m_camera; }
     
     protected:
         virtual void init() override;
@@ -38,6 +39,7 @@ namespace aiko
     private:
 
         InputSystem* m_inputSystem;
+        CameraSystem* m_cameraSystem;
         Camera::CameraType m_type;
 
         bool isMainCamera;
@@ -48,7 +50,7 @@ namespace aiko
         // Fly
         float m_speed = 3.5f;
 
-        Camera m_camera;
+        Camera* m_camera;
         camera::CameraController cameraControler = camera::CameraController::Static;
     
     };

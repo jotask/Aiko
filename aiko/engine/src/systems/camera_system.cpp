@@ -21,10 +21,7 @@ namespace aiko
 
     Camera* CameraSystem::getMainCamera()
     {
-        if (m_cameras.size() == 0)
-        {
-            return nullptr;
-        }
+        AIKO_ASSERT(m_cameras.size() > 0, "No cameras registered");
         return &m_cameras[0];
     }
     

@@ -5,6 +5,7 @@
 
 #include "systems/input_system.h"
 #include "models/camera.h"
+#include "systems/camera_system.h"
 
 namespace aiko
 {
@@ -16,7 +17,7 @@ namespace aiko
 
     CameraComponent::CameraComponent(camera::CameraController controller, Camera::CameraType type)
         : Component("Camera")
-        , m_camera()
+        , m_camera(nullptr)
         , cameraControler(controller)
         , m_type(type)
     {
@@ -25,12 +26,12 @@ namespace aiko
     
     Camera::CameraType CameraComponent::getCameraType() const
     {
-        return m_camera.getCameraType();
+        return m_camera->getCameraType();
     }
     
     void CameraComponent::setCameraType(Camera::CameraType newType)
     {
-        m_camera.setCameraType(newType);
+        m_camera->setCameraType(newType);
     }
     
     camera::CameraController CameraComponent::getCameraController() const
@@ -52,15 +53,15 @@ namespace aiko
             auto timer = aiko::Time::it().secondSinceStart();
             float camX = static_cast<float>(sin(timer) * m_radius);
             float camZ = static_cast<float>(cos(timer) * m_radius);
-            m_camera.position = { camX, m_camera.position.y, camZ };
+            m_camera->position = { camX, m_camera->position.y, camZ };
         }
         break;
         case camera::CameraController::Fly:
         {
             const auto dt = Time::it().getDeltaTime();
 
-            vec3 forward = math::normalize(m_camera.target - m_camera.position);
-            vec3 right = math::normalize(math::cross(forward, m_camera.getUp()));
+            vec3 forward = math::normalize(m_camera->target - m_camera->position);
+            vec3 right = math::normalize(math::cross(forward, m_camera->getUp()));
 
             // Mouse
             {
@@ -87,10 +88,10 @@ namespace aiko
                     forward = math::rotate(forward, math::radians(-pitch), right);
 
                     // Apply yaw (looking left/right)
-                    forward = math::rotate(forward, math::radians(-yaw), m_camera.getUp());
+                    forward = math::rotate(forward, math::radians(-yaw), m_camera->getUp());
 
                     // Update the target based on the new forward vector
-                    m_camera.target = m_camera.position + forward;
+                    m_camera->target = m_camera->position + forward;
                 }
 
             }
@@ -122,8 +123,8 @@ namespace aiko
                 speed *= 2.0f;
             }
 
-            m_camera.position += moveDir * (speed * dt);
-            m_camera.target += moveDir * (speed * dt);
+            m_camera->position += moveDir * (speed * dt);
+            m_camera->target += moveDir * (speed * dt);
 
         }
         break;
@@ -141,7 +142,7 @@ namespace aiko
                 float sensitivity = 0.002f;
 
                 // Rotate camera based on mouse movement
-                vec3 direction = m_camera.position - m_camera.target;
+                vec3 direction = m_camera->position - m_camera->target;
 
                 float angleX = mouseDelta.x * sensitivity;
                 float angleY = mouseDelta.y * sensitivity;
@@ -156,12 +157,12 @@ namespace aiko
                 );
 
                 // Rotate around the camera's right axis (up/down)
-                vec3 right = math::normalize(math::cross(direction, m_camera.getUp()));
+                vec3 right = math::normalize(math::cross(direction, m_camera->getUp()));
                 float cosAngleY = std::cos(angleY);
                 float sinAngleY = std::sin(angleY);
-                vec3 newDirY = math::normalize(cosAngleY * newDirX + sinAngleY * m_camera.getUp() );
+                vec3 newDirY = math::normalize(cosAngleY * newDirX + sinAngleY * m_camera->getUp() );
 
-                m_camera.position = m_camera.target + newDirY * math::length(direction);
+                m_camera->position = m_camera->target + newDirY * math::length(direction);
 
             }
 
@@ -171,12 +172,12 @@ namespace aiko
 
                 const vec2 currentMousePos = m_inputSystem->getMousePosition();
                 const vec2 mouseDelta = m_inputSystem->getMouseDelta();
-                const vec3 right = math::normalize(math::cross(m_camera.getCameraDirection(), m_camera.getUp()));
-                const vec3 upMove = m_camera.getUp() * ( mouseDelta.y * panSpeed );
+                const vec3 right = math::normalize(math::cross(m_camera->getCameraDirection(), m_camera->getUp()));
+                const vec3 upMove = m_camera->getUp() * ( mouseDelta.y * panSpeed );
                 const vec3 rightMove = right * ( mouseDelta.x * panSpeed );
 
-                m_camera.position += rightMove + upMove;
-                m_camera.target += rightMove + upMove;
+                m_camera->position += rightMove + upMove;
+                m_camera->target += rightMove + upMove;
             }
 
             constexpr const float epsilon = 1e-6f;
@@ -184,9 +185,9 @@ namespace aiko
             {
                 constexpr const float zoomSpeed = 0.5f;
                 const vec2 currentMousePos = m_inputSystem->getMousePosition();
-                const vec3 direction = math::normalize(m_camera.target - m_camera.position);
+                const vec3 direction = math::normalize(m_camera->target - m_camera->position);
                 float amount = m_inputSystem->getMouseScrollBack().y * zoomSpeed;
-                m_camera.position += direction * amount;
+                m_camera->position += direction * amount;
             }
 
         }
@@ -204,8 +205,10 @@ namespace aiko
     
     void CameraComponent::init()
     {
-        m_camera = Camera();
-        m_camera.setCameraType(m_type);
+        m_cameraSystem = gameobject->getSystem<CameraSystem>();
+        m_inputSystem = gameobject->getSystem<InputSystem>();
+        m_camera = m_cameraSystem->createCamera();
+        m_camera->setCameraType(m_type);
     }
 
 }
