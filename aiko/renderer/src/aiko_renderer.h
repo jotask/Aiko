@@ -21,8 +21,6 @@ namespace aiko
         AikoRenderer();
         virtual ~AikoRenderer() override = default;
 
-    protected:
-
         void init();
         void beginFrame();
         void endFrame();
