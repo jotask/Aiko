@@ -108,6 +108,11 @@ namespace aiko::bgfx
 
     void BgfxRenderer::render(const Camera* cam, const Transform* transform, const Model* model)
     {
+
+        AIKO_ASSERT(cam, "Camera can't be null")
+        AIKO_ASSERT(transform, "Transform can't be null")
+        AIKO_ASSERT(model, "Model can't be null")
+
         const mat4 projMatrix = cam->getProjectionMatrix();
         const mat4 viewMatrix = cam->getViewMatrix();
         const mat4 modelMatrix = transform->getMatrix();
