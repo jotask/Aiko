@@ -27,7 +27,6 @@ namespace aiko
     template<class T>
     using AikoUPtr = std::unique_ptr<T>;
 
-    #define AIKO_NOT_IMPLEMENTED static_assert(true, "NOT IMPLEMENTED");
     #if defined(_MSC_VER)
     #define AIKO_DEBUG_BREAK __debugbreak()
     #elif defined(__GNUC__) || defined(__clang__)
@@ -35,7 +34,12 @@ namespace aiko
     #else
     #define AIKO_DEBUG_BREAK ((void)0)
     #endif
+
     #define AIKO_ASSERT(cond, msg) assert(cond && msg);
+    #define AIKO_NOT_IMPLEMENTED static_assert(true, "NOT IMPLEMENTED");
+
+    // TODO the TODO
+    #define AIKO_TODO(msg) printf("%s::%d::[TODO] %s\n", __FILE__, __LINE__, msg);
 
     template<typename ... Args>
     string string_format(const string& format, Args ... args)
