@@ -25,9 +25,9 @@ namespace aiko
         static std::vector<uint8_t> readFileBytes(const char* file_path)
         {
             AIKO_ASSERT(std::filesystem::exists(file_path), "File don't exist!");
-            std::ifstream file(file_path, std::ios::binary | std::ios::ate);
-            AIKO_ASSERT(file.fail() == false, "Failed to open and read file");
-            return std::vector<uint8_t>(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+            std::ifstream file(file_path, std::ios::binary);
+            AIKO_ASSERT(file.is_open(), "Failed to open and read file");
+            return {std::istreambuf_iterator<char>(file),std::istreambuf_iterator<char>()};
         }
 
     }
