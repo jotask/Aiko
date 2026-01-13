@@ -19,7 +19,6 @@ namespace aiko::bgfx
     void BgfxShaderImpl::load(const char* vs, const char* fs)
     {
 
-
         auto getShaderDir = []() -> std::string
         {
 
@@ -55,8 +54,14 @@ namespace aiko::bgfx
         const auto vs_bytes = files::readFileBytes(vshaderPath.string().c_str());
         const auto fs_bytes = files::readFileBytes(fshaderPath.string().c_str());
 
-        const auto vs_mem = ::bgfx::makeRef(vs_bytes.data(), vs_bytes.size());
-        const auto fs_mem = ::bgfx::makeRef(fs_bytes.data(), fs_bytes.size());
+        AIKO_ASSERT(vs_bytes.empty() == false, "Vertex shader is empty!");
+        AIKO_ASSERT(fs_bytes.empty() == false, "Fragment shader is empty!");
+
+        const ::bgfx::Memory* vs_mem = ::bgfx::alloc(static_cast<uint32_t>(vs_bytes.size()));
+        memcpy(vs_mem->data, vs_bytes.data(), vs_bytes.size());
+
+        const ::bgfx::Memory* fs_mem = ::bgfx::alloc(static_cast<uint32_t>(fs_bytes.size()));
+        memcpy(fs_mem->data, fs_bytes.data(), fs_bytes.size());
 
         ::bgfx::ShaderHandle vsh = ::bgfx::createShader(vs_mem);
         ::bgfx::ShaderHandle fsh = ::bgfx::createShader(fs_mem);
