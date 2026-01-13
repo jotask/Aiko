@@ -77,7 +77,7 @@ namespace aiko::bgfx
             auto dumpUniforms = [&](::bgfx::ShaderHandle shader, const char* str)
             {
 
-                constexpr const size_t MAX_UNIFORMS = 32;
+                constexpr uint16_t MAX_UNIFORMS = 128;
 
                 ::bgfx::UniformHandle uniforms[MAX_UNIFORMS];
                 uint16_t count = ::bgfx::getShaderUniforms(shader, uniforms, MAX_UNIFORMS);
@@ -89,11 +89,12 @@ namespace aiko::bgfx
 
                     logger::Log::info("[%d] %s  -->  %s (type=%d, num=%d)", id(), str, info.name, info.type, info.num);
 
-                    ::bgfx::UniformType::Enum type = info.type;
-
-                    ::bgfx::UniformHandle u = ::bgfx::createUniform(info.name, type);
-
-                    m_uniforms.insert(std::make_pair(info.name, u));
+                    // Only create uniform if it doesn't exist
+                    if (m_uniforms.find(info.name) == m_uniforms.end())
+                    {
+                        ::bgfx::UniformHandle u = ::bgfx::createUniform(info.name, info.type, info.num);
+                        m_uniforms.emplace(info.name, u);
+                    }
 
                 }
             };
