@@ -61,12 +61,12 @@ namespace aiko::bgfx
         ::bgfx::ShaderHandle vsh = ::bgfx::createShader(vs_mem);
         ::bgfx::ShaderHandle fsh = ::bgfx::createShader(fs_mem);
 
-        AIKO_ASSERT(::bgfx::isValid(vsh) == false, "Failed to create vertex shaders!");
-        AIKO_ASSERT(::bgfx::isValid(fsh) == false, "Failed to create fragment shaders!");
+        AIKO_ASSERT(::bgfx::isValid(vsh), "Failed to create vertex shaders!");
+        AIKO_ASSERT(::bgfx::isValid(fsh), "Failed to create fragment shaders!");
 
         m_programHandle = ::bgfx::createProgram(vsh, fsh, true);
 
-        AIKO_ASSERT( ::bgfx::isValid(m_programHandle) == false, "Failed to create fragment shaders!");
+        AIKO_ASSERT( ::bgfx::isValid(m_programHandle), "Failed to create fragment shaders!");
 
         {
             auto dumpUniforms = [&](::bgfx::ShaderHandle shader, const char* str)
