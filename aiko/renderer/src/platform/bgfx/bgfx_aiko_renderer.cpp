@@ -47,6 +47,7 @@ namespace aiko::bgfx
     {
 
         auto* window = DisplayManager::it().getNativeWindow();
+        AIKO_ASSERT(window, "No window created!")
         const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
 
         ::bgfx::Init init;
