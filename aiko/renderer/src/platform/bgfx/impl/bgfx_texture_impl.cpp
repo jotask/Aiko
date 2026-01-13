@@ -77,7 +77,7 @@ namespace aiko::bgfx
         stbi_set_flip_vertically_on_load(true);
         unsigned char* data = stbi_load(base.c_str(), &width, &height, &channels, 4); // force RGBA
 
-        AIKO_ASSERT(!data, "Texture Failed to load texture.")
+        AIKO_ASSERT(data, "Texture Failed to load texture.")
 
         // Create bgfx memory from image data
         const ::bgfx::Memory* mem = ::bgfx::copy(data, width * height * 4);
