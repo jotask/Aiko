@@ -56,6 +56,8 @@
         virtual void unload();
         virtual void refresh();
 
+        void load(string file);
+
         MeshData getData() const;
         void setData(const MeshData data);
 

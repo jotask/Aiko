@@ -40,7 +40,6 @@ namespace aiko
         virtual void update() {}
         virtual void render() {}
 
-        AssetSystem* getAssetSystem() const;
         InputSystem* getInputSystem() const;
         RenderSystem* getRenderSystem() const;
 

@@ -18,7 +18,6 @@
 // Systems
 #include "systems/entity_component_system.h"
 #include "systems/render_system.h"
-#include "systems/asset_system.h"
 #include "systems/camera_system.h"
 #include "systems/input_system.h"
 #include "systems/particle_system/particle_system.h"
@@ -84,7 +83,6 @@ namespace aiko
         m_systems.emplace_back(std::make_unique<EntityComponentSystem>());
         m_systems.emplace_back(std::make_unique<RenderSystem>());
         m_systems.emplace_back(std::make_unique<CameraSystem>());
-        m_systems.emplace_back(std::make_unique<AssetSystem>());
         m_systems.emplace_back(std::make_unique<InputSystem>());
         m_systems.emplace_back(std::make_unique<ParticleSystem>());
 

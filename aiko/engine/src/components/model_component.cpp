@@ -1,9 +1,8 @@
 #include "model_component.h"
 
+#include "constants.h"
 #include "models/game_object.h"
 #include "systems/render_system.h"
-#include "systems/asset_system.h"
-#include "constants.h"
 
 namespace aiko
 {
