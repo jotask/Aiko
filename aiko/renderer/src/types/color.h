@@ -75,5 +75,9 @@ namespace aiko
     #define CYAN       CLITERAL(Color){ 0 / 255.0f      , 255 / 255.0f   , 255 / 255.0f     , 255 / 255.0f }   // Cyan
     #define RAYWHITE   CLITERAL(Color){ 245 / 255.0f    , 245 / 255.0f   , 245 / 255.0f     , 255 / 255.0f }   // My own White (raylib logo)
 
+    #define AIKO_DEFAULT_CLEAR_COLOR RAYWHITE
+    #define AIKO_DEFAULT_PRIMITIVE_COLOR WHITE
+    #define AIKO_DEFAULT_MESH_COLOR CYAN
+
 }
 

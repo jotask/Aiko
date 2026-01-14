@@ -48,6 +48,8 @@ namespace aiko::bgfx
     void BgfxRenderer::init()
     {
 
+        setBackgroundColor(AIKO_DEFAULT_CLEAR_COLOR);
+
         auto* window = DisplayManager::it().getNativeWindow();
         AIKO_ASSERT(window, "No window created!")
         const auto size = DisplayManager::it().getDisplay()->getDisplaySize();

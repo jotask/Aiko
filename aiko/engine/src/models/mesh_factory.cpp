@@ -64,7 +64,7 @@ namespace aiko
 
             data.m_textCoord = std::vector<vec2>(data.m_vertices.size(), {0.0f,1.0f});
 
-            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
+            data.m_colors = std::vector<Color>(data.m_vertices.size(), AIKO_DEFAULT_PRIMITIVE_COLOR);
 
             data.m_indices = {
                 0,1,2,      0,2,3,       // Front
@@ -105,7 +105,7 @@ namespace aiko
                 {1.0f, 0.0f},
             };
 
-            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
+            data.m_colors = std::vector<Color>(data.m_vertices.size(), AIKO_DEFAULT_PRIMITIVE_COLOR);
 
             data.m_indices =
             {
@@ -147,7 +147,7 @@ namespace aiko
 
                     data.m_vertices.push_back({x, y, z});
                     data.m_textCoord.push_back({ u, v });
-                    data.m_colors.push_back(WHITE);
+                    data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
 
                 }
             }
@@ -193,12 +193,12 @@ namespace aiko
                 // Bottom circle vertex
                 data.m_vertices.push_back({ x, -halfHeight, z });
                 data.m_textCoord.push_back({ u, 0.0f });
-                data.m_colors.push_back(WHITE);
+                data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
 
                 // Top circle vertex
                 data.m_vertices.push_back({ x, halfHeight, z });
                 data.m_textCoord.push_back({ u, 1.0f });
-                data.m_colors.push_back(WHITE);
+                data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
 
             }
 
@@ -227,7 +227,7 @@ namespace aiko
             const int bottomCenterIndex = int(data.m_vertices.size());
             data.m_vertices.push_back({ 0.0f, -halfHeight, 0.0f });
             data.m_textCoord.push_back({ 0.5f, 0.5f });
-            data.m_colors.push_back(WHITE);
+            data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
 
             // Generate bottom cap
             for (int i = 0; i < slices; ++i)
@@ -242,7 +242,7 @@ namespace aiko
             const int topCenterIndex = bottomCenterIndex + 1;
             data.m_vertices.push_back({ 0.0f, halfHeight, 0.0f });
             data.m_textCoord.push_back({ 0.5f, 0.5f });
-            data.m_colors.push_back(WHITE);
+            data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
 
             // Generate top cap
             for (int i = 0; i < slices; ++i)
@@ -277,7 +277,7 @@ namespace aiko
 
                     data.m_vertices.push_back({ vx, vy, vz });
                     data.m_textCoord.push_back({ float(x) / (resX - 1), float(z) / (resZ - 1) });
-                    data.m_colors.push_back(WHITE); // all white
+                    data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR); // all white
                 }
             }
 
@@ -319,7 +319,7 @@ namespace aiko
             constexpr const float minorRadius   = 0.3f;
             constexpr const uint radSeg         = 32;
             constexpr const uint sides          = 16;
-            constexpr const Color color         = WHITE;
+            constexpr const Color color         = AIKO_DEFAULT_PRIMITIVE_COLOR;
 
             constexpr const float maxDiameter = 2.0f * (majorRadius + minorRadius);
             constexpr const float scale = 1.0f / maxDiameter;
@@ -348,7 +348,7 @@ namespace aiko
 
                     data.m_vertices.push_back(pos);
                     data.m_textCoord.push_back({ texU , texV });
-                    data.m_colors.push_back(WHITE);
+                    data.m_colors.push_back(color);
 
                 }
             }
@@ -385,7 +385,7 @@ namespace aiko
             constexpr const float tube = 0.2f;
             constexpr const int radSeg = 128;
             constexpr const int sides = 16;
-            constexpr const Color color = WHITE;
+            constexpr const Color color = AIKO_DEFAULT_PRIMITIVE_COLOR;
 
             constexpr const float size = 1.0f;
 
@@ -451,7 +451,7 @@ namespace aiko
 
                     data.m_vertices.push_back(pos);
                     data.m_textCoord.push_back({u, v});
-                    data.m_colors.push_back(WHITE);
+                    data.m_colors.push_back(color);
                 }
             }
 
@@ -485,7 +485,7 @@ namespace aiko
 
             data.m_vertices.push_back({ 0.0f });
             data.m_textCoord.push_back({ 0.0f }); // Not used
-            data.m_colors.push_back(WHITE);
+            data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
             data.m_indices.push_back(0);
             recalculateNormals(data);
             return data;
@@ -498,8 +498,8 @@ namespace aiko
             data.m_vertices.push_back(end);
             data.m_textCoord.push_back({ 0.0f, 1.0f });
             data.m_textCoord.push_back({ 0.0f, 1.0f });
-            data.m_colors.push_back(WHITE);
-            data.m_colors.push_back(WHITE);
+            data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
+            data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
             data.m_indices = { 0, 1 };
             recalculateNormals(data);
             return data;
@@ -526,7 +526,7 @@ namespace aiko
                 {0.0f, 1.0f},
             };
 
-            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
+            data.m_colors = std::vector<Color>(data.m_vertices.size(), AIKO_DEFAULT_PRIMITIVE_COLOR);
 
             data.m_indices =
             {
@@ -543,7 +543,7 @@ namespace aiko
             Mesh::MeshData data;
 
             constexpr float radius = 1.0f / 2.0f;
-            constexpr Color color = WHITE;
+            constexpr Color color = AIKO_DEFAULT_PRIMITIVE_COLOR;
 
             // Center vertex
             data.m_vertices.push_back({ 0.0f });
@@ -594,7 +594,7 @@ namespace aiko
                 {1.0f, 0.0f},
             };
 
-            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
+            data.m_colors = std::vector<Color>(data.m_vertices.size(), AIKO_DEFAULT_PRIMITIVE_COLOR);
 
             data.m_indices =
             {
