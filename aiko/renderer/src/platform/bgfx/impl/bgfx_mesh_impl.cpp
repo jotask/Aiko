@@ -70,7 +70,7 @@ namespace aiko::bgfx
             v.z = vertex.z;
 
             // uv
-            const auto textCoord = data.m_teexCoord[i];
+            const auto textCoord = data.m_textCoord[i];
             v.u = textCoord.x;
             v.v = textCoord.y;
 
