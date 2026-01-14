@@ -22,13 +22,13 @@ namespace aiko::bgfx
         std::vector<VertexInformation> convertToVBH();
         std::vector<uint16_t> convertToIBH();
 
-        ::bgfx::VertexBufferHandle getVertexBuffferHandler() const { return m_vertexBuffer; }
-        ::bgfx::IndexBufferHandle getIndexBuffferHandler() const { return m_indexBuffer; }
+        ::bgfx::DynamicVertexBufferHandle getVertexBuffferHandler() const { return m_vertexBuffer; }
+        ::bgfx::DynamicIndexBufferHandle getIndexBuffferHandler() const { return m_indexBuffer; }
 
     private:
 
-        ::bgfx::VertexBufferHandle m_vertexBuffer;
-        ::bgfx::IndexBufferHandle m_indexBuffer;
+        ::bgfx::DynamicVertexBufferHandle m_vertexBuffer;
+        ::bgfx::DynamicIndexBufferHandle m_indexBuffer;
 
     };
 }

@@ -55,7 +55,7 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         t.position = pos;
-        const Mesh mesh(mesh::factory::generatePoint());
+        static const Mesh mesh(mesh::factory::generatePoint());
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -65,7 +65,7 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         t.position = pos;
-        const Mesh mesh(mesh::factory::generateTriangle());
+        static const Mesh mesh(mesh::factory::generateTriangle());
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -77,7 +77,7 @@ namespace aiko
         Transform t;
         t.position = pos;
         t.scale = size;
-        const Mesh mesh(mesh::factory::generateQuad());
+        static const Mesh mesh(mesh::factory::generateQuad());
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -87,7 +87,7 @@ namespace aiko
         setPrimitiveShaderData(border, thickness, color);
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
-        const Mesh mesh(mesh::factory::generateLine(start, end));
+        static const Mesh mesh(mesh::factory::generateLine(start, end));
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -98,7 +98,7 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         t.position = pos;
-        const Mesh mesh(mesh::factory::generateCircle());
+        static const Mesh mesh(mesh::factory::generateCircle());
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -109,7 +109,7 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         t.position = pos;
-        const Mesh mesh(mesh::factory::generateCircle(segment));
+        static const Mesh mesh(mesh::factory::generateCircle(segment));
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -122,7 +122,7 @@ namespace aiko
         t.position = pos;
         float siz = 10.0f;
         int res = 5;
-        const Mesh mesh(mesh::factory::generateMeshPlane(siz, siz, res, res));
+        static const Mesh mesh(mesh::factory::generateMeshPlane(siz, siz, res, res));
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -133,7 +133,7 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         t.position = pos;
-        const Mesh mesh(mesh::factory::generatePyramid());
+        static const Mesh mesh(mesh::factory::generatePyramid());
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -145,7 +145,7 @@ namespace aiko
         Transform t;
         t.position = pos;
         t.scale *= size;
-        const Mesh mesh(mesh::factory::generateCube());
+        static const Mesh mesh(mesh::factory::generateCube());
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -156,7 +156,7 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         t.position = pos;
-        const Mesh mesh(mesh::factory::generateMeshSphere(segments, segments));
+        static const Mesh mesh(mesh::factory::generateMeshSphere(segments, segments));
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -167,7 +167,7 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         t.position = pos;
-        const Mesh mesh(mesh::factory::generateMeshSphere(sectors, sectors));
+        static const Mesh mesh(mesh::factory::generateMeshSphere(sectors, sectors));
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         //m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -178,7 +178,7 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         t.position = pos;
-        const Mesh mesh(mesh::factory::generateMeshCylinder(sectors));
+        static const Mesh mesh(mesh::factory::generateMeshCylinder(sectors));
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -189,7 +189,7 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         t.position = pos;
-        const Mesh mesh(mesh::factory::generateMeshTorus());
+        static const Mesh mesh(mesh::factory::generateMeshTorus());
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         //m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }
@@ -200,7 +200,7 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         t.position = pos;
-        const Mesh mesh(mesh::factory::generateMeshKnot());
+        static const Mesh mesh(mesh::factory::generateMeshKnot());
         AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
         //m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
     }

@@ -33,23 +33,43 @@ namespace aiko::bgfx
     void BgfxMeshImpl::refresh()
     {
 
+        // Vertex buffer
         if (::bgfx::isValid(m_vertexBuffer) == true)
         {
-            ::bgfx::destroy(m_vertexBuffer);
+            const auto vertices = convertToVBH();
+            AIKO_ASSERT(vertices.empty() == false , "No vertices");
+
+            const ::bgfx::Memory* memV = ::bgfx::copy(vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(VertexInformation)));
+            ::bgfx::update(m_vertexBuffer, 0, memV);
         }
+        else
+        {
+            const auto vertices = convertToVBH();
+            AIKO_ASSERT(vertices.empty() == false , "No vertices");
 
-        const auto vertices = convertToVBH();
-        const ::bgfx::Memory* memV = ::bgfx::copy(vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(VertexInformation)));
-        m_vertexBuffer = ::bgfx::createVertexBuffer(memV, s_global_layout);;
+            const ::bgfx::Memory* memV = ::bgfx::copy(vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(VertexInformation)));
+            m_vertexBuffer = ::bgfx::createDynamicVertexBuffer(memV, s_global_layout);
+        }
+        AIKO_ASSERT(::bgfx::isValid(m_vertexBuffer), "Invalid Vertex Buffer");
 
+        // Indices buffer
         if (::bgfx::isValid(m_indexBuffer) == true)
         {
-            ::bgfx::destroy(m_indexBuffer);
-        }
+            const auto indices = convertToIBH();
+            AIKO_ASSERT(indices.empty() == false , "No indices");
 
-        const auto indices = convertToIBH();
-        const ::bgfx::Memory* memI = ::bgfx::copy(indices.data(), static_cast<uint32_t>(indices.size() * sizeof(uint16_t)));
-        m_indexBuffer = ::bgfx::createIndexBuffer(memI);
+            const ::bgfx::Memory* memI = ::bgfx::copy(indices.data(), static_cast<uint32_t>(indices.size() * sizeof(uint16_t)));
+            ::bgfx::update(m_indexBuffer, 0, memI);
+        }
+        else
+        {
+            const auto indices = convertToIBH();
+            AIKO_ASSERT(indices.empty() == false , "No indices");
+
+            const ::bgfx::Memory* memI = ::bgfx::copy(indices.data(), static_cast<uint32_t>(indices.size() * sizeof(uint16_t)));
+            m_indexBuffer = ::bgfx::createDynamicIndexBuffer(memI);
+        }
+        AIKO_ASSERT(::bgfx::isValid(m_indexBuffer), "Invalid Index Buffer");
 
     }
 
