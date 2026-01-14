@@ -36,14 +36,14 @@ namespace aiko
         void render(const Camera*, const Transform*, const Model*);
         void render(const Camera*, const Transform*, const Mesh*, const Shader*, const FrameBuffer);
 
-        void renderTransientBuffer();
-
         // Font
         void drawText(string, float, float, float = 1.0f, Color = WHITE);
 
         FrameBuffer getTargetTexture() const;
 
     protected:
+
+        void onWindowResize(Event&);
 
         AikoPtr<interfaces::IAikoRenderer> m_renderer;
 

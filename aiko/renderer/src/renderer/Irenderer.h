@@ -12,6 +12,7 @@
 #include "models/mesh.h"
 #include "models/screen_fbo.h"
 #include "types/color.h"
+#include "display/display_events.hpp"
 
 namespace aiko::interfaces
 {
@@ -27,6 +28,8 @@ namespace aiko::interfaces
         virtual void beginFrame() = 0;
         virtual void endFrame() = 0;
         virtual void dispose() = 0;
+
+        virtual void onWindowResize(Event&) = 0;
 
         void setBackgroundColor(Color color) { m_background_color = color; };
         virtual void clearBackground(Color) = 0;
@@ -48,8 +51,6 @@ namespace aiko::interfaces
         }
 
     protected:
-
-        virtual void onWindowResize(Event&) = 0;
 
         Color m_background_color;
 

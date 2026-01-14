@@ -8,6 +8,9 @@
 #error Backend not supported
 #endif
 
+#include <events/events.hpp>
+#include "display/display_events.hpp"
+
 namespace aiko
 {
     AikoRenderer::AikoRenderer()
@@ -25,6 +28,7 @@ namespace aiko
     void AikoRenderer::init()
     {
         m_renderer->init();
+        EventSystem::it().bind<WindowResizeEvent>(this, &AikoRenderer::onWindowResize);
     }
 
     void AikoRenderer::beginFrame()
@@ -75,5 +79,10 @@ namespace aiko
     FrameBuffer AikoRenderer::getTargetTexture() const
     {
         return m_renderer->getFrameBuffer();
+    }
+
+    void AikoRenderer::onWindowResize(Event& event)
+    {
+        m_renderer->onWindowResize(event);
     }
 }

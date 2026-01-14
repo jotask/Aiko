@@ -225,14 +225,18 @@ namespace aiko::bgfx
         ::bgfx::setViewRect(m_kViewMain, 0, 0, screenWidth, screenHeight);
         ::bgfx::setViewRect(m_kViewOffScreen, 0, 0, screenWidth, screenHeight);
 
-        m_screenFbo.destroy();
         initScreenFbo();
 
     }
 
     void BgfxRenderer::initScreenFbo()
     {
-        AIKO_NOT_IMPLEMENTED;
+        if (m_screenFbo.isValid() == true)
+        {
+            m_screenFbo.destroy();
+        }
+        auto size = DisplayManager::it().getDisplay()->getDisplaySize();
+        m_screenFbo.create(size.x, size.y);
     }
 
     void BgfxRenderer::clearBackground(Color color)
