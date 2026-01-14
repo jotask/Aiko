@@ -111,13 +111,13 @@ namespace aiko::bgfx
         m_texture = {0};
     }
 
-    void BgfxTextureImpl::setPixels(std::vector<Color> &pixels)
+    void BgfxTextureImpl::setPixels(std::vector<Color>& pixels)
     {
 
         const uint32_t pixelCount = m_texture.width * m_texture.height;
 
         // Allocate memory for RGBA8
-        const ::bgfx::Memory* newMem = ::bgfx::alloc(pixelCount * 4);
+        const ::bgfx::Memory* newMem = ::bgfx::alloc(pixelCount * m_texture.channels);
 
         if constexpr(false)
         {

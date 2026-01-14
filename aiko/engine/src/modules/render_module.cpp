@@ -16,11 +16,6 @@ namespace aiko
         AikoRenderer::it().init();
     }
 
-    void RenderModule::postInit()
-    {
-        AIKO_NOT_IMPLEMENTED;
-    }
-
     void RenderModule::beginFrame()
     {
         AikoRenderer::it().beginFrame();

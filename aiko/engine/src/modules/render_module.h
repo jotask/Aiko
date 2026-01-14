@@ -22,8 +22,6 @@ namespace aiko
     protected:
 
         virtual void init() override;
-        virtual void postInit() override;
-
         virtual void beginFrame() override;
         virtual void endFrame() override;
         virtual void dispose() override;

@@ -56,4 +56,8 @@ namespace aiko
         backend->unload();
     }
 
+    void Texture::setPixels(std::vector<Color>& pixels)
+    {
+        backend->setPixels(pixels);
+    }
 }

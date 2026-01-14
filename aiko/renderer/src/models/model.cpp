@@ -12,7 +12,7 @@ namespace aiko
 
     void Model::load(const char* filename)
     {
-        AIKO_NOT_IMPLEMENTED;
+        AIKO_TODO("Model load not implemented");
         /*
         m_meshes = s_assetSystem->loadModel(filename);
         for (auto& mesh : m_meshes)

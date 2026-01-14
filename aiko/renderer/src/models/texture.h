@@ -43,6 +43,9 @@ namespace aiko
         void load(string);
         void unload();
 
+        // Modify
+        virtual void setPixels(std::vector<Color>&);
+
     private:
 
         AikoPtr<interfaces::ITextureImpl> backend;
