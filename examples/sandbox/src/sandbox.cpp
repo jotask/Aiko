@@ -55,7 +55,7 @@ namespace sandbox
         model3->load("watermill.obj");
 
         auto go4 = this->Instantiate(root, "Robot");
-        go4->transform().position = { 0.0f, 0.0f, 0.0f };
+        go4->transform().position = { 0.0f, 0.0f, 5.0f };
         go4->transform().rotation = { 0.0f, 0.0f, 0.0f };
         const float scale = 0.25f;
         go4->transform().scale = { scale, scale, scale };
