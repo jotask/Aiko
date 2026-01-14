@@ -16,7 +16,7 @@
 
 #define TEST_LOAD_MESHES
 #define TEST_COMPONENTS
-#define TEST_PRIMITVES
+#define TEST_PRIMITIVES
 
 namespace sandbox
 {
@@ -111,7 +111,7 @@ namespace sandbox
         const aiko::vec3 position = { 0.0f,  0.0f, 0.0f };
         const aiko::vec3 size = { 1.0f, 1.0f, 1.0f };
 
-#ifdef TEST_PRIMITVES
+#ifdef TEST_PRIMITIVES
 
         constexpr const float SIZE = 1.0f;
 
