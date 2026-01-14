@@ -28,7 +28,7 @@ namespace aiko
 
     vec2 Application::getViewportSize() const
     {
-        AIKO_NOT_IMPLEMENTED
+        AIKO_NOT_IMPLEMENTED;
         // auto screen = AikoRenderer::it().getScreenFbo();
         //return screen->getViewportSize();
         return {};
