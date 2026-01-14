@@ -37,7 +37,7 @@ namespace aiko::bgfx
 
     bool BgfxTextureImpl::isValid() const
     {
-        return ::bgfx::isValid(m_textureHandle) == false;
+        return ::bgfx::isValid(m_textureHandle);
     }
 
     texture::Texture BgfxTextureImpl::getInfo()
@@ -81,6 +81,7 @@ namespace aiko::bgfx
 
         // Create bgfx memory from image data
         const ::bgfx::Memory* mem = ::bgfx::copy(data, width * height * 4);
+        stbi_image_free(data);
 
         // Create bgfx memory from image data
         m_textureHandle = ::bgfx::createTexture2D(
@@ -93,7 +94,7 @@ namespace aiko::bgfx
             mem
         );
 
-        stbi_image_free(data);
+        AIKO_ASSERT(::bgfx::isValid(m_textureHandle), "Invalid Texture");
 
         m_texture.id = m_textureHandle.idx;
         m_texture.width = width;
