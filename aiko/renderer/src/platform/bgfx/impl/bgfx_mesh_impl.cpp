@@ -3,6 +3,7 @@
 #include <core/file.h>
 
 #include "models/mesh.h"
+#include "platform/bgfx/bgfx_platform_helper.h"
 #include "platform/bgfx/bgfx_types.h"
 
 namespace aiko::bgfx
@@ -16,7 +17,10 @@ namespace aiko::bgfx
         , m_vertexBuffer({::bgfx::kInvalidHandle})
         , m_indexBuffer({::bgfx::kInvalidHandle})
     {
-
+        m_texture.create(1, 1);
+        std::vector<Color> pixels = { WHITE };
+        m_texture.setPixels(pixels);
+        AIKO_ASSERT(m_texture.isValid(), "Invalid texture creation")
     }
 
     bool BgfxMeshImpl::isValid() const
@@ -34,42 +38,36 @@ namespace aiko::bgfx
     {
 
         // Vertex buffer
-        if (::bgfx::isValid(m_vertexBuffer) == true)
         {
             const auto vertices = convertToVBH();
             AIKO_ASSERT(vertices.empty() == false , "No vertices");
-
             const ::bgfx::Memory* memV = ::bgfx::copy(vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(VertexInformation)));
-            ::bgfx::update(m_vertexBuffer, 0, memV);
+            if (::bgfx::isValid(m_vertexBuffer) == true)
+            {
+                ::bgfx::update(m_vertexBuffer, 0, memV);
+            }
+            else
+            {
+                m_vertexBuffer = ::bgfx::createDynamicVertexBuffer(memV, s_global_layout);
+            }
+            AIKO_ASSERT(::bgfx::isValid(m_vertexBuffer), "Invalid Vertex Buffer");
         }
-        else
-        {
-            const auto vertices = convertToVBH();
-            AIKO_ASSERT(vertices.empty() == false , "No vertices");
-
-            const ::bgfx::Memory* memV = ::bgfx::copy(vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(VertexInformation)));
-            m_vertexBuffer = ::bgfx::createDynamicVertexBuffer(memV, s_global_layout);
-        }
-        AIKO_ASSERT(::bgfx::isValid(m_vertexBuffer), "Invalid Vertex Buffer");
 
         // Indices buffer
-        if (::bgfx::isValid(m_indexBuffer) == true)
         {
             const auto indices = convertToIBH();
             AIKO_ASSERT(indices.empty() == false , "No indices");
-
             const ::bgfx::Memory* memI = ::bgfx::copy(indices.data(), static_cast<uint32_t>(indices.size() * sizeof(uint16_t)));
-            ::bgfx::update(m_indexBuffer, 0, memI);
+            if (::bgfx::isValid(m_indexBuffer) == true)
+            {
+                ::bgfx::update(m_indexBuffer, 0, memI);
+            }
+            else
+            {
+                m_indexBuffer = ::bgfx::createDynamicIndexBuffer(memI);
+            }
+            AIKO_ASSERT(::bgfx::isValid(m_indexBuffer), "Invalid Index Buffer");
         }
-        else
-        {
-            const auto indices = convertToIBH();
-            AIKO_ASSERT(indices.empty() == false , "No indices");
-
-            const ::bgfx::Memory* memI = ::bgfx::copy(indices.data(), static_cast<uint32_t>(indices.size() * sizeof(uint16_t)));
-            m_indexBuffer = ::bgfx::createDynamicIndexBuffer(memI);
-        }
-        AIKO_ASSERT(::bgfx::isValid(m_indexBuffer), "Invalid Index Buffer");
 
     }
 
@@ -95,15 +93,7 @@ namespace aiko::bgfx
             v.v = textCoord.y;
 
             // color
-            const auto color = data.m_colors[i];
-
-            uint8_t r = static_cast<uint8_t>(color.r * 255.0f);
-            uint8_t g = static_cast<uint8_t>(color.g * 255.0f);
-            uint8_t b = static_cast<uint8_t>(color.b * 255.0f);
-            uint8_t a = static_cast<uint8_t>(color.a * 255.0f);
-
-            // pack to ABGR
-            v.abgr = (uint32_t(a) << 24) | (uint32_t(b) << 16) | (uint32_t(g) << 8) | uint32_t(r);
+            v.abgr = convertColorToBgfx(data.m_colors[i]);
 
             // Normal
             const auto normal = data.m_normals[i];

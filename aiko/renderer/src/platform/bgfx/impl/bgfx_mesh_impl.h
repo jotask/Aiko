@@ -5,6 +5,7 @@
 
 #include <platform/bgfx/bgfx_types.h>
 #include "interfaces/imesh_impl.h"
+#include "models/texture.h"
 
 namespace aiko::bgfx
 {
@@ -25,10 +26,14 @@ namespace aiko::bgfx
         ::bgfx::DynamicVertexBufferHandle getVertexBuffferHandler() const { return m_vertexBuffer; }
         ::bgfx::DynamicIndexBufferHandle getIndexBuffferHandler() const { return m_indexBuffer; }
 
+        Texture* getTexture() { return &m_texture; }
+
     private:
 
         ::bgfx::DynamicVertexBufferHandle m_vertexBuffer;
         ::bgfx::DynamicIndexBufferHandle m_indexBuffer;
+
+        Texture m_texture;
 
     };
 }

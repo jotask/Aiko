@@ -50,6 +50,11 @@ namespace aiko::bgfx
 
         // Submit draw call
         GET_BACKEND_IMPL(shader->getImpl(), BgfxShaderImpl, program);
+        const ::bgfx::UniformHandle sampler = program->getUniformHandle("u_texture");
+
+        GET_BACKEND_IMPL(m->getTexture()->getImpl(), BgfxTextureImpl, texture)
+        ::bgfx::setTexture(0, sampler, texture->getTextureHandler());
+
         ::bgfx::submit(AIKO_TO_VIEWID(currentViewId), program->getProgramHandler());
 
     }
