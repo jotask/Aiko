@@ -31,6 +31,8 @@ namespace aiko
         Display m_display;
         GLFWwindow* m_native;
 
+        void onKeyPressed(Event& event);
+
     };
 
 }

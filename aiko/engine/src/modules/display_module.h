@@ -14,6 +14,8 @@ namespace aiko
         virtual ~DisplayModule() = default
         ;
         virtual void preInit() override;
+        virtual void preUpdate() override;
+        virtual void endFrame() override;
 
     };
 

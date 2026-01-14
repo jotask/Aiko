@@ -6,6 +6,8 @@
 #include <aiko_types.h>
 #include <events/events.hpp>
 
+#include "input/inputs_types.h"
+
 namespace aiko
 {
 
@@ -140,8 +142,9 @@ namespace aiko
 
         m_native = window;
 
-    }
+        EventSystem::it().bind<OnKeyPressedEvent>(this, &DisplayManager::onKeyPressed);
 
+    }
 
     void DisplayManager::swap()
     {
@@ -164,9 +167,15 @@ namespace aiko
         return m_native;
     }
 
+    void DisplayManager::onKeyPressed(Event& event)
+    {
+        const auto& msg = static_cast<const OnKeyPressedEvent&>(event);
+        const Key key = static_cast<Key>(msg.key);
+        glfwSetWindowShouldClose(m_native, key == KEY_ESCAPE);
+    }
+
     void DisplayManager::update()
     {
-        glfwPollEvents();
         if ( glfwWindowShouldClose(m_native) == true )
         {
             WindowCloseEvent even;

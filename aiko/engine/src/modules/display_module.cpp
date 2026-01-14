@@ -12,4 +12,13 @@ namespace aiko
         DisplayManager::it().init(cfg.window_tittle, cfg.width, cfg.height);
     }
 
+    void DisplayModule::preUpdate()
+    {
+        DisplayManager::it().update();
+    }
+
+    void DisplayModule::endFrame()
+    {
+        DisplayManager::it().swap();
+    }
 }
