@@ -61,7 +61,7 @@ namespace aiko::bgfx
         m_texture.width = width;
         m_texture.height = height;
         m_texture.mipmaps = false;
-        m_texture.channels = 1;
+        m_texture.channels = 4;
         m_texture.format = ::bgfx::TextureFormat::RGBA8;
     }
 
@@ -100,8 +100,8 @@ namespace aiko::bgfx
         m_texture.width = width;
         m_texture.height = height;
         m_texture.mipmaps = false;
-        m_texture.channels = 1;
-        m_texture.format = ::bgfx::TextureFormat::RGBA8;
+        m_texture.channels = 4;
+        m_texture.format = ::bgfx::TextureFormat::BGRA8;
 
     }
 

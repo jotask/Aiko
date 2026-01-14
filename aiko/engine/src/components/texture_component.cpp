@@ -22,7 +22,7 @@ namespace aiko
         m_mesh.setData(data);
         AIKO_ASSERT(m_mesh.isValid(), "Mesh is invalid");
         m_texture.load("texel_checker.png");
-        AIKO_ASSERT(m_mesh.isValid(), "Texture is invalid");
+        AIKO_ASSERT(m_texture.isValid(), "Texture is invalid");
     }
 
     void TextureComponent::update()
