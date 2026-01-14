@@ -1,9 +1,8 @@
 from pathlib import Path
 import sys
-import os
 import subprocess
 import platform
-from rich import print
+from enum import Enum
 
 SYSTEM = platform.system().lower()  # 'windows', 'linux', or 'darwin'
 
@@ -46,8 +45,20 @@ profiles = [
     Profile("ios", "metal", "metal"),
 ]
 
+class Color(Enum):
+    INFO    = "37"
+    SECTION = "1;35"
+    SUCCESS = "32"
+    WARNING = "33"
+    ERROR   = "31"
+
+def colorPrint(severity: Color, msg: str):
+    print(f"\033[{severity.value}m{msg}\033[0m")
+    pass
+
 def compileshader(shader: Path):
-    print(f"[purple]{shader}[/purple]")
+
+    colorPrint(Color.SECTION, shader)
 
     shaderc_path = getshadercpath()
 
@@ -69,7 +80,7 @@ def compileshader(shader: Path):
     elif shader.suffix  == ".cs":
         shader_type = "compute"
     else:
-        print(f"Skipping {shader.name} (unknown shader type)")
+        colorPrint(Color.INFO, f"Skipping {shader.name} (unknown shader type)")
         return
 
     # compile profiler
@@ -77,7 +88,7 @@ def compileshader(shader: Path):
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / f"{shader.stem}.{shader.suffix[1:]}.bin"
 
-    print(f"[red]output:[/red] {output_file}")
+    colorPrint(Color.ERROR,f"output: {output_file}")
 
      # determine varying.def.sc for this shader
     local_varying = shader.parent / "varying.def.sc"
@@ -98,16 +109,16 @@ def compileshader(shader: Path):
         "--varyingdef", str(local_varying),
     ]
 
-    print("[bold yellow]Running:[/bold yellow]", " ".join(cmd))
+    colorPrint(Color.WARNING, f"Running: {"".join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
-        print("[red]Shader compilation failed![/red]")
-        print("[bold red]STDOUT:[/bold red]", result.stdout)
+        colorPrint(Color.ERROR,"Shader compilation failed!")
+        colorPrint(Color.ERROR,f"STDOUT: {result.stdout}")
         sys.exit(420);
     else:
-        print("[bold green]Shader compiled successfully![/bold green]")
+        colorPrint(Color.SUCCESS, "Shader compiled successfully!")
 
-    print("[bold yellow]" + "-" * 150 + "[/bold yellow]")
+    colorPrint(Color.SECTION,f"------------------------------------------------------------------")
 
 def getprojectrootdir():
     return Path(__file__).parents[1].resolve()
@@ -118,7 +129,7 @@ def getLibsPath():
     elif SYSTEM == "linux":
         return getprojectrootdir() / "build/debug/aiko/renderer/libs/"
     else:
-        print("UNKNOWN system")
+        colorPrint(Color.ERROR,"UNKNOWN system")
         sys.exit(4)
 
 def getshaderincludesBgfxShader() -> Path:
@@ -133,13 +144,8 @@ def getshadercpath() -> Path:
     if SYSTEM == "windows":
         shaderc_path = shaderc_path.with_suffix(".exe")
 
-    caca = "/home/jose/Projects/Aiko/build/debug/aiko/renderer/libs/bgfx-build/cmake/bgfx/shaderc"
-    if Path(caca) != shaderc_path:
-        print("Shit")
-        sys.exit(5)
-
     if not shaderc_path.exists():
-        print("Shaderc not compiled?")
+        colorPrint(Color.ERROR,"Shaderc not compiled?")
         sys.exit(3)
     return shaderc_path
 
