@@ -8,7 +8,7 @@ namespace aiko
 {
     struct Transform
     {
-        Transform* parent;
+        Transform* parent = nullptr;
         std::vector<Transform*> childs;
 
         vec3 position = {0.0f};
