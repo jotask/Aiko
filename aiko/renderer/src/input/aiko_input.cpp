@@ -94,6 +94,7 @@ namespace aiko
 
     void AikoInput::pollEvents()
     {
+        glfwPollEvents();
         GLFWwindow* window = DisplayManager::it().getNativeWindow();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
