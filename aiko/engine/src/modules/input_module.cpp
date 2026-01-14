@@ -13,4 +13,9 @@ namespace aiko
     {
         AikoInput::it().pollEvents();
     }
+
+    void InputModule::postUpdate()
+    {
+        AikoInput::it().clearEvents();
+    }
 }

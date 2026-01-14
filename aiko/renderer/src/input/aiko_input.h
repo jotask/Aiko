@@ -31,6 +31,7 @@ namespace aiko
 
         void init();
         void pollEvents();
+        void clearEvents();
 
     private:
 

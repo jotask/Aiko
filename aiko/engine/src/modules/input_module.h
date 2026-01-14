@@ -13,6 +13,7 @@ namespace aiko
 
         virtual void init() override;
         virtual void preUpdate() override;
+        virtual void postUpdate() override;
 
     };
 

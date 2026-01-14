@@ -100,6 +100,10 @@ namespace aiko
         {
             glfwSetWindowShouldClose(window, true);
         }
+    }
+
+    void AikoInput::clearEvents()
+    {
         for (auto it = m_keys_inputs.begin(); it != m_keys_inputs.end(); it++)
         {
             it->second.justPressed = false;
