@@ -32,6 +32,8 @@ namespace aiko
         GLFWwindow* m_native;
 
         void onKeyPressed(Event& event);
+        void onWindowResize(Event& event);
+
 
     };
 

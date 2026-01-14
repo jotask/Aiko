@@ -5,6 +5,7 @@
 #include <logger/logger.h>
 #include <aiko_types.h>
 #include <events/events.hpp>
+#include "display/display_events.hpp"
 
 #include "input/inputs_types.h"
 
@@ -143,6 +144,7 @@ namespace aiko
         m_native = window;
 
         EventSystem::it().bind<OnKeyPressedEvent>(this, &DisplayManager::onKeyPressed);
+        EventSystem::it().bind<WindowResizeEvent>(this, &DisplayManager::onWindowResize);
 
     }
 
@@ -172,6 +174,12 @@ namespace aiko
         const auto& msg = static_cast<const OnKeyPressedEvent&>(event);
         const Key key = static_cast<Key>(msg.key);
         glfwSetWindowShouldClose(m_native, key == KEY_ESCAPE);
+    }
+
+    void DisplayManager::onWindowResize(Event& event)
+    {
+        const auto& msg = static_cast<const WindowResizeEvent&>(event);
+        m_display.setWindowSize(msg.width, msg.height);
     }
 
     void DisplayManager::update()
