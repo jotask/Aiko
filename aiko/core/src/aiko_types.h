@@ -36,10 +36,27 @@ namespace aiko
     #endif
 
     #define AIKO_ASSERT(cond, msg) assert(cond && msg);
-    #define AIKO_NOT_IMPLEMENTED static_assert(true, "NOT IMPLEMENTED");
 
     // TODO the TODO
-    #define AIKO_TODO(msg) printf("%s::%d::[TODO] %s\n", __FILE__, __LINE__, msg);
+    #define AIKO_TODO(msg)                                                              \
+        do                                                                              \
+        {                                                                               \
+            printf("%s::%d::%s::[TODO] %s\n", __FILE__, __LINE__, __FUNCTION__, msg);   \
+        }                                                                               \
+        while (0);                                                                      \
+
+    #define AIKO_STRICT_NOT_IMPLEMENTED false
+
+    #if AIKO_STRICT_NOT_IMPLEMENTED
+        #define AIKO_NOT_IMPLEMENTED static_assert(false, "NOT IMPLEMENTED")
+    #else
+        #define AIKO_NOT_IMPLEMENTED                                               \
+            do                                                                     \
+            {                                                                      \
+                AIKO_TODO("NOT IMPLEMENTED");                                      \
+                AIKO_DEBUG_BREAK;                                                        \
+            } while (0)
+    #endif
 
     template<typename ... Args>
     string string_format(const string& format, Args ... args)
