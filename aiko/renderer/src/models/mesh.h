@@ -30,7 +30,7 @@
              using Indices = std::vector<uint32_t>;
 
              Vertices m_vertices;
-             TeexCoords m_teexCoord;
+             TeexCoords m_textCoord;
              Normals m_normals;
              Colors m_colors;
              Indices m_indices;

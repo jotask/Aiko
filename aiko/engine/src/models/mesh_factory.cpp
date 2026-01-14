@@ -62,7 +62,7 @@ namespace aiko
                 {-0.5f,  0.5f,  0.5f}, {-0.5f,  0.5f, -0.5f}, {-0.5f, -0.5f, -0.5f}, {-0.5f, -0.5f,  0.5f}, // Left
             };
 
-            data.m_teexCoord = std::vector<vec2>(data.m_vertices.size(), {0.0f,1.0f});
+            data.m_textCoord = std::vector<vec2>(data.m_vertices.size(), {0.0f,1.0f});
 
             data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
 
@@ -95,7 +95,7 @@ namespace aiko
                 {0.0f, h2,  0.0f}
             };
 
-            data.m_teexCoord =
+            data.m_textCoord =
             {
                 {0.0f, 1.0f},
                 {1.0f, 1.0f},
@@ -146,7 +146,7 @@ namespace aiko
                     float v = float(i) / rings;
 
                     data.m_vertices.push_back({x, y, z});
-                    data.m_teexCoord.push_back({ u, v });
+                    data.m_textCoord.push_back({ u, v });
                     data.m_colors.push_back(WHITE);
 
                 }
@@ -192,12 +192,12 @@ namespace aiko
 
                 // Bottom circle vertex
                 data.m_vertices.push_back({ x, -halfHeight, z });
-                data.m_teexCoord.push_back({ u, 0.0f });
+                data.m_textCoord.push_back({ u, 0.0f });
                 data.m_colors.push_back(WHITE);
 
                 // Top circle vertex
                 data.m_vertices.push_back({ x, halfHeight, z });
-                data.m_teexCoord.push_back({ u, 1.0f });
+                data.m_textCoord.push_back({ u, 1.0f });
                 data.m_colors.push_back(WHITE);
 
             }
@@ -226,7 +226,7 @@ namespace aiko
             // Center vertices for caps
             const int bottomCenterIndex = int(data.m_vertices.size());
             data.m_vertices.push_back({ 0.0f, -halfHeight, 0.0f });
-            data.m_teexCoord.push_back({ 0.5f, 0.5f });
+            data.m_textCoord.push_back({ 0.5f, 0.5f });
             data.m_colors.push_back(WHITE);
 
             // Generate bottom cap
@@ -241,7 +241,7 @@ namespace aiko
 
             const int topCenterIndex = bottomCenterIndex + 1;
             data.m_vertices.push_back({ 0.0f, halfHeight, 0.0f });
-            data.m_teexCoord.push_back({ 0.5f, 0.5f });
+            data.m_textCoord.push_back({ 0.5f, 0.5f });
             data.m_colors.push_back(WHITE);
 
             // Generate top cap
@@ -276,7 +276,7 @@ namespace aiko
                     float vy = 0.0f; // flat plane on y=0
 
                     data.m_vertices.push_back({ vx, vy, vz });
-                    data.m_teexCoord.push_back({ float(x) / (resX - 1), float(z) / (resZ - 1) });
+                    data.m_textCoord.push_back({ float(x) / (resX - 1), float(z) / (resZ - 1) });
                     data.m_colors.push_back(WHITE); // all white
                 }
             }
@@ -347,7 +347,7 @@ namespace aiko
                     float texV = (float)j / sides;
 
                     data.m_vertices.push_back(pos);
-                    data.m_teexCoord.push_back({ texU , texV });
+                    data.m_textCoord.push_back({ texU , texV });
                     data.m_colors.push_back(WHITE);
 
                 }
@@ -450,7 +450,7 @@ namespace aiko
                     float v = (float)j / sides;
 
                     data.m_vertices.push_back(pos);
-                    data.m_teexCoord.push_back({u, v});
+                    data.m_textCoord.push_back({u, v});
                     data.m_colors.push_back(WHITE);
                 }
             }
@@ -484,7 +484,7 @@ namespace aiko
             Mesh::MeshData data;
 
             data.m_vertices.push_back({ 0.0f });
-            data.m_teexCoord.push_back({ 0.0f }); // Not used
+            data.m_textCoord.push_back({ 0.0f }); // Not used
             data.m_colors.push_back(WHITE);
             data.m_indices.push_back(0);
             recalculateNormals(data);
@@ -496,8 +496,8 @@ namespace aiko
             Mesh::MeshData data;
             data.m_vertices.push_back(start);
             data.m_vertices.push_back(end);
-            data.m_teexCoord.push_back({ 0.0f, 1.0f });
-            data.m_teexCoord.push_back({ 0.0f, 1.0f });
+            data.m_textCoord.push_back({ 0.0f, 1.0f });
+            data.m_textCoord.push_back({ 0.0f, 1.0f });
             data.m_colors.push_back(WHITE);
             data.m_colors.push_back(WHITE);
             data.m_indices = { 0, 1 };
@@ -518,7 +518,7 @@ namespace aiko
                 {-0.5f,  0.5f, 0.0f},
             };
 
-            data.m_teexCoord =
+            data.m_textCoord =
             {
                 {1.0f, 1.0f},
                 {1.0f, 0.0f},
@@ -547,7 +547,7 @@ namespace aiko
 
             // Center vertex
             data.m_vertices.push_back({ 0.0f });
-            data.m_teexCoord.push_back({0.5f});
+            data.m_textCoord.push_back({0.5f});
             data.m_colors.push_back(color);
 
             // Circle perimeter vertices
@@ -558,7 +558,7 @@ namespace aiko
                 float y = sinf(angle) * radius;
 
                 data.m_vertices.push_back({x, y, 0.0f});
-                data.m_teexCoord.push_back({ 0.5f + 0.5f * cosf(angle), 0.5f + 0.5f * sinf(angle) });
+                data.m_textCoord.push_back({ 0.5f + 0.5f * cosf(angle), 0.5f + 0.5f * sinf(angle) });
                 data.m_colors.push_back(color);
 
             }
@@ -587,7 +587,7 @@ namespace aiko
                 { 0.0f,  0.5f,  0.0f},
             };
 
-            data.m_teexCoord =
+            data.m_textCoord =
             {
                 {0.0f, 1.0f},
                 {0.0f, 0.0f},

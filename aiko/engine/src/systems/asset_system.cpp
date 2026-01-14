@@ -83,11 +83,11 @@ namespace aiko
                 if (paiMesh->HasTextureCoords(0))
                 {
                     aiVector3D uv = paiMesh->mTextureCoords[0][v];
-                    data.m_teexCoord.push_back({ uv.x, uv.y });
+                    data.m_textCoord.push_back({ uv.x, uv.y });
                 }
                 else
                 {
-                    data.m_teexCoord.push_back({ 0.0f, 0.0f });
+                    data.m_textCoord.push_back({ 0.0f, 0.0f });
                 }
 
                 // Optional: vertex color
@@ -168,11 +168,11 @@ namespace aiko
                 if (paiMesh->HasTextureCoords(0))
                 {
                     aiVector3D uv = paiMesh->mTextureCoords[0][v];
-                    data.m_teexCoord.push_back({ uv.x, - uv.y });
+                    data.m_textCoord.push_back({ uv.x, - uv.y });
                 }
                 else
                 {
-                    data.m_teexCoord.push_back({ 0.0f, 0.0f });
+                    data.m_textCoord.push_back({ 0.0f, 0.0f });
                 }
 
                 // Vertex color
