@@ -23,6 +23,15 @@ namespace aiko::bgfx
     void BgfxRenderer::render(const Camera* cam, const Transform* transform, const Mesh* mesh, const Shader* shader)
     {
 
+
+        AIKO_ASSERT(cam, "Camera can't be null")
+        AIKO_ASSERT(transform, "Transform can't be null")
+        AIKO_ASSERT(mesh, "Mesh can't be null")
+        AIKO_ASSERT(shader, "Shader can't be null")
+
+        AIKO_ASSERT(mesh->isValid(), "Mesh is invalid!")
+        AIKO_ASSERT(shader->isValid(), "Mesh is invalid!")
+
         const mat4 projMatrix = cam->getProjectionMatrix();
         const mat4 viewMatrix = cam->getViewMatrix();
         const mat4 modelMatrix = transform->getMatrix();
@@ -47,6 +56,16 @@ namespace aiko::bgfx
 
     void BgfxRenderer::render(const Camera* cam, const Transform* transform, const Mesh* mesh, const Shader* shader, const Texture* text)
     {
+
+        AIKO_ASSERT(cam, "Camera can't be null")
+        AIKO_ASSERT(transform, "Transform can't be null")
+        AIKO_ASSERT(mesh, "Mesh can't be null")
+        AIKO_ASSERT(shader, "Shader can't be null")
+        AIKO_ASSERT(text, "Texture can't be null")
+
+        AIKO_ASSERT(mesh->isValid(), "Mesh is invalid!")
+        AIKO_ASSERT(shader->isValid(), "Mesh is invalid!")
+        AIKO_ASSERT(text->isValid(), "Texture is invalid!")
 
         const mat4 projMatrix = cam->getProjectionMatrix();
         const mat4 viewMatrix = cam->getViewMatrix();
@@ -77,6 +96,15 @@ namespace aiko::bgfx
 
     void BgfxRenderer::render(const Camera* cam, const Transform* transform, const Mesh* mesh, const Shader* shader, const FrameBuffer texture)
     {
+
+
+        AIKO_ASSERT(cam, "Camera can't be null")
+        AIKO_ASSERT(transform, "Transform can't be null")
+        AIKO_ASSERT(mesh, "Mesh can't be null")
+        AIKO_ASSERT(shader, "Shader can't be null")
+
+        AIKO_ASSERT(mesh->isValid(), "Mesh is invalid!")
+        AIKO_ASSERT(shader->isValid(), "Mesh is invalid!")
 
         const mat4 projMatrix = cam->getProjectionMatrix();
         const mat4 viewMatrix = cam->getViewMatrix();
@@ -170,6 +198,14 @@ namespace aiko::bgfx
 
     void BgfxRenderer::renderTransientBuffer(Camera* cam, Transform* transform, Shader* shader, Mesh* mesh)
     {
+
+        AIKO_ASSERT(cam, "Camera can't be null")
+        AIKO_ASSERT(transform, "Transform can't be null")
+        AIKO_ASSERT(shader, "Shader can't be null")
+        AIKO_ASSERT(mesh, "Mesh can't be null")
+
+        AIKO_ASSERT(mesh->isValid(), "Mesh is invalid!")
+        AIKO_ASSERT(shader->isValid(), "Mesh is invalid!")
 
         const mat4 projMatrix = cam->getProjectionMatrix();
         const mat4 viewMatrix = cam->getViewMatrix();
