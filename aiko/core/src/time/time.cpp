@@ -10,16 +10,16 @@ namespace aiko
         static auto startTime = clock::now();
 
         // Current time since start in seconds
-        auto now = clock::now();
-        double current = std::chrono::duration<double>(now - startTime).count();
+        const auto now = clock::now();
+        const double current = std::chrono::duration<double>(now - startTime).count();
         time = current;
 
         // Delta time
         static double lastFrame = current;
-        double deltaTime = current - lastFrame;
+        const double dt = current - lastFrame;
         lastFrame = current;
 
-        deltaTime = deltaTime;
+        deltaTime = dt;
         frames++;
 
         // FPS counter

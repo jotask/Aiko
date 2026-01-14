@@ -3,6 +3,7 @@
 #include <events/events.hpp>
 #include <logger/logger.h>
 #include <display/display_events.hpp>
+#include <time/time.h>
 
 #include "modules/module_connector.h"
 #include "systems/system_connector.h"
@@ -56,6 +57,7 @@ namespace aiko
         init();
         while (m_shouldStop == false)
         {
+            Time::it().update();
             update();
             render();
         }
