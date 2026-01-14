@@ -52,7 +52,7 @@
 
         void* getImpl() const { return backend.get(); }
 
-        virtual bool isValid();
+        virtual bool isValid() const;
         virtual void unload();
         virtual void refresh();
 

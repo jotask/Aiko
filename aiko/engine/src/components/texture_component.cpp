@@ -17,7 +17,7 @@ namespace aiko
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
         m_shader.load("aiko");
-        AIKO_ASSERT(m_shader.isvalid(), "Shader is invalid");
+        AIKO_ASSERT(m_shader.isValid(), "Shader is invalid");
         const Mesh::MeshData data = mesh::factory::generateQuad();
         m_mesh.setData(data);
         AIKO_ASSERT(m_mesh.isValid(), "Mesh is invalid");

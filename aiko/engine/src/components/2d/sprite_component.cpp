@@ -20,8 +20,8 @@ namespace aiko
         const Mesh::MeshData meshData = mesh::factory::generateCube();
         m_mesh.setData(meshData);
         m_shader.load("aiko_default_texture.vs", "shaders/aiko_default_texture.fs");
-        assert(m_shader.isvalid() && "Shader not valid?");
-        assert(m_mesh.isValid() && "Mesh not valid?");
+        AIKO_ASSERT(m_shader.isValid(), "Shader not valid?");
+        AIKO_ASSERT(m_mesh.isValid(), "Mesh not valid?");
         AIKO_DEBUG_BREAK
         // m_texture = m_renderSystem->createTexture();
     }

@@ -54,7 +54,7 @@ namespace aiko
         void use();
         void unuse();
 
-        bool isvalid() const;
+        bool isValid() const;
 
     private:
 

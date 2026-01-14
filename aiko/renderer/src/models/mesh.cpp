@@ -33,7 +33,7 @@ namespace aiko
         refresh();
     }
 
-    bool Mesh::isValid()
+    bool Mesh::isValid() const
     {
         return backend->isValid();
     }

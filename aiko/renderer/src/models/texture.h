@@ -33,7 +33,7 @@ namespace aiko
 
         void use();
         void unuse();
-        bool isValid();
+        bool isValid() const;
         uint id() const;
         texture::Texture getInfo() const;
 

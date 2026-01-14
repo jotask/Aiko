@@ -24,17 +24,17 @@ namespace aiko
         std::string vs = std::string(fileCodeName) + ".vs";
         std::string fs = std::string(fileCodeName) + ".fs";
         this->load(vs.c_str(), fs.c_str());
-        AIKO_ASSERT(isvalid(), "Shader is invalid");
+        AIKO_ASSERT(isValid(), "Shader is invalid");
     }
 
     void Shader::load(const char* vs, const char* fs)
     {
-        if (isvalid() == true)
+        if (isValid() == true)
         {
             unload();
         }
         backend->load(vs, fs);
-        AIKO_ASSERT(isvalid(), "Shader is invalid");
+        AIKO_ASSERT(isValid(), "Shader is invalid");
     }
 
     void Shader::unload()
@@ -105,7 +105,7 @@ namespace aiko
         backend->unuse();
     }
 
-    bool Shader::isvalid () const
+    bool Shader::isValid () const
     {
         return backend->isValid();
     }
