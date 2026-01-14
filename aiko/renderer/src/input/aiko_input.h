@@ -27,7 +27,7 @@ namespace aiko
         void setCentredToScreen(bool);
         bool getCentredToScreen() const;
 
-    protected:
+    public:
 
         void init();
         void pollEvents();

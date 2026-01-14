@@ -11,6 +11,9 @@ namespace aiko
         InputModule(Aiko* aiko) : BaseModule(aiko) { };
         virtual ~InputModule() override = default;
 
+        virtual void init() override;
+        virtual void preUpdate() override;
+
     };
 
 }
