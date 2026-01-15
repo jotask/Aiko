@@ -37,6 +37,12 @@ namespace aiko
             return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
         }
 
+        template<class T>
+        T map(T x, T in_min, T in_max, T out_min, T out_max)
+        {
+            return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+        }
+
     }
 
 }
