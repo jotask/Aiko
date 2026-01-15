@@ -17,3 +17,4 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${EXAMPLE_SORTLAB_SRC})
 add_executable(SortLab ${EXAMPLE_SORTLAB_SRC} )
 
 target_link_libraries(SortLab PRIVATE Aiko)
+target_include_directories(SortLab PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src) #include itself

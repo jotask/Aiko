@@ -1,9 +1,11 @@
 #pragma once
 
 #include "sort_types.h"
+#include "sorter.h"
 
 #include <array>
 
+#include "aiko_types.h"
 #include "application/application.h"
 
 namespace sb
@@ -11,17 +13,29 @@ namespace sb
 
     class SortLab : public aiko::Application
     {
+
     protected:
         virtual void init() override;
         virtual void update() override;
         virtual void render() override;
+
+        void nextSorter(int dir);
+
+        bool isSorted() const;
+
     private:
 
-        std::array<NUMBER, MAX_VALUE> numbers;
+         Numeros m_numbers;
+
+        std::vector<aiko::AikoPtr<Sorter>> m_sorters;
+
+        void setup();
 
         void shuffle();
         void clear();
-        void sort();
+
+        uint16_t m_currentSorterIdx;
+        float m_timer;
 
     };
 
