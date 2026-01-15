@@ -23,7 +23,7 @@ namespace sb
 
         auto camera = this->Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
-        cam->setCameraType(aiko::Camera::CameraType::Orthographic);
+        cam->setCameraType(aiko::Camera::CameraType::Perspective);
 		camera->transform().position = { 0.0f, 0.0f, 10.0f };
 		cam->getCamera().position = camera->transform().position;
 
