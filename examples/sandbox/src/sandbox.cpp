@@ -18,7 +18,7 @@
 #define TEST_COMPONENTS
 #define TEST_PRIMITIVES
 
-namespace sandbox
+namespace sb
 {
     void Sandbox::init()
     {

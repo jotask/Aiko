@@ -4,6 +4,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <bx/math.h>
+#include <bgfx/bgfx.h>
+
 namespace aiko
 {
     namespace math
@@ -146,8 +149,19 @@ namespace aiko
 
         mat4 ortho(float left, float right, float bottom, float top, float znear, float zfar)
         {
-            glm::mat4 projection = glm::ortho(left, right, bottom ,top, znear, zfar);
-            return toAiko(projection);
+            glm::mat4 mtx;
+            ::bx::mtxOrtho(
+                &mtx[0][0],
+                left,
+                right,
+                bottom,
+                top,
+                znear,
+                zfar,
+                0.0f,
+                ::bgfx::getCaps()->homogeneousDepth
+            );
+            return toAiko(mtx);
         }
 
     }

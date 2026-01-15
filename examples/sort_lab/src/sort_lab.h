@@ -1,21 +1,28 @@
 #pragma once
 
+#include "sort_types.h"
+
+#include <array>
+
 #include "application/application.h"
 
 namespace sb
 {
 
-    class Sandbox : public aiko::Application
+    class SortLab : public aiko::Application
     {
     protected:
         virtual void init() override;
         virtual void update() override;
         virtual void render() override;
     private:
-        aiko::GameObject* m_go1;
-        aiko::GameObject* m_go2;
-        aiko::GameObject* m_texture;
-        aiko::GameObject* m_texturePbo;
+
+        std::array<NUMBER, MAX_VALUE> numbers;
+
+        void shuffle();
+        void clear();
+        void sort();
+
     };
 
 }

@@ -12,7 +12,7 @@
 
 #include <aiko_includes.h>
 
-namespace sandbox
+namespace sb
 {
     void Sandbox2D::init()
     {

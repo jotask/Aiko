@@ -2,7 +2,7 @@
 
 #include "application/application.h"
 
-namespace sandbox
+namespace sb
 {
 
     class Sandbox2D : public aiko::Application

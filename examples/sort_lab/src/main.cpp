@@ -1,10 +1,10 @@
 #include <stdlib.h>
 
-#include "sandbox.h"
+#include "sort_lab.h"
 
 int main()
 {
-	sb::Sandbox sb;
+	sb::SortLab sb;
 	sb.run();
 	return EXIT_SUCCESS;
 }
