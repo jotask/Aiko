@@ -33,7 +33,7 @@ namespace aiko
                 const vec3 e1 = p1 - p0;
                 const vec3 e2 = p2 - p0;
 
-                vec3 n = math::normalize(math::cross(e1, e2));
+                vec3 n = math::normalize(math::cross(e2, e1));
 
                 data.m_normals[i0] += n;
                 data.m_normals[i1] += n;
@@ -67,12 +67,12 @@ namespace aiko
             data.m_colors = std::vector<Color>(data.m_vertices.size(), AIKO_DEFAULT_PRIMITIVE_COLOR);
 
             data.m_indices = {
-                0,1,2,      0,2,3,       // Front
-                4,5,6,      4,6,7,       // Back
-                8,9,10,     8,10,11,     // Top
-                12,13,14,   12,14,15,    // Bottom
-                16,17,18,   16,18,19,    // Right
-                20,21,22,   20,22,23     // Left
+                0,2,1,      0,3,2,       // Front
+                4,6,5,      4,7,6,       // Back
+                8,10,9,     8,11,10,     // Top
+                12,14,13,   12,15,14,    // Bottom
+                16,18,17,   16,19,18,    // Right
+                20,22,21,   20,23,22     // Left
             };
             recalculateNormals(data);
             return data;
@@ -109,11 +109,11 @@ namespace aiko
 
             data.m_indices =
             {
-                0, 1, 2, 2, 3, 0, // Bottom face
-                0, 4, 1,           // Back-left triangle
-                1, 4, 2,           // Back-right triangle
-                2, 4, 3,           // Front-right triangle
-                3, 4, 0            // Front-left triangle
+                0, 2, 1, 2, 0, 3, // Bottom face
+                0, 1, 4,           // Back-left triangle
+                1, 2, 4,           // Back-right triangle
+                2, 3, 4,           // Front-right triangle
+                3, 0, 4            // Front-left triangle
             };
             recalculateNormals(data);
             return data;
@@ -161,12 +161,12 @@ namespace aiko
                     int second = first + slices + 1;
 
                     data.m_indices.push_back(first);
-                    data.m_indices.push_back(first + 1);
                     data.m_indices.push_back(second);
+                    data.m_indices.push_back(first + 1);
 
                     data.m_indices.push_back(second);
-                    data.m_indices.push_back(first + 1);
                     data.m_indices.push_back(second + 1);
+                    data.m_indices.push_back(first + 1);
                 }
             }
             recalculateNormals(data);
@@ -214,13 +214,13 @@ namespace aiko
 
                 // First triangle (CW outward)
                 data.m_indices.push_back(bottom0);
-                data.m_indices.push_back(top0);
                 data.m_indices.push_back(bottom1);
+                data.m_indices.push_back(top0);
 
                 // Second triangle (CW outward)
                 data.m_indices.push_back(top0);
-                data.m_indices.push_back(top1);
                 data.m_indices.push_back(bottom1);
+                data.m_indices.push_back(top1);
             }
 
             // Center vertices for caps
@@ -235,8 +235,8 @@ namespace aiko
                 int bottom0 = i * 2;
                 int bottom1 = (i + 1) * 2;
                 data.m_indices.push_back(bottomCenterIndex);
-                data.m_indices.push_back(bottom0);
                 data.m_indices.push_back(bottom1);
+                data.m_indices.push_back(bottom0);
             }
 
             const int topCenterIndex = bottomCenterIndex + 1;
@@ -250,8 +250,8 @@ namespace aiko
                 int top0 = i * 2 + 1;
                 int top1 = ((i + 1) % slices) * 2 + 1; // wrap last slice
                 data.m_indices.push_back(topCenterIndex);
-                data.m_indices.push_back(top1);
                 data.m_indices.push_back(top0);
+                data.m_indices.push_back(top1);
             }
             recalculateNormals(data);
             return data;
@@ -281,7 +281,7 @@ namespace aiko
                 }
             }
 
-            // Generate indices (CCW winding)
+            // Generate indices (CW winding)
             for (int z = 0; z < resZ - 1; ++z)
             {
                 for (int x = 0; x < resX - 1; ++x)
@@ -293,13 +293,13 @@ namespace aiko
 
                     // First triangle
                     data.m_indices.push_back(topLeft);
-                    data.m_indices.push_back(bottomLeft);
                     data.m_indices.push_back(topRight);
+                    data.m_indices.push_back(bottomLeft);
 
                     // Second triangle
                     data.m_indices.push_back(topRight);
-                    data.m_indices.push_back(bottomLeft);
                     data.m_indices.push_back(bottomRight);
+                    data.m_indices.push_back(bottomLeft);
                 }
             }
 
@@ -362,12 +362,12 @@ namespace aiko
                     int second = first + sides + 1;
 
                     data.m_indices.push_back(first);
-                    data.m_indices.push_back(first + 1);
                     data.m_indices.push_back(second);
+                    data.m_indices.push_back(first + 1);
 
                     data.m_indices.push_back(second);
-                    data.m_indices.push_back(first + 1);
                     data.m_indices.push_back(second + 1);
+                    data.m_indices.push_back(first + 1);
                 }
             }
             recalculateNormals(data);
@@ -464,12 +464,12 @@ namespace aiko
                     int second = first + sides + 1;
 
                     data.m_indices.push_back(first);
-                    data.m_indices.push_back(first + 1);
                     data.m_indices.push_back(second);
+                    data.m_indices.push_back(first + 1);
 
                     data.m_indices.push_back(second);
-                    data.m_indices.push_back(first + 1);
                     data.m_indices.push_back(second + 1);
+                    data.m_indices.push_back(first + 1);
                 }
             }
             recalculateNormals(data);
@@ -530,8 +530,8 @@ namespace aiko
 
             data.m_indices =
             {
-                0, 3, 1,
-                1, 3, 2
+                0, 1, 3,
+                1, 2, 3
             };
             recalculateNormals(data);
             return data;
@@ -568,8 +568,8 @@ namespace aiko
             for (uint16_t i = 1; i <= segments; ++i)
             {
                 data.m_indices.push_back(0);       // center
-                data.m_indices.push_back(i);       // current perimeter
                 data.m_indices.push_back(i + 1);   // next perimeter (wraps around)
+                data.m_indices.push_back(i);         // current perimeter
             }
             recalculateNormals(data);
             return data;
@@ -598,7 +598,7 @@ namespace aiko
 
             data.m_indices =
             {
-                0, 1, 2
+                0, 2, 1
             };
 
             recalculateNormals(data);
