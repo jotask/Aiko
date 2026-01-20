@@ -12,24 +12,30 @@ namespace aiko
         static glm::mat4 toGlm(mat4 m)
         {
             glm::mat4 result;
-            int index = 0;
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 0; j < 4; ++j) {
-                    result[i][j] = m(i, j);
+            for (int col = 0; col < 4; ++col)
+            {
+                for (int row = 0; row < 4; ++row)
+                {
+                    result[col][row] = m(row, col); // map row,col → col,row correctly
                 }
             }
+
             return result;
         };
 
         static mat4 toAiko(glm::mat4 m)
         {
             mat4 result;
-            int index = 0;
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 0; j < 4; ++j) {
-                    result(i, j) = m[i][j];
+            const float* src = glm::value_ptr(m); // column-major
+
+            for (int col = 0; col < 4; ++col)
+            {
+                for (int row = 0; row < 4; ++row)
+                {
+                    result(row, col) = src[col * 4 + row];
                 }
             }
+
             return result;
         };
 

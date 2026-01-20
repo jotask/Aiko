@@ -142,67 +142,71 @@ namespace aiko
     class mat4
     {
     public:
-        // Constructor
+
         mat4()
         {
-            // Initialize all elements to 0.0f
-            memset(elements, 0.0f, sizeof(elements));
+            // Initialize all elements to 0
+            std::memset(elements, 0, sizeof(elements));
         }
 
         // Identity matrix constructor
-        mat4(float identity) {
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 0; j < 4; ++j) {
-                    elements[i][j] = (i == j) ? identity : 0.0f;
-                }
+        mat4(float identity)
+        {
+            std::memset(elements, 0, sizeof(elements));
+            elements[0]  = identity;
+            elements[5]  = identity;
+            elements[10] = identity;
+            elements[15] = identity;
+            /*
+            for (int i = 0; i < std::size; ++i)
+            {
+                elements[i][i] = identity;
             }
+            */
         }
 
-        mat4(const float(&data)[16]) {
-            int index = 0;
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 0; j < 4; ++j) {
-                    elements[i][j] = data[index++];
-                }
-            }
+        mat4(const float(&data)[16])
+        {
+            std::memcpy(elements, data, sizeof(elements));
         }
 
         // Accessors
         float& operator()(int row, int col)
         {
-            return elements[row][col];
+            return elements[col * 4 + row];
         }
 
         const float& operator()(int row, int col) const
         {
-            return elements[row][col];
+            return elements[col * 4 + row];
         }
 
-        mat4 operator*(const mat4& other) const {
+        mat4 operator*(const mat4& other) const
+        {
             mat4 result;
-
-            // Perform matrix multiplication
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 0; j < 4; ++j) {
-                    result.elements[i][j] = 0;
-                    for (int k = 0; k < 4; ++k) {
-                        result.elements[i][j] += elements[i][k] * other.elements[k][j];
+            for (int col = 0; col < 4; ++col)
+                {
+                for (int row = 0; row < 4; ++row)
+                    {
+                    result(row, col) = 0.0f;
+                    for (int k = 0; k < 4; ++k)
+                    {
+                        result(row, col) += (*this)(row, k) * other(k, col);
                     }
                 }
             }
-
             return result;
         }
 
         // Print matrix
         void print() const
         {
-            static std::stringstream buffer;
-            for (int i = 0; i < 4; ++i)
+            std::stringstream buffer;
+            for (int row = 0; row < 4; ++row)
             {
-                for (int j = 0; j < 4; ++j)
+                for (int col = 0; col < 4; ++col)
                 {
-                    buffer << std::setw(8) << std::setprecision(3) << elements[i][j] << " ";
+                    buffer << std::setw(8) << std::setprecision(3) << (*this)(row, col) << " ";
                 }
                 buffer << std::endl;
             }
@@ -212,18 +216,19 @@ namespace aiko
         // Copy assignment operator
         mat4& operator=(const mat4& other)
         {
-            if (this != &other) {
+            if (this != &other)
+                {
                 std::memcpy(elements, other.elements, sizeof(elements));
             }
             return *this;
         }
 
-        const float* data() const {
-            return &elements[0][0];
-        }
+        float* data() { return elements; }
+        const float* data() const { return elements; }
 
-    // private:
-        float elements[4][4];
+    private:
+        float elements[4 * 4];
+
     };
 
 }

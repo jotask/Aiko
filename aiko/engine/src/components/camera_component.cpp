@@ -77,18 +77,20 @@ namespace aiko
                 {
 
                     // Get mouse movement delta
-                    vec2 mouseDelta = m_inputSystem->getMouseDelta(); // Assuming this returns the change in mouse position
+                    const vec2 mouseDelta = m_inputSystem->getMouseDelta(); // Assuming this returns the change in mouse position
 
                     // Sensitivity settings for mouse movement
-                    float sensitivity = 3.5f;
-                    float yaw = mouseDelta.x * sensitivity;
-                    float pitch = mouseDelta.y * sensitivity;
+                    const float sensitivity = 3.5f;
+                    const float yaw = mouseDelta.x * sensitivity;
+                    const float pitch = mouseDelta.y * sensitivity;
 
                     // Apply pitch (looking up/down)
                     forward = math::rotate(forward, math::radians(-pitch), right);
 
                     // Apply yaw (looking left/right)
-                    forward = math::rotate(forward, math::radians(-yaw), m_camera->getUp());
+                    forward = math::rotate(forward, math::radians(yaw), m_camera->getUp());
+
+                    forward = math::normalize(forward);
 
                     // Update the target based on the new forward vector
                     m_camera->target = m_camera->position + forward;
@@ -108,11 +110,11 @@ namespace aiko
             }
             if (m_inputSystem->isKeyPressed(Key::KEY_A))
             {
-                moveDir -= right;
+                moveDir += right;
             }
             if (m_inputSystem->isKeyPressed(Key::KEY_D))
             {
-                moveDir += right;
+                moveDir -= right;
             }
 
             float speed = m_speed;

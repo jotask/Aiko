@@ -4,6 +4,9 @@
 
 #include "display/display_manager.h"
 
+#include <bx/math.h>
+#include <bgfx/bgfx.h>
+
 namespace aiko
 {
     Camera::Camera()
@@ -25,28 +28,52 @@ namespace aiko
 
     mat4 Camera::getViewMatrix() const
     {
-        mat4 view = mat4(1.0f);
-        view = math::lookAt(position, target, getUp());
+        // FIXME: Extract this so it's renderer specific
+        mat4 view;
+        const auto up = getUp();
+        bx::mtxLookAt(
+            view.data(),
+            bx::Vec3{ position.x, position.y, position.z },
+            bx::Vec3{ target.x,   target.y,   target.z   },
+            bx::Vec3{ up.x, up.y, up.z }
+        );
         return view;
     }
 
     mat4 Camera::getProjectionMatrix() const
     {
+
+        // FIXME: Extract this so it's renderer specific
+
         const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
+        const ::bgfx::Caps* caps = ::bgfx::getCaps();
         switch (m_cameraType)
         {
         case Perspective:
         {
-            return math::perspective(m_fov, (float)size.x, (float)size.y, m_near, m_far );
+            mat4 result;
+            const float aspectRatio = static_cast<float>(size.x)/static_cast<float>(size.y);
+            bx::mtxProj(result.data(), 60.0f, aspectRatio,  m_near, m_far, caps->homogeneousDepth);
+            return result;
         }
         case Orthographic:
         {
-            float aspectRatio = size.x / size.y;
-            float orthoWidth = m_orthoHeight * aspectRatio;
-            return math::ortho(-orthoWidth, orthoWidth, -m_orthoHeight, m_orthoHeight, m_near, m_far);
+            mat4 result;
+            bx::mtxOrtho(
+                  result.data()
+                , 0.0f
+                , static_cast<float>(size.x)
+                , static_cast<float>(size.y)
+                , 0.0f
+                , m_near
+                , m_far
+                , 0.0f
+                , caps->homogeneousDepth
+                );
+            return result;
         }
         default:
-            assert(false);
+            AIKO_ASSERT(false, "Unknow projection");
             return mat4(1.0f);
         }
     }
