@@ -19,10 +19,10 @@ namespace sb
 
     private:
 
-        uint16_t i;
-        uint16_t j;
+        int16_t i;
+        int16_t j;
         NUMBER key;
-        bool innerLoop;
+        bool isInserting;
 
     };
 

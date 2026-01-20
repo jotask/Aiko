@@ -14,7 +14,7 @@ namespace sb
         i = 1;
         j = -1;
         key = 0;
-        innerLoop = false;
+        isInserting = false;
     }
 
     void InsertionSort::step(Numeros& n)
@@ -26,8 +26,23 @@ namespace sb
             return;
         }
 
-        // AIKO_NOT_IMPLEMENTED;
+        if (isInserting == false)
+        {
+            key = n[i];
+            j = i - 1;
+            isInserting = true;
+            return;
+        }
 
+        if (j >= 0 && n[j] > key)
+        {
+            n[j + 1] = n[j];
+            --j;
+            return;
+        }
+        n[j + 1] = key;
+        ++i;
+        isInserting = false;
     }
 
     void InsertionSort::dispose()
