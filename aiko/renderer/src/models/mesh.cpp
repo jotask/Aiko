@@ -112,6 +112,8 @@ namespace aiko
 
         };
 
+        AIKO_NOT_IMPLEMENTED;
+
     }
 
     Mesh::MeshData Mesh::getData() const
