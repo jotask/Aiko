@@ -55,15 +55,14 @@ namespace sb
         if (isSorted() == true)
         {
             aiko::logger::Log::warning("Done sorting");
+            return;
         }
-        else
+
+        m_timer += ::aiko::Time::it().getDeltaTime();
+        if (m_timer >= UPDATE_STEP_TIME)
         {
-            m_timer += ::aiko::Time::it().getDeltaTime();
-            if (m_timer >= UPDATE_STEP_TIME)
-            {
-                m_sorters[m_currentSorterIdx]->step(m_numbers);
-                m_timer -= UPDATE_STEP_TIME; // keeps it stable even with frame drops
-            }
+            m_sorters[m_currentSorterIdx]->step(m_numbers);
+            m_timer -= UPDATE_STEP_TIME; // keeps it stable even with frame drops
         }
     }
 
@@ -71,19 +70,16 @@ namespace sb
     {
         Application::render();
 
-        const float w = 0.25f;
+        constexpr float w = 0.25f;
 
         const float initial_position_x = ((w * m_numbers.size()) / 2.0f) * -1.0f;
 
         for (uint16_t i = 0 ; i < m_numbers.size(); ++i)
         {
             const NUMBER number = m_numbers[i];
-
             const float h = aiko::math::map<float>(number, 0, m_numbers.size(), 1.0f, 10.0f);
-
             const aiko::vec3 size = {w, h, 0.0f};
-            aiko::vec3 pos = {initial_position_x + ( i * w), 0.0f, 0.0f};
-
+            const aiko::vec3 pos = {initial_position_x + ( i * w), 0.0f, 0.0f};
             getRenderSystem()->drawRectangle(pos, size);
         }
 
@@ -116,9 +112,10 @@ namespace sb
         m_timer = 0.0f;
         m_currentSorterIdx = 0;
         m_sorters.clear();
+        m_sorters.emplace_back(std::make_shared<InsertionSort>(this));
         m_sorters.emplace_back(std::make_shared<BubbleSort>(this));
         m_sorters.emplace_back(std::make_shared<SelectionSort>(this));
-        m_sorters.emplace_back(std::make_shared<InsertionSort>(this));
+        m_sorters[m_currentSorterIdx]->init();
     }
 
     void SortLab::shuffle()
