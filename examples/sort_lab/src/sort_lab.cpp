@@ -70,7 +70,9 @@ namespace sb
     {
         Application::render();
 
-        const float w = 0.40f;
+        const float w = 0.25f;
+
+        const float initial_position_x = ((w * m_numbers.size()) / 2.0f) * -1.0f;
 
         for (uint16_t i = 0 ; i < m_numbers.size(); ++i)
         {
@@ -79,7 +81,7 @@ namespace sb
             const float h = aiko::math::map<float>(number, 0, m_numbers.size(), 1.0f, 10.0f);
 
             const aiko::vec3 size = {w, h, 0.0f};
-            aiko::vec3 pos = {size.x / 2.0f - i * size.x, 0.0f, 0.0f};
+            aiko::vec3 pos = {initial_position_x + ( i * w), 0.0f, 0.0f};
 
             getRenderSystem()->drawRectangle(pos, size);
         }
