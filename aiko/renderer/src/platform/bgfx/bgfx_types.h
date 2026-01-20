@@ -1,5 +1,7 @@
 #pragma once
 
+#include "settings.h"
+
 #include <bgfx/bgfx.h>
 
 namespace aiko
@@ -26,7 +28,12 @@ namespace aiko
         uint32_t abgr;   // color
     };
 
+
+#ifdef DISABLE_FACE_CULLING
+    inline uint64_t s_default_state = BGFX_STATE_DEFAULT & ~BGFX_STATE_CULL_MASK;
+#else
     inline uint64_t s_default_state = BGFX_STATE_DEFAULT;
+#endif
 
     inline ::bgfx::VertexLayout s_global_layout = []{
         ::bgfx::VertexLayout layout;
