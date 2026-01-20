@@ -1,6 +1,7 @@
 #include "sort_lab.h"
 
 #include <algorithm>
+#include <format>
 
 #include <time/time.h>
 #include <aiko_includes.h>
@@ -133,6 +134,18 @@ namespace sb
         {
             m_numbers[i] = i;
         }
+    }
+
+    void SortLab::printArray()
+    {
+        aiko::string str;
+        str.append("[");
+        for (size_t i = 0 ; i < m_numbers.size(); ++i)
+        {
+            str.append(std::format("{}{}", m_numbers[i], (i + 1 < m_numbers.size() ? ", " : "")));
+        }
+        str.append("]");
+        ::aiko::logger::Log::info(str);
     }
 }
 

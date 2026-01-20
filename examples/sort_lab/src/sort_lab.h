@@ -34,6 +34,8 @@ namespace sb
         void shuffle();
         void clear();
 
+        void  printArray();
+
         uint16_t m_currentSorterIdx;
         float m_timer;
 
