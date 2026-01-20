@@ -53,7 +53,7 @@ namespace aiko
         {
             mat4 result;
             const float aspectRatio = static_cast<float>(size.x)/static_cast<float>(size.y);
-            bx::mtxProj(result.data(), 60.0f, aspectRatio,  m_near, m_far, caps->homogeneousDepth);
+            bx::mtxProj(result.data(), m_fov, aspectRatio,  m_near, m_far, caps->homogeneousDepth);
             return result;
         }
         case Orthographic:
