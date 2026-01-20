@@ -21,7 +21,7 @@ namespace sb
 
         auto camera = this->Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
-        cam->setCameraType(aiko::Camera::CameraType::Perspective);
+        cam->setCameraType(aiko::Camera::CameraType::Orthographic);
 		camera->transform().position = { 0.0f, 0.0f, 10.0f };
 		cam->getCamera().position = camera->transform().position;
 
@@ -79,7 +79,7 @@ namespace sb
             const float h = aiko::math::map<float>(number, 0, m_numbers.size(), 1.0f, 10.0f);
 
             const aiko::vec3 size = {w, h, 0.0f};
-            const aiko::vec3 pos = {size.x / 2.0f - i * size.x, 0.0f, 0.0f};
+            aiko::vec3 pos = {size.x / 2.0f - i * size.x, 0.0f, 0.0f};
 
             getRenderSystem()->drawRectangle(pos, size);
         }
