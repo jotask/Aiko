@@ -25,7 +25,10 @@ namespace aiko
             auto file_path = ::aiko::global::getAssetPath(path.c_str());
 
             Assimp::Importer importer;
-            const aiScene* pScene = importer.ReadFile(file_path, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices);
+
+            uint post = aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices | aiProcess_FlipWindingOrder;
+
+            const aiScene* pScene = importer.ReadFile(file_path, post);
 
             if (pScene == nullptr || pScene->mNumMeshes == 0)
             {
