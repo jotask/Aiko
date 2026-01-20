@@ -42,34 +42,25 @@ namespace aiko
 
     mat4 Camera::getProjectionMatrix() const
     {
-
         // FIXME: Extract this so it's renderer specific
-
         const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
+        const float aspectRatio = static_cast<float>(size.x)/static_cast<float>(size.y);
         const ::bgfx::Caps* caps = ::bgfx::getCaps();
         switch (m_cameraType)
         {
         case Perspective:
         {
             mat4 result;
-            const float aspectRatio = static_cast<float>(size.x)/static_cast<float>(size.y);
-            bx::mtxProj(result.data(), m_fov, aspectRatio,  m_near, m_far, caps->homogeneousDepth);
+            bx::mtxProj(result.data(), m_fov, aspectRatio, m_near, m_far, caps->homogeneousDepth);
             return result;
         }
         case Orthographic:
         {
+            // Compute height of ortho box to match what FOV would see at distance = |camera.position.z|
+            const float halfHeight = tanf(math::radians(m_fov) * 0.5f) * std::abs(position.z);
+            const float halfWidth  = halfHeight * aspectRatio;
             mat4 result;
-            bx::mtxOrtho(
-                  result.data()
-                , 0.0f
-                , static_cast<float>(size.x)
-                , static_cast<float>(size.y)
-                , 0.0f
-                , m_near
-                , m_far
-                , 0.0f
-                , caps->homogeneousDepth
-                );
+            bx::mtxOrtho(result.data(), -halfWidth , halfWidth, -halfHeight , halfHeight, m_near, m_far, 0.0f , caps->homogeneousDepth );
             return result;
         }
         default:
