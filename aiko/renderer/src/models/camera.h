@@ -16,9 +16,6 @@ namespace aiko
 
         vec3 position;
         vec3 target;
-        vec3 cameraDirection;
-        vec3 right;
-        vec3 cameraUp;
 
         CameraType getCameraType() const;
         void setCameraType(CameraType);

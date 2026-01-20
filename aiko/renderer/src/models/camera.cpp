@@ -80,17 +80,17 @@ namespace aiko
 
     vec3 Camera::getCameraDirection() const
     {
-        return math::normalize(position - target);
+        return math::normalize(target - position);
     }
 
     vec3 Camera::getCameraRight() const
     {
-        return math::normalize(math::cross(getUp(), cameraDirection));
+        return math::normalize(math::cross(getUp(), getCameraDirection()));
     }
 
     vec3 Camera::getCameraUp() const
     {
-        return math::cross(getCameraDirection(), getCameraRight());
+        return math::cross(getCameraRight(), getCameraDirection());
     }
 
 }
