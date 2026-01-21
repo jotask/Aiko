@@ -1,7 +1,5 @@
 #include "lexer.h"
 
-#include <oneapi/tbb/detail/_task.h>
-
 #include "compiler_types.h"
 
 #include <magic_enum/magic_enum.hpp>
@@ -42,7 +40,9 @@ namespace aiko::naiko
         {
             chopChar();
 
-            token.kind = TokenKind::STRING;
+            token.kind = TokenKind::VALUE;
+            token.naiko = NaikoType::STRING;
+
             token.position = m_cursor;
 
             auto isNotEndOfStr = [this]()
@@ -72,6 +72,7 @@ namespace aiko::naiko
         if (isKeyword(token.text) == true)
         {
             token.kind = TokenKind::KEYWORD;
+            token.naiko = getKeywordKind(token.text);
             return token;
         }
 
@@ -84,12 +85,14 @@ namespace aiko::naiko
         if (isOperator(token.text) == true)
         {
             token.kind = TokenKind::OPERATOR;
+            token.naiko = getOperationKind(token.text);
             return token;
         }
 
         if (isDigit(token.text) == true)
         {
-            token.kind = TokenKind::DIGIT;
+            token.kind = TokenKind::VALUE;
+            token.naiko = NaikoType::DIGIT;
             return token;
         }
 
@@ -142,7 +145,7 @@ namespace aiko::naiko
 
     bool Lexer::isKeyword(string str) const
     {
-        const auto values = magic_enum::enum_names<Keywords>();
+        const auto values = magic_enum::enum_names<NaikoKeyword>();
         return std::any_of(values.begin(), values.end(), [str](std::string_view other){ return str == other; });
     }
 
