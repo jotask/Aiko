@@ -5,6 +5,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/nes6502")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/loop_recorder")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/nbody")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/sort_lab")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/naiko")
 
 if(AIKO_RENDER STREQUAL "AIKO_NATIVE")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/shader_toy")
