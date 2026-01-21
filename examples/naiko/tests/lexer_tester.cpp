@@ -8,8 +8,67 @@ using namespace aiko::naiko;
 struct Expected
 {
     TokenKind kind;
+    Naiko naiko;
     aiko::string text;
 };
+
+#define OP(naiko, text)         { TokenKind::OPERATOR,  naiko,  text },
+#define KEYWORD(naiko, text)    { TokenKind::KEYWORD,   naiko,  text },
+#define VALUE(naiko, text)      { TokenKind::VALUE,     naiko,  text },
+#define SYMBOL(text)            { TokenKind::SYMBOL,    {},     text },
+#define END()                   { TokenKind::END,       {},     {} },
+
+
+static void checkCurrentTokenIteration(std::vector<Expected> expecteds, std::vector<Token> tokens, size_t idx)
+{
+    const auto exp = expecteds[idx];
+    const auto cur = tokens[idx];
+    REQUIRE(exp.kind == cur.kind);
+
+    const bool currContainsNaiko = std::holds_alternative<std::monostate>(cur.naiko);
+    const bool expcContainsNaiko = std::holds_alternative<std::monostate>(exp.naiko);
+
+    REQUIRE(currContainsNaiko == expcContainsNaiko);
+
+    if (currContainsNaiko == false)
+    {
+        return;
+    }
+
+    switch (cur.kind)
+    {
+        case TokenKind::KEYWORD:
+            {
+                const auto op = getKeywordKind(cur.text);
+                REQUIRE(op != NaikoKeyword::INVALID);
+                auto* expNaiko = std::get_if<NaikoKeyword>(&exp.naiko);
+                REQUIRE(expNaiko != nullptr);
+                REQUIRE(op == *expNaiko);
+            }
+            break;
+        case TokenKind::OPERATOR:
+            {
+                const auto op = getOperationKind(cur.text);
+                REQUIRE(op != NaikoOperation::INVALID);
+                auto* expNaiko = std::get_if<NaikoOperation>(&exp.naiko);
+                REQUIRE(expNaiko != nullptr);
+                REQUIRE(op == *expNaiko);
+            }
+            break;
+        case TokenKind::VALUE:
+            {
+                const auto op = getTypeKind(cur.text);
+                REQUIRE(op != NaikoType::INVALID);
+                auto* expNaiko = std::get_if<NaikoType>(&exp.naiko);
+                REQUIRE(expNaiko != nullptr);
+                REQUIRE(op == *expNaiko);
+            }
+            break;
+        default:
+            break;
+    }
+
+}
 
 TEST_CASE("Lexer skips whitespaces", "[LEXER]" )
 {
@@ -44,21 +103,18 @@ TEST_CASE("Lexer sets correct symbols", "[LEXER]")
 
     std::vector<Expected> expectations
     {
-        { .kind = TokenKind::KEYWORD,   .text = "LET" },
-        { .kind = TokenKind::SYMBOL,    .text ="foobar" },
-        { .kind = TokenKind::OPERATOR,  .text ="=" },
-        { .kind = TokenKind::DIGIT,     .text ="123" },
-        { .kind = TokenKind::END,       .text ="" },
+        KEYWORD(NaikoKeyword::LET, "LET" )
+        SYMBOL("foobar")
+        OP(NaikoOperation::EQUAL, "=")
+        VALUE(NaikoType::DIGIT, "123" )
+        END()
     };
 
     REQUIRE(tokens.size() == expectations.size());
 
     for (size_t i = 0 ; i < tokens.size(); i++)
     {
-        const Token curr= tokens[i];
-        const Expected expe   = expectations[i];
-        REQUIRE(curr.kind == expe.kind);
-        REQUIRE(curr.text == expe.text);
+        checkCurrentTokenIteration(expectations, tokens, i);
     }
 
 }
@@ -82,71 +138,74 @@ TEST_CASE("Lexer big program", "[LEXER]")
 
     {
 
-        std::vector<Token> tokens;
+        Tokenization tokens;
+
         std::vector<Expected> expecteds =
         {
-            { .kind = TokenKind::KEYWORD,   .text = "PRINT" },
-            { .kind = TokenKind::STRING,    .text ="\"How many fibonacci numbers do you want?\"" },
+            KEYWORD(NaikoKeyword::PRINT, "PRINT" )
+            VALUE(NaikoType::STRING, "\"How many fibonacci numbers do you want?\"" )
 
-            { .kind = TokenKind::KEYWORD,  .text ="INPUT" },
-            { .kind = TokenKind::SYMBOL,     .text ="nums" },
+            KEYWORD(NaikoKeyword::INPUT, "INPUT" )
+            SYMBOL("nums")
 
-            { .kind = TokenKind::KEYWORD,       .text ="LET" },
-            { .kind = TokenKind::SYMBOL,       .text ="a" },
-            { .kind = TokenKind::OPERATOR,       .text ="=" },
-            { .kind = TokenKind::DIGIT,       .text ="0" },
+            KEYWORD(NaikoKeyword::LET, "LET" )
+            SYMBOL("a")
+            OP(NaikoOperation::EQUAL, "=")
+            VALUE(NaikoType::DIGIT, "0" )
 
-            { .kind = TokenKind::KEYWORD,       .text ="LET" },
-            { .kind = TokenKind::SYMBOL,       .text ="b" },
-            { .kind = TokenKind::OPERATOR,       .text ="=" },
-            { .kind = TokenKind::DIGIT,       .text ="1" },
+            KEYWORD(NaikoKeyword::LET, "LET" )
+            SYMBOL("b")
+            OP(NaikoOperation::EQUAL, "=")
+            VALUE(NaikoType::DIGIT, "1" )
 
-            { .kind = TokenKind::KEYWORD,       .text ="WHILE" },
-            { .kind = TokenKind::SYMBOL,       .text ="nums" },
-            { .kind = TokenKind::OPERATOR,       .text =">" },
-            { .kind = TokenKind::DIGIT,       .text ="0" },
-            { .kind = TokenKind::KEYWORD,       .text ="REPEAT" },
 
-            { .kind = TokenKind::KEYWORD,       .text ="PRINT" },
-            { .kind = TokenKind::SYMBOL,       .text ="a" },
+            KEYWORD(NaikoKeyword::WHILE, "WHILE" )
+            SYMBOL("nums")
+            OP(NaikoOperation::GREATERTHAN, ">")
+            VALUE(NaikoType::DIGIT, "0" )
+            KEYWORD(NaikoKeyword::REPEAT, "REPEAT" )
 
-            { .kind = TokenKind::KEYWORD,       .text ="LET" },
-            { .kind = TokenKind::SYMBOL,       .text ="c" },
-            { .kind = TokenKind::OPERATOR,       .text ="=" },
-            { .kind = TokenKind::SYMBOL,       .text ="a" },
-            { .kind = TokenKind::OPERATOR,       .text ="+" },
-            { .kind = TokenKind::SYMBOL,       .text ="b" },
+            KEYWORD(NaikoKeyword::PRINT, "PRINT" )
+            SYMBOL("a")
 
-            { .kind = TokenKind::KEYWORD,       .text ="LET" },
-            { .kind = TokenKind::SYMBOL,       .text ="a" },
-            { .kind = TokenKind::OPERATOR,       .text ="=" },
-            { .kind = TokenKind::SYMBOL,       .text ="b" },
+            KEYWORD(NaikoKeyword::LET, "LET" )
+            SYMBOL("c")
+            OP(NaikoOperation::EQUAL, "=")
+            SYMBOL("a")
+            OP(NaikoOperation::ADD, "+")
+            SYMBOL("b")
 
-            { .kind = TokenKind::KEYWORD,       .text ="LET" },
-            { .kind = TokenKind::SYMBOL,       .text ="b" },
-            { .kind = TokenKind::OPERATOR,       .text ="=" },
-            { .kind = TokenKind::SYMBOL,       .text ="c" },
+            KEYWORD(NaikoKeyword::LET, "LET" )
+            SYMBOL("a")
+            OP(NaikoOperation::EQUAL, "=")
+            SYMBOL("b")
 
-            { .kind = TokenKind::KEYWORD,       .text ="LET" },
-            { .kind = TokenKind::SYMBOL,       .text ="nums" },
-            { .kind = TokenKind::OPERATOR,       .text ="=" },
-            { .kind = TokenKind::SYMBOL,       .text ="nums" },
-            { .kind = TokenKind::OPERATOR,       .text ="-" },
-            { .kind = TokenKind::DIGIT,       .text ="1" },
+            KEYWORD(NaikoKeyword::LET, "LET" )
+            SYMBOL("b")
+            OP(NaikoOperation::EQUAL, "=")
+            SYMBOL("c")
 
-            { .kind = TokenKind::KEYWORD,       .text ="ENDWHILE" },
-            { .kind = TokenKind::END,       .text ="" },
+            KEYWORD(NaikoKeyword::LET, "LET" )
+            SYMBOL("nums")
+            OP(NaikoOperation::EQUAL, "=")
+            SYMBOL("nums")
+            OP(NaikoOperation::SUBTRACT, "-")
+            VALUE(NaikoType::DIGIT, "1" )
 
+            KEYWORD(NaikoKeyword::ENDWHILE, "ENDWHILE" )
+            END()
         };
 
         Token token = lex.next();
         tokens.push_back(token);
+        size_t current = 0;
+        checkCurrentTokenIteration(expecteds, tokens, current++);
         while (token.kind != TokenKind::END)
         {
             token = lex.next();
-            aiko::naiko::printToken(token);
+            printToken(token);
             tokens.push_back(token);
-            REQUIRE(token.kind != TokenKind::INVALID);
+            checkCurrentTokenIteration(expecteds, tokens, current++);
         }
 
         REQUIRE(token.kind == TokenKind::END);
