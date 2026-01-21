@@ -3,105 +3,30 @@
 #include <lexer.h>
 #include <compiler_helper.h>
 
-using namespace aiko::naiko;
+#include "test_types.h"
+#include "tests_code.h"
 
-struct Expected
+TEST_CASE("Lexer returns END at EOF", "[LEXER]")
 {
-    TokenKind kind;
-    Naiko naiko;
-    aiko::string text;
-};
-
-#define OP(naiko, text)         { TokenKind::OPERATOR,  naiko,  text },
-#define KEYWORD(naiko, text)    { TokenKind::KEYWORD,   naiko,  text },
-#define VALUE(naiko, text)      { TokenKind::VALUE,     naiko,  text },
-#define SYMBOL(text)            { TokenKind::SYMBOL,    {},     text },
-#define END()                   { TokenKind::END,       {},     {} },
-
-
-static void checkCurrentTokenIteration(std::vector<Expected> expecteds, std::vector<Token> tokens, size_t idx)
-{
-    const auto exp = expecteds[idx];
-    const auto cur = tokens[idx];
-    REQUIRE(exp.kind == cur.kind);
-
-    const bool currContainsNaiko = std::holds_alternative<std::monostate>(cur.naiko);
-    const bool expcContainsNaiko = std::holds_alternative<std::monostate>(exp.naiko);
-
-    REQUIRE(currContainsNaiko == expcContainsNaiko);
-
-    if (currContainsNaiko == false)
-    {
-        return;
-    }
-
-    switch (cur.kind)
-    {
-        case TokenKind::KEYWORD:
-            {
-                const auto op = getKeywordKind(cur.text);
-                REQUIRE(op != NaikoKeyword::INVALID);
-                auto* expNaiko = std::get_if<NaikoKeyword>(&exp.naiko);
-                REQUIRE(expNaiko != nullptr);
-                REQUIRE(op == *expNaiko);
-            }
-            break;
-        case TokenKind::OPERATOR:
-            {
-                const auto op = getOperationKind(cur.text);
-                REQUIRE(op != NaikoOperation::INVALID);
-                auto* expNaiko = std::get_if<NaikoOperation>(&exp.naiko);
-                REQUIRE(expNaiko != nullptr);
-                REQUIRE(op == *expNaiko);
-            }
-            break;
-        case TokenKind::VALUE:
-            {
-                const auto op = getTypeKind(cur.text);
-                REQUIRE(op != NaikoType::INVALID);
-                auto* expNaiko = std::get_if<NaikoType>(&exp.naiko);
-                REQUIRE(expNaiko != nullptr);
-                REQUIRE(op == *expNaiko);
-            }
-            break;
-        default:
-            break;
-    }
-
+    const char* code = test_code_print_empty;
+    INIT_LEXER
+    REQUIRE(token.kind == TokenKind::END);
 }
 
 TEST_CASE("Lexer skips whitespaces", "[LEXER]" )
 {
-    auto lex = Lexer("  foo");
-    auto tok = lex.next();
-    REQUIRE(tok.text == "foo");
-    REQUIRE(tok.kind == TokenKind::SYMBOL);
+    const char* code = test_code_print_skip_whitespace;
+    INIT_LEXER
+    REQUIRE(token.text == "foo");
+    REQUIRE(token.kind == TokenKind::SYMBOL);
 }
-
-TEST_CASE("Lexer returns END at EOF", "[LEXER]")
-{
-    Lexer lex("");
-    auto tok = lex.next();
-    REQUIRE(tok.kind == TokenKind::END);
-}
-
 
 TEST_CASE("Lexer sets correct symbols", "[LEXER]")
 {
-    Lexer lex("LET foobar = 123");
-    std::vector<Token> tokens;
 
-    {
-        Token token = lex.next();
-        tokens.push_back(token);
-        while (token.kind != TokenKind::END)
-        {
-            token = lex.next();
-            tokens.push_back(token);
-        }
-    }
+    const char* code = test_code_print_correct_symbol;
 
-    std::vector<Expected> expectations
+    std::vector<Expected> expecteds
     {
         KEYWORD(NaikoKeyword::LET, "LET" )
         SYMBOL("foobar")
@@ -110,35 +35,112 @@ TEST_CASE("Lexer sets correct symbols", "[LEXER]")
         END()
     };
 
-    REQUIRE(tokens.size() == expectations.size());
+    INIT_LEXER
 
-    for (size_t i = 0 ; i < tokens.size(); i++)
+    size_t current = 0;
+    printToken(token);
+    checkCurrentTokenIteration(expecteds, tokens, current++);
+    while (token.kind != TokenKind::END)
     {
-        checkCurrentTokenIteration(expectations, tokens, i);
+        token = lex.next();
+        printToken(token);
+        tokens.push_back(token);
+        checkCurrentTokenIteration(expecteds, tokens, current++);
     }
 
+    REQUIRE(token.kind == TokenKind::END);
+    REQUIRE(tokens.size() == expecteds.size());
+
+}
+
+TEST_CASE("Lexer print multiple tests", "[LEXER]" )
+{
+    const char* code = test_code_print_multiple_print;
+
+    std::vector<Expected> expecteds
+    {
+        KEYWORD(NaikoKeyword::PRINT, "PRINT" )
+        VALUE(NaikoType::STRING, "\"hello, world!\"" )
+        KEYWORD(NaikoKeyword::PRINT, "PRINT" )
+        VALUE(NaikoType::STRING, "\"second line\"" )
+        KEYWORD(NaikoKeyword::PRINT, "PRINT" )
+        VALUE(NaikoType::STRING, "\"and a third...\"" )
+        END()
+    };
+
+    INIT_LEXER
+
+    size_t current = 0;
+    printToken(token);
+    checkCurrentTokenIteration(expecteds, tokens, current++);
+    while (token.kind != TokenKind::END)
+    {
+        token = lex.next();
+        printToken(token);
+        tokens.push_back(token);
+        checkCurrentTokenIteration(expecteds, tokens, current++);
+    }
+}
+
+TEST_CASE("Lexer print digit", "[PARSER]" )
+{
+    const char* code = test_code_print_digit;
+
+    std::vector<Expected> expecteds
+    {
+        KEYWORD(NaikoKeyword::PRINT, "PRINT" )
+        VALUE(NaikoType::DIGIT, "123" )
+        END()
+    };
+
+    INIT_LEXER
+
+    size_t current = 0;
+    printToken(token);
+    checkCurrentTokenIteration(expecteds, tokens, current++);
+    while (token.kind != TokenKind::END)
+    {
+        token = lex.next();
+        printToken(token);
+        tokens.push_back(token);
+        checkCurrentTokenIteration(expecteds, tokens, current++);
+    }
+}
+
+TEST_CASE("Lexer if test", "[PARSER]" )
+{
+    const char* code = test_code_basic_if;
+
+    std::vector<Expected> expecteds
+    {
+        KEYWORD(NaikoKeyword::IF, "IF" )
+        VALUE(NaikoType::DIGIT, "10" )
+        OP(NaikoOperation::GREATERTHAN, ">" )
+        VALUE(NaikoType::DIGIT, "0" )
+        KEYWORD(NaikoKeyword::THEN, "THEN" )
+        KEYWORD(NaikoKeyword::PRINT, "PRINT" )
+        VALUE(NaikoType::STRING, "yes!" )
+        KEYWORD(NaikoKeyword::ENDIF, "ENDIF" )
+        END()
+    };
+
+    INIT_LEXER
+
+    size_t current = 0;
+    printToken(token);
+    checkCurrentTokenIteration(expecteds, tokens, current++);
+    while (token.kind != TokenKind::END)
+    {
+        token = lex.next();
+        printToken(token);
+        tokens.push_back(token);
+        checkCurrentTokenIteration(expecteds, tokens, current++);
+    }
 }
 
 TEST_CASE("Lexer big program", "[LEXER]")
 {
-    aiko::string code =
-        "PRINT \"How many fibonacci numbers do you want?\"\n"
-        "INPUT nums\n"
-        "LET a = 0\n"
-        "LET b = 1\n"
-        "WHILE nums > 0 REPEAT\n"
-        "    PRINT a\n"
-        "    LET c = a + b\n"
-        "    LET a = b\n"
-        "    LET b = c\n"
-        "    LET nums = nums - 1\n"
-        "ENDWHILE";
-
-    Lexer lex(code);
-
-    {
-
-        Tokenization tokens;
+    aiko::string code = test_code_big_code;
 
         std::vector<Expected> expecteds =
         {
@@ -196,8 +198,8 @@ TEST_CASE("Lexer big program", "[LEXER]")
             END()
         };
 
-        Token token = lex.next();
-        tokens.push_back(token);
+        INIT_LEXER
+
         size_t current = 0;
         checkCurrentTokenIteration(expecteds, tokens, current++);
         while (token.kind != TokenKind::END)
@@ -210,7 +212,5 @@ TEST_CASE("Lexer big program", "[LEXER]")
 
         REQUIRE(token.kind == TokenKind::END);
         REQUIRE(tokens.size() == expecteds.size());
-    }
-
 
 }

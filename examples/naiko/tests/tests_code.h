@@ -1,0 +1,30 @@
+#pragma once
+
+const char* test_code_print_empty = "";
+const char* test_code_print_skip_whitespace =   "  foo";
+const char* test_code_print_correct_symbol =    "LET foobar = 123";
+const char* test_code_print_digit =             "PRINT 123";
+
+const char* test_code_print_multiple_print =    "PRINT \"hello, world!\"\n"
+                                                "PRINT \"second line\"\n"
+                                                "PRINT \"and a third...\"\n";
+
+const char* test_code_basic_if_ori =            "IF 10 > 0 THEN\n"
+                                                "PRINT \"yes!\"\n"
+                                                "ENDIF\n";
+
+const char* test_code_basic_if =                "IF 10 > 0 THEN\n"
+                                                "PRINT \"yes!\"\n"
+                                                "ENDIF\n";
+
+const char* test_code_big_code =                "PRINT \"How many fibonacci numbers do you want?\"\n"
+                                                "INPUT nums\n"
+                                                "LET a = 0\n"
+                                                "LET b = 1\n"
+                                                "WHILE nums > 0 REPEAT\n"
+                                                "    PRINT a\n"
+                                                "    LET c = a + b\n"
+                                                "    LET a = b\n"
+                                                "    LET b = c\n"
+                                                "    LET nums = nums - 1\n"
+                                                "ENDWHILE";
