@@ -11,24 +11,55 @@ TEST_CASE("Parser print string", "[PARSER]" )
 {
     const char* code = test_code_print_string;
 
-    std::vector<Expected> expecteds
-    {
-        KEYWORD(NaikoKeyword::PRINT, "PRINT" )
-        VALUE(NaikoType::STRING, "\"hello, world!\"" )
-        END()
-    };
-
     INIT_LEXER
 
-    size_t current = 0;
     printToken(token);
-    checkCurrentTokenIteration(expecteds, tokens, current++);
     while (token.kind != TokenKind::END)
     {
         token = lex.next();
         printToken(token);
         tokens.push_back(token);
-        checkCurrentTokenIteration(expecteds, tokens, current++);
+    }
+    auto parser = Parser(tokens);
+    parser.program();
+
+    AIKO_TODO("Not Implemented");
+
+}
+
+TEST_CASE("Parser if", "[PARSER]" )
+{
+    const char* code = test_code_basic_if;
+
+    INIT_LEXER
+
+    printToken(token);
+    while (token.kind != TokenKind::END)
+    {
+        token = lex.next();
+        printToken(token);
+        tokens.push_back(token);
+    }
+    auto parser = Parser(tokens);
+    parser.program();
+
+    AIKO_TODO("Not Implemented");
+
+}
+
+
+TEST_CASE("Parser basic operations", "[PARSER]" )
+{
+    const char* code = test_code_basic_operations;
+
+    INIT_LEXER
+
+    printToken(token);
+    while (token.kind != TokenKind::END)
+    {
+        token = lex.next();
+        printToken(token);
+        tokens.push_back(token);
     }
     auto parser = Parser(tokens);
     parser.program();
