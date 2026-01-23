@@ -12,14 +12,19 @@ namespace aiko::naiko
 
     }
 
-    void Parser::program()
+    NodeUPtr<ProgramNode> Parser::program()
     {
         setup();
-        logger::Log::warning("%s", "PROGRAM");
+        NodeUPtr<ProgramNode> program = std::make_unique<ProgramNode>();
         while (checkCurrent(TokenKind::END) == false)
         {
-            statement();
+            auto stmnt = processStatement();
+            if (stmnt != nullptr)
+            {
+                program->statements.push_back(std::move(stmnt));
+            }
         }
+        return std::move(program);
     }
 
     void Parser::setup()

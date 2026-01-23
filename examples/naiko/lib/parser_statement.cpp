@@ -7,30 +7,23 @@
 namespace aiko::naiko
 {
 
-    void Parser::statement()
+    NodePtr Parser::processStatement()
     {
         const auto current = getCurrentToken();
         switch (current.kind)
         {
         case TokenKind::END:
             {
-                logger::Log::warning("END");
-            } break;
+                return std::make_unique<EndNode>();
+            }
         case TokenKind::KEYWORD:
             {
-                processKeyword();
-            } break;
-        case TokenKind::VALUE:
-            {
-                processValue();
-            } break;
-        case TokenKind::OPERATOR:
-            {
-                processOperator();
-            } break;
+                return processKeyword();
+            }
         default:
-            AIKO_ASSERT(false, "unknow");
+            AIKO_ASSERTF(false, "Unexpected token in statement: %s", current.text.c_str())
         }
+        return nullptr;
     }
 
 }

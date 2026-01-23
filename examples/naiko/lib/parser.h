@@ -4,6 +4,8 @@
 
 #include "compiler_types.h"
 
+#include <parser_nodes.h>
+
 namespace aiko::naiko
 {
 
@@ -15,7 +17,7 @@ namespace aiko::naiko
         Parser(const Tokenization);
         ~Parser() = default;
 
-        void program();
+        NodeUPtr<ProgramNode> program();
 
     private:
 
@@ -30,22 +32,20 @@ namespace aiko::naiko
         Token getCurrentToken() const;
         Token getNextToken() const;
 
-        void statement();
-
         template<class T>
         bool checkCurrent(TokenKind, T) const;
 
         template<class T>
         bool isTokenMatch(Token token, TokenKind kind, T naiko) const;
 
-        void processKeyword();
-        void processValue();
-        void processOperator();
-        void processComparison();
-        void processExpression();
-        void processTerm();
-        void processUnary();
-        void processPrimary();
+        NodePtr processKeyword();
+        NodePtr processStatement();
+
+        NodePtr processExpression();        // comparison
+        NodePtr processComparison();        // term ( ( < | > | == ) term )*
+        NodePtr processTerm();              // unary ( ( + | - ) unary )*
+        NodePtr processUnary();             // ( - | ! ) unary | primary
+        NodePtr processPrimary();           // NUMBER | STRING | IDENTIFIER | '(' expression ')'
 
         bool isComparisonOperator() const;
 

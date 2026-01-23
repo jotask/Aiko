@@ -16,90 +16,50 @@ namespace aiko::naiko
             {
             case NaikoKeyword::PRINT:
                 {
-                    logger::Log::warning("%s", "STATEMENT-PRINT");
                     next();
-                    const auto value = getCurrentToken();
-                    if (value.kind == TokenKind::VALUE)
-                    {
-                        if (const NaikoType* type = std::get_if<NaikoType>(&value.naiko))
-                        {
-                            switch (*type)
-                            {
-                                case NaikoType::STRING:
-                                    {
-                                        printStatement<NaikoType>(*keyword, *type, value.text);
-                                        next();
-                                        return;
-                                    }
-                                break;
-                                case NaikoType::DIGIT:
-                                {
-                                    printStatement<NaikoType>(*keyword, *type, value.text);
-                                    next();
-                                    return;
-                                }
-                                break;
-                                default:
-                                    AIKO_ASSERT(false, "Not implemented print for this type");
-                            }
-                        }
-                        else
-                        {
-                            AIKO_ASSERT(false, "Unknow type for print keyword")
-                        }
-                    }
-                    else
-                    {
-                        statement();
-                    }
+                    return std::make_unique<PrintNode>(processExpression());
                 }
-                break;
-
             case NaikoKeyword::LET:
                 {
-                    logger::Log::warning("%s", "STATEMENT-LET");
                     next();
                     match(TokenKind::SYMBOL);
+                    const auto name = getCurrentToken().text;
                     match(TokenKind::OPERATOR, NaikoOperation::EQUAL);
-                    processExpression();
+                    return std::make_unique<LetNode>(name, processExpression());
                 }
-                break;
             case NaikoKeyword::IF:
                 {
-                    logger::Log::warning("%s", "STATEMENT-IF");
                     next();
-                    processComparison();
+                    auto condition = processComparison();
                     match(TokenKind::KEYWORD, NaikoKeyword::THEN);
+                    std::vector<NodePtr> body;
                     while (isTokenMatch(getCurrentToken(), TokenKind::KEYWORD, NaikoKeyword::ENDIF) == false)
                     {
-                        statement();
+                        auto stmt = processStatement();
+                        body.push_back(std::move(stmt));
                     }
                     match(TokenKind::KEYWORD, NaikoKeyword::ENDIF);
+                    return std::make_unique<IfNode>(std::move(condition), std::move(body));
                 }
-                break;
             case NaikoKeyword::WHILE:
                 {
-                    logger::Log::warning("%s", "STATEMENT-WHILE");
                     next();
-                    processComparison();
+                    auto condition = processComparison();
                     match(TokenKind::KEYWORD, NaikoKeyword::REPEAT);
+                    std::vector<NodePtr> body;
                     while (isTokenMatch(getCurrentToken(), TokenKind::KEYWORD, NaikoKeyword::ENDWHILE) == false)
                     {
-                        statement();
+                        auto stmt = processStatement();
+                        body.push_back(std::move(stmt));
                     }
                     match(TokenKind::KEYWORD, NaikoKeyword::ENDWHILE);
-                    return;
+                    return std::make_unique<WhileNode>(std::move(condition), std::move(body));
                 }
-                break;
             default:
                 AIKO_ASSERTF(false, "Not Implemented KEYWORD [%s]", current.text.data());
             }
         }
-        else
-        {
-            AIKO_ASSERT(false, "Found an unknow keyword?");
-        }
-
+        AIKO_ASSERTF(false, "Found an unknow keyword? or KEYWORD not implemented [%s]", current.text.data());
     }
 
 }

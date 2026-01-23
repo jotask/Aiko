@@ -7,72 +7,84 @@
 namespace aiko::naiko
 {
 
-    void Parser::processComparison()
+    NodePtr Parser::processComparison()
     {
-        logger::Log::warning("%s", "COMPARISON");
-        processExpression();
+        auto left = processExpression();
         if (isComparisonOperator() == true)
         {
+            const auto opToken = getCurrentToken();
             next();
-            processExpression();
+            auto right = processExpression();
+            left = std::make_unique<BinaryOperationNode>(std::move(left), std::get<NaikoOperation>(opToken.naiko), std::move(right));
         }
-
-        while (isComparisonOperator() == true)
-        {
-            next();
-            processExpression();
-        }
+        return left;
     }
 
-    void Parser::processExpression()
+    NodePtr Parser::processExpression()
     {
-        logger::Log::warning("%s", "EXPRESSION");
-        processTerm();
+        auto left = processTerm();
         auto token = getCurrentToken();
         while (checkCurrent(TokenKind::OPERATOR, NaikoOperation::ADD) || checkCurrent(TokenKind::OPERATOR, NaikoOperation::SUBTRACT) )
         {
+            const auto opToken = getCurrentToken();
             next();
-            processTerm();
+            auto right = processTerm();
+            left = std::make_unique<BinaryOperationNode>(std::move(left), std::get<NaikoOperation>(opToken.naiko),std::move(right));
         }
+        return left;
     }
 
-    void Parser::processTerm()
+    NodePtr Parser::processTerm()
     {
-        logger::Log::warning("%s", "TERM");
-        processUnary();
+        auto left = processUnary();
         while (checkCurrent(TokenKind::OPERATOR, NaikoOperation::MULTIPLY) || checkCurrent(TokenKind::OPERATOR, NaikoOperation::DIVIDE))
         {
+            const auto opToken = getCurrentToken();
             next();
-            processUnary();
+            auto right = processUnary();
+            left = std::make_unique<BinaryOperationNode>(std::move(left), std::get<NaikoOperation>(opToken.naiko),std::move(right));
         }
+        return left;
     }
 
-    void Parser::processUnary()
+    NodePtr Parser::processUnary()
     {
-        logger::Log::warning("%s", "UNARY");
         if (checkCurrent(TokenKind::OPERATOR, NaikoOperation::ADD) || checkCurrent(TokenKind::OPERATOR, NaikoOperation::SUBTRACT))
         {
+            const auto opToken = getCurrentToken();
             next();
+            auto operand = processUnary();
+            return std::make_unique<UnaryOperationNode>(std::get<NaikoOperation>(opToken.naiko), std::move(operand));
         }
-        processPrimary();
+        return processPrimary();
     }
 
-    void Parser::processPrimary()
+    NodePtr Parser::processPrimary()
     {
-        logger::Log::warning("%s -> %s", "PRIMARY", getCurrentToken().text.data());
         const auto curr = getCurrentToken();
         if (checkCurrent(TokenKind::VALUE, NaikoType::DIGIT))
         {
             next();
+            return std::make_unique<NumberNode>(std::stoi(curr.text));
         }
-        else if (checkCurrent(TokenKind::SYMBOL))
+        if (checkCurrent(TokenKind::VALUE, NaikoType::STRING))
         {
             next();
+            return std::make_unique<StringNode>(curr.text);
         }
-        else
+        if (checkCurrent(TokenKind::SYMBOL))
         {
-            AIKO_ASSERTF(false, "Unexpected token at %s", getCurrentToken().text.data());
+            next();
+            return std::make_unique<VariableNode>(curr.text);
         }
+        if (checkCurrent(TokenKind::KEYWORD, NaikoKeyword::OPEN_PARENT))
+        {
+            next();
+            auto expr = processExpression();
+            match(TokenKind::KEYWORD, NaikoKeyword::CLOSE_PARENT);
+            return expr;
+        }
+        AIKO_ASSERTF(false, "Unexpected token at %s", getCurrentToken().text.data());
     }
 
     bool Parser::isComparisonOperator() const
