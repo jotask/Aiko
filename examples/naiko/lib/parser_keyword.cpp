@@ -22,8 +22,9 @@ namespace aiko::naiko
             case NaikoKeyword::LET:
                 {
                     next();
+                    const auto varToken = getCurrentToken();
                     match(TokenKind::SYMBOL);
-                    const auto name = getCurrentToken().text;
+                    const auto name = varToken.text;
                     match(TokenKind::OPERATOR, NaikoOperation::EQUAL);
                     return std::make_unique<LetNode>(name, processExpression());
                 }
