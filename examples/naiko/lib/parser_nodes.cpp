@@ -23,6 +23,12 @@ namespace aiko::naiko
         right->print(indent + 1);
     }
 
+    void UnaryOperationNode::print(size_t indent) const
+    {
+        logger::Log::info( "%sUNARYOPERATION::[%s]", makeIndent(indent).c_str(), magic_enum::enum_name(operation).data());
+        operand->print(indent + 1);
+    }
+
     void PrintNode::print(size_t indent) const
     {
         logger::Log::info("%sPRINT", makeIndent(indent).c_str());
@@ -33,6 +39,31 @@ namespace aiko::naiko
     {
         logger::Log::info("%sLET", makeIndent(indent).c_str());
         expr->print(indent + 1);
+    }
+
+    void IfNode::print(size_t indent) const
+    {
+        logger::Log::info("%sIF", makeIndent(indent).c_str());
+        condition->print(indent + 1);
+        for (const auto& b : body)
+        {
+            b->print(indent + 1);
+        }
+    }
+
+    void WhileNode::print(size_t indent) const
+    {
+        logger::Log::info("%sWHILE", makeIndent(indent).c_str());
+        condition->print(indent + 1);
+        for (const auto& b : body)
+        {
+            b->print(indent + 1);
+        }
+    }
+
+    void VariableNode::print(size_t indent) const
+    {
+        logger::Log::info("%sVARIABLE::[%s]", makeIndent(indent).c_str(), name.c_str());
     }
 
     void ProgramNode::print(size_t indent) const
