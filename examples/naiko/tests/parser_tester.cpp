@@ -21,10 +21,9 @@ TEST_CASE("Parser print string", "[PARSER]" )
         tokens.push_back(token);
     }
     auto parser = Parser(tokens);
-    parser.program();
-
-    AIKO_TODO("Not Implemented");
-
+    auto ast = parser.program();
+    ast->print();
+    REQUIRE_FALSE(true);
 }
 
 TEST_CASE("Parser if", "[PARSER]" )
@@ -41,10 +40,9 @@ TEST_CASE("Parser if", "[PARSER]" )
         tokens.push_back(token);
     }
     auto parser = Parser(tokens);
-    parser.program();
-
-    AIKO_TODO("Not Implemented");
-
+    auto ast = parser.program();
+    ast->print();
+    REQUIRE_FALSE(true);
 }
 
 
@@ -62,8 +60,7 @@ TEST_CASE("Parser basic operations", "[PARSER]" )
         tokens.push_back(token);
     }
     auto parser = Parser(tokens);
-    parser.program();
-
-    AIKO_TODO("Not Implemented");
-
+    auto ast = parser.program();
+    ast->print();
+    REQUIRE_FALSE(true);
 }
