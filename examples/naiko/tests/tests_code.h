@@ -21,7 +21,7 @@ inline const char* test_code_basic_operations =         "LET bar = 123\n"
                                                         "ENDIF\n";
 
 inline const char* test_code_big_code =                 "PRINT \"How many fibonacci numbers do you want?\"\n"
-                                                        "INPUT nums\n"
+                                                        "LET nums = 123\n"
                                                         "LET a = 0\n"
                                                         "LET b = 1\n"
                                                         "WHILE nums > 0 REPEAT\n"
@@ -29,5 +29,6 @@ inline const char* test_code_big_code =                 "PRINT \"How many fibona
                                                         "    LET c = a + b\n"
                                                         "    LET a = b\n"
                                                         "    LET b = c\n"
-                                                        "    LET nums = nums - 1\n"
+                                                        "    LET num = nums - 1\n"
+                                                        "    PRINT num\n"
                                                         "ENDWHILE";
