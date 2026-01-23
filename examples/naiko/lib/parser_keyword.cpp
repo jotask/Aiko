@@ -7,14 +7,7 @@
 namespace aiko::naiko
 {
 
-    template<class T>
-    static void printStatement(NaikoKeyword key, T var, string text)
-    {
-        const auto name = magic_enum::enum_name(key);
-        logger::Log::warning("STATEMENT-%s-STRING: [%s]", name.data(), text.c_str());
-    }
-
-    void Parser::processKeyword()
+    NodePtr Parser::processKeyword()
     {
         const auto current = getCurrentToken();
         if (const NaikoKeyword* keyword = std::get_if<NaikoKeyword>(&current.naiko))
