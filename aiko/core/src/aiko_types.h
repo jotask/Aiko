@@ -4,6 +4,7 @@
 #include <string>
 #include <assert.h>
 #include <stdint.h>
+#include <format>
 #include <stdexcept>
 
 #if defined(__cplusplus)
@@ -36,6 +37,7 @@ namespace aiko
     #endif
 
     #define AIKO_ASSERT(cond, msg) assert(cond && msg);
+    #define AIKO_ASSERTF(cond, fmt, ...) assert(cond && std::format(fmt, __VA_ARGS__).c_str());
 
     // TODO the TODO
     #define AIKO_TODO(msg)                                                              \
