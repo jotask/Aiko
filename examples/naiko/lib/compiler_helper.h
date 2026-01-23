@@ -16,7 +16,7 @@ namespace aiko::naiko
 
     inline string makeIndent(const size_t indent)
     {
-        constexpr size_t spacesPerLevel = 2;
+        constexpr size_t spacesPerLevel = 4;
         return string(indent * spacesPerLevel, ' ');
     }
 
