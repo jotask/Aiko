@@ -82,7 +82,7 @@ TEST_CASE("Lexer print multiple tests", "[LEXER]" )
     }
 }
 
-TEST_CASE("Lexer print digit", "[PARSER]" )
+TEST_CASE("Lexer print digit", "[LEXER]" )
 {
     const char* code = test_code_print_digit;
 
@@ -107,7 +107,7 @@ TEST_CASE("Lexer print digit", "[PARSER]" )
     }
 }
 
-TEST_CASE("Lexer if test", "[PARSER]" )
+TEST_CASE("Lexer if test", "[LEXER]" )
 {
     const char* code = test_code_basic_if;
 
