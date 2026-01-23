@@ -10,15 +10,16 @@ inline const char* test_code_print_multiple_print =    "PRINT \"hello, world!\"\
                                                         "PRINT \"second line\"\n"
                                                         "PRINT \"and a third...\"\n";
 
-inline const char* test_code_basic_if_ori =            "IF 10 > 0 THEN\n"
+inline const char* test_code_basic_if =                 "IF 10 > 0 THEN\n"
                                                         "PRINT \"yes!\"\n"
                                                         "ENDIF\n";
 
-inline const char* test_code_basic_if =                "IF 10 > 0 THEN\n"
-                                                        "PRINT \"yes!\"\n"
+inline const char* test_code_basic_operations =         "LET foo = bar * 3 + 2\n"
+                                                        "IF foo > 0 THEN\n"
+                                                            "PRINT \"yes!\"\n"
                                                         "ENDIF\n";
 
-inline const char* test_code_big_code =                "PRINT \"How many fibonacci numbers do you want?\"\n"
+inline const char* test_code_big_code =                 "PRINT \"How many fibonacci numbers do you want?\"\n"
                                                         "INPUT nums\n"
                                                         "LET a = 0\n"
                                                         "LET b = 1\n"
