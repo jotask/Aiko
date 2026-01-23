@@ -22,6 +22,7 @@ namespace aiko::naiko
         void setup();
 
         void next();
+        void match(TokenKind);
         void match(TokenKind, Naiko naiko);
         bool checkCurrent(TokenKind);
         bool checkNext(TokenKind);

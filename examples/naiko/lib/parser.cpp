@@ -32,6 +32,18 @@ namespace aiko::naiko
         m_current++;
     }
 
+    void Parser::match(TokenKind kind)
+    {
+        if (checkCurrent(kind) == false)
+        {
+            const auto expectedName = magic_enum::enum_name<TokenKind>(kind);
+            const auto gotName = magic_enum::enum_name<TokenKind>(m_tokens[m_current].kind);
+            logger::Log::critical("Expected %s but got %s", expectedName.data(), gotName.data());
+            std::exit(-1);
+        }
+        next();
+    }
+
     void Parser::match(TokenKind kind, Naiko naiko)
     {
 
@@ -44,20 +56,28 @@ namespace aiko::naiko
         }
 
         const auto current = getCurrentToken();
-        switch (current.kind)
+        bool matched = false;
+
+        // Use std::visit to handle the variant generically
+        std::visit([&](auto&& expected)
         {
-            case TokenKind::KEYWORD:
-                {
-                    const NaikoKeyword* keyword = std::get_if<NaikoKeyword>(&current.naiko);
-                    if (keyword != nullptr)
-                    {
-                        logger::Log::critical("Expected NaikoKeyword for keyword but got something else");
-                        std::exit(-1);
-                    }
-                }
-            break;
-            default:
-            AIKO_ASSERT(false, "Unknow")
+
+            using T = std::decay_t<decltype(expected)>;
+
+            // Only match if T is not monostate
+            if constexpr (!std::is_same_v<T, std::monostate>)
+            {
+                matched = isTokenMatch(current, kind, expected);
+            }
+        }, naiko);
+
+        if (matched == false)
+        {
+            const auto expectedName = magic_enum::enum_name<TokenKind>(kind);
+            const auto gotName = magic_enum::enum_name<TokenKind>(current.kind);
+            logger::Log::critical("Token mismatch: expected %s with correct value but got %s", expectedName.data(), gotName.data());
+            AIKO_DEBUG_BREAK
+            std::exit(-1);
         }
         next();
     }
