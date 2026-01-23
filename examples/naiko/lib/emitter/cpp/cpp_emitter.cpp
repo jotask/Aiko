@@ -146,6 +146,8 @@ namespace aiko::naiko
                 case NaikoOperation::EQUAL : append("="); break;
                 case NaikoOperation::GREATERTHAN : append(">"); break;
                 case NaikoOperation::MULTIPLY : append("*"); break;
+                case NaikoOperation::DIVIDE : append("/"); break;
+                case NaikoOperation::SUBTRACT : append("-"); break;
                 case NaikoOperation::ADD : append("+"); break;
                 default:
                 AIKO_ASSERT(false, "NOT IMPLEMENTED");
