@@ -104,23 +104,4 @@ namespace aiko::naiko
         return m_tokens[m_current + 1];
     }
 
-    void Parser::statement()
-    {
-        const auto current = getCurrentToken();
-        switch (current.kind)
-        {
-            case TokenKind::END:
-                {
-                    logger::Log::warning("END");
-                    return;
-                } break;
-            case TokenKind::KEYWORD:
-                {
-                    processKeyword();
-                } break;
-            default:
-                AIKO_ASSERT(false, "unknow");
-        }
-    }
-
 }

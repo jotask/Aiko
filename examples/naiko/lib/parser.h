@@ -39,7 +39,15 @@ namespace aiko::naiko
         bool isTokenMatch(Token token, TokenKind kind, T naiko) const;
 
         void processKeyword();
+        void processValue();
+        void processOperator();
         void processComparison();
+        void processExpression();
+        void processTerm();
+        void processUnary();
+        void processPrimary();
+
+        bool isComparisonOperator() const;
 
         Tokenization m_tokens;
         size_t m_current;
