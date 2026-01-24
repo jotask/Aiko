@@ -49,9 +49,9 @@ namespace aiko::naiko
         if (auto print = dynamic_cast<PrintNode*>(node))
         {
             append(makeIndent(indent));
-            append("std::cout <<");
+            append("std::cout << ");
             emitNode(print->expr.get(), 0);
-            append("<< std::endl");
+            append(" << std::endl");
             append(";");
             newLine();
             return;
@@ -61,9 +61,9 @@ namespace aiko::naiko
         if (auto str = dynamic_cast<StringNode*>(node))
         {
             append(makeIndent(indent));
-            append(" \"");
+            append("\"");
             append(str->value);
-            append("\" ");
+            append("\"");
             return;
         }
 
