@@ -21,10 +21,13 @@ namespace aiko::naiko
         newLine();
         newLine("int main()");
         newLine("{");
+
+        enterScope(); // global scope
         for (NodePtr& stmts : node->statements)
         {
             emitNode(stmts.get(), 1);
         }
+        exitScope();
         newLine("    return EXIT_SUCCESS;");
         newLine("}");
         newLine();
@@ -79,7 +82,11 @@ namespace aiko::naiko
         if (auto let = dynamic_cast<LetNode*>(node))
         {
             append(makeIndent(indent));
-            append("auto ");
+            if (isDeclared(let->symbol) == false)
+            {
+                append("auto ");
+                declare(let->symbol);
+            }
             append(let->symbol.c_str());
             append(" = ");
             emitNode(let->expr.get(), 0);
@@ -99,10 +106,12 @@ namespace aiko::naiko
             append(makeIndent(indent));
             append("{");
             newLine();
+            enterScope();
             for (auto& b : ifN->body)
             {
                 emitNode(b.get(), indent + 1);
             }
+            exitScope();
             newLine();
             append(makeIndent(indent));
             append("}");
@@ -121,6 +130,7 @@ namespace aiko::naiko
             append(makeIndent(indent));
             append("{");
             newLine();
+            enterScope();
             for (auto& b : whileN->body)
             {
                 emitNode(b.get(), indent + 1);
@@ -129,6 +139,7 @@ namespace aiko::naiko
             append(makeIndent(indent));
             append("}");
             newLine();
+            exitScope();
             return;
         }
 
@@ -176,4 +187,32 @@ namespace aiko::naiko
         AIKO_ASSERT(false, "NOT IMPLEMENTED")
 
     }
+
+    void CppEmitter::enterScope()
+    {
+        m_scopeStack.emplace_back();
+    }
+
+    void CppEmitter::exitScope()
+    {
+        m_scopeStack.pop_back();
+    }
+
+    void CppEmitter::declare(const string name)
+    {
+        m_scopeStack.back().insert(name);
+    }
+
+    bool CppEmitter::isDeclared(const string name)
+    {
+        for (auto it = m_scopeStack.rbegin(); it != m_scopeStack.rend(); ++it)
+        {
+            if (it->contains(name) == true)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
