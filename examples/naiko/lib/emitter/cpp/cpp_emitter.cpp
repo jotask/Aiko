@@ -5,7 +5,7 @@
 namespace aiko::naiko
 {
     CppEmitter::CppEmitter(string file)
-        : Emitter(file)
+        : Emitter(file + ".cpp")
     {
 
     }
