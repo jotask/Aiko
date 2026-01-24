@@ -37,7 +37,13 @@ namespace aiko
     #endif
 
     #define AIKO_ASSERT(cond, msg) assert(cond && msg);
-    #define AIKO_ASSERTF(cond, fmt, ...) assert(cond && std::format(fmt, __VA_ARGS__).c_str());
+    #define AIKO_ASSERTF(cond, fmt, ...)                                                \
+            do {                                                                        \
+                if (!(cond)) {                                                          \
+                    logger::Log::error(fmt, __VA_ARGS__);                               \
+                    assert(cond);                                                       \
+                }                                                                       \
+            } while (0);
 
     // TODO the TODO
     #define AIKO_TODO(msg)                                                              \
