@@ -43,13 +43,13 @@ namespace aiko::naiko
         }
 
         // END
-        if (auto end = dynamic_cast<EndNode*>(node))
+        if (EndNode* const end = dynamic_cast<EndNode*>(node))
         {
             return;
         }
 
         // PRINT
-        if (auto print = dynamic_cast<PrintNode*>(node))
+        if (PrintNode* const print = dynamic_cast<PrintNode*>(node))
         {
             append(makeIndent(indent));
             append("std::cout << ");
@@ -61,7 +61,7 @@ namespace aiko::naiko
         }
 
         // STRING
-        if (auto str = dynamic_cast<StringNode*>(node))
+        if (StringNode* const str = dynamic_cast<StringNode*>(node))
         {
             append(makeIndent(indent));
             append("\"");
@@ -71,7 +71,7 @@ namespace aiko::naiko
         }
 
         // NUMBER
-        if (auto num = dynamic_cast<NumberNode*>(node))
+        if (NumberNode* const num = dynamic_cast<NumberNode*>(node))
         {
             append(makeIndent(indent));
             append(std::to_string(num->value));
@@ -79,7 +79,7 @@ namespace aiko::naiko
         }
 
         // LET
-        if (auto let = dynamic_cast<LetNode*>(node))
+        if (LetNode* const let = dynamic_cast<LetNode*>(node))
         {
             append(makeIndent(indent));
             if (isDeclared(let->symbol) == false)
@@ -96,7 +96,7 @@ namespace aiko::naiko
         }
 
         // IF
-        if (auto ifN = dynamic_cast<IfNode*>(node))
+        if (IfNode* const ifN = dynamic_cast<IfNode*>(node))
         {
             append(makeIndent(indent));
             append("if ( ");
@@ -120,7 +120,7 @@ namespace aiko::naiko
         }
 
         // WHILE
-        if (auto whileN = dynamic_cast<WhileNode*>(node))
+        if (WhileNode* const whileN = dynamic_cast<WhileNode*>(node))
         {
             append(makeIndent(indent));
             append("while ( ");
@@ -144,7 +144,7 @@ namespace aiko::naiko
         }
 
         // BinaryOperationNode
-        if (auto bin = dynamic_cast<BinaryOperationNode*>(node))
+        if (BinaryOperationNode* const bin = dynamic_cast<BinaryOperationNode*>(node))
         {
             append(makeIndent(0));
             if (bin->left != nullptr)
@@ -172,13 +172,13 @@ namespace aiko::naiko
         }
 
         // UnaryOperationNode
-        if (auto un = dynamic_cast<UnaryOperationNode*>(node))
+        if (UnaryOperationNode* const un = dynamic_cast<UnaryOperationNode*>(node))
         {
             return;
         }
 
         // VariableNode
-        if (auto var = dynamic_cast<VariableNode*>(node))
+        if (VariableNode* const var = dynamic_cast<VariableNode*>(node))
         {
             append(var->name);
             return;
