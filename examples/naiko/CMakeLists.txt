@@ -22,7 +22,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/lib FILES ${EXAMPLE_NAIKO_SRC})
 # Main executable
 add_library(NaikoLib ${EXAMPLE_NAIKO_SRC})
 
-target_link_libraries(NaikoLib PUBLIC Aiko magic_enum)
+target_link_libraries(NaikoLib PUBLIC Aiko magic_enum llvm_vendor)
 target_include_directories(NaikoLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib) #include itself
 
 # =========================
@@ -50,7 +50,7 @@ add_executable(NaikoTests ${EXAMPLE_NAIKO_TESTS})
 
 target_include_directories(NaikoTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib )
 
-target_link_libraries(NaikoTests PRIVATE NaikoLib Catch2::Catch2WithMain magic_enum )
+target_link_libraries(NaikoTests PRIVATE NaikoLib Catch2::Catch2WithMain magic_enum llvm_vendor )
 
 include(CTest)
 include(Catch)

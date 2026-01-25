@@ -9,7 +9,7 @@ namespace aiko::naiko
 
     struct CompilerOptions
     {
-        enum class EmitterKind{ CPP };
+        enum class EmitterKind{ CPP, LLVM };
         std::vector<std::string> inputFiles;
         string outputFile;
         EmitterKind emitterKind = EmitterKind::CPP;
