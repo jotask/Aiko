@@ -17,6 +17,7 @@
 #include <logger/logger.h>
 
 #include "emitter/cpp/cpp_emitter.h"
+#include "emitter/llvm/llvm_emitter.h"
 
 
 int main(int argc, char** argv)
@@ -73,6 +74,7 @@ int main(int argc, char** argv)
 	switch (opts.emitterKind)
 	{
 		case aiko::naiko::CompilerOptions::EmitterKind::CPP: emitter = std::make_unique<aiko::naiko::CppEmitter>(opts.outputFile); break;
+		case aiko::naiko::CompilerOptions::EmitterKind::LLVM: emitter = std::make_unique<aiko::naiko::LlvmEmitter>(opts.outputFile); break;
 		default:
 			aiko::logger::Log::error("Unsuportted emitter mode");
 			std::exit(EXIT_FAILURE);

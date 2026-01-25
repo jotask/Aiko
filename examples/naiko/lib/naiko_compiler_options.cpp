@@ -15,7 +15,7 @@ namespace aiko::naiko
         logger::Log::info("%sOptions", makeIndent(1).data());
         logger::Log::info("%s[Args] : All files to be compiled", makeIndent(2).data());
         logger::Log::info("%s-o <file> : Output file", makeIndent(2).data());
-        logger::Log::info("%s--emit-* : Chose emit version, currently only supported \"--emit-cpp\", selected by default", makeIndent(2).data());
+        logger::Log::info("%s--emit-* : Chose emit version. <options>[ --emit-cpp, --emit--llvm] \"--emit-cpp\", selected by default", makeIndent(2).data());
         logger::Log::info("%s--help : Print usage", makeIndent(2).data());
     }
 
@@ -90,6 +90,10 @@ namespace aiko::naiko
                 if (arg == "--emit-cpp")
                 {
                     opts.emitterKind = CompilerOptions::EmitterKind::CPP;
+                }
+                else if (arg == "--emit-llvm")
+                {
+                    opts.emitterKind = CompilerOptions::EmitterKind::LLVM;
                 }
                 else
                 {
