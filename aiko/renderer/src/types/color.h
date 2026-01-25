@@ -47,33 +47,33 @@ namespace aiko
     // Thanks raysan
     // Some Basic Colors
     // NOTE: Custom raylib color palette for amazing visuals on WHITE background
-    #define LIGHTGRAY  CLITERAL(Color){ 200 / 255.0f    , 200 / 255.0f   , 200 / 255.0f     , 255 / 255.0f }   // Light Gray
-    #define GRAY       CLITERAL(Color){ 130 / 255.0f    , 130 / 255.0f   , 130 / 255.0f     , 255 / 255.0f }   // Gray
-    #define DARKGRAY   CLITERAL(Color){ 80 / 255.0f     , 80 / 255.0f    , 80 / 255.0f      , 255 / 255.0f }   // Dark Gray
-    #define YELLOW     CLITERAL(Color){ 253 / 255.0f    , 249 / 255.0f   , 0 / 255.0f       , 255 / 255.0f }   // Yellow
-    #define GOLD       CLITERAL(Color){ 255 / 255.0f    , 203 / 255.0f   , 0 / 255.0f       , 255 / 255.0f }   // Gold
-    #define ORANGE     CLITERAL(Color){ 255 / 255.0f    , 161 / 255.0f   , 0 / 255.0f       , 255 / 255.0f }   // Orange
-    #define PINK       CLITERAL(Color){ 255 / 255.0f    , 109 / 255.0f   , 194 / 255.0f     , 255 / 255.0f }   // Pink
-    #define RED        CLITERAL(Color){ 230 / 255.0f    , 41 / 255.0f    , 55 / 255.0f      , 255 / 255.0f }   // Red
-    #define MAROON     CLITERAL(Color){ 190 / 255.0f    , 33 / 255.0f    , 55 / 255.0f      , 255 / 255.0f }   // Maroon
-    #define GREEN      CLITERAL(Color){ 0 / 255.0f      , 228 / 255.0f   , 48 / 255.0f      , 255 / 255.0f }   // Green
-    #define LIME       CLITERAL(Color){ 0 / 255.0f      , 158 / 255.0f   , 47 / 255.0f      , 255 / 255.0f }   // Lime
-    #define DARKGREEN  CLITERAL(Color){ 0 / 255.0f      , 117 / 255.0f   , 44 / 255.0f      , 255 / 255.0f }   // Dark Green
-    #define SKYBLUE    CLITERAL(Color){ 102 / 255.0f    , 191 / 255.0f   , 255 / 255.0f     , 255 / 255.0f }   // Sky Blue
-    #define BLUE       CLITERAL(Color){ 0 / 255.0f      , 121 / 255.0f   , 241 / 255.0f     , 255 / 255.0f }   // Blue
-    #define DARKBLUE   CLITERAL(Color){ 0 / 255.0f      , 82 / 255.0f    , 172 / 255.0f     , 255 / 255.0f }   // Dark Blue
-    #define PURPLE     CLITERAL(Color){ 200.0f / 255.0f , 122.0f / 255.0f, 255.0f / 255.0f  , 255.0f / 255.0f }   // Purple
-    #define VIOLET     CLITERAL(Color){ 135 / 255.0f    , 60 / 255.0f    , 190 / 255.0f     , 255 / 255.0f }   // Violet
-    #define DARKPURPLE CLITERAL(Color){ 112 / 255.0f    , 31 / 255.0f    , 126 / 255.0f     , 255 / 255.0f }   // Dark Purple
-    #define BEIGE      CLITERAL(Color){ 211 / 255.0f    , 176 / 255.0f   , 131 / 255.0f     , 255 / 255.0f }   // Beige
-    #define BROWN      CLITERAL(Color){ 127 / 255.0f    , 106 / 255.0f   , 79 / 255.0f      , 255 / 255.0f }   // Brown
-    #define DARKBROWN  CLITERAL(Color){ 76 / 255.0f     , 63 / 255.0f    , 47 / 255.0f      , 255 / 255.0f }   // Dark Brown
-    #define WHITE      CLITERAL(Color){ 255 / 255.0f    , 255 / 255.0f   , 255 / 255.0f     , 255 / 255.0f }   // White
-    #define BLACK      CLITERAL(Color){ 0 / 255.0f      , 0 / 255.0f     , 0 / 255.0f       , 255 / 255.0f }   // Black
-    #define BLANK      CLITERAL(Color){ 0 / 255.0f      , 0 / 255.0f     , 0 / 255.0f       , 0 / 255.0f   }   // Blank (Transparent)
-    #define MAGENTA    CLITERAL(Color){ 255 / 255.0f    , 0 / 255.0f     , 255 / 255.0f     , 255 / 255.0f }   // Magenta
-    #define CYAN       CLITERAL(Color){ 0 / 255.0f      , 255 / 255.0f   , 255 / 255.0f     , 255 / 255.0f }   // Cyan
-    #define RAYWHITE   CLITERAL(Color){ 245 / 255.0f    , 245 / 255.0f   , 245 / 255.0f     , 255 / 255.0f }   // My own White (raylib logo)
+    constexpr Color LIGHTGRAY  { 200 / 255.0f    , 200 / 255.0f   , 200 / 255.0f     , 255 / 255.0f };   // Light Gray
+    constexpr Color GRAY       { 130 / 255.0f    , 130 / 255.0f   , 130 / 255.0f     , 255 / 255.0f };   // Gray
+    constexpr Color DARKGRAY   { 80 / 255.0f     , 80 / 255.0f    , 80 / 255.0f      , 255 / 255.0f };   // Dark Gray
+    constexpr Color YELLOW     { 253 / 255.0f    , 249 / 255.0f   , 0 / 255.0f       , 255 / 255.0f };   // Yellow
+    constexpr Color GOLD       { 255 / 255.0f    , 203 / 255.0f   , 0 / 255.0f       , 255 / 255.0f };   // Gold
+    constexpr Color ORANGE     { 255 / 255.0f    , 161 / 255.0f   , 0 / 255.0f       , 255 / 255.0f };   // Orange
+    constexpr Color PINK       { 255 / 255.0f    , 109 / 255.0f   , 194 / 255.0f     , 255 / 255.0f };   // Pink
+    constexpr Color RED        { 230 / 255.0f    , 41 / 255.0f    , 55 / 255.0f      , 255 / 255.0f };   // Red
+    constexpr Color MAROON     { 190 / 255.0f    , 33 / 255.0f    , 55 / 255.0f      , 255 / 255.0f };   // Maroon
+    constexpr Color GREEN      { 0 / 255.0f      , 228 / 255.0f   , 48 / 255.0f      , 255 / 255.0f };   // Green
+    constexpr Color LIME       { 0 / 255.0f      , 158 / 255.0f   , 47 / 255.0f      , 255 / 255.0f };   // Lime
+    constexpr Color DARKGREEN  { 0 / 255.0f      , 117 / 255.0f   , 44 / 255.0f      , 255 / 255.0f };   // Dark Green
+    constexpr Color SKYBLUE    { 102 / 255.0f    , 191 / 255.0f   , 255 / 255.0f     , 255 / 255.0f };   // Sky Blue
+    constexpr Color BLUE       { 0 / 255.0f      , 121 / 255.0f   , 241 / 255.0f     , 255 / 255.0f };   // Blue
+    constexpr Color DARKBLUE   { 0 / 255.0f      , 82 / 255.0f    , 172 / 255.0f     , 255 / 255.0f };   // Dark Blue
+    constexpr Color PURPLE     { 200.0f / 255.0f , 122.0f / 255.0f, 255.0f / 255.0f  , 255 / 255.0f };   // Purple
+    constexpr Color VIOLET     { 135 / 255.0f    , 60 / 255.0f    , 190 / 255.0f     , 255 / 255.0f };   // Violet
+    constexpr Color DARKPURPLE { 112 / 255.0f    , 31 / 255.0f    , 126 / 255.0f     , 255 / 255.0f };   // Dark Purple
+    constexpr Color BEIGE      { 211 / 255.0f    , 176 / 255.0f   , 131 / 255.0f     , 255 / 255.0f };   // Beige
+    constexpr Color BROWN      { 127 / 255.0f    , 106 / 255.0f   , 79 / 255.0f      , 255 / 255.0f };   // Brown
+    constexpr Color DARKBROWN  { 76 / 255.0f     , 63 / 255.0f    , 47 / 255.0f      , 255 / 255.0f };   // Dark Brown
+    constexpr Color WHITE      { 255 / 255.0f    , 255 / 255.0f   , 255 / 255.0f     , 255 / 255.0f };   // White
+    constexpr Color BLACK      { 0 / 255.0f      , 0 / 255.0f     , 0 / 255.0f       , 255 / 255.0f };   // Black
+    constexpr Color BLANK      { 0 / 255.0f      , 0 / 255.0f     , 0 / 255.0f       , 0 / 255.0f   };   // Blank (Transparent)
+    constexpr Color MAGENTA    { 255 / 255.0f    , 0 / 255.0f     , 255 / 255.0f     , 255 / 255.0f };   // Magenta
+    constexpr Color CYAN       { 0 / 255.0f      , 255 / 255.0f   , 255 / 255.0f     , 255 / 255.0f };   // Cyan
+    constexpr Color RAYWHITE   { 245 / 255.0f    , 245 / 255.0f   , 245 / 255.0f     , 255 / 255.0f };   // My own White (raylib logo)
 
     #define AIKO_DEFAULT_CLEAR_COLOR RAYWHITE
     #define AIKO_DEFAULT_PRIMITIVE_COLOR WHITE
