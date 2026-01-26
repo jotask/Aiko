@@ -8,6 +8,14 @@
 
 namespace aiko::naiko
 {
+    LlvmEmitter::LlvmEmitter(const string name)
+        : Emitter(name)
+        , m_context()
+        , m_module(std::make_unique<llvm::Module>(name, m_context))
+        , m_builder(m_context)
+    {
+    }
+
     LlvmEmitter::LlvmEmitter(const CompilerOptions opts)
         : Emitter(opts)
         , m_context()

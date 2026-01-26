@@ -6,6 +6,11 @@
 
 namespace aiko::naiko
 {
+    CppEmitter::CppEmitter(const string name)
+        : Emitter(name)
+    {
+    }
+
     CppEmitter::CppEmitter(const CompilerOptions opts)
         : Emitter(opts)
     {

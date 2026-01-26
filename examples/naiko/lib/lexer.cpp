@@ -9,6 +9,12 @@
 
 namespace aiko::naiko
 {
+    Lexer::Lexer(string code)
+        : m_code(code)
+        , m_cursor(0)
+        , m_line(0)
+    {
+    }
 
     Lexer::Lexer(const CompilerOptions opts)
         : m_code()

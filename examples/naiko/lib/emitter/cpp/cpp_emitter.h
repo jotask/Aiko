@@ -11,6 +11,7 @@ namespace aiko::naiko
     class CppEmitter : public Emitter
     {
     public:
+        CppEmitter(const string name);
         CppEmitter(const CompilerOptions opts);
         virtual ~CppEmitter() = default;
         virtual void emit(ProgramNode*) override;

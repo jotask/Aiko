@@ -12,6 +12,7 @@ namespace aiko::naiko
     class Lexer
     {
     public:
+        Lexer(string code);
         Lexer(const CompilerOptions opts);
         ~Lexer() = default;
 
