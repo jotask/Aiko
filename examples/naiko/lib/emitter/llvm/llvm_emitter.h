@@ -34,9 +34,10 @@ namespace aiko::naiko
         // Scope stack
         void enterScope();
         void exitScope();
-        void declare(const string name);
-        bool isDeclared(const string name);
-        std::vector<std::unordered_set<string>> m_scopeStack;
+        void declare(const string, llvm::AllocaInst*);
+        bool isDeclared(const string);
+        llvm::AllocaInst* lookupVar(const string);
+        std::vector<std::unordered_map<string, llvm::AllocaInst*>> m_scopeStack;
     };
 
 }

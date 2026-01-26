@@ -146,23 +146,40 @@ namespace aiko::naiko
 
     void LlvmEmitter::enterScope()
     {
-        AIKO_NOT_IMPLEMENTED;
+        m_scopeStack.emplace_back();
     }
 
     void LlvmEmitter::exitScope()
     {
-        AIKO_NOT_IMPLEMENTED;
+        m_scopeStack.pop_back();
     }
 
-    void LlvmEmitter::declare(const string name)
+    void LlvmEmitter::declare(const string name, llvm::AllocaInst* fnt)
     {
-        AIKO_NOT_IMPLEMENTED;
+        m_scopeStack.back().insert({name, fnt});
     }
 
     bool LlvmEmitter::isDeclared(const string name)
     {
-        AIKO_NOT_IMPLEMENTED;
+        for (auto it = m_scopeStack.rbegin(); it != m_scopeStack.rend(); ++it)
+        {
+            if (it->contains(name) == true)
+            {
+                return true;
+            }
+        }
         return false;
     }
 
+    llvm::AllocaInst* LlvmEmitter::lookupVar(const string name)
+    {
+        for (auto it = m_scopeStack.rbegin(); it != m_scopeStack.rend(); ++it)
+        {
+            if (it->contains(name) == true)
+            {
+                return it->at(name);
+            }
+        }
+        return nullptr;
+    }
 }
