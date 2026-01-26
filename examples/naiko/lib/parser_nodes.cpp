@@ -41,6 +41,12 @@ namespace aiko::naiko
         expr->print(indent + 1);
     }
 
+    void SetNode::print(size_t indent) const
+    {
+        logger::Log::info("%sSET", makeIndent(indent).c_str());
+        expr->print(indent + 1);
+    }
+
     void IfNode::print(size_t indent) const
     {
         logger::Log::info("%sIF", makeIndent(indent).c_str());
