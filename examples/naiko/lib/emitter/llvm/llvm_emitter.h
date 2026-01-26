@@ -25,9 +25,11 @@ namespace aiko::naiko
         AikoUPtr<llvm::Module> m_module;
         llvm::IRBuilder<> m_builder;
 
-        virtual void emitNode(ASTNode*, size_t) override;
         virtual void save() override;
         virtual void compile() override;
+
+        // Helper
+        llvm::Value* emitNode(ASTNode*, llvm::Function* fnt);
 
         // Scope stack
         void enterScope();

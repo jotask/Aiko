@@ -16,13 +16,14 @@ namespace aiko::naiko
         virtual ~CppEmitter() = default;
         virtual void emit(ProgramNode*) override;
     private:
-        virtual void emitNode(ASTNode*, size_t) override;
+
         virtual void save() override;
         virtual void compile() override;
 
         string m_code;
 
         // Helpers
+        void emitNode(ASTNode*, size_t);
         void append(string text = "");
         void newLine(string line = "");
 
