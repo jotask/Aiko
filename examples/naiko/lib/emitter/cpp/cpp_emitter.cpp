@@ -214,14 +214,14 @@ namespace aiko::naiko
 
     void CppEmitter::compile()
     {
-        const aiko::string cmd = "g++ " + m_file + ".cpp -o " + m_file;
+        const string cmd = "g++ " + m_file + ".cpp -o " + m_file;
         int result = std::system(cmd.c_str());
         if (result != EXIT_SUCCESS)
         {
             // On POSIX systems, exit code is in the high byte
             const int exitCode = WEXITSTATUS(result);
-            aiko::logger::Log::info("Exit code: [%d]", exitCode);
-            aiko::logger::Log::critical("Couldn't compile emitted code exited with error code [%d] -> [%s] -> [%s]", exitCode, m_file.c_str(), cmd.c_str());
+            logger::Log::info("Exit code: [%d]", exitCode);
+            logger::Log::critical("Couldn't compile emitted code exited with error code [%d] -> [%s] -> [%s]", exitCode, m_file.c_str(), cmd.c_str());
         }
     }
 
