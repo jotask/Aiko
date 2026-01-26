@@ -80,33 +80,19 @@ int main(int argc, char** argv)
 
 	switch (opts.emitterKind)
 	{
-		case aiko::naiko::CompilerOptions::EmitterKind::CPP: emitter = std::make_unique<aiko::naiko::CppEmitter>(opts.outputFile); break;
-		case aiko::naiko::CompilerOptions::EmitterKind::LLVM: emitter = std::make_unique<aiko::naiko::LlvmEmitter>(opts.outputFile); break;
+		case aiko::naiko::CompilerOptions::EmitterKind::CPP: emitter = std::make_unique<aiko::naiko::CppEmitter>(opts); break;
+		case aiko::naiko::CompilerOptions::EmitterKind::LLVM: emitter = std::make_unique<aiko::naiko::LlvmEmitter>(opts); break;
 		default:
 			aiko::logger::Log::error("Unsuportted emitter mode");
 			std::exit(EXIT_FAILURE);
 	}
 
 	emitter->emit(ast.get());
-
 	aiko::logger::Log::info("Emitter completed...");
 
-	// ############
-	//    Cpp compile
-	// ############
-
-	{
-		const aiko::string cmd = "g++ " + opts.outputFile + ".cpp -o " + opts.outputFile;
-		int result = std::system(cmd.c_str());
-		if (result != EXIT_SUCCESS)
-		{
-			// On POSIX systems, exit code is in the high byte
-			const int exitCode = WEXITSTATUS(result);
-			aiko::logger::Log::info("Exit code: [%d]", exitCode);
-			aiko::logger::Log::critical("Couldn't compile emitted code exited with error code [%d] -> [%s] -> [%s]", exitCode, opts.outputFile.c_str(), cmd.c_str());
-		}
-
-	}
+	aiko::logger::Log::info("Compilation started");
+	emitter->compile();
+	aiko::logger::Log::info("Compilation copleted...");
 
 	return EXIT_SUCCESS;
 }

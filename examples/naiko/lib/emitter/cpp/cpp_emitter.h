@@ -17,6 +17,7 @@ namespace aiko::naiko
     private:
         virtual void emitNode(ASTNode*, size_t) override;
         virtual void save() override;
+        virtual void compile() override;
 
         string m_code;
 

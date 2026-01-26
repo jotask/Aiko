@@ -14,6 +14,7 @@ namespace aiko::naiko
         Emitter(const CompilerOptions opts) : m_file(opts.outputFile) { }
         virtual ~Emitter() = default;
         virtual void emit(ProgramNode*) = 0;
+        virtual void compile() = 0;
     protected:
         const string m_file;
         virtual void emitNode(ASTNode*, size_t indent) = 0;
