@@ -2,6 +2,8 @@
 
 #include "compiler_helper.h"
 
+#include <fstream>
+
 namespace aiko::naiko
 {
     CppEmitter::CppEmitter(string file)
@@ -10,10 +12,21 @@ namespace aiko::naiko
 
     }
 
+    void CppEmitter::append(string text)
+    {
+        m_code.append(text);
+    }
+
+    void CppEmitter::newLine(string line)
+    {
+        append(line);
+        append("\n");
+    }
+
     void CppEmitter::emit(ProgramNode* node)
     {
 
-        clear();
+        m_code.clear();
 
         newLine("#include <iostream>");
         newLine("#include <cstdlib>");
@@ -186,6 +199,12 @@ namespace aiko::naiko
 
         AIKO_ASSERT(false, "NOT IMPLEMENTED")
 
+    }
+
+    void CppEmitter::save()
+    {
+        std::ofstream file(m_file);
+        file << m_code;
     }
 
     void CppEmitter::enterScope()

@@ -16,6 +16,13 @@ namespace aiko::naiko
         virtual void emit(ProgramNode*) override;
     private:
         virtual void emitNode(ASTNode*, size_t) override;
+        virtual void save() override;
+
+        string m_code;
+
+        // Helpers
+        void append(string text = "");
+        void newLine(string line = "");
 
         // Scope stack
         void enterScope();
@@ -23,6 +30,7 @@ namespace aiko::naiko
         void declare(const string name);
         bool isDeclared(const string name);
         std::vector<std::unordered_set<string>> m_scopeStack;
+
     };
 
 }

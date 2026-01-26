@@ -101,6 +101,11 @@ namespace aiko::naiko
 
     }
 
+    void LlvmEmitter::save()
+    {
+        AIKO_NOT_IMPLEMENTED;
+    }
+
     void LlvmEmitter::enterScope()
     {
         AIKO_NOT_IMPLEMENTED;

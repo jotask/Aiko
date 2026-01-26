@@ -16,6 +16,7 @@ namespace aiko::naiko
         virtual void emit(ProgramNode*) override;
     private:
         virtual void emitNode(ASTNode*, size_t) override;
+        virtual void save() override;
 
         // Scope stack
         void enterScope();
