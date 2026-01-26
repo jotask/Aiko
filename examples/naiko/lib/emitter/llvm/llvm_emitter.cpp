@@ -2,21 +2,48 @@
 
 #include "compiler_helper.h"
 
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Verifier.h>
+#include <llvm/Support/raw_ostream.h>
 
 namespace aiko::naiko
 {
     LlvmEmitter::LlvmEmitter(string file)
         : Emitter(file)
+        , m_context()
+        , m_module(std::make_unique<llvm::Module>(file, m_context))
+        , m_builder(m_context)
     {
 
     }
 
     void LlvmEmitter::emit(ProgramNode* node)
     {
-        AIKO_NOT_IMPLEMENTED;
+        // Function type : int main()
+        llvm::FunctionType* functType = llvm::FunctionType::get(m_builder.getInt32Ty(), false);
+
+        // Create function in module
+        llvm::Function* mainFnt = llvm::Function::Create(functType, llvm::Function::ExternalLinkage, "main", m_module.get());
+
+        // Create entry basic block
+        llvm::BasicBlock* entry = llvm::BasicBlock::Create(m_context, "entry", mainFnt);
+
+        m_builder.SetInsertPoint(entry);
+
+        // return
+        m_builder.CreateRet(m_builder.getInt32(EXIT_SUCCESS));
+
+        // Verify function
+        if (llvm::verifyFunction(*mainFnt, &llvm::errs()))
+        {
+            logger::Log::error("Function verification failed ::");
+            std::exit(-1);
+        }
+
+        //  print
+
+        m_module->print(llvm::outs(), nullptr);
+
     }
 
     void LlvmEmitter::emitNode(ASTNode* node, size_t indent)
@@ -70,7 +97,6 @@ namespace aiko::naiko
         // WHILE
         if (WhileNode* const whileN = dynamic_cast<WhileNode*>(node))
         {
-
             AIKO_NOT_IMPLEMENTED;
             return;
         }
@@ -78,7 +104,6 @@ namespace aiko::naiko
         // BinaryOperationNode
         if (BinaryOperationNode* const bin = dynamic_cast<BinaryOperationNode*>(node))
         {
-
             AIKO_NOT_IMPLEMENTED;
             return;
         }
