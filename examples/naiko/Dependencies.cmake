@@ -21,10 +21,9 @@ FetchContent_Declare(
         GIT_TAG llvmorg-21.1.8
 )
 
-FetchContent_MakeAvailable(llvm)
-
 # Configure LLVM options before adding
-set(LLVM_ENABLE_PROJECTS "" CACHE STRING "" FORCE)
+
+set(LLVM_ENABLE_PROJECTS "llvm;clang" CACHE STRING "" FORCE)
 set(LLVM_TARGETS_TO_BUILD "X86;ARM" CACHE STRING "" FORCE)
 set(LLVM_ENABLE_RTTI ON CACHE BOOL "" FORCE)
 set(LLVM_ENABLE_EH ON CACHE BOOL "" FORCE)
@@ -33,6 +32,9 @@ set(LLVM_BUILD_UTILS OFF CACHE BOOL "" FORCE)
 set(LLVM_INCLUDE_TESTS OFF CACHE BOOL "" FORCE)
 set(LLVM_INCLUDE_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(LLVM_INCLUDE_DOCS OFF CACHE BOOL "" FORCE)
+# Fetch
+
+FetchContent_MakeAvailable(llvm)
 
 # Build LLVM from the llvm subfolder
 add_subdirectory(${llvm_SOURCE_DIR}/llvm ${llvm_BINARY_DIR})
@@ -51,6 +53,19 @@ target_link_libraries(llvm_vendor INTERFACE
         LLVMCore
         LLVMSupport
         LLVMIRReader
+        LLVMTarget
+        ## x86_64
+        LLVMX86Info
+        LLVMX86Desc
+        LLVMX86CodeGen
+        LLVMX86AsmParser
+        ## ARM
+        LLVMARMInfo
+        LLVMARMDesc
+        LLVMARMCodeGen
+        # Shared
+        LLVMAsmPrinter
+
 )
 
 #----------------------------------------------------------------------
