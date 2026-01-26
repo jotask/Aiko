@@ -10,6 +10,9 @@ inline const char* test_code_print_multiple_print =     "PRINT \"hello, world!\"
                                                         "PRINT \"second line\"\n"
                                                         "PRINT \"and a third...\"\n";
 
+inline const char* test_code_basic_let_and_set =        "LET foobar = 123\n"
+                                                        "SET foobar = 321\n";
+
 inline const char* test_code_basic_if =                 "IF 10 > 0 THEN\n"
                                                         "PRINT \"yes!\"\n"
                                                         "ENDIF\n";
@@ -27,8 +30,8 @@ inline const char* test_code_big_code =                 "PRINT \"How many fibona
                                                         "WHILE nums > 0 REPEAT\n"
                                                         "    PRINT a\n"
                                                         "    LET c = a + b\n"
-                                                        "    LET a = b\n"
-                                                        "    LET b = c\n"
-                                                        "    LET num = nums - 1\n"
-                                                        "    PRINT num\n"
+                                                        "    SET a = b\n"
+                                                        "    SET b = c\n"
+                                                        "    SET nums = nums - 1\n"
+                                                        "    PRINT nums\n"
                                                         "ENDWHILE";
