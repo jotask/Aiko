@@ -72,6 +72,14 @@ namespace aiko::naiko
         virtual void print(size_t indent = 0) const override;
     };
 
+    struct SetNode : ASTNode
+    {
+        explicit SetNode(string sy, NodePtr e) : symbol(sy), expr(std::move(e)) {}
+        string symbol;
+        NodePtr expr;
+        virtual void print(size_t indent = 0) const override;
+    };
+
     struct IfNode : ASTNode
     {
         explicit IfNode(NodePtr cond, std::vector<NodePtr> stmts) : condition(std::move(cond)), body(std::move(stmts)) {}

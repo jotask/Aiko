@@ -28,6 +28,15 @@ namespace aiko::naiko
                     match(TokenKind::OPERATOR, NaikoOperation::EQUAL);
                     return std::make_unique<LetNode>(name, processExpression());
                 }
+            case NaikoKeyword::SET:
+                {
+                    next();
+                    const auto varToken = getCurrentToken();
+                    match(TokenKind::SYMBOL);
+                    const auto name = varToken.text;
+                    match(TokenKind::OPERATOR, NaikoOperation::EQUAL);
+                    return std::make_unique<SetNode>(name, processExpression());
+                }
             case NaikoKeyword::IF:
                 {
                     next();

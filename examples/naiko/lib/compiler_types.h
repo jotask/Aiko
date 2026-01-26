@@ -33,6 +33,7 @@ namespace aiko::naiko
         REPEAT,
         RETURN,
         LET,
+        SET,
         IF,
         THEN,
         ENDIF,
