@@ -8,10 +8,10 @@
 
 namespace aiko::naiko
 {
-    LlvmEmitter::LlvmEmitter(string file)
-        : Emitter(file)
+    LlvmEmitter::LlvmEmitter(const CompilerOptions opts)
+        : Emitter(opts)
         , m_context()
-        , m_module(std::make_unique<llvm::Module>(file, m_context))
+        , m_module(std::make_unique<llvm::Module>(opts.outputFile.data(), m_context))
         , m_builder(m_context)
     {
 

@@ -2,7 +2,8 @@
 
 #include <aiko.h>
 
-#include "../parser_nodes.h"
+#include "parser_nodes.h"
+#include "naiko_compiler_options.h"
 
 namespace aiko::naiko
 {
@@ -10,7 +11,7 @@ namespace aiko::naiko
     class Emitter
     {
     public:
-        Emitter(const string file) : m_file(file) { }
+        Emitter(const CompilerOptions opts) : m_file(opts.outputFile) { }
         virtual ~Emitter() = default;
         virtual void emit(ProgramNode*) = 0;
     protected:

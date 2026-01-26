@@ -6,8 +6,8 @@
 
 namespace aiko::naiko
 {
-    CppEmitter::CppEmitter(string file)
-        : Emitter(file + ".cpp")
+    CppEmitter::CppEmitter(const CompilerOptions opts)
+        : Emitter(opts)
     {
 
     }
