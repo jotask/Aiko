@@ -15,7 +15,7 @@ namespace aiko::naiko
     class LlvmEmitter : public Emitter
     {
     public:
-        LlvmEmitter(string file);
+        LlvmEmitter(const CompilerOptions opts);
         virtual ~LlvmEmitter() = default;
         virtual void emit(ProgramNode*) override;
     private:

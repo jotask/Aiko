@@ -1,7 +1,4 @@
-#include <stdlib.h>
-
 #include <aiko.h>
-#include <core/file.h>
 
 #include <magic_enum/magic_enum.hpp>
 
@@ -11,8 +8,6 @@
 #include <parser.h>
 #include <emitter/emitter.h>
 #include <naiko_compiler_options.h>
-
-#include "constants.h"
 
 #include <logger/logger.h>
 
@@ -45,7 +40,7 @@ int main(int argc, char** argv)
 
 	aiko::logger::Log::info("Lexer Started");
 
-	aiko::naiko::Lexer lexer(code);
+	aiko::naiko::Lexer lexer(opts);
 	aiko::naiko::Tokenization tokenizator;
 
 	auto processToken = [&](const aiko::naiko::Token token)
