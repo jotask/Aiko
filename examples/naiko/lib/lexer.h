@@ -4,6 +4,7 @@
 
 #include <aiko.h>
 #include "compiler_types.h"
+#include "naiko_compiler_options.h"
 
 namespace aiko::naiko
 {
@@ -11,7 +12,7 @@ namespace aiko::naiko
     class Lexer
     {
     public:
-        Lexer(const string code);
+        Lexer(const CompilerOptions opts);
         ~Lexer() = default;
 
         Token next();
@@ -19,6 +20,8 @@ namespace aiko::naiko
     private:
 
         using FntUntilCompare = std::function<bool()>;
+
+        void readInputFiles(std::vector<string>);
 
         void chopChar(size_t many = 1);
 
@@ -36,8 +39,7 @@ namespace aiko::naiko
 
         string getStr(size_t start, size_t end) const;
 
-        const string m_code;
-
+        string m_code;
         size_t m_cursor;
         size_t m_line;
 
