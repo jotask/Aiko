@@ -4,7 +4,13 @@
 
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Verifier.h>
+#include <llvm/MC/TargetRegistry.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/TargetParser/Host.h>
+
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
 
 namespace aiko::naiko
 {
@@ -23,6 +29,31 @@ namespace aiko::naiko
         , m_builder(m_context)
     {
 
+        llvm::InitializeNativeTarget();
+        llvm::InitializeNativeTargetAsmPrinter();
+        auto tripleStr = llvm::sys::getDefaultTargetTriple();
+        llvm::Triple triple = llvm::Triple(tripleStr);
+
+        std::string error;
+        const llvm::Target* target = llvm::TargetRegistry::lookupTarget(tripleStr, error);
+
+        if (target == nullptr)
+        {
+            llvm::errs() << error << "\n";
+            std::exit(-1);
+        }
+
+        llvm::TargetOptions targetOpts;
+        AikoUPtr<llvm::TargetMachine> TM(
+            target->createTargetMachine(
+                triple, "generic", "", targetOpts, std::optional<llvm::Reloc::Model>())
+            );
+
+
+        //  generate IR for this machine
+        m_module->setTargetTriple(triple);
+        m_module->setDataLayout(TM->createDataLayout());
+
     }
 
     void LlvmEmitter::emit(ProgramNode* node)
@@ -38,6 +69,13 @@ namespace aiko::naiko
 
         m_builder.SetInsertPoint(entry);
 
+        enterScope();
+        for (AikoUPtr<ASTNode>& n : node->statements)
+        {
+            emitNode(n.get(), mainFnt);
+        }
+        exitScope();
+
         // return
         m_builder.CreateRet(m_builder.getInt32(EXIT_SUCCESS));
 
@@ -48,86 +86,214 @@ namespace aiko::naiko
             std::exit(-1);
         }
 
-        //  print
-
         m_module->print(llvm::outs(), nullptr);
 
     }
 
-    void LlvmEmitter::emitNode(ASTNode* node, size_t indent)
+    llvm::Value* LlvmEmitter::emitNode(ASTNode* node, llvm::Function* fnt)
     {
         if (node == nullptr)
         {
-            return;
+            return nullptr;
         }
 
         // END
         if (EndNode* const end = dynamic_cast<EndNode*>(node))
         {
-            return;
+            return nullptr;
         }
 
         // PRINT
         if (PrintNode* const print = dynamic_cast<PrintNode*>(node))
         {
-            AIKO_NOT_IMPLEMENTED;
-            return;
+            constexpr const char* fnt_printf = "printf";
+            llvm::Function* printfFNT = m_module->getFunction(fnt_printf);
+            if (printfFNT == nullptr)
+            {
+                llvm::FunctionType* printfType = llvm::FunctionType::get(
+                    m_builder.getInt32Ty(), // printf returns int
+                    llvm::PointerType::get(m_builder.getInt8Ty(), 0), // first argument arg*
+                    true // varidic
+                );
+
+                printfFNT = llvm::Function::Create(
+                    printfType,
+                    llvm::Function::ExternalLinkage,
+                    fnt_printf,
+                    m_module.get()
+                    );
+            }
+
+            // cal printf
+            llvm::Value* valueToPrint = emitNode(print->expr.get(), fnt);
+
+            if(valueToPrint->getType()->isPointerTy())
+            {
+                m_builder.CreateCall(printfFNT, {valueToPrint});
+            }
+            else
+            {
+                llvm::Value* formatStr = nullptr;
+                if (valueToPrint->getType()->isIntegerTy(32))
+                {
+                    formatStr = m_builder.CreateGlobalStringPtr("%d\n");
+                }
+                else
+                {
+                    AIKO_NOT_IMPLEMENTED;
+                }
+                m_builder.CreateCall(printfFNT, { formatStr, valueToPrint});
+            }
+
+            return valueToPrint;
         }
 
         // STRING
         if (StringNode* const str = dynamic_cast<StringNode*>(node))
         {
-            AIKO_NOT_IMPLEMENTED;
-            return;
+            return m_builder.CreateGlobalStringPtr(str->value + "\n");
         }
 
         // NUMBER
         if (NumberNode* const num = dynamic_cast<NumberNode*>(node))
         {
-            AIKO_NOT_IMPLEMENTED;
-            return;
+            return llvm::ConstantInt::get(m_context, llvm::APInt(32, num->value));
         }
 
         // LET
         if (LetNode* const let = dynamic_cast<LetNode*>(node))
         {
-            AIKO_NOT_IMPLEMENTED;
-            return;
+
+            llvm::Value* initVal = emitNode(let->expr.get(), fnt);
+            llvm::Type* allocType = initVal->getType();
+
+            // Allocate variable at the entry block
+            llvm::IRBuilder<> tmpBuilder(&fnt->getEntryBlock(), fnt->getEntryBlock().begin());
+            llvm::AllocaInst* alloc = tmpBuilder.CreateAlloca(allocType, nullptr, let->symbol);
+
+            m_builder.CreateStore(initVal, alloc);
+            declare(let->symbol, alloc);
+
+            return alloc;
         }
 
         // IF
         if (IfNode* const ifN = dynamic_cast<IfNode*>(node))
         {
-            AIKO_NOT_IMPLEMENTED;
-            return;
+            llvm::Value* condition = emitNode(ifN->condition.get(), fnt);
+
+            // Make sure condition is i1 (bool)
+            if (condition-> getType()->isIntegerTy() == true)
+            {
+                condition = m_builder.CreateICmpNE(condition, llvm::ConstantInt::get(m_context, llvm::APInt(23, 0)), "ifcond");
+            }
+
+            llvm::BasicBlock* thenBlock = llvm::BasicBlock::Create(m_context, "then", fnt);
+            llvm::BasicBlock* elseBlock = nullptr;
+            llvm::BasicBlock* mergeBlock = llvm::BasicBlock::Create(m_context, "ifcondition", fnt);
+
+            // TODO
+            // if ( exist else Block)
+            m_builder.CreateCondBr(condition, thenBlock, mergeBlock);
+
+            // then
+            m_builder.SetInsertPoint(thenBlock);
+            enterScope();
+            for (auto& stmt : ifN->body)
+            {
+                emitNode(stmt.get(), fnt);
+            }
+            exitScope();
+            m_builder.CreateBr(mergeBlock);
+
+            // else
+            // TODO
+
+            // merge block
+            m_builder.SetInsertPoint(mergeBlock);
+
+            return nullptr;
         }
 
         // WHILE
         if (WhileNode* const whileN = dynamic_cast<WhileNode*>(node))
         {
-            AIKO_NOT_IMPLEMENTED;
-            return;
+
+            llvm::BasicBlock* conditionBlock = llvm::BasicBlock::Create(m_context, "whilecondition", fnt);
+            llvm::BasicBlock* bodyBlock = llvm::BasicBlock::Create(m_context, "whilebody", fnt);
+            llvm::BasicBlock* mergeBlock = llvm::BasicBlock::Create(m_context, "whilecont", fnt);
+
+            m_builder.CreateBr(conditionBlock);
+
+            // Condition block
+            m_builder.SetInsertPoint(conditionBlock);
+            llvm::Value* condition = emitNode(whileN->condition.get(), fnt);
+            if (condition->getType()->isIntegerTy(32))
+            {
+                condition = m_builder.CreateICmpNE(condition, llvm::ConstantInt::get(m_context, llvm::APInt(32, 0)), "whilecondition");
+            }
+            m_builder.CreateCondBr(condition, bodyBlock, mergeBlock);
+
+            // body block
+            m_builder.SetInsertPoint(bodyBlock);
+            enterScope();
+            for (auto& stmt : whileN->body)
+            {
+                emitNode(stmt.get(), fnt);
+            }
+            exitScope();
+
+            // Jump to condition
+            m_builder.CreateBr(conditionBlock);
+
+            // continue after loop
+            m_builder.SetInsertPoint(mergeBlock);
+
+            return nullptr;
+
+
         }
 
         // BinaryOperationNode
         if (BinaryOperationNode* const bin = dynamic_cast<BinaryOperationNode*>(node))
         {
-            AIKO_NOT_IMPLEMENTED;
-            return;
+            llvm::Value* left = emitNode(bin->left.get(), fnt);
+            llvm::Value* right = emitNode(bin->right.get(), fnt);
+
+            switch (bin->operation)
+            {
+                case NaikoOperation::ADD:return m_builder.CreateAdd(left, right, "add" );
+                case NaikoOperation::SUBTRACT:return m_builder.CreateSub(left, right, "sub" );
+                case NaikoOperation::MULTIPLY:return m_builder.CreateMul(left, right, "mult" );
+                case NaikoOperation::DIVIDE:return m_builder.CreateSDiv(left, right, "div" );
+                case NaikoOperation::GREATERTHAN:return m_builder.CreateICmpSGT(left, right, "greaterthan" );
+                default:
+                AIKO_NOT_IMPLEMENTED;
+            }
         }
 
         // UnaryOperationNode
         if (UnaryOperationNode* const un = dynamic_cast<UnaryOperationNode*>(node))
         {
-            AIKO_NOT_IMPLEMENTED;
-            return;
+            llvm::Value* unary = emitNode(un->operand.get(), fnt);
+            switch (un->operation)
+            {
+                case NaikoOperation::SUBTRACT: return m_builder.CreateNeg(unary);
+                default:
+                    AIKO_NOT_IMPLEMENTED;
+            }
         }
 
         // VariableNode
         if (VariableNode* const var = dynamic_cast<VariableNode*>(node))
         {
-            AIKO_NOT_IMPLEMENTED;
-            return;
+            llvm::AllocaInst* alloc = lookupVar(var->name);
+            if (alloc == nullptr)
+            {
+                logger::Log::error("Error variable with name [%s] not found in scope", var->name.data());
+                std::exit(-1);
+            }
+            return m_builder.CreateLoad(alloc->getAllocatedType(), alloc, var->name + "_val");
         }
 
         AIKO_ASSERT(false, "NOT IMPLEMENTED")
@@ -141,7 +307,29 @@ namespace aiko::naiko
 
     void LlvmEmitter::compile()
     {
-        AIKO_NOT_IMPLEMENTED;
+
+        // 1. Generate LLVM definition program
+        std::error_code error_code;
+        const auto outFile = m_file + ".ll";
+        llvm::raw_fd_stream out(outFile, error_code);
+        if (error_code)
+        {
+            llvm::errs() << "could not open file" << error_code.message() << "\n";
+            std::exit(error_code.value());
+        }
+        m_module->print(out, nullptr);
+        out.flush();
+
+        // Compile our .ll IR program to executable
+        const string cmd = "clang " + outFile + " -o " + m_file;
+        int result = std::system(cmd.c_str());
+        if (result != EXIT_SUCCESS)
+        {
+            // On POSIX systems, exit code is in the high byte
+            const int exitCode = WEXITSTATUS(result);
+            logger::Log::info("Exit code: [%d]", exitCode);
+            logger::Log::critical("Couldn't compile emitted code exited with error code [%d] -> [%s] -> [%s]", exitCode, m_file.c_str(), cmd.c_str());
+        }
     }
 
     void LlvmEmitter::enterScope()
