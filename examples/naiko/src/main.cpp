@@ -20,12 +20,24 @@
 #include "emitter/llvm/llvm_emitter.h"
 
 
+static aiko::naiko::CompilerOptions generateDEBUGCompilerOptions(int argc, char ** argv)
+{
+	const aiko::string woorkingDirectory = "/home/jose/Projects/examples/naiko/src/";
+	const aiko::naiko::CompilerOptions opts =
+	{
+		.inputFiles = {{woorkingDirectory + "naiko.naiko"}},
+		.outputFile = aiko::string(woorkingDirectory + "iris"),
+		.emitterKind = aiko::naiko::CompilerOptions::EmitterKind::LLVM,
+	};
+	aiko::naiko::checkMandatoryCompilerOptions(opts);
+	return opts;
+}
+
 int main(int argc, char** argv)
 {
 
-	const aiko::naiko::CompilerOptions opts = aiko::naiko::parseArgs(argc, argv);
-
-	const aiko::string code = aiko::files::readFileContent(opts.inputFiles.front().c_str());
+	// aiko::naiko::CompilerOptions opts = aiko::naiko::parseArgs(argc, argv);
+	aiko::naiko::CompilerOptions opts = generateDEBUGCompilerOptions(argc, argv);
 
 	// ###########
 	//    LEXER
