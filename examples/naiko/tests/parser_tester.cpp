@@ -64,3 +64,22 @@ TEST_CASE("Parser basic operations", "[PARSER]" )
     ast->print();
     REQUIRE_FALSE(true);
 }
+
+TEST_CASE("Parser basic LET and SET", "[PARSER]" )
+{
+    const char* code = test_code_basic_let_and_set;
+
+    INIT_LEXER
+
+    printToken(token);
+    while (token.kind != TokenKind::END)
+    {
+        token = lex.next();
+        printToken(token);
+        tokens.push_back(token);
+    }
+    auto parser = Parser(tokens);
+    auto ast = parser.program();
+    ast->print();
+    REQUIRE_FALSE(true);
+}

@@ -53,6 +53,42 @@ TEST_CASE("Lexer sets correct symbols", "[LEXER]")
 
 }
 
+TEST_CASE("Lexer basic let and set", "[LEXER]")
+{
+
+    const char* code = test_code_basic_let_and_set;
+
+    std::vector<Expected> expecteds
+    {
+        KEYWORD(NaikoKeyword::LET, "LET" )
+        SYMBOL("foobar")
+        OP(NaikoOperation::EQUAL, "=")
+        VALUE(NaikoType::DIGIT, "123" )
+        KEYWORD(NaikoKeyword::SET, "SET" )
+        SYMBOL("foobar")
+        OP(NaikoOperation::EQUAL, "=")
+        VALUE(NaikoType::DIGIT, "321" )
+        END()
+    };
+
+    INIT_LEXER
+
+    size_t current = 0;
+    printToken(token);
+    checkCurrentTokenIteration(expecteds, tokens, current++);
+    while (token.kind != TokenKind::END)
+    {
+        token = lex.next();
+        printToken(token);
+        tokens.push_back(token);
+        checkCurrentTokenIteration(expecteds, tokens, current++);
+    }
+
+    REQUIRE(token.kind == TokenKind::END);
+    REQUIRE(tokens.size() == expecteds.size());
+
+}
+
 TEST_CASE("Lexer print multiple tests", "[LEXER]" )
 {
     const char* code = test_code_print_multiple_print;
@@ -147,8 +183,10 @@ TEST_CASE("Lexer big program", "[LEXER]")
             KEYWORD(NaikoKeyword::PRINT, "PRINT" )
             VALUE(NaikoType::STRING, "\"How many fibonacci numbers do you want?\"" )
 
-            KEYWORD(NaikoKeyword::INPUT, "INPUT" )
+            KEYWORD(NaikoKeyword::LET, "LET" )
             SYMBOL("nums")
+            OP(NaikoOperation::EQUAL, "=")
+            VALUE(NaikoType::DIGIT, "123" )
 
             KEYWORD(NaikoKeyword::LET, "LET" )
             SYMBOL("a")
@@ -177,22 +215,25 @@ TEST_CASE("Lexer big program", "[LEXER]")
             OP(NaikoOperation::ADD, "+")
             SYMBOL("b")
 
-            KEYWORD(NaikoKeyword::LET, "LET" )
+            KEYWORD(NaikoKeyword::LET, "SET" )
             SYMBOL("a")
             OP(NaikoOperation::EQUAL, "=")
             SYMBOL("b")
 
-            KEYWORD(NaikoKeyword::LET, "LET" )
+            KEYWORD(NaikoKeyword::LET, "SET" )
             SYMBOL("b")
             OP(NaikoOperation::EQUAL, "=")
             SYMBOL("c")
 
-            KEYWORD(NaikoKeyword::LET, "LET" )
+            KEYWORD(NaikoKeyword::LET, "SET" )
             SYMBOL("nums")
             OP(NaikoOperation::EQUAL, "=")
             SYMBOL("nums")
             OP(NaikoOperation::SUBTRACT, "-")
             VALUE(NaikoType::DIGIT, "1" )
+
+            KEYWORD(NaikoKeyword::PRINT, "PRINT" )
+            SYMBOL("nums")
 
             KEYWORD(NaikoKeyword::ENDWHILE, "ENDWHILE" )
             END()
