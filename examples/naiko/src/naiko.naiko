@@ -1,12 +1,11 @@
 PRINT "How many fibonacci numbers do you want?"
-LET nums = 123
+LET nums = 23
 LET a = 0
 LET b = 1
 WHILE nums > 0 REPEAT
-    PRINT a
     LET c = a + b
     SET a = b
     SET b = c
     SET nums = nums - 1
-    PRINT nums
+    PRINT c
 ENDWHILE
