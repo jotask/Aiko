@@ -164,6 +164,12 @@ namespace aiko::naiko
         if (LetNode* const let = dynamic_cast<LetNode*>(node))
         {
 
+            if (isDeclared(let->symbol))
+            {
+                logger::Log::error("Attempting to decleare already declared variable in scope, maybe you meant to use SET?");
+                return nullptr;
+            }
+
             llvm::Value* initVal = emitNode(let->expr.get(), fnt);
             llvm::Type* allocType = initVal->getType();
 
@@ -175,6 +181,28 @@ namespace aiko::naiko
             declare(let->symbol, alloc);
 
             return alloc;
+        }
+
+        // SET
+        if (SetNode* const set = dynamic_cast<SetNode*>(node))
+        {
+
+            llvm::AllocaInst* alloc = lookupVar(set->symbol);
+            if (isDeclared(set->symbol) == false)
+            {
+                logger::Log::error("Attempting to set variable [%s] without been declared on scope, maybe you meant to use LET?", set->symbol);
+                std::exit(-1);
+            }
+
+            llvm::Value* value = emitNode(set->expr.get(), fnt);
+            if (value == nullptr)
+            {
+                logger::Log::error("Couln't evaluate emitted expression node for [%s]", set->symbol);
+                std::exit(-1);
+            }
+
+            return m_builder.CreateStore(value, alloc);
+
         }
 
         // IF
