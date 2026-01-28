@@ -24,19 +24,17 @@ namespace aiko::naiko
 
         void readInputFiles(std::vector<string>);
 
-        void chopChar(size_t many = 1);
+        void chopChar();
 
         void skipUntil(FntUntilCompare);
-        void skipUntilWhitespace();
         void skipWhitespace();
 
-        bool isFirstCharacter(string, unsigned char) const;
-
-        bool isPreprocessor(string str) const;
         bool isKeyword(string str) const;
-        bool isSymbol(string str) const;
-        bool isOperator(string str) const;
-        bool isDigit(string str) const;
+        bool isSymbol(const char) const;
+        bool isOperator(const char) const;
+
+        using IsFnt = int(*)(int);
+        bool isFunction(IsFnt, char);
 
         string getStr(size_t start, size_t end) const;
 
