@@ -92,8 +92,6 @@ namespace aiko::naiko
                token.kind = TokenKind::IDENTIFIER;
             }
 
-            chopChar();
-
             return token;
         }
 
