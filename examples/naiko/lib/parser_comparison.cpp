@@ -72,7 +72,7 @@ namespace aiko::naiko
             next();
             return std::make_unique<StringNode>(curr.text);
         }
-        if (checkCurrent(TokenKind::SYMBOL))
+        if (checkCurrent(TokenKind::IDENTIFIER))
         {
             next();
             return std::make_unique<VariableNode>(curr.text);

@@ -17,6 +17,7 @@ namespace aiko::naiko
         INVALID,
         END,
         PREPROCESSOR,
+        IDENTIFIER,
         SYMBOL,
         COMMENT,
         KEYWORD,
@@ -42,6 +43,8 @@ namespace aiko::naiko
         CLOSE_PARENT,
         OPEN_CURLY,
         CLOSE_CURLY,
+        OPEN_SQUARE,
+        CLOSE_SQUARE,
     };
 
     enum class NaikoOperation : uint8_t

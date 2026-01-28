@@ -9,11 +9,11 @@ struct Expected
     aiko::string text;
 };
 
-#define OP(naiko, text)         { TokenKind::OPERATOR,  naiko,  text },
-#define KEYWORD(naiko, text)    { TokenKind::KEYWORD,   naiko,  text },
-#define VALUE(naiko, text)      { TokenKind::VALUE,     naiko,  text },
-#define SYMBOL(text)            { TokenKind::SYMBOL,    {},     text },
-#define END()                   { TokenKind::END,       {},     {}   },
+#define OP(naiko, text)         { TokenKind::OPERATOR,      naiko,  text },
+#define KEYWORD(naiko, text)    { TokenKind::KEYWORD,       naiko,  text },
+#define VALUE(naiko, text)      { TokenKind::VALUE,         naiko,  text },
+#define IDENTIFIER(text)        { TokenKind::IDENTIFIER,    {},     text },
+#define END()                   { TokenKind::END,           {},     {}   },
 
 #define INIT_LEXER_BASIC                                                \
         Lexer lex(code);                                                \

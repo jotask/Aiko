@@ -2,7 +2,7 @@
 
 inline const char* test_code_print_empty =              "";
 inline const char* test_code_print_skip_whitespace =    "  foo";
-inline const char* test_code_print_correct_symbol =     "LET foobar = 123";
+inline const char* test_code_print_correct_identifier = "LET foobar = 123";
 inline const char* test_code_print_digit =              "PRINT 123";
 inline const char* test_code_print_string =             "PRINT \"hello, world!\"";
 

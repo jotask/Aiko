@@ -93,7 +93,7 @@ static void runProgram(const aiko::string& testName)
                                                                                                                                     \
     }                                                                                                                               \
 
-AIKO_TEST(test_code_print_correct_symbol, "Emitter correct symbols")
+AIKO_TEST(test_code_print_correct_identifier, "Emitter correct indentifiers")
 AIKO_TEST(test_code_print_string, "Emitter Hello World string")
 AIKO_TEST(test_code_print_digit, "Emitter Hello World number")
 AIKO_TEST(test_code_print_multiple_print, "Emitter Multiple prints")

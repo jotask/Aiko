@@ -23,7 +23,7 @@ namespace aiko::naiko
                 {
                     next();
                     const auto varToken = getCurrentToken();
-                    match(TokenKind::SYMBOL);
+                    match(TokenKind::IDENTIFIER);
                     const auto name = varToken.text;
                     match(TokenKind::OPERATOR, NaikoOperation::EQUAL);
                     return std::make_unique<LetNode>(name, processExpression());
@@ -32,7 +32,7 @@ namespace aiko::naiko
                 {
                     next();
                     const auto varToken = getCurrentToken();
-                    match(TokenKind::SYMBOL);
+                    match(TokenKind::IDENTIFIER);
                     const auto name = varToken.text;
                     match(TokenKind::OPERATOR, NaikoOperation::EQUAL);
                     return std::make_unique<SetNode>(name, processExpression());

@@ -18,18 +18,18 @@ TEST_CASE("Lexer skips whitespaces", "[LEXER]" )
     const char* code = test_code_print_skip_whitespace;
     INIT_LEXER
     REQUIRE(token.text == "foo");
-    REQUIRE(token.kind == TokenKind::SYMBOL);
+    REQUIRE(token.kind == TokenKind::IDENTIFIER);
 }
 
-TEST_CASE("Lexer sets correct symbols", "[LEXER]")
+TEST_CASE("Lexer sets correct indentifiers", "[LEXER]")
 {
 
-    const char* code = test_code_print_correct_symbol;
+    const char* code = test_code_print_correct_identifier;
 
     std::vector<Expected> expecteds
     {
         KEYWORD(NaikoKeyword::LET, "LET" )
-        SYMBOL("foobar")
+        IDENTIFIER("foobar")
         OP(NaikoOperation::EQUAL, "=")
         VALUE(NaikoType::DIGIT, "123" )
         END()
@@ -61,11 +61,11 @@ TEST_CASE("Lexer basic let and set", "[LEXER]")
     std::vector<Expected> expecteds
     {
         KEYWORD(NaikoKeyword::LET, "LET" )
-        SYMBOL("foobar")
+        IDENTIFIER("foobar")
         OP(NaikoOperation::EQUAL, "=")
         VALUE(NaikoType::DIGIT, "123" )
         KEYWORD(NaikoKeyword::SET, "SET" )
-        SYMBOL("foobar")
+        IDENTIFIER("foobar")
         OP(NaikoOperation::EQUAL, "=")
         VALUE(NaikoType::DIGIT, "321" )
         END()
@@ -184,56 +184,56 @@ TEST_CASE("Lexer big program", "[LEXER]")
             VALUE(NaikoType::STRING, "\"How many fibonacci numbers do you want?\"" )
 
             KEYWORD(NaikoKeyword::LET, "LET" )
-            SYMBOL("nums")
+            IDENTIFIER("nums")
             OP(NaikoOperation::EQUAL, "=")
             VALUE(NaikoType::DIGIT, "123" )
 
             KEYWORD(NaikoKeyword::LET, "LET" )
-            SYMBOL("a")
+            IDENTIFIER("a")
             OP(NaikoOperation::EQUAL, "=")
             VALUE(NaikoType::DIGIT, "0" )
 
             KEYWORD(NaikoKeyword::LET, "LET" )
-            SYMBOL("b")
+            IDENTIFIER("b")
             OP(NaikoOperation::EQUAL, "=")
             VALUE(NaikoType::DIGIT, "1" )
 
 
             KEYWORD(NaikoKeyword::WHILE, "WHILE" )
-            SYMBOL("nums")
+            IDENTIFIER("nums")
             OP(NaikoOperation::GREATERTHAN, ">")
             VALUE(NaikoType::DIGIT, "0" )
             KEYWORD(NaikoKeyword::REPEAT, "REPEAT" )
 
             KEYWORD(NaikoKeyword::PRINT, "PRINT" )
-            SYMBOL("a")
+            IDENTIFIER("a")
 
             KEYWORD(NaikoKeyword::LET, "LET" )
-            SYMBOL("c")
+            IDENTIFIER("c")
             OP(NaikoOperation::EQUAL, "=")
-            SYMBOL("a")
+            IDENTIFIER("a")
             OP(NaikoOperation::ADD, "+")
-            SYMBOL("b")
+            IDENTIFIER("b")
 
             KEYWORD(NaikoKeyword::LET, "SET" )
-            SYMBOL("a")
+            IDENTIFIER("a")
             OP(NaikoOperation::EQUAL, "=")
-            SYMBOL("b")
+            IDENTIFIER("b")
 
             KEYWORD(NaikoKeyword::LET, "SET" )
-            SYMBOL("b")
+            IDENTIFIER("b")
             OP(NaikoOperation::EQUAL, "=")
-            SYMBOL("c")
+            IDENTIFIER("c")
 
             KEYWORD(NaikoKeyword::LET, "SET" )
-            SYMBOL("nums")
+            IDENTIFIER("nums")
             OP(NaikoOperation::EQUAL, "=")
-            SYMBOL("nums")
+            IDENTIFIER("nums")
             OP(NaikoOperation::SUBTRACT, "-")
             VALUE(NaikoType::DIGIT, "1" )
 
             KEYWORD(NaikoKeyword::PRINT, "PRINT" )
-            SYMBOL("nums")
+            IDENTIFIER("nums")
 
             KEYWORD(NaikoKeyword::ENDWHILE, "ENDWHILE" )
             END()
