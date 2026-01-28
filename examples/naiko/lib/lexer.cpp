@@ -85,7 +85,6 @@ namespace aiko::naiko
             if (isKeyword(token.text))
             {
                 token.kind = TokenKind::KEYWORD;
-                token.naiko = getKeywordKind(token.text);
             }
             else
             {
@@ -123,13 +122,12 @@ namespace aiko::naiko
         {
             token.text = std::string(1, c);
             token.kind = TokenKind::OPERATOR;
-            token.naiko = getOperationKind(std::string(1, c));
             chopChar();
             return token;
         }
 
         // Unknown character
-        logger::Log::error("Unknown character %s at line %zu", c, m_line);
+        logger::Log::error("Unknown character %c at line %zu", c, m_line);
         chopChar();
         return token;
     }
