@@ -23,7 +23,6 @@ TEST_CASE("Parser print string", "[PARSER]" )
     auto parser = Parser(tokens);
     auto ast = parser.program();
     ast->print();
-    REQUIRE_FALSE(true);
 }
 
 TEST_CASE("Parser if", "[PARSER]" )
@@ -42,7 +41,6 @@ TEST_CASE("Parser if", "[PARSER]" )
     auto parser = Parser(tokens);
     auto ast = parser.program();
     ast->print();
-    REQUIRE_FALSE(true);
 }
 
 
@@ -62,7 +60,6 @@ TEST_CASE("Parser basic operations", "[PARSER]" )
     auto parser = Parser(tokens);
     auto ast = parser.program();
     ast->print();
-    REQUIRE_FALSE(true);
 }
 
 TEST_CASE("Parser basic LET and SET", "[PARSER]" )
@@ -81,5 +78,4 @@ TEST_CASE("Parser basic LET and SET", "[PARSER]" )
     auto parser = Parser(tokens);
     auto ast = parser.program();
     ast->print();
-    REQUIRE_FALSE(true);
 }
