@@ -25,12 +25,19 @@ struct Expected
         Token token = lex.next();                                       \
         tokens.push_back(token);
 
-static void checkCurrentTokenIteration(std::vector<Expected> expecteds, std::vector<Token> tokens, size_t idx)
-{
+#define CHECK_TEST_TOKEN_LEXER(...) checkCurrentTokenIteration(__VA_ARGS__, false)
+#define CHECK_TEST_TOKEN_PARSER(...) checkCurrentTokenIteration(__VA_ARGS__, true)
 
+static void checkCurrentTokenIteration(std::vector<Expected> expecteds, std::vector<Token> tokens, size_t idx, bool testNaiko)
+{
     const auto exp = expecteds[idx];
     const auto cur = tokens[idx];
     REQUIRE(exp.kind == cur.kind);
+
+    if (testNaiko == false)
+    {
+        return;
+    }
 
     const bool currContainsNaiko = std::holds_alternative<std::monostate>(cur.naiko);
     const bool expcContainsNaiko = std::holds_alternative<std::monostate>(exp.naiko);

@@ -39,13 +39,13 @@ TEST_CASE("Lexer sets correct indentifiers", "[LEXER]")
 
     size_t current = 0;
     printToken(token);
-    checkCurrentTokenIteration(expecteds, tokens, current++);
+    CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
     while (token.kind != TokenKind::END)
     {
         token = lex.next();
         printToken(token);
         tokens.push_back(token);
-        checkCurrentTokenIteration(expecteds, tokens, current++);
+        CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
     }
 
     REQUIRE(token.kind == TokenKind::END);
@@ -75,13 +75,13 @@ TEST_CASE("Lexer basic let and set", "[LEXER]")
 
     size_t current = 0;
     printToken(token);
-    checkCurrentTokenIteration(expecteds, tokens, current++);
+    CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
     while (token.kind != TokenKind::END)
     {
         token = lex.next();
         printToken(token);
         tokens.push_back(token);
-        checkCurrentTokenIteration(expecteds, tokens, current++);
+        CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
     }
 
     REQUIRE(token.kind == TokenKind::END);
@@ -108,13 +108,13 @@ TEST_CASE("Lexer print multiple tests", "[LEXER]" )
 
     size_t current = 0;
     printToken(token);
-    checkCurrentTokenIteration(expecteds, tokens, current++);
+    CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
     while (token.kind != TokenKind::END)
     {
         token = lex.next();
         printToken(token);
         tokens.push_back(token);
-        checkCurrentTokenIteration(expecteds, tokens, current++);
+        CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
     }
 }
 
@@ -133,13 +133,13 @@ TEST_CASE("Lexer print digit", "[LEXER]" )
 
     size_t current = 0;
     printToken(token);
-    checkCurrentTokenIteration(expecteds, tokens, current++);
+    CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
     while (token.kind != TokenKind::END)
     {
         token = lex.next();
         printToken(token);
         tokens.push_back(token);
-        checkCurrentTokenIteration(expecteds, tokens, current++);
+        CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
     }
 }
 
@@ -164,13 +164,13 @@ TEST_CASE("Lexer if test", "[LEXER]" )
 
     size_t current = 0;
     printToken(token);
-    checkCurrentTokenIteration(expecteds, tokens, current++);
+    CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
     while (token.kind != TokenKind::END)
     {
         token = lex.next();
         printToken(token);
         tokens.push_back(token);
-        checkCurrentTokenIteration(expecteds, tokens, current++);
+        CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
     }
 }
 
@@ -242,13 +242,13 @@ TEST_CASE("Lexer big program", "[LEXER]")
         INIT_LEXER
 
         size_t current = 0;
-        checkCurrentTokenIteration(expecteds, tokens, current++);
+        CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
         while (token.kind != TokenKind::END)
         {
             token = lex.next();
             printToken(token);
             tokens.push_back(token);
-            checkCurrentTokenIteration(expecteds, tokens, current++);
+            CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
         }
 
         REQUIRE(token.kind == TokenKind::END);
