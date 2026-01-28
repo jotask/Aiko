@@ -89,6 +89,87 @@ TEST_CASE("Lexer basic let and set", "[LEXER]")
 
 }
 
+TEST_CASE("Lexer let array", "[LEXER]")
+{
+
+    const char* code = test_code_array;
+
+    std::vector<Expected> expecteds
+    {
+        KEYWORD(NaikoKeyword::LET, "LET" )
+        IDENTIFIER("mem")
+        SYMBOL(NaikoKeyword::OPEN_SQUARE, "[")
+        VALUE(NaikoType::DIGIT, "123" )
+        SYMBOL(NaikoKeyword::CLOSE_SQUARE, "]")
+        END()
+    };
+
+    INIT_LEXER
+
+    size_t current = 0;
+    printToken(token);
+    CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
+    while (token.kind != TokenKind::END)
+    {
+        token = lex.next();
+        printToken(token);
+        tokens.push_back(token);
+        CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
+    }
+
+    REQUIRE(token.kind == TokenKind::END);
+    REQUIRE(tokens.size() == expecteds.size());
+
+}
+
+TEST_CASE("Lexer array extended", "[LEXER]")
+{
+
+    const char* code = test_code_array_extended;
+
+    std::vector<Expected> expecteds
+    {
+        KEYWORD(NaikoKeyword::LET, "LET" )
+        IDENTIFIER("mem")
+        SYMBOL(NaikoKeyword::OPEN_SQUARE, "[")
+        VALUE(NaikoType::DIGIT, "123" )
+        SYMBOL(NaikoKeyword::CLOSE_SQUARE, "]")
+
+        KEYWORD(NaikoKeyword::SET, "SET" )
+        IDENTIFIER("mem")
+        SYMBOL(NaikoKeyword::OPEN_SQUARE, "[")
+        VALUE(NaikoType::DIGIT, "23" )
+        SYMBOL(NaikoKeyword::CLOSE_SQUARE, "]")
+        OP(NaikoOperation::EQUAL, "=")
+        VALUE(NaikoType::DIGIT, "1" )
+
+        KEYWORD(NaikoKeyword::SET, "PRINT" )
+        IDENTIFIER("mem")
+        SYMBOL(NaikoKeyword::OPEN_SQUARE, "[")
+        VALUE(NaikoType::DIGIT, "23" )
+        SYMBOL(NaikoKeyword::CLOSE_SQUARE, "]")
+
+        END()
+    };
+
+    INIT_LEXER
+
+    size_t current = 0;
+    printToken(token);
+    CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
+    while (token.kind != TokenKind::END)
+    {
+        token = lex.next();
+        printToken(token);
+        tokens.push_back(token);
+        CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
+    }
+
+    REQUIRE(token.kind == TokenKind::END);
+    REQUIRE(tokens.size() == expecteds.size());
+
+}
+
 TEST_CASE("Lexer print multiple tests", "[LEXER]" )
 {
     const char* code = test_code_print_multiple_print;

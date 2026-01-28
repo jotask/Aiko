@@ -4,7 +4,13 @@ inline const char* test_code_print_empty =              "";
 inline const char* test_code_print_skip_whitespace =    "  foo";
 inline const char* test_code_print_correct_identifier = "LET foobar = 123";
 inline const char* test_code_print_digit =              "PRINT 123";
+inline const char* test_code_array =                    "LET mem[123]";
 inline const char* test_code_print_string =             "PRINT \"hello, world!\"";
+
+
+inline const char* test_code_array_extended =           "LET mem[123]"
+                                                        "SET mem[23] = 1"
+                                                        "PRINT mem[23]";
 
 inline const char* test_code_print_multiple_print =     "PRINT \"hello, world!\"\n"
                                                         "PRINT \"second line\"\n"

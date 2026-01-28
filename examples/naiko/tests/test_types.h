@@ -12,6 +12,7 @@ struct Expected
 #define OP(naiko, text)         { TokenKind::OPERATOR,      naiko,  text },
 #define KEYWORD(naiko, text)    { TokenKind::KEYWORD,       naiko,  text },
 #define VALUE(naiko, text)      { TokenKind::VALUE,         naiko,  text },
+#define SYMBOL(naiko, text)     { TokenKind::SYMBOL,        naiko,  text },
 #define IDENTIFIER(text)        { TokenKind::IDENTIFIER,    {},     text },
 #define END()                   { TokenKind::END,           {},     {}   },
 

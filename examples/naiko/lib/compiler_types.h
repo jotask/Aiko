@@ -82,7 +82,6 @@ namespace aiko::naiko
 
     using Tokenization = std::vector<Token>;
 
-
     static NaikoKeyword getKeywordKind(string str)
     {
         auto value = magic_enum::enum_cast<NaikoKeyword>(str);
