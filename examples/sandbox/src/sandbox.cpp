@@ -8,7 +8,6 @@
 #include "components/light_component.h"
 #include "models/mesh.h"
 #include "components/texture_component.h"
-#include "components/pbo_texture_component.h"
 #include "components/model_component.h"
 #include "models/camera.h"
 #include "types/color.h"
@@ -17,9 +16,9 @@
 
 #define TEST_LOAD_MESHES
 #define TEST_COMPONENTS
-#define TEST_PRIMITVES
+#define TEST_PRIMITIVES
 
-namespace sandbox
+namespace sb
 {
     void Sandbox::init()
     {
@@ -27,39 +26,39 @@ namespace sandbox
 
         auto camera = this->Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
-		camera->transform()->position = { 0.0f, 1.0f, 3.0f };
-		cam->getCamera()->position = camera->transform()->position;
+		camera->transform().position = { 0.0f, 1.0f, 3.0f };
+		cam->getCamera().position = camera->transform().position;
 
         auto root = Instantiate("Root");
 
 #ifdef TEST_LOAD_MESHES
 
         auto go1 = this->Instantiate(root, "Church");
-        go1->transform()->position = { 0.0f, 0.0f, -15.0f };
-        go1->transform()->rotation = { 0.0f, 0.0f, 0.0f };
-        go1->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        go1->transform().position = { 0.0f, 0.0f, -15.0f };
+        go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
+        go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model1 = go1->addComponent<aiko::ModelComponent>();
         model1->load("church.obj");
 
         auto go2 = this->Instantiate(root, "Barracks");
-        go2->transform()->position = { -50.0f, 0.0f, -15.0f };
-        go2->transform()->rotation = { 0.0f, 0.0f, 0.0f };
-        go2->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        go2->transform().position = { -50.0f, 0.0f, -15.0f };
+        go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
+        go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model2 = go2->addComponent<aiko::ModelComponent>();
         model2->load("barracks.obj");
 
         auto go3 = this->Instantiate(root, "Watermill");
-        go3->transform()->position = { 50.0f, 0.0f, -15.0f };
-        go3->transform()->rotation = { 0.0f, 0.0f, 0.0f };
-        go3->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        go3->transform().position = { 50.0f, 0.0f, -15.0f };
+        go3->transform().rotation = { 0.0f, 0.0f, 0.0f };
+        go3->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model3 = go3->addComponent<aiko::ModelComponent>();
         model3->load("watermill.obj");
 
         auto go4 = this->Instantiate(root, "Robot");
-        go4->transform()->position = { 0.0f, 0.0f, 0.0f };
-        go4->transform()->rotation = { 0.0f, 0.0f, 0.0f };
+        go4->transform().position = { 0.0f, 0.0f, 5.0f };
+        go4->transform().rotation = { 0.0f, 0.0f, 0.0f };
         const float scale = 0.25f;
-        go4->transform()->scale = { scale, scale, scale };
+        go4->transform().scale = { scale, scale, scale };
         auto model4 = go4->addComponent<aiko::ModelComponent>();
         model4->load("robot.glb");
 
@@ -67,28 +66,28 @@ namespace sandbox
 
 #ifdef TEST_COMPONENTS
         m_go1 = this->Instantiate(root, "Cube1");
-        m_go1->transform()->position = { 1.0f, 0.0f, 5.0f };
-        m_go1->transform()->rotation = { 0.0f, 0.0f, 0.0f };
-        m_go1->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        m_go1->transform().position = { 1.0f, 0.0f, 5.0f };
+        m_go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
+        m_go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
         
         m_go2 = this->Instantiate(root, "Cube2");
-        m_go2->transform()->position = { -1.0f, 0.0f, 5.0f };
-        m_go2->transform()->rotation = { 0.0f, 0.0f, 0.0f };
-        m_go2->transform()->scale = { 1.0f, 1.0f, 1.0f };
+        m_go2->transform().position = { -1.0f, 0.0f, 5.0f };
+        m_go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
+        m_go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
 
         m_texture = this->Instantiate(root, "Texture");
-        m_texture->transform()->position = { 0.0f, -0.55f, 5.0f };
-        m_texture->transform()->rotation = { 0.0f, 0.0f, 0.0f };
-        m_texture->transform()->scale = { 1.0f, 1.0f, 1.0f };
-        auto mesh3 = m_texture->addComponent<aiko::TextureComponent>();
+        m_texture->transform().position = { 0.0f, -0.55f, 5.0f };
+        m_texture->transform().rotation = { 0.0f, 0.0f, 0.0f };
+        m_texture->transform().scale = { 1.0f, 1.0f, 1.0f };
+        auto mesh3 = m_texture->addComponent<aiko::TextureComponent>("texel_checker.png");
         
         m_texturePbo = this->Instantiate(root, "PboTexture");
-        m_texturePbo->transform()->position = { 0.0f, 0.55f, 5.0f };
-        m_texturePbo->transform()->rotation = { 0.0f, 0.0f, 0.0f };
-        m_texturePbo->transform()->scale = { 1.0f, 1.0f, 1.0f };
-        auto mesh4 = m_texturePbo->addComponent<aiko::PboTextureComponent>();
+        m_texturePbo->transform().position = { 0.0f, 0.55f, 5.0f };
+        m_texturePbo->transform().rotation = { 0.0f, 0.0f, 0.0f };
+        m_texturePbo->transform().scale = { 1.0f, 1.0f, 1.0f };
+        auto mesh4 = m_texturePbo->addComponent<aiko::TextureComponent>(aiko::TextureComponent::TextureMode::PBO);
 #endif
 
     }
@@ -100,8 +99,8 @@ namespace sandbox
         static float angle = 0.0f;
         angle += 25.0f * getlDeltaTime();
         angle = fmod(angle, 360.0f);
-        m_go1->transform()->rotation = {  angle, 0.0f, 0.0f };
-        m_go2->transform()->rotation = { -angle, 0.0f, 0.0f };
+        m_go1->transform().rotation = {  angle, 0.0f, 0.0f };
+        m_go2->transform().rotation = { -angle, 0.0f, 0.0f };
 #endif
     }
 
@@ -112,7 +111,7 @@ namespace sandbox
         const aiko::vec3 position = { 0.0f,  0.0f, 0.0f };
         const aiko::vec3 size = { 1.0f, 1.0f, 1.0f };
 
-#ifdef TEST_PRIMITVES
+#ifdef TEST_PRIMITIVES
 
         constexpr const float SIZE = 1.0f;
 

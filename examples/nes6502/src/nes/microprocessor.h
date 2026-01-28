@@ -3,6 +3,7 @@
 namespace nes
 {
 
+    class Bus;
     class Microprocessor
     {
         friend class Bus;

@@ -1,12 +1,10 @@
 from pathlib import Path
 import sys
-import os
 import subprocess
-from rich import print
+import platform
+from enum import Enum
 
-class bcolors:
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
+SYSTEM = platform.system().lower()  # 'windows', 'linux', or 'darwin'
 
 class Profile:
     def __init__(self, platform: str, profile: str, folder: str):
@@ -47,35 +45,56 @@ profiles = [
     Profile("ios", "metal", "metal"),
 ]
 
+class Color(Enum):
+    INFO    = "37"
+    SECTION = "1;35"
+    SUCCESS = "32"
+    WARNING = "33"
+    ERROR   = "31"
+
+def colorPrint(severity: Color, msg: str):
+    print(f"\033[{severity.value}m{msg}\033[0m")
+    pass
+
 def compileshader(shader: Path):
-    print(f"[purple]{shader}[/purple]")
+
+    colorPrint(Color.SECTION, shader)
 
     shaderc_path = getshadercpath()
 
-    print(shader.suffix)
+    # detect platform constants
+    if SYSTEM == "windows":
+        folder = "dx11"
+        platform = "windows"
+        profile = "s_5_0"
+    elif SYSTEM == "linux":
+        folder = "spirv"
+        platform = "linux"
+        profile = "spirv"
 
     # detect type by filename suffiax
     if shader.suffix == ".vs":
         shader_type = "vertex"
-        profile = "s_5_0"
     elif shader.suffix == ".fs":
         shader_type = "fragment"
-        profile = "s_5_0"
     elif shader.suffix  == ".cs":
         shader_type = "compute"
     else:
-        print(f"Skipping {shader.name} (unknown shader type)")
+        colorPrint(Color.INFO, f"Skipping {shader.name} (unknown shader type)")
         return
-    
-    folder = "dx11"
-    platform = "windows"
 
     # compile profiler
-    output_dir = Path(__file__).parents[1].resolve() / f"assets/build/shaders/{folder}"
+    output_dir = getprojectrootdir() / f"assets/build/shaders/{folder}"
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / f"{shader.stem}.{shader.suffix[1:]}.bin"
 
-    print(f"[red]output:[/red] {output_file}")
+    colorPrint(Color.ERROR,f"output: {output_file}")
+
+     # determine varying.def.sc for this shader
+    local_varying = shader.parent / "varying.def.sc"
+    if not local_varying.exists():
+        # fallback to common include if no local varying
+        local_varying = getshaderincludesCommon() / "varying.def.sc"
 
     cmd = [
         str(shaderc_path),
@@ -87,36 +106,52 @@ def compileshader(shader: Path):
         "-i", str(shader.parent),
         "-i", str(getshaderincludesBgfxShader()),
         "-i", str(getshaderincludesCommon()),
+        "--varyingdef", str(local_varying),
     ]
 
-    print("[bold yellow]Running:[/bold yellow]", " ".join(cmd))
+    colorPrint(Color.WARNING, f"Running: {"".join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
-        print(bcolors.FAIL + "Shader compilation failed!" + bcolors.ENDC)
-        print("[bold red]STDOUT:[/bold red]", result.stdout)
+        colorPrint(Color.ERROR,"Shader compilation failed!")
+        colorPrint(Color.ERROR,f"STDOUT: {result.stdout}")
         sys.exit(420);
     else:
-        print("[bold green]Shader compiled successfully![/bold green]")
+        colorPrint(Color.SUCCESS, "Shader compiled successfully!")
 
-    print("[bold yellow]" + "-" * 150 + "[/bold yellow]")
+    colorPrint(Color.SECTION,f"------------------------------------------------------------------")
+
+def getprojectrootdir():
+    return Path(__file__).parents[1].resolve()
+
+def getLibsPath():
+    if SYSTEM == "windows":
+        return getprojectrootdir() / "build/debug/aiko/libs/"
+    elif SYSTEM == "linux":
+        return getprojectrootdir() / "build/debug/aiko/renderer/libs/"
+    else:
+        colorPrint(Color.ERROR,"UNKNOWN system")
+        sys.exit(4)
 
 def getshaderincludesBgfxShader() -> Path:
-    return Path(__file__).parents[1].resolve() / "deps_cache/bgfx-src/bgfx/src"
+    return getLibsPath() / "bgfx-src/bgfx/src"
 
 def getshaderincludesCommon() -> Path:
-    return Path(__file__).parents[1].resolve() / "deps_cache/bgfx-src/bgfx/examples/common"
+    return getLibsPath() / "bgfx-src/bgfx/examples/common"
 
 def getshadercpath() -> Path:
-    currentpath = Path(__file__).parents[1].resolve() / "deps_cache/bgfx-build/cmake/bgfx/Debug"
-    shaderc_path = Path(currentpath) / "shaderc.exe"
+    currentpath = getLibsPath() / "bgfx-build/cmake/bgfx"
+    shaderc_path = Path(currentpath) / "shaderc"
+    if SYSTEM == "windows":
+        shaderc_path = shaderc_path.with_suffix(".exe")
+
     if not shaderc_path.exists():
-        print("Shaderc not compiled?")
+        colorPrint(Color.ERROR,"Shaderc not compiled?")
         sys.exit(3)
     return shaderc_path
 
 def main():
-    shader_dir = Path(__file__).parents[1].resolve() / "assets/shaders/bgfx"
-    onlyfiles = [f for f in shader_dir.iterdir() if f.is_file() and f.suffix in (".vs", ".fs", ".cs")]
+    shader_dir = getprojectrootdir() / "assets/shaders/bgfx"
+    onlyfiles = [f for f in shader_dir.rglob("*") if f.is_file() and f.suffix in (".vs", ".fs", ".cs")]
 
     if not onlyfiles:
         sys.exit(1)

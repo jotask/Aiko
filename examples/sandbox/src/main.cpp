@@ -4,7 +4,7 @@
 
 int main()
 {
-	sandbox::Sandbox sb;
+	sb::Sandbox sb;
 	sb.run();
 	return EXIT_SUCCESS;
 }

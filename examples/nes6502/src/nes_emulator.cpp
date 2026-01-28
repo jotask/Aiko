@@ -2,7 +2,6 @@
 
 #include <chrono>
 #include <sstream>
-#include <cassert>
 #include <cmath>
 
 #include "shared/math.h"

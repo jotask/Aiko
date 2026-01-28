@@ -2,6 +2,7 @@
 
 #include <string>
 #include <thread>
+#include <atomic>
 
 #include "application/application.h"
 #include "models/shader.h"

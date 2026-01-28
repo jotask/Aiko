@@ -1,0 +1,20 @@
+Checks: >
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  modernize-*,
+  -modernize-use-override,
+  performance-*,
+  readability-*,
+  -readability-redundant-virtual,
+  bugprone-*,
+  portability-*,
+  misc-*,
+  readability-braces-around-statements
+
+CheckOptions:
+  - key: readability-braces-around-statements.ShortStatementLines
+    value: 0   # forces braces even for one-line statements
+
+HeaderFilterRegex: '.*'
+FormatStyle: none
+SystemHeaders: false  

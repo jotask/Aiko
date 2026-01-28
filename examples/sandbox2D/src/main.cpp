@@ -4,7 +4,7 @@
 
 int main()
 {
-	sandbox::Sandbox2D sb;
+	sb::Sandbox2D sb;
 	sb.run();
 	return EXIT_SUCCESS;
 }
