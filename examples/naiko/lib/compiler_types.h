@@ -39,6 +39,11 @@ namespace aiko::naiko
         THEN,
         ENDIF,
         PRINT,
+    };
+
+    enum class NaikoSymbol : uint8_t
+    {
+        INVALID,
         OPEN_PARENT,
         CLOSE_PARENT,
         OPEN_CURLY,
@@ -46,6 +51,7 @@ namespace aiko::naiko
         OPEN_SQUARE,
         CLOSE_SQUARE,
     };
+
 
     enum class NaikoOperation : uint8_t
     {
@@ -69,7 +75,7 @@ namespace aiko::naiko
         DIGIT
     };
 
-    using Naiko = std::variant<std::monostate, NaikoKeyword, NaikoOperation, NaikoType>;
+    using Naiko = std::variant<std::monostate, NaikoKeyword, NaikoSymbol, NaikoOperation, NaikoType>;
 
     struct Token
     {

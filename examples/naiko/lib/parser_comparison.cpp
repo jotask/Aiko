@@ -77,11 +77,11 @@ namespace aiko::naiko
             next();
             return std::make_unique<VariableNode>(curr.text);
         }
-        if (checkCurrent(TokenKind::KEYWORD, NaikoKeyword::OPEN_PARENT))
+        if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::OPEN_PARENT))
         {
             next();
             auto expr = processExpression();
-            match(TokenKind::KEYWORD, NaikoKeyword::CLOSE_PARENT);
+            match(TokenKind::SYMBOL, NaikoSymbol::CLOSE_PARENT);
             return expr;
         }
         AIKO_ASSERTF(false, "Unexpected token at %s", getCurrentToken().text.data());

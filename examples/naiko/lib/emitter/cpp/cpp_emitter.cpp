@@ -100,16 +100,10 @@ namespace aiko::naiko
         if (LetNode* const let = dynamic_cast<LetNode*>(node))
         {
             append(makeIndent(indent));
-            if (isDeclared(let->symbol) == true)
-            {
-                logger::Log::error("Variable already declared in scope");
-                std::exit(-1);
-            }
             append("auto ");
-            declare(let->symbol);
-            append(let->symbol.c_str());
+            emitNode(let->left.get(), 0);
             append(" = ");
-            emitNode(let->expr.get(), 0);
+            emitNode(let->right.get(), 0);
             append(";");
             newLine();
             return;
@@ -119,14 +113,9 @@ namespace aiko::naiko
         if (SetNode* const set = dynamic_cast<SetNode*>(node))
         {
             append(makeIndent(indent));
-            if (isDeclared(set->symbol) == false)
-            {
-                logger::Log::error("Variable not in scope");
-                std::exit(-1);
-            }
-            append(set->symbol.c_str());
+            emitNode(set->left.get(), 0);
             append(" = ");
-            emitNode(set->expr.get(), 0);
+            emitNode(set->right.get(), 0);
             append(";");
             newLine();
             return;

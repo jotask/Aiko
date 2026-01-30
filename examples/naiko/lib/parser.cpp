@@ -4,6 +4,8 @@
 
 #include <magic_enum/magic_enum.hpp>
 
+#include "token_naiko_helper.h"
+
 namespace aiko::naiko
 {
     Parser::Parser(const Tokenization tokens)
@@ -30,6 +32,11 @@ namespace aiko::naiko
     void Parser::setup()
     {
         m_current = 0;
+        for (auto& token : m_tokens)
+        {
+            // lazy resolution
+            helper::resolveNaiko(token);
+        }
     }
 
     void Parser::next()
@@ -92,21 +99,18 @@ namespace aiko::naiko
         return getCurrentToken().kind == kind;
     }
 
-    bool Parser::checkNext(TokenKind kind)
-    {
-        return getNextToken().kind == kind;
-    }
-
-    Token Parser::getCurrentToken() const
+    const Token& Parser::getCurrentToken() const
     {
         AIKO_ASSERT( m_current < m_tokens.size(), "OOB");
         return m_tokens[m_current];
     }
 
-    Token Parser::getNextToken() const
+    Token& Parser::getCurrentToken()
     {
-        AIKO_ASSERT( m_current + 1 < m_tokens.size(), "OOB");
-        return m_tokens[m_current + 1];
+        AIKO_ASSERT( m_current < m_tokens.size(), "OOB");
+        return m_tokens[m_current];
     }
+
+
 
 }

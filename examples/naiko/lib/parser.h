@@ -27,10 +27,9 @@ namespace aiko::naiko
         void match(TokenKind);
         void match(TokenKind, Naiko naiko);
         bool checkCurrent(TokenKind);
-        bool checkNext(TokenKind);
 
-        Token getCurrentToken() const;
-        Token getNextToken() const;
+        const Token& getCurrentToken() const;
+        Token& getCurrentToken();
 
         template<class T>
         bool checkCurrent(TokenKind, T) const;

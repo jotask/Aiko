@@ -79,3 +79,22 @@ TEST_CASE("Parser basic LET and SET", "[PARSER]" )
     auto ast = parser.program();
     ast->print();
 }
+
+
+TEST_CASE("Parser variable with operations extended", "[PARSER]" )
+{
+    const char* code = test_code_basic_operations_ext;
+
+    INIT_LEXER
+
+    printToken(token);
+    while (token.kind != TokenKind::END)
+    {
+        token = lex.next();
+        printToken(token);
+        tokens.push_back(token);
+    }
+    auto parser = Parser(tokens);
+    auto ast = parser.program();
+    ast->print();
+}

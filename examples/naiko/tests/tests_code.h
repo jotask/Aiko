@@ -23,7 +23,10 @@ inline const char* test_code_basic_if =                 "IF 10 > 0 THEN\n"
                                                         "PRINT \"yes!\"\n"
                                                         "ENDIF\n";
 
-inline const char* test_code_basic_operations =         "LET bar = 123\n"
+inline const char* test_code_basic_operations_ext =     "LET foo = 3 - 2\n"
+                                                        "LET bar = foo * 3 + 2\n";
+
+inline const char* test_code_basic_operations =         "LET bar = 3 + 2\n"
                                                         "LET foo = bar * 3 + 2\n"
                                                         "IF foo > 0 THEN\n"
                                                             "PRINT \"yes!\"\n"

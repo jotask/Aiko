@@ -164,6 +164,9 @@ namespace aiko::naiko
         if (LetNode* const let = dynamic_cast<LetNode*>(node))
         {
 
+            AIKO_NOT_IMPLEMENTED;
+
+            /*
             if (isDeclared(let->symbol))
             {
                 logger::Log::error("Attempting to decleare already declared variable in scope, maybe you meant to use SET?");
@@ -181,12 +184,16 @@ namespace aiko::naiko
             declare(let->symbol, alloc);
 
             return alloc;
+            */
         }
 
         // SET
         if (SetNode* const set = dynamic_cast<SetNode*>(node))
         {
 
+            AIKO_NOT_IMPLEMENTED;
+
+            /*
             llvm::AllocaInst* alloc = lookupVar(set->symbol);
             if (isDeclared(set->symbol) == false)
             {
@@ -202,6 +209,7 @@ namespace aiko::naiko
             }
 
             return m_builder.CreateStore(value, alloc);
+            */
 
         }
 

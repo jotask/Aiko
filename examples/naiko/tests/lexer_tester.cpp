@@ -98,9 +98,9 @@ TEST_CASE("Lexer let array", "[LEXER]")
     {
         KEYWORD(NaikoKeyword::LET, "LET" )
         IDENTIFIER("mem")
-        SYMBOL(NaikoKeyword::OPEN_SQUARE, "[")
+        SYMBOL(NaikoSymbol::OPEN_SQUARE, "[")
         VALUE(NaikoType::DIGIT, "123" )
-        SYMBOL(NaikoKeyword::CLOSE_SQUARE, "]")
+        SYMBOL(NaikoSymbol::CLOSE_SQUARE, "]")
         END()
     };
 
@@ -131,23 +131,23 @@ TEST_CASE("Lexer array extended", "[LEXER]")
     {
         KEYWORD(NaikoKeyword::LET, "LET" )
         IDENTIFIER("mem")
-        SYMBOL(NaikoKeyword::OPEN_SQUARE, "[")
+        SYMBOL(NaikoSymbol::OPEN_SQUARE, "[")
         VALUE(NaikoType::DIGIT, "123" )
-        SYMBOL(NaikoKeyword::CLOSE_SQUARE, "]")
+        SYMBOL(NaikoSymbol::CLOSE_SQUARE, "]")
 
         KEYWORD(NaikoKeyword::SET, "SET" )
         IDENTIFIER("mem")
-        SYMBOL(NaikoKeyword::OPEN_SQUARE, "[")
+        SYMBOL(NaikoSymbol::OPEN_SQUARE, "[")
         VALUE(NaikoType::DIGIT, "23" )
-        SYMBOL(NaikoKeyword::CLOSE_SQUARE, "]")
+        SYMBOL(NaikoSymbol::CLOSE_SQUARE, "]")
         OP(NaikoOperation::EQUAL, "=")
         VALUE(NaikoType::DIGIT, "1" )
 
         KEYWORD(NaikoKeyword::SET, "PRINT" )
         IDENTIFIER("mem")
-        SYMBOL(NaikoKeyword::OPEN_SQUARE, "[")
+        SYMBOL(NaikoSymbol::OPEN_SQUARE, "[")
         VALUE(NaikoType::DIGIT, "23" )
-        SYMBOL(NaikoKeyword::CLOSE_SQUARE, "]")
+        SYMBOL(NaikoSymbol::CLOSE_SQUARE, "]")
 
         END()
     };
@@ -182,6 +182,44 @@ TEST_CASE("Lexer print multiple tests", "[LEXER]" )
         VALUE(NaikoType::STRING, "\"second line\"" )
         KEYWORD(NaikoKeyword::PRINT, "PRINT" )
         VALUE(NaikoType::STRING, "\"and a third...\"" )
+        END()
+    };
+
+    INIT_LEXER
+
+    size_t current = 0;
+    printToken(token);
+    CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
+    while (token.kind != TokenKind::END)
+    {
+        token = lex.next();
+        printToken(token);
+        tokens.push_back(token);
+        CHECK_TEST_TOKEN_LEXER(expecteds, tokens, current++);
+    }
+}
+
+TEST_CASE("Lexer variable with operations", "[LEXER]" )
+{
+    const char* code = test_code_basic_operations_ext;
+
+    std::vector<Expected> expecteds
+    {
+        KEYWORD(NaikoKeyword::PRINT, "LET" )
+        IDENTIFIER("foo")
+        OP(NaikoOperation::EQUAL, "=")
+        VALUE(NaikoType::DIGIT, "3")
+        OP(NaikoOperation::SUBTRACT, "-")
+        VALUE(NaikoType::DIGIT, "2")
+
+        KEYWORD(NaikoKeyword::PRINT, "LET" )
+        IDENTIFIER("bar")
+        OP(NaikoOperation::EQUAL, "=")
+        IDENTIFIER("foo")
+        OP(NaikoOperation::MULTIPLY, "*")
+        VALUE(NaikoType::DIGIT, "3")
+        OP(NaikoOperation::ADD, "+")
+        VALUE(NaikoType::DIGIT, "2")
         END()
     };
 

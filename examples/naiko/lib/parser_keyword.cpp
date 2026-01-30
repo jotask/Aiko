@@ -9,7 +9,8 @@ namespace aiko::naiko
 
     NodePtr Parser::processKeyword()
     {
-        const auto current = getCurrentToken();
+        Token& current = getCurrentToken();
+        current.naiko = getKeywordKind(current.text);
         if (const NaikoKeyword* keyword = std::get_if<NaikoKeyword>(&current.naiko))
         {
             switch (*keyword)
@@ -24,18 +25,58 @@ namespace aiko::naiko
                     next();
                     const auto varToken = getCurrentToken();
                     match(TokenKind::IDENTIFIER);
-                    const auto name = varToken.text;
-                    match(TokenKind::OPERATOR, NaikoOperation::EQUAL);
-                    return std::make_unique<LetNode>(name, processExpression());
+
+                    NodePtr target = nullptr;
+                    NodePtr expression = nullptr;
+
+                    if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::OPEN_SQUARE) == true)
+                    {
+                        // array assignment
+                        next();
+                        NodePtr indexExpr = processExpression();
+                        match(TokenKind::SYMBOL, NaikoSymbol::CLOSE_SQUARE);
+                        target = std::make_unique<ArrayAccessNode>(varToken.text, std::move(indexExpr));
+                    }
+                    else
+                    {
+                        target = std::make_unique<VariableNode>(varToken.text);
+                    }
+
+                    if (checkCurrent(TokenKind::OPERATOR))
+                    {
+                        match(TokenKind::OPERATOR, NaikoOperation::EQUAL);
+                        expression = processExpression();
+                    }
+
+                    return std::make_unique<LetNode>(std::move(target), std::move(expression));
                 }
             case NaikoKeyword::SET:
                 {
                     next();
                     const auto varToken = getCurrentToken();
                     match(TokenKind::IDENTIFIER);
-                    const auto name = varToken.text;
+
+                    NodePtr target = nullptr;
+                    NodePtr expression = nullptr;
+
+                    if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::OPEN_SQUARE) == true)
+                    {
+                        // array assigment
+                        next();
+                        NodePtr indexExpr = processExpression();
+                        match(TokenKind::SYMBOL, NaikoSymbol::CLOSE_SQUARE);
+                        target = std::make_unique<ArrayAccessNode>(varToken.text, std::move(indexExpr));
+                    }
+                    else
+                    {
+                        // Simple variable
+                        target = std::make_unique<VariableNode>(varToken.text);
+                    }
+
                     match(TokenKind::OPERATOR, NaikoOperation::EQUAL);
-                    return std::make_unique<SetNode>(name, processExpression());
+                    expression = processExpression();
+
+                    return std::make_unique<SetNode>(std::move(target), std::move(expression));
                 }
             case NaikoKeyword::IF:
                 {

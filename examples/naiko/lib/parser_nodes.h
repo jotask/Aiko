@@ -66,17 +66,25 @@ namespace aiko::naiko
 
     struct LetNode : ASTNode
     {
-        explicit LetNode(string sy, NodePtr e) : symbol(sy), expr(std::move(e)) {}
-        string symbol;
-        NodePtr expr;
+        explicit LetNode(NodePtr l, NodePtr r) : left(std::move(l)), right(std::move(r)) {}
+        NodePtr left;
+        NodePtr right;
         virtual void print(size_t indent = 0) const override;
     };
 
     struct SetNode : ASTNode
     {
-        explicit SetNode(string sy, NodePtr e) : symbol(sy), expr(std::move(e)) {}
-        string symbol;
-        NodePtr expr;
+        explicit SetNode(NodePtr l, NodePtr r) : left(std::move(l)), right(std::move(r)) {}
+        NodePtr left;
+        NodePtr right;
+        virtual void print(size_t indent = 0) const override;
+    };
+
+    struct ArrayAccessNode : ASTNode
+    {
+        explicit ArrayAccessNode(string name, NodePtr idx) : name(name), index(std::move(idx)) {}
+        string name;
+        NodePtr index;
         virtual void print(size_t indent = 0) const override;
     };
 

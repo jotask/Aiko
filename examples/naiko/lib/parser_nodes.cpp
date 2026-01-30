@@ -38,13 +38,27 @@ namespace aiko::naiko
     void LetNode::print(size_t indent) const
     {
         logger::Log::info("%sLET", makeIndent(indent).c_str());
-        expr->print(indent + 1);
+        left->print(indent + 1);
+        right->print(indent + 1);
     }
 
     void SetNode::print(size_t indent) const
     {
         logger::Log::info("%sSET", makeIndent(indent).c_str());
-        expr->print(indent + 1);
+        left->print(indent + 1);
+        right->print(indent + 1);
+    }
+
+    void ArrayAccessNode::print(size_t indent) const
+    {
+        if (index)
+        {
+            index->print(indent + 1);
+        }
+        else
+        {
+            logger::Log::info("%sARRAY", makeIndent(indent).c_str());
+        }
     }
 
     void IfNode::print(size_t indent) const
