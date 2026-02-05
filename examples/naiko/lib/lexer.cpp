@@ -158,8 +158,8 @@ namespace aiko::naiko
 
     void Lexer::skipWhitespace()
     {
-        auto isNotWhiteSpace = [&](){ return static_cast<bool>(std::isspace(static_cast<unsigned char>(m_code[m_cursor]))) == true; };
-        skipUntil(isNotWhiteSpace);
+        auto isWhiteSpace = [&](){ return static_cast<bool>(std::isspace(static_cast<unsigned char>(m_code[m_cursor]))) == true; };
+        skipUntil(isWhiteSpace);
     }
 
     bool Lexer::isKeyword(string str) const
