@@ -15,6 +15,7 @@ namespace aiko::naiko::helper
         case TokenKind::SYMBOL:     token.naiko = resolveSymbol(token);     break;
         case TokenKind::OPERATOR:   token.naiko = resolveOperation(token);  break;
         case TokenKind::VALUE:      token.naiko = resolveType(token);       break;
+        default:                    break;
         }
     }
 
@@ -63,8 +64,7 @@ namespace aiko::naiko::helper
     NaikoType resolveType(Token& token)
     {
         if (std::isdigit(token.text.front()))       return NaikoType::DIGIT;
-        if (std::isalpha(token.text.front()))       return NaikoType::STRING;
-        return NaikoType::INVALID;
+        return NaikoType::STRING;
     }
 
 }

@@ -98,6 +98,13 @@ namespace aiko::naiko
                 return std::get<NaikoType>(token.naiko) == naiko;
             }
         }
+        else if constexpr (std::is_same_v<T, NaikoSymbol>)
+        {
+            if (std::holds_alternative<NaikoSymbol>(token.naiko))
+            {
+                return std::get<NaikoSymbol>(token.naiko) == naiko;
+            }
+        }
         return false;
     }
 
