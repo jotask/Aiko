@@ -106,6 +106,40 @@ namespace aiko::naiko
                     match(TokenKind::KEYWORD, NaikoKeyword::END);
                     return std::make_unique<WhileNode>(std::move(condition), std::move(body));
                 }
+            case NaikoKeyword::FUNCTION:
+                {
+                    next();
+                    auto functionName = getCurrentToken();
+                    match(TokenKind::IDENTIFIER);
+                    match(TokenKind::SYMBOL, NaikoSymbol::COLON);
+                    std::vector<string> parameters;
+                    while (checkCurrent(TokenKind::IDENTIFIER))
+                    {
+                        auto stmt = processStatement();
+                        parameters.push_back(getCurrentToken().text);
+                        next();
+                        if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::COMMA))
+                        {
+                            next(); // consume comma
+                        }
+                        else
+                        {
+                            break; // no more parameters
+                        }
+                    }
+
+                    std::vector<NodePtr> body;
+                    while (isTokenMatch(getCurrentToken(), TokenKind::KEYWORD, NaikoKeyword::END) == false)
+                    {
+                        NodePtr stmt = processStatement();
+                        body.push_back(std::move(stmt));
+                    }
+
+                    match(TokenKind::KEYWORD, NaikoKeyword::END);
+
+                    return std::make_unique<FunctionNode>( functionName.text, parameters, std::move(body));
+
+                }
             default:
                 AIKO_ASSERTF(false, "Not Implemented KEYWORD [%s]", current.text.data());
             }
