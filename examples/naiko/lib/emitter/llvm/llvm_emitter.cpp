@@ -294,19 +294,15 @@ namespace aiko::naiko
             llvm::Value* left = emitNode(bin->left.get(), fnt);
             llvm::Value* right = emitNode(bin->right.get(), fnt);
 
-            if (bin->type != NaikoType::INT)
-            {
-                logger::Log::error("Binary operation not supported");
-                std::exit(-1);
-            }
-
             switch (bin->operation)
             {
+                // Arithmetic -> int
                 case NaikoOperation::ADD:           return m_builder.CreateAdd(left, right, "add" );
                 case NaikoOperation::SUBTRACT:      return m_builder.CreateSub(left, right, "sub" );
                 case NaikoOperation::MULTIPLY:      return m_builder.CreateMul(left, right, "mult" );
                 case NaikoOperation::DIVIDE:        return m_builder.CreateSDiv(left, right, "div" );
                 case NaikoOperation::MODULO:        return m_builder.CreateSRem(left, right, "mod" );
+                // Comparisons -> bool
                 case NaikoOperation::GREATERTHAN:   return m_builder.CreateICmpSGT(left, right, "gt");
                 case NaikoOperation::LESSTHAN:      return m_builder.CreateICmpSLT(left, right, "lt");
                 case NaikoOperation::EQUAL:         return m_builder.CreateICmpEQ(left, right, "eq");
