@@ -84,12 +84,12 @@ namespace aiko::naiko
                     auto condition = processComparison();
                     match(TokenKind::KEYWORD, NaikoKeyword::THEN);
                     std::vector<NodePtr> body;
-                    while (isTokenMatch(getCurrentToken(), TokenKind::KEYWORD, NaikoKeyword::ENDIF) == false)
+                    while (isTokenMatch(getCurrentToken(), TokenKind::KEYWORD, NaikoKeyword::END) == false)
                     {
                         auto stmt = processStatement();
                         body.push_back(std::move(stmt));
                     }
-                    match(TokenKind::KEYWORD, NaikoKeyword::ENDIF);
+                    match(TokenKind::KEYWORD, NaikoKeyword::END);
                     return std::make_unique<IfNode>(std::move(condition), std::move(body));
                 }
             case NaikoKeyword::WHILE:
@@ -98,12 +98,12 @@ namespace aiko::naiko
                     auto condition = processComparison();
                     match(TokenKind::KEYWORD, NaikoKeyword::REPEAT);
                     std::vector<NodePtr> body;
-                    while (isTokenMatch(getCurrentToken(), TokenKind::KEYWORD, NaikoKeyword::ENDWHILE) == false)
+                    while (isTokenMatch(getCurrentToken(), TokenKind::KEYWORD, NaikoKeyword::END) == false)
                     {
                         auto stmt = processStatement();
                         body.push_back(std::move(stmt));
                     }
-                    match(TokenKind::KEYWORD, NaikoKeyword::ENDWHILE);
+                    match(TokenKind::KEYWORD, NaikoKeyword::END);
                     return std::make_unique<WhileNode>(std::move(condition), std::move(body));
                 }
             default:

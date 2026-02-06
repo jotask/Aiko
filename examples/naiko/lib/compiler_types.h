@@ -19,8 +19,6 @@ namespace aiko::naiko
         PREPROCESSOR,
         IDENTIFIER,
         SYMBOL,
-        FUNCTION,
-        RETURN,
         COMMENT,
         KEYWORD,
         OPERATOR,
@@ -30,16 +28,16 @@ namespace aiko::naiko
     enum class NaikoKeyword : uint8_t
     {
         INVALID,
-        WHILE,
-        ENDWHILE,
         INPUT,
         REPEAT,
         RETURN,
         LET,
         SET,
         IF,
+        WHILE,
         THEN,
-        ENDIF,
+        FUNCTION,
+        END,
         PRINT,
     };
 
