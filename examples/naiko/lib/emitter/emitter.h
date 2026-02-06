@@ -1,7 +1,5 @@
 #pragma once
 
-#include <aiko.h>
-
 #include "parser_nodes.h"
 #include "naiko_compiler_options.h"
 

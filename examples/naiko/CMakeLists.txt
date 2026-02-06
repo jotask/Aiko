@@ -22,7 +22,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/lib FILES ${EXAMPLE_NAIKO_SRC})
 # Main executable
 add_library(NaikoLib ${EXAMPLE_NAIKO_SRC})
 
-target_link_libraries(NaikoLib PUBLIC Aiko magic_enum llvm_vendor)
+target_link_libraries(NaikoLib PUBLIC AikoCore magic_enum llvm_vendor)
 target_include_directories(NaikoLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib) #include itself
 
 # =========================

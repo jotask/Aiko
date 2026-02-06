@@ -2,9 +2,7 @@
 
 #include <functional>
 
-#include <aiko.h>
 #include "compiler_types.h"
-#include "naiko_compiler_options.h"
 
 namespace aiko::naiko
 {

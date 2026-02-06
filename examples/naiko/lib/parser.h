@@ -1,10 +1,7 @@
 #pragma once
 
-#include <aiko.h>
-
 #include "compiler_types.h"
-
-#include <parser_nodes.h>
+#include "parser_nodes.h"
 
 namespace aiko::naiko
 {
