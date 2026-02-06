@@ -2,31 +2,50 @@
 
 #include "compiler_helper.h"
 
+// HEADER
+
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/IRBuilder.h>
+
+// CPP
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/MC/TargetRegistry.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/TargetParser/Host.h>
-
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
 
 namespace aiko::naiko
 {
+
+    struct LlvmEmitter::Impl
+    {
+        llvm::LLVMContext m_context;
+        AikoUPtr<llvm::Module> m_module;
+        llvm::IRBuilder<> m_builder;
+
+        Impl(const string name)
+            : m_context()
+            , m_module(std::make_unique<llvm::Module>(name, m_context))
+            , m_builder(m_context)
+        {
+
+        }
+    };
+
     LlvmEmitter::LlvmEmitter(const string name)
         : Emitter(name)
-        , m_context()
-        , m_module(std::make_unique<llvm::Module>(name, m_context))
-        , m_builder(m_context)
+        , pimpl(std::make_unique<Impl>(name))
     {
+
     }
 
     LlvmEmitter::LlvmEmitter(const CompilerOptions opts)
         : Emitter(opts)
-        , m_context()
-        , m_module(std::make_unique<llvm::Module>(opts.outputFile.data(), m_context))
-        , m_builder(m_context)
+        , pimpl(std::make_unique<Impl>(opts.outputFile.data()))
     {
 
         llvm::InitializeNativeTarget();
@@ -51,23 +70,25 @@ namespace aiko::naiko
 
 
         //  generate IR for this machine
-        m_module->setTargetTriple(triple);
-        m_module->setDataLayout(TM->createDataLayout());
+        pimpl->m_module->setTargetTriple(triple);
+        pimpl->m_module->setDataLayout(TM->createDataLayout());
 
     }
+
+    LlvmEmitter::~LlvmEmitter() = default;
 
     void LlvmEmitter::emit(ProgramNode* node)
     {
         // Function type : int main()
-        llvm::FunctionType* functType = llvm::FunctionType::get(m_builder.getInt32Ty(), false);
+        llvm::FunctionType* functType = llvm::FunctionType::get(pimpl->m_builder.getInt32Ty(), false);
 
         // Create function in module
-        llvm::Function* mainFnt = llvm::Function::Create(functType, llvm::Function::ExternalLinkage, "main", m_module.get());
+        llvm::Function* mainFnt = llvm::Function::Create(functType, llvm::Function::ExternalLinkage, "main", pimpl->m_module.get());
 
         // Create entry basic block
-        llvm::BasicBlock* entry = llvm::BasicBlock::Create(m_context, "entry", mainFnt);
+        llvm::BasicBlock* entry = llvm::BasicBlock::Create(pimpl->m_context, "entry", mainFnt);
 
-        m_builder.SetInsertPoint(entry);
+        pimpl->m_builder.SetInsertPoint(entry);
 
         enterScope();
         for (AikoUPtr<ASTNode>& n : node->statements)
@@ -77,7 +98,7 @@ namespace aiko::naiko
         exitScope();
 
         // return
-        m_builder.CreateRet(m_builder.getInt32(EXIT_SUCCESS));
+        pimpl->m_builder.CreateRet(pimpl->m_builder.getInt32(EXIT_SUCCESS));
 
         // Verify function
         if (llvm::verifyFunction(*mainFnt, &llvm::errs()))
@@ -86,7 +107,7 @@ namespace aiko::naiko
             std::exit(-1);
         }
 
-        m_module->print(llvm::outs(), nullptr);
+        pimpl->m_module->print(llvm::outs(), nullptr);
 
     }
 
@@ -107,7 +128,7 @@ namespace aiko::naiko
         if (PrintNode* const print = dynamic_cast<PrintNode*>(node))
         {
             constexpr const char* fnt_printf = "printf";
-            llvm::Function* printfFNT = m_module->getFunction(fnt_printf);
+            llvm::Function* printfFNT = pimpl->m_module->getFunction(fnt_printf);
             if (printfFNT == nullptr)
             {
                 llvm::FunctionType* printfType = llvm::FunctionType::get(
@@ -120,7 +141,7 @@ namespace aiko::naiko
                     printfType,
                     llvm::Function::ExternalLinkage,
                     fnt_printf,
-                    m_module.get()
+                    pimpl->m_module.get()
                     );
             }
 
@@ -160,7 +181,7 @@ namespace aiko::naiko
         // NUMBER
         if (NumberNode* const num = dynamic_cast<NumberNode*>(node))
         {
-            return llvm::ConstantInt::get(m_context, llvm::APInt(32, num->value));
+            return llvm::ConstantInt::get(pimpl->m_context, llvm::APInt(32, num->value));
         }
 
         // LET
@@ -176,7 +197,7 @@ namespace aiko::naiko
                     logger::Log::error("unvalid type on array");
                     std::exit(-1);
                 }
-                llvm::ArrayType* arrType = llvm::ArrayType::get(m_builder.getInt32Ty(), num->value);
+                llvm::ArrayType* arrType = llvm::ArrayType::get(pimpl->m_builder.getInt32Ty(), num->value);
                 llvm::IRBuilder<> tmpBuilder(&fnt->getEntryBlock(), fnt->getEntryBlock().begin());
                 llvm::AllocaInst* alloc = tmpBuilder.CreateAlloca(arrType, nullptr, arr->name);
                 declare(arr->name, alloc);
@@ -191,7 +212,7 @@ namespace aiko::naiko
                 llvm::Type* llvmType = value->getType();
                 llvm::AllocaInst* alloc = tmpBuilder.CreateAlloca(llvmType, nullptr, var->name);
                 declare(var->name, alloc);
-                return m_builder.CreateStore(value, alloc);
+                return pimpl->m_builder.CreateStore(value, alloc);
             }
             AIKO_NOT_IMPLEMENTED;
         }
@@ -201,14 +222,14 @@ namespace aiko::naiko
         {
             llvm::Value* target = getTargetPtr(set->left.get(), fnt, true);
             llvm::Value* value = emitNode(set->right.get(), fnt);
-            return m_builder.CreateStore(value, target);
+            return pimpl->m_builder.CreateStore(value, target);
         }
 
         // Array
         if (ArrayAccessNode* const arr = dynamic_cast<ArrayAccessNode*>(node))
         {
             llvm::Value* target = getTargetPtr(arr, fnt, false);
-            return m_builder.CreateLoad(m_builder.getInt32Ty(), target, arr->name + "_elem");
+            return pimpl->m_builder.CreateLoad(pimpl->m_builder.getInt32Ty(), target, arr->name + "_elem");
         }
 
         // IF
@@ -219,32 +240,32 @@ namespace aiko::naiko
             // Make sure condition is i1 (bool)
             if (condition-> getType()->isIntegerTy() == true)
             {
-                condition = m_builder.CreateICmpNE(condition, llvm::ConstantInt::get(m_builder.getInt32Ty(), 0), "ifcond");
+                condition = pimpl->m_builder.CreateICmpNE(condition, llvm::ConstantInt::get(pimpl->m_builder.getInt32Ty(), 0), "ifcond");
             }
 
-            llvm::BasicBlock* thenBlock = llvm::BasicBlock::Create(m_context, "then", fnt);
+            llvm::BasicBlock* thenBlock = llvm::BasicBlock::Create(pimpl->m_context, "then", fnt);
             llvm::BasicBlock* elseBlock = nullptr;
-            llvm::BasicBlock* mergeBlock = llvm::BasicBlock::Create(m_context, "ifcondition", fnt);
+            llvm::BasicBlock* mergeBlock = llvm::BasicBlock::Create(pimpl->m_context, "ifcondition", fnt);
 
             // TODO
             // if ( exist else Block)
-            m_builder.CreateCondBr(condition, thenBlock, mergeBlock);
+            pimpl->m_builder.CreateCondBr(condition, thenBlock, mergeBlock);
 
             // then
-            m_builder.SetInsertPoint(thenBlock);
+            pimpl->m_builder.SetInsertPoint(thenBlock);
             enterScope();
             for (auto& stmt : ifN->body)
             {
                 emitNode(stmt.get(), fnt);
             }
             exitScope();
-            m_builder.CreateBr(mergeBlock);
+            pimpl->m_builder.CreateBr(mergeBlock);
 
             // else
             // TODO
 
             // merge block
-            m_builder.SetInsertPoint(mergeBlock);
+            pimpl->m_builder.SetInsertPoint(mergeBlock);
 
             return nullptr;
         }
@@ -253,23 +274,23 @@ namespace aiko::naiko
         if (WhileNode* const whileN = dynamic_cast<WhileNode*>(node))
         {
 
-            llvm::BasicBlock* conditionBlock = llvm::BasicBlock::Create(m_context, "whilecondition", fnt);
-            llvm::BasicBlock* bodyBlock = llvm::BasicBlock::Create(m_context, "whilebody", fnt);
-            llvm::BasicBlock* mergeBlock = llvm::BasicBlock::Create(m_context, "whilecont", fnt);
+            llvm::BasicBlock* conditionBlock = llvm::BasicBlock::Create(pimpl->m_context, "whilecondition", fnt);
+            llvm::BasicBlock* bodyBlock = llvm::BasicBlock::Create(pimpl->m_context, "whilebody", fnt);
+            llvm::BasicBlock* mergeBlock = llvm::BasicBlock::Create(pimpl->m_context, "whilecont", fnt);
 
-            m_builder.CreateBr(conditionBlock);
+            pimpl->m_builder.CreateBr(conditionBlock);
 
             // Condition block
-            m_builder.SetInsertPoint(conditionBlock);
+            pimpl->m_builder.SetInsertPoint(conditionBlock);
             llvm::Value* condition = emitNode(whileN->condition.get(), fnt);
             if (condition->getType()->isIntegerTy(32))
             {
-                condition = m_builder.CreateICmpNE(condition, llvm::ConstantInt::get(m_context, llvm::APInt(32, 0)), "whilecondition");
+                condition = pimpl->m_builder.CreateICmpNE(condition, llvm::ConstantInt::get(pimpl->m_context, llvm::APInt(32, 0)), "whilecondition");
             }
-            m_builder.CreateCondBr(condition, bodyBlock, mergeBlock);
+            pimpl->m_builder.CreateCondBr(condition, bodyBlock, mergeBlock);
 
             // body block
-            m_builder.SetInsertPoint(bodyBlock);
+            pimpl->m_builder.SetInsertPoint(bodyBlock);
             enterScope();
             for (auto& stmt : whileN->body)
             {
@@ -278,10 +299,10 @@ namespace aiko::naiko
             exitScope();
 
             // Jump to condition
-            m_builder.CreateBr(conditionBlock);
+            pimpl->m_builder.CreateBr(conditionBlock);
 
             // continue after loop
-            m_builder.SetInsertPoint(mergeBlock);
+            pimpl->m_builder.SetInsertPoint(mergeBlock);
 
             return nullptr;
 
@@ -297,15 +318,15 @@ namespace aiko::naiko
             switch (bin->operation)
             {
                 // Arithmetic -> int
-                case NaikoOperation::ADD:           return m_builder.CreateAdd(left, right, "add" );
-                case NaikoOperation::SUBTRACT:      return m_builder.CreateSub(left, right, "sub" );
-                case NaikoOperation::MULTIPLY:      return m_builder.CreateMul(left, right, "mult" );
-                case NaikoOperation::DIVIDE:        return m_builder.CreateSDiv(left, right, "div" );
-                case NaikoOperation::MODULO:        return m_builder.CreateSRem(left, right, "mod" );
+                case NaikoOperation::ADD:           return pimpl->m_builder.CreateAdd(left, right, "add" );
+                case NaikoOperation::SUBTRACT:      return pimpl->m_builder.CreateSub(left, right, "sub" );
+                case NaikoOperation::MULTIPLY:      return pimpl->m_builder.CreateMul(left, right, "mult" );
+                case NaikoOperation::DIVIDE:        return pimpl->m_builder.CreateSDiv(left, right, "div" );
+                case NaikoOperation::MODULO:        return pimpl->m_builder.CreateSRem(left, right, "mod" );
                 // Comparisons -> bool
-                case NaikoOperation::GREATERTHAN:   return m_builder.CreateICmpSGT(left, right, "gt");
-                case NaikoOperation::LESSTHAN:      return m_builder.CreateICmpSLT(left, right, "lt");
-                case NaikoOperation::EQUAL:         return m_builder.CreateICmpEQ(left, right, "eq");
+                case NaikoOperation::GREATERTHAN:   return pimpl->m_builder.CreateICmpSGT(left, right, "gt");
+                case NaikoOperation::LESSTHAN:      return pimpl->m_builder.CreateICmpSLT(left, right, "lt");
+                case NaikoOperation::EQUAL:         return pimpl->m_builder.CreateICmpEQ(left, right, "eq");
                 default:
                 AIKO_NOT_IMPLEMENTED;
             }
@@ -317,7 +338,7 @@ namespace aiko::naiko
             llvm::Value* unary = emitNode(un->operand.get(), fnt);
             switch (un->operation)
             {
-                case NaikoOperation::SUBTRACT: return m_builder.CreateNeg(unary);
+                case NaikoOperation::SUBTRACT: return pimpl->m_builder.CreateNeg(unary);
                 default:
                     AIKO_NOT_IMPLEMENTED;
             }
@@ -332,7 +353,7 @@ namespace aiko::naiko
                 logger::Log::error("Error variable with name [%s] not found in scope", var->name.c_str());
                 std::exit(-1);
             }
-            return m_builder.CreateLoad(alloc->getAllocatedType(), alloc, var->name + "_val");
+            return pimpl->m_builder.CreateLoad(alloc->getAllocatedType(), alloc, var->name + "_val");
         }
 
         AIKO_ASSERT(false, "NOT IMPLEMENTED")
@@ -367,7 +388,7 @@ namespace aiko::naiko
                 if (declareIfMissing)
                 {
                     // Allocate array with fixed size (example 100)
-                    llvm::ArrayType* arrType = llvm::ArrayType::get(m_builder.getInt32Ty(), 100);
+                    llvm::ArrayType* arrType = llvm::ArrayType::get(pimpl->m_builder.getInt32Ty(), 100);
                     llvm::IRBuilder<> tmpBuilder(&fnt->getEntryBlock(), fnt->getEntryBlock().begin());
                     alloc = tmpBuilder.CreateAlloca(arrType, nullptr, arr->name);
                     declare(arr->name, alloc);
@@ -380,7 +401,7 @@ namespace aiko::naiko
             }
 
             llvm::Value* index = emitNode(arr->index.get(), fnt);
-            return m_builder.CreateGEP(alloc->getAllocatedType(), alloc, {m_builder.getInt32(0), index});
+            return pimpl->m_builder.CreateGEP(alloc->getAllocatedType(), alloc, {pimpl->m_builder.getInt32(0), index});
 
         }
         AIKO_NOT_IMPLEMENTED;
@@ -403,7 +424,7 @@ namespace aiko::naiko
             llvm::errs() << "could not open file" << error_code.message() << "\n";
             std::exit(error_code.value());
         }
-        m_module->print(out, nullptr);
+        pimpl->m_module->print(out, nullptr);
         out.flush();
 
         // Compile our .ll IR program to executable

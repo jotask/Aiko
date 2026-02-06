@@ -3,11 +3,13 @@
 #include "emitter/emitter.h"
 
 #include <vector>
-#include <unordered_set>
 
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/IRBuilder.h>
+namespace llvm
+{
+    class Value;
+    class Function;
+    class AllocaInst;
+}
 
 namespace aiko::naiko
 {
@@ -17,13 +19,12 @@ namespace aiko::naiko
     public:
         LlvmEmitter(const string name);
         LlvmEmitter(const CompilerOptions opts);
-        virtual ~LlvmEmitter() = default;
+        virtual ~LlvmEmitter();
         virtual void emit(ProgramNode*) override;
     private:
 
-        llvm::LLVMContext m_context;
-        AikoUPtr<llvm::Module> m_module;
-        llvm::IRBuilder<> m_builder;
+        struct Impl;
+        AikoUPtr<Impl> pimpl;
 
         virtual void save() override;
         virtual void compile() override;
