@@ -11,6 +11,7 @@
 
 #include <logger/logger.h>
 
+#include "semantic_analyzer.h"
 #include "emitter/cpp/cpp_emitter.h"
 #include "emitter/llvm/llvm_emitter.h"
 
@@ -20,8 +21,8 @@ static aiko::naiko::CompilerOptions generateDEBUGCompilerOptions(int argc, char 
 	const aiko::string woorkingDirectory = "/home/jose/Projects/examples/naiko/src/";
 	const aiko::naiko::CompilerOptions opts =
 	{
-		.inputFiles = {{woorkingDirectory + "naiko.naiko"}},
-		.outputFile = aiko::string(woorkingDirectory + "iris"),
+		.inputFiles = {{woorkingDirectory + "brainfuck.naiko"}},
+		.outputFile = aiko::string(woorkingDirectory + "brainfuck"),
 		.emitterKind = aiko::naiko::CompilerOptions::EmitterKind::LLVM,
 	};
 	aiko::naiko::checkMandatoryCompilerOptions(opts);
@@ -69,6 +70,17 @@ int main(int argc, char** argv)
 	auto ast = parser.program();
 
 	aiko::logger::Log::info("Parser completed...");
+
+	// ############
+	//    SEMANTIC ANALYZER
+	// ############
+
+	aiko::logger::Log::info("Semantic Analyzer started");
+
+	aiko::naiko::SemanticAnalyzer analyzer;
+	analyzer.analyze(ast.get());
+
+	aiko::logger::Log::info("Semantic Analyzer completed");
 
 	// ############
 	//    EMITTER

@@ -11,6 +11,7 @@ namespace aiko::naiko
 
     struct ASTNode
     {
+        NaikoType type = NaikoType::INVALID;
         virtual ~ASTNode() = default;
         virtual void print(size_t indent = 0) const = 0;
     };

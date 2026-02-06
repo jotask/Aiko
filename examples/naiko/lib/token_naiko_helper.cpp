@@ -63,7 +63,7 @@ namespace aiko::naiko::helper
 
     NaikoType resolveType(Token& token)
     {
-        if (std::isdigit(token.text.front()))       return NaikoType::DIGIT;
+        if (std::isdigit(token.text.front()))       return NaikoType::INT;
         return NaikoType::STRING;
     }
 

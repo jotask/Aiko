@@ -62,7 +62,7 @@ namespace aiko::naiko
     NodePtr Parser::processPrimary()
     {
         const auto curr = getCurrentToken();
-        if (checkCurrent(TokenKind::VALUE, NaikoType::DIGIT))
+        if (checkCurrent(TokenKind::VALUE, NaikoType::INT))
         {
             next();
             return std::make_unique<NumberNode>(std::stoi(curr.text));

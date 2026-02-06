@@ -72,7 +72,10 @@ namespace aiko::naiko
     {
         INVALID,
         STRING,
-        DIGIT
+        INT,
+        BOOL,
+        ARRAY,
+        VOID,
     };
 
     using Naiko = std::variant<std::monostate, NaikoKeyword, NaikoSymbol, NaikoOperation, NaikoType>;
@@ -125,7 +128,7 @@ namespace aiko::naiko
     {
         if(static_cast<bool>(std::isdigit(str.front())))
         {
-            return NaikoType::DIGIT;
+            return NaikoType::INT;
         }
         if (str.front() == '\"')
         {

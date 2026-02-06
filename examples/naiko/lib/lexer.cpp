@@ -104,7 +104,7 @@ namespace aiko::naiko
             }
             token.text = getStr(start, m_cursor);
             token.kind = TokenKind::VALUE;
-            token.naiko = NaikoType::DIGIT;
+            token.naiko = NaikoType::INT;
             return token;
         }
 
