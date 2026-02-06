@@ -131,6 +131,7 @@ namespace aiko::naiko
 
     struct CallExpressionNode : ASTNode
     {
+        explicit CallExpressionNode(string n, std::vector<NodePtr> arg) : name(n), arguments(std::move(arg)) {}
         string name;
         std::vector<NodePtr> arguments;
         virtual void print(size_t indent = 0) const override;
