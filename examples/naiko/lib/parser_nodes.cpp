@@ -91,7 +91,7 @@ namespace aiko::naiko
         logger::Log::info("%sFUNCTION", makeIndent(indent).c_str());
         for (size_t i = 0; i < parameters.size(); ++i)
         {
-            logger::Log::info("%sPARAM : %s", makeIndent(indent + 1).c_str(), parameters[i]);
+            logger::Log::info("%sPARAM : %s", makeIndent(indent + 1).c_str(), parameters[i].data());
         }
         for (auto& stmt : body)
         {
