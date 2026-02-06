@@ -13,7 +13,6 @@ namespace aiko::naiko
     {
     public:
         Lexer(string code);
-        Lexer(const CompilerOptions opts);
         ~Lexer() = default;
 
         Token next();
@@ -21,8 +20,6 @@ namespace aiko::naiko
     private:
 
         using FntUntilCompare = std::function<bool()>;
-
-        void readInputFiles(std::vector<string>);
 
         void chopChar();
 

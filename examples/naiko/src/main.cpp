@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 
 	aiko::logger::Log::info("Lexer Started");
 
-	aiko::naiko::Lexer lexer(opts);
+	aiko::naiko::Lexer lexer(code);
 	aiko::naiko::Tokenization tokenizator;
 
 	auto processToken = [&](const aiko::naiko::Token token)

@@ -16,14 +16,6 @@ namespace aiko::naiko
     {
     }
 
-    Lexer::Lexer(const CompilerOptions opts)
-        : m_code()
-        , m_cursor(0)
-        , m_line(0)
-    {
-        readInputFiles(opts.inputFiles);
-    }
-
     Token Lexer::next()
     {
 
@@ -130,12 +122,6 @@ namespace aiko::naiko
         logger::Log::error("Unknown character %c at line %zu", c, m_line);
         chopChar();
         return token;
-    }
-
-    void Lexer::readInputFiles(std::vector<string> inputFiles)
-    {
-        AIKO_ASSERT(inputFiles.size() == 1, "We only support one single file for now");
-        m_code = aiko::files::readFileContent(inputFiles.front().c_str());
     }
 
     void Lexer::chopChar()
