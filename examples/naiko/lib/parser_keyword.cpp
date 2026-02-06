@@ -106,10 +106,6 @@ namespace aiko::naiko
                     match(TokenKind::KEYWORD, NaikoKeyword::END);
                     return std::make_unique<WhileNode>(std::move(condition), std::move(body));
                 }
-            case NaikoKeyword::CALL:
-                {
-                    AIKO_NOT_IMPLEMENTED;
-                }
             case NaikoKeyword::FUNCTION:
                 {
                     next();
