@@ -72,9 +72,32 @@ namespace aiko::naiko
             next();
             return std::make_unique<StringNode>(curr.text);
         }
+
         if (checkCurrent(TokenKind::IDENTIFIER))
         {
+            auto name = curr.text;
             next();
+            if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::OPEN_PARENT))
+            {
+                next();
+                std::vector<NodePtr> arguments;
+                while (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::CLOSE_PARENT) == false)
+                {
+                    auto stmt = processExpression();
+                    arguments.push_back(std::move(stmt));
+                    if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::COMMA))
+                    {
+                        next();
+                        continue;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                match(TokenKind::SYMBOL, NaikoSymbol::CLOSE_PARENT);
+                return std::make_unique<CallExpressionNode>(name, std::move(arguments));
+            }
             return std::make_unique<VariableNode>(curr.text);
         }
         if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::OPEN_PARENT))
