@@ -20,10 +20,6 @@ namespace aiko::naiko
             {
                 return processKeyword();
             }
-        case TokenKind::FUNCTION:
-            {
-                return processFunction();
-            }
         default:
             AIKO_ASSERTF(false, "Unexpected token in statement: %s", current.text.c_str())
         }
