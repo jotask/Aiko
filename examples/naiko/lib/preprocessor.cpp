@@ -66,7 +66,7 @@ namespace aiko::naiko
 
             if (trimmed.starts_with("#include") == true)
             {
-                std::regex rex(R"(#include\s*\"([^\"]+)\")");
+                std::regex rex(R"(#include\s*([^\"]+))");
                 std::smatch match;
                 if (std::regex_search(trimmed, match, rex) == true)
                 {
