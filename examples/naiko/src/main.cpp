@@ -4,6 +4,7 @@
 
 #include <compiler_types.h>
 #include <compiler_helper.h>
+#include <preprocessor.h>
 #include <lexer.h>
 #include <parser.h>
 #include <emitter/emitter.h>
@@ -14,7 +15,6 @@
 #include "semantic_analyzer.h"
 #include "emitter/cpp/cpp_emitter.h"
 #include "emitter/llvm/llvm_emitter.h"
-
 
 static aiko::naiko::CompilerOptions generateDEBUGCompilerOptions(int argc, char ** argv)
 {
@@ -34,6 +34,13 @@ int main(int argc, char** argv)
 
 	// aiko::naiko::CompilerOptions opts = aiko::naiko::parseArgs(argc, argv);
 	aiko::naiko::CompilerOptions opts = generateDEBUGCompilerOptions(argc, argv);
+
+	// ###########
+	//    PREPROCESSOR
+	// ###########
+
+	aiko::naiko::Preprocessor preprocessor(opts.inputFiles);
+	aiko::string code = preprocessor.parse();
 
 	// ###########
 	//    LEXER
