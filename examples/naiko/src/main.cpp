@@ -74,6 +74,8 @@ int main(int argc, char** argv)
 	aiko::naiko::Parser parser(tokenizator);
 	auto ast = parser.program();
 
+	ast->print();
+
 	aiko::logger::Log::info("Parser completed...");
 
 	// ############
