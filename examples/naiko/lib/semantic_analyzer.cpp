@@ -218,6 +218,7 @@ namespace aiko::naiko
             switch (n->operation)
             {
             case NaikoOperation::ADD:
+            case NaikoOperation::SUBTRACT:
                 if (left == NaikoType::STRING && right == NaikoType::STRING)
                 {
                     node->type = NaikoType::STRING;
@@ -245,7 +246,8 @@ namespace aiko::naiko
                 }
                 break;
             }
-            logger::Log::error("Invalid binary operation");
+            auto op = magic_enum::enum_name(n->operation);
+            logger::Log::error("Invalid binary operation: [%s]", op.data());
             std::exit(-1);
         }
 
