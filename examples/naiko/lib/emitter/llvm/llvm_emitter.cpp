@@ -132,8 +132,8 @@ namespace aiko::naiko
             if (printfFNT == nullptr)
             {
                 llvm::FunctionType* printfType = llvm::FunctionType::get(
-                    m_builder.getInt32Ty(), // printf returns int
-                    llvm::PointerType::get(m_builder.getInt8Ty(), 0), // first argument arg*
+                    pimpl->m_builder.getInt32Ty(), // printf returns int
+                    llvm::PointerType::get(pimpl->m_builder.getInt8Ty()->getContext(), 0), // first argument arg*
                     true // varidic
                 );
 
@@ -152,14 +152,16 @@ namespace aiko::naiko
             {
             case NaikoType::STRING:
                 {
-                    llvm::Value* fmt = m_builder.CreateGlobalStringPtr("%s\n");
-                    m_builder.CreateCall(printfFNT, {fmt, valueToPrint});
+                    llvm::Value* fmtGV = pimpl->m_builder.CreateGlobalString("%s\n");
+                    llvm::Value* fmt = pimpl->m_builder.CreateBitCast(fmtGV,llvm::PointerType::get(pimpl->m_builder.getInt8Ty()->getContext(), 0));
+                    pimpl->m_builder.CreateCall(printfFNT, {fmt, valueToPrint});
                 }
                 break;
             case NaikoType::INT:
                 {
-                    llvm::Value* fmt = m_builder.CreateGlobalStringPtr("%d\n");
-                    m_builder.CreateCall(printfFNT, {fmt, valueToPrint});
+                    llvm::Value* fmtGV = pimpl->m_builder.CreateGlobalString("%d\n");
+                    llvm::Value* fmt = pimpl->m_builder.CreateBitCast(fmtGV,llvm::PointerType::get(pimpl->m_builder.getInt8Ty()->getContext(), 0));
+                    pimpl->m_builder.CreateCall(printfFNT, {fmt, valueToPrint});
                 }
                 break;
             default:
@@ -175,7 +177,12 @@ namespace aiko::naiko
         // STRING
         if (StringNode* const str = dynamic_cast<StringNode*>(node))
         {
-            return m_builder.CreateGlobalStringPtr(str->value);
+            llvm::Value* strGV = pimpl->m_builder.CreateGlobalString(str->value);
+            llvm::Value* strPtr = pimpl->m_builder.CreateBitCast(
+                strGV,
+                llvm::PointerType::get(pimpl->m_builder.getInt8Ty()->getContext(), 0)
+            );
+            return strPtr;
         }
 
         // NUMBER
