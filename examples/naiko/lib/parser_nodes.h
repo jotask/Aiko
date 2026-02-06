@@ -114,6 +114,27 @@ namespace aiko::naiko
         virtual void print(size_t indent = 0) const override;
     };
 
+    struct FunctionNode : ASTNode
+    {
+        explicit FunctionNode(string n, std::vector<string> p, std::vector<NodePtr> b) : name(n), parameters(p), body(std::move(b)) {}
+        string name;
+        std::vector<string> parameters;
+        std::vector<NodePtr> body;
+        virtual void print(size_t indent = 0) const override;
+    };
+
+    struct ReturnNode : ASTNode
+    {
+        NodePtr expr;
+        virtual void print(size_t indent = 0) const override;
+    };
+
+    struct CallExpressionNode : ASTNode
+    {
+        string name;
+        std::vector<NodePtr> arguments;
+        virtual void print(size_t indent = 0) const override;
+    };
 
     // Program
 

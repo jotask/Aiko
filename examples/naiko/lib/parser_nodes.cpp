@@ -86,6 +86,33 @@ namespace aiko::naiko
         logger::Log::info("%sVARIABLE::[%s]", makeIndent(indent).c_str(), name.c_str());
     }
 
+    void FunctionNode::print(size_t indent) const
+    {
+        logger::Log::info("%sFUNCTION", makeIndent(indent).c_str());
+        for (size_t i = 0; i < parameters.size(); ++i)
+        {
+            logger::Log::info("%sPARAM : %s", makeIndent(indent + 1).c_str(), parameters[i]);
+        }
+        for (auto& stmt : body)
+        {
+            stmt->print(indent + 2);
+        }
+    }
+
+    void ReturnNode::print(size_t indent) const
+    {
+        logger::Log::info("%sRETURN", makeIndent(indent).c_str());
+    }
+
+    void CallExpressionNode::print(size_t indent) const
+    {
+        logger::Log::info("%sCALL", makeIndent(indent).c_str());
+        for (size_t i = 0; i < arguments.size(); ++i)
+        {
+            arguments[i]->print(indent + 1);
+        }
+    }
+
     void ProgramNode::print(size_t indent) const
     {
         logger::Log::info("%sPROGRAM", makeIndent(indent).c_str());
