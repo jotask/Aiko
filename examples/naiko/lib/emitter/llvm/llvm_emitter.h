@@ -31,6 +31,7 @@ namespace aiko::naiko
         // Helper
         llvm::Value* emitNode(ASTNode*, llvm::Function* fnt);
 
+        llvm::Value* getTargetPtr(ASTNode* node, llvm::Function* fnt, bool declareIfMissing = false);
         // Scope stack
         void enterScope();
         void exitScope();

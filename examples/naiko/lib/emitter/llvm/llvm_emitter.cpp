@@ -127,31 +127,34 @@ namespace aiko::naiko
             // cal printf
             llvm::Value* valueToPrint = emitNode(print->expr.get(), fnt);
 
-            if(valueToPrint->getType()->isPointerTy())
+            switch (print->expr->type)
             {
-                m_builder.CreateCall(printfFNT, {valueToPrint});
-            }
-            else
-            {
-                llvm::Value* formatStr = nullptr;
-                if (valueToPrint->getType()->isIntegerTy(32))
+            case NaikoType::STRING:
                 {
-                    formatStr = m_builder.CreateGlobalStringPtr("%d\n");
+                    llvm::Value* fmt = m_builder.CreateGlobalStringPtr("%s\n");
+                    m_builder.CreateCall(printfFNT, {fmt, valueToPrint});
                 }
-                else
+                break;
+            case NaikoType::INT:
                 {
-                    AIKO_NOT_IMPLEMENTED;
+                    llvm::Value* fmt = m_builder.CreateGlobalStringPtr("%d\n");
+                    m_builder.CreateCall(printfFNT, {fmt, valueToPrint});
                 }
-                m_builder.CreateCall(printfFNT, { formatStr, valueToPrint});
+                break;
+            default:
+                {
+                    logger::Log::error("Unsupported type int PRINT");
+                    std::exit(-1);
+                }
+                break;
             }
-
-            return valueToPrint;
+            return nullptr;
         }
 
         // STRING
         if (StringNode* const str = dynamic_cast<StringNode*>(node))
         {
-            return m_builder.CreateGlobalStringPtr(str->value + "\n");
+            return m_builder.CreateGlobalStringPtr(str->value);
         }
 
         // NUMBER
@@ -163,54 +166,49 @@ namespace aiko::naiko
         // LET
         if (LetNode* const let = dynamic_cast<LetNode*>(node))
         {
-
-            AIKO_NOT_IMPLEMENTED;
-
-            /*
-            if (isDeclared(let->symbol))
+            // Check if this is an array declaration
+            if (ArrayAccessNode* arr = dynamic_cast<ArrayAccessNode*>(let->left.get()))
             {
-                logger::Log::error("Attempting to decleare already declared variable in scope, maybe you meant to use SET?");
-                return nullptr;
+                // Allocate array with the given size
+                const NumberNode* num = dynamic_cast<NumberNode*>(arr->index.get());
+                if (num == nullptr)
+                {
+                    logger::Log::error("unvalid type on array");
+                    std::exit(-1);
+                }
+                llvm::ArrayType* arrType = llvm::ArrayType::get(m_builder.getInt32Ty(), num->value);
+                llvm::IRBuilder<> tmpBuilder(&fnt->getEntryBlock(), fnt->getEntryBlock().begin());
+                llvm::AllocaInst* alloc = tmpBuilder.CreateAlloca(arrType, nullptr, arr->name);
+                declare(arr->name, alloc);
+
+                // No initialization yet
+                return alloc;
             }
-
-            llvm::Value* initVal = emitNode(let->expr.get(), fnt);
-            llvm::Type* allocType = initVal->getType();
-
-            // Allocate variable at the entry block
-            llvm::IRBuilder<> tmpBuilder(&fnt->getEntryBlock(), fnt->getEntryBlock().begin());
-            llvm::AllocaInst* alloc = tmpBuilder.CreateAlloca(allocType, nullptr, let->symbol);
-
-            m_builder.CreateStore(initVal, alloc);
-            declare(let->symbol, alloc);
-
-            return alloc;
-            */
+            if (VariableNode* var = dynamic_cast<VariableNode*>(let->left.get()))
+            {
+                llvm::IRBuilder<> tmpBuilder(&fnt->getEntryBlock(), fnt->getEntryBlock().begin());
+                llvm::Value* value = emitNode(let->right.get(), fnt);
+                llvm::Type* llvmType = value->getType();
+                llvm::AllocaInst* alloc = tmpBuilder.CreateAlloca(llvmType, nullptr, var->name);
+                declare(var->name, alloc);
+                return m_builder.CreateStore(value, alloc);
+            }
+            AIKO_NOT_IMPLEMENTED;
         }
 
         // SET
         if (SetNode* const set = dynamic_cast<SetNode*>(node))
         {
+            llvm::Value* target = getTargetPtr(set->left.get(), fnt, true);
+            llvm::Value* value = emitNode(set->right.get(), fnt);
+            return m_builder.CreateStore(value, target);
+        }
 
-            AIKO_NOT_IMPLEMENTED;
-
-            /*
-            llvm::AllocaInst* alloc = lookupVar(set->symbol);
-            if (isDeclared(set->symbol) == false)
-            {
-                logger::Log::error("Attempting to set variable [%s] without been declared on scope, maybe you meant to use LET?", set->symbol);
-                std::exit(-1);
-            }
-
-            llvm::Value* value = emitNode(set->expr.get(), fnt);
-            if (value == nullptr)
-            {
-                logger::Log::error("Couln't evaluate emitted expression node for [%s]", set->symbol);
-                std::exit(-1);
-            }
-
-            return m_builder.CreateStore(value, alloc);
-            */
-
+        // Array
+        if (ArrayAccessNode* const arr = dynamic_cast<ArrayAccessNode*>(node))
+        {
+            llvm::Value* target = getTargetPtr(arr, fnt, false);
+            return m_builder.CreateLoad(m_builder.getInt32Ty(), target, arr->name + "_elem");
         }
 
         // IF
@@ -221,7 +219,7 @@ namespace aiko::naiko
             // Make sure condition is i1 (bool)
             if (condition-> getType()->isIntegerTy() == true)
             {
-                condition = m_builder.CreateICmpNE(condition, llvm::ConstantInt::get(m_context, llvm::APInt(23, 0)), "ifcond");
+                condition = m_builder.CreateICmpNE(condition, llvm::ConstantInt::get(m_builder.getInt32Ty(), 0), "ifcond");
             }
 
             llvm::BasicBlock* thenBlock = llvm::BasicBlock::Create(m_context, "then", fnt);
@@ -296,13 +294,22 @@ namespace aiko::naiko
             llvm::Value* left = emitNode(bin->left.get(), fnt);
             llvm::Value* right = emitNode(bin->right.get(), fnt);
 
+            if (bin->type != NaikoType::INT)
+            {
+                logger::Log::error("Binary operation not supported");
+                std::exit(-1);
+            }
+
             switch (bin->operation)
             {
-                case NaikoOperation::ADD:return m_builder.CreateAdd(left, right, "add" );
-                case NaikoOperation::SUBTRACT:return m_builder.CreateSub(left, right, "sub" );
-                case NaikoOperation::MULTIPLY:return m_builder.CreateMul(left, right, "mult" );
-                case NaikoOperation::DIVIDE:return m_builder.CreateSDiv(left, right, "div" );
-                case NaikoOperation::GREATERTHAN:return m_builder.CreateICmpSGT(left, right, "greaterthan" );
+                case NaikoOperation::ADD:           return m_builder.CreateAdd(left, right, "add" );
+                case NaikoOperation::SUBTRACT:      return m_builder.CreateSub(left, right, "sub" );
+                case NaikoOperation::MULTIPLY:      return m_builder.CreateMul(left, right, "mult" );
+                case NaikoOperation::DIVIDE:        return m_builder.CreateSDiv(left, right, "div" );
+                case NaikoOperation::MODULO:        return m_builder.CreateSRem(left, right, "mod" );
+                case NaikoOperation::GREATERTHAN:   return m_builder.CreateICmpSGT(left, right, "gt");
+                case NaikoOperation::LESSTHAN:      return m_builder.CreateICmpSLT(left, right, "lt");
+                case NaikoOperation::EQUAL:         return m_builder.CreateICmpEQ(left, right, "eq");
                 default:
                 AIKO_NOT_IMPLEMENTED;
             }
@@ -323,10 +330,10 @@ namespace aiko::naiko
         // VariableNode
         if (VariableNode* const var = dynamic_cast<VariableNode*>(node))
         {
-            llvm::AllocaInst* alloc = lookupVar(var->name);
-            if (alloc == nullptr)
+            llvm::AllocaInst* alloc = llvm::dyn_cast<llvm::AllocaInst>(getTargetPtr(var, fnt, false));
+            if (!alloc)
             {
-                logger::Log::error("Error variable with name [%s] not found in scope", var->name.data());
+                logger::Log::error("Error variable with name [%s] not found in scope", var->name.c_str());
                 std::exit(-1);
             }
             return m_builder.CreateLoad(alloc->getAllocatedType(), alloc, var->name + "_val");
@@ -334,6 +341,53 @@ namespace aiko::naiko
 
         AIKO_ASSERT(false, "NOT IMPLEMENTED")
 
+    }
+
+    llvm::Value* LlvmEmitter::getTargetPtr(ASTNode* node, llvm::Function* fnt, bool declareIfMissing)
+    {
+        if (VariableNode* var = dynamic_cast<VariableNode*>(node))
+        {
+            llvm::AllocaInst* alloc = lookupVar(var->name);
+            if (alloc == nullptr)
+            {
+                if (declareIfMissing)
+                {
+                    logger::Log::error("Internal error: variable '%s' declared without LET", var->name.c_str());
+                    std::exit(-1);
+                }
+                else
+                {
+                    logger::Log::error("Variable '%s' not declared", var->name.c_str());
+                    std::exit(-1);
+                }
+            }
+            return alloc;
+        }
+        if (ArrayAccessNode* arr = dynamic_cast<ArrayAccessNode*>(node))
+        {
+            llvm::AllocaInst* alloc = lookupVar(arr->name);
+            if (alloc == nullptr)
+            {
+                if (declareIfMissing)
+                {
+                    // Allocate array with fixed size (example 100)
+                    llvm::ArrayType* arrType = llvm::ArrayType::get(m_builder.getInt32Ty(), 100);
+                    llvm::IRBuilder<> tmpBuilder(&fnt->getEntryBlock(), fnt->getEntryBlock().begin());
+                    alloc = tmpBuilder.CreateAlloca(arrType, nullptr, arr->name);
+                    declare(arr->name, alloc);
+                }
+                else
+                {
+                    logger::Log::error("Array '%s' not declared", arr->name.c_str());
+                    std::exit(-1);
+                }
+            }
+
+            llvm::Value* index = emitNode(arr->index.get(), fnt);
+            return m_builder.CreateGEP(alloc->getAllocatedType(), alloc, {m_builder.getInt32(0), index});
+
+        }
+        AIKO_NOT_IMPLEMENTED;
     }
 
     void LlvmEmitter::save()
