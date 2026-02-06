@@ -19,6 +19,8 @@ namespace aiko::naiko
         PREPROCESSOR,
         IDENTIFIER,
         SYMBOL,
+        FUNCTION,
+        RETURN,
         COMMENT,
         KEYWORD,
         OPERATOR,
@@ -50,6 +52,9 @@ namespace aiko::naiko
         CLOSE_CURLY,
         OPEN_SQUARE,
         CLOSE_SQUARE,
+        COMMA,
+        COLON,
+        SEMICOLON
     };
 
 

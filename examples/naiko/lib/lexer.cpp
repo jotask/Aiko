@@ -156,7 +156,7 @@ namespace aiko::naiko
 
     bool Lexer::isSymbol(const char c) const
     {
-        static const std::vector<char> operators = {'(', ')', '{', '}', '[', ']'};
+        static const std::vector<char> operators = {'(', ')', '{', '}', '[', ']', ',', ':', ';'};
         const unsigned char front = static_cast<unsigned char>(c);
         return std::any_of(operators.begin(), operators.end(), [front](const char other){ return other == front; } );
     }

@@ -39,6 +39,7 @@ namespace aiko::naiko
 
         NodePtr processKeyword();
         NodePtr processStatement();
+        NodePtr processFunction();
 
         NodePtr processExpression();        // comparison
         NodePtr processComparison();        // term ( ( < | > | == ) term )*

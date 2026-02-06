@@ -40,6 +40,9 @@ namespace aiko::naiko::helper
         if (str == "}")     return NaikoSymbol::CLOSE_CURLY;
         if (str == "(")     return NaikoSymbol::OPEN_PARENT;
         if (str == ")")     return NaikoSymbol::CLOSE_PARENT;
+        if (str == ",")     return NaikoSymbol::COMMA;
+        if (str == ":")     return NaikoSymbol::COLON;
+        if (str == ":")     return NaikoSymbol::SEMICOLON;
         AIKO_ASSERT(false, "Not supported");
         return NaikoSymbol::INVALID;
     }
