@@ -31,6 +31,7 @@ namespace aiko::naiko
         INPUT,
         REPEAT,
         RETURN,
+        CALL,
         LET,
         SET,
         IF,
