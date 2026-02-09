@@ -1,0 +1,6 @@
+FUNCTION add : a , b
+    RETURN a + b
+END
+
+LET sum = add(1, 3)
+PRINT sum
