@@ -125,6 +125,7 @@ namespace aiko::naiko
 
     struct ReturnNode : ASTNode
     {
+        explicit ReturnNode(NodePtr expression) : expr(std::move(expression)) {}
         NodePtr expr;
         virtual void print(size_t indent = 0) const override;
     };

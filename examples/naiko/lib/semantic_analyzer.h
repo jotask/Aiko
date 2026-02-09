@@ -12,9 +12,12 @@ namespace aiko::naiko
 
     private:
 
-        struct Symbol {
+        struct Symbol
+        {
             NaikoType type;
             bool isArray = false;
+            bool isFunction = false;
+            std::vector<NaikoType> params;
         };
 
         using Scope = std::unordered_map<string, Symbol>;

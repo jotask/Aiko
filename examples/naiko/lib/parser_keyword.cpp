@@ -111,27 +111,47 @@ namespace aiko::naiko
                     next();
                     auto functionName = getCurrentToken();
                     match(TokenKind::IDENTIFIER);
-                    match(TokenKind::SYMBOL, NaikoSymbol::COLON);
+                    // Do we have parameters?
                     std::vector<string> parameters;
-                    while (checkCurrent(TokenKind::IDENTIFIER))
+                    if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::COLON) ==  true)
                     {
-                        auto stmt = processStatement();
-                        parameters.push_back(getCurrentToken().text);
-                        next();
-                        if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::COMMA))
+                        match(TokenKind::SYMBOL, NaikoSymbol::COLON);
+                        do
                         {
-                            next(); // consume comma
+                            if (checkCurrent(TokenKind::IDENTIFIER) == false)
+                            {
+                                logger::Log::error("Expected parameter name after ':'");
+                                std::exit(-1);
+                            }
+                            parameters.push_back(getCurrentToken().text);
+                            next();
+                            if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::COMMA))
+                            {
+                                next(); // consume comma
+                            }
+                            else
+                            {
+                                break; // no more parameters
+                            }
                         }
-                        else
-                        {
-                            break; // no more parameters
-                        }
+                        while (checkCurrent(TokenKind::IDENTIFIER));
+
                     }
 
                     std::vector<NodePtr> body;
                     while (isTokenMatch(getCurrentToken(), TokenKind::KEYWORD, NaikoKeyword::END) == false)
                     {
-                        NodePtr stmt = processStatement();
+                        NodePtr stmt = nullptr;
+                        if (checkCurrent(TokenKind::KEYWORD, NaikoKeyword::RETURN))
+                        {
+                            next();
+                            NodePtr returnExpr = processExpression();
+                            stmt = std::make_unique<ReturnNode>(std::move(returnExpr));
+                        }
+                        else
+                        {
+                            stmt = processStatement();
+                        }
                         body.push_back(std::move(stmt));
                     }
 

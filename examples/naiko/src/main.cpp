@@ -16,11 +16,11 @@
 
 static aiko::naiko::CompilerOptions generateDEBUGCompilerOptions(int argc, char ** argv)
 {
-	const aiko::string woorkingDirectory = "/home/jose/Projects/examples/naiko/src/";
+	const aiko::string woorkingDirectory = "/home/jose/Projects/examples/naiko/naiko/";
 	const aiko::naiko::CompilerOptions opts =
 	{
-		.inputFiles = {{woorkingDirectory + "brainfuck.naiko"}},
-		.outputFile = aiko::string(woorkingDirectory + "brainfuck"),
+		.inputFiles = {{woorkingDirectory + "naiko.naiko"}},
+		.outputFile = aiko::string(woorkingDirectory + "naiko"),
 		.emitterKind = aiko::naiko::CompilerOptions::EmitterKind::LLVM,
 	};
 	aiko::naiko::checkMandatoryCompilerOptions(opts);
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 
 	aiko::logger::Log::info("Compilation started");
 	emitter->compile();
-	aiko::logger::Log::info("Compilation copleted...");
+	aiko::logger::Log::info("Compilation completed...");
 
 	return EXIT_SUCCESS;
 }

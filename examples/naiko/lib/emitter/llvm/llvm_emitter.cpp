@@ -9,6 +9,7 @@
 #include <llvm/IR/IRBuilder.h>
 
 // CPP
+#include <llvm/CodeGen/RDFGraph.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/MC/TargetRegistry.h>
@@ -79,6 +80,16 @@ namespace aiko::naiko
 
     void LlvmEmitter::emit(ProgramNode* node)
     {
+
+        // First emit all function declarations
+        for (auto& stmt : node->statements)
+        {
+            if (FunctionNode* fnt = dynamic_cast<FunctionNode*>(stmt.get()))
+            {
+                emitFunction(fnt);
+            }
+        }
+
         // Function type : int main()
         llvm::FunctionType* functType = llvm::FunctionType::get(pimpl->m_builder.getInt32Ty(), false);
 
@@ -91,9 +102,12 @@ namespace aiko::naiko
         pimpl->m_builder.SetInsertPoint(entry);
 
         enterScope();
-        for (AikoUPtr<ASTNode>& n : node->statements)
+        for (NodePtr& n : node->statements)
         {
-            emitNode(n.get(), mainFnt);
+            if (!dynamic_cast<FunctionNode*>(n.get()))
+            {
+                emitNode(n.get(), mainFnt);
+            }
         }
         exitScope();
 
@@ -117,6 +131,14 @@ namespace aiko::naiko
         {
             return nullptr;
         }
+
+        if (fnt == nullptr)
+        {
+            logger::Log::error("Internal compiler error: emitNode called without function context");
+            std::exit(-1);
+        }
+
+        AIKO_ASSERT(!dynamic_cast<FunctionNode*>(node),"emitNode must never receive FunctionNode");
 
         // END
         if (EndNode* const end = dynamic_cast<EndNode*>(node))
@@ -339,6 +361,23 @@ namespace aiko::naiko
             }
         }
 
+        // FunctionNode
+        if (CallExpressionNode* const call = dynamic_cast<CallExpressionNode*>(node))
+        {
+            llvm::Function* callee = pimpl->m_module->getFunction(call->name);
+            if (callee == nullptr)
+            {
+                logger::Log::error("Unknown function '%s'", call->name.c_str());
+                std::exit(-1);
+            }
+            std::vector<llvm::Value*> arguments;
+            for (auto& arg : call->arguments)
+            {
+                arguments.push_back(emitNode(arg.get(), fnt));
+            }
+            return pimpl->m_builder.CreateCall(callee, arguments, "calltmp");
+        }
+
         // UnaryOperationNode
         if (UnaryOperationNode* const un = dynamic_cast<UnaryOperationNode*>(node))
         {
@@ -361,6 +400,13 @@ namespace aiko::naiko
                 std::exit(-1);
             }
             return pimpl->m_builder.CreateLoad(alloc->getAllocatedType(), alloc, var->name + "_val");
+        }
+
+        // ReturnNode
+        if (ReturnNode* const ret = dynamic_cast<ReturnNode*>(node))
+        {
+            llvm::Value* value = emitNode(ret->expr.get(), fnt);
+            return pimpl->m_builder.CreateRet(value);
         }
 
         AIKO_ASSERT(false, "NOT IMPLEMENTED")
@@ -444,6 +490,66 @@ namespace aiko::naiko
             logger::Log::info("Exit code: [%d]", exitCode);
             logger::Log::critical("Couldn't compile emitted code exited with error code [%d] -> [%s] -> [%s]", exitCode, m_file.c_str(), cmd.c_str());
         }
+    }
+
+    void LlvmEmitter::emitFunction(FunctionNode* node)
+    {
+        // FunctionNode
+        FunctionNode* const fnt = dynamic_cast<FunctionNode*>(node);
+        if (fnt == nullptr)
+        {
+            logger::Log::error("Function declaration is not a valid declaration nodel.");
+            std::exit(-1);
+        }
+
+        // int function(...) for now
+        std::vector<llvm::Type*> paramtTypes(fnt->parameters.size(), pimpl->m_builder.getInt32Ty());
+        llvm::FunctionType* fntType = llvm::FunctionType::get( pimpl->m_builder.getInt32Ty() /* return type */, paramtTypes, false);
+
+        llvm::Function* function = llvm::Function::Create(fntType, llvm::Function::ExternalLinkage, fnt->name, pimpl->m_module.get());
+
+        // name parameters
+        unsigned int index = 0;
+        for (auto& arg : function->args())
+        {
+            arg.setName(fnt->parameters[index++]);
+        }
+
+        // entry block
+        llvm::BasicBlock* entry = llvm::BasicBlock::Create(pimpl->m_context, "entry", function);
+        pimpl->m_builder.SetInsertPoint(entry);
+
+        enterScope();
+
+        // allocate parameters
+        for (auto& arg : function->args())
+        {
+            llvm::IRBuilder<> tmpBuilder(&function->getEntryBlock(), function->getEntryBlock().begin());
+            llvm::AllocaInst* alloc = tmpBuilder.CreateAlloca(arg.getType(), nullptr, arg.getName());
+            pimpl->m_builder.CreateStore(&arg, alloc);
+            declare(arg.getName().str(), alloc);
+        }
+
+        // emit body
+        for (auto& stmt : fnt->body)
+        {
+            emitNode(stmt.get(), function);
+        }
+
+        // default return if nono emitted
+        if (entry->getTerminator() == nullptr)
+        {
+            pimpl->m_builder.CreateRet(llvm::ConstantInt::get(pimpl->m_builder.getInt32Ty(), 0));
+        }
+
+        exitScope();
+
+        if (llvm::verifyFunction(*function, &llvm::errs()))
+        {
+            logger::Log::error("Function verification failed: %s", fnt->name.c_str());
+            std::exit(-1);
+        }
+
     }
 
     void LlvmEmitter::enterScope()

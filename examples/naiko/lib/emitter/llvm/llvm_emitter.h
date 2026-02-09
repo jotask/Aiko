@@ -30,6 +30,7 @@ namespace aiko::naiko
         virtual void compile() override;
 
         // Helper
+        void emitFunction(FunctionNode*);
         llvm::Value* emitNode(ASTNode*, llvm::Function* fnt);
 
         llvm::Value* getTargetPtr(ASTNode* node, llvm::Function* fnt, bool declareIfMissing = false);

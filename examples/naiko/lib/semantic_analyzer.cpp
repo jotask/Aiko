@@ -148,6 +148,38 @@ namespace aiko::naiko
             return;
         }
 
+        // FUNCTION
+        if (FunctionNode* fnt = dynamic_cast<FunctionNode*>(node))
+        {
+
+            Symbol fnSym = {
+                .type = NaikoType::INT,
+                .isFunction = true,
+            };
+            fnSym.type = NaikoType::INT; // or VOID / UNKNOWN for now
+            fnSym.isFunction = true;
+
+            for (size_t i = 0; i < fnt->parameters.size(); ++i)
+            {
+                fnSym.params.push_back(NaikoType::INT); // assume int params for now
+            }
+
+            declare(fnt->name, fnSym);
+
+            enterScope();
+            for (auto& param : fnt->parameters)
+            {
+                declare(param, {NaikoType::INT, false}); // or UNKNOWN
+            }
+            for (auto& stmt : fnt->body)
+            {
+                analyzeNode(stmt.get());
+            }
+            exitScope();
+            node->type = NaikoType::VOID;
+            return;
+        }
+
         // fallback = expression
         analyzeExpr(node);
 
@@ -206,7 +238,7 @@ namespace aiko::naiko
                 std::exit(-1);
             }
 
-            node->type = expr;
+            node->type = NaikoType::INT;
             return node->type;
         }
 
@@ -260,6 +292,47 @@ namespace aiko::naiko
                 std::exit(-1);
             }
             node->type = NaikoType::INT;
+            return node->type;
+        }
+
+        if (CallExpressionNode* expr = dynamic_cast<CallExpressionNode*>(node))
+        {
+            auto sym = lookUp(expr->name);
+            if (sym == nullptr || sym->isFunction == false)
+            {
+                logger::Log::error("Call to undefined function: %s", expr->name.c_str());
+                std::exit(-1);
+            }
+
+            if (sym->params.size() != expr->arguments.size())
+            {
+                logger::Log::error("Function '%s' expects %zu args, got %zu",
+                    expr->name.c_str(),
+                    sym->params.size(),
+                    expr->arguments.size());
+                std::exit(-1);
+            }
+
+            for (size_t i = 0; i < expr->arguments.size(); ++i)
+            {
+                auto argType = analyzeExpr(expr->arguments[i].get());
+                if (argType != sym->params[i])
+                {
+                    logger::Log::error("Argument %zu type mismatch in call to '%s'",
+                        i, expr->name.c_str());
+                    std::exit(-1);
+                }
+            }
+
+            node->type  = sym->type;
+            return node->type;
+
+        }
+
+        if (ReturnNode* ret = dynamic_cast<ReturnNode*>(node))
+        {
+            auto expr = analyzeExpr(ret->expr.get());
+            node->type = expr;
             return node->type;
         }
 
