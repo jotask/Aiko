@@ -90,8 +90,8 @@ namespace aiko::naiko
 
     struct ArrayAccessNode : ASTNode
     {
-        explicit ArrayAccessNode(string name, NodePtr idx) : name(name), index(std::move(idx)) {}
-        string name;
+        explicit ArrayAccessNode(NodePtr b, NodePtr idx) : base(std::move(b)), index(std::move(idx)) {}
+        NodePtr base;
         NodePtr index;
         virtual void print(size_t indent = 0) const override;
     };

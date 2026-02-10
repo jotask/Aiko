@@ -41,7 +41,6 @@ namespace aiko::naiko
         scope[name] = sym;
     }
 
-
     SemanticAnalyzer::Symbol* SemanticAnalyzer::lookUp(const string& name)
     {
         for (auto it = m_scopes.rbegin(); it != m_scopes.rend(); ++it )
@@ -64,20 +63,52 @@ namespace aiko::naiko
         // LET
         if (auto let = dynamic_cast<LetNode*>(node))
         {
-            auto expr = analyzeExpr(let->right.get());
-            if (auto arr = dynamic_cast<ArrayAccessNode*>(let->left.get()))
+            auto exprType = analyzeExpr(let->right.get());
+
+            if (auto arrAccess = dynamic_cast<ArrayAccessNode*>(node))
             {
-                declare(arr->name, {NaikoType::ARRAY, true});
-                node->type = NaikoType::VOID;
-                return;
+                // Look up the base variable
+                if (auto var = dynamic_cast<VariableNode*>(arrAccess->base.get()))
+                {
+                    auto sym = lookUp(var->name);
+                    if (!sym)
+                    {
+                        logger::Log::error("Use of undeclared variable: %s", var->name.c_str());
+                        std::exit(-1);
+                    }
+
+                    if (!sym->isArray)
+                    {
+                        logger::Log::error("Variable '%s' is not an array", var->name.c_str());
+                        std::exit(-1);
+                    }
+
+                    // Check index type
+                    auto indexType = analyzeExpr(arrAccess->index.get());
+                    if (indexType != NaikoType::INT)
+                    {
+                        logger::Log::error("Array index must be INT");
+                        std::exit(-1);
+                    }
+
+                    // Return element type
+                    node->type = sym->type;  // element type
+                    return;
+                }
+
+                logger::Log::error("Array base must be a variable");
+                std::exit(-1);
             }
+
+            // Normal variable assignment
             if (auto var = dynamic_cast<VariableNode*>(let->left.get()))
             {
-                declare(var->name, {expr, false});
+                declare(var->name, {exprType, false});
                 node->type = NaikoType::VOID;
                 return;
             }
-            logger::Log::error("Unknows let expression on let node");
+
+            logger::Log::error("Unknown left-hand side in LET");
             std::exit(-1);
         }
 
@@ -228,33 +259,47 @@ namespace aiko::naiko
 
         if (ArrayAccessNode* n = dynamic_cast<ArrayAccessNode*>(node))
         {
-            auto sym = lookUp(n->name);
-            if (sym == nullptr)
-            {
-                logger::Log::error("Used of undeclared variable: %s", n->name.c_str());
-                std::exit(-1);
-            }
-            auto expr = analyzeExpr(n->index.get());
-            if (expr != NaikoType::INT)
+
+            // analyze index
+            auto indexType = analyzeExpr(n->index.get());
+            if (indexType != NaikoType::INT)
             {
                 logger::Log::error("Array index must be INT");
                 std::exit(-1);
             }
 
-            // array access
-            if (sym->isArray == true)
+            // analyze base
+            auto baseType = analyzeExpr(n->base.get());
+            if (auto* var = dynamic_cast<VariableNode*>(n->base.get()))
             {
-                node->type = NaikoType::INT; // or elementType later
+                auto sym = lookUp(var->name);
+                if (!sym)
+                {
+                    logger::Log::error("Use of undeclared variable: %s", var->name.c_str());
+                    std::exit(-1);
+                }
+
+                if (sym->isArray)
+                {
+                    node->type = sym->type;
+                    return node->type;
+                }
+
+                if (sym->type == NaikoType::STRING)
+                {
+                    node->type = NaikoType::CHAR;
+                    return node->type;
+                }
+            }
+
+            // non-variable but indexable expression (future-proofing)
+            if (baseType == NaikoType::STRING)
+            {
+                node->type = NaikoType::CHAR;
                 return node->type;
             }
 
-            if (sym->type == NaikoType::STRING)
-            {
-                node->type = NaikoType::CHAR; // CHAR if you add it later
-                return node->type;
-            }
-
-            logger::Log::error("Type '%s' is not indexable", n->name.c_str());
+            logger::Log::error("Type is not indexable");
             std::exit(-1);
 
         }

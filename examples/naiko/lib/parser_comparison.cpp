@@ -96,9 +96,7 @@ namespace aiko::naiko
                 next();
                 auto index = processExpression();
                 match(TokenKind::SYMBOL, NaikoSymbol::CLOSE_SQUARE);
-                auto identifier = dynamic_cast<VariableNode*>(node.get());
-                AIKO_ASSERT(identifier != nullptr, "Array access target must be identifier");
-                node = std::make_unique<ArrayAccessNode>(identifier->name, std::move(index));
+                node = std::make_unique<ArrayAccessNode>(std::move(node), std::move(index));
                 continue;
             }
             break;

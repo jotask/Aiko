@@ -35,7 +35,8 @@ namespace aiko::naiko
                         next();
                         NodePtr indexExpr = processExpression();
                         match(TokenKind::SYMBOL, NaikoSymbol::CLOSE_SQUARE);
-                        target = std::make_unique<ArrayAccessNode>(varToken.text, std::move(indexExpr));
+                        NodePtr base = std::make_unique<VariableNode>(varToken.text);
+                        target = std::make_unique<ArrayAccessNode>(std::move(base), std::move(indexExpr));
                     }
                     else
                     {
@@ -65,7 +66,8 @@ namespace aiko::naiko
                         next();
                         NodePtr indexExpr = processExpression();
                         match(TokenKind::SYMBOL, NaikoSymbol::CLOSE_SQUARE);
-                        target = std::make_unique<ArrayAccessNode>(varToken.text, std::move(indexExpr));
+                        NodePtr base = std::make_unique<VariableNode>(varToken.text);
+                        target = std::make_unique<ArrayAccessNode>(std::move(base), std::move(indexExpr));
                     }
                     else
                     {
