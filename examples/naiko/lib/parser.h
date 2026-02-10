@@ -103,6 +103,7 @@ namespace aiko::naiko
                 return std::get<NaikoSymbol>(token.naiko) == naiko;
             }
         }
+        AIKO_ASSERT(false, "Coulnd't parse naiko");
         return false;
     }
 

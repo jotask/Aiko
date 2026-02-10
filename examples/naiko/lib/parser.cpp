@@ -64,6 +64,7 @@ namespace aiko::naiko
             const auto expectedName = magic_enum::enum_name<TokenKind>(kind);
             const auto gotName = magic_enum::enum_name<TokenKind>(m_tokens[m_current].kind);
             logger::Log::critical("Expected %s but got %s", expectedName.data(), gotName.data());
+            AIKO_DEBUG_BREAK
             std::exit(-1);
         }
 
