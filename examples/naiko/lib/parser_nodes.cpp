@@ -56,6 +56,8 @@ namespace aiko::naiko
 
     void ArrayAccessNode::print(size_t indent) const
     {
+        logger::Log::info("%sARRAYACCESSNODE", makeIndent(indent).c_str());
+        base->print(indent + 1);
         if (index)
         {
             index->print(indent + 1);
