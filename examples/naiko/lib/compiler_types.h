@@ -62,6 +62,7 @@ namespace aiko::naiko
         LESSTHAN,
         GREATERTHAN,
         EQUAL,
+        NOTEQUAL,
         LESSTHANEQUAL,
         GREATERTHANEQUAL,
         ADD,

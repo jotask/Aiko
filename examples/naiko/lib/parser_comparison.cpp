@@ -2,8 +2,6 @@
 
 #include <logger/logger.h>
 
-#include <magic_enum/magic_enum.hpp>
-
 namespace aiko::naiko
 {
 
@@ -56,27 +54,17 @@ namespace aiko::naiko
             auto operand = processUnary();
             return std::make_unique<UnaryOperationNode>(std::get<NaikoOperation>(opToken.naiko), std::move(operand));
         }
-        return processPrimary();
+        return processPostfix();
     }
 
-    NodePtr Parser::processPrimary()
+    NodePtr Parser::processPostfix()
     {
-        const auto curr = getCurrentToken();
-        if (checkCurrent(TokenKind::VALUE, NaikoType::INT))
-        {
-            next();
-            return std::make_unique<NumberNode>(std::stoi(curr.text));
-        }
-        if (checkCurrent(TokenKind::VALUE, NaikoType::STRING))
-        {
-            next();
-            return std::make_unique<StringNode>(curr.text);
-        }
+        NodePtr node = processPrimary();
 
-        if (checkCurrent(TokenKind::IDENTIFIER))
+        while (true)
         {
-            auto name = curr.text;
-            next();
+
+            // function call
             if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::OPEN_PARENT))
             {
                 next();
@@ -96,8 +84,58 @@ namespace aiko::naiko
                     }
                 }
                 match(TokenKind::SYMBOL, NaikoSymbol::CLOSE_PARENT);
-                return std::make_unique<CallExpressionNode>(name, std::move(arguments));
+                auto identifier = dynamic_cast<VariableNode*>(node.get());
+                AIKO_ASSERT(identifier != nullptr, "Call target must be identifier");
+                node = std::make_unique<CallExpressionNode>(identifier->name, std::move(arguments));
+                continue;
             }
+
+            // Array access
+            if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::OPEN_SQUARE))
+            {
+                next();
+                auto index = processExpression();
+                match(TokenKind::SYMBOL, NaikoSymbol::CLOSE_SQUARE);
+                auto identifier = dynamic_cast<VariableNode*>(node.get());
+                AIKO_ASSERT(identifier != nullptr, "Array access target must be identifier");
+                node = std::make_unique<ArrayAccessNode>(identifier->name, std::move(index));
+                continue;
+            }
+            break;
+        }
+
+        return node;
+    }
+
+    NodePtr Parser::processPrimary()
+    {
+        const auto curr = getCurrentToken();
+        if (checkCurrent(TokenKind::VALUE, NaikoType::INT))
+        {
+            next();
+            return std::make_unique<NumberNode>(std::stoi(curr.text));
+        }
+        if (checkCurrent(TokenKind::VALUE, NaikoType::CHAR))
+        {
+            next();
+            if (curr.text.size() != 1)
+            {
+                logger::Log::error("Expected char but got string!");
+                std::exit(-1);
+            }
+            char c = curr.text.at(0);
+            return std::make_unique<CharNode>(c);
+        }
+        if (checkCurrent(TokenKind::VALUE, NaikoType::STRING))
+        {
+            next();
+            return std::make_unique<StringNode>(curr.text);
+        }
+
+        if (checkCurrent(TokenKind::IDENTIFIER))
+        {
+            auto name = curr.text;
+            next();
             return std::make_unique<VariableNode>(curr.text);
         }
         if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::OPEN_PARENT))

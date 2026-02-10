@@ -156,7 +156,16 @@ namespace aiko::naiko
         // Operator (single character)
         if (isOperator(c) == true)
         {
-            token.text = std::string(1, c);
+            // Check if it's a multi-operator
+            if ( m_cursor + 1 < m_code.size() && isOperator(m_code[m_cursor + 1]))
+            {
+                chopChar();
+                token.text = getStr(token.position, m_cursor + 1);
+            }
+            else
+            {
+                token.text = std::string(1, c);
+            }
             token.kind = TokenKind::OPERATOR;
             chopChar();
             return token;
@@ -207,7 +216,7 @@ namespace aiko::naiko
 
     bool Lexer::isOperator(const char c) const
     {
-        static const std::vector<char> operators = {'+', '-', '*', '/', '=', '<', '>'};
+        static const std::vector<char> operators = {'+', '-', '*', '/', '=', '<', '>', '!'};
         const unsigned char front = static_cast<unsigned char>(c);
         return std::any_of(operators.begin(), operators.end(), [front](const char other){ return other == front; } );
     }

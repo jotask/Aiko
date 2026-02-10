@@ -41,6 +41,7 @@ namespace aiko::naiko
         NodePtr processComparison();        // term ( ( < | > | == ) term )*
         NodePtr processTerm();              // unary ( ( + | - ) unary )*
         NodePtr processUnary();             // ( - | ! ) unary | primary
+        NodePtr processPostfix();
         NodePtr processPrimary();           // NUMBER | STRING | IDENTIFIER | '(' expression ')'
 
         bool isComparisonOperator() const;
