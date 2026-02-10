@@ -30,6 +30,13 @@ namespace aiko::naiko
         virtual void print(size_t indent = 0) const override;
     };
 
+    struct CharNode : ASTNode
+    {
+        explicit CharNode(char value) : value(value) { }
+        char value;
+        virtual void print(size_t indent = 0) const override;
+    };
+
     struct StringNode : ASTNode
     {
         explicit StringNode(string value) : value(value) { }

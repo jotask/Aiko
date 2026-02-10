@@ -74,6 +74,7 @@ namespace aiko::naiko
     enum class NaikoType : uint8_t
     {
         INVALID,
+        CHAR,
         STRING,
         INT,
         BOOL,

@@ -11,6 +11,11 @@ namespace aiko::naiko
         logger::Log::info("%sNUMBER::[%d]", makeIndent(indent).c_str(), value);
     }
 
+    void CharNode::print(size_t indent) const
+    {
+        logger::Log::info("%CHAR::[%c]", makeIndent(indent).c_str(), value);
+    }
+
     void StringNode::print(size_t indent) const
     {
         logger::Log::info("%sSTRING::[%s]", makeIndent(indent).c_str(), value.data());

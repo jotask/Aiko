@@ -7,6 +7,8 @@
 #include <core/file.h>
 #include <logger/logger.h>
 
+#include "compiler_helper.h"
+
 namespace aiko::naiko
 {
     Lexer::Lexer(string code)
@@ -35,6 +37,48 @@ namespace aiko::naiko
         }
 
         const char c = m_code[m_cursor];
+
+        // handle char
+        if (c == '\'')
+        {
+
+            chopChar();
+
+            token.kind = TokenKind::VALUE;
+            token.naiko = NaikoType::CHAR;
+            token.position = m_cursor;
+
+            string char_code = "";
+
+            while (m_cursor < m_code.size())
+            {
+                const char cc = m_code[m_cursor];
+                if (cc == c)
+                {
+                    chopChar();
+                    break;
+                }
+                if (cc == '\\')
+                {
+                    chopChar();
+                    if (m_cursor < m_code.size())
+                    {
+                        char_code += escapeChar(m_code[m_cursor]);
+                        chopChar();
+                        continue;
+                    }
+                }
+                char_code += cc;
+                chopChar();
+            }
+
+            token.text = char_code;
+
+            chopChar();
+
+            return token;
+
+        }
 
         // Handle string
         if (c == '"')
