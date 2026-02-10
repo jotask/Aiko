@@ -28,10 +28,14 @@ namespace aiko::naiko
 
     void SemanticAnalyzer::declare(const string& name, Symbol sym)
     {
+        if (m_scopes.empty())
+        {
+            m_scopes.push_back({});
+        }
         auto& scope = m_scopes.back();
         if (scope.contains(name) == true)
         {
-            logger::Log::error("Variable already decalred on scope: %s", name.c_str());
+            logger::Log::error("Variable already declared in this scope: %s", name.c_str());
             std::exit(-1);
         }
         scope[name] = sym;
