@@ -1,3 +1,7 @@
-FUNCTION add : a , b
-    RETURN a + b
+FUNCTION length : str
+    LET count = 0
+    WHILE str[count] != '\0' REPEAT
+        SET count = count + 1
+    END
+    RETURN count
 END
