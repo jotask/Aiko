@@ -5,7 +5,7 @@
 namespace aiko::naiko
 {
 
-    NodePtr Parser::processComparison()
+    NodePtr Parser::processRelational()
     {
         auto left = processExpression();
         if (isComparisonOperator() == true)
@@ -150,8 +150,24 @@ namespace aiko::naiko
 
     bool Parser::isComparisonOperator() const
     {
-        const auto current = getCurrentToken();
-        return current.kind == TokenKind::OPERATOR;
+        if (getCurrentToken().kind != TokenKind::OPERATOR)
+        {
+            return false;
+        }
+
+        auto op = std::get<NaikoOperation>(getCurrentToken().naiko);
+        switch (op)
+        {
+            case NaikoOperation::EQUALEQUAL:
+            case NaikoOperation::NOTEQUAL:
+            case NaikoOperation::LESSTHAN:
+            case NaikoOperation::LESSTHANEQUAL:
+            case NaikoOperation::GREATERTHAN:
+            case NaikoOperation::GREATERTHANEQUAL:
+                return true;
+            default:
+                return false;
+        }
     }
 
 }

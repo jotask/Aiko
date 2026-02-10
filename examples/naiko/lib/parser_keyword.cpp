@@ -81,7 +81,7 @@ namespace aiko::naiko
             case NaikoKeyword::IF:
                 {
                     next();
-                    auto condition = processComparison();
+                    auto condition = processRelational();
                     match(TokenKind::KEYWORD, NaikoKeyword::THEN);
                     std::vector<NodePtr> body;
                     while (isTokenMatch(getCurrentToken(), TokenKind::KEYWORD, NaikoKeyword::END) == false)
@@ -95,7 +95,7 @@ namespace aiko::naiko
             case NaikoKeyword::WHILE:
                 {
                     next();
-                    auto condition = processComparison();
+                    auto condition = processRelational();
                     match(TokenKind::KEYWORD, NaikoKeyword::REPEAT);
                     std::vector<NodePtr> body;
                     while (isTokenMatch(getCurrentToken(), TokenKind::KEYWORD, NaikoKeyword::END) == false)

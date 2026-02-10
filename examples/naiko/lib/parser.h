@@ -38,7 +38,7 @@ namespace aiko::naiko
         NodePtr processStatement();
 
         NodePtr processExpression();        // comparison
-        NodePtr processComparison();        // term ( ( < | > | == ) term )*
+        NodePtr processRelational();        // term ( ( < | > | == ) term )*
         NodePtr processTerm();              // unary ( ( + | - ) unary )*
         NodePtr processUnary();             // ( - | ! ) unary | primary
         NodePtr processPostfix();
