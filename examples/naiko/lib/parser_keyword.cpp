@@ -112,7 +112,7 @@ namespace aiko::naiko
                     auto functionName = getCurrentToken();
                     match(TokenKind::IDENTIFIER);
                     // Do we have parameters?
-                    std::vector<string> parameters;
+                    std::vector<FunctionNode::Parameter> parameters;
                     if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::COLON) ==  true)
                     {
                         match(TokenKind::SYMBOL, NaikoSymbol::COLON);
@@ -123,7 +123,8 @@ namespace aiko::naiko
                                 logger::Log::error("Expected parameter name after ':'");
                                 std::exit(-1);
                             }
-                            parameters.push_back(getCurrentToken().text);
+                            auto currentToken = getCurrentToken();
+                            parameters.push_back({.name = currentToken.text, .type = NaikoType::INVALID});
                             next();
                             if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::COMMA))
                             {

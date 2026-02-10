@@ -123,9 +123,14 @@ namespace aiko::naiko
 
     struct FunctionNode : ASTNode
     {
-        explicit FunctionNode(string n, std::vector<string> p, std::vector<NodePtr> b) : name(n), parameters(p), body(std::move(b)) {}
+        struct Parameter
+        {
+            string name;
+            NaikoType type;
+        };
+        explicit FunctionNode(string n, std::vector<Parameter> p, std::vector<NodePtr> b) : name(n), parameters(p), body(std::move(b)) {}
         string name;
-        std::vector<string> parameters;
+        std::vector<Parameter> parameters;
         std::vector<NodePtr> body;
         virtual void print(size_t indent = 0) const override;
     };

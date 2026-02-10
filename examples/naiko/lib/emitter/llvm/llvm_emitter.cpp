@@ -512,7 +512,7 @@ namespace aiko::naiko
         unsigned int index = 0;
         for (auto& arg : function->args())
         {
-            arg.setName(fnt->parameters[index++]);
+            arg.setName(fnt->parameters[index++].name);
         }
 
         // entry block

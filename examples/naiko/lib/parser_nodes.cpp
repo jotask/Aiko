@@ -96,7 +96,7 @@ namespace aiko::naiko
         logger::Log::info("%sFUNCTION", makeIndent(indent).c_str());
         for (size_t i = 0; i < parameters.size(); ++i)
         {
-            logger::Log::info("%sPARAM : %s", makeIndent(indent + 1).c_str(), parameters[i].data());
+            logger::Log::info("%sPARAM : %s -> %s", makeIndent(indent + 1).c_str(), parameters[i].name.data(), magic_enum::enum_name(parameters[i].type).data());
         }
         for (auto& stmt : body)
         {

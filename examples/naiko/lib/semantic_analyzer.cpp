@@ -169,7 +169,7 @@ namespace aiko::naiko
             enterScope();
             for (auto& param : fnt->parameters)
             {
-                declare(param, {NaikoType::INT, false}); // or UNKNOWN
+                declare(param.name, {param.type, false}); // or UNKNOWN
             }
             for (auto& stmt : fnt->body)
             {
