@@ -198,6 +198,12 @@ namespace aiko::naiko
             return node->type;
         }
 
+        if (CharNode* n = dynamic_cast<CharNode*>(node))
+        {
+            node->type = NaikoType::CHAR;
+            return node->type;
+        }
+
         if (StringNode* n = dynamic_cast<StringNode*>(node))
         {
             node->type = NaikoType::STRING;
@@ -224,22 +230,29 @@ namespace aiko::naiko
                 logger::Log::error("Used of undeclared variable: %s", n->name.c_str());
                 std::exit(-1);
             }
-            if (sym->isArray == false)
-            {
-                logger::Log::error("Expected array: %s", n->name.c_str());
-                std::exit(-1);
-            }
-
             auto expr = analyzeExpr(n->index.get());
-
             if (expr != NaikoType::INT)
             {
                 logger::Log::error("Array index must be INT");
                 std::exit(-1);
             }
 
-            node->type = NaikoType::INT;
-            return node->type;
+            // array access
+            if (sym->isArray == true)
+            {
+                node->type = NaikoType::INT; // or elementType later
+                return node->type;
+            }
+
+            if (sym->type == NaikoType::STRING)
+            {
+                node->type = NaikoType::CHAR; // CHAR if you add it later
+                return node->type;
+            }
+
+            logger::Log::error("Type '%s' is not indexable", n->name.c_str());
+            std::exit(-1);
+
         }
 
         if (BinaryOperationNode* n = dynamic_cast<BinaryOperationNode*>(node))
