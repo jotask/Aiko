@@ -60,6 +60,7 @@ namespace aiko::naiko::helper
         if (str == "*")     return NaikoOperation::MULTIPLY;
         if (str == "/")     return NaikoOperation::DIVIDE;
         if (str == "%")     return NaikoOperation::MODULO;
+        if (str == "!=")    return NaikoOperation::NOTEQUAL;
         AIKO_ASSERT(false, "Not supported");
         return NaikoOperation::INVALID;
     }
