@@ -29,6 +29,10 @@ namespace aiko::naiko
         void declare(const string& name, Symbol sm);
         Symbol* lookUp(const string& name);
 
+        // helper
+        void unify(NaikoType& a, NaikoType& b);
+        NaikoType m_currentFunctionReturn = NaikoType::INVALID;
+
         // Visitors
         void analyzeNode(ASTNode* node);
         NaikoType analyzeExpr(ASTNode* node);

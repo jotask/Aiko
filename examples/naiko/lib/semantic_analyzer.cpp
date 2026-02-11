@@ -53,6 +53,18 @@ namespace aiko::naiko
         return nullptr;
     }
 
+    void SemanticAnalyzer::unify(NaikoType& a, NaikoType& b)
+    {
+        if (a == NaikoType::UNKNOWN && b != NaikoType::UNKNOWN)
+        {
+            a = b;
+        }
+        else if (b == NaikoType::UNKNOWN && a != NaikoType::UNKNOWN)
+        {
+            b = a;
+        }
+    }
+
     void SemanticAnalyzer::analyzeNode(ASTNode* node)
     {
         if (node == nullptr)
@@ -129,7 +141,11 @@ namespace aiko::naiko
             }
 
             auto rhsType = analyzeExpr(set->right.get());
-            if (sym->type != rhsType)
+            if (sym->type == NaikoType::UNKNOWN)
+            {
+                sym->type = rhsType;
+            }
+            else if (sym->type != rhsType)
             {
                 logger::Log::error("Type mismatch in assignment.");
                 std::exit(-1);
@@ -279,12 +295,11 @@ namespace aiko::naiko
                     std::exit(-1);
                 }
 
-                if (sym->isArray)
+                // type deduction
+                if (sym->type == NaikoType::UNKNOWN)
                 {
-                    node->type = sym->type;
-                    return node->type;
+                    sym->type = NaikoType::STRING;
                 }
-
                 if (sym->type == NaikoType::STRING)
                 {
                     node->type = NaikoType::CHAR;
@@ -308,6 +323,7 @@ namespace aiko::naiko
         {
             auto left = analyzeExpr(n->left.get());
             auto right = analyzeExpr(n->right.get());
+            unify(left, right);
 
             switch (n->operation)
             {
@@ -331,6 +347,7 @@ namespace aiko::naiko
             case NaikoOperation::LESSTHAN:
             case NaikoOperation::LESSTHANEQUAL:
                 {
+                    unify(left, right);
                     if (left != right)
                     {
                         logger::Log::error("Type mismatch in comparison");
@@ -395,6 +412,16 @@ namespace aiko::naiko
         if (ReturnNode* ret = dynamic_cast<ReturnNode*>(node))
         {
             auto expr = analyzeExpr(ret->expr.get());
+
+            if (m_currentFunctionReturn == NaikoType::UNKNOWN)
+            {
+                m_currentFunctionReturn = expr;
+            }
+            else if (m_currentFunctionReturn != expr)
+            {
+                logger::Log::error("Conflicting return types in function");
+                std::exit(-1);
+            }
             node->type = expr;
             return node->type;
         }
