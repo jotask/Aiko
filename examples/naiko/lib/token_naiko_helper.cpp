@@ -52,6 +52,7 @@ namespace aiko::naiko::helper
         if (str == "<")     return NaikoOperation::LESSTHAN;
         if (str == ">")     return NaikoOperation::GREATERTHAN;
         if (str == "=")     return NaikoOperation::EQUAL;
+        if (str == "==")     return NaikoOperation::EQUALEQUAL;
         if (str == "<=")    return NaikoOperation::LESSTHANEQUAL;
         if (str == ">=")    return NaikoOperation::GREATERTHANEQUAL;
         if (str == "+")     return NaikoOperation::ADD;
