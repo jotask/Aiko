@@ -121,6 +121,12 @@ namespace aiko::naiko
             std::exit(-1);
         }
 
+        if (llvm::verifyModule(*pimpl->m_module, &llvm::errs()))
+        {
+            logger::Log::error("Module verification failed");
+            std::exit(-1);
+        }
+
         pimpl->m_module->print(llvm::outs(), nullptr);
 
     }
@@ -186,6 +192,15 @@ namespace aiko::naiko
                     pimpl->m_builder.CreateCall(printfFNT, {fmt, valueToPrint});
                 }
                 break;
+            case NaikoType::CHAR:
+                {
+                    llvm::Value* fmtGV = pimpl->m_builder.CreateGlobalString("%c\n");
+                    llvm::Value* fmt = pimpl->m_builder.CreateBitCast(fmtGV,llvm::PointerType::get(pimpl->m_builder.getInt8Ty()->getContext(), 0));
+                    // promote char (i8) to i32 printf
+                    llvm::Value* promoted = pimpl->m_builder.CreateSExt(valueToPrint, pimpl->m_builder.getInt32Ty());
+                    pimpl->m_builder.CreateCall(printfFNT, {fmt, promoted});
+                }
+                break;
             default:
                 {
                     logger::Log::error("Unsupported type int PRINT");
@@ -194,6 +209,12 @@ namespace aiko::naiko
                 break;
             }
             return nullptr;
+        }
+
+        // CHAR
+        if (CharNode* const ch = dynamic_cast<CharNode*>(node))
+        {
+           return llvm::ConstantInt::get(pimpl->m_builder.getInt8Ty(), static_cast<uint64_t>(ch->value));
         }
 
         // STRING
@@ -216,22 +237,29 @@ namespace aiko::naiko
         // LET
         if (LetNode* const let = dynamic_cast<LetNode*>(node))
         {
-            // Check if this is an array declaration
             if (ArrayAccessNode* arr = dynamic_cast<ArrayAccessNode*>(let->left.get()))
             {
-                // Allocate array with the given size
-                const NumberNode* num = dynamic_cast<NumberNode*>(arr->index.get());
-                if (num == nullptr)
+                // get the array variable name
+                VariableNode* var = dynamic_cast<VariableNode*>(arr->base.get());
+                if (var == nullptr)
                 {
-                    logger::Log::error("unvalid type on array");
+                    logger::Log::error("ArrayAccessNode must have VariableNode as array");
                     std::exit(-1);
                 }
-                llvm::ArrayType* arrType = llvm::ArrayType::get(pimpl->m_builder.getInt32Ty(), num->value);
-                llvm::IRBuilder<> tmpBuilder(&fnt->getEntryBlock(), fnt->getEntryBlock().begin());
-                llvm::AllocaInst* alloc = tmpBuilder.CreateAlloca(arrType, nullptr, arr->name);
-                declare(arr->name, alloc);
 
-                // No initialization yet
+                // Allocate array
+                const NumberNode* sizeNode = dynamic_cast<NumberNode*>(arr->index.get());
+                if (sizeNode == nullptr)
+                {
+                    logger::Log::error("Array size must be a number literal");
+                    std::exit(-1);
+                }
+
+                llvm::ArrayType* arrType = llvm::ArrayType::get(pimpl->m_builder.getInt32Ty(), sizeNode->value);
+                llvm::IRBuilder<> tmpBuilder(&fnt->getEntryBlock(), fnt->getEntryBlock().begin());
+                llvm::AllocaInst* alloc = tmpBuilder.CreateAlloca(arrType, nullptr, var->name);
+                declare(var->name, alloc);
+
                 return alloc;
             }
             if (VariableNode* var = dynamic_cast<VariableNode*>(let->left.get()))
@@ -257,9 +285,8 @@ namespace aiko::naiko
         // Array
         if (ArrayAccessNode* const arr = dynamic_cast<ArrayAccessNode*>(node))
         {
-            llvm::Value* target = getTargetPtr(arr, fnt, false);
-            return pimpl->m_builder.CreateLoad(pimpl->m_builder.getInt32Ty(), target, arr->name + "_elem");
-        }
+            llvm::Value* elemPtr = getTargetPtr(arr, fnt, false);
+            return pimpl->m_builder.CreateLoad(pimpl->m_builder.getInt32Ty(), elemPtr);        }
 
         // IF
         if (IfNode* const ifN = dynamic_cast<IfNode*>(node))
@@ -435,26 +462,51 @@ namespace aiko::naiko
         }
         if (ArrayAccessNode* arr = dynamic_cast<ArrayAccessNode*>(node))
         {
-            llvm::AllocaInst* alloc = lookupVar(arr->name);
+            // get array variable name
+            VariableNode* var = dynamic_cast<VariableNode*>(arr->base.get());
+            if (var == nullptr)
+            {
+                logger::Log::error("ArrayAccessNode must have VariableNode as array"); std::exit(-1);
+            }
+
+            llvm::AllocaInst* alloc = lookupVar(var->name);
             if (alloc == nullptr)
             {
                 if (declareIfMissing)
                 {
-                    // Allocate array with fixed size (example 100)
                     llvm::ArrayType* arrType = llvm::ArrayType::get(pimpl->m_builder.getInt32Ty(), 100);
                     llvm::IRBuilder<> tmpBuilder(&fnt->getEntryBlock(), fnt->getEntryBlock().begin());
-                    alloc = tmpBuilder.CreateAlloca(arrType, nullptr, arr->name);
-                    declare(arr->name, alloc);
+                    alloc = tmpBuilder.CreateAlloca(arrType, nullptr, var->name);
+                    declare(var->name, alloc);
                 }
                 else
                 {
-                    logger::Log::error("Array '%s' not declared", arr->name.c_str());
+                    logger::Log::error("Array '%s' not declared", var->name.c_str());
                     std::exit(-1);
                 }
             }
 
             llvm::Value* index = emitNode(arr->index.get(), fnt);
-            return pimpl->m_builder.CreateGEP(alloc->getAllocatedType(), alloc, {pimpl->m_builder.getInt32(0), index});
+
+            llvm::Type* allocatedType = alloc->getAllocatedType();
+
+            if (allocatedType->isArrayTy() == true)
+            {
+               return pimpl->m_builder.CreateGEP(allocatedType, alloc, {pimpl->m_builder.getInt32(0), index});
+            }
+
+            if (allocatedType->isPointerTy() == true)
+            {
+                llvm::Value* loadPtr = pimpl->m_builder.CreateLoad(allocatedType, alloc);
+                llvm::Type* elementType = pimpl->m_builder.getInt8Ty();
+                return pimpl->m_builder.CreateGEP(elementType, loadPtr, index);
+            }
+
+            llvm::errs() << "Invalid array access type: ";
+            allocatedType->print(llvm::errs());
+            llvm::errs() << "\n";
+
+            std::exit(-1);
 
         }
         AIKO_NOT_IMPLEMENTED;
