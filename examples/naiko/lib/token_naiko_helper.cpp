@@ -14,7 +14,6 @@ namespace aiko::naiko::helper
         case TokenKind::KEYWORD:    token.naiko = resolveKeyword(token);    break;
         case TokenKind::SYMBOL:     token.naiko = resolveSymbol(token);     break;
         case TokenKind::OPERATOR:   token.naiko = resolveOperation(token);  break;
-        case TokenKind::VALUE:      token.naiko = resolveType(token);       break;
         default:                    break;
         }
     }
@@ -63,12 +62,6 @@ namespace aiko::naiko::helper
         if (str == "!=")    return NaikoOperation::NOTEQUAL;
         AIKO_ASSERT(false, "Not supported");
         return NaikoOperation::INVALID;
-    }
-
-    NaikoType resolveType(Token& token)
-    {
-        if (std::isdigit(token.text.front()))       return NaikoType::INT;
-        return NaikoType::STRING;
     }
 
 }

@@ -14,7 +14,7 @@ namespace aiko::naiko
 
         struct Symbol
         {
-            NaikoType type;
+            NaikoType type = NaikoType::UNKNOWN;
             bool isArray = false;
             bool isFunction = false;
             std::vector<NaikoType> params;
