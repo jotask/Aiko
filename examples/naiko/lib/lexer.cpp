@@ -63,6 +63,7 @@ namespace aiko::naiko
                     chopChar();
                     if (m_cursor < m_code.size())
                     {
+                        char_code += cc;
                         char_code += escapeChar(m_code[m_cursor]);
                         chopChar();
                         continue;
