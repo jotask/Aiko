@@ -28,6 +28,56 @@ namespace aiko::naiko
         }
     }
 
+    static char unescapeChar(string str)
+    {
+        if (str.empty())
+        {
+            logger::Log::error("Empty string cannot be unescaped");
+            std::exit(-1);
+        }
+
+        if (str[0] != '\\')
+        {
+            if (str.size() == 1)
+            {
+                return str[0];
+            }
+            logger::Log::error("Invalid escape sequence: %s", str);
+            std::exit(-1);
+        }
+
+        if (str.size() == 2)
+        {
+            switch (str[1]) {
+            case '0': return '\0';
+            case 'n': return '\n';
+            case 't': return '\t';
+            case 'r': return '\r';
+            case '\\': return '\\';
+            case '\'': return '\'';
+            default:
+                logger::Log::error("Unknown escape sequence: %s", str);
+                std::exit(-1);
+            }
+        }
+
+        // Hex escape sequence: \xNN
+        if (str.size() >= 4 && str[1] == 'x')
+        {
+            int value = 0;
+            std::istringstream iss(str.substr(2));
+            iss >> std::hex >> value;
+            if (iss.fail() || value < 0 || value > 255)
+            {
+                logger::Log::error("Invalid hex escape: %s", str);
+                std::exit(-1);
+            }
+            return static_cast<char>(value);
+        }
+        logger::Log::error("Unsupported escape sequence: %s", str);
+        std::exit(-1);
+    }
+
     inline void printToken(const Token token)
     {
         if (std::holds_alternative<std::monostate>(token.naiko) == false)

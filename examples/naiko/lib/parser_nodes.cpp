@@ -13,7 +13,7 @@ namespace aiko::naiko
 
     void CharNode::print(size_t indent) const
     {
-        logger::Log::info("%CHAR::[%c]", makeIndent(indent).c_str(), value);
+        logger::Log::info("%sCHAR::[%s]", makeIndent(indent).c_str(), escapeChar(value).c_str());
     }
 
     void StringNode::print(size_t indent) const

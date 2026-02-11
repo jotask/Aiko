@@ -2,6 +2,8 @@
 
 #include <logger/logger.h>
 
+#include "compiler_helper.h"
+
 namespace aiko::naiko
 {
 
@@ -116,12 +118,7 @@ namespace aiko::naiko
         if (checkCurrent(TokenKind::VALUE, NaikoType::CHAR))
         {
             next();
-            if (curr.text.size() != 1)
-            {
-                logger::Log::error("Expected char but got string!");
-                std::exit(-1);
-            }
-            char c = curr.text.at(0);
+            const char c = unescapeChar(curr.text);
             return std::make_unique<CharNode>(c);
         }
         if (checkCurrent(TokenKind::VALUE, NaikoType::STRING))
