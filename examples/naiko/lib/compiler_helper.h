@@ -36,32 +36,25 @@ namespace aiko::naiko
             if (std::holds_alternative<NaikoKeyword>(token.naiko))
             {
                 auto na = std::get<NaikoKeyword>(token.naiko);
-                logger::Log::info("Token: %s -> %s : %s", magic_enum::enum_name(token.kind).data(), token.text.c_str(), magic_enum::enum_name(na).data());
+                logger::Log::info("Token: %s -> %s : %s", magic_enum::enum_name(token.kind).data(), magic_enum::enum_name(na).data(), token.text.c_str());
             }
 
             if (std::holds_alternative<NaikoOperation>(token.naiko))
             {
                 auto na = std::get<NaikoOperation>(token.naiko);
-                logger::Log::info("Token: %s -> %s : %s", magic_enum::enum_name(token.kind).data(), token.text.c_str(), magic_enum::enum_name(na).data());
+                logger::Log::info("Token: %s -> %s : %s", magic_enum::enum_name(token.kind).data(), magic_enum::enum_name(na).data(), token.text.c_str());
             }
 
             if (std::holds_alternative<NaikoType>(token.naiko))
             {
                 auto na = std::get<NaikoType>(token.naiko);
-                if (na == NaikoType::CHAR)
-                {
-                    logger::Log::info("Token: %s -> %s : %s", magic_enum::enum_name(token.kind).data(), escapeChar(token.text.front()).c_str(), magic_enum::enum_name(na).data());
-                }
-                else
-                {
-                    logger::Log::info("Token: %s -> %s : %s", magic_enum::enum_name(token.kind).data(), token.text.c_str(), magic_enum::enum_name(na).data());
-                }
+                logger::Log::info("Token: %s -> %s : %s", magic_enum::enum_name(token.kind).data(), magic_enum::enum_name(na).data(), token.text.c_str());
             }
 
             if (std::holds_alternative<NaikoSymbol>(token.naiko))
             {
                 auto na = std::get<NaikoSymbol>(token.naiko);
-                logger::Log::info("Token: %s -> %s : %s", magic_enum::enum_name(token.kind).data(), token.text.c_str(), magic_enum::enum_name(na).data());
+                logger::Log::info("Token: %s -> %s : %s", magic_enum::enum_name(token.kind).data(), magic_enum::enum_name(na).data(), token.text.c_str());
             }
 
         }
