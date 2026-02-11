@@ -204,29 +204,46 @@ namespace aiko::naiko
         {
 
             Symbol fnSym = {
-                .type = NaikoType::INT,
+                .type = NaikoType::UNKNOWN,
                 .isFunction = true,
             };
-            fnSym.type = NaikoType::INT; // or VOID / UNKNOWN for now
-            fnSym.isFunction = true;
 
             for (size_t i = 0; i < fnt->parameters.size(); ++i)
             {
-                fnSym.params.push_back(NaikoType::INT); // assume int params for now
+                fnSym.params.push_back(NaikoType::UNKNOWN);
             }
 
             declare(fnt->name, fnSym);
 
+            Symbol* storedFnSym = lookUp(fnt->name);
+
+            m_currentFunctionReturn = NaikoType::UNKNOWN;
+
             enterScope();
+
+            // declare parameters
             for (auto& param : fnt->parameters)
             {
-                declare(param.name, {param.type, false}); // or UNKNOWN
+                declare(param.name, {NaikoType::UNKNOWN, false}); // or UNKNOWN
             }
+
+            // analyze body
             for (auto& stmt : fnt->body)
             {
                 analyzeNode(stmt.get());
             }
+
+            // capture deducing param types
+            for (size_t i = 0; i < fnt->parameters.size(); ++i )
+            {
+                auto paramSym = lookUp(fnt->parameters[i].name);
+                storedFnSym->params[i] = paramSym->type;
+            }
+
             exitScope();
+
+            // We just analyzed the body, update function return
+            storedFnSym->type = m_currentFunctionReturn;
             node->type = NaikoType::VOID;
             return;
         }
@@ -398,8 +415,12 @@ namespace aiko::naiko
                 auto argType = analyzeExpr(expr->arguments[i].get());
                 if (argType != sym->params[i])
                 {
-                    logger::Log::error("Argument %zu type mismatch in call to '%s'",
-                        i, expr->name.c_str());
+                    logger::Log::error("Argument %zu type mismatch in call to '%s'. Expected %s but got %s",
+                        i,
+                        expr->name.c_str(),
+                        magic_enum::enum_name(argType).data(),
+                        magic_enum::enum_name(sym->params[i]).data()
+                        );
                     std::exit(-1);
                 }
             }
