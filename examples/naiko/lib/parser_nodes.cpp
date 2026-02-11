@@ -100,6 +100,7 @@ namespace aiko::naiko
         {
             logger::Log::info("%sPARAM : %s -> %s", makeIndent(indent + 1).c_str(), parameters[i].name.data(), magic_enum::enum_name(parameters[i].type).data());
         }
+        logger::Log::info("%sBODY", makeIndent(indent + 1).c_str());
         for (auto& stmt : body)
         {
             stmt->print(indent + 2);

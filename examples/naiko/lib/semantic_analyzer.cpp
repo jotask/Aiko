@@ -63,9 +63,8 @@ namespace aiko::naiko
         // LET
         if (auto let = dynamic_cast<LetNode*>(node))
         {
-            auto exprType = analyzeExpr(let->right.get());
 
-            if (auto arrAccess = dynamic_cast<ArrayAccessNode*>(node))
+            if (auto arrAccess = dynamic_cast<ArrayAccessNode*>( let->left.get()))
             {
                 // Look up the base variable
                 if (auto var = dynamic_cast<VariableNode*>(arrAccess->base.get()))
@@ -103,6 +102,7 @@ namespace aiko::naiko
             // Normal variable assignment
             if (auto var = dynamic_cast<VariableNode*>(let->left.get()))
             {
+                auto exprType = analyzeExpr(let->right.get());
                 declare(var->name, {exprType, false});
                 node->type = NaikoType::VOID;
                 return;
@@ -250,7 +250,7 @@ namespace aiko::naiko
             auto sym = lookUp(n->name);
             if (sym == nullptr)
             {
-                logger::Log::error("Used of undeclared variable: %s", n->name.c_str());
+                logger::Log::error("Use of undeclared variable: %s", n->name.c_str());
                 std::exit(-1);
             }
             node->type = sym->type;
@@ -324,7 +324,8 @@ namespace aiko::naiko
                     return node->type;
                 }
                 break;
-            case NaikoOperation::EQUAL:
+            case NaikoOperation::EQUALEQUAL:
+            case NaikoOperation::NOTEQUAL:
             case NaikoOperation::GREATERTHAN:
             case NaikoOperation::GREATERTHANEQUAL:
             case NaikoOperation::LESSTHAN:
