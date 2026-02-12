@@ -208,7 +208,7 @@ namespace aiko::naiko
                 .isFunction = true,
             };
 
-            for (size_t i = 0; i < fnt->parameters.size(); ++i)
+            for (auto& tmp : fnt->parameters)
             {
                 fnSym.params.push_back(NaikoType::UNKNOWN);
             }
@@ -238,12 +238,14 @@ namespace aiko::naiko
             {
                 auto paramSym = lookUp(fnt->parameters[i].name);
                 storedFnSym->params[i] = paramSym->type;
+                fnt->parameters[i].type = paramSym->type;
             }
 
             exitScope();
 
             // We just analyzed the body, update function return
             storedFnSym->type = m_currentFunctionReturn;
+            fnt->returnType = m_currentFunctionReturn;
             node->type = NaikoType::VOID;
             return;
         }

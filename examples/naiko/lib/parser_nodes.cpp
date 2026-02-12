@@ -105,6 +105,7 @@ namespace aiko::naiko
         {
             stmt->print(indent + 2);
         }
+        logger::Log::info("%sRETURN: [%s]", makeIndent(indent + 1).c_str(), magic_enum::enum_name(returnType).data());
     }
 
     void ReturnNode::print(size_t indent) const

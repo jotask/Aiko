@@ -132,6 +132,7 @@ namespace aiko::naiko
         string name;
         std::vector<Parameter> parameters;
         std::vector<NodePtr> body;
+        NaikoType returnType = NaikoType::UNKNOWN;
         virtual void print(size_t indent = 0) const override;
     };
 
