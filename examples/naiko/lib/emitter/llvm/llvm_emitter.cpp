@@ -286,7 +286,36 @@ namespace aiko::naiko
         if (ArrayAccessNode* const arr = dynamic_cast<ArrayAccessNode*>(node))
         {
             llvm::Value* elemPtr = getTargetPtr(arr, fnt, false);
-            return pimpl->m_builder.CreateLoad(pimpl->m_builder.getInt32Ty(), elemPtr);        }
+            llvm::Type* prtType = elemPtr->getType();
+
+            if (prtType->isPointerTy() == false)
+            {
+                llvm::errs() << "Array access did not return pointer";
+                std::exit(-1);
+            }
+
+            if (VariableNode* var = dynamic_cast<VariableNode*>(arr->base.get()))
+            {
+                llvm::AllocaInst* alloc = lookupVar(var->name);
+                llvm::Type* allocatedType = alloc->getAllocatedType();
+
+                if (allocatedType->isArrayTy() == true)
+                {
+                    // return int
+                    return pimpl->m_builder.CreateLoad(pimpl->m_builder.getInt32Ty(), elemPtr);
+                }
+
+                if (allocatedType->isPointerTy() == true)
+                {
+                    // string i8*
+                    return pimpl->m_builder.CreateLoad(pimpl->m_builder.getInt8Ty(), elemPtr);
+                }
+            }
+
+            llvm::errs() << "Unknow array acess type \n";
+            std::exit(-1);
+
+        }
 
         // IF
         if (IfNode* const ifN = dynamic_cast<IfNode*>(node))
@@ -362,7 +391,6 @@ namespace aiko::naiko
 
             return nullptr;
 
-
         }
 
         // BinaryOperationNode
@@ -371,18 +399,49 @@ namespace aiko::naiko
             llvm::Value* left = emitNode(bin->left.get(), fnt);
             llvm::Value* right = emitNode(bin->right.get(), fnt);
 
+            // Promote integers to same width
+            if (left->getType()->isIntegerTy() && right->getType()->isIntegerTy())
+            {
+                unsigned leftBits  = left->getType()->getIntegerBitWidth();
+                unsigned rightBits = right->getType()->getIntegerBitWidth();
+
+                if (leftBits < rightBits)
+                {
+                    left = pimpl->m_builder.CreateSExt(left, right->getType());
+                }
+                else if (rightBits < leftBits)
+                {
+                    right = pimpl->m_builder.CreateSExt(right, left->getType());
+                }
+
+            }
+
+            if (left->getType() != right->getType())
+            {
+                left->getType()->print(llvm::errs());
+                llvm::errs() << "\n";
+                right->getType()->print(llvm::errs());
+                llvm::errs() << "\n";
+
+                logger::Log::error("Type mismatch in comparison");
+                std::exit(-1);
+            }
+
             switch (bin->operation)
             {
                 // Arithmetic -> int
-                case NaikoOperation::ADD:           return pimpl->m_builder.CreateAdd(left, right, "add" );
-                case NaikoOperation::SUBTRACT:      return pimpl->m_builder.CreateSub(left, right, "sub" );
-                case NaikoOperation::MULTIPLY:      return pimpl->m_builder.CreateMul(left, right, "mult" );
-                case NaikoOperation::DIVIDE:        return pimpl->m_builder.CreateSDiv(left, right, "div" );
-                case NaikoOperation::MODULO:        return pimpl->m_builder.CreateSRem(left, right, "mod" );
+                case NaikoOperation::ADD:               return pimpl->m_builder.CreateAdd(left, right, "add" );
+                case NaikoOperation::SUBTRACT:          return pimpl->m_builder.CreateSub(left, right, "sub" );
+                case NaikoOperation::MULTIPLY:          return pimpl->m_builder.CreateMul(left, right, "mult" );
+                case NaikoOperation::DIVIDE:            return pimpl->m_builder.CreateSDiv(left, right, "div" );
+                case NaikoOperation::MODULO:            return pimpl->m_builder.CreateSRem(left, right, "mod" );
                 // Comparisons -> bool
-                case NaikoOperation::GREATERTHAN:   return pimpl->m_builder.CreateICmpSGT(left, right, "gt");
-                case NaikoOperation::LESSTHAN:      return pimpl->m_builder.CreateICmpSLT(left, right, "lt");
-                case NaikoOperation::EQUAL:         return pimpl->m_builder.CreateICmpEQ(left, right, "eq");
+                case NaikoOperation::GREATERTHAN:       return pimpl->m_builder.CreateICmpSGT(left, right, "gt");
+                case NaikoOperation::LESSTHAN:          return pimpl->m_builder.CreateICmpSLT(left, right, "lt");
+                case NaikoOperation::GREATERTHANEQUAL:  return pimpl->m_builder.CreateICmpSGE(left, right, "ge");
+                case NaikoOperation::LESSTHANEQUAL:     return pimpl->m_builder.CreateICmpSLE(left, right, "le");
+                case NaikoOperation::EQUALEQUAL:        return pimpl->m_builder.CreateICmpEQ(left, right, "eq");
+                case NaikoOperation::NOTEQUAL:          return pimpl->m_builder.CreateICmpNE(left, right, "ne");
                 default:
                 AIKO_NOT_IMPLEMENTED;
             }
@@ -568,8 +627,13 @@ namespace aiko::naiko
         }
 
         // int function(...) for now
-        std::vector<llvm::Type*> paramtTypes(fnt->parameters.size(), pimpl->m_builder.getInt32Ty());
-        llvm::FunctionType* fntType = llvm::FunctionType::get( pimpl->m_builder.getInt32Ty() /* return type */, paramtTypes, false);
+        std::vector<llvm::Type*> paramTypes;
+        for (auto& param : fnt->parameters)
+        {
+            paramTypes.push_back({toLLVMType(param.type)});
+        }
+        llvm::Type* returnType = toLLVMType(fnt->returnType);
+        llvm::FunctionType* fntType = llvm::FunctionType::get( returnType, paramTypes, false);
 
         llvm::Function* function = llvm::Function::Create(fntType, llvm::Function::ExternalLinkage, fnt->name, pimpl->m_module.get());
 
