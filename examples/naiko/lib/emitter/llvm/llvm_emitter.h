@@ -7,6 +7,7 @@
 namespace llvm
 {
     class Value;
+    class Type;
     class Function;
     class AllocaInst;
 }
@@ -34,6 +35,7 @@ namespace aiko::naiko
         llvm::Value* emitNode(ASTNode*, llvm::Function* fnt);
 
         llvm::Value* getTargetPtr(ASTNode* node, llvm::Function* fnt, bool declareIfMissing = false);
+        llvm::Type* toLLVMType(NaikoType);
         // Scope stack
         void enterScope();
         void exitScope();

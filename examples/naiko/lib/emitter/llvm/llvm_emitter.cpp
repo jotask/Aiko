@@ -512,6 +512,19 @@ namespace aiko::naiko
         AIKO_NOT_IMPLEMENTED;
     }
 
+    llvm::Type* LlvmEmitter::toLLVMType(NaikoType type)
+    {
+        switch (type)
+        {
+            case NaikoType::INT: return pimpl->m_builder.getInt32Ty();
+            case NaikoType::CHAR: return pimpl->m_builder.getInt8Ty();
+            case NaikoType::STRING: return llvm::PointerType::get(pimpl->m_builder.getInt8Ty()->getContext(), 0);
+        default:
+            logger::Log::error("Unsupported type in LLVM emitter");
+            std::exit(-1);
+        }
+    }
+
     void LlvmEmitter::save()
     {
         AIKO_NOT_IMPLEMENTED;
