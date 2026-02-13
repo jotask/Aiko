@@ -74,8 +74,6 @@ int main(int argc, char** argv)
 	aiko::naiko::Parser parser(tokenizator);
 	auto ast = parser.program();
 
-	ast->print();
-
 	aiko::logger::Log::info("Parser completed...");
 
 	// ############
@@ -88,6 +86,8 @@ int main(int argc, char** argv)
 	analyzer.analyze(ast.get());
 
 	aiko::logger::Log::info("Semantic Analyzer completed");
+
+	ast->print();
 
 	// ############
 	//    EMITTER
