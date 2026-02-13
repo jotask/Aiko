@@ -472,12 +472,12 @@ namespace aiko::naiko
                     else if (left == NaikoType::UNKNOWN)
                     {
                         propagateType(n->left.get(), right);
-                        left = NaikoType::INT;
+                        left = right;
                     }
                     else if (right == NaikoType::UNKNOWN)
                     {
                         propagateType(n->right.get(), left);
-                        right = NaikoType::INT;
+                        right = left;
                     }
 
                     constrain(n->left.get(), NaikoType::INT);
