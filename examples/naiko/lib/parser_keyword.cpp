@@ -108,6 +108,12 @@ namespace aiko::naiko
                     match(TokenKind::KEYWORD, NaikoKeyword::END);
                     return std::make_unique<WhileNode>(std::move(condition), std::move(body));
                 }
+            case NaikoKeyword::RETURN:
+                {
+                    next();
+                    NodePtr returnExpr = processExpression();
+                    return std::make_unique<ReturnNode>(std::move(returnExpr));
+                }
             case NaikoKeyword::FUNCTION:
                 {
                     next();
@@ -144,17 +150,7 @@ namespace aiko::naiko
                     std::vector<NodePtr> body;
                     while (isTokenMatch(getCurrentToken(), TokenKind::KEYWORD, NaikoKeyword::END) == false)
                     {
-                        NodePtr stmt = nullptr;
-                        if (checkCurrent(TokenKind::KEYWORD, NaikoKeyword::RETURN))
-                        {
-                            next();
-                            NodePtr returnExpr = processExpression();
-                            stmt = std::make_unique<ReturnNode>(std::move(returnExpr));
-                        }
-                        else
-                        {
-                            stmt = processStatement();
-                        }
+                        NodePtr stmt = processStatement();
                         body.push_back(std::move(stmt));
                     }
 

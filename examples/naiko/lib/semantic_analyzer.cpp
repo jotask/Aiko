@@ -352,11 +352,6 @@ namespace aiko::naiko
                     return node->type;
                 }
 
-                // type deduction
-                if (sym->type == NaikoType::UNKNOWN)
-                {
-                    sym->type = NaikoType::STRING;
-                }
                 if (sym->type == NaikoType::STRING)
                 {
                     node->type = NaikoType::CHAR;
