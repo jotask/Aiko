@@ -256,9 +256,7 @@ namespace aiko::naiko
         // IF
         if (auto ifNode = dynamic_cast<IfNode*>(node))
         {
-
             constrain(ifNode->condition.get(), NaikoType::BOOL);
-
             enterScope();
             for (auto& stmt : ifNode->body)
             {
@@ -442,14 +440,12 @@ namespace aiko::naiko
             case NaikoOperation::SUBTRACT:
                 {
                     // string concatenation
-                    if constexpr (false)
+                    if (left == NaikoType::STRING && right == NaikoType::STRING)
                     {
-                        if (left == NaikoType::STRING && right == NaikoType::STRING)
-                        {
-                            node->type = NaikoType::STRING;
-                            return node->type;
-                        }
+                        node->type = NaikoType::STRING;
+                        return node->type;
                     }
+
                     constrain(n->left.get(), NaikoType::INT);
                     constrain(n->right.get(), NaikoType::INT);
                     node->type = NaikoType::INT;
@@ -463,7 +459,6 @@ namespace aiko::naiko
             case NaikoOperation::LESSTHAN:
             case NaikoOperation::LESSTHANEQUAL:
                 {
-
                     if (left == NaikoType::UNKNOWN && right != NaikoType::UNKNOWN)
                     {
                         propagateType(n->left.get(), right);
@@ -545,7 +540,7 @@ namespace aiko::naiko
                 }
             }
 
-            node->type  = sym->type;
+            node->type = sym->type;
             return node->type;
 
         }
