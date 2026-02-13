@@ -322,10 +322,13 @@ namespace aiko::naiko
         {
             llvm::Value* condition = emitNode(ifN->condition.get(), fnt);
 
-            // Make sure condition is i1 (bool)
-            if (condition-> getType()->isIntegerTy() == true)
+            if (condition->getType()->isIntegerTy(1) == false)
             {
-                condition = pimpl->m_builder.CreateICmpNE(condition, llvm::ConstantInt::get(pimpl->m_builder.getInt32Ty(), 0), "ifcond");
+                // Make sure condition is i1 (bool)
+                if (condition-> getType()->isIntegerTy() == true)
+                {
+                    condition = pimpl->m_builder.CreateICmpNE(condition, llvm::ConstantInt::get(pimpl->m_builder.getInt32Ty(), 0), "ifcond");
+                }
             }
 
             llvm::BasicBlock* thenBlock = llvm::BasicBlock::Create(pimpl->m_context, "then", fnt);
@@ -368,9 +371,16 @@ namespace aiko::naiko
             // Condition block
             pimpl->m_builder.SetInsertPoint(conditionBlock);
             llvm::Value* condition = emitNode(whileN->condition.get(), fnt);
-            if (condition->getType()->isIntegerTy(32))
+            if (condition->getType()->isIntegerTy(1) == false)
             {
-                condition = pimpl->m_builder.CreateICmpNE(condition, llvm::ConstantInt::get(pimpl->m_context, llvm::APInt(32, 0)), "whilecondition");
+                if (condition->getType()->isIntegerTy(32) == true)
+                {
+                    condition = pimpl->m_builder.CreateICmpNE(
+                        condition,
+                        llvm::ConstantInt::get(pimpl->m_context, llvm::APInt(32, 0)),
+                        "whilecond"
+                    );
+                }
             }
             pimpl->m_builder.CreateCondBr(condition, bodyBlock, mergeBlock);
 
@@ -631,7 +641,7 @@ namespace aiko::naiko
         std::vector<llvm::Type*> paramTypes;
         for (auto& param : fnt->parameters)
         {
-            paramTypes.push_back({toLLVMType(param.type)});
+            paramTypes.push_back(toLLVMType(param.type));
         }
         llvm::Type* returnType = toLLVMType(fnt->returnType);
         llvm::FunctionType* fntType = llvm::FunctionType::get( returnType, paramTypes, false);
