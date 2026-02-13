@@ -75,35 +75,22 @@ namespace aiko::naiko
         // LET
         if (auto let = dynamic_cast<LetNode*>(node))
         {
-
             if (auto arrAccess = dynamic_cast<ArrayAccessNode*>( let->left.get()))
             {
                 // Look up the base variable
                 if (auto var = dynamic_cast<VariableNode*>(arrAccess->base.get()))
                 {
-                    auto sym = lookUp(var->name);
-                    if (!sym)
+                    // Array declaration: do NOT look up yet
+                    const NumberNode* sizeNode = dynamic_cast<NumberNode*>( arrAccess->index.get() );
+                    if (sizeNode == nullptr)
                     {
-                        logger::Log::error("Use of undeclared variable: %s", var->name.c_str());
+                        logger::Log::error("Array size must be a number literal");
                         std::exit(-1);
                     }
 
-                    if (!sym->isArray)
-                    {
-                        logger::Log::error("Variable '%s' is not an array", var->name.c_str());
-                        std::exit(-1);
-                    }
-
-                    // Check index type
-                    auto indexType = analyzeExpr(arrAccess->index.get());
-                    if (indexType != NaikoType::INT)
-                    {
-                        logger::Log::error("Array index must be INT");
-                        std::exit(-1);
-                    }
-
-                    // Return element type
-                    node->type = sym->type;  // element type
+                    // declare array symbol
+                    declare(var->name, {NaikoType::INT, true}); // INT array for now
+                    node->type = NaikoType::VOID;
                     return;
                 }
 
@@ -127,32 +114,77 @@ namespace aiko::naiko
         // SET
         if (auto set = dynamic_cast<SetNode*>(node))
         {
-            auto variable = dynamic_cast<VariableNode*>(set->left.get());
-            if (variable == nullptr)
+            if (auto variable = dynamic_cast<VariableNode*>(set->left.get()))
             {
-                logger::Log::error("Expected variable node on set, but found other thing.");
-                std::exit(-1);
-            }
-            auto sym = lookUp(variable->name);
-            if (sym == nullptr)
-            {
-                logger::Log::error("Assignment to undeclared variable.");
-                std::exit(-1);
-            }
+                auto sym = lookUp(variable->name);
+                if (sym == nullptr)
+                {
+                    logger::Log::error("Assignment to undeclared variable.");
+                    std::exit(-1);
+                }
 
-            auto rhsType = analyzeExpr(set->right.get());
-            if (sym->type == NaikoType::UNKNOWN)
-            {
-                sym->type = rhsType;
+                auto rhsType = analyzeExpr(set->right.get());
+                if (sym->type == NaikoType::UNKNOWN)
+                {
+                    sym->type = rhsType;
+                }
+                else if (sym->type != rhsType)
+                {
+                    logger::Log::error("Type mismatch in assignment.");
+                    std::exit(-1);
+                }
+
+                node->type = NaikoType::VOID;
+                return;
             }
-            else if (sym->type != rhsType)
+            if (auto arr = dynamic_cast<ArrayAccessNode*>(set->left.get()))
             {
-                logger::Log::error("Type mismatch in assignment.");
+                // Base must be a variable
+                if (auto var = dynamic_cast<VariableNode*>(arr->base.get()))
+                {
+                    // array assignment
+                    auto indexType = analyzeExpr(arr->index.get());
+                    if (indexType != NaikoType::INT)
+                    {
+                        logger::Log::error("Array index must be INT");
+                        std::exit(-1);
+                    }
+
+                    if (auto* var = dynamic_cast<VariableNode*>(arr->base.get()))
+                    {
+                        auto sym = lookUp(var->name);
+                        if (!sym)
+                        {
+                            logger::Log::error("Use of undeclared variable: %s", var->name.c_str());
+                            std::exit(-1);
+                        }
+                        if (!sym->isArray)
+                        {
+                            logger::Log::error("Variable '%s' is not an array", var->name.c_str());
+                            std::exit(-1);
+                        }
+
+                        auto rhsType = analyzeExpr(set->right.get());
+                        if (sym->type == NaikoType::UNKNOWN)
+                        {
+                            sym->type = rhsType; // first assignment deduces type
+                        }
+                        else if (sym->type != rhsType)
+                        {
+                            logger::Log::error("Type mismatch in array assignment.");
+                            std::exit(-1);
+                        }
+
+                        node->type = NaikoType::VOID;
+                        return;
+                    }
+                }
+
+                logger::Log::error("Array base must be a variable in assignment");
                 std::exit(-1);
             }
-
-            node->type = NaikoType::VOID;
-            return;
+            logger::Log::error("Left-hand side of SET must be a variable or array access");
+            std::exit(-1);
         }
 
         // PRINT
@@ -308,10 +340,16 @@ namespace aiko::naiko
             if (auto* var = dynamic_cast<VariableNode*>(n->base.get()))
             {
                 auto sym = lookUp(var->name);
-                if (!sym)
+                if (sym == nullptr)
                 {
                     logger::Log::error("Use of undeclared variable: %s", var->name.c_str());
                     std::exit(-1);
+                }
+
+                if (sym->isArray == true)
+                {
+                    node->type = sym->type;
+                    return node->type;
                 }
 
                 // type deduction
