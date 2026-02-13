@@ -44,7 +44,10 @@ namespace aiko::naiko
     {
         logger::Log::info("%sLET", makeIndent(indent).c_str());
         left->print(indent + 1);
-        right->print(indent + 1);
+        if (right != nullptr)
+        {
+            right->print(indent + 1);
+        }
     }
 
     void SetNode::print(size_t indent) const
