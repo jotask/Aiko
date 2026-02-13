@@ -132,7 +132,7 @@ namespace aiko::naiko
                                 std::exit(-1);
                             }
                             auto currentToken = getCurrentToken();
-                            parameters.push_back({.name = currentToken.text, .type = NaikoType::INVALID});
+                            parameters.push_back({.name = currentToken.text, .type = NaikoType::UNKNOWN});
                             next();
                             if (checkCurrent(TokenKind::SYMBOL, NaikoSymbol::COMMA))
                             {
