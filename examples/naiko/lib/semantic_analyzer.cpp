@@ -423,6 +423,14 @@ namespace aiko::naiko
                     node->type = NaikoType::CHAR;
                     return node->type;
                 }
+
+                if (sym->type == NaikoType::UNKNOWN)
+                {
+                    sym->type = NaikoType::STRING;
+                    node->type = NaikoType::CHAR;
+                    return node->type;
+                }
+
             }
 
             // non-variable but indexable expression (future-proofing)
