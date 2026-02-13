@@ -359,17 +359,16 @@ namespace aiko::naiko
             }
 
             llvm::BasicBlock* thenBlock = llvm::BasicBlock::Create(pimpl->m_context, "then", fnt);
-            llvm::BasicBlock* elseBlock = nullptr;
+            llvm::BasicBlock* elseBlock = llvm::BasicBlock::Create(pimpl->m_context, "else", fnt);
             llvm::BasicBlock* mergeBlock = llvm::BasicBlock::Create(pimpl->m_context, "ifcondition", fnt);
 
-            // TODO
-            // if ( exist else Block)
-            pimpl->m_builder.CreateCondBr(condition, thenBlock, mergeBlock);
+            // Conditional branch
+            pimpl->m_builder.CreateCondBr(condition, thenBlock, elseBlock);
 
-            // then
+            // THEN
             pimpl->m_builder.SetInsertPoint(thenBlock);
             enterScope();
-            for (auto& stmt : ifN->body)
+            for (auto& stmt : ifN->thenBody)
             {
                 emitNode(stmt.get(), fnt);
             }
@@ -380,7 +379,17 @@ namespace aiko::naiko
             }
 
             // else
-            // TODO
+            pimpl->m_builder.SetInsertPoint(elseBlock);
+            enterScope();
+            for (auto& stmt : ifN->elseBody)
+            {
+                emitNode(stmt.get(), fnt);
+            }
+            exitScope();
+            if (elseBlock->getTerminator() == nullptr)
+            {
+                pimpl->m_builder.CreateBr(mergeBlock);
+            }
 
             // merge block
             pimpl->m_builder.SetInsertPoint(mergeBlock);
@@ -423,8 +432,11 @@ namespace aiko::naiko
             }
             exitScope();
 
-            // Jump to condition
-            pimpl->m_builder.CreateBr(conditionBlock);
+            // ensure we always jump back to condition
+            if (bodyBlock->getTerminator() == nullptr)
+            {
+                pimpl->m_builder.CreateBr(conditionBlock);
+            }
 
             // continue after loop
             pimpl->m_builder.SetInsertPoint(mergeBlock);

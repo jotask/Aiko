@@ -133,7 +133,7 @@ namespace aiko::naiko
             append("{");
             newLine();
             enterScope();
-            for (auto& b : ifN->body)
+            for (auto& b : ifN->thenBody)
             {
                 emitNode(b.get(), indent + 1);
             }

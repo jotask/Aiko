@@ -260,8 +260,16 @@ namespace aiko::naiko
         if (auto ifNode = dynamic_cast<IfNode*>(node))
         {
             constrain(ifNode->condition.get(), NaikoType::BOOL);
+            // THEN
             enterScope();
-            for (auto& stmt : ifNode->body)
+            for (auto& stmt : ifNode->thenBody)
+            {
+                analyzeNode(stmt.get());
+            }
+            exitScope();
+            // ELSE
+            enterScope();
+            for (auto& stmt : ifNode->elseBody)
             {
                 analyzeNode(stmt.get());
             }

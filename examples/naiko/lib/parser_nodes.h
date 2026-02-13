@@ -99,9 +99,11 @@ namespace aiko::naiko
 
     struct IfNode : ASTNode
     {
-        explicit IfNode(NodePtr cond, std::vector<NodePtr> stmts) : condition(std::move(cond)), body(std::move(stmts)) {}
+        explicit IfNode(NodePtr cond, std::vector<NodePtr> thenStmts) : condition(std::move(cond)), thenBody(std::move(thenStmts)) {}
+        explicit IfNode(NodePtr cond, std::vector<NodePtr> thenStmts, std::vector<NodePtr> elseStmts) : condition(std::move(cond)), thenBody(std::move(thenStmts)), elseBody(std::move(elseStmts)) {}
         NodePtr condition;
-        std::vector<NodePtr> body;
+        std::vector<NodePtr> thenBody;
+        std::vector<NodePtr> elseBody;
         virtual void print(size_t indent = 0) const override;
     };
 

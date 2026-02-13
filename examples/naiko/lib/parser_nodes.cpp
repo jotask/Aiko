@@ -75,9 +75,15 @@ namespace aiko::naiko
     {
         logger::Log::info("%sIF", makeIndent(indent).c_str());
         condition->print(indent + 1);
-        for (const auto& b : body)
+        logger::Log::info("%sTHEN", makeIndent(indent + 1).c_str());
+        for (const auto& b : thenBody)
         {
-            b->print(indent + 1);
+            b->print(indent + 2);
+        }
+        logger::Log::info("%sELSE", makeIndent(indent + 1).c_str());
+        for (const auto& b : elseBody)
+        {
+            b->print(indent + 2);
         }
     }
 
