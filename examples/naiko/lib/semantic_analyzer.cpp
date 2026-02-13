@@ -319,6 +319,11 @@ namespace aiko::naiko
             for (size_t i = 0; i < fnt->parameters.size(); ++i )
             {
                 auto paramSym = lookUp(fnt->parameters[i].name);
+                if (paramSym->type == NaikoType::UNKNOWN)
+                {
+                    logger::Log::error("Could not deduce type of parameter %s in function %s", fnt->parameters[i].name.c_str(), fnt->name.c_str());
+                    std::exit(-1);
+                }
                 storedFnSym->params[i] = paramSym->type;
                 fnt->parameters[i].type = paramSym->type;
             }
