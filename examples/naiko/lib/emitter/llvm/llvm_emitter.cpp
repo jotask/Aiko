@@ -578,6 +578,7 @@ namespace aiko::naiko
             case NaikoType::INT: return pimpl->m_builder.getInt32Ty();
             case NaikoType::CHAR: return pimpl->m_builder.getInt8Ty();
             case NaikoType::STRING: return llvm::PointerType::get(pimpl->m_builder.getInt8Ty()->getContext(), 0);
+            case NaikoType::VOID: return llvm::Type::getVoidTy(pimpl->m_builder.getInt8Ty()->getContext());
         default:
             logger::Log::error("Unsupported type in LLVM emitter");
             std::exit(-1);
