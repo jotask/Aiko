@@ -484,6 +484,7 @@ namespace aiko::naiko
             switch (un->operation)
             {
                 case NaikoOperation::SUBTRACT: return pimpl->m_builder.CreateNeg(unary);
+                case NaikoOperation::ADD: return unary;
                 default:
                     AIKO_NOT_IMPLEMENTED;
             }
