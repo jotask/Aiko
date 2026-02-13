@@ -81,7 +81,21 @@ namespace aiko::naiko
     void LlvmEmitter::emit(ProgramNode* node)
     {
 
-        // First emit all function declarations
+        enterScope();
+
+        // Emit global variables
+        for (auto& stmt : node->statements)
+        {
+            if (LetNode* let = dynamic_cast<LetNode*>(stmt.get()))
+            {
+                if (let->constant == true)
+                {
+                    emitGlobalVariable(let);
+                }
+            }
+        }
+
+        // Emit all function declarations
         for (auto& stmt : node->statements)
         {
             if (FunctionNode* fnt = dynamic_cast<FunctionNode*>(stmt.get()))
@@ -89,6 +103,8 @@ namespace aiko::naiko
                 emitFunction(fnt);
             }
         }
+
+        // emit main
 
         // Function type : int main()
         llvm::FunctionType* functType = llvm::FunctionType::get(pimpl->m_builder.getInt32Ty(), false);
@@ -305,7 +321,9 @@ namespace aiko::naiko
 
             if (VariableNode* var = dynamic_cast<VariableNode*>(arr->base.get()))
             {
-                llvm::AllocaInst* alloc = lookupVar(var->name);
+                auto* sym = lookupVar(var->name);
+                llvm::AllocaInst* alloc = llvm::dyn_cast<llvm::AllocaInst>(sym->value);
+
                 llvm::Type* allocatedType = alloc->getAllocatedType();
 
                 if (allocatedType->isArrayTy() == true)
@@ -767,9 +785,9 @@ namespace aiko::naiko
         m_scopeStack.pop_back();
     }
 
-    void LlvmEmitter::declare(const string name, llvm::AllocaInst* fnt)
+    void LlvmEmitter::declare(const string name, llvm::Value* fnt, bool isConstant)
     {
-        m_scopeStack.back().insert({name, fnt});
+        m_scopeStack.back().insert({ name, { fnt, isConstant } });
     }
 
     bool LlvmEmitter::isDeclared(const string name)
@@ -784,13 +802,13 @@ namespace aiko::naiko
         return false;
     }
 
-    llvm::AllocaInst* LlvmEmitter::lookupVar(const string name)
+    LlvmEmitter::LlvmSymbol* LlvmEmitter::lookupVar(const string name)
     {
         for (auto it = m_scopeStack.rbegin(); it != m_scopeStack.rend(); ++it)
         {
             if (it->contains(name) == true)
             {
-                return it->at(name);
+                return &it->at(name);
             }
         }
         logger::Log::error("Variable '%s' not declared", name.c_str());

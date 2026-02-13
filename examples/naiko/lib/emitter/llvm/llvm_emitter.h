@@ -31,18 +31,24 @@ namespace aiko::naiko
         virtual void compile() override;
 
         // Helper
+        void emitGlobalVariable(ASTNode* node);
         void emitFunction(FunctionNode*);
         llvm::Value* emitNode(ASTNode*, llvm::Function* fnt);
 
         llvm::Value* getTargetPtr(ASTNode* node, llvm::Function* fnt, bool declareIfMissing = false);
         llvm::Type* toLLVMType(NaikoType);
         // Scope stack
+        struct LlvmSymbol
+        {
+            llvm::Value* value;
+            bool isConstant;
+        };
         void enterScope();
         void exitScope();
-        void declare(const string, llvm::AllocaInst*);
+        void declare(const string, llvm::Value*, bool = false);
         bool isDeclared(const string);
-        llvm::AllocaInst* lookupVar(const string);
-        std::vector<std::unordered_map<string, llvm::AllocaInst*>> m_scopeStack;
+        LlvmSymbol* lookupVar(const string);
+        std::vector<std::unordered_map<string, LlvmSymbol>> m_scopeStack;
     };
 
 }

@@ -29,11 +29,11 @@ namespace aiko::naiko
         void exitScope();
         void declare(const string& name, Symbol sm);
         Symbol* lookUp(const string& name);
+        void validateScopeTypes();
 
         // helper
         void propagateType(ASTNode* node, NaikoType type);
         void constrain(ASTNode* node, NaikoType expected);
-        void validateScopeTypes();
         NaikoType m_currentFunctionReturn = NaikoType::INVALID;
 
         // Visitors

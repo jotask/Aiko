@@ -13,7 +13,6 @@ namespace aiko::naiko
         {
             analyzeNode(stmt.get());
         }
-        validateScopeTypes();
         exitScope();
     }
 
@@ -24,6 +23,7 @@ namespace aiko::naiko
 
     void SemanticAnalyzer::exitScope()
     {
+        validateScopeTypes();
         m_scopes.pop_back();
     }
 
@@ -91,32 +91,29 @@ namespace aiko::naiko
 
     void SemanticAnalyzer::validateScopeTypes()
     {
-        for (auto& scope : m_scopes)
+        for (auto& sc : m_scopes.back())
         {
-            for (auto& sc : scope)
+            auto& sym = sc.second;
+            if (sym.isFunction == false && sym.type == NaikoType::UNKNOWN)
             {
-                auto& sym = sc.second;
-                if (sym.isFunction == false && sym.type == NaikoType::UNKNOWN)
+                logger::Log::error("Could not deduce type of variable: %s", sc.first.c_str());
+                std::exit(-1);
+            }
+
+            if (sym.isFunction)
+            {
+                if (sym.type == NaikoType::UNKNOWN)
                 {
-                    logger::Log::error("Could not deduce type of variable: %s", sc.first.c_str());
+                    logger::Log::error("Could not deduce return type of function: %s", sc.first.c_str());
                     std::exit(-1);
                 }
 
-                if (sym.isFunction)
+                for (size_t i = 0; i < sym.params.size(); ++i)
                 {
-                    if (sym.type == NaikoType::UNKNOWN)
+                    if (sym.params[i] == NaikoType::UNKNOWN)
                     {
-                        logger::Log::error("Could not deduce return type of function: %s", sc.first.c_str());
+                        logger::Log::error("Could not deduce parameter %zu type in function: %s", i, sc.first.c_str());
                         std::exit(-1);
-                    }
-
-                    for (size_t i = 0; i < sym.params.size(); ++i)
-                    {
-                        if (sym.params[i] == NaikoType::UNKNOWN)
-                        {
-                            logger::Log::error("Could not deduce parameter %zu type in function: %s", i, sc.first.c_str());
-                            std::exit(-1);
-                        }
                     }
                 }
             }
@@ -147,7 +144,7 @@ namespace aiko::naiko
                     }
 
                     // declare array symbol
-                    declare(var->name, {NaikoType::UNKNOWN, true});
+                    declare(var->name, { .type = NaikoType::UNKNOWN, .isConstant = let->constant, .isArray = true, });
                     node->type = NaikoType::VOID;
                     return;
                 }
@@ -160,7 +157,7 @@ namespace aiko::naiko
             if (auto var = dynamic_cast<VariableNode*>(let->left.get()))
             {
                 auto exprType = analyzeExpr(let->right.get());
-                declare(var->name, {exprType, false});
+                declare(var->name, { .type = exprType, .isConstant = let->constant });
                 node->type = NaikoType::VOID;
                 return;
             }
@@ -312,7 +309,7 @@ namespace aiko::naiko
             // declare parameters
             for (auto& param : fnt->parameters)
             {
-                declare(param.name, {NaikoType::UNKNOWN, false}); // or UNKNOWN
+                declare(param.name, { .type = NaikoType::UNKNOWN});
             }
 
             // analyze body
