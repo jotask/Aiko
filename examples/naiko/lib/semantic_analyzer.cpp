@@ -53,15 +53,30 @@ namespace aiko::naiko
         return nullptr;
     }
 
-    void SemanticAnalyzer::unify(NaikoType& a, NaikoType& b)
+    void SemanticAnalyzer::propagateType(ASTNode* node, NaikoType type)
     {
-        if (a == NaikoType::UNKNOWN && b != NaikoType::UNKNOWN)
+        if (auto var = dynamic_cast<VariableNode*>(node))
         {
-            a = b;
+            auto sym = lookUp(var->name);
+            if (sym != nullptr && sym->type == NaikoType::UNKNOWN)
+            {
+                sym->type = type;
+            }
         }
-        else if (b == NaikoType::UNKNOWN && a != NaikoType::UNKNOWN)
+        node ->type = type;
+    }
+
+    void SemanticAnalyzer::constrain(ASTNode* node, NaikoType expected)
+    {
+        auto actual = analyzeExpr(node);
+        if (actual == NaikoType::UNKNOWN)
         {
-            b = a;
+            propagateType(node, expected);
+        }
+        else if (actual != expected)
+        {
+            logger::Log::error("Type mismatch");
+            std::exit(-1);
         }
     }
 
@@ -198,11 +213,9 @@ namespace aiko::naiko
         // IF
         if (auto ifNode = dynamic_cast<IfNode*>(node))
         {
-            if (analyzeExpr(ifNode->condition.get()) != NaikoType::BOOL)
-            {
-                logger::Log::error("If condition does not evaluate to bool");
-                std::exit(-1);
-            }
+
+            constrain(ifNode->condition.get(), NaikoType::BOOL);
+
             enterScope();
             for (auto& stmt : ifNode->body)
             {
@@ -216,11 +229,7 @@ namespace aiko::naiko
         // WHILE
         if (auto whileNode = dynamic_cast<WhileNode*>(node))
         {
-            if (analyzeExpr(whileNode->condition.get()) != NaikoType::BOOL)
-            {
-                logger::Log::error("If condition does not evaluate to bool");
-                std::exit(-1);
-            }
+            constrain(whileNode->condition.get(), NaikoType::BOOL);
             enterScope();
             for (auto& stmt : whileNode->body)
             {
@@ -279,6 +288,14 @@ namespace aiko::naiko
             storedFnSym->type = m_currentFunctionReturn;
             fnt->returnType = m_currentFunctionReturn;
             node->type = NaikoType::VOID;
+
+            if (storedFnSym->type == NaikoType::UNKNOWN)
+            {
+                logger::Log::error("Could not deduce return type of function %s",
+                    fnt->name.c_str());
+                std::exit(-1);
+            }
+
             return;
         }
 
@@ -375,19 +392,23 @@ namespace aiko::naiko
         {
             auto left = analyzeExpr(n->left.get());
             auto right = analyzeExpr(n->right.get());
-            unify(left, right);
 
             switch (n->operation)
             {
             case NaikoOperation::ADD:
             case NaikoOperation::SUBTRACT:
-                if (left == NaikoType::STRING && right == NaikoType::STRING)
                 {
-                    node->type = NaikoType::STRING;
-                    return node->type;
-                }
-                if (left == NaikoType::INT && right == NaikoType::INT)
-                {
+                    // string concatenation
+                    if constexpr (false)
+                    {
+                        if (left == NaikoType::STRING && right == NaikoType::STRING)
+                        {
+                            node->type = NaikoType::STRING;
+                            return node->type;
+                        }
+                    }
+                    constrain(n->left.get(), NaikoType::INT);
+                    constrain(n->right.get(), NaikoType::INT);
                     node->type = NaikoType::INT;
                     return node->type;
                 }
@@ -399,12 +420,24 @@ namespace aiko::naiko
             case NaikoOperation::LESSTHAN:
             case NaikoOperation::LESSTHANEQUAL:
                 {
-                    unify(left, right);
+
+                    if (left == NaikoType::UNKNOWN && right != NaikoType::UNKNOWN)
+                    {
+                        propagateType(n->left.get(), right);
+                        left = right;
+                    }
+                    else  if (right == NaikoType::UNKNOWN && left != NaikoType::UNKNOWN)
+                    {
+                        propagateType(n->right.get(), left);
+                        right = left;
+                    }
+
                     if (left != right)
                     {
                         logger::Log::error("Type mismatch in comparison");
                         std::exit(-1);
                     }
+
                     node->type = NaikoType::BOOL;
                     return node->type;
                 }
@@ -448,7 +481,16 @@ namespace aiko::naiko
             for (size_t i = 0; i < expr->arguments.size(); ++i)
             {
                 auto argType = analyzeExpr(expr->arguments[i].get());
-                if (argType != sym->params[i])
+                auto& paramType = sym->params[i];
+                if (paramType == NaikoType::UNKNOWN)
+                {
+                    paramType = argType;
+                }
+                else if (argType == NaikoType::UNKNOWN)
+                {
+                    propagateType(expr->arguments[i].get(), paramType);
+                }
+                else if (argType != sym->params[i])
                 {
                     logger::Log::error("Argument %zu type mismatch in call to '%s'. Expected %s but got %s",
                         i,

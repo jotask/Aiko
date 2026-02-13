@@ -30,7 +30,8 @@ namespace aiko::naiko
         Symbol* lookUp(const string& name);
 
         // helper
-        void unify(NaikoType& a, NaikoType& b);
+        void propagateType(ASTNode* node, NaikoType type);
+        void constrain(ASTNode* node, NaikoType expected);
         NaikoType m_currentFunctionReturn = NaikoType::INVALID;
 
         // Visitors
