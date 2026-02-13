@@ -147,7 +147,7 @@ namespace aiko::naiko
                     }
 
                     // declare array symbol
-                    declare(var->name, {NaikoType::INT, true}); // INT array for now
+                    declare(var->name, {NaikoType::UNKNOWN, true});
                     node->type = NaikoType::VOID;
                     return;
                 }
