@@ -13,6 +13,7 @@ namespace aiko::naiko
         {
             analyzeNode(stmt.get());
         }
+        validateScopeTypes();
         exitScope();
     }
 
@@ -68,15 +69,57 @@ namespace aiko::naiko
 
     void SemanticAnalyzer::constrain(ASTNode* node, NaikoType expected)
     {
-        auto actual = analyzeExpr(node);
-        if (actual == NaikoType::UNKNOWN)
+        if (node->type == NaikoType::INVALID || node->type == NaikoType::UNKNOWN)
         {
-            propagateType(node, expected);
+            auto actual = analyzeExpr(node);
+            if (actual == NaikoType::UNKNOWN)
+            {
+                propagateType(node, expected);
+            }
+            else if (actual != expected)
+            {
+                logger::Log::error("Type mismatch");
+                std::exit(-1);
+            }
         }
-        else if (actual != expected)
+        else if (node->type != expected)
         {
             logger::Log::error("Type mismatch");
             std::exit(-1);
+        }
+    }
+
+    void SemanticAnalyzer::validateScopeTypes()
+    {
+        for (auto& scope : m_scopes)
+        {
+            for (auto& sc : scope)
+            {
+                auto& sym = sc.second;
+                if (sym.isFunction == false && sym.type == NaikoType::UNKNOWN)
+                {
+                    logger::Log::error("Could not deduce type of variable: %s", sc.first.c_str());
+                    std::exit(-1);
+                }
+
+                if (sym.isFunction)
+                {
+                    if (sym.type == NaikoType::UNKNOWN)
+                    {
+                        logger::Log::error("Could not deduce return type of function: %s", sc.first.c_str());
+                        std::exit(-1);
+                    }
+
+                    for (size_t i = 0; i < sym.params.size(); ++i)
+                    {
+                        if (sym.params[i] == NaikoType::UNKNOWN)
+                        {
+                            logger::Log::error("Could not deduce parameter %zu type in function: %s", i, sc.first.c_str());
+                            std::exit(-1);
+                        }
+                    }
+                }
+            }
         }
     }
 

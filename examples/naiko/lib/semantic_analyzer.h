@@ -32,6 +32,7 @@ namespace aiko::naiko
         // helper
         void propagateType(ASTNode* node, NaikoType type);
         void constrain(ASTNode* node, NaikoType expected);
+        void validateScopeTypes();
         NaikoType m_currentFunctionReturn = NaikoType::INVALID;
 
         // Visitors
