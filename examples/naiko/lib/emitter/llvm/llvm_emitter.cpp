@@ -722,10 +722,9 @@ namespace aiko::naiko
         }
     }
 
-    void LlvmEmitter::emitFunction(FunctionNode* node)
+    void LlvmEmitter::emitFunction(FunctionNode* fnt)
     {
         // FunctionNode
-        FunctionNode* const fnt = dynamic_cast<FunctionNode*>(node);
         if (fnt == nullptr)
         {
             logger::Log::error("Function declaration is not a valid declaration nodel.");
