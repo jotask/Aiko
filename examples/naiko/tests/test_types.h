@@ -72,11 +72,7 @@ static void checkCurrentTokenIteration(std::vector<Expected> expecteds, std::vec
             break;
         case TokenKind::VALUE:
             {
-                const auto op = getTypeKind(cur.text);
-                REQUIRE(op != NaikoType::INVALID);
-                auto* expNaiko = std::get_if<NaikoType>(&exp.naiko);
-                REQUIRE(expNaiko != nullptr);
-                REQUIRE(op == *expNaiko);
+                AIKO_NOT_IMPLEMENTED;
             }
             break;
         default:

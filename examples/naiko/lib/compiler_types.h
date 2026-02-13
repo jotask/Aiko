@@ -131,17 +131,4 @@ namespace aiko::naiko
         return NaikoOperation::INVALID;
     }
 
-    static NaikoType getTypeKind(string str)
-    {
-        if(static_cast<bool>(std::isdigit(str.front())))
-        {
-            return NaikoType::INT;
-        }
-        if (str.front() == '\"')
-        {
-            return NaikoType::STRING;
-        }
-        return NaikoType::INVALID;
-    }
-
 }
