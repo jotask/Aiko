@@ -347,7 +347,10 @@ namespace aiko::naiko
                 emitNode(stmt.get(), fnt);
             }
             exitScope();
-            pimpl->m_builder.CreateBr(mergeBlock);
+            if (thenBlock->getTerminator() == nullptr)
+            {
+                pimpl->m_builder.CreateBr(mergeBlock);
+            }
 
             // else
             // TODO
