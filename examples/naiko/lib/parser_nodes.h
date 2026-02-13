@@ -74,9 +74,10 @@ namespace aiko::naiko
 
     struct LetNode : ASTNode
     {
-        explicit LetNode(NodePtr l, NodePtr r) : left(std::move(l)), right(std::move(r)) {}
+        explicit LetNode(NodePtr l, NodePtr r, bool cnt) : left(std::move(l)), right(std::move(r)), constant(cnt) {}
         NodePtr left;
         NodePtr right;
+        bool constant;
         virtual void print(size_t indent = 0) const override;
     };
 

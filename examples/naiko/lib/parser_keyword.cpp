@@ -21,7 +21,11 @@ namespace aiko::naiko
                     return std::make_unique<PrintNode>(processExpression());
                 }
             case NaikoKeyword::LET:
+            case NaikoKeyword::CONST:
                 {
+
+                    bool isContant = *keyword == NaikoKeyword::CONST;
+
                     next();
                     const auto varToken = getCurrentToken();
                     match(TokenKind::IDENTIFIER);
@@ -49,7 +53,7 @@ namespace aiko::naiko
                         expression = processExpression();
                     }
 
-                    return std::make_unique<LetNode>(std::move(target), std::move(expression));
+                    return std::make_unique<LetNode>(std::move(target), std::move(expression), isContant);
                 }
             case NaikoKeyword::SET:
                 {

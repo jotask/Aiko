@@ -277,6 +277,15 @@ namespace aiko::naiko
         // SET
         if (SetNode* const set = dynamic_cast<SetNode*>(node))
         {
+            if (auto var = dynamic_cast<VariableNode*>(set->left.get()))
+            {
+                auto* sym = lookupVar(var->name);
+                if (sym->isConstant == true)
+                {
+                    logger::Log::error("Cannot assign to constant variable '%s'", var->name.c_str());
+                    std::exit(-1);
+                }
+            }
             llvm::Value* target = getTargetPtr(set->left.get(), fnt, true);
             llvm::Value* value = emitNode(set->right.get(), fnt);
             return pimpl->m_builder.CreateStore(value, target);
@@ -493,13 +502,17 @@ namespace aiko::naiko
         // VariableNode
         if (VariableNode* const var = dynamic_cast<VariableNode*>(node))
         {
-            llvm::AllocaInst* alloc = llvm::dyn_cast<llvm::AllocaInst>(getTargetPtr(var, fnt, false));
-            if (!alloc)
+            auto* sym = lookupVar(var->name);
+            if (llvm::AllocaInst* alloc = llvm::dyn_cast<llvm::AllocaInst>(sym->value))
             {
-                logger::Log::error("Error variable with name [%s] not found in scope", var->name.c_str());
-                std::exit(-1);
+                return pimpl->m_builder.CreateLoad(alloc->getAllocatedType(), alloc, var->name + "_val");
             }
-            return pimpl->m_builder.CreateLoad(alloc->getAllocatedType(), alloc, var->name + "_val");
+            if (llvm::GlobalVariable* global = llvm::dyn_cast<llvm::GlobalVariable>(sym->value))
+            {
+                return pimpl->m_builder.CreateLoad(global->getValueType(), global, var->name + "_val");
+            }
+            logger::Log::error("Unsupported variable storage type [%s]", var->name.c_str());
+            std::exit(-1);
         }
 
         // ReturnNode
@@ -517,21 +530,17 @@ namespace aiko::naiko
     {
         if (VariableNode* var = dynamic_cast<VariableNode*>(node))
         {
-            llvm::AllocaInst* alloc = lookupVar(var->name);
-            if (alloc == nullptr)
+            auto* sym = lookupVar(var->name);
+            if (auto* alloca = llvm::dyn_cast<llvm::AllocaInst>(sym->value))
             {
-                if (declareIfMissing)
-                {
-                    logger::Log::error("Internal error: variable '%s' declared without LET", var->name.c_str());
-                    std::exit(-1);
-                }
-                else
-                {
-                    logger::Log::error("Variable '%s' not declared", var->name.c_str());
-                    std::exit(-1);
-                }
+                return alloca;
             }
-            return alloc;
+            if (auto* global = llvm::dyn_cast<llvm::GlobalVariable>(sym->value))
+            {
+                return global;
+            }
+            logger::Log::error("Unsupported variable storage type");
+            std::exit(-1);
         }
         if (ArrayAccessNode* arr = dynamic_cast<ArrayAccessNode*>(node))
         {
@@ -541,8 +550,8 @@ namespace aiko::naiko
             {
                 logger::Log::error("ArrayAccessNode must have VariableNode as array"); std::exit(-1);
             }
-
-            llvm::AllocaInst* alloc = lookupVar(var->name);
+            auto* sym = lookupVar(var->name);
+            llvm::AllocaInst* alloc = llvm::dyn_cast<llvm::AllocaInst>(sym->value);
             if (alloc == nullptr)
             {
                 if (declareIfMissing)
@@ -628,6 +637,58 @@ namespace aiko::naiko
             const int exitCode = WEXITSTATUS(result);
             logger::Log::info("Exit code: [%d]", exitCode);
             logger::Log::critical("Couldn't compile emitted code exited with error code [%d] -> [%s] -> [%s]", exitCode, m_file.c_str(), cmd.c_str());
+        }
+    }
+
+    void LlvmEmitter::emitGlobalVariable(ASTNode* node)
+    {
+        if (auto let = dynamic_cast<LetNode*>(node))
+        {
+            if (auto var = dynamic_cast<VariableNode*>(let->left.get()))
+            {
+
+                llvm::Type* ty = toLLVMType(let->right->type);
+
+                // Create LLVM global variable
+                llvm::Constant* init = nullptr;
+                if (auto numNode = dynamic_cast<NumberNode*>(let->right.get()))
+                {
+                    init = llvm::ConstantInt::get(ty, numNode->value);
+                }
+                else if (auto charNode = dynamic_cast<CharNode*>(let->right.get()))
+                {
+                    init = llvm::ConstantInt::get(ty, charNode->value);
+                }
+                else
+                {
+                    // For now, support only char/int globals
+                    logger::Log::error("Global initialization must be int or char");
+                    std::exit(-1);
+                }
+
+                llvm::GlobalVariable* gv = new llvm::GlobalVariable(
+                    *pimpl->m_module,
+                    ty,
+                    let->constant, // isConstant
+                    llvm::GlobalValue::ExternalLinkage,
+                    init,
+                    var->name
+                );
+
+                // store in symbol table for lookup later
+                declare(var->name, gv, let->constant);
+
+            }
+            else
+            {
+                logger::Log::error("Only simple variables can be global");
+                std::exit(-1);
+            }
+        }
+        else
+        {
+            logger::Log::error("Attemptting to emit global variable but is not a set command");
+            std::exit(-1);
         }
     }
 
@@ -732,6 +793,8 @@ namespace aiko::naiko
                 return it->at(name);
             }
         }
+        logger::Log::error("Variable '%s' not declared", name.c_str());
+        std::exit(-1);
         return nullptr;
     }
 }

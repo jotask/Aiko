@@ -181,6 +181,12 @@ namespace aiko::naiko
                     std::exit(-1);
                 }
 
+                if (sym->isConstant == true)
+                {
+                    logger::Log::error("Cannot assign to constant variable: %s", variable->name.c_str());
+                    std::exit(-1);
+                }
+
                 auto rhsType = analyzeExpr(set->right.get());
                 if (sym->type == NaikoType::UNKNOWN)
                 {

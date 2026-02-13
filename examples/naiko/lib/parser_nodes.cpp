@@ -42,7 +42,7 @@ namespace aiko::naiko
 
     void LetNode::print(size_t indent) const
     {
-        logger::Log::info("%sLET", makeIndent(indent).c_str());
+        logger::Log::info("%sLET%s", makeIndent(indent).c_str(), constant ? " (const)" : "");
         left->print(indent + 1);
         if (right != nullptr)
         {
