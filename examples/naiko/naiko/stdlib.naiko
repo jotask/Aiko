@@ -1,6 +1,8 @@
+CONST nul = '\0'
+
 FUNCTION length : str
     LET count = 0
-    WHILE str[count] != '\0' REPEAT
+    WHILE str[count] != nul REPEAT
         SET count = count + 1
     END
     RETURN count
