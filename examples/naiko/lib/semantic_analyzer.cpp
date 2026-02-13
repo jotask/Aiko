@@ -451,6 +451,24 @@ namespace aiko::naiko
                         return node->type;
                     }
 
+                    if (left == NaikoType::UNKNOWN && right == NaikoType::UNKNOWN)
+                    {
+                        propagateType(n->left.get(), NaikoType::INT);
+                        propagateType(n->right.get(), NaikoType::INT);
+                        left = NaikoType::INT;
+                        right = NaikoType::INT;
+                    }
+                    else if (left == NaikoType::UNKNOWN)
+                    {
+                        propagateType(n->left.get(), right);
+                        left = NaikoType::INT;
+                    }
+                    else if (right == NaikoType::UNKNOWN)
+                    {
+                        propagateType(n->right.get(), left);
+                        right = NaikoType::INT;
+                    }
+
                     constrain(n->left.get(), NaikoType::INT);
                     constrain(n->right.get(), NaikoType::INT);
                     node->type = NaikoType::INT;
@@ -464,12 +482,20 @@ namespace aiko::naiko
             case NaikoOperation::LESSTHAN:
             case NaikoOperation::LESSTHANEQUAL:
                 {
-                    if (left == NaikoType::UNKNOWN && right != NaikoType::UNKNOWN)
+                    // If both sides are unknown, assume INT
+                    if (left == NaikoType::UNKNOWN && right == NaikoType::UNKNOWN)
+                    {
+                        propagateType(n->left.get(), NaikoType::INT);
+                        propagateType(n->right.get(), NaikoType::INT);
+                        left = right = NaikoType::INT;
+                    }
+                    // Propagate known type to unknown
+                    else if (left == NaikoType::UNKNOWN)
                     {
                         propagateType(n->left.get(), right);
                         left = right;
                     }
-                    else  if (right == NaikoType::UNKNOWN && left != NaikoType::UNKNOWN)
+                    else if (right == NaikoType::UNKNOWN)
                     {
                         propagateType(n->right.get(), left);
                         right = left;
