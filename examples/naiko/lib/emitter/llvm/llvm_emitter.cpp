@@ -134,7 +134,13 @@ namespace aiko::naiko
             pimpl->m_builder.CreateRet(pimpl->m_builder.getInt32(EXIT_SUCCESS));
         }
 
-        llvm::errs() << *pimpl->m_module; // prints entire IR to stderr
+        //llvm::errs() << *pimpl->m_module; // prints entire IR to stderr
+
+        if (llvm::verifyFunction(*mainFnt, &llvm::errs()))
+        {
+            logger::Log::error("Main function verification failed");
+            std::exit(-1);
+        }
 
         if (llvm::verifyModule(*pimpl->m_module, &llvm::errs()))
         {
