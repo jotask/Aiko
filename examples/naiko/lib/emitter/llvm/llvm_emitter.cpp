@@ -128,14 +128,13 @@ namespace aiko::naiko
         exitScope();
 
         // return
-        pimpl->m_builder.CreateRet(pimpl->m_builder.getInt32(EXIT_SUCCESS));
 
-        // Verify function
-        if (llvm::verifyFunction(*mainFnt, &llvm::errs()))
+        if (pimpl->m_builder.GetInsertBlock()->getTerminator() == nullptr)
         {
-            logger::Log::error("Function verification failed ::");
-            std::exit(-1);
+            pimpl->m_builder.CreateRet(pimpl->m_builder.getInt32(EXIT_SUCCESS));
         }
+
+        llvm::errs() << *pimpl->m_module; // prints entire IR to stderr
 
         if (llvm::verifyModule(*pimpl->m_module, &llvm::errs()))
         {
@@ -373,7 +372,7 @@ namespace aiko::naiko
                 emitNode(stmt.get(), fnt);
             }
             exitScope();
-            if (thenBlock->getTerminator() == nullptr)
+            if (pimpl->m_builder.GetInsertBlock()->getTerminator() == nullptr)
             {
                 pimpl->m_builder.CreateBr(mergeBlock);
             }
@@ -386,13 +385,25 @@ namespace aiko::naiko
                 emitNode(stmt.get(), fnt);
             }
             exitScope();
-            if (elseBlock->getTerminator() == nullptr)
+            if (pimpl->m_builder.GetInsertBlock()->getTerminator() == nullptr)
             {
                 pimpl->m_builder.CreateBr(mergeBlock);
             }
 
             // merge block
             pimpl->m_builder.SetInsertPoint(mergeBlock);
+
+            llvm::BasicBlock* current = pimpl->m_builder.GetInsertBlock();
+            if (current->getTerminator() == nullptr)
+            {
+                llvm::BasicBlock* next = llvm::BasicBlock::Create(
+                    pimpl->m_context,
+                    "after_if",
+                    fnt
+                );
+                pimpl->m_builder.CreateBr(next);
+                pimpl->m_builder.SetInsertPoint(next);
+            }
 
             return nullptr;
         }
@@ -432,8 +443,7 @@ namespace aiko::naiko
             }
             exitScope();
 
-            // ensure we always jump back to condition
-            if (bodyBlock->getTerminator() == nullptr)
+            if (pimpl->m_builder.GetInsertBlock()->getTerminator() == nullptr)
             {
                 pimpl->m_builder.CreateBr(conditionBlock);
             }
@@ -770,10 +780,17 @@ namespace aiko::naiko
             emitNode(stmt.get(), function);
         }
 
-        // default return if nono emitted
-        if (entry->getTerminator() == nullptr)
+        // default return if none emitted
+        if (pimpl->m_builder.GetInsertBlock()->getTerminator() == nullptr)
         {
-            pimpl->m_builder.CreateRet(llvm::ConstantInt::get(pimpl->m_builder.getInt32Ty(), 0));
+            if (function->getReturnType()->isVoidTy() == true)
+            {
+                pimpl->m_builder.CreateRetVoid();
+            }
+            else
+            {
+                pimpl->m_builder.CreateRet(llvm::ConstantInt::get(function->getReturnType(), 0));
+            }
         }
 
         exitScope();
