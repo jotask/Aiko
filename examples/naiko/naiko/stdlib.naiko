@@ -7,3 +7,10 @@ FUNCTION length : str
     END
     RETURN count
 END
+
+FUNCTION abs : x
+    IF x < 0 THEN
+        RETURN 0 - x
+    END
+    RETURN x
+END
