@@ -36,13 +36,31 @@ WHILE pc < length(code) REPEAT
 
     IF cmd == '[' THEN
         IF mem[ptr] == 0 THEN
-            PRINT "jump pc to the command after the matching ]"
+            LET depth = 1
+            WHILE depth > 0 REPEAT
+                SET pc = pc + 1
+                IF code[pc] == '[' THEN
+                    SET depth = depth + 1
+                END
+                IF code[pc] == ']' THEN
+                    SET depth = depth - 1
+                END
+            END
         END
     END
 
     IF cmd == ']' THEN
-        IF mem[ptr] == 0 THEN
-            PRINT "jump pc to the command after the matching ["
+        IF mem[ptr] != 0 THEN
+            LET depth = 1
+            WHILE depth > 0 REPEAT
+                SET pc = pc - 1
+                IF code[pc] == ']' THEN
+                    SET depth = depth + 1
+                END
+                IF code[pc] == '[' THEN
+                    SET depth = depth - 1
+                END
+            END
         END
     END
 
