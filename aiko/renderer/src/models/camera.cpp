@@ -4,9 +4,6 @@
 
 #include "display/display_manager.h"
 
-#include <bx/math.h>
-#include <bgfx/bgfx.h>
-
 namespace aiko
 {
     Camera::Camera()
@@ -28,40 +25,25 @@ namespace aiko
 
     mat4 Camera::getViewMatrix() const
     {
-        // FIXME: Extract this so it's renderer specific
-        mat4 view;
-        const auto up = getUp();
-        bx::mtxLookAt(
-            view.data(),
-            bx::Vec3{ position.x, position.y, position.z },
-            bx::Vec3{ target.x,   target.y,   target.z   },
-            bx::Vec3{ up.x, up.y, up.z }
-        );
-        return view;
+        return math::lookAt( position, target, getUp());
     }
 
     mat4 Camera::getProjectionMatrix() const
     {
-        // FIXME: Extract this so it's renderer specific
         const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
         const float aspectRatio = static_cast<float>(size.x)/static_cast<float>(size.y);
-        const ::bgfx::Caps* caps = ::bgfx::getCaps();
         switch (m_cameraType)
         {
         case Perspective:
         {
-            mat4 result;
-            bx::mtxProj(result.data(), m_fov, aspectRatio, m_near, m_far, caps->homogeneousDepth);
-            return result;
+            return math::perspective(m_fov, aspectRatio, m_near, m_far );
         }
         case Orthographic:
         {
             // Compute height of ortho box to match what FOV would see at distance = |camera.position.z|
             const float halfHeight = tanf(math::radians(m_fov) * 0.5f) * std::abs(position.z);
             const float halfWidth  = halfHeight * aspectRatio;
-            mat4 result;
-            bx::mtxOrtho(result.data(), -halfWidth , halfWidth, -halfHeight , halfHeight, m_near, m_far, 0.0f , caps->homogeneousDepth );
-            return result;
+            return math::ortho(-halfWidth , halfWidth, -halfHeight , halfHeight, m_near, m_far);
         }
         default:
             AIKO_ASSERT(false, "Unknow projection");

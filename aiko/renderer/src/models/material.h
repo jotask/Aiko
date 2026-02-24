@@ -21,7 +21,7 @@
         Shader m_shader;
 
 		Color m_baseColor;
-
+        Texture m_albedo;
         Texture m_diffuse;
 
     };

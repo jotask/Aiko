@@ -31,7 +31,7 @@ namespace aiko
 
     void MeshComponent::render()
     {
-        m_renderSystem->render(gameobject->transform(), m_mesh, m_shader);
+        AikoRenderer::it().submit(gameobject->transform(), m_mesh, m_material);
     }
 
     void MeshComponent::load(const char* filename)

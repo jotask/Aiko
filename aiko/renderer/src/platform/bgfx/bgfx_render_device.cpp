@@ -1,0 +1,225 @@
+#include "bgfx_render_device.h"
+
+#include <math/math_vector.h>
+#include <bgfx/platform.h>
+#include <logger/logger.h>
+
+#include "impl/bgfx_texture_impl.h"
+
+#if defined(AIKO_WINDOWS)
+    #define GLFW_EXPOSE_NATIVE_WIN32
+    #include <GLFW/glfw3native.h>
+#elif defined(AIKO_LINUX)
+    #define GLFW_EXPOSE_NATIVE_X11
+    #include <GLFW/glfw3native.h>
+#else
+    #error OS unsupported!
+#endif
+
+#include <platform/bgfx/impl/bgfx_shader_impl.h>
+#include <platform/bgfx/impl/bgfx_mesh_impl.h>
+
+namespace aiko::renderer::bgfx
+{
+
+    BgfxRenderDevice::BgfxRenderDevice()
+    {
+        static_assert(sizeof(::bgfx::ViewId) == sizeof(ViewId),    "Bgfx ViewId type has changed");
+        static_assert(std::is_same<::bgfx::ViewId, ViewId>::value, "Bgfx ViewId type has changed");
+    }
+
+    BgfxRenderDevice::~BgfxRenderDevice()
+    {
+    }
+
+    bool BgfxRenderDevice::init(const DeviceInitDesc& desc)
+    {
+
+        AIKO_TODO("Enable render multi-thread only on release");
+        ::bgfx::renderFrame();
+
+        GLFWwindow* window = static_cast<GLFWwindow*>(desc.nativeWindowHandle);
+        AIKO_ASSERT(window != nullptr, "Window is not GLFW?");
+
+        ::bgfx::Init init;
+        init.type = ::bgfx::RendererType::Count; // auto choose renderer (DirectX, OpenGL, etc.)
+        #if defined(AIKO_WINDOWS)
+            init.platformData.nwh = glfwGetWin32Window(window);
+        #elif defined(AIKO_LINUX)
+
+
+            init.platformData.nwh = (void*)(uintptr_t)glfwGetX11Window(window);
+            init.platformData.ndt = glfwGetX11Display();
+        #else
+            #error OS unsupported!
+        #endif
+        init.resolution.width = desc.width;
+        init.resolution.height = desc.height;
+        init.resolution.reset = desc.vsync ? BGFX_RESET_VSYNC : BGFX_RESET_NONE;
+
+        if (::bgfx::init(init) == false)
+        {
+            logger::Log::error("Failed to init BGFX");
+            return false;
+        }
+
+        // Log Init
+        {
+
+            static const std::unordered_map<uint32_t, std::string> vendorMap = {
+                { 0x10DE, "NVIDIA" },
+                { 0x1002, "AMD/ATI" },
+                { 0x8086, "Intel" },
+                { 0x5143, "Qualcomm" },
+                { 0x13B5, "ARM" },
+                { 0x5333, "S3 Graphics" },
+                { 0x102B, "Matrox" }
+                // add more if needed
+            };
+
+            auto getVendorName = [&](uint32_t vendorId) -> std::string
+                {
+                    auto it = vendorMap.find(vendorId);
+                    if (it != vendorMap.end())
+                        return it->second;
+                    return std::string{ "Unknown" };
+                };
+
+            const uint32_t vendorId = ::bgfx::getCaps()->vendorId;
+            const uint32_t deviceId = ::bgfx::getCaps()->deviceId;
+            logger::Log::info() << "GPU: " << getVendorName(vendorId) << ", Vendor ID: 0x" << std::hex << vendorId << ", Device ID: 0x" << deviceId<< std::dec;
+            logger::Log::info() << "BGFX Renderer: " << ::bgfx::getRendererName(::bgfx::getRendererType());
+        }
+
+        // ::bgfx::setDebug(BGFX_DEBUG_WIREFRAME | BGFX_DEBUG_STATS | BGFX_DEBUG_TEXT);
+
+        return  true;
+
+    }
+
+    void BgfxRenderDevice::shutdown()
+    {
+
+    }
+
+    void BgfxRenderDevice::resize(u32 width, u32 height, bool vsync)
+    {
+        m_width = width;
+        m_height = height;
+        ::bgfx::reset(width, height, vsync ? BGFX_RESET_VSYNC : BGFX_RESET_NONE);
+    }
+
+    void BgfxRenderDevice::beginFrame()
+    {
+    }
+
+    void BgfxRenderDevice::endFrame()
+    {
+        // NO op for now
+    }
+
+    void BgfxRenderDevice::beginPass(uint16_t viewId, const PassDescription& pass, void* nativeFrameHandler)
+    {
+
+        if (nativeFrameHandler == nullptr)
+        {
+            ::bgfx::setViewFrameBuffer(viewId, { ::bgfx::kInvalidHandle }); // backbuffer
+        }
+        else
+        {
+            // bind offscreen fbo
+        }
+
+        ::bgfx::setViewRect(viewId, 0, 0, (uint16_t)pass.width, (uint16_t)pass.height);
+
+        uint16_t flags = 0;
+        if (pass.clearColor) flags |= BGFX_CLEAR_COLOR;
+        if (pass.clearDepth) flags |= BGFX_CLEAR_DEPTH;
+
+        const uint32_t rgba = pass.clear.rgba();
+
+        ::bgfx::setViewClear(viewId, flags, rgba, 1.0f, 0);
+        ::bgfx::touch(viewId);
+
+    }
+
+    void BgfxRenderDevice::endPass()
+    {
+    }
+
+    void BgfxRenderDevice::present()
+    {
+        ::bgfx::frame();
+    }
+
+    void BgfxRenderDevice::setViewTransform(ViewId viewId, const mat4& view, const mat4& projection)
+    {
+        ::bgfx::setViewTransform(viewId, view.data(), projection.data() );
+    }
+
+    void BgfxRenderDevice::renderMesh(ViewId viewId, const mat4 world, const Mesh& mesh, const Material& material)
+    {
+
+        AIKO_ASSERT(material.m_shader.isValid(), "Invalid shader");
+        auto* shaderImpl = static_cast<BgfxShaderImpl*>(material.m_shader.getImpl());
+        AIKO_ASSERT(shaderImpl != nullptr, "Material has no shader!");
+
+        bool useTexture = true;
+        bool multiplyColor = false;
+        bool enableLights = false;
+
+        // Base color
+        if (shaderImpl->hasUniform("u_baseColor") == true)
+        {
+            float c[4] = { material.m_baseColor.r, material.m_baseColor.g, material.m_baseColor.b, material.m_baseColor.a };
+            ::bgfx::setUniform(shaderImpl->getUniformHandle("u_baseColor"), c);
+        }
+
+        // albedo
+        if (shaderImpl->hasUniform("u_texture") == true)
+        {
+            useTexture = true;
+            auto sampler = shaderImpl->getUniformHandle("u_texture");
+            auto* texImpl = static_cast<BgfxTextureImpl*>(material.m_diffuse.getImpl());
+            ::bgfx::setTexture(0, sampler, texImpl->getTextureHandler());
+        }
+
+        // flags
+        float flags[4] = {static_cast<float>(useTexture), static_cast<float>(multiplyColor), static_cast<float>(enableLights), 0.0f};
+        ::bgfx::setUniform(shaderImpl->getUniformHandle("u_flags"), flags);
+
+        auto* meshImpl = static_cast<BgfxMeshImpl*>(mesh.getImpl());
+        AIKO_ASSERT(meshImpl != nullptr, "Mesh has no BGFX impl");
+
+        const auto vb = meshImpl->getVertexBuffferHandler();
+        const auto ib = meshImpl->getIndexBuffferHandler();
+
+        if (::bgfx::isValid(vb) == false || ::bgfx::isValid(ib) == false)
+        {
+            // common cause: mesh never refreshed/uploaded
+            logger::Log::warning("renderMesh: invalid VB/IB (did you call mesh.refresh/upload?)");
+            return;
+        }
+
+        ::bgfx::setVertexBuffer(0, vb);
+        ::bgfx::setIndexBuffer(ib);
+
+        ::bgfx::setTransform(world.data());
+
+        uint64_t state = s_default_state;
+        /*
+            BGFX_STATE_WRITE_RGB |
+            BGFX_STATE_WRITE_A   |
+            BGFX_STATE_WRITE_Z   |
+            // BGFX_STATE_DEPTH_TEST_LESS |
+            // BGFX_STATE_CULL_CW   |
+            BGFX_STATE_MSAA     ;
+            //BGFX_STATE_DEPTH_TEST_ALWAYS; // debug
+            */
+        ::bgfx::setState(state);
+
+        ::bgfx::submit(viewId, shaderImpl->getProgramHandler());
+
+    }
+
+}

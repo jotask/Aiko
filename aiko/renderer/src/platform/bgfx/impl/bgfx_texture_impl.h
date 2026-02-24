@@ -6,7 +6,7 @@
 #include <types/textures.h>
 #include "interfaces/itexture_impl.h"
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
 
     class BgfxTextureImpl : public interfaces::ITextureImpl

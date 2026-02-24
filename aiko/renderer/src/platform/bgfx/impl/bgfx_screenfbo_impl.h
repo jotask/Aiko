@@ -8,7 +8,7 @@
 
 #include <bgfx/bgfx.h>
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
 
     class BgfxScreenFboImpl : public interfaces::IScreenFboImpl

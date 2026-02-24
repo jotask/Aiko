@@ -18,8 +18,6 @@ namespace aiko
         Type* name = static_cast<Type*>(obj);\
         AIKO_ASSERT(name != nullptr, "Invalid native");
 
-    #define AIKO_VSYNC_MACRO (false ? BGFX_RESET_VSYNC : BGFX_RESET_NONE)
-
     struct VertexInformation
     {
         float x, y, z;   // position

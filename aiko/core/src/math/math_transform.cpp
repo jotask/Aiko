@@ -144,9 +144,9 @@ namespace aiko
             return toAiko(mat);
         }
 
-        mat4 perspective(float angle, float width, float height, float znear, float zfar)
+        mat4 perspective(float angle, float aspectRatio, float znear, float zfar)
         {
-            glm::mat4 projection = glm::perspective(radians(angle), width / height, znear, zfar);
+            glm::mat4 projection = glm::perspective(radians(angle), aspectRatio, znear, zfar);
             return toAiko(projection);
         }
 

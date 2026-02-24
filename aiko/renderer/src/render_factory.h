@@ -5,6 +5,8 @@
 #include "models/frame_buffer.h"
 #include "models/screen_fbo.h"
 #include "models/mesh.h"
+#include "renderer/Irenderdevice.h"
+
 
 namespace aiko
 {
@@ -13,6 +15,8 @@ namespace aiko
         class RendererFactory
         {
         public:
+            static AikoPtr<IRenderDevice> createRenderDevice();
+
             static AikoPtr<interfaces::IShaderImpl> createShaderImpl();
             static AikoPtr<interfaces::ITextureImpl> createTextureImpl();
             static AikoPtr<interfaces::IFrameBufferImpl> createFrameBufferImpl();

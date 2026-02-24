@@ -2,7 +2,7 @@
 
 #include "platform/bgfx/impl/bgfx_framebuffer_impl.h"
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
 
     BgfxScreenFboImpl::BgfxScreenFboImpl()

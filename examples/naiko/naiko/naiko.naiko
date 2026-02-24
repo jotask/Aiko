@@ -1,4 +1,74 @@
 #include stdlib
 
-LET sum = add(1, 3)
-PRINT sum
+FUNCTION sum_to : n
+    LET i = 0
+    LET acc = 0
+    WHILE i <= n REPEAT
+        SET acc = acc + i
+        SET i = i + 1
+    END
+    RETURN acc
+END
+
+FUNCTION classify : a, b
+    IF a == b THEN
+        RETURN "eq"
+    END
+    IF a > b THEN
+        RETURN "gt"
+    END
+    RETURN "lt"
+END
+
+LET mem[16] = 0
+LET i = 0
+
+WHILE i < 16 REPEAT
+    SET mem[i] = i
+    SET i = i + 1
+END
+
+PRINT "== Array checks =="
+PRINT mem[0]
+PRINT mem[7]
+PRINT mem[15]
+
+PRINT "== Comparisons =="
+IF mem[3] == 3 THEN
+    PRINT "mem[3] == 3"
+END
+IF mem[4] >= mem[2] THEN
+    PRINT "mem[4] >= mem[2]"
+END
+IF mem[1] <= mem[2] THEN
+    PRINT "mem[1] <= mem[2]"
+END
+IF mem[8] > mem[7] THEN
+    PRINT "mem[8] > mem[7]"
+END
+IF mem[0] < mem[1] THEN
+    PRINT "mem[0] < mem[1]"
+END
+IF mem[5] != mem[6] THEN
+    PRINT "mem[5] != mem[6]"
+END
+
+PRINT "== Strings and chars =="
+LET title = "Naiko Showcase"
+PRINT title
+PRINT title[0]
+IF title[0] != nul THEN
+    PRINT "first char is not NUL"
+END
+
+PRINT "== Functions and unary ops =="
+LET total = sum_to(10)
+PRINT total
+PRINT abs(-42)
+PRINT classify(mem[2], mem[9])
+PRINT classify(mem[9], mem[2])
+PRINT classify(mem[5], mem[5])
+
+SET i = -i
+SET i = +i
+PRINT i

@@ -7,7 +7,7 @@
 #include "interfaces/imesh_impl.h"
 #include "models/texture.h"
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
 
     class BgfxMeshImpl : public interfaces::IMeshImpl

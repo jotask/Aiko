@@ -11,7 +11,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
 
     BgfxTextureImpl::BgfxTextureImpl()

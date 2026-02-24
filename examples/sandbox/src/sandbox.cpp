@@ -15,8 +15,8 @@
 #include <aiko_includes.h>
 
 #define TEST_LOAD_MESHES
-#define TEST_COMPONENTS
-#define TEST_PRIMITIVES
+// #define TEST_COMPONENTS
+// #define TEST_PRIMITIVES
 
 namespace sb
 {

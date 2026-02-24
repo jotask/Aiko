@@ -14,6 +14,7 @@
 #include "components/transform_component.h"
 #include "components/mesh_component.h"
 #include "systems/camera_system.h"
+#include "modules/render_module.h"
 
 namespace aiko
 {
@@ -29,7 +30,7 @@ namespace aiko
 
     void RenderSystem::update()
     {
-
+        m_renderModule->setMainCamera(m_cameraSystem->getMainCamera());
     }
 
     void RenderSystem::render()
@@ -40,6 +41,7 @@ namespace aiko
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_SYSTEM_REQUIRED(CameraSystem, systemConnector, m_cameraSystem)
+        BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
     }
     
     void RenderSystem::add(Light* light)
@@ -69,48 +71,21 @@ namespace aiko
 
     void RenderSystem::render( const Transform& trans, const Model& model)
     {
-        AikoRenderer::it().render(getMainCamera(), &trans, &model);
-    }
-   
-    void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Shader& shader)
-    {
-        AikoRenderer::it().render(getMainCamera(), &trans, &mesh, &shader);
+        for (const auto& m : model.m_meshes)
+        {
+            render(trans, m.mesh, m.material);
+        }
     }
 
-    void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Shader& shader, const Texture& texture)
+    void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Material& mat)
     {
-        AikoRenderer::it().render(getMainCamera(), &trans, &mesh, &shader, &texture);
+        AikoRenderer::it().submit(trans, mesh, mat);
     }
 
     FrameBuffer RenderSystem::getTargetTexture() const
     {
         return AikoRenderer::it().getTargetTexture();
     }
-
-
-    /*
-    void RenderSystem::render(AikoPtr<FrameBuffer> target, AikoPtr<Shader> shader)
-    {
-        m_renderModule->beginShaderMode(shader);
-
-        Camera* cam = this->getMainCamera();
-
-        auto projection = cam->getProjectionMatrix();
-        shader->setMat4("projection", projection);
-
-        auto view = cam->getViewMatrix();
-        shader->setMat4("view", view);
-
-        Transform trans;
-        shader->setMat4("model", trans.getMatrix());
-
-        m_renderModule->drawRenderTextureEx(target, vec2(), 0.0f, 1.0f, WHITE );
-
-        m_renderModule->endShaderMode();
-        AIKO_DEBUG_BREAK
-        AIKO_NOT_IMPLEMENTED;
-    }
-    */
 
     Camera* RenderSystem::getMainCamera()
     {

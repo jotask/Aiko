@@ -22,7 +22,7 @@ namespace aiko
         constexpr bool operator==(const Color& other) { return r == other.r && g == other.g && b == other.b && a == other.a; }
         constexpr bool operator!=(const Color& other) { return !(*this == other); }
 
-        const u32 rgba()
+        u32 rgba() const
         {
             u8 red = static_cast<u8>(r * 255.0f);
             u8 green = static_cast<u8>(g * 255.0f);

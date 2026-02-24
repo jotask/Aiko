@@ -4,7 +4,7 @@
 
 #include <core/file.h>
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
 
     BgfxFrameBufferImpl::BgfxFrameBufferImpl()

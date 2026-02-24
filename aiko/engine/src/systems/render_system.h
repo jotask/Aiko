@@ -19,6 +19,7 @@ namespace aiko
 {
 
     class CameraSystem;
+    class RenderModule;
 
     class RenderSystem : public BaseSystem
     {
@@ -37,8 +38,7 @@ namespace aiko
 
         void add(Light*);
         void render(const Transform& trans, const Model& model);
-        void render(const Transform& trans, const Mesh&, const Shader&);
-        void render(const Transform& trans, const Mesh&, const Shader&, const Texture&);
+        void render(const Transform& trans, const Mesh&, const Material&);
 
         FrameBuffer getTargetTexture() const;
 
@@ -53,6 +53,7 @@ namespace aiko
     
     private:
 
+        RenderModule* m_renderModule;
         CameraSystem* m_cameraSystem;
 
     // ---------------------------------------------------

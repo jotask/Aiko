@@ -56,8 +56,8 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generatePoint());
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::drawTriangle(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -66,8 +66,8 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateTriangle());
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::drawRectangle(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -78,8 +78,8 @@ namespace aiko
         t.position = pos;
         t.scale = size;
         static const Mesh mesh(mesh::factory::generateQuad());
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::renderLine(vec3 start, vec3 end, Color color, bool border, float thickness)
@@ -88,8 +88,8 @@ namespace aiko
         aiko::Camera* camera = m_cameraSystem->getMainCamera();
         Transform t;
         static const Mesh mesh(mesh::factory::generateLine(start, end));
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::renderCircle(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -99,8 +99,8 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateCircle());
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::renderNgon(vec3 pos, vec3 size, uint segment, Color color, bool border, float thickness)
@@ -110,8 +110,8 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateCircle(segment));
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::drawPlane(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -123,8 +123,8 @@ namespace aiko
         float siz = 10.0f;
         int res = 5;
         static const Mesh mesh(mesh::factory::generateMeshPlane(siz, siz, res, res));
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::drawPyramid(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -134,8 +134,8 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generatePyramid());
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::drawCube(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -146,8 +146,8 @@ namespace aiko
         t.position = pos;
         t.scale *= size;
         static const Mesh mesh(mesh::factory::generateCube());
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::renderSphere(vec3 pos, vec3 size, int segments, Color color, bool border, float thickness)
@@ -157,8 +157,8 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateMeshSphere(segments, segments));
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::renderPolygon(vec3 pos, vec3 size, int rings, int sectors, Color color, bool border, float thickness)
@@ -168,8 +168,8 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateMeshSphere(sectors, sectors));
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        //m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::renderCylinder(vec3 pos, vec3 size, uint sectors, Color color, bool border, float thickness)
@@ -179,8 +179,8 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateMeshCylinder(sectors));
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        // m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::renderTorus(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -190,8 +190,8 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateMeshTorus());
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        //m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
     void RenderSystem::renderKnot(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -201,8 +201,8 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateMeshKnot());
-        AikoRenderer::it().render(camera, &t, &mesh, &m_quadShaderPrimitives);
-        //m_renderModule->renderTransientBuffer(camera, &t, &m_quadShaderPrimitives, &mesh);
+        static const Material material;
+        AikoRenderer::it().submit(t, mesh, material);
     }
 
 }

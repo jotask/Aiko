@@ -8,7 +8,7 @@
 
 #include "interfaces/iframebuffer_impl.h"
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
 
     class BgfxFrameBufferImpl : public interfaces::IFrameBufferImpl

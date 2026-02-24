@@ -29,8 +29,7 @@ namespace aiko
     private:
         RenderSystem*   m_renderSystem;
         Mesh   m_mesh;
-        Shader m_shader;
-
+        Material m_material;
     };
 
 }

@@ -6,7 +6,7 @@
 #include "platform/bgfx/bgfx_platform_helper.h"
 #include "platform/bgfx/bgfx_types.h"
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
     namespace shared {
         struct VertexInformation;
@@ -93,7 +93,7 @@ namespace aiko::bgfx
             v.v = textCoord.y;
 
             // color
-            v.abgr = convertColorToBgfx(data.m_colors[i]);
+            v.abgr = data.m_colors[i].rgba();
 
             // Normal
             const auto normal = data.m_normals[i];

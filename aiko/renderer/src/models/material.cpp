@@ -8,7 +8,7 @@ namespace aiko
     Material::Material()
 		: m_baseColor(WHITE)
     {
-    
+        m_albedo.create();
     }
 
 }
