@@ -36,13 +36,15 @@ namespace aiko
         void setPixels(std::vector<Color> pixels);
         void refresh();
 
-    private:
-        RenderSystem* m_renderSystem;
-        Mesh       m_mesh;
-        Material   m_material;
+        Texture getTexture() const;
 
-        TextureMode m_textureMode;
-        string     m_filePath;
+    private:
+        RenderSystem*   m_renderSystem;
+        Mesh            m_mesh;
+        Material        m_material;
+
+        TextureMode     m_textureMode;
+        string          m_filePath;
 
         std::vector<Color> pixels;
         bool is_dirty = false;

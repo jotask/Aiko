@@ -23,7 +23,6 @@ namespace aiko::editor
             GridX,
             Light,
             Mesh,
-            PboTexture,
             Texture,
         };
 
@@ -42,7 +41,6 @@ namespace aiko::editor
                 constexpr auto pmt = [](auto*) {};
                 if (isComponent<aiko::Transform>(tmp, pmt)) { addCmp(ComponentsTypes::Tranform); continue; };
                 if (isComponent<aiko::TextureComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Texture); continue; };
-                if (isComponent<aiko::PboTextureComponent>(tmp, pmt)) { addCmp(ComponentsTypes::PboTexture); continue; };
                 if (isComponent<aiko::MeshComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Mesh); continue; };
                 if (isComponent<aiko::GridXComponent>(tmp, pmt)) { addCmp(ComponentsTypes::GridX); continue; };
                 if (isComponent<aiko::LightComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Light); continue; };;
@@ -88,9 +86,6 @@ namespace aiko::editor
                 case ComponentsTypes::Mesh:
                     obj->removeComponent<::aiko::MeshComponent>();
                     break;
-                case ComponentsTypes::PboTexture:
-                    obj->removeComponent<::aiko::PboTextureComponent>();
-                    break;
                 case ComponentsTypes::Texture:
                     obj->removeComponent<::aiko::TextureComponent>();
                     break;
@@ -125,9 +120,6 @@ namespace aiko::editor
                 case ComponentsTypes::Mesh:
                     obj->addComponent<::aiko::MeshComponent>();
                     break;
-                case ComponentsTypes::PboTexture:
-                    obj->addComponent<::aiko::PboTextureComponent>();
-                    break;
                 case ComponentsTypes::Texture:
                     obj->addComponent<::aiko::TextureComponent>();
                     break;
@@ -142,7 +134,6 @@ namespace aiko::editor
         {
             if (isComponent<aiko::Transform>(compt, drawTransform)) return;
             if (isComponent<aiko::TextureComponent>(compt, drawTexture)) return;
-            if (isComponent<aiko::PboTextureComponent>(compt, drawPboTexture)) return;
             if (isComponent<aiko::MeshComponent>(compt, drawMesh)) return;
             if (isComponent<aiko::LightComponent>(compt, drawLight)) return;
             if (isComponent<aiko::GridXComponent>(compt, drawGrid)) return;
@@ -162,17 +153,8 @@ namespace aiko::editor
         void drawTexture(aiko::TextureComponent* text)
         {
             ImGui::PushID(text);
-            aiko::texture::Texture texture = text->getTexture()->m_texture;
+            Texture texture = text->getTexture();
             imgui::Image(texture);
-            ImGui::PopID();
-        }
-
-        void drawPboTexture(aiko::PboTextureComponent* pbo)
-        {
-            ImGui::PushID(pbo);
-            ImGui::Checkbox("Auto Render", &pbo->auto_render);
-            aiko::texture::PboTexture text = pbo->getPboTexture();
-            imgui::Image(text.texture);
             ImGui::PopID();
         }
 
@@ -197,18 +179,18 @@ namespace aiko::editor
         void drawCamera(aiko::CameraComponent* camera)
         {
             ImGui::PushID(camera);
-            ImGui::DragFloat3("Position", camera->getCamera()->position, IMGUI_VELOCITY);
-            ImGui::DragFloat3("Target", camera->getCamera()->target, IMGUI_VELOCITY);
+            ImGui::DragFloat3("Position", camera->getCamera().position, IMGUI_VELOCITY);
+            ImGui::DragFloat3("Target", camera->getCamera().target, IMGUI_VELOCITY);
             ImGui::Spacing();
-            ImGui::DragFloat("Near", &camera->getCamera()->m_near, IMGUI_VELOCITY);
-            ImGui::DragFloat("Far", &camera->getCamera()->m_far, IMGUI_VELOCITY);
+            ImGui::DragFloat("Near", &camera->getCamera().m_near, IMGUI_VELOCITY);
+            ImGui::DragFloat("Far", &camera->getCamera().m_far, IMGUI_VELOCITY);
             ImGui::Spacing();
 
             if (ImGui::BeginCombo("##comboType", magic_enum::enum_name(camera->getCameraType()).data())) // The second parameter is the label previewed before opening the combo.
             {
-                for (int n = 0; n < magic_enum::enum_count<aiko::camera::CameraType>(); n++)
+                for (int n = 0; n < magic_enum::enum_count<Camera::CameraType>(); n++)
                 {
-                    aiko::camera::CameraType current = magic_enum::enum_cast<aiko::camera::CameraType>(n).value();
+                    Camera::CameraType current = magic_enum::enum_cast<Camera::CameraType>(n).value();
                     bool is_selected = camera->getCameraType() == current; // You can store your selection however you want, outside or inside your objects
                     if (ImGui::Selectable(magic_enum::enum_name(current).data(), is_selected))
                     {
@@ -222,9 +204,9 @@ namespace aiko::editor
                 ImGui::EndCombo();
             }
 
-            if (camera->getCameraType() == camera::CameraType::Orthographic)
+            if (camera->getCameraType() == Camera::CameraType::Orthographic)
             {
-                ImGui::DragFloat("OrthoHeight", &camera->getCamera()->m_orthoHeight, IMGUI_VELOCITY);
+                ImGui::DragFloat("OrthoHeight", &camera->getCamera().m_orthoHeight, IMGUI_VELOCITY);
             }
 
             ImGui::Spacing();

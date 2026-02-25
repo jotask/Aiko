@@ -205,4 +205,8 @@ namespace aiko
         m_material.m_diffuse.setPixels(pixels);
     }
 
+    Texture TextureComponent::getTexture() const
+    {
+        return m_material.m_diffuse;
+    }
 }

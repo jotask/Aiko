@@ -28,16 +28,16 @@ namespace aiko
             if(ImGui::Begin("Game"))
             {
 
-                aiko::texture::RenderTexture2D* aikoTarget = renderSystem->getTargetTexture();
+                FrameBuffer aikoTarget = renderSystem->getTargetTexture();
 
-                aiko::texture::Texture texture = aikoTarget->texture;
+                Texture texture = aikoTarget.getColorTexture();
                 // Using a Child allow to fill all the space of the window.
                 // It also allows customization
                 ImGui::BeginChild("GameRender");
                 // Get the size of the child (i.e. the whole draw size of the windows).
 
                 // Get the dimensions of the texture
-                ImVec2 textureSize = ImVec2(texture.width, texture.height);
+                ImVec2 textureSize = ImVec2(texture.getInfo().width, texture.getInfo().height);
 
                 // Calculate aspect ratio of the image
                 float aspectRatio = textureSize.x / textureSize.y;
@@ -73,7 +73,7 @@ namespace aiko
                 // and here we can add our created texture as image to ImGui
                 // unfortunately we need to use the cast to void* or I didn't find another way tbh
                 ImGui::GetWindowDrawList()->AddImage(
-                    (ImTextureID)texture.id,
+                    (ImTextureID)texture.id(),
                     ImVec2(pos.x, pos.y),
                     ImVec2(pos.x + imageWidth, pos.y + imageHeight),
                     ImVec2(0, 1),

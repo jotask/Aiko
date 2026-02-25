@@ -168,13 +168,13 @@ namespace aiko
             std::ifstream file(file_path);
             if (file.is_open() == false)
             {
-                aiko::Log::error("Error opening file: ", file_name );
+                logger::Log::error("Error opening file: ", file_name );
                 return;
             }
 
             if (file.peek() == EOF)
             {
-                aiko::Log::error("Error opening file: ", file_name);
+                logger::Log::error("Error opening file: ", file_name);
                 return;
             }
 

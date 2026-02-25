@@ -29,12 +29,12 @@ namespace aiko::editor
             return ::ImGui::InputText(label, (char*)str->c_str(), str->capacity() + 1, flags | ImGuiInputTextFlags_CallbackResize, InputTextCallbackData::Callback, (void*)str);
         }
 
-        static void Image(texture::Texture& texture)
+        static void Image(Texture& texture)
         {
-            ImVec2 textureSize = ImVec2(texture.width, texture.height);
+            ImVec2 textureSize = ImVec2(texture.getInfo().width, texture.getInfo().height);
             ImGui::BeginChild("Texture", ImVec2(ImGui::GetContentRegionAvail().x, textureSize.y), ImGuiChildFlags_None);
             ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - textureSize.x) * 0.5f, 0.0f));
-            ImGui::Image((ImTextureID)texture.id, textureSize, ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image((ImTextureID)texture.id(), textureSize, ImVec2(0, 1), ImVec2(1, 0));
             ImGui::EndChild();
         }
 

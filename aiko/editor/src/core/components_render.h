@@ -18,7 +18,6 @@ namespace aiko::editor
 
         void drawTransform(aiko::Transform*);
         void drawTexture(aiko::TextureComponent*);
-        void drawPboTexture(aiko::PboTextureComponent*);
         void drawMesh(aiko::MeshComponent*);
         void drawLight(aiko::LightComponent*);
         void drawGrid(aiko::GridXComponent*);
