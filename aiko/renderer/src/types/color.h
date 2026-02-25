@@ -3,6 +3,8 @@
 #include <aiko_types.h>
 #include <core/random.h>
 
+#include "math/math_vector.h"
+
 namespace aiko
 {
 
