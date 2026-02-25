@@ -4,13 +4,13 @@
 
 #include <core/file.h>
 
-namespace aiko::bgfx
+#include "platform/bgfx/impl/bgfx_texture_impl.h"
+
+namespace aiko::renderer::bgfx
 {
 
     BgfxFrameBufferImpl::BgfxFrameBufferImpl()
         : m_frameBuffer({::bgfx::kInvalidHandle})
-        , m_colorTexture({::bgfx::kInvalidHandle})
-        , m_depthTexture({::bgfx::kInvalidHandle})
     {
     }
 
@@ -31,59 +31,29 @@ namespace aiko::bgfx
 
     bool BgfxFrameBufferImpl::isValid() const
     {
-        return ::bgfx::isValid(m_colorTexture) && ::bgfx::isValid(m_depthTexture) && ::bgfx::isValid(m_frameBuffer);
+        return ::bgfx::isValid(m_frameBuffer);
     }
 
-    void BgfxFrameBufferImpl::create(int width, int height)
+    void BgfxFrameBufferImpl::create(Texture color, Texture depth)
     {
 
-        m_colorTexture = ::bgfx::createTexture2D(
-            width, height,         // width, height
-            false,                 // hasMips
-            1,                     // numLayers
-            ::bgfx::TextureFormat::RGBA8,
-            BGFX_TEXTURE_RT        // mark as render target
-        );
+        BgfxTextureImpl* colorTexture = static_cast<BgfxTextureImpl*>(color.getImpl());
+        BgfxTextureImpl* depthTexture = static_cast<BgfxTextureImpl*>(depth.getImpl());
 
-        colorTextureInfo = {0};
-        colorTextureInfo.id = m_colorTexture.idx;
-        colorTextureInfo.width = width;
-        colorTextureInfo.height = height;
-        colorTextureInfo.channels = 1;
-        colorTextureInfo.format = ::bgfx::TextureFormat::RGBA8;
-        colorTextureInfo.mipmaps = false;
+        AIKO_ASSERT(colorTexture->isValid(), "Invalid color texture")
+        AIKO_ASSERT(depthTexture->isValid(), "Invalid depth texture")
 
-        // Example: create a depth buffer texture
-        m_depthTexture = ::bgfx::createTexture2D(
-            width, height,         // width, height
-            false,
-            1,
-            ::bgfx::TextureFormat::D24S8,
-            BGFX_TEXTURE_RT
-        );
+        std::vector fbTextures = { colorTexture->getTextureHandler(), depthTexture->getTextureHandler() };
+        m_frameBuffer = ::bgfx::createFrameBuffer(fbTextures.size(), fbTextures.data(), false);
 
-        depthTextureInfo = {0};
-        depthTextureInfo.id = m_colorTexture.idx;
-        depthTextureInfo.width = width;
-        depthTextureInfo.height = height;
-        depthTextureInfo.channels = 1;
-        depthTextureInfo.format = ::bgfx::TextureFormat::D24S8;
-        depthTextureInfo.mipmaps = false;
-
-        std::vector<::bgfx::TextureHandle> fbTextures = { m_colorTexture, m_depthTexture };
-        m_frameBuffer = ::bgfx::createFrameBuffer(fbTextures.size(), fbTextures.data(), true);
     }
 
     void BgfxFrameBufferImpl::unload()
     {
-        ::bgfx::destroy(m_colorTexture);
-        ::bgfx::destroy(m_depthTexture);
-        ::bgfx::destroy(m_frameBuffer);
-    }
-
-    ivec2 BgfxFrameBufferImpl::getSize() const
-    {
-        return {colorTextureInfo.width, colorTextureInfo.height};
+        if (::bgfx::isValid(m_frameBuffer))
+        {
+            ::bgfx::destroy(m_frameBuffer);
+        }
     }
 
 }

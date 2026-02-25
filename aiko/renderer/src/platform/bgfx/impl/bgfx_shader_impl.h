@@ -8,7 +8,7 @@
 
 #include "interfaces/ishader_impl.h"
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
 
     class BgfxShaderImpl : public interfaces::IShaderImpl
@@ -37,6 +37,7 @@ namespace aiko::bgfx
         ::bgfx::ProgramHandle getProgramHandler() const { return m_programHandle; }
 
         ::bgfx::UniformHandle getUniformHandle(const string& name);
+        bool hasUniform(const string& name) const;
 
     private:
 

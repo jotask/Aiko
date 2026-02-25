@@ -17,11 +17,15 @@
         Material();
         ~Material() = default;
 
+        u64 id() const;
+
     public:
         Shader m_shader;
 
-		Color m_baseColor;
+        bool m_userVertexColor;
+        bool m_lit;
 
+		Color m_baseColor;
         Texture m_diffuse;
 
     };

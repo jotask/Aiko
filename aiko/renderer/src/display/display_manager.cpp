@@ -8,6 +8,7 @@
 #include "display/display_events.hpp"
 
 #include "input/inputs_types.h"
+#include "time/time.h"
 
 namespace aiko
 {
@@ -187,8 +188,13 @@ namespace aiko
         if ( glfwWindowShouldClose(m_native) == true )
         {
             WindowCloseEvent even;
-            aiko::EventSystem::it().sendEvent(even);
+            EventSystem::it().sendEvent(even);
         }
+
+        string title = m_display.getWindowTitle() + " : [" + std::format("{:.0f}", Time::it().getFps() ) + " FPS]";
+        glfwSetWindowTitle(m_native, title.c_str());
+
+
     }
 
 }

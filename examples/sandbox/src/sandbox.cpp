@@ -82,12 +82,13 @@ namespace sb
         m_texture->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texture->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh3 = m_texture->addComponent<aiko::TextureComponent>("texel_checker.png");
-        
+
         m_texturePbo = this->Instantiate(root, "PboTexture");
         m_texturePbo->transform().position = { 0.0f, 0.55f, 5.0f };
         m_texturePbo->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texturePbo->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh4 = m_texturePbo->addComponent<aiko::TextureComponent>(aiko::TextureComponent::TextureMode::PBO);
+
 #endif
 
     }

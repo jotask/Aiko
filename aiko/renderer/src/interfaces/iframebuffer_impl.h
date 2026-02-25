@@ -1,9 +1,8 @@
 #pragma once
 
-#include <vector>
 #include <aiko_types.h>
 
-#include "types/color.h"
+#include "models/texture.h"
 
 namespace aiko
 {
@@ -19,10 +18,8 @@ namespace aiko
             virtual bool isValid() const = 0;
 
             // load
-            virtual void create(int width, int height) = 0;
+            virtual void create(Texture color, Texture depth) = 0;
             virtual void unload() = 0;
-
-            virtual ivec2 getSize() const = 0;
 
         };
     }

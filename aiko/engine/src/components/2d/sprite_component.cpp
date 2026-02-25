@@ -33,7 +33,7 @@ namespace aiko
 
     void SpriteComponent::render()
     {
-        m_renderSystem->render(gameobject->transform(), m_mesh, m_shader, m_texture);
+        // m_renderSystem->render(gameobject->transform(), m_mesh, m_shader, m_texture);
     }
 
 }

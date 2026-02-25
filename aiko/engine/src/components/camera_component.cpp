@@ -50,7 +50,7 @@ namespace aiko
         {
         case camera::CameraController::Orbit:
         {
-            auto timer = aiko::Time::it().secondSinceStart();
+            auto timer = Time::it().secondSinceStart();
             float camX = static_cast<float>(sin(timer) * m_radius);
             float camZ = static_cast<float>(cos(timer) * m_radius);
             m_camera->position = { camX, m_camera->position.y, camZ };
@@ -88,7 +88,7 @@ namespace aiko
                     forward = math::rotate(forward, math::radians(-pitch), right);
 
                     // Apply yaw (looking left/right)
-                    forward = math::rotate(forward, math::radians(yaw), m_camera->getUp());
+                    forward = math::rotate(forward, math::radians(-yaw), m_camera->getUp());
 
                     forward = math::normalize(forward);
 
@@ -110,11 +110,11 @@ namespace aiko
             }
             if (m_inputSystem->isKeyPressed(Key::KEY_A))
             {
-                moveDir += right;
+                moveDir -= right;
             }
             if (m_inputSystem->isKeyPressed(Key::KEY_D))
             {
-                moveDir -= right;
+                moveDir += right;
             }
 
             float speed = m_speed;

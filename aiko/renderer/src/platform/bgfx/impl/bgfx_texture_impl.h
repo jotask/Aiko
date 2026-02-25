@@ -6,7 +6,7 @@
 #include <types/textures.h>
 #include "interfaces/itexture_impl.h"
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
 
     class BgfxTextureImpl : public interfaces::ITextureImpl
@@ -23,7 +23,7 @@ namespace aiko::bgfx
         virtual texture::Texture getInfo() override;
 
         // load
-        virtual void create(int width, int height) override;
+        virtual void create(texture::Texture) override;
         virtual void load(string) override;
         virtual void unload() override;
 
@@ -36,6 +36,9 @@ namespace aiko::bgfx
 
         ::bgfx::TextureHandle m_textureHandle;
         texture::Texture m_texture;
+
+        ::bgfx::TextureFormat::Enum toBGFXFormat(texture::TextureFormat) const;
+
 
     };
 }

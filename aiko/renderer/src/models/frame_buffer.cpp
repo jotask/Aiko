@@ -21,9 +21,9 @@ namespace aiko
         backend->unuse();
     }
 
-    bool FrameBuffer::isValid()
+    bool FrameBuffer::isValid() const
     {
-        return backend->isValid();
+        return backend->isValid() && colorTexture.isValid() && depthTexture.isValid();
     }
 
     uint FrameBuffer::id() const
@@ -33,17 +33,28 @@ namespace aiko
 
     void FrameBuffer::create(int width, int height)
     {
-        backend->create(width, height);
+        colorTexture.create(
+            {
+                .type = texture::TextureType::RenderTarget,
+                .format = texture::TextureFormat::RGBA8,
+                .width = width,
+                .height = height,
+                .mipmaps = false,
+            });
+        depthTexture.create(
+            {
+                .type = texture::TextureType::DepthStencil,
+                .format = texture::TextureFormat::D24S8,
+                .width = width,
+                .height = height,
+                .mipmaps = false,
+            });
+        backend->create(colorTexture, depthTexture);
     }
 
     void FrameBuffer::unload()
     {
         backend->unload();
-    }
-
-    ivec2 FrameBuffer::getSize() const
-    {
-        return backend->getSize();
     }
 
 }

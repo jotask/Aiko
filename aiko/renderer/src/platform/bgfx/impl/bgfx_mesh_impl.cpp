@@ -6,7 +6,7 @@
 #include "platform/bgfx/bgfx_platform_helper.h"
 #include "platform/bgfx/bgfx_types.h"
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
     namespace shared {
         struct VertexInformation;
@@ -17,10 +17,7 @@ namespace aiko::bgfx
         , m_vertexBuffer({::bgfx::kInvalidHandle})
         , m_indexBuffer({::bgfx::kInvalidHandle})
     {
-        m_texture.create(1, 1);
-        std::vector<Color> pixels = {AIKO_DEFAULT_MESH_COLOR};
-        m_texture.setPixels(pixels);
-        AIKO_ASSERT(m_texture.isValid(), "Invalid texture creation")
+
     }
 
     bool BgfxMeshImpl::isValid() const
@@ -71,6 +68,13 @@ namespace aiko::bgfx
 
     }
 
+    uint BgfxMeshImpl::id()
+    {
+        const auto vbIDX = getVertexBuffferHandler().idx;
+        const auto ibIDX = getIndexBuffferHandler().idx;
+        return static_cast<uint>(vbIDX) << 16 | ibIDX;
+    }
+
     std::vector<VertexInformation> BgfxMeshImpl::convertToVBH()
     {
 
@@ -93,7 +97,7 @@ namespace aiko::bgfx
             v.v = textCoord.y;
 
             // color
-            v.abgr = convertColorToBgfx(data.m_colors[i]);
+            v.abgr = data.m_colors[i].rgba();
 
             // Normal
             const auto normal = data.m_normals[i];

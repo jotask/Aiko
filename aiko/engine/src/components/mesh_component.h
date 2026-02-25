@@ -3,7 +3,7 @@
 #include "aiko_types.h"
 #include "models/component.h"
 #include "models/mesh.h"
-#include "models/shader.h"
+#include "models/material.h"
 
 namespace aiko
 {
@@ -29,8 +29,7 @@ namespace aiko
     private:
         RenderSystem*   m_renderSystem;
         Mesh   m_mesh;
-        Shader m_shader;
-
+        Material m_material;
     };
 
 }

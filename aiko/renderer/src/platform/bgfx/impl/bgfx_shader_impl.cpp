@@ -8,7 +8,7 @@
 
 #include "constants.h"
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
 
     BgfxShaderImpl::BgfxShaderImpl()
@@ -212,4 +212,9 @@ namespace aiko::bgfx
         return m_uniforms[name];
     }
 
+    bool BgfxShaderImpl::hasUniform(const string& name) const
+    {
+        auto it = m_uniforms.find(name);
+        return it != m_uniforms.end();
+    }
 }

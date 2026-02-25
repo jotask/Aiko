@@ -7,8 +7,9 @@
 #include <types/textures.h>
 
 #include "interfaces/iframebuffer_impl.h"
+#include "models/texture.h"
 
-namespace aiko::bgfx
+namespace aiko::renderer::bgfx
 {
 
     class BgfxFrameBufferImpl : public interfaces::IFrameBufferImpl
@@ -27,23 +28,15 @@ namespace aiko::bgfx
         virtual bool isValid() const override;
 
         // load
-        virtual void create(int width, int height) override;
+        virtual void create(Texture color, Texture depth) override;
 
         virtual void unload() override;
 
-        virtual ivec2 getSize() const override;
-
-        ::bgfx::TextureHandle getColorTextureHandler() const { return m_colorTexture; }
-        ::bgfx::TextureHandle getDepthTextureHandler() const { return m_depthTexture; }
         ::bgfx::FrameBufferHandle getFrameBufferHandler() const { return m_frameBuffer; }
 
     private:
-        ::bgfx::TextureHandle m_colorTexture;
-        ::bgfx::TextureHandle m_depthTexture;
-
-        texture::Texture colorTextureInfo;
-        texture::Texture depthTextureInfo;
 
         ::bgfx::FrameBufferHandle m_frameBuffer;
+
     };
 }
