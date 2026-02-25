@@ -13,6 +13,7 @@
 #include "systems/system_connector.h"
 #include "components/transform_component.h"
 #include "components/mesh_component.h"
+#include "models/mesh_factory.h"
 #include "systems/camera_system.h"
 #include "modules/render_module.h"
 
@@ -25,7 +26,9 @@ namespace aiko
 
     void RenderSystem::init()
     {
-        this->initPrimitives();
+        // Primitives
+        m_quadPrimitices.setData(mesh::factory::generateQuad());
+        m_materialPrimitives.m_shader.load("model");
     }
 
     void RenderSystem::update()

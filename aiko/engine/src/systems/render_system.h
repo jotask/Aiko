@@ -63,9 +63,8 @@ namespace aiko
         #define PRIMITIVE_FNT_DEFAULT_ARGS Color color = AIKO_DEFAULT_PRIMITIVE_COLOR, bool border = false, float border_thickness = 0.05f
         #define PRIMITIVE_FNT(method_name, ...) void method_name( __VA_ARGS__, PRIMITIVE_FNT_DEFAULT_ARGS ) 
 
-        Shader m_quadShaderPrimitives;
-        void setPrimitiveShaderData(bool border, float thickness, Color color);
-        void initPrimitives();
+        Mesh m_quadPrimitices;
+        Material m_materialPrimitives;
 
     public:
 

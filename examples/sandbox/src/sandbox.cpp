@@ -16,7 +16,7 @@
 
 #define TEST_LOAD_MESHES
 #define TEST_COMPONENTS
-// #define TEST_PRIMITIVES
+#define TEST_PRIMITIVES
 
 namespace sb
 {
