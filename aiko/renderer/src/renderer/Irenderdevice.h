@@ -56,5 +56,7 @@ namespace aiko::renderer
 
         virtual void presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& fb) = 0;
 
+        virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) = 0;
+
     };
 }

@@ -31,8 +31,6 @@ namespace aiko
 
         void load(string);
 
-        const Texture getTexture() { return m_texture; };
-
         // TODO TMP for now
         void setPixel(uint16_t x, uint16_t y, Color c);
         void setPixels(std::vector<Color> pixels);
@@ -41,8 +39,7 @@ namespace aiko
     private:
         RenderSystem* m_renderSystem;
         Mesh       m_mesh;
-        Shader     m_shader;
-        Texture    m_texture;
+        Material   m_material;
 
         TextureMode m_textureMode;
         string     m_filePath;

@@ -40,6 +40,8 @@ namespace aiko::renderer::bgfx
 
         virtual void presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& fb) override;
 
+        virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) override;
+
     private:
 
         u32 m_width;

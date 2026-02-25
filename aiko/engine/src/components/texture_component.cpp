@@ -29,8 +29,8 @@ namespace aiko
     void TextureComponent::init()
     {
         m_renderSystem = gameobject->getSystem<RenderSystem>();
-        m_shader.load("aiko");
-        AIKO_ASSERT(m_shader.isValid(), "Shader is invalid");
+        m_material.m_shader.load("model");
+        AIKO_ASSERT(m_material.m_shader.isValid(), "Shader is invalid");
         const Mesh::MeshData data = mesh::factory::generateQuad();
         m_mesh.setData(data);
         AIKO_ASSERT(m_mesh.isValid(), "Mesh is invalid");
@@ -49,7 +49,7 @@ namespace aiko
                     pixels.reserve(pixel_size);
                     pixels.resize(pixel_size);
                     std::fill(pixels.begin(), pixels.end(), RAYWHITE);
-                    m_texture.create(SIZE, SIZE);
+                    m_material.m_diffuse.create(SIZE, SIZE);
                     is_dirty = true;
                 }
                 break;
@@ -99,8 +99,8 @@ namespace aiko
 
             static std::vector<Particle> s_particles;
 
-            const int w = m_texture.getInfo().width - 1;
-            const int h = m_texture.getInfo().height - 1;
+            const int w = m_material.m_diffuse.getInfo().width - 1;
+            const int h = m_material.m_diffuse.getInfo().height - 1;
 
             if (s_particles.size() != N_PARTICLES)
             {
@@ -155,7 +155,7 @@ namespace aiko
 
     void TextureComponent::render()
     {
-        // m_renderSystem->render(gameobject->transform(), m_mesh, m_shader, m_texture);
+        m_renderSystem->render(gameobject->transform(), m_mesh, m_material);
     }
 
     void TextureComponent::load(string file)
@@ -163,20 +163,20 @@ namespace aiko
 
         AIKO_ASSERT(file.empty() == false, "Attempting to load empty file")
 
-        if (m_texture.isValid() == true)
+        if (m_material.m_diffuse.isValid() == true)
         {
-            m_texture.unload();
+            m_material.m_diffuse.unload();
         }
         m_textureMode = TextureMode::FILE;
         m_filePath = file;
-        m_texture.load(m_filePath);
-        AIKO_ASSERT(m_texture.isValid(), "Texture is invalid");
+        m_material.m_diffuse.load(m_filePath);
+        AIKO_ASSERT(m_material.m_diffuse.isValid(), "Texture is invalid");
     }
 
     void TextureComponent::setPixel(uint16_t x, uint16_t y, Color c)
     {
         AIKO_ASSERT(m_textureMode == TextureMode::PBO, "Texture not in PBO mode")
-        const uint16_t index = y * m_texture.getInfo().width + x;
+        const uint16_t index = y * m_material.m_diffuse.getInfo().width + x;
         if (pixels[index] == c)
         {
             return;
@@ -202,7 +202,7 @@ namespace aiko
         }
         is_dirty = false;
         AIKO_ASSERT(m_textureMode == TextureMode::PBO, "Texture not in PBO mode")
-        m_texture.setPixels(pixels);
+        m_material.m_diffuse.setPixels(pixels);
     }
 
 }

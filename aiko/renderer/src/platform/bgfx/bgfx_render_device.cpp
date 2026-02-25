@@ -296,4 +296,26 @@ namespace aiko::renderer::bgfx
 
     }
 
+    void BgfxRenderDevice::drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes)
+    {
+        bindMaterial(material);
+
+        AIKO_ASSERT(mesh.isValid(), "Invalid Mesh");
+        BgfxMeshImpl* meshImpl = static_cast<BgfxMeshImpl*>(mesh.getImpl());
+        AIKO_ASSERT(meshImpl != nullptr, "Mesh backend not implemented");
+
+        // TODO bind uniforms
+
+        ::bgfx::InstanceDataBuffer buff;
+        ::bgfx::allocInstanceDataBuffer(&buff, instanceCount, instanceStrideBytes);
+        memcpy(buff.data, data, instanceCount * instanceStrideBytes);
+
+        ::bgfx::setInstanceDataBuffer(&buff);
+
+        ::bgfx::setState(s_default_state);
+
+        ::bgfx::submit(viewId, m_boundShader->getProgramHandler());
+
+
+    }
 }

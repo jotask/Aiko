@@ -6,7 +6,7 @@ namespace aiko
 {
 
     Material::Material()
-		: m_baseColor(RED)
+		: m_baseColor(WHITE)
         , m_userVertexColor(true)
         , m_lit(false)
 
