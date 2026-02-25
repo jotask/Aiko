@@ -14,6 +14,11 @@ namespace aiko
             return deltaTime;
         }
 
+        float getFps() const
+        {
+            return fps;
+        }
+
         double secondSinceStart() const
         {
             return time;
