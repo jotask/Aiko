@@ -27,7 +27,7 @@ namespace aiko
     void RenderSystem::init()
     {
         // Primitives
-        m_quadPrimitices.setData(mesh::factory::generateQuad());
+        m_quadPrimitives.setData(mesh::factory::generateQuad());
         m_materialPrimitives.m_shader.load("model");
     }
 
