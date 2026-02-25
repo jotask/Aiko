@@ -28,6 +28,8 @@ namespace aiko
             // modify
             virtual void refresh() = 0;
 
+            virtual uint id() = 0;
+
         protected:
             Mesh const * m_mesh;
 

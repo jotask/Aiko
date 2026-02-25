@@ -19,6 +19,7 @@ namespace aiko::renderer::bgfx
         virtual bool isValid() const override;
         virtual void unload() override;
         virtual void refresh() override;
+        virtual uint id() override;
 
         std::vector<VertexInformation> convertToVBH();
         std::vector<uint16_t> convertToIBH();

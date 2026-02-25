@@ -46,6 +46,9 @@ namespace aiko
 
                 const aiMesh* paiMesh = pScene->mMeshes[i]; // For now, just take the first mesh
 
+                const bool hasVertexColors = paiMesh->HasVertexColors(0);
+                model.material.m_userVertexColor = hasVertexColors;
+
                 // ----Vertices----
                 for (uint v = 0; v < paiMesh->mNumVertices; ++v)
                 {
@@ -83,7 +86,7 @@ namespace aiko
                     }
                     else
                     {
-                        data.m_colors.push_back(MAGENTA);
+                        data.m_colors.push_back(WHITE);
                     }
 
                 }
@@ -116,6 +119,11 @@ namespace aiko
                 }
 
 			    model.material.m_baseColor = { diffuse.r, diffuse.g, diffuse.b, 1.0f };
+
+                if (hasVertexColors == true && model.material.m_diffuse.isValid() == false)
+                {
+                    model.material.m_baseColor = WHITE;
+                }
 
 		        model.mesh.refresh();
 			    models.push_back(model);

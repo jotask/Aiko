@@ -108,13 +108,42 @@ namespace aiko
         const mat4 projection = camera.getProjectionMatrix();
         m_renderer->setViewTransform(MAIN_VIEW, view, projection);
 
+        std::ranges::sort(m_queue, [](const RenderItem& a, const RenderItem& b)
+        {
+            const auto aId = a.material != nullptr ? a.material->id() : 0;
+            const auto bId = b.material != nullptr ? b.material->id() : 0;
+            return aId < bId;
+        });
+
+        u64 lastMaterialId = ~0ull;
+        const Material* lastMaterial = nullptr;
+
+        constexpr const bool useBatching = true;
+
         for (const RenderItem& item : m_queue)
         {
             if (item.mesh == nullptr || item.material == nullptr)
             {
                 continue;
             }
-            m_renderer->renderMesh(MAIN_VIEW, item.transform, *item.mesh, *item.material );
+            const auto materialId = item.material->id();
+            if (materialId != lastMaterialId)
+            {
+                lastMaterialId = materialId;
+                lastMaterial = item.material;
+                if constexpr (useBatching == true)
+                {
+                    m_renderer->bindMaterial(*lastMaterial);
+                }
+            }
+            if constexpr (useBatching == true)
+            {
+                m_renderer->drawMesh(MAIN_VIEW, item.transform, *item.mesh, *item.material);
+            }
+            else
+            {
+                m_renderer->renderMesh(MAIN_VIEW, item.transform, *item.mesh, *item.material );
+            }
         }
 
         m_renderer->endPass();

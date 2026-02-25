@@ -5,6 +5,9 @@
 
 namespace aiko::renderer::bgfx
 {
+
+    class BgfxShaderImpl;
+
     class BgfxRenderDevice final : public IRenderDevice
     {
 
@@ -32,11 +35,16 @@ namespace aiko::renderer::bgfx
 
         virtual void renderMesh(ViewId viewId, const mat4 world, const Mesh& mesh, const Material& material) override;
 
+        virtual void bindMaterial(const Material& material) override;
+        virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) override;
+
     private:
 
         u32 m_width;
         u32 m_height;
         bool m_vsync = true;
+
+        BgfxShaderImpl* m_boundShader;
 
     };
 }

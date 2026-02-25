@@ -32,6 +32,8 @@ namespace aiko
             return rgba;
         }
 
+        vec4 toVec4() const { return {r, g, b, a}; }
+
         static Color getRandomColor()
         {
             return {

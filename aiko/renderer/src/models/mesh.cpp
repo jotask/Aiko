@@ -28,6 +28,11 @@ namespace aiko
         backend->refresh();
     }
 
+    uint Mesh::id()
+    {
+        return backend->id();
+    }
+
     void Mesh::load(string filename)
     {
 

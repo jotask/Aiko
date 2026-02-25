@@ -23,6 +23,7 @@ namespace aiko::renderer::bgfx
 {
 
     BgfxRenderDevice::BgfxRenderDevice()
+        : m_boundShader(nullptr)
     {
         static_assert(sizeof(::bgfx::ViewId) == sizeof(ViewId),    "Bgfx ViewId type has changed");
         static_assert(std::is_same<::bgfx::ViewId, ViewId>::value, "Bgfx ViewId type has changed");
@@ -159,35 +160,21 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::renderMesh(ViewId viewId, const mat4 world, const Mesh& mesh, const Material& material)
     {
+        bindMaterial(material);
+        drawMesh(viewId, world, mesh, material);
+    }
 
-        AIKO_ASSERT(material.m_shader.isValid(), "Invalid shader");
-        auto* shaderImpl = static_cast<BgfxShaderImpl*>(material.m_shader.getImpl());
-        AIKO_ASSERT(shaderImpl != nullptr, "Material has no shader!");
+    void BgfxRenderDevice::bindMaterial(const Material& material)
+    {
+        AIKO_ASSERT(material.m_shader.isValid(), "Invalid Shader");
+        BgfxShaderImpl* shaderImpl = static_cast<BgfxShaderImpl*>(material.m_shader.getImpl());
+        AIKO_ASSERT(shaderImpl != nullptr, "Material has not shader!");
+        m_boundShader = shaderImpl;
+    }
 
-        bool useTexture = true;
-        bool multiplyColor = false;
-        bool enableLights = false;
-
-        // Base color
-        if (shaderImpl->hasUniform("u_baseColor") == true)
-        {
-            float c[4] = { material.m_baseColor.r, material.m_baseColor.g, material.m_baseColor.b, material.m_baseColor.a };
-            ::bgfx::setUniform(shaderImpl->getUniformHandle("u_baseColor"), c);
-        }
-
-        // albedo
-        if (shaderImpl->hasUniform("u_texture") == true)
-        {
-            useTexture = true;
-            auto sampler = shaderImpl->getUniformHandle("u_texture");
-            auto* texImpl = static_cast<BgfxTextureImpl*>(material.m_diffuse.getImpl());
-            ::bgfx::setTexture(0, sampler, texImpl->getTextureHandler());
-        }
-
-        // flags
-        float flags[4] = {static_cast<float>(useTexture), static_cast<float>(multiplyColor), static_cast<float>(enableLights), 0.0f};
-        ::bgfx::setUniform(shaderImpl->getUniformHandle("u_flags"), flags);
-
+    void BgfxRenderDevice::drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material)
+    {
+        AIKO_ASSERT(mesh.isValid(), "Invalid Mesh");
         auto* meshImpl = static_cast<BgfxMeshImpl*>(mesh.getImpl());
         AIKO_ASSERT(meshImpl != nullptr, "Mesh has no BGFX impl");
 
@@ -201,24 +188,53 @@ namespace aiko::renderer::bgfx
             return;
         }
 
-        ::bgfx::setVertexBuffer(0, vb);
-        ::bgfx::setIndexBuffer(ib);
+        // UNIFORMS
+        // bgfx needs to set uniforms per draw
+        {
+
+            // u_baseColor
+            m_boundShader->setVec4("u_baseColor", material.m_baseColor.toVec4());
+
+            // flags
+            const bool hasTexture = material.m_diffuse.isValid();
+            m_boundShader->setVec4("u_flags", vec4(
+                    hasTexture == true ? 1.0f : 0.0f,
+                    material.m_userVertexColor == true ? 1.0f : 0.0f,
+                    material.m_lit == true ? 1.0f : 0.0f,
+                    0.0f
+                ));
+
+            if (material.m_lit == true)
+            {
+                m_boundShader->setVec4("u_lightDir",   vec4(1,1,1,0));
+                m_boundShader->setVec4("u_lightColor", vec4(1,1,1,1));
+                m_boundShader->setFloat("u_ambient", 0.35f);
+            }
+
+            if (hasTexture == true)
+            {
+                // sampler name in model.fs is u_texture
+                ::bgfx::UniformHandle s_tex = m_boundShader->getUniformHandle("u_texture");
+                if (::bgfx::isValid(s_tex) == true)
+                {
+                    auto* texImpl = static_cast<BgfxTextureImpl*>(material.m_diffuse.getImpl());
+                    if (texImpl && texImpl->isValid() == true)
+                    {
+                        ::bgfx::setTexture(0, s_tex, texImpl->getTextureHandler());
+                    }
+                }
+            }
+
+        }
 
         ::bgfx::setTransform(world.data());
+        ::bgfx::setVertexBuffer(0, vb);
+        ::bgfx::setIndexBuffer(ib);
+        ::bgfx::setState(s_default_state);
 
-        uint64_t state = s_default_state;
-        /*
-            BGFX_STATE_WRITE_RGB |
-            BGFX_STATE_WRITE_A   |
-            BGFX_STATE_WRITE_Z   |
-            // BGFX_STATE_DEPTH_TEST_LESS |
-            // BGFX_STATE_CULL_CW   |
-            BGFX_STATE_MSAA     ;
-            //BGFX_STATE_DEPTH_TEST_ALWAYS; // debug
-            */
-        ::bgfx::setState(state);
+        AIKO_ASSERT(m_boundShader->isValid(), "Bound program not valid");
 
-        ::bgfx::submit(viewId, shaderImpl->getProgramHandler());
+        ::bgfx::submit(viewId, m_boundShader->getProgramHandler());
 
     }
 

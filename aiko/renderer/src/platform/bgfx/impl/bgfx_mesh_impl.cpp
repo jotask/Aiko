@@ -71,6 +71,13 @@ namespace aiko::renderer::bgfx
 
     }
 
+    uint BgfxMeshImpl::id()
+    {
+        const auto vbIDX = getVertexBuffferHandler().idx;
+        const auto ibIDX = getIndexBuffferHandler().idx;
+        return static_cast<uint>(vbIDX) << 16 | ibIDX;
+    }
+
     std::vector<VertexInformation> BgfxMeshImpl::convertToVBH()
     {
 

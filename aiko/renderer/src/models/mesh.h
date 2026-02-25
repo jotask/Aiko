@@ -55,6 +55,7 @@
         virtual bool isValid() const;
         virtual void unload();
         virtual void refresh();
+        virtual uint id();
 
         void load(string file);
 

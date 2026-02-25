@@ -50,5 +50,8 @@ namespace aiko::renderer
         virtual void setViewTransform(ViewId viewId, const mat4& view, const mat4& projection) = 0;
         virtual void renderMesh(ViewId viewId, const mat4 world, const Mesh& mesh, const Material& material) = 0;
 
+        virtual void bindMaterial(const Material& material) = 0;
+        virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) = 0;
+
     };
 }
