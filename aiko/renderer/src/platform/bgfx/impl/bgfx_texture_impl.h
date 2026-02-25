@@ -23,7 +23,7 @@ namespace aiko::renderer::bgfx
         virtual texture::Texture getInfo() override;
 
         // load
-        virtual void create(int width, int height) override;
+        virtual void create(texture::Texture) override;
         virtual void load(string) override;
         virtual void unload() override;
 
@@ -36,6 +36,9 @@ namespace aiko::renderer::bgfx
 
         ::bgfx::TextureHandle m_textureHandle;
         texture::Texture m_texture;
+
+        ::bgfx::TextureFormat::Enum toBGFXFormat(texture::TextureFormat) const;
+
 
     };
 }

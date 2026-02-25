@@ -17,10 +17,7 @@ namespace aiko::renderer::bgfx
         , m_vertexBuffer({::bgfx::kInvalidHandle})
         , m_indexBuffer({::bgfx::kInvalidHandle})
     {
-        m_texture.create(1, 1);
-        std::vector<Color> pixels = {AIKO_DEFAULT_MESH_COLOR};
-        m_texture.setPixels(pixels);
-        AIKO_ASSERT(m_texture.isValid(), "Invalid texture creation")
+
     }
 
     bool BgfxMeshImpl::isValid() const

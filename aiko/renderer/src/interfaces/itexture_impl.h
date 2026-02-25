@@ -20,7 +20,7 @@ namespace aiko
             virtual texture::Texture getInfo() = 0;
 
             // load
-            virtual void create(int width, int height) = 0;
+            virtual void create(texture::Texture) = 0;
             virtual void load(string) = 0;
             virtual void unload() = 0;
 

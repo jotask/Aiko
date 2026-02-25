@@ -34,23 +34,22 @@
 
         void use();
         void unuse();
-        bool isValid();
+        bool isValid() const;
         uint id() const;
 
         // load
         void create(int width, int height);
         void unload();
 
-        // getter
-        ivec2 getSize() const;
+        Texture getColorTexture() const { return colorTexture; }
+        Texture getDepthTexture() const { return depthTexture; }
 
     private:
 
         AikoPtr<interfaces::IFrameBufferImpl> backend;
 
-        uint framebuffer;
-        Texture texture;
-        Texture depth;
+        Texture colorTexture;
+        Texture depthTexture;
 
     };
 

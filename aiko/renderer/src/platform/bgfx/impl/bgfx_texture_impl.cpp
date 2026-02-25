@@ -16,7 +16,7 @@ namespace aiko::renderer::bgfx
 
     BgfxTextureImpl::BgfxTextureImpl()
         : m_textureHandle({::bgfx::kInvalidHandle})
-        , m_texture ( {0})
+        , m_texture ( {})
     {
     }
 
@@ -45,24 +45,45 @@ namespace aiko::renderer::bgfx
         return m_texture;
     }
 
-    void BgfxTextureImpl::create(int width, int height)
+    void BgfxTextureImpl::create(texture::Texture text)
     {
+
+        AIKO_ASSERT(text.type != texture::TextureType::INVALID, "Invalid texture is not a valid texture type")
+
+        uint64_t flags = 0;
+
+        switch (text.type)
+        {
+        case texture::TextureType::Sampled:
+            {
+                flags = BGFX_TEXTURE_NONE;
+            }
+            break;
+        case texture::TextureType::RenderTarget:
+            {
+                flags = BGFX_TEXTURE_RT;
+            }
+        case texture::TextureType::DepthStencil:
+            {
+                flags = BGFX_TEXTURE_RT;
+            }
+            break;
+        default:
+            AIKO_ASSERT(false, "Not supported texture type");
+        }
+
+        logger::Log::info("%d, %d", text.width, text.height);
         m_textureHandle = ::bgfx::createTexture2D(
-            width,
-            height,
-            false,                     // no mipmaps
+            text.width,
+            text.height,
+            text.mipmaps,              // no mipmaps
             1,                         // layers
-            ::bgfx::TextureFormat::RGBA8,
-            BGFX_TEXTURE_NONE,          // flags, BGFX_TEXTURE_RT if you need a render target
+            toBGFXFormat(text.format),
+            flags,          // flags, BGFX_TEXTURE_RT if you need a render target
             nullptr
         );
         AIKO_ASSERT(isValid(), "Invalid Texture");
-        m_texture.id = m_textureHandle.idx;
-        m_texture.width = width;
-        m_texture.height = height;
-        m_texture.mipmaps = false;
-        m_texture.channels = 4;
-        m_texture.format = ::bgfx::TextureFormat::RGBA8;
+        m_texture = text;
     }
 
     void BgfxTextureImpl::load(string file_path)
@@ -83,32 +104,31 @@ namespace aiko::renderer::bgfx
         const ::bgfx::Memory* mem = ::bgfx::copy(data, width * height * 4);
         stbi_image_free(data);
 
+        const auto textureFormat = texture::TextureFormat::BGRA8;
+
         // Create bgfx memory from image data
         m_textureHandle = ::bgfx::createTexture2D(
             width,
             height,
             false,            // no mipmaps for simplicity
             1,                // number of layers
-            ::bgfx::TextureFormat::BGRA8,
+            toBGFXFormat(textureFormat),
             0,                // flags
             mem
         );
 
         AIKO_ASSERT(::bgfx::isValid(m_textureHandle), "Invalid Texture");
-
-        m_texture.id = m_textureHandle.idx;
         m_texture.width = width;
         m_texture.height = height;
         m_texture.mipmaps = false;
-        m_texture.channels = 4;
-        m_texture.format = ::bgfx::TextureFormat::BGRA8;
+        m_texture.format = textureFormat;
 
     }
 
     void BgfxTextureImpl::unload()
     {
         ::bgfx::destroy(m_textureHandle);
-        m_texture = {0};
+        m_texture = {};
     }
 
     void BgfxTextureImpl::setPixels(std::vector<Color>& pixels)
@@ -117,7 +137,8 @@ namespace aiko::renderer::bgfx
         const uint32_t pixelCount = m_texture.width * m_texture.height;
 
         // Allocate memory for RGBA8
-        const ::bgfx::Memory* newMem = ::bgfx::alloc(pixelCount * m_texture.channels);
+        const auto channels = texture::getChannelCount(m_texture.format);
+        const ::bgfx::Memory* newMem = ::bgfx::alloc(pixelCount * channels);
 
         if constexpr(false)
         {
@@ -148,5 +169,17 @@ namespace aiko::renderer::bgfx
             m_texture.height,
             newMem
         );
+    }
+
+    ::bgfx::TextureFormat::Enum BgfxTextureImpl::toBGFXFormat(texture::TextureFormat format) const
+    {
+        switch (format)
+        {
+            case texture::TextureFormat::BGRA8: return ::bgfx::TextureFormat::BGRA8;
+            case texture::TextureFormat::RGBA8: return ::bgfx::TextureFormat::RGBA8;
+            case texture::TextureFormat::D24S8: return ::bgfx::TextureFormat::D24S8;
+            default: AIKO_ASSERT(false, "Texture format not supported by backend")
+        }
+        return ::bgfx::TextureFormat::Enum::Unknown;
     }
 }

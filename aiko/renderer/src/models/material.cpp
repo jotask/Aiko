@@ -11,7 +11,7 @@ namespace aiko
         , m_lit(false)
 
     {
-        m_shader.load("model");
+
     }
 
     u64 Material::id() const

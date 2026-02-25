@@ -4,6 +4,7 @@
 #include <bgfx/platform.h>
 #include <logger/logger.h>
 
+#include "display/display_manager.h"
 #include "impl/bgfx_texture_impl.h"
 
 #if defined(AIKO_WINDOWS)
@@ -18,6 +19,7 @@
 
 #include <platform/bgfx/impl/bgfx_shader_impl.h>
 #include <platform/bgfx/impl/bgfx_mesh_impl.h>
+#include <platform/bgfx/impl/bgfx_framebuffer_impl.h>
 
 namespace aiko::renderer::bgfx
 {
@@ -119,16 +121,19 @@ namespace aiko::renderer::bgfx
         // NO op for now
     }
 
-    void BgfxRenderDevice::beginPass(uint16_t viewId, const PassDescription& pass, void* nativeFrameHandler)
+    void BgfxRenderDevice::beginPass(uint16_t viewId, const PassDescription& pass, FrameBuffer* frameBuffer)
     {
 
-        if (nativeFrameHandler == nullptr)
+        if (frameBuffer == nullptr)
         {
             ::bgfx::setViewFrameBuffer(viewId, { ::bgfx::kInvalidHandle }); // backbuffer
         }
         else
         {
-            // bind offscreen fbo
+            BgfxFrameBufferImpl* fb = static_cast<BgfxFrameBufferImpl*>(frameBuffer->getImpl());
+            AIKO_ASSERT(fb != nullptr, "Invalid FrameBuffer");
+            AIKO_ASSERT(fb->isValid(), "Invalid FrameBuffer");
+            ::bgfx::setViewFrameBuffer(viewId, fb->getFrameBufferHandler());
         }
 
         ::bgfx::setViewRect(viewId, 0, 0, (uint16_t)pass.width, (uint16_t)pass.height);
@@ -235,6 +240,59 @@ namespace aiko::renderer::bgfx
         AIKO_ASSERT(m_boundShader->isValid(), "Bound program not valid");
 
         ::bgfx::submit(viewId, m_boundShader->getProgramHandler());
+
+    }
+
+    void BgfxRenderDevice::presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& screen)
+    {
+
+        const auto displaySize = DisplayManager::it().getDisplay()->getDisplaySize();
+
+        FrameBuffer fb = screen.getFrameBuffer();
+
+        AIKO_ASSERT(fb.isValid(), "Invalid framebuffer");
+
+        BgfxFrameBufferImpl* fbo = static_cast<BgfxFrameBufferImpl*>(fb.getImpl());
+        AIKO_ASSERT(fbo != nullptr, "Invalid FBO");
+
+        BgfxTextureImpl* colorTexture = static_cast<BgfxTextureImpl*>(fb.getColorTexture().getImpl());
+        AIKO_ASSERT(colorTexture != nullptr, "Invalid color texture for frame buffer");
+
+        BgfxTextureImpl* depthTexture = static_cast<BgfxTextureImpl*>(fb.getDepthTexture().getImpl());
+        AIKO_ASSERT(depthTexture != nullptr, "Invalid depth texture for frame buffer");
+
+        BgfxShaderImpl* shaderImpl = static_cast<BgfxShaderImpl*>(screen.getMaterial().m_shader.getImpl());
+        AIKO_ASSERT(shaderImpl != nullptr, "Screen program has no impl");
+
+        BgfxMeshImpl* meshImpl = static_cast<BgfxMeshImpl*>(screen.getMesh().getImpl());
+        AIKO_ASSERT(meshImpl != nullptr, "Mesh has no impl");
+
+        ::bgfx::setViewFrameBuffer(viewId, {::bgfx::kInvalidHandle});
+
+        ::bgfx::setViewRect(viewId, 0, 0, static_cast<uint16_t>(displaySize.x), static_cast<uint16_t>(displaySize.y));
+
+        float view[16];
+        float proj[16];
+        bx::mtxIdentity(view);
+        bx::mtxIdentity(proj);
+        ::bgfx::setViewTransform(viewId, view, proj);
+
+        ::bgfx::UniformHandle u_scene = shaderImpl->getUniformHandle("u_scene");
+        AIKO_ASSERT(::bgfx::isValid(u_scene), "passthrough shader missing uniform u_scene");
+
+        ::bgfx::setTexture(0, u_scene, colorTexture->getTextureHandler());
+
+        AIKO_ASSERT(::bgfx::isValid(meshImpl->getVertexBuffferHandler()), "Invalid VB");
+        AIKO_ASSERT(::bgfx::isValid(meshImpl->getIndexBuffferHandler()), "Invalid IB");
+
+        ::bgfx::setVertexBuffer(0, meshImpl->getVertexBuffferHandler());
+        ::bgfx::setIndexBuffer(meshImpl->getIndexBuffferHandler());
+
+        // No depth test, no culling issues
+        ::bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+
+        // IMPORTANT: you still need a submit per draw
+        ::bgfx::submit(viewId, shaderImpl->getProgramHandler());
 
     }
 

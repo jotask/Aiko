@@ -38,12 +38,33 @@ namespace aiko
 
     void Texture::create()
     {
-        this->create(1, 1);
+        texture::Texture text
+        {
+            .type = texture::TextureType::Sampled,
+            .format = texture::TextureFormat::RGBA8,
+            .width = 1,
+            .height = 1,
+            .mipmaps =  false,
+        };
+        this->create(text);
     }
 
     void Texture::create(int width, int height)
     {
-        backend->create(width, height);
+        texture::Texture text
+        {
+            .type = texture::TextureType::Sampled,
+            .format = texture::TextureFormat::RGBA8,
+            .width = width,
+            .height = height,
+            .mipmaps =  false,
+        };
+        this->create(text);
+    }
+
+    void Texture::create(texture::Texture text)
+    {
+        backend->create(text);
     }
 
     void Texture::load(string file_path)

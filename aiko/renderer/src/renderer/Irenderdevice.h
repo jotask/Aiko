@@ -5,6 +5,7 @@
 #include "types/color.h"
 #include "models/material.h"
 #include "models/mesh.h"
+#include "models/screen_fbo.h"
 
 namespace aiko::renderer
 {
@@ -42,7 +43,7 @@ namespace aiko::renderer
         virtual void beginFrame() = 0;
         virtual void endFrame() = 0;
 
-        virtual void beginPass(ViewId viewId, const PassDescription& pass, void* nativeFrameBufferHandler = nullptr) = 0;
+        virtual void beginPass(ViewId viewId, const PassDescription& pass, FrameBuffer* frameBuffer = nullptr) = 0;
         virtual void endPass() = 0;
 
         virtual void present() = 0;
@@ -52,6 +53,8 @@ namespace aiko::renderer
 
         virtual void bindMaterial(const Material& material) = 0;
         virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) = 0;
+
+        virtual void presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& fb) = 0;
 
     };
 }

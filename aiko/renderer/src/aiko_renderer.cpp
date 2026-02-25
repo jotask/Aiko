@@ -42,12 +42,9 @@ namespace aiko
         // Create Screen fbo
         if (m_screenFbo.isValid() == true)
         {
-            m_screenFbo.destroy();
+            m_screenFbo.unload();
         }
         m_screenFbo.create(size.x, size.y);
-
-        // Load passthrough
-        // TODO
 
         // bind to on window resize
         EventSystem::it().bind<WindowResizeEvent>(this, &AikoRenderer::onWindowResize);
@@ -91,64 +88,88 @@ namespace aiko
 
         const ivec2 size = DisplayManager::it().getDisplay()->getDisplaySize();
 
-        renderer::PassDescription pass =
+        // Pass 0 : To offscreen frame buffer
         {
-            .width = static_cast<u32>(size.x),
-            .height = static_cast<u32>(size.y),
-            .clearColor = true,
-            .clearDepth = true,
-            .clear = m_background_color
-        };
 
-        constexpr renderer::ViewId MAIN_VIEW = 0;
-
-        m_renderer->beginPass(MAIN_VIEW, pass, nullptr);
-
-        const mat4 view = camera.getViewMatrix();
-        const mat4 projection = camera.getProjectionMatrix();
-        m_renderer->setViewTransform(MAIN_VIEW, view, projection);
-
-        std::ranges::sort(m_queue, [](const RenderItem& a, const RenderItem& b)
-        {
-            const auto aId = a.material != nullptr ? a.material->id() : 0;
-            const auto bId = b.material != nullptr ? b.material->id() : 0;
-            return aId < bId;
-        });
-
-        u64 lastMaterialId = ~0ull;
-        const Material* lastMaterial = nullptr;
-
-        constexpr const bool useBatching = true;
-
-        for (const RenderItem& item : m_queue)
-        {
-            if (item.mesh == nullptr || item.material == nullptr)
+            renderer::PassDescription pass =
             {
-                continue;
-            }
-            const auto materialId = item.material->id();
-            if (materialId != lastMaterialId)
+                .width = static_cast<u32>(size.x),
+                .height = static_cast<u32>(size.y),
+                .clearColor = true,
+                .clearDepth = true,
+                .clear = m_background_color
+            };
+
+            constexpr renderer::ViewId SCENE_VIEW = 0;
+
+            FrameBuffer fbo = m_screenFbo.getFrameBuffer();
+            m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
+
+            const mat4 view = camera.getViewMatrix();
+            const mat4 projection = camera.getProjectionMatrix();
+            m_renderer->setViewTransform(SCENE_VIEW, view, projection);
+
+            std::ranges::sort(m_queue, [](const RenderItem& a, const RenderItem& b)
             {
-                lastMaterialId = materialId;
-                lastMaterial = item.material;
+                const auto aId = a.material != nullptr ? a.material->id() : 0;
+                const auto bId = b.material != nullptr ? b.material->id() : 0;
+                return aId < bId;
+            });
+
+            u64 lastMaterialId = ~0ull;
+            const Material* lastMaterial = nullptr;
+
+            constexpr const bool useBatching = true;
+
+            for (const RenderItem& item : m_queue)
+            {
+                if (item.mesh == nullptr || item.material == nullptr)
+                {
+                    continue;
+                }
+                const auto materialId = item.material->id();
+                if (materialId != lastMaterialId)
+                {
+                    lastMaterialId = materialId;
+                    lastMaterial = item.material;
+                    if constexpr (useBatching == true)
+                    {
+                        m_renderer->bindMaterial(*lastMaterial);
+                    }
+                }
                 if constexpr (useBatching == true)
                 {
-                    m_renderer->bindMaterial(*lastMaterial);
+                    m_renderer->drawMesh(SCENE_VIEW, item.transform, *item.mesh, *item.material);
+                }
+                else
+                {
+                    m_renderer->renderMesh(SCENE_VIEW, item.transform, *item.mesh, *item.material );
                 }
             }
-            if constexpr (useBatching == true)
-            {
-                m_renderer->drawMesh(MAIN_VIEW, item.transform, *item.mesh, *item.material);
-            }
-            else
-            {
-                m_renderer->renderMesh(MAIN_VIEW, item.transform, *item.mesh, *item.material );
-            }
+
+            m_renderer->endPass();
+
         }
 
-        m_renderer->endPass();
+        // Pass 1. To backbuffer
+        {
 
-        logger::Log::info("render(): drew [%d] items", (int)m_queue.size());
+            renderer::PassDescription presentPass
+            {
+                .width = static_cast<u32>(size.x),
+                .height = static_cast<u32>(size.y),
+                .clearColor = true,
+                .clearDepth = true,
+                .clear = MAGENTA
+            };
+
+            constexpr  renderer::ViewId SCREEN_VIEW = 1;
+            m_renderer->beginPass(SCREEN_VIEW, presentPass, nullptr);
+            m_renderer->setViewTransform(SCREEN_VIEW, mat4(1.0f), mat4(1.0f));
+            m_renderer->presentFrameBufferToScreen(SCREEN_VIEW, m_screenFbo);
+            m_renderer->endPass();
+
+        }
 
     }
 
@@ -166,8 +187,6 @@ namespace aiko
     {
         const auto& msg = static_cast<const WindowResizeEvent&>(event);
         m_renderer->resize(msg.width, msg.height, false);
-
-        if (m_screenFbo.isValid()) m_screenFbo.destroy();
-        m_screenFbo.create(msg.width, msg.height);
+        m_screenFbo.resize(msg.width, msg.height);
     }
 }

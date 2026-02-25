@@ -4,6 +4,7 @@
 #include <core/singleton.h>
 
 #include "display/display.h"
+#include "display/display_events.hpp"
 
 class GLFWwindow;
 
@@ -33,7 +34,6 @@ namespace aiko
 
         void onKeyPressed(Event& event);
         void onWindowResize(Event& event);
-
 
     };
 

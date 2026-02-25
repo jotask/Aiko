@@ -4,7 +4,8 @@
 #include <math/math.h>
 
 #include "models/texture.h"
-#include "interfaces/iscreenfbo_impl.h"
+#include "models/frame_buffer.h"
+#include "models/mesh.h"
 
 namespace aiko
 {
@@ -33,23 +34,22 @@ namespace aiko
         void use();
         void unuse();
         bool isValid();
-        uint id() const;
-        void destroy();
 
         // load
         void create(int width, int height);
+        void resize(int width, int height);
         void unload();
 
         // getters
-        ivec2 getViewportSize() const;
-
-        void* getImpl() const { return backend.get(); }
-
         FrameBuffer getFrameBuffer() const;
+        Mesh getMesh() const;
+        Material getMaterial() const;
 
     private:
 
-        AikoPtr<interfaces::IScreenFboImpl> backend;
+        FrameBuffer m_frameBuffer;
+        Mesh m_mesh;
+        Material m_material;
 
     };
 

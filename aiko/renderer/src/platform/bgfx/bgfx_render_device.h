@@ -26,7 +26,7 @@ namespace aiko::renderer::bgfx
         virtual void beginFrame() override;
         virtual void endFrame() override;
 
-        virtual void beginPass(ViewId viewId, const PassDescription& pass, void* nativeFrameHandler = nullptr) override;
+        virtual void beginPass(ViewId viewId, const PassDescription& pass, FrameBuffer* frameBuffer = nullptr) override;
         virtual void endPass() override;
 
         virtual void present() override;
@@ -37,6 +37,8 @@ namespace aiko::renderer::bgfx
 
         virtual void bindMaterial(const Material& material) override;
         virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) override;
+
+        virtual void presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& fb) override;
 
     private:
 

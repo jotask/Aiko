@@ -39,7 +39,8 @@ namespace aiko
 
         // load
         void create();
-        void create(int width, int height);
+        void create(int, int);
+        void create(texture::Texture);
         void load(string);
         void unload();
 
