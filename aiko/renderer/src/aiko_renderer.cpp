@@ -83,6 +83,17 @@ namespace aiko
         m_queue.push_back(item);
     }
 
+    void AikoRenderer::submitInstanced(const Mesh& mesh, const Material& material, std::vector<InstanceData> instance)
+    {
+        InstancedItem item =
+        {
+            .mesh = &mesh,
+            .material = &material
+        };
+        item.instances.assign(instance.begin(), instance.end());
+        m_instancedQueue.push_back(item);
+    }
+
     void AikoRenderer::render(const Camera& camera)
     {
 

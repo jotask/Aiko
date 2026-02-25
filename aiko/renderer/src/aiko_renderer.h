@@ -14,6 +14,7 @@
 #include "models/screen_fbo.h"
 #include "renderer/Irenderdevice.h"
 #include "types/color.h"
+#include "types/render_types.h"
 
 namespace aiko
 {
@@ -34,6 +35,7 @@ namespace aiko
         void setBackgroundColor(const Color);
 
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
+        void submitInstanced(const Mesh& mesh, const Material& material, std::vector<InstanceData> instance);
         void render(const Camera& camera);
 
         // Font
@@ -61,7 +63,15 @@ namespace aiko
             mat4 transform = mat4(1.0f);
         };
 
+        struct InstancedItem
+        {
+            const Mesh* mesh = nullptr;
+            const Material* material = nullptr;
+            std::vector<InstanceData> instances;
+        };
+
         std::vector<RenderItem> m_queue;
+        std::vector<InstancedItem> m_instancedQueue;
 
     };
 

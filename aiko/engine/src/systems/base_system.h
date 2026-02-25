@@ -19,9 +19,11 @@ namespace aiko
         virtual void init() override { };
     
         virtual void update() override { };
-    
+
+        virtual void beginFrame() override { };
         virtual void render() override { };
-    
+        virtual void endFrame() override { };
+
         virtual void dispose() override { };
     
     };

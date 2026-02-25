@@ -41,6 +41,17 @@ namespace aiko
 
     }
 
+    void RenderSystem::beginFrame()
+    {
+        m_instances.clear();
+    }
+
+    void RenderSystem::endFrame()
+    {
+        // AikoRenderer::it().submitInstanced(m_, m_materialPrimitives, m_instances);
+        m_instances.clear();
+    }
+
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_SYSTEM_REQUIRED(CameraSystem, systemConnector, m_cameraSystem)

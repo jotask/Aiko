@@ -107,11 +107,13 @@ namespace aiko
     void Aiko::render()
     {
         for (auto&& module : m_modules) module->beginFrame();
+        for (auto&& system : m_systems) system->beginFrame();
         for (auto&& module : m_modules) module->preRender();
         for (auto&& module : m_modules) module->render();
         for (auto&& system : m_systems) system->render();
         m_application->render();
         for (auto&& module : m_modules) module->postRender();
+        for (auto&& system : m_systems) system->endFrame();
         for (auto&& module : m_modules) module->endFrame();
     }
 

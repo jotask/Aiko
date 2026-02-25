@@ -46,5 +46,11 @@ namespace aiko
         float height;
     };
 
+    struct InstanceData
+    {
+        vec3 position;
+        Color color;
+    };
+
 }
 
