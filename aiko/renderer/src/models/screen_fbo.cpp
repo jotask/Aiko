@@ -41,10 +41,10 @@ namespace aiko
                     };
 
                 data.m_textCoord = {
-                        {0.0f, 0.0f},
                         {0.0f, 1.0f},
-                        {1.0f, 1.0f},
+                        {0.0f, 0.0f},
                         {1.0f, 0.0f},
+                        {1.0f, 1.0f},
                     };
 
                 data.m_normals = {
