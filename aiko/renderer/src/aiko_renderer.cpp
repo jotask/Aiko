@@ -6,6 +6,7 @@
 #include "render_factory.h"
 #include "core/transform.h"
 #include "display/display_manager.h"
+#include "imgui/aiko_imgui.h"
 #include "models/camera.h"
 #include "models/model.h"
 
@@ -54,11 +55,13 @@ namespace aiko
     {
         m_queue.clear();
         m_renderer->beginFrame();
+        // FIXME AikoImgui::beginFrame();
     }
 
     void AikoRenderer::endFrame()
     {
         m_renderer->endFrame();
+        // FIXME AikoImgui::endFrame();
         m_renderer->present();
     }
 
