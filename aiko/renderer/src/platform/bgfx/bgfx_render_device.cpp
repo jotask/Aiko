@@ -299,9 +299,14 @@ namespace aiko::renderer::bgfx
 
         if (material.m_lit == true)
         {
-            m_boundShader->setVec4("u_lightDir",   vec4(1,1,1,0));
-            m_boundShader->setVec4("u_lightColor", vec4(1,1,1,1));
-            m_boundShader->setFloat("u_ambient", 0.35f);
+            // Sun
+            m_boundShader->setVec3("u_lightDir", m_frameUniforms.sun.direction);
+            m_boundShader->setVec4("u_lightColor", m_frameUniforms.sun.color.toVec4());
+            m_boundShader->setFloat("u_lightIntensity", m_frameUniforms.sun.intensity);
+
+            // ambient
+            m_boundShader->setVec4("u_ambientColor", m_frameUniforms.ambient.color.toVec4());
+            m_boundShader->setFloat("u_ambientIntensity", m_frameUniforms.ambient.intensity);
         }
 
         if (hasTexture == true)
@@ -317,13 +322,6 @@ namespace aiko::renderer::bgfx
                 }
             }
         }
-
-        // lights
-
-        // m_boundShader->setVec3("u_lightDir", m_frameUniforms.sun.direction);
-        // m_boundShader->setVec4("u_lightColor", m_frameUniforms.sun.color.toVec4());
-        // m_boundShader->setFloat("u_lightIntensity", m_frameUniforms.sun.intensity);
-        // m_boundShader->setFloat("u_ambient", m_frameUniforms.ambient.intensity);
 
     }
 

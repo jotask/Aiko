@@ -26,7 +26,7 @@ namespace aiko::renderer
 
     struct DirectionalLight
     {
-        vec3 direction = vec3(-1.0f, -1.f, -1.0f);
+        vec3 direction = vec3(-1.0f, -1.0f, -1.0f);
         Color color = WHITE;
         float intensity = 1.0f;
     };
