@@ -149,9 +149,19 @@ def getshadercpath() -> Path:
         sys.exit(3)
     return shaderc_path
 
+def find_shader_files(shader_dir: Path, recursive : bool) -> list[Path]:
+    exts = { ".vs", ".fs", ".cs" }
+
+    if recursive:
+        it = shader_dir.rglob("*")
+    else:
+        it = shader_dir.iterdir()
+
+    return [f for f in it if f.is_file() and f.suffix in exts]
+
 def main():
     shader_dir = getprojectrootdir() / "assets/shaders/bgfx"
-    onlyfiles = [f for f in shader_dir.rglob("*") if f.is_file() and f.suffix in (".vs", ".fs", ".cs")]
+    onlyfiles = find_shader_files(shader_dir, False)
 
     if not onlyfiles:
         sys.exit(1)
