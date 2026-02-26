@@ -2,31 +2,14 @@
 
 #include <aiko_types.h>
 
-#include "types/color.h"
 #include "models/material.h"
 #include "models/mesh.h"
 #include "models/screen_fbo.h"
 #include "types/render_types.h"
+#include "renderer/frame_uniforms.h"
 
 namespace aiko::renderer
 {
-
-    struct DeviceInitDesc
-    {
-        void* nativeWindowHandle = nullptr;
-        u32 width = 0;
-        u32 height = 0;
-        bool vsync = false;
-    };
-
-    struct PassDescription
-    {
-        u32 width;
-        u32 height;
-        bool clearColor = true;
-        bool clearDepth = true;
-        Color clear = BLACK;
-    };
 
     class IRenderDevice
     {
@@ -47,7 +30,6 @@ namespace aiko::renderer
 
         virtual void present() = 0;
 
-        virtual void setViewTransform(ViewId viewId, const mat4& view, const mat4& projection) = 0;
         virtual void renderMesh(ViewId viewId, const mat4 world, const Mesh& mesh, const Material& material) = 0;
 
         virtual void bindMaterial(const Material& material) = 0;
@@ -56,6 +38,8 @@ namespace aiko::renderer
         virtual void presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& fb) = 0;
 
         virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) = 0;
+
+        virtual void bindFrame(ViewId viewId, const FrameUniforms& u) = 0;
 
     };
 }

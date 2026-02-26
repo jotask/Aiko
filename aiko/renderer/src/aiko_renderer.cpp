@@ -121,9 +121,14 @@ namespace aiko
             FrameBuffer fbo = m_screenFbo.getFrameBuffer();
             m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
 
-            const mat4 view = camera.getViewMatrix();
-            const mat4 projection = camera.getProjectionMatrix();
-            m_renderer->setViewTransform(SCENE_VIEW, view, projection);
+            const renderer::FrameUniforms u =
+            {
+                .view = camera.getViewMatrix(),
+                .projection = camera.getProjectionMatrix(),
+                .cameraPosition = camera.position,
+
+            };
+            m_renderer->bindFrame(SCENE_VIEW, u);
 
             std::ranges::sort(m_queue, [](const RenderItem& a, const RenderItem& b)
             {
@@ -170,7 +175,7 @@ namespace aiko
         // Pass 1. To backbuffer
         {
 
-            renderer::PassDescription presentPass
+            const renderer::PassDescription presentPass
             {
                 .width = static_cast<u32>(size.x),
                 .height = static_cast<u32>(size.y),
@@ -179,8 +184,14 @@ namespace aiko
                 .clear = MAGENTA
             };
 
+            const renderer::FrameUniforms screenFrame =
+            {
+                .view = mat4(1.0f),
+                .projection = mat4(1.0f),
+            };
+
             m_renderer->beginPass(SCREEN_VIEW, presentPass, nullptr);
-            m_renderer->setViewTransform(SCREEN_VIEW, mat4(1.0f), mat4(1.0f));
+            m_renderer->bindFrame(SCREEN_VIEW, screenFrame);
             m_renderer->presentFrameBufferToScreen(SCREEN_VIEW, m_screenFbo);
             m_renderer->endPass();
 

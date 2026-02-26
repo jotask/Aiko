@@ -132,6 +132,7 @@ namespace aiko
     public:
         vec4() : vec4(0.0f) { };
         vec4(float xyzw) : vec4(xyzw, xyzw, xyzw, xyzw) { };
+        vec4(vec3 v3) : vec4(v3.x, v3.y, v3.z, 0.0f) { };
         vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) { };
         float x;
         float y;

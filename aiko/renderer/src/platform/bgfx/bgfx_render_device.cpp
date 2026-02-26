@@ -158,11 +158,6 @@ namespace aiko::renderer::bgfx
         ::bgfx::frame();
     }
 
-    void BgfxRenderDevice::setViewTransform(ViewId viewId, const mat4& view, const mat4& projection)
-    {
-        ::bgfx::setViewTransform(viewId, view.data(), projection.data() );
-    }
-
     void BgfxRenderDevice::renderMesh(ViewId viewId, const mat4 world, const Mesh& mesh, const Material& material)
     {
         bindMaterial(material);
@@ -193,44 +188,7 @@ namespace aiko::renderer::bgfx
             return;
         }
 
-        // UNIFORMS
-        // bgfx needs to set uniforms per draw
-        {
-
-            // u_baseColor
-            m_boundShader->setVec4("u_baseColor", material.m_baseColor.toVec4());
-
-            // flags
-            const bool hasTexture = material.m_diffuse.isValid();
-            m_boundShader->setVec4("u_flags", vec4(
-                    hasTexture == true ? 1.0f : 0.0f,
-                    material.m_userVertexColor == true ? 1.0f : 0.0f,
-                    material.m_lit == true ? 1.0f : 0.0f,
-                    0.0f
-                ));
-
-            if (material.m_lit == true)
-            {
-                m_boundShader->setVec4("u_lightDir",   vec4(1,1,1,0));
-                m_boundShader->setVec4("u_lightColor", vec4(1,1,1,1));
-                m_boundShader->setFloat("u_ambient", 0.35f);
-            }
-
-            if (hasTexture == true)
-            {
-                // sampler name in model.fs is u_texture
-                ::bgfx::UniformHandle s_tex = m_boundShader->getUniformHandle("u_texture");
-                if (::bgfx::isValid(s_tex) == true)
-                {
-                    auto* texImpl = static_cast<BgfxTextureImpl*>(material.m_diffuse.getImpl());
-                    if (texImpl && texImpl->isValid() == true)
-                    {
-                        ::bgfx::setTexture(0, s_tex, texImpl->getTextureHandler());
-                    }
-                }
-            }
-
-        }
+        bindUniforms(material);
 
         ::bgfx::setTransform(world.data());
         ::bgfx::setVertexBuffer(0, vb);
@@ -304,7 +262,7 @@ namespace aiko::renderer::bgfx
         BgfxMeshImpl* meshImpl = static_cast<BgfxMeshImpl*>(mesh.getImpl());
         AIKO_ASSERT(meshImpl != nullptr, "Mesh backend not implemented");
 
-        // TODO bind uniforms
+        bindUniforms(material);
 
         ::bgfx::InstanceDataBuffer buff;
         ::bgfx::allocInstanceDataBuffer(&buff, instanceCount, instanceStrideBytes);
@@ -316,6 +274,57 @@ namespace aiko::renderer::bgfx
 
         ::bgfx::submit(viewId, m_boundShader->getProgramHandler());
 
+    }
+
+    void BgfxRenderDevice::bindFrame(ViewId viewId, const FrameUniforms& u)
+    {
+        m_frameUniforms = u;
+        ::bgfx::setViewTransform(viewId, u.view.data(), u.projection.data() );
+    }
+
+    void BgfxRenderDevice::bindUniforms(const Material& material)
+    {
+
+        // u_baseColor
+        m_boundShader->setVec4("u_baseColor", material.m_baseColor.toVec4());
+
+        // flags
+        const bool hasTexture = material.m_diffuse.isValid();
+        m_boundShader->setVec4("u_flags", vec4(
+                hasTexture == true ? 1.0f : 0.0f,
+                material.m_userVertexColor == true ? 1.0f : 0.0f,
+                material.m_lit == true ? 1.0f : 0.0f,
+                0.0f
+            ));
+
+        if (material.m_lit == true)
+        {
+            m_boundShader->setVec4("u_lightDir",   vec4(1,1,1,0));
+            m_boundShader->setVec4("u_lightColor", vec4(1,1,1,1));
+            m_boundShader->setFloat("u_ambient", 0.35f);
+        }
+
+        if (hasTexture == true)
+        {
+            // sampler name in model.fs is u_texture
+            ::bgfx::UniformHandle s_tex = m_boundShader->getUniformHandle("u_texture");
+            if (::bgfx::isValid(s_tex) == true)
+            {
+                auto* texImpl = static_cast<BgfxTextureImpl*>(material.m_diffuse.getImpl());
+                if (texImpl && texImpl->isValid() == true)
+                {
+                    ::bgfx::setTexture(0, s_tex, texImpl->getTextureHandler());
+                }
+            }
+        }
+
+        // lights
+
+        // m_boundShader->setVec3("u_lightDir", m_frameUniforms.sun.direction);
+        // m_boundShader->setVec4("u_lightColor", m_frameUniforms.sun.color.toVec4());
+        // m_boundShader->setFloat("u_lightIntensity", m_frameUniforms.sun.intensity);
+        // m_boundShader->setFloat("u_ambient", m_frameUniforms.ambient.intensity);
 
     }
+
 }
