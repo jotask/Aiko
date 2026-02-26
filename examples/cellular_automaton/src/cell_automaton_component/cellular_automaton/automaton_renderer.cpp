@@ -52,7 +52,7 @@ namespace aiko::ca
                     const CellCellularAutomaton::CellState cellState = cell->getState();
                     if (cellState == CellCellularAutomaton::CellState::NULLPTR)
                     {
-                        Log::error("Cell out fo bounds?");
+                        logger::Log::error("Cell out fo bounds?");
                         continue;
                     }
                     if (DRAW_DEAD_CELLS == false && cellState == CellCellularAutomaton::CellState::DEAD)

@@ -16,4 +16,4 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${EXAMPLE_CELLULARAUTOMA
 # Main executable
 add_executable(CellularAutomaton ${EXAMPLE_CELLULARAUTOMATON_SRC})
 
-target_link_libraries(CellularAutomaton PRIVATE Aiko)
+target_link_libraries(CellularAutomaton PRIVATE Aiko tbb)

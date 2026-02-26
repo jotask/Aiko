@@ -1,10 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <array>
-
-#include "aiko_types.h"
-#include "shared/math.h"
 
 #include "cell_cellular_automaton_helper.h"
 
