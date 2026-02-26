@@ -19,6 +19,11 @@ namespace aiko
         m_mainCamera = camera;
     }
 
+    void RenderModule::submitLights(const AmbientLight& ambient, const std::vector<LightData>& data)
+    {
+        AikoRenderer::it().submit(ambient, data);
+    }
+
     void RenderModule::init()
     {
         AikoRenderer::it().init();
@@ -26,14 +31,20 @@ namespace aiko
 
     void RenderModule::beginFrame()
     {
+        m_instances.clear();
         AikoRenderer::it().beginFrame();
     }
 
     void RenderModule::endFrame()
     {
+        for (const auto& data : m_instances)
+        {
+            AikoRenderer::it().submit(data.mesh, data.material, data.data);
+        }
         AIKO_ASSERT(m_mainCamera != nullptr, "Main camera not set. Forgot to call set Main camera?");
         AikoRenderer::it().render(*m_mainCamera);
         AikoRenderer::it().endFrame();
+        m_instances.clear();
     }
 
     void RenderModule::dispose()

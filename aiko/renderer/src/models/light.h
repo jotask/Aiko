@@ -7,33 +7,30 @@
 
 namespace aiko
 {
-    
-    class Light
+
+    enum class LightType : uint8_t { Directional, Point, Spot};
+
+    struct AmbientLight
     {
-    public:
-        
-        enum Type
-        {
-            Ambient,
-            Directional,
-            Point,
-        };
-    
-        Light();
-        ~Light() = default;
-    
-        vec3 vector;
+        float intensity;
+        Color color;
+    };
+
+    struct LightData
+    {
+        LightType type;
+        vec3 positon;
+        vec3 direction;
         Color color;
         float intensity;
-    
-        Type m_type = Type::Ambient;
-    
-        aiko::AikoPtr<vec3> m_light;
-    
-        void update();
-    
-        void reset();
-    
+
+        // point
+        float range;
+
+        // spot
+        float innerCos;
+        float outerCos;
+
     };
 
 }

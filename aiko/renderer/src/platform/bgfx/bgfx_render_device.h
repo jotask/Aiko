@@ -40,7 +40,7 @@ namespace aiko::renderer::bgfx
 
         virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) override;
 
-        virtual void bindFrame(ViewId viewId, const FrameUniforms& u) override;
+        virtual void bindFrame(ViewId viewId, const FrameData& u) override;
 
     private:
 
@@ -48,11 +48,12 @@ namespace aiko::renderer::bgfx
         u32 m_height;
         bool m_vsync = true;
 
-        FrameUniforms m_frameUniforms;
+        FrameData m_frameData;
 
         BgfxShaderImpl* m_boundShader;
 
-        void bindUniforms(const Material& material);
+        void bindFrameUniforms();
+        void bindMaterialUniforms(const Material& material);
 
     };
 }

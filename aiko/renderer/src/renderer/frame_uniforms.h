@@ -3,6 +3,7 @@
 #include <math/math_vector.h>
 
 #include "types/color.h"
+#include "models/light.h"
 
 namespace aiko::renderer
 {
@@ -24,27 +25,16 @@ namespace aiko::renderer
         Color clear = BLACK;
     };
 
-    struct DirectionalLight
-    {
-        vec3 direction = vec3(-1.0f, -1.0f, -1.0f);
-        Color color = WHITE;
-        float intensity = 1.0f;
-    };
-
-    struct AmbientLight
-    {
-        Color color = WHITE;
-        float intensity = 1.0f;
-    };
-
-    struct FrameUniforms
+    struct FrameData
     {
         mat4 view = mat4(1.0f);
         mat4 projection = mat4(1.0f);
         vec3 cameraPosition = vec3(0.0f);
 
         AmbientLight ambient;
-        DirectionalLight sun;
+
+        std::vector<LightData> lights;
+
     };
 
 }

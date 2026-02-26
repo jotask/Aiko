@@ -7,6 +7,8 @@ namespace aiko
 
     using ViewId = uint16_t;
 
+    constexpr uint16_t MAX_LIGHTS = 8;
+
     // Shader uniform data type
     enum class ShaderUniformDataType
     {
@@ -57,6 +59,14 @@ namespace aiko
         vec3 position;
         Color color;
     };
+
+    struct InstanceItem
+    {
+        Mesh mesh;
+        Material material;
+        std::vector<InstanceData> data;
+    };
+
 
 }
 

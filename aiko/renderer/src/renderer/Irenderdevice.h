@@ -39,7 +39,7 @@ namespace aiko::renderer
 
         virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) = 0;
 
-        virtual void bindFrame(ViewId viewId, const FrameUniforms& u) = 0;
+        virtual void bindFrame(ViewId viewId, const FrameData& u) = 0;
 
     };
 }

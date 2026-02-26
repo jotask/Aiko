@@ -137,6 +137,7 @@ namespace aiko
         for (auto& mesh : m_meshes)
         {
             mesh.material.m_shader.load("model");
+            mesh.material.m_lit = true;
         }
     }
 

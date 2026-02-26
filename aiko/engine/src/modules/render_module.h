@@ -20,6 +20,7 @@ namespace aiko
         virtual ~RenderModule() = default;
 
         void setMainCamera(const Camera* camera); // TEMPORAL, this should be removed from here
+        void submitLights(const AmbientLight& ambient, const std::vector<LightData>& data);
 
     protected:
 
@@ -31,6 +32,8 @@ namespace aiko
     private:
 
         const Camera* m_mainCamera;
+
+        std::vector<InstanceItem> m_instances;
 
     };
 

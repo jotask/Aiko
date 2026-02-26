@@ -26,6 +26,8 @@ namespace aiko
             virtual void setVec4(const string& name, const vec4& value) = 0;
             virtual void setMat4(const string& name, const mat4& mat) = 0;
 
+            virtual void setVec4Array(const string& name, const vec4* values, uint32_t count) = 0;
+
         };
     }
 }

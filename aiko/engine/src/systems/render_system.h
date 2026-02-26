@@ -35,10 +35,7 @@ namespace aiko
         virtual void init() override;
         virtual void update() override;
         virtual void render() override;
-        virtual void beginFrame() override;
-        virtual void endFrame() override;
 
-        void add(Light*);
         void render(const Transform& trans, const Model& model);
         void render(const Transform& trans, const Mesh&, const Material&);
 
@@ -56,6 +53,7 @@ namespace aiko
     private:
 
         RenderModule* m_renderModule;
+
         CameraSystem* m_cameraSystem;
 
     // ---------------------------------------------------
@@ -65,9 +63,7 @@ namespace aiko
         #define PRIMITIVE_FNT_DEFAULT_ARGS Color color = AIKO_DEFAULT_PRIMITIVE_COLOR, bool border = false, float border_thickness = 0.05f
         #define PRIMITIVE_FNT(method_name, ...) void method_name( __VA_ARGS__, PRIMITIVE_FNT_DEFAULT_ARGS ) 
 
-        Mesh m_quadPrimitives;
         Material m_materialPrimitives;
-        std::vector<InstanceData> m_instances;
 
     public:
 

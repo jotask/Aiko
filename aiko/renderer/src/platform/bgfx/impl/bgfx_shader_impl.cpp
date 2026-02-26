@@ -207,6 +207,16 @@ namespace aiko::renderer::bgfx
         AIKO_DEBUG_BREAK
     }
 
+    void BgfxShaderImpl::setVec4Array(const string& name, const vec4* values, uint32_t count)
+    {
+        ::bgfx::UniformHandle loc = getUniformLocation(name);
+        if (::bgfx::isValid(loc) == false || values == nullptr || count == 0)
+        {
+            return;
+        }
+        ::bgfx::setUniform(loc, values, count);
+    }
+
     ::bgfx::UniformHandle BgfxShaderImpl::getUniformHandle(const string &name)
     {
         return m_uniforms[name];

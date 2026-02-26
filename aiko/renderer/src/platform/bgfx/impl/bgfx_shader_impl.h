@@ -34,6 +34,8 @@ namespace aiko::renderer::bgfx
         virtual void setVec4(const string& name, const vec4& value) override;
         virtual void setMat4(const string& name, const mat4& mat) override;
 
+        virtual void setVec4Array(const string& name, const vec4* values, uint32_t count) override;
+
         ::bgfx::ProgramHandle getProgramHandler() const { return m_programHandle; }
 
         ::bgfx::UniformHandle getUniformHandle(const string& name);

@@ -1,6 +1,7 @@
 #include "aiko_renderer.h"
 
 #include <events/events.hpp>
+
 #include "display/display_events.hpp"
 
 #include "render_factory.h"
@@ -8,7 +9,6 @@
 #include "display/display_manager.h"
 #include "imgui/aiko_imgui.h"
 #include "models/camera.h"
-#include "models/model.h"
 
 namespace aiko
 {
@@ -79,6 +79,13 @@ namespace aiko
         m_background_color = color;
     }
 
+    void AikoRenderer::submit(const AmbientLight& ambient, const std::vector<LightData>& data)
+    {
+        m_ambientLight = ambient;
+        m_lights.clear();
+        m_lights.insert(m_lights.end(), data.begin(), data.end());
+    }
+
     void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const Material& material)
     {
         RenderItem item =
@@ -90,7 +97,7 @@ namespace aiko
         m_queue.push_back(item);
     }
 
-    void AikoRenderer::submitInstanced(const Mesh& mesh, const Material& material, std::vector<InstanceData> instance)
+    void AikoRenderer::submit(const Mesh& mesh, const Material& material, std::vector<InstanceData> instance)
     {
         InstancedItem item =
         {
@@ -109,7 +116,7 @@ namespace aiko
         // Pass 0 : To offscreen frame buffer
         {
 
-            renderer::PassDescription pass =
+            const renderer::PassDescription pass =
             {
                 .width = static_cast<u32>(size.x),
                 .height = static_cast<u32>(size.y),
@@ -121,14 +128,15 @@ namespace aiko
             FrameBuffer fbo = m_screenFbo.getFrameBuffer();
             m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
 
-            const renderer::FrameUniforms u =
+            const renderer::FrameData frameData =
             {
                 .view = camera.getViewMatrix(),
                 .projection = camera.getProjectionMatrix(),
                 .cameraPosition = camera.position,
-
+                .ambient = m_ambientLight,
+                .lights = m_lights,
             };
-            m_renderer->bindFrame(SCENE_VIEW, u);
+            m_renderer->bindFrame(SCENE_VIEW, frameData);
 
             std::ranges::sort(m_queue, [](const RenderItem& a, const RenderItem& b)
             {
@@ -184,7 +192,7 @@ namespace aiko
                 .clear = MAGENTA
             };
 
-            const renderer::FrameUniforms screenFrame =
+            const renderer::FrameData screenFrame =
             {
                 .view = mat4(1.0f),
                 .projection = mat4(1.0f),

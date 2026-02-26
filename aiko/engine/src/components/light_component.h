@@ -19,14 +19,14 @@ namespace aiko
         virtual void update() override;
         virtual void render() override;
     
-        void setPrimitive(Light::Type);
+        void setPrimitive(LightType);
     
         Color color;
         float intensity;
     
     // private:
         RenderSystem* m_renderSystem;
-        aiko::AikoPtr<Light> m_light;
+        // aiko::AikoPtr<LightData> m_light;
     
     };
 

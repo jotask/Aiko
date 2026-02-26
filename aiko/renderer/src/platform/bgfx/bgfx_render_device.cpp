@@ -188,7 +188,8 @@ namespace aiko::renderer::bgfx
             return;
         }
 
-        bindUniforms(material);
+        bindFrameUniforms();
+        bindMaterialUniforms(material);
 
         ::bgfx::setTransform(world.data());
         ::bgfx::setVertexBuffer(0, vb);
@@ -262,7 +263,8 @@ namespace aiko::renderer::bgfx
         BgfxMeshImpl* meshImpl = static_cast<BgfxMeshImpl*>(mesh.getImpl());
         AIKO_ASSERT(meshImpl != nullptr, "Mesh backend not implemented");
 
-        bindUniforms(material);
+        bindFrameUniforms();
+        bindMaterialUniforms(material);
 
         ::bgfx::InstanceDataBuffer buff;
         ::bgfx::allocInstanceDataBuffer(&buff, instanceCount, instanceStrideBytes);
@@ -276,14 +278,77 @@ namespace aiko::renderer::bgfx
 
     }
 
-    void BgfxRenderDevice::bindFrame(ViewId viewId, const FrameUniforms& u)
+    void BgfxRenderDevice::bindFrame(ViewId viewId, const FrameData& u)
     {
-        m_frameUniforms = u;
+        m_frameData = u;
         ::bgfx::setViewTransform(viewId, u.view.data(), u.projection.data() );
     }
 
-    void BgfxRenderDevice::bindUniforms(const Material& material)
+    void BgfxRenderDevice::bindFrameUniforms()
     {
+        if (m_boundShader == nullptr)
+        {
+            return;
+        }
+
+        if (m_boundShader->hasUniform("u_cameraPos"))
+        {
+            m_boundShader->setVec3("u_cameraPos", m_frameData.cameraPosition);
+        }
+
+        if (m_boundShader->hasUniform("u_cameraPos"))
+        {
+            m_boundShader->setVec4("u_ambientColor", m_frameData.ambient.color.toVec4());
+        }
+
+        if (m_boundShader->hasUniform("u_ambientIntensity"))
+        {
+            m_boundShader->setFloat("u_ambientIntensity", m_frameData.ambient.intensity);
+        }
+
+        if (m_boundShader->hasUniform("u_lightType") &&
+            m_boundShader->hasUniform("u_lightPosRange") &&
+            m_boundShader->hasUniform("u_lightDir") &&
+            m_boundShader->hasUniform("u_lightColorInt") &&
+            m_boundShader->hasUniform("u_lightSpotCos"))
+        {
+            vec4 type[MAX_LIGHTS] = {};
+            vec4 posRange[MAX_LIGHTS] = {};
+            vec4 dir[MAX_LIGHTS] = {};
+            vec4 colorInt[MAX_LIGHTS] = {};
+            vec4 spot[MAX_LIGHTS] = {};
+
+            const int count = std::min(static_cast<int>(m_frameData.lights.size()), static_cast<int>(MAX_LIGHTS));
+
+            // also upload lightCount if shader expects it
+            if (m_boundShader->hasUniform("u_lightCount"))
+            {
+                m_boundShader->setVec4("u_lightCount", vec4(static_cast<float>(count), 0, 0, 0));
+            }
+
+            for (int i = 0; i < count; ++i)
+            {
+                const LightData& l = m_frameData.lights.at(i);
+                type[i]     = vec4(static_cast<float>(l.type), 0, 0, 0);
+                posRange[i] = vec4(l.positon.x, l.positon.y, l.positon.z, l.range);
+                dir[i]      = vec4(l.direction.x, l.direction.y, l.direction.z, 0);
+                colorInt[i] = vec4(l.color.r, l.color.g, l.color.b, l.intensity);
+                spot[i]     = vec4(l.innerCos, l.outerCos, 0, 0);
+            }
+
+            m_boundShader->setVec4Array("u_lightType", type, count);
+            m_boundShader->setVec4Array("u_lightPosRange", posRange, count);
+            m_boundShader->setVec4Array("u_lightDir", dir, count);
+            m_boundShader->setVec4Array("u_lightColorInt", colorInt, count);
+            m_boundShader->setVec4Array("u_lightSpotCos", spot, count);
+        }
+
+    }
+
+    void BgfxRenderDevice::bindMaterialUniforms(const Material& material)
+    {
+
+        if (m_boundShader == nullptr) return;
 
         // u_baseColor
         m_boundShader->setVec4("u_baseColor", material.m_baseColor.toVec4());
@@ -296,18 +361,6 @@ namespace aiko::renderer::bgfx
                 material.m_lit == true ? 1.0f : 0.0f,
                 0.0f
             ));
-
-        if (material.m_lit == true)
-        {
-            // Sun
-            m_boundShader->setVec3("u_lightDir", m_frameUniforms.sun.direction);
-            m_boundShader->setVec4("u_lightColor", m_frameUniforms.sun.color.toVec4());
-            m_boundShader->setFloat("u_lightIntensity", m_frameUniforms.sun.intensity);
-
-            // ambient
-            m_boundShader->setVec4("u_ambientColor", m_frameUniforms.ambient.color.toVec4());
-            m_boundShader->setFloat("u_ambientIntensity", m_frameUniforms.ambient.intensity);
-        }
 
         if (hasTexture == true)
         {

@@ -23,21 +23,21 @@ namespace aiko
     void LightComponent::update()
     {
         const Transform transform = gameobject->transform();
-        m_light->vector = transform.position;
-        m_light->color = color;
-        m_light->intensity = intensity;
-        m_light->update();
+        // m_light->vector = transform.position;
+        // m_light->color = color;
+        // m_light->intensity = intensity;
+        // m_light->update();
     }
     
     void LightComponent::render()
     {
-        m_renderSystem->add(m_light.get());
+        // m_renderSystem->add(m_light.get());
     }
     
-    void LightComponent::setPrimitive(Light::Type light)
+    void LightComponent::setPrimitive(LightType light)
     {
-        m_light->m_type = light;
-        m_light->reset();
+        // m_light->m_type = light;
+        // m_light->reset();
     }
 
 }

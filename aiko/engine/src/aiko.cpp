@@ -20,6 +20,7 @@
 #include "systems/render_system.h"
 #include "systems/camera_system.h"
 #include "systems/input_system.h"
+#include "systems/light_system.h"
 #include "systems/particle_system/particle_system.h"
 
 namespace aiko
@@ -82,6 +83,7 @@ namespace aiko
         // Systems
         m_systems.emplace_back(std::make_unique<EntityComponentSystem>());
         m_systems.emplace_back(std::make_unique<RenderSystem>());
+        m_systems.emplace_back(std::make_unique<LightSystem>());
         m_systems.emplace_back(std::make_unique<CameraSystem>());
         m_systems.emplace_back(std::make_unique<InputSystem>());
         m_systems.emplace_back(std::make_unique<ParticleSystem>());
@@ -107,13 +109,11 @@ namespace aiko
     void Aiko::render()
     {
         for (auto&& module : m_modules) module->beginFrame();
-        for (auto&& system : m_systems) system->beginFrame();
         for (auto&& module : m_modules) module->preRender();
         for (auto&& module : m_modules) module->render();
         for (auto&& system : m_systems) system->render();
         m_application->render();
         for (auto&& module : m_modules) module->postRender();
-        for (auto&& system : m_systems) system->endFrame();
         for (auto&& module : m_modules) module->endFrame();
     }
 

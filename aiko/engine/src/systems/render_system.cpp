@@ -1,19 +1,13 @@
 #include "render_system.h"
 
 #include <stdexcept>
-#include <memory>
-
-#include <format>
 
 #include <aiko_types.h>
-#include <math/math.h>
-#include <models/light.h>
 
 #include "modules/module_connector.h"
 #include "systems/system_connector.h"
 #include "components/transform_component.h"
 #include "components/mesh_component.h"
-#include "models/mesh_factory.h"
 #include "systems/camera_system.h"
 #include "modules/render_module.h"
 
@@ -26,8 +20,6 @@ namespace aiko
 
     void RenderSystem::init()
     {
-        // Primitives
-        m_quadPrimitives.setData(mesh::factory::generateQuad());
         m_materialPrimitives.m_shader.load("model");
     }
 
@@ -41,46 +33,10 @@ namespace aiko
 
     }
 
-    void RenderSystem::beginFrame()
-    {
-        m_instances.clear();
-    }
-
-    void RenderSystem::endFrame()
-    {
-        // AikoRenderer::it().submitInstanced(m_, m_materialPrimitives, m_instances);
-        m_instances.clear();
-    }
-
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
-        BIND_SYSTEM_REQUIRED(CameraSystem, systemConnector, m_cameraSystem)
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
-    }
-    
-    void RenderSystem::add(Light* light)
-    {
-        switch (light->m_type)
-        {
-        case Light::Type::Ambient:
-            {
-    
-            }
-            break;
-        case Light::Type::Directional:
-            {
-    
-            }
-            break;
-        case Light::Type::Point:
-            {
-    
-            }
-            break;
-        default:
-            throw new std::exception();
-            break;
-        }
+        BIND_SYSTEM_REQUIRED(CameraSystem, systemConnector, m_cameraSystem)
     }
 
     void RenderSystem::render( const Transform& trans, const Model& model)
