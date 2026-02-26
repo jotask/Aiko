@@ -296,7 +296,7 @@ namespace aiko::renderer::bgfx
             m_boundShader->setVec3("u_cameraPos", m_frameData.cameraPosition);
         }
 
-        if (m_boundShader->hasUniform("u_cameraPos"))
+        if (m_boundShader->hasUniform("u_ambientColor"))
         {
             m_boundShader->setVec4("u_ambientColor", m_frameData.ambient.color.toVec4());
         }
@@ -330,7 +330,7 @@ namespace aiko::renderer::bgfx
             {
                 const LightData& l = m_frameData.lights.at(i);
                 type[i]     = vec4(static_cast<float>(l.type), 0, 0, 0);
-                posRange[i] = vec4(l.positon.x, l.positon.y, l.positon.z, l.range);
+                posRange[i] = vec4(l.position.x, l.position.y, l.position.z, l.range);
                 dir[i]      = vec4(l.direction.x, l.direction.y, l.direction.z, 0);
                 colorInt[i] = vec4(l.color.r, l.color.g, l.color.b, l.intensity);
                 spot[i]     = vec4(l.innerCos, l.outerCos, 0, 0);

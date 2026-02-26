@@ -19,7 +19,7 @@ namespace aiko
     struct LightData
     {
         LightType type;
-        vec3 positon;
+        vec3 position;
         vec3 direction;
         Color color;
         float intensity;

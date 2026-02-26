@@ -34,7 +34,7 @@ namespace aiko
     {
         m_lights.push_back({
             .type = LightType::Directional,
-            .positon = position,
+            .position = position,
             .direction = direction,
             .color = color,
             .intensity = intensity
@@ -45,7 +45,7 @@ namespace aiko
     {
         m_lights.push_back({
             .type = LightType::Point,
-            .positon = position,
+            .position = position,
             .direction = vec3(1.0f),
             .color = color,
             .intensity = intensity,
@@ -57,7 +57,7 @@ namespace aiko
     {
         m_lights.push_back({
             .type = LightType::Spot,
-            .positon = position,
+            .position = position,
             .direction = vec3(1.0f),
             .color = color,
             .intensity = intensity,
