@@ -49,19 +49,23 @@ namespace aiko
 
         // bind to on window resize
         EventSystem::it().bind<WindowResizeEvent>(this, &AikoRenderer::onWindowResize);
+
+        m_imgui.init(IMGUI_VIEW, DisplayManager::it().getNativeWindow());
+
     }
 
     void AikoRenderer::beginFrame()
     {
         m_queue.clear();
         m_renderer->beginFrame();
-        // FIXME AikoImgui::beginFrame();
+        m_imgui.beginFrame();
     }
 
     void AikoRenderer::endFrame()
     {
         m_renderer->endFrame();
-        // FIXME AikoImgui::endFrame();
+        const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
+        m_imgui.endFrame(size.x, size.y);
         m_renderer->present();
     }
 
@@ -113,8 +117,6 @@ namespace aiko
                 .clearDepth = true,
                 .clear = m_background_color
             };
-
-            constexpr renderer::ViewId SCENE_VIEW = 0;
 
             FrameBuffer fbo = m_screenFbo.getFrameBuffer();
             m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
@@ -177,7 +179,6 @@ namespace aiko
                 .clear = MAGENTA
             };
 
-            constexpr  renderer::ViewId SCREEN_VIEW = 1;
             m_renderer->beginPass(SCREEN_VIEW, presentPass, nullptr);
             m_renderer->setViewTransform(SCREEN_VIEW, mat4(1.0f), mat4(1.0f));
             m_renderer->presentFrameBufferToScreen(SCREEN_VIEW, m_screenFbo);

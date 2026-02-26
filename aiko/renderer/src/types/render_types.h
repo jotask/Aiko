@@ -1,12 +1,11 @@
 #pragma once
 
-#include <map>
-
-
-#include "aiko_types.h"
+#include <aiko_types.h>
 
 namespace aiko
 {
+
+    using ViewId = uint16_t;
 
     // Shader uniform data type
     enum class ShaderUniformDataType

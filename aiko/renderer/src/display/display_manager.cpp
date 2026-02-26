@@ -5,8 +5,6 @@
 #include <logger/logger.h>
 #include <aiko_types.h>
 #include <events/events.hpp>
-#include "display/display_events.hpp"
-#include "imgui/aiko_imgui.h"
 
 #include "input/inputs_types.h"
 #include "time/time.h"
@@ -147,8 +145,6 @@ namespace aiko
 
         EventSystem::it().bind<OnKeyPressedEvent>(this, &DisplayManager::onKeyPressed);
         EventSystem::it().bind<WindowResizeEvent>(this, &DisplayManager::onWindowResize);
-
-        // FIXME AikoImgui::init(m_native);
 
     }
 

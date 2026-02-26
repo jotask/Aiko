@@ -6,11 +6,10 @@
 #include "models/material.h"
 #include "models/mesh.h"
 #include "models/screen_fbo.h"
+#include "types/render_types.h"
 
 namespace aiko::renderer
 {
-
-    using ViewId = uint16_t;
 
     struct DeviceInitDesc
     {

@@ -1,14 +1,21 @@
 #pragma once
 
+#include "types/render_types.h"
+
 class GLFWwindow;
 
 namespace aiko
 {
     class AikoImgui
     {
-        friend class AikoRenderer;
-        static void init(GLFWwindow* window);
-        static void beginFrame();
-        static void endFrame();
+    public:
+        AikoImgui();
+        ~AikoImgui() = default;
+        void init(ViewId, void*);
+        void beginFrame();
+        void endFrame(int width, int height);
+    private:
+        ViewId m_viewId;
+        bool m_isInitialized;
     };
 }

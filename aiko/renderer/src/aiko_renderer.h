@@ -16,6 +16,8 @@
 #include "types/color.h"
 #include "types/render_types.h"
 
+#include "imgui/aiko_imgui.h"
+
 namespace aiko
 {
 
@@ -72,6 +74,14 @@ namespace aiko
 
         std::vector<RenderItem> m_queue;
         std::vector<InstancedItem> m_instancedQueue;
+
+    private:
+
+        const ViewId SCENE_VIEW = 0;
+        const ViewId SCREEN_VIEW = 1;
+        const ViewId IMGUI_VIEW = 2;
+
+        AikoImgui m_imgui;
 
     };
 

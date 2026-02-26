@@ -30,7 +30,7 @@ target_precompile_headers(Aiko PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURREN
  
 target_compile_features(Aiko PRIVATE cxx_std_17)
 target_link_libraries(Aiko PRIVATE TracyClient EnTT assimp )
-target_link_libraries(Aiko PUBLIC AikoCore AikoRenderer magic_enum )
+target_link_libraries(Aiko PUBLIC AikoCore AikoRenderer magic_enum imgui )
 
 set_target_properties(Aiko PROPERTIES UNITY_BUILD ON)
 
