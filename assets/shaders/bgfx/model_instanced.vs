@@ -14,7 +14,7 @@ void main()
     vec4 instColor  = i_data3;
 
     // build world position (simple instancing: translate + optional scale)
-    vec3 worldPos = a_position * instScale + position;
+    vec3 worldPos = a_position * scale + position;
 
     v_texcoord0 = a_texcoord0;
     v_color0    = instColor;         // instance color overrides mesh vertex color
