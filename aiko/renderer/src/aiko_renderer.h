@@ -38,7 +38,7 @@ namespace aiko
 
         void submit(const AmbientLight& ambient, const std::vector<LightData>& data);
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
-        void submit(const Mesh& mesh, const Material& material, std::vector<InstanceData> instance);
+        void submit(const Mesh& mesh, const Material& material, const InstanceData& data);
 
         void render(const Camera& camera);
 
@@ -60,22 +60,8 @@ namespace aiko
         ScreenFbo m_screenFbo;
         Shader m_passThrough;
 
-        struct RenderItem
-        {
-            const Mesh* mesh = nullptr;
-            const Material* material = nullptr;
-            mat4 transform = mat4(1.0f);
-        };
-
-        struct InstancedItem
-        {
-            const Mesh* mesh = nullptr;
-            const Material* material = nullptr;
-            std::vector<InstanceData> instances;
-        };
-
         std::vector<RenderItem> m_queue;
-        std::vector<InstancedItem> m_instancedQueue;
+        std::vector<InstanceItem> m_instancedQueue;
         std::vector<LightData> m_lights;
         AmbientLight m_ambientLight;
 

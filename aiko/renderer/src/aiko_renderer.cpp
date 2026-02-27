@@ -57,6 +57,8 @@ namespace aiko
     void AikoRenderer::beginFrame()
     {
         m_queue.clear();
+        m_instancedQueue.clear();
+        m_lights.clear();
         m_renderer->beginFrame();
         m_imgui.beginFrame();
     }
@@ -82,7 +84,6 @@ namespace aiko
     void AikoRenderer::submit(const AmbientLight& ambient, const std::vector<LightData>& data)
     {
         m_ambientLight = ambient;
-        m_lights.clear();
         m_lights.insert(m_lights.end(), data.begin(), data.end());
     }
 
@@ -97,15 +98,22 @@ namespace aiko
         m_queue.push_back(item);
     }
 
-    void AikoRenderer::submit(const Mesh& mesh, const Material& material, std::vector<InstanceData> instance)
+    void AikoRenderer::submit(const Mesh& mesh, const Material& material, const InstanceData& data)
     {
-        InstancedItem item =
+
+        for (auto& it : m_instancedQueue)
         {
-            .mesh = &mesh,
-            .material = &material
-        };
-        item.instances.assign(instance.begin(), instance.end());
-        m_instancedQueue.push_back(item);
+            if (it.mesh == &mesh && it.material == &material)
+            {
+                it.data.push_back(data);
+                return;
+            }
+        }
+        InstanceItem item;
+        item.mesh = &mesh;
+        item.material = &material;
+        item.data.push_back(data);
+        m_instancedQueue.push_back(std::move(item));
     }
 
     void AikoRenderer::render(const Camera& camera)
@@ -173,6 +181,29 @@ namespace aiko
                 else
                 {
                     m_renderer->renderMesh(SCENE_VIEW, item.transform, *item.mesh, *item.material );
+                }
+            }
+
+            // Instanced batch
+            {
+                std::ranges::sort(m_instancedQueue, [](const InstanceItem& a, const InstanceItem b)
+                {
+                    const u64 aMat = a.material ? a.material->id() : 0;
+                    const u64 bMat = b.material ? b.material->id() : 0;
+                    if (aMat != bMat) return aMat < bMat;
+                    const u32 aMesh = a.mesh ? a.mesh->id() : 0;
+                    const u32 bMesh = b.mesh ? b.mesh->id() : 0;
+                    return aMesh < bMesh;
+                });
+
+                for (auto& batch : m_instancedQueue)
+                {
+                    if (batch.mesh == nullptr || batch.material == nullptr || batch.data.empty() == true)
+                    {
+                        continue;
+                    }
+                    m_renderer->bindMaterial(*batch.material);
+                    m_renderer->drawMeshInstanced(SCENE_VIEW, *batch.mesh, *batch.material, batch.data.data(), batch.data.size(), sizeof(InstanceData));
                 }
             }
 

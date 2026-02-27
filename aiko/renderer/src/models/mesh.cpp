@@ -28,7 +28,7 @@ namespace aiko
         backend->refresh();
     }
 
-    uint Mesh::id()
+    uint Mesh::id() const
     {
         return backend->id();
     }

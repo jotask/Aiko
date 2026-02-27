@@ -54,16 +54,23 @@ namespace aiko
         float height;
     };
 
+    struct RenderItem
+    {
+        const Mesh* mesh = nullptr;
+        const Material* material = nullptr;
+        mat4 transform = mat4(1.0f);
+    };
+
     struct InstanceData
     {
-        vec3 position;
+        vec4 position;
         Color color;
     };
 
     struct InstanceItem
     {
-        Mesh mesh;
-        Material material;
+        const Mesh* mesh = nullptr;
+        const Material* material = nullptr;
         std::vector<InstanceData> data;
     };
 

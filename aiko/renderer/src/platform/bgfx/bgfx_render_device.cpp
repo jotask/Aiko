@@ -259,18 +259,26 @@ namespace aiko::renderer::bgfx
     {
         bindMaterial(material);
 
-        AIKO_ASSERT(mesh.isValid(), "Invalid Mesh");
-        BgfxMeshImpl* meshImpl = static_cast<BgfxMeshImpl*>(mesh.getImpl());
-        AIKO_ASSERT(meshImpl != nullptr, "Mesh backend not implemented");
+        auto* meshImpl = static_cast<BgfxMeshImpl*>(mesh.getImpl());
+        AIKO_ASSERT(meshImpl, "Mesh backend not implemented");
+
+        const auto vb = meshImpl->getVertexBuffferHandler();
+        const auto ib = meshImpl->getIndexBuffferHandler();
+        AIKO_ASSERT(::bgfx::isValid(vb) && ::bgfx::isValid(ib), "Invalid VB/IB");
+
+        // bgfx requirement: stride must be multiple of 16 bytes
+        AIKO_ASSERT((instanceStrideBytes % 16u) == 0u, "Instance stride must be multiple of 16 bytes");
 
         bindFrameUniforms();
         bindMaterialUniforms(material);
 
-        ::bgfx::InstanceDataBuffer buff;
-        ::bgfx::allocInstanceDataBuffer(&buff, instanceCount, instanceStrideBytes);
-        memcpy(buff.data, data, instanceCount * instanceStrideBytes);
+        ::bgfx::InstanceDataBuffer idb;
+        ::bgfx::allocInstanceDataBuffer(&idb, instanceCount, instanceStrideBytes);
+        memcpy(idb.data, data, instanceCount * instanceStrideBytes);
 
-        ::bgfx::setInstanceDataBuffer(&buff);
+        ::bgfx::setVertexBuffer(0, vb);
+        ::bgfx::setIndexBuffer(ib);
+        ::bgfx::setInstanceDataBuffer(&idb);
 
         ::bgfx::setState(s_default_state);
 
