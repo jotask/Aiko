@@ -30,7 +30,7 @@ namespace aiko
 
     void ModelComponent::render()
     {
-        m_renderSystem->render(gameobject->transform(), m_model);
+
     }
 
 }

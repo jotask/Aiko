@@ -24,7 +24,6 @@ namespace aiko
 
         void load(const char*);
 
-    public:
         RenderSystem*   m_renderSystem;
         Model m_model;
     };

@@ -26,7 +26,6 @@ namespace aiko
         void load(const char*);
         void refresh();
 
-    private:
         RenderSystem*   m_renderSystem;
         Mesh   m_mesh;
         Material m_material;

@@ -21,6 +21,7 @@ namespace aiko
     void RenderSystem::init()
     {
         m_materialPrimitives.m_shader.load("model");
+        m_materialPrimitives.m_lit = true;
     }
 
     void RenderSystem::update()
@@ -41,7 +42,7 @@ namespace aiko
 
     void RenderSystem::render( const Transform& trans, const Model& model)
     {
-        for (const auto& m : model.m_meshes)
+        for (const Model::MeshMatData& m : model.m_meshes)
         {
             render(trans, m.mesh, m.material);
         }

@@ -22,8 +22,6 @@ namespace aiko
         ~Model() = default;
         void load(const char*);
 
-    // private:
-
 		std::vector<MeshMatData> m_meshes;
 
     };

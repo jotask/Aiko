@@ -37,14 +37,6 @@ namespace aiko
 
     void RenderModule::endFrame()
     {
-        // TODO FIXME for now it's okay
-        for (const InstanceItem& data : m_instances)
-        {
-            for (const InstanceData& item : data.data)
-            {
-                AikoRenderer::it().submit(*data.mesh, *data.material, item);
-            }
-        }
         AIKO_ASSERT(m_mainCamera != nullptr, "Main camera not set. Forgot to call set Main camera?");
         AikoRenderer::it().render(*m_mainCamera);
         AikoRenderer::it().endFrame();

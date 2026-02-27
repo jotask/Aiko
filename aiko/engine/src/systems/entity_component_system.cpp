@@ -8,20 +8,24 @@
 namespace aiko
 {
     
-    aiko::AikoPtr<GameObject> EntityComponentSystem::createGameObject(string name)
+    AikoPtr<GameObject> EntityComponentSystem::createGameObject(string name)
     {
         auto obj = std::make_shared<GameObject>();
-        m_gameObjects.emplace_back(obj);
+
         obj->m_entity = createEntity();
         obj->setName(name);
         obj->aiko = aiko;
+
         auto trans = obj->addComponent<TransforComponent>();
+
+        m_scene.add(obj);
+
         return obj;
     }
 
-    aiko::AikoPtr<GameObject> EntityComponentSystem::createGameObject(GameObject* parent, string name)
+    AikoPtr<GameObject> EntityComponentSystem::createGameObject(GameObject* parent, string name)
     {
-        aiko::AikoPtr<GameObject> obj = createGameObject(name);
+        AikoPtr<GameObject> obj = createGameObject(name);
         parent->transform().childs.push_back(&obj->transform());
         obj->transform().parent = &parent->transform();
         return obj;
@@ -29,20 +33,12 @@ namespace aiko
 
     void EntityComponentSystem::destroyGameObject(GameObject* obj)
     {
-        auto found = std::find_if(m_gameObjects.begin(), m_gameObjects.end(), [obj](const aiko::AikoPtr<GameObject>& gameObject)
-        {
-            return gameObject->uuid() == obj->uuid();
-        });
-
-        if (found != m_gameObjects.end())
-        {
-            m_gameObjects.erase(found);
-        }
+        m_scene.remove(obj);
     }
     
     void EntityComponentSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
-        // BIND_MODULE_REQUIRED(SceneModule, moduleConnector, m_sceneModule)
+
     }
     
     void EntityComponentSystem::init()
@@ -51,22 +47,23 @@ namespace aiko
     
     void EntityComponentSystem::update()
     {
-        for (auto& go : m_gameObjects) go->update();
+        for (const auto& go : m_scene.objects())
+        {
+            if (go != nullptr)
+            {
+                go->update();
+            }
+        }
     }
     
     void EntityComponentSystem::render()
     {
-        for (auto& go : m_gameObjects) go->render();
+        m_sceneRenderer.render(m_scene);
     }
 
     std::vector<GameObject*> EntityComponentSystem::getObjects()
     {
-        std::vector<GameObject*> objs;
-        for (auto& obj : m_gameObjects)
-        {
-            objs.push_back(obj.get());
-        }
-        return objs;
+        return m_scene.getObjects();
     }
 
     template<class T>

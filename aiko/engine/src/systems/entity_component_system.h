@@ -6,13 +6,14 @@
 
 #include "aiko_types.h"
 #include "systems/base_system.h"
-// #include "models/game_object.h"
 #include "types/scene_types.h"
+#include "scene/scene.h"
+
+#include "scene/scene_render.h"
 
 namespace aiko
 {
-    
-    class SceneModule;
+
     class GameObject;
     
     class EntityComponentSystem : public BaseSystem
@@ -30,6 +31,9 @@ namespace aiko
         void destroyGameObject(GameObject*);
     
         std::vector<GameObject*> getObjects();
+
+        Scene& scene() { return m_scene; }
+        const Scene& scene() const { return m_scene; }
 
     protected:
     
@@ -51,10 +55,9 @@ namespace aiko
         void onComponentRemoved(GameObject*, T*);
 
         SceneObject createEntity();
-    
-        SceneModule* m_sceneModule;
-    
-        std::vector<aiko::AikoPtr<GameObject>> m_gameObjects;
+
+        SceneRenderer m_sceneRenderer;
+        Scene m_scene;
 
     };
 
