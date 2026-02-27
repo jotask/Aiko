@@ -98,21 +98,24 @@ namespace aiko
         m_queue.push_back(item);
     }
 
-    void AikoRenderer::submit(const Mesh& mesh, const Material& material, const InstanceData& data)
+    void AikoRenderer::submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride)
     {
 
-        for (auto& it : m_instancedQueue)
+        if (data == nullptr || instanceCount == 0 || stride == 0)
         {
-            if (it.mesh == &mesh && it.material == &material)
-            {
-                it.data.push_back(data);
-                return;
-            }
+            return;
         }
+
         InstanceItem item;
         item.mesh = &mesh;
         item.material = &material;
-        item.data.push_back(data);
+        item.count = instanceCount;
+        item.stride = stride;
+
+        const size_t byteCount = size_t(instanceCount) * size_t(stride);
+        item.data.resize(byteCount);
+        memcpy(item.data.data(), data, byteCount);
+
         m_instancedQueue.push_back(std::move(item));
     }
 
@@ -196,14 +199,20 @@ namespace aiko
                     return aMesh < bMesh;
                 });
 
+                u64 lastMaterialId = ~0ull;
                 for (auto& batch : m_instancedQueue)
                 {
-                    if (batch.mesh == nullptr || batch.material == nullptr || batch.data.empty() == true)
+                    if (batch.mesh == nullptr || batch.material == nullptr || batch.data.empty())
                     {
                         continue;
                     }
-                    m_renderer->bindMaterial(*batch.material);
-                    m_renderer->drawMeshInstanced(SCENE_VIEW, *batch.mesh, *batch.material, batch.data.data(), batch.data.size(), sizeof(InstanceData));
+                    u64 materialId = batch.material->id();
+                    if (materialId != lastMaterialId)
+                    {
+                        lastMaterialId = materialId;
+                        m_renderer->bindMaterial(*batch.material);
+                    }
+                    m_renderer->drawMeshInstanced(SCENE_VIEW, *batch.mesh, *batch.material, batch.data.data(), batch.count, batch.stride);
                 }
             }
 

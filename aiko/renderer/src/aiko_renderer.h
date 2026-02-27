@@ -38,7 +38,7 @@ namespace aiko
 
         void submit(const AmbientLight& ambient, const std::vector<LightData>& data);
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
-        void submit(const Mesh& mesh, const Material& material, const InstanceData& data);
+        void submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride);
 
         void render(const Camera& camera);
 

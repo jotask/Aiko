@@ -114,6 +114,7 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::beginFrame()
     {
+        // ::bgfx::setDebug(BGFX_DEBUG_STATS);
     }
 
     void BgfxRenderDevice::endFrame()

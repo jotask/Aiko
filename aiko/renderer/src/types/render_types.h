@@ -63,15 +63,19 @@ namespace aiko
 
     struct InstanceData
     {
-        vec4 position;
+        vec3 position;
+        vec3 rotation;
+        vec3 scale;
         Color color;
     };
 
     struct InstanceItem
     {
-        const Mesh* mesh = nullptr;
-        const Material* material = nullptr;
-        std::vector<InstanceData> data;
+        const Mesh* mesh            = nullptr;
+        const Material* material    = nullptr;
+        std::vector<uint8_t> data;
+        uint32_t count              = 0;
+        uint16_t stride             = 0;
     };
 
 
