@@ -1,5 +1,6 @@
 include(FetchContent)
 
+# set(FETCHCONTENT_BASE_DIR ${CMAKE_BINARY_DIR}/libs CACHE PATH "Folder to cache FetchContent libraries." FORCE)
 set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libs CACHE PATH "Folder to cache FetchContent libraries." FORCE)
 Set(FETCHCONTENT_QUIET FALSE)
 set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
@@ -86,7 +87,7 @@ if(NOT imgui_POPULATED)
             ${imgui_SOURCE_DIR}/imgui_draw.cpp
             ${imgui_SOURCE_DIR}/imgui_widgets.cpp
             ${imgui_SOURCE_DIR}/imgui_tables.cpp
-            ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+            #${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
             ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp)
 
     target_include_directories(imgui PUBLIC
@@ -102,8 +103,15 @@ set_target_properties(imgui PROPERTIES FOLDER "Dependencies")
 
 set(BGFX_BUILD_TOOLS ON CACHE BOOL "" FORCE)
 set(BGFX_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(BX_USE_DX ON CACHE BOOL "" FORCE)               # Enable DX/HLSL support
-set(BGFX_RENDERER_DIRECT3D11 ON CACHE BOOL "" FORCE)
+
+if (WIN32)
+    set(BX_USE_DX ON CACHE BOOL "" FORCE)
+    set(BGFX_RENDERER_DIRECT3D11 ON CACHE BOOL "" FORCE)
+else()
+    set(BX_USE_DX OFF CACHE BOOL "" FORCE)
+    set(BGFX_RENDERER_DIRECT3D11 OFF CACHE BOOL "" FORCE)
+    set(BGFX_RENDERER_VULKAN ON CACHE BOOL "" FORCE)   # SPIR-V path
+endif()
 
 FetchContent_Declare(
   bx
@@ -120,7 +128,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   bgfx
   GIT_REPOSITORY https://github.com/bkaradzic/bgfx.cmake.git
-  GIT_TAG master
+  GIT_TAG v1.139.9155-513
 )
 
 FetchContent_MakeAvailable(bx bimg bgfx)

@@ -277,10 +277,12 @@ static const uint8_t vs_ocornut_imgui_mtl[855] =
 	0x00, 0x01, 0x00, 0x10, 0x00, 0x40, 0x00,                                                       // .....@.
 };
 // NOT IMPLEMENTED
-static const uint8_t vs_ocornut_imgui_wgsl[1] =
-{
-	0x00
-};
+static const uint8_t vs_ocornut_imgui_wgsl[1] = { 0x00 };
+static const uint8_t vs_ocornut_imgui_dxbc[1] ={ 0x00 };
+static const uint8_t vs_ocornut_imgui_spirv_essl[1] = { 0x00 };
+static const uint8_t vs_ocornut_imgui_spirv_glsl[1] = { 0x00 };
+static const uint8_t vs_ocornut_imgui_spirv_spv[1] = { 0x00 };
+
 extern const uint8_t* vs_ocornut_imgui_pssl;
 extern const uint32_t vs_ocornut_imgui_pssl_size;
 
