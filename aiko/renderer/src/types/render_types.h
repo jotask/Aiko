@@ -1,6 +1,8 @@
 #pragma once
 
 #include <aiko_types.h>
+#include <math/math_vector.h>
+#include "types/color.h"
 
 namespace aiko
 {
@@ -43,6 +45,13 @@ namespace aiko
         Shaded
     };
 
+    enum class ComputeAccess
+    {
+        Read,
+        Write,
+        ReadWrite
+    };
+
     class Rectangle
     {
     public:
@@ -53,6 +62,9 @@ namespace aiko
         float width;
         float height;
     };
+
+    class Mesh;
+    class Material;
 
     struct RenderItem
     {

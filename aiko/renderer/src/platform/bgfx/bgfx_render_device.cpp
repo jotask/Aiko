@@ -4,7 +4,9 @@
 #include <bgfx/platform.h>
 #include <logger/logger.h>
 
+#include "bgfx_platform_helper.h"
 #include "display/display_manager.h"
+#include "impl/bgfx_computeshader_impl.h"
 #include "impl/bgfx_texture_impl.h"
 
 #if defined(AIKO_WINDOWS)
@@ -291,6 +293,20 @@ namespace aiko::renderer::bgfx
     {
         m_frameData = u;
         ::bgfx::setViewTransform(viewId, u.view.data(), u.projection.data() );
+    }
+
+    void BgfxRenderDevice::setComputeImage(ViewId viewId, const Texture& texture, ComputeAccess access)
+    {
+        auto* texImpl = static_cast<BgfxTextureImpl*>(texture.getImpl());
+        AIKO_ASSERT(texImpl && texImpl->isValid(), "Invalid compute texture");
+        ::bgfx::setImage(viewId, texImpl->getTextureHandler(), 0, toBgfxAccess(access));
+    }
+
+    void BgfxRenderDevice::dispatch(ViewId viewId, const ComputeShader& program, uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ)
+    {
+        auto* csImpl = static_cast<BgfxComputeShaderImpl*>(program.getImpl());
+        AIKO_ASSERT(csImpl && csImpl->isValid(), "Invalid compute shader");
+        ::bgfx::dispatch(viewId, csImpl->getProgramHandler(), groupsX, groupsY, groupsZ);
     }
 
     void BgfxRenderDevice::bindFrameUniforms()

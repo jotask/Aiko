@@ -119,6 +119,11 @@ namespace aiko
         m_instancedQueue.push_back(std::move(item));
     }
 
+    void AikoRenderer::dispatchCompute(ViewId viewId, const ComputeShader& shader, u32 groupsX, u32 groupsY, u32 groupsZ)
+    {
+        m_renderer->dispatch(viewId, shader, groupsX, groupsY, groupsZ);
+    }
+
     void AikoRenderer::render(const Camera& camera)
     {
 

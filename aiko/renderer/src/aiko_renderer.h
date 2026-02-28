@@ -40,6 +40,8 @@ namespace aiko
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
         void submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride);
 
+        void dispatchCompute(ViewId viewId, const ComputeShader& shader, u32 groupsX, u32 groupsY, u32 groupsZ);
+
         void render(const Camera& camera);
 
         // Font

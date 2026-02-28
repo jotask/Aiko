@@ -2,6 +2,7 @@
 
 #include <aiko_types.h>
 
+#include "models/compute_shader.h"
 #include "models/material.h"
 #include "models/mesh.h"
 #include "models/screen_fbo.h"
@@ -40,6 +41,10 @@ namespace aiko::renderer
         virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) = 0;
 
         virtual void bindFrame(ViewId viewId, const FrameData& u) = 0;
+
+        // Compute Shader
+        virtual void setComputeImage(ViewId viewId, const Texture& texture, ComputeAccess access) = 0;
+        virtual void dispatch( ViewId viewId, const ComputeShader& program, uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) = 0;
 
     };
 }

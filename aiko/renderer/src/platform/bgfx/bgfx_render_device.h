@@ -42,6 +42,10 @@ namespace aiko::renderer::bgfx
 
         virtual void bindFrame(ViewId viewId, const FrameData& u) override;
 
+        // Compute Shader
+        virtual void setComputeImage(ViewId viewId, const Texture& texture, ComputeAccess access) override;
+        virtual void dispatch( ViewId viewId, const ComputeShader& program, uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) override;
+
     private:
 
         u32 m_width;
