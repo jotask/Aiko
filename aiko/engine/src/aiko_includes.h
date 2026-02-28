@@ -29,7 +29,6 @@
 #include "types/textures.h"
 #include "types/color.h"
 
-#include "systems/camera_system.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
 

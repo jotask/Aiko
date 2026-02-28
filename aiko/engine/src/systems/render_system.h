@@ -18,7 +18,7 @@
 namespace aiko
 {
 
-    class CameraSystem;
+    class SceneSystem;
     class RenderModule;
 
     class RenderSystem : public BaseSystem
@@ -53,8 +53,7 @@ namespace aiko
     private:
 
         RenderModule* m_renderModule;
-
-        CameraSystem* m_cameraSystem;
+        SceneSystem* m_sceneSystem;
 
     // ---------------------------------------------------
     //                   PRIMITIVES

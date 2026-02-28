@@ -6,17 +6,18 @@
 #include "components/camera_component.h"
 #include "components/mesh_component.h"
 #include "components/light_component.h"
-#include "models/mesh.h"
 #include "components/texture_component.h"
 #include "components/model_component.h"
 #include "models/camera.h"
 #include "types/color.h"
 
 #include <aiko_includes.h>
+#include <core/random.h>
 
 #define TEST_LOAD_MESHES
 #define TEST_COMPONENTS
 #define TEST_PRIMITIVES
+#define TEST_LIGHTS
 
 namespace sb
 {
@@ -91,26 +92,56 @@ namespace sb
 
 #endif
 
+#ifdef TEST_LIGHTS
+        constexpr float radiusSpawn = 10.0f;
+        for (size_t i = 0 ; i < 10; ++i )
+        {
+            auto* obj = this->Instantiate(root, "Light");
+            obj->transform().position = {
+                aiko::utils::getRandomValue(-radiusSpawn, radiusSpawn),
+                aiko::utils::getRandomValue(-radiusSpawn, radiusSpawn),
+                aiko::utils::getRandomValue(-radiusSpawn, radiusSpawn),
+            };
+            auto cmp = obj->addComponent<aiko::LightComponent>();
+            cmp->setPointLight(aiko::Color::getRandomColor(), 1.0f);
+            const LightInst ints = {
+                .obj = obj,
+                .cmp = cmp,
+                .angle = aiko::utils::getRandomValue(0.0f, 360.f)
+            };
+            m_lights.push_back(ints);
+        }
+#endif
+
     }
 
     void Sandbox::update()
     {
         Application::update();
 #ifdef TEST_COMPONENTS
-        static float angle = 0.0f;
-        angle += 25.0f * getlDeltaTime();
-        angle = fmod(angle, 360.0f);
-        m_go1->transform().rotation = {  angle, 0.0f, 0.0f };
-        m_go2->transform().rotation = { -angle, 0.0f, 0.0f };
+        {
+            static float angle = 0.0f;
+            angle += 25.0f * getlDeltaTime();
+            angle = fmod(angle, 360.0f);
+            m_go1->transform().rotation = {  angle, 0.0f, 0.0f };
+            m_go2->transform().rotation = { -angle, 0.0f, 0.0f };
+        }
+#endif
+#ifdef TEST_LIGHTS
+        {
+            for (auto& light : m_lights)
+            {
+                light.angle += 1.0f * getlDeltaTime();
+                aiko::vec3 pos = {std::sin(light.angle), 0.0f, std::cos(light.angle)};
+                light.obj->transform().position = pos;
+            }
+        }
 #endif
     }
 
     void Sandbox::render()
     {
         Application::render();
-
-        const aiko::vec3 position = { 0.0f,  0.0f, 0.0f };
-        const aiko::vec3 size = { 1.0f, 1.0f, 1.0f };
 
 #ifdef TEST_PRIMITIVES
 
@@ -137,6 +168,16 @@ namespace sb
 
         getRenderSystem()->drawPlane({ 0.0f, -2.0f, 0.0f }, SIZE);
 
+#endif
+
+
+#ifdef TEST_LIGHTS
+        {
+            for (auto& light : m_lights)
+            {
+                getRenderSystem()->renderSphere(light.obj->transform().position, 0.1f, 25 , light.cmp->color);
+            }
+        }
 #endif
 
     }

@@ -15,7 +15,6 @@
 #include "systems/system_connector.h"
 #include "components/transform_component.h"
 #include "components/mesh_component.h"
-#include "systems/camera_system.h"
 #include "models/mesh_factory.h"
 
 namespace aiko
@@ -100,8 +99,15 @@ namespace aiko
     {
         Transform t;
         t.position = pos;
+        t.scale = size;
+        auto c = m_materialPrimitives.m_baseColor;
+        auto l = m_materialPrimitives.m_lit;
+        m_materialPrimitives.m_baseColor = color;
+        m_materialPrimitives.m_lit = false;
         static const Mesh mesh(mesh::factory::generateMeshSphere(segments, segments));
         AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_materialPrimitives.m_baseColor = c;
+        m_materialPrimitives.m_lit = l;
     }
 
     void RenderSystem::renderPolygon(vec3 pos, vec3 size, int rings, int sectors, Color color, bool border, float thickness)

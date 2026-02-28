@@ -24,8 +24,12 @@ namespace aiko
 
         const std::vector<AikoPtr<GameObject>>& objects() const { return m_objects; }
 
+        void setActiveCamera(GameObject* obj);
+        auto getActiveCamera() const -> GameObject* { return m_activeCamera; }
+
     private:
         std::vector<AikoPtr<GameObject>> m_objects;
+        GameObject* m_activeCamera = nullptr;
     };
 
 }

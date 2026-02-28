@@ -20,6 +20,35 @@ namespace aiko
 
     const Camera* SceneViewBuilder::findMainCamera(Scene& scene)
     {
+        // 1) Prefer explicit active camera, if set and valid
+        if (GameObject* active = scene.getActiveCamera())
+        {
+            if (active->hasComponent<CameraComponent>())
+            {
+                AikoPtr<CameraComponent> cmp = active->getComponent<CameraComponent>();
+                return &cmp->getCamera();
+            }
+        }
+
+        // 2) If no explicit active camera, prefer first camera marked as main
+        for (GameObject* obj : scene.getObjects())
+        {
+            if (obj == nullptr)
+            {
+                continue;
+            }
+            if (obj->hasComponent<CameraComponent>() == false)
+            {
+                continue;
+            }
+            AikoPtr<CameraComponent> cmp = obj->getComponent<CameraComponent>();
+            if (cmp->isMain() == true)
+            {
+                return &cmp->getCamera();
+            }
+        }
+
+        // 3) Final fallback: first camera found in scene
         for (GameObject* obj : scene.getObjects())
         {
             if (obj == nullptr)
@@ -33,6 +62,7 @@ namespace aiko
             AikoPtr<CameraComponent> cmp = obj->getComponent<CameraComponent>();
             return &cmp->getCamera();
         }
+
         return nullptr;
     }
 
@@ -52,20 +82,18 @@ namespace aiko
 
             AikoPtr<LightComponent> cmp = obj->getComponent<LightComponent>();
 
-            AIKO_NOT_IMPLEMENTED;
-
-            /*
-            LightData ld{};
-            ld.type = light->type();                  // adjust
-            ld.position = go->transform().position;   // adjust; or from transform matrix
-            ld.direction = light->direction();        // adjust
-            ld.color = light->color();                // adjust
-            ld.intensity = light->intensity();        // adjust
-            ld.range = light->range();                // adjust
-            ld.spotInner = light->innerCos();         // adjust if you store cos values
-            ld.spotOuter = light->outerCos();         // adjust
+            const LightData ld =
+            {
+                .type = cmp->type,
+                .position = obj->transform().position,
+                .direction = cmp->direction,
+                .color = cmp->color,
+                .intensity = cmp->intensity,
+                .range = cmp->range,
+                .innerCos = cmp->innerCos,
+                .outerCos = cmp->outerCos,
+            };
             out.lights.push_back(ld);
-            */
 
         }
     }

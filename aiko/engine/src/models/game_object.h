@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <stdexcept>
 
 #include <functional>
 #include <algorithm>
@@ -28,13 +27,13 @@ namespace aiko
         ~GameObject() = default;
 
         template<class T, typename... Args>
-        inline aiko::AikoPtr<T> addComponent(Args...);
+        AikoPtr<T> addComponent(Args...);
 
         template<class T>
         bool hasComponent();
 
         template<class T>
-        aiko::AikoPtr<T> getComponent();
+        AikoPtr<T> getComponent();
 
         template<class T>
         bool removeComponent();
@@ -61,9 +60,8 @@ namespace aiko
 
         uuid::Uuid m_uuid;
 
-        SceneObject m_entity;
         string name;
-        std::vector<aiko::AikoPtr<Component>> m_components;
+        std::vector<AikoPtr<Component>> m_components;
 
         void update();
         void render();
@@ -71,14 +69,14 @@ namespace aiko
     };
 
     template<class T, typename... Args>
-    inline aiko::AikoPtr<T> GameObject::addComponent(Args... args)
+    AikoPtr<T> GameObject::addComponent(Args... args)
     {
         if (hasComponent<T>() == true)
         {
             // throw std::exception();
         }
         m_components.emplace_back(std::make_shared<T>(args...));
-        aiko::AikoPtr<Component> back = m_components.back();
+        AikoPtr<Component> back = m_components.back();
         back->setup(this);
         back->init();
         return std::dynamic_pointer_cast<T>(back);
@@ -94,7 +92,7 @@ namespace aiko
     }
 
     template<class T>
-    inline aiko::AikoPtr<T> GameObject::getComponent()
+    AikoPtr<T> GameObject::getComponent()
     {
         if (hasComponent<T>() == false)
         {

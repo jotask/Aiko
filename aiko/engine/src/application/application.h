@@ -55,6 +55,8 @@ namespace aiko
         // Draw text
         void drawText(string, float, float);
 
+        void setActiveCamera(GameObject* obj);
+
     private:
 
     };

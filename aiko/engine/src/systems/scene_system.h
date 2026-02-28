@@ -8,6 +8,7 @@
 
 #include "models/game_object.h"
 #include "scene/scene.h"
+#include <models/camera.h>
 
 namespace aiko
 {
@@ -26,6 +27,12 @@ namespace aiko
         AikoPtr<GameObject> createGameObject(string name = DEFAULT_OBJECT_NAME);
         AikoPtr<GameObject> createGameObject(GameObject* parent, string name = DEFAULT_OBJECT_NAME);
         void destroyGameObject(const AikoPtr<GameObject>& obj);
+
+        Camera* getMainCamera();
+        const Camera* getMainCamera() const;
+
+        void setActiveCamera(GameObject* obj);
+        GameObject* getActiveCamera() const { return m_scene.getActiveCamera(); }
 
     protected:
     

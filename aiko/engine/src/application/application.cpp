@@ -5,7 +5,6 @@
 #include <input/inputs_types.h>
 
 #include "aiko.h"
-#include "systems/camera_system.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
 #include "systems/scene_system.h"
@@ -53,7 +52,7 @@ namespace aiko
 
     Camera* Application::getMainCamera()
     {
-        auto cs = m_aiko->getSystem<CameraSystem>();
+        auto cs = m_aiko->getSystem<SceneSystem>();
         return cs->getMainCamera();
     }
 
@@ -109,6 +108,13 @@ namespace aiko
     {
         RenderSystem* renderSystem = getRenderSystem();
         renderSystem->renderText(str, x, y);
+    }
+
+    void Application::setActiveCamera(GameObject* obj)
+    {
+        SceneSystem* ss = m_aiko->getSystem<SceneSystem>();
+        AIKO_ASSERT(ss != nullptr, "Scene system not found");
+        ss->setActiveCamera(obj);
     }
 
 }

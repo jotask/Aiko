@@ -1,5 +1,6 @@
 #include "scene_system.h"
 
+#include "components/camera_component.h"
 #include "modules/render_module.h"
 
 #include "modules/module_connector.h"
@@ -43,12 +44,9 @@ namespace aiko
         }
     }
 
-    aiko::AikoPtr<GameObject> SceneSystem::createGameObject(string name)
+    AikoPtr<GameObject> SceneSystem::createGameObject(string name)
     {
         auto obj = std::make_shared<GameObject>();
-
-        // SceneObject currently stores EntityComponentSystem*; we’re migrating away from it.
-        obj->m_entity.ecs = nullptr;
 
         obj->setName(name);
         obj->aiko = aiko;
@@ -59,7 +57,7 @@ namespace aiko
         return obj;
     }
 
-    aiko::AikoPtr<GameObject> SceneSystem::createGameObject(GameObject* parent, string name)
+    AikoPtr<GameObject> SceneSystem::createGameObject(GameObject* parent, string name)
     {
         AikoPtr<GameObject> obj = createGameObject(name);
         parent->transform().childs.push_back(&obj->transform());
@@ -80,5 +78,36 @@ namespace aiko
     const Scene& SceneSystem::getScene() const
     {
         return m_scene;
+    }
+
+    Camera* SceneSystem::getMainCamera()
+    {
+        for (const auto& obj : m_scene.objects())
+        {
+            if (obj == nullptr) continue;
+            if (auto cam = obj->getComponent<CameraComponent>())
+            {
+                return &cam->getCamera();
+            }
+        }
+        return nullptr;
+    }
+
+    const Camera* SceneSystem::getMainCamera() const
+    {
+        for (const auto& obj : m_scene.objects())
+        {
+            if (obj == nullptr) continue;
+            if (auto cam = obj->getComponent<CameraComponent>())
+            {
+                return &cam->getCamera();
+            }
+        }
+        return nullptr;
+    }
+
+    void SceneSystem::setActiveCamera(GameObject* obj)
+    {
+        m_scene.setActiveCamera(obj);
     }
 }

@@ -1,14 +1,13 @@
 #include "light_component.h"
 
 #include "models/game_object.h"
-#include "systems/render_system.h"
 
 namespace aiko
 {
     
     LightComponent::LightComponent()
         : Component("Light")
-        , color( 1.f )
+        , color( WHITE )
         , intensity(1.f)
     {
     
@@ -16,28 +15,45 @@ namespace aiko
     
     void LightComponent::init()
     {
-        // m_renderSystem = gameobject->getSystem<RenderSystem>();
-        // m_light = m_renderSystem->createLight();
+
     }
-    
+
     void LightComponent::update()
     {
-        const Transform transform = gameobject->transform();
-        // m_light->vector = transform.position;
-        // m_light->color = color;
-        // m_light->intensity = intensity;
-        // m_light->update();
+
     }
-    
+
     void LightComponent::render()
     {
-        // m_renderSystem->add(m_light.get());
+
     }
     
     void LightComponent::setPrimitive(LightType light)
     {
-        // m_light->m_type = light;
-        // m_light->reset();
+        this->type = light;
     }
 
+    void LightComponent::setDirectional(Color color, vec3 dir, float range)
+    {
+        setPrimitive(LightType::Directional);
+        this->color = color;
+        this->direction = dir;
+        this->range = range;
+    }
+
+    void LightComponent::setPointLight(Color color, float range)
+    {
+        setPrimitive(LightType::Point);
+        this->color = color;
+        this->range = range;
+    }
+
+    void LightComponent::setSpot(Color color, vec3 dir, float inned, float outer)
+    {
+        setPrimitive(LightType::Spot);
+        this->color = color;
+        this->direction = dir;
+        this->innerCos = inned;
+        this->outerCos = outer;
+    }
 }

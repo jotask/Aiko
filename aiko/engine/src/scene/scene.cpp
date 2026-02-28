@@ -16,6 +16,11 @@ namespace aiko
             return false;
         }
 
+        if (m_activeCamera == obj)
+        {
+            m_activeCamera = nullptr;
+        }
+
         auto it = std::find_if( m_objects.begin(), m_objects.end() , [obj](const AikoPtr<GameObject>& go)
         {
             return go != nullptr && ( go.get() == obj);
@@ -32,6 +37,7 @@ namespace aiko
     void Scene::clear()
     {
         m_objects.clear();
+        m_activeCamera = nullptr;
     }
 
     std::vector<GameObject*> Scene::getObjects() const
@@ -43,5 +49,27 @@ namespace aiko
             objs.push_back(obj.get());
         }
         return objs;
+    }
+
+    void Scene::setActiveCamera(GameObject* obj)
+    {
+        // Allow nullptr to clear active camera
+        if (obj == nullptr)
+        {
+            m_activeCamera = nullptr;
+            return;
+        }
+
+        // Only accept objects that exist in this scene
+        bool exists = std::any_of(m_objects.begin(), m_objects.end(),
+            [obj](const AikoPtr<GameObject>& go)
+            {
+                return go != nullptr && go.get() == obj;
+            });
+
+        if (exists)
+        {
+            m_activeCamera = obj;
+        }
     }
 }

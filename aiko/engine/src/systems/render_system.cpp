@@ -8,8 +8,8 @@
 #include "systems/system_connector.h"
 #include "components/transform_component.h"
 #include "components/mesh_component.h"
-#include "systems/camera_system.h"
 #include "modules/render_module.h"
+#include "systems/scene_system.h"
 
 namespace aiko
 {
@@ -26,7 +26,7 @@ namespace aiko
 
     void RenderSystem::update()
     {
-        m_renderModule->setMainCamera(m_cameraSystem->getMainCamera());
+
     }
 
     void RenderSystem::render()
@@ -37,7 +37,7 @@ namespace aiko
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
-        BIND_SYSTEM_REQUIRED(CameraSystem, systemConnector, m_cameraSystem)
+        BIND_SYSTEM_REQUIRED(SceneSystem, systemConnector, m_sceneSystem)
     }
 
     void RenderSystem::render( const Transform& trans, const Model& model)
@@ -60,7 +60,7 @@ namespace aiko
 
     Camera* RenderSystem::getMainCamera()
     {
-        return m_cameraSystem->getMainCamera();
+        return m_sceneSystem->getMainCamera();
     }
 
     void RenderSystem::renderText(string str, float x, float y)
