@@ -8,7 +8,7 @@
 #include "systems/camera_system.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
-#include "systems/entity_component_system.h"
+#include "systems/scene_system.h"
 
 namespace aiko
 {
@@ -93,14 +93,14 @@ namespace aiko
 
     GameObject* Application::Instantiate(string name)
     {
-        EntityComponentSystem* ecs = m_aiko->getSystem<EntityComponentSystem>();
+        SceneSystem* ecs = m_aiko->getSystem<SceneSystem>();
         GameObject* obj = ecs->createGameObject(name).get();
         return obj;
     }
 
     GameObject* Application::Instantiate(GameObject* parent, string name)
     {
-        EntityComponentSystem* ecs = m_aiko->getSystem<EntityComponentSystem>();
+        SceneSystem* ecs = m_aiko->getSystem<SceneSystem>();
         GameObject* obj = ecs->createGameObject(parent, name).get();
         return obj;
     }

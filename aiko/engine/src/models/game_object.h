@@ -12,16 +12,16 @@
 #include "component.h"
 #include "components/transform_component.h"
 #include "types/scene_types.h"
-#include "systems/entity_component_system.h"
 
 namespace aiko
 {
 
     class Aiko;
+    class SceneSystem;
 
     class GameObject
     {
-        friend class EntityComponentSystem;
+        friend class SceneSystem;
     public:
 
         GameObject() = default;
