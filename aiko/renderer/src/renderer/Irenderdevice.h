@@ -6,6 +6,7 @@
 #include "models/compute_shader.h"
 #include "models/material.h"
 #include "models/mesh.h"
+#include "models/texture.h"
 #include "models/screen_fbo.h"
 #include "types/render_types.h"
 #include "renderer/frame_uniforms.h"
@@ -39,6 +40,7 @@ namespace aiko::renderer
         virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) = 0;
 
         virtual void presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& fb) = 0;
+        virtual void presentTextureToScreen(ViewId viewId, const ScreenFbo& screen, const Texture& texture) = 0;
 
         virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) = 0;
 

@@ -52,8 +52,6 @@ namespace aiko
 
         m_imgui.init(IMGUI_VIEW, DisplayManager::it().getNativeWindow());
 
-        m_csGradient.load("gradient.cs");
-
     }
 
     void AikoRenderer::beginFrame()
@@ -160,19 +158,6 @@ namespace aiko
                 .lights = m_lights,
             };
             m_renderer->bindFrame(SCENE_VIEW, frameData);
-
-            // compute pass
-            {
-                m_renderer->setComputeImage(COMPUTE_VIEW, m_screenFbo.getFrameBuffer().getColorTexture(), ComputeAccess::Write);
-
-                const u32 gx = (size.x + 7) / 8;
-                const u32 gy = (size.y + 7) / 8;
-
-                if (gx > 0 && gy > 0)
-                {
-                    m_renderer->dispatch(SCENE_VIEW, m_csGradient, gx, gy, 1);
-                }
-            }
 
             std::ranges::sort(m_queue, [](const RenderItem& a, const RenderItem& b)
             {

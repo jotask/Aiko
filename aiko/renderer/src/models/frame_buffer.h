@@ -41,8 +41,8 @@
         void create(int width, int height);
         void unload();
 
-        Texture getColorTexture() const { return colorTexture; }
-        Texture getDepthTexture() const { return depthTexture; }
+        Texture& getColorTexture() { return colorTexture; }
+        Texture& getDepthTexture() { return depthTexture; }
 
     private:
 

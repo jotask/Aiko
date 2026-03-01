@@ -34,33 +34,24 @@ namespace aiko::renderer::bgfx
 
         buildLayout(format);
 
-        // Compute RW buffer: Dynamic VB + compute flag
-        m_handle = ::bgfx::createDynamicVertexBuffer(
-            count,
-            m_layout,
-            BGFX_BUFFER_COMPUTE_READ_WRITE
-        );
+        const ::bgfx::Memory* mem = nullptr;
 
         if (initialData != nullptr)
         {
-            update(0, count, initialData);
+            mem = ::bgfx::copy(initialData, count * m_strideBytes);
         }
+
+        m_handle = ::bgfx::createVertexBuffer(
+            mem,
+            m_layout,
+            BGFX_BUFFER_COMPUTE_READ_WRITE
+        );
 
     }
 
     void BgfxComputeBufferImpl::update(uint32_t start, uint32_t count, const void* data)
     {
-
-        if (!::bgfx::isValid(m_handle) || data == nullptr || count == 0)
-            return;
-
-        const uint32_t byteSize = count * m_strideBytes;
-
-        const ::bgfx::Memory* mem = ::bgfx::alloc(byteSize);
-        std::memcpy(mem->data, data, byteSize);
-
-        ::bgfx::update(m_handle, start, mem);
-
+       AIKO_ASSERT(false, "Compute buffers are GPU-owned. Use staging buffer/readback system later.");
     }
 
     void BgfxComputeBufferImpl::destroy()

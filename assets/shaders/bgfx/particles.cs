@@ -1,21 +1,33 @@
 #include "bgfx_compute.sh"
 
-struct Particle
-{
-    vec4 position;
-    vec4 velocity;
-};
+// RW buffer (stage 0)
+BUFFER_RW(u_data, vec4, 0);
 
-BUFFER_RW(particles, Particle, 0);
+// Output texture (stage 1)
+IMAGE2D_WO(u_output, rgba8, 1);
 
-NUM_THREADS(64,1,1)
+NUM_THREADS(8,8,1)
 void main()
 {
-    uint id = gl_GlobalInvocationID.x;
+    uvec3 gid = gl_GlobalInvocationID;
 
-    Particle p = particles[id];
+    ivec2 size = imageSize(u_output);
 
-    p.position.xyz += p.velocity.xyz * 0.016;
+    if (gid.x >= uint(size.x) || gid.y >= uint(size.y))
+        return;
 
-    particles[id] = p;
+    uint index = gid.y * uint(size.x) + gid.x;
+
+    vec4 v = u_data[index];
+
+    // animate value every frame
+    v.x += 0.01;
+    if (v.x > 1.0)
+        v.x = 0.0;
+
+    u_data[index] = v;
+
+    // visualize buffer value
+    imageStore(u_output, ivec2(gid.xy),
+               vec4(v.x, 0.2, 0.8, 1.0));
 }

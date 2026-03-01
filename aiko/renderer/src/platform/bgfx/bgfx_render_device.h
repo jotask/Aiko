@@ -37,6 +37,7 @@ namespace aiko::renderer::bgfx
         virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) override;
 
         virtual void presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& fb) override;
+        virtual void presentTextureToScreen(ViewId viewId, const ScreenFbo& screen, const Texture& texture) override;
 
         virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) override;
 

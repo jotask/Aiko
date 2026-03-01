@@ -259,6 +259,49 @@ namespace aiko::renderer::bgfx
 
     }
 
+    void BgfxRenderDevice::presentTextureToScreen(ViewId viewId, const ScreenFbo& screen, const Texture& texture)
+    {
+        const auto displaySize = DisplayManager::it().getDisplay()->getDisplaySize();
+
+        AIKO_ASSERT(texture.isValid(), "Invalid texture passed to presentTextureToScreen");
+
+        BgfxTextureImpl* colorTexture = static_cast<BgfxTextureImpl*>(texture.getImpl());
+        AIKO_ASSERT(colorTexture != nullptr, "Invalid texture impl");
+
+        BgfxShaderImpl* shaderImpl = static_cast<BgfxShaderImpl*>(screen.getMaterial().m_shader.getImpl());
+        AIKO_ASSERT(shaderImpl != nullptr, "Screen program has no impl");
+
+        BgfxMeshImpl* meshImpl = static_cast<BgfxMeshImpl*>(screen.getMesh().getImpl());
+        AIKO_ASSERT(meshImpl != nullptr, "Mesh has no impl");
+
+        ::bgfx::setViewFrameBuffer(viewId, { ::bgfx::kInvalidHandle });
+
+        ::bgfx::setViewRect(viewId, 0, 0,
+            static_cast<uint16_t>(displaySize.x),
+            static_cast<uint16_t>(displaySize.y));
+
+        float view[16];
+        float proj[16];
+        bx::mtxIdentity(view);
+        bx::mtxIdentity(proj);
+        ::bgfx::setViewTransform(viewId, view, proj);
+
+        ::bgfx::UniformHandle u_scene = shaderImpl->getUniformHandle("u_scene");
+        AIKO_ASSERT(::bgfx::isValid(u_scene), "passthrough shader missing uniform u_scene");
+
+        ::bgfx::setTexture(0, u_scene, colorTexture->getTextureHandler());
+
+        AIKO_ASSERT(::bgfx::isValid(meshImpl->getVertexBuffferHandler()), "Invalid VB");
+        AIKO_ASSERT(::bgfx::isValid(meshImpl->getIndexBuffferHandler()), "Invalid IB");
+
+        ::bgfx::setVertexBuffer(0, meshImpl->getVertexBuffferHandler());
+        ::bgfx::setIndexBuffer(meshImpl->getIndexBuffferHandler());
+
+        ::bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+
+        ::bgfx::submit(viewId, shaderImpl->getProgramHandler());
+    }
+
     void BgfxRenderDevice::drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes)
     {
         bindMaterial(material);

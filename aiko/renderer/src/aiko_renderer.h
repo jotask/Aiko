@@ -64,9 +64,6 @@ namespace aiko
         ScreenFbo m_screenFbo;
         Shader m_passThrough;
 
-        // Test
-        ComputeShader m_csGradient;
-
         std::vector<RenderItem> m_queue;
         std::vector<InstanceItem> m_instancedQueue;
         std::vector<LightData> m_lights;

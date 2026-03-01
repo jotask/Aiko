@@ -21,7 +21,7 @@ namespace aiko::renderer::bgfx
 
         virtual void destroy() override;
 
-        ::bgfx::DynamicVertexBufferHandle handle() const { return m_handle; }
+        ::bgfx::VertexBufferHandle handle() const { return m_handle; }
         uint32_t count() const { return m_count; }
         ComputeBufferFormat format() const { return m_format; }
 
@@ -29,7 +29,7 @@ namespace aiko::renderer::bgfx
 
         void buildLayout(ComputeBufferFormat format);
 
-        ::bgfx::DynamicVertexBufferHandle m_handle;
+        ::bgfx::VertexBufferHandle m_handle;
         ::bgfx::VertexLayout m_layout;
 
         ComputeBufferFormat m_format = ComputeBufferFormat::Vec4f;
