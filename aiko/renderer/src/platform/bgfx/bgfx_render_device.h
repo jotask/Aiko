@@ -48,8 +48,21 @@ namespace aiko::renderer::bgfx
         virtual void setComputeBuffer(ViewId viewId, const ComputeBuffer& buffer, ComputeAccess access) override;
         virtual void dispatch( ViewId viewId, const ComputeShader& program, uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) override;
         virtual void execute(ViewId viewId, const ComputePass& pass) override;
+        virtual void requestReadback( const ComputeReadbackRequest& request) override;
+        virtual bool pollReadback(ComputeReadbackResult& result) override;
 
     private:
+
+        struct PendingReadback
+        {
+            ::bgfx::TextureHandle texture = {::bgfx::kInvalidHandle};
+            uint32_t byteSize = 0;
+            bool requested = false;
+            std::vector<uint8_t> cpuBuffer;
+        };
+
+        ComputeShader m_readbackCopyShader;
+        PendingReadback m_readback;
 
         u32 m_width;
         u32 m_height;

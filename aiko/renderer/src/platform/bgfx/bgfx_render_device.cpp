@@ -99,6 +99,8 @@ namespace aiko::renderer::bgfx
 
         // ::bgfx::setDebug(BGFX_DEBUG_WIREFRAME | BGFX_DEBUG_STATS | BGFX_DEBUG_TEXT);
 
+        m_readbackCopyShader.load("readback_copy.cs");
+
         return  true;
 
     }
@@ -359,66 +361,118 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::execute(ViewId viewId, const ComputePass& pass)
     {
-        if (pass.shader == nullptr)
+        if (!pass.shader)
             return;
 
-        auto* csImpl = static_cast<renderer::bgfx::BgfxComputeShaderImpl*>(pass.shader->getImpl());
-        if (csImpl == nullptr || csImpl->isValid() == false)
+        auto* csImpl = static_cast<BgfxComputeShaderImpl*>(pass.shader->getImpl());
+        if (!csImpl || !csImpl->isValid())
             return;
 
         // Bind images
         for (const ComputeImageBinding& b : pass.images)
         {
-            if (b.texture == nullptr)
-                continue;
-
-            auto* texImpl = static_cast<renderer::bgfx::BgfxTextureImpl*>(b.texture->getImpl());
+            if (!b.texture) continue;
+            auto* texImpl = static_cast<BgfxTextureImpl*>(b.texture->getImpl());
             AIKO_ASSERT(texImpl && texImpl->isValid(), "Invalid compute image texture");
 
-            ::bgfx::setImage(
-                b.stage,
-                texImpl->getTextureHandler(),
-                0,
-                toBgfxAccess(b.access) // reuse your helper mapping ComputeAccess -> bgfx::Access
-            );
+            ::bgfx::setImage(b.stage,
+                             texImpl->getTextureHandler(),
+                             0,
+                             toBgfxAccess(b.access));
+        }
+
+        // Bind buffers
+        for (const ComputeBufferBinding& b : pass.buffers)
+        {
+            if (!b.buffer) continue;
+            auto* bufImpl = static_cast<BgfxComputeBufferImpl*>(b.buffer->getImpl());
+            AIKO_ASSERT(bufImpl && bufImpl->isValid(), "Invalid compute buffer");
+
+            ::bgfx::setBuffer(b.stage,
+                              bufImpl->handle(),
+                              toBgfxAccess(b.access));
+        }
+
+        // Uniforms
+        for (const ComputeVec4Uniform& u : pass.vec4Uniforms)
+        {
+            if (!u.name) continue;
+            ::bgfx::UniformHandle h = csImpl->getUniformHandle(u.name);
+            if (::bgfx::isValid(h))
+                ::bgfx::setUniform(h, &u.value);
         }
 
         // Dispatch
         if (pass.dispatch.groupsX == 0 || pass.dispatch.groupsY == 0 || pass.dispatch.groupsZ == 0)
             return;
 
-        for (const ComputeBufferBinding& b : pass.buffers)
+        ::bgfx::dispatch(viewId,
+                         csImpl->getProgramHandler(),
+                         pass.dispatch.groupsX,
+                         pass.dispatch.groupsY,
+                         pass.dispatch.groupsZ);
+
+    }
+
+    void BgfxRenderDevice::requestReadback(const ComputeReadbackRequest& request)
+    {
+        if (!request.buffer)
+            return;
+
+        auto* bufImpl =
+            static_cast<BgfxComputeBufferImpl*>(request.buffer->getImpl());
+
+        AIKO_ASSERT(bufImpl && bufImpl->isValid(),
+            "Invalid compute buffer for readback");
+
+        const uint32_t vec4Count = request.byteSize / 16u;
+
+        // Destroy old staging texture
+        if (::bgfx::isValid(m_readback.texture))
         {
-            if (!b.buffer) continue;
-
-            auto* bufImpl = static_cast<renderer::bgfx::BgfxComputeBufferImpl*>(b.buffer->getImpl());
-            AIKO_ASSERT(bufImpl && bufImpl->isValid(), "Invalid compute buffer");
-
-            ::bgfx::setBuffer(b.stage, bufImpl->handle(), toBgfxAccess(b.access));
+            ::bgfx::destroy(m_readback.texture);
         }
 
-        for (const ComputeVec4Uniform& u : pass.vec4Uniforms)
-        {
-            if (!u.name) continue;
-
-            // Compute shader impl should have a uniform cache map like your graphics shader impl.
-            auto* csImpl = static_cast<renderer::bgfx::BgfxComputeShaderImpl*>(pass.shader->getImpl());
-            AIKO_ASSERT(csImpl, "Compute shader impl missing");
-
-            ::bgfx::UniformHandle h = csImpl->getUniformHandle(u.name); // you may need to add this method
-            if (::bgfx::isValid(h))
-            {
-                ::bgfx::setUniform(h, &u.value);
-            }
-        }
-
-        ::bgfx::dispatch(
-            viewId,
-            csImpl->getProgramHandler(),
-            pass.dispatch.groupsX,
-            pass.dispatch.groupsY,
-            pass.dispatch.groupsZ
+        // RGBA32F staging texture
+        m_readback.texture = ::bgfx::createTexture2D(
+            (uint16_t)vec4Count,
+            1,
+            false,
+            1,
+            ::bgfx::TextureFormat::RGBA32F,
+            BGFX_TEXTURE_READ_BACK
         );
+
+        m_readback.byteSize = request.byteSize;
+        m_readback.cpuBuffer.resize(request.byteSize);
+        m_readback.requested = true;
+
+        //
+        // IMPORTANT:
+        // We DO NOT read yet.
+        // We must copy buffer → texture first.
+        //
+    }
+
+    bool BgfxRenderDevice::pollReadback(ComputeReadbackResult& result)
+    {
+        if (!m_readback.requested)
+            return false;
+
+        uint32_t size =
+            ::bgfx::readTexture(
+                m_readback.texture,
+                m_readback.cpuBuffer.data());
+
+        if (size == 0)
+            return false; // not ready yet
+
+        result.ready = true;
+        result.data = std::move(m_readback.cpuBuffer);
+
+        m_readback.requested = false;
+
+        return true;
     }
 
     void BgfxRenderDevice::bindFrameUniforms()

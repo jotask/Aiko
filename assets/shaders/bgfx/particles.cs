@@ -1,37 +1,49 @@
 #include "bgfx_compute.sh"
 
-// RW buffer at stage 0 (vec4 per pixel)
-BUFFER_RW(u_data, vec4, 0);
+// position buffer
+BUFFER_RW(u_pos, vec4, 0);
 
-// Output image at stage 1
-IMAGE2D_WO(u_output, rgba8, 1);
+// velocity buffer
+BUFFER_RW(u_vel, vec4, 1);
 
-// x = time, y = width, z = height, w = unused
+// debug output
+IMAGE2D_WO(u_output, rgba8, 2);
+
+// x = dt
+// y = particle count
 uniform vec4 u_params;
 
-NUM_THREADS(8, 8, 1)
+NUM_THREADS(64,1,1)
 void main()
 {
-    uvec3 gid = gl_GlobalInvocationID;
+    uint id = gl_GlobalInvocationID.x;
+    uint count = uint(u_params.y);
 
-    ivec2 size = imageSize(u_output);
-    if (gid.x >= uint(size.x) || gid.y >= uint(size.y))
+    if (id >= count)
         return;
 
-    uint idx = gid.y * uint(size.x) + gid.x;
+    float dt = u_params.x;
 
-    vec4 v = u_data[idx];
+    vec3 p = u_pos[id].xyz;
+    vec3 v = u_vel[id].xyz;
 
-    // Simple animation
-    v.x += 0.01;
-    if (v.x > 1.0) v.x = 0.0;
+    // simple orbit motion (temporary)
+    vec3 acc = vec3(-p.y, p.x, 0.0) * 0.3;
 
-    u_data[idx] = v;
+    v += acc * dt;
+    p += v * dt;
 
-    // Visualize buffer value
-    float fx = float(gid.x) / float(max(size.x - 1, 1));
-    float fy = float(gid.y) / float(max(size.y - 1, 1));
+    u_pos[id] = vec4(p,1.0);
+    u_vel[id] = vec4(v,0.0);
 
-    vec4 color = vec4(v.x, fy, fx, 1.0);
-    imageStore(u_output, ivec2(gid.xy), color);
+    // DEBUG VISUALIZATION
+    if ((id & 255u) == 0u)
+    {
+        ivec2 size = imageSize(u_output);
+
+        vec2 uv = clamp(p.xy * 0.5 + 0.5, 0.0, 1.0);
+        ivec2 pixel = ivec2(uv * vec2(size-1));
+
+        imageStore(u_output, pixel, vec4(1,1,1,1));
+    }
 }

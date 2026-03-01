@@ -6,6 +6,7 @@
 
 #include "display/display_manager.h"
 #include "models/camera.h"
+#include "time/time.h"
 
 namespace aiko
 {
@@ -28,31 +29,43 @@ namespace aiko
     void RenderModule::init()
     {
         AikoRenderer::it().init();
+        // TEMP compute validation
+        {
+            auto size = DisplayManager::it().getDisplay()->getDisplaySize();
 
-        auto size = DisplayManager::it().getDisplay()->getDisplaySize();
+            // output texture for compute (matches IMAGE2D_WO(u_output, rgba8, 2))
+            if (m_debugOut.isValid())
+                m_debugOut.unload();
 
-        const auto width = size.x;
-        const auto height = size.y;
+            m_debugOut.create({
+                .type = texture::TextureType::Sampled,
+                .format = texture::TextureFormat::RGBA8,
+                .width = size.x,
+                .height = size.y,
+                .mipmaps = false,
+                .computeWrite = true
+            });
 
-        // output texture (NOT a framebuffer attachment)
-        if (texture.isValid())
-            texture.unload();
+            m_particlesCS.load("particles.cs");
 
-        texture.create({
-            .type = texture::TextureType::Sampled,
-            .format = texture::TextureFormat::RGBA8,
-            .width = width,
-            .height = height,
-            .mipmaps = false,
-            .computeWrite = true
-        });
+            std::vector<vec4> pos(m_particleCount);
+            std::vector<vec4> vel(m_particleCount);
 
-        shader.load("particles.cs");
+            for (u32 i = 0; i < m_particleCount; ++i)
+            {
+                float t = float(i) / float(m_particleCount);
+                float a = t * 6.2831853f;
+                float r = 0.25f;
 
-        const uint32_t count = uint32_t(width) * uint32_t(height);
-        std::vector<vec4> initData(count, vec4(0, 0, 0, 1));
-        buffer.createVec4(count, initData.data());
+                pos[i] = vec4(std::cos(a) * r, std::sin(a) * r, 0.0f, 1.0f);
+                vel[i] = vec4(-std::sin(a) * 0.2f, std::cos(a) * 0.2f, 0.0f, 0.0f);
+            }
 
+            m_posBuffer.createVec4(m_particleCount, pos.data());
+            m_velBuffer.createVec4(m_particleCount, vel.data());
+
+            m_computeInit = true;
+        }
     }
 
     void RenderModule::update()
@@ -62,29 +75,31 @@ namespace aiko
 
     void RenderModule::render()
     {
-        static float m_time = 0.0f;
-
-        auto size = DisplayManager::it().getDisplay()->getDisplaySize();
-
-        const auto m_width = size.x;
-        const auto m_height = size.y;
-
-        m_time += 0.016f; // replace later with real dt
+        if (!m_computeInit)
+            return;
 
         ComputePass pass;
-        pass.shader = &shader;
+        pass.shader = &m_particlesCS;
 
-        pass.buffers.push_back({ 0, &buffer, ComputeAccess::ReadWrite });
-        pass.images.push_back({ 1, &texture, ComputeAccess::Write });
+        // stage 0/1 match shader BUFFER_RW(u_pos...0) and BUFFER_RW(u_vel...1)
+        pass.buffers.push_back({ 0, &m_posBuffer, ComputeAccess::ReadWrite });
+        pass.buffers.push_back({ 1, &m_velBuffer, ComputeAccess::ReadWrite });
 
-        pass.dispatch.groupsX = (uint32_t(m_width) + 7) / 8;
-        pass.dispatch.groupsY = (uint32_t(m_height) + 7) / 8;
+        // stage 2 matches IMAGE2D_WO(u_output, rgba8, 2)
+        pass.images.push_back({ 2, &m_debugOut, ComputeAccess::Write });
+
+        const float dt = Time::it().getDeltaTime();
+        pass.vec4Uniforms.push_back({ "u_params", vec4(dt, float(m_particleCount), 0.0f, 0.0f) });
+
+        pass.dispatch.groupsX = (m_particleCount + 63) / 64;
+        pass.dispatch.groupsY = 1;
         pass.dispatch.groupsZ = 1;
 
-        // uniform
-        pass.vec4Uniforms.push_back({ "u_params", vec4(m_time, float(m_width), float(m_height), 0.0f) });
-
         AikoRenderer::it().enqueueCompute(pass);
+
+        // NOTE: no particle draw here (compute-only validation).
+        // If you want to see it, present m_debugOut in AikoRenderer's screen pass.
+        AikoRenderer::it().setDebugTexture(&m_debugOut);
 
     }
 

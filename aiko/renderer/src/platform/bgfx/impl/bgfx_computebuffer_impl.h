@@ -11,8 +11,14 @@ namespace aiko::renderer::bgfx
     {
     public:
 
-        BgfxComputeBufferImpl() = default;
-        virtual ~BgfxComputeBufferImpl() override = default;
+        BgfxComputeBufferImpl();
+        virtual ~BgfxComputeBufferImpl() override;
+
+        BgfxComputeBufferImpl(const BgfxComputeBufferImpl&) = delete;
+        BgfxComputeBufferImpl& operator=(const BgfxComputeBufferImpl&) = delete;
+
+        BgfxComputeBufferImpl(BgfxComputeBufferImpl&&) = delete;
+        BgfxComputeBufferImpl& operator=(BgfxComputeBufferImpl&&) = delete;
 
         virtual bool isValid() const override;
 

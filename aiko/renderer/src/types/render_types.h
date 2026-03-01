@@ -7,6 +7,8 @@
 namespace aiko
 {
 
+    class ComputeBuffer;
+
     using ViewId = uint16_t;
 
     constexpr uint16_t MAX_LIGHTS = 8;
@@ -89,7 +91,6 @@ namespace aiko
         uint32_t count              = 0;
         uint16_t stride             = 0;
     };
-
 
 }
 

@@ -44,12 +44,13 @@ namespace aiko
 
         void render(const Camera& camera);
 
-        // Font
-        void drawText(string, float, float, float = 1.0f, Color = WHITE);
+        void setDebugTexture(const Texture* texture);   // nullptr disables
 
         FrameBuffer getTargetTexture() const;
 
     protected:
+
+        const Texture* m_debugTexture = nullptr;
 
         void onWindowResize(Event&);
 

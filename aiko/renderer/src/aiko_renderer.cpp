@@ -251,16 +251,25 @@ namespace aiko
 
             m_renderer->beginPass(SCREEN_VIEW, presentPass, nullptr);
             m_renderer->bindFrame(SCREEN_VIEW, screenFrame);
-            m_renderer->presentFrameBufferToScreen(SCREEN_VIEW, m_screenFbo);
+
+            if (m_debugTexture != nullptr && m_debugTexture->isValid())
+            {
+                m_renderer->presentTextureToScreen(SCREEN_VIEW, m_screenFbo, *m_debugTexture);
+            }
+            else
+            {
+                m_renderer->presentFrameBufferToScreen(SCREEN_VIEW, m_screenFbo);
+            }
+
             m_renderer->endPass();
 
         }
 
     }
 
-    void AikoRenderer::drawText(string str, float x, float y, float size, Color color)
+    void AikoRenderer::setDebugTexture(const Texture* texture)
     {
-
+        m_debugTexture = texture;
     }
 
     FrameBuffer AikoRenderer::getTargetTexture() const

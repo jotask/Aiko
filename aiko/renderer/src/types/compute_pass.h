@@ -35,6 +35,18 @@ namespace aiko
         Mat4f,   // 4x vec4
     };
 
+    struct ComputeReadbackRequest
+    {
+        const ComputeBuffer* buffer= nullptr;
+        uint32_t byteSize = 0;
+    };
+
+    struct ComputeReadbackResult
+    {
+        bool ready = false;
+        std::vector<uint8_t> data;
+    };
+
     struct ComputeBufferBinding
     {
         uint8_t stage = 0;

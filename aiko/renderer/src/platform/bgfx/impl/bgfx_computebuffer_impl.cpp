@@ -9,6 +9,16 @@
 
 namespace aiko::renderer::bgfx
 {
+    BgfxComputeBufferImpl::BgfxComputeBufferImpl()
+        : m_handle({::bgfx::kInvalidHandle})
+    {
+    }
+
+    BgfxComputeBufferImpl::~BgfxComputeBufferImpl()
+    {
+        destroy();
+    }
+
     bool BgfxComputeBufferImpl::isValid() const
     {
         return ::bgfx::isValid(m_handle);
@@ -21,8 +31,8 @@ namespace aiko::renderer::bgfx
         {
             switch (fmt)
             {
-            case ComputeBufferFormat::Vec4f: return 16; // 4 floats
-            default: return 16;
+                case ComputeBufferFormat::Vec4f: return 16; // 4 floats
+                default: return 16;
             }
         };
 
@@ -58,6 +68,7 @@ namespace aiko::renderer::bgfx
     {
         if (::bgfx::isValid(m_handle))
         {
+            logger::Log::info("Destroy compute VB handle idx=%u", m_handle.idx);
             ::bgfx::destroy(m_handle);
             m_handle = {::bgfx::kInvalidHandle};
         }
@@ -74,7 +85,6 @@ namespace aiko::renderer::bgfx
             // 1x vec4 in TEXCOORD0
             m_layout.add(::bgfx::Attrib::TexCoord0, 4, ::bgfx::AttribType::Float);
             break;
-
         default:
             // fallback
             m_layout.add(::bgfx::Attrib::TexCoord0, 4, ::bgfx::AttribType::Float);

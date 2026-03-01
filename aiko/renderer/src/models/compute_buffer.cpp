@@ -11,6 +11,11 @@ namespace aiko
 
     }
 
+    ComputeBuffer::~ComputeBuffer()
+    {
+        destroy();
+    }
+
     bool ComputeBuffer::isValid() const
     {
         return backend->isValid();

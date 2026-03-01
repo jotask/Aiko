@@ -37,10 +37,13 @@ namespace aiko
 
         std::vector<InstanceItem> m_instances;
 
-        // TEST
-        Texture texture;
-        ComputeShader shader;
-        ComputeBuffer buffer;
+        // TEMP: compute validation (remove later when SceneSystem owns compute)
+        bool m_computeInit = false;
+        ComputeShader m_particlesCS;
+        ComputeBuffer m_posBuffer;
+        ComputeBuffer m_velBuffer;
+        Texture m_debugOut;
+        u32 m_particleCount = 16384;
 
     };
 

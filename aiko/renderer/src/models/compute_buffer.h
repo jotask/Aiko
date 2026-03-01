@@ -25,7 +25,7 @@
         ComputeBuffer& operator=(ComputeBuffer&&) noexcept = default;
 
         ComputeBuffer();
-        virtual ~ComputeBuffer() = default;
+        ~ComputeBuffer();
 
         bool isValid() const;
 
