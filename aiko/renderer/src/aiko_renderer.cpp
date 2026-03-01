@@ -58,6 +58,7 @@ namespace aiko
     {
         m_queue.clear();
         m_instancedQueue.clear();
+        m_computeQueue.clear();
         m_lights.clear();
         m_renderer->beginFrame();
         m_imgui.beginFrame();
@@ -119,14 +120,9 @@ namespace aiko
         m_instancedQueue.push_back(std::move(item));
     }
 
-    void AikoRenderer::dispatchCompute(ViewId viewId, const ComputeShader& shader, u32 groupsX, u32 groupsY, u32 groupsZ)
+    void AikoRenderer::enqueueCompute(const ComputePass& pass)
     {
-        m_renderer->dispatch(viewId, shader, groupsX, groupsY, groupsZ);
-    }
-
-    void AikoRenderer::executeCompute(const ComputePass& pass)
-    {
-        m_renderer->execute(pass);
+        m_computeQueue.push_back(pass);
     }
 
     void AikoRenderer::render(const Camera& camera)
@@ -158,6 +154,11 @@ namespace aiko
                 .lights = m_lights,
             };
             m_renderer->bindFrame(SCENE_VIEW, frameData);
+
+            for (const ComputePass& pass : m_computeQueue)
+            {
+                m_renderer->execute(COMPUTE_VIEW, pass);
+            }
 
             std::ranges::sort(m_queue, [](const RenderItem& a, const RenderItem& b)
             {

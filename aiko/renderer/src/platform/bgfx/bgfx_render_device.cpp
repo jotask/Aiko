@@ -357,7 +357,7 @@ namespace aiko::renderer::bgfx
         ::bgfx::dispatch(viewId, csImpl->getProgramHandler(), groupsX, groupsY, groupsZ);
     }
 
-    void BgfxRenderDevice::execute(const ComputePass& pass)
+    void BgfxRenderDevice::execute(ViewId viewId, const ComputePass& pass)
     {
         if (pass.shader == nullptr)
             return;
@@ -398,7 +398,7 @@ namespace aiko::renderer::bgfx
         }
 
         ::bgfx::dispatch(
-            pass.viewId,
+            viewId,
             csImpl->getProgramHandler(),
             pass.dispatch.groupsX,
             pass.dispatch.groupsY,

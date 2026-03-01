@@ -40,9 +40,7 @@ namespace aiko
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
         void submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride);
 
-        void dispatchCompute(ViewId viewId, const ComputeShader& shader, u32 groupsX, u32 groupsY, u32 groupsZ);
-
-        void executeCompute(const ComputePass& pass);
+        void enqueueCompute(const ComputePass& pass);
 
         void render(const Camera& camera);
 
@@ -66,6 +64,8 @@ namespace aiko
 
         std::vector<RenderItem> m_queue;
         std::vector<InstanceItem> m_instancedQueue;
+        std::vector<ComputePass> m_computeQueue;
+
         std::vector<LightData> m_lights;
         AmbientLight m_ambientLight;
 

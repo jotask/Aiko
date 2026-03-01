@@ -47,7 +47,7 @@ namespace aiko::renderer::bgfx
         virtual void setComputeImage(ViewId viewId, const Texture& texture, ComputeAccess access) override;
         virtual void setComputeBuffer(ViewId viewId, const ComputeBuffer& buffer, ComputeAccess access) override;
         virtual void dispatch( ViewId viewId, const ComputeShader& program, uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) override;
-        virtual void execute(const ComputePass& pass) override;
+        virtual void execute(ViewId viewId, const ComputePass& pass) override;
 
     private:
 

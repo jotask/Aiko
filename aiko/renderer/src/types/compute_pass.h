@@ -44,15 +44,9 @@ namespace aiko
 
     struct ComputePass
     {
-        ViewId viewId = 0;
         const ComputeShader* shader = nullptr;
-
         std::vector<ComputeImageBinding> images;
         ComputeDispatch dispatch;
-
-        // Optional debug name (useful later)
-        const char* name = nullptr;
-
         std::vector<ComputeBufferBinding> buffers;
     };
 
