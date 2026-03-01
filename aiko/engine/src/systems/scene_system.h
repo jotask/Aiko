@@ -23,7 +23,6 @@ namespace aiko
         SceneSystem();
         virtual ~SceneSystem() = default;
 
-        // ---- Scene ownership API (temporary forward to ECS) ----
         AikoPtr<GameObject> createGameObject(string name = DEFAULT_OBJECT_NAME);
         AikoPtr<GameObject> createGameObject(GameObject* parent, string name = DEFAULT_OBJECT_NAME);
         void destroyGameObject(const AikoPtr<GameObject>& obj);
@@ -35,7 +34,7 @@ namespace aiko
         GameObject* getActiveCamera() const { return m_scene.getActiveCamera(); }
 
     protected:
-    
+
         virtual void connect(ModuleConnector*, SystemConnector*) override;
         virtual void update() override;
         virtual void render() override;

@@ -42,12 +42,19 @@ namespace aiko
         ComputeAccess access = ComputeAccess::ReadWrite;
     };
 
+    struct ComputeVec4Uniform
+    {
+        const char* name = nullptr;
+        vec4 value = vec4(0.0f);
+    };
+
     struct ComputePass
     {
         const ComputeShader* shader = nullptr;
         std::vector<ComputeImageBinding> images;
         ComputeDispatch dispatch;
         std::vector<ComputeBufferBinding> buffers;
+        std::vector<ComputeVec4Uniform> vec4Uniforms;
     };
 
 }

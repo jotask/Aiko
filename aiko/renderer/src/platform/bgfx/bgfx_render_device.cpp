@@ -397,6 +397,21 @@ namespace aiko::renderer::bgfx
             ::bgfx::setBuffer(b.stage, bufImpl->handle(), toBgfxAccess(b.access));
         }
 
+        for (const ComputeVec4Uniform& u : pass.vec4Uniforms)
+        {
+            if (!u.name) continue;
+
+            // Compute shader impl should have a uniform cache map like your graphics shader impl.
+            auto* csImpl = static_cast<renderer::bgfx::BgfxComputeShaderImpl*>(pass.shader->getImpl());
+            AIKO_ASSERT(csImpl, "Compute shader impl missing");
+
+            ::bgfx::UniformHandle h = csImpl->getUniformHandle(u.name); // you may need to add this method
+            if (::bgfx::isValid(h))
+            {
+                ::bgfx::setUniform(h, &u.value);
+            }
+        }
+
         ::bgfx::dispatch(
             viewId,
             csImpl->getProgramHandler(),

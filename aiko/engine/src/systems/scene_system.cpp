@@ -1,6 +1,7 @@
 #include "scene_system.h"
 
 #include "components/camera_component.h"
+#include "display/display_manager.h"
 #include "modules/render_module.h"
 
 #include "modules/module_connector.h"
