@@ -2,12 +2,14 @@
 
 #include <aiko_types.h>
 
+#include "models/compute_buffer.h"
 #include "models/compute_shader.h"
 #include "models/material.h"
 #include "models/mesh.h"
 #include "models/screen_fbo.h"
 #include "types/render_types.h"
 #include "renderer/frame_uniforms.h"
+#include "types/compute_pass.h"
 
 namespace aiko::renderer
 {
@@ -44,7 +46,9 @@ namespace aiko::renderer
 
         // Compute Shader
         virtual void setComputeImage(ViewId viewId, const Texture& texture, ComputeAccess access) = 0;
+        virtual void setComputeBuffer(ViewId viewId, const ComputeBuffer& buffer, ComputeAccess access) = 0;
         virtual void dispatch( ViewId viewId, const ComputeShader& program, uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) = 0;
+        virtual void execute(const ComputePass& pass) = 0;
 
     };
 }

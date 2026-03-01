@@ -5,7 +5,7 @@
 #include <aiko_types.h>
 #include <bgfx/bgfx.h>
 
-#include "interfaces/icompute_shader_impl.h"
+#include "interfaces/icomputeshader_impl.h"
 
 namespace aiko::renderer::bgfx
 {

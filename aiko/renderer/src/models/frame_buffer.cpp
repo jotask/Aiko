@@ -40,6 +40,7 @@ namespace aiko
                 .width = width,
                 .height = height,
                 .mipmaps = false,
+                .computeWrite = true,
             });
         depthTexture.create(
             {

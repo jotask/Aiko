@@ -28,6 +28,7 @@ namespace aiko::texture
         int             width;                  // Texture base width
         int             height;                 // Texture base height
         int             mipmaps;                // Mipmap levels, 1 by default
+        bool            computeWrite            = false; // allow use this texture as compute shader output
     };
 
     inline int getChannelCount(TextureFormat format)

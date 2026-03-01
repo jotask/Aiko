@@ -109,7 +109,7 @@ def compileshader(shader: Path):
         "--varyingdef", str(local_varying),
     ]
 
-    colorPrint(Color.WARNING, f"Running: {" ".join(cmd)}")
+    colorPrint(Color.WARNING, f"Running: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         colorPrint(Color.ERROR,"Shader compilation failed!")

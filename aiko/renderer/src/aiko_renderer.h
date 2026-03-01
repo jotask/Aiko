@@ -42,6 +42,8 @@ namespace aiko
 
         void dispatchCompute(ViewId viewId, const ComputeShader& shader, u32 groupsX, u32 groupsY, u32 groupsZ);
 
+        void executeCompute(const ComputePass& pass);
+
         void render(const Camera& camera);
 
         // Font
@@ -62,6 +64,9 @@ namespace aiko
         ScreenFbo m_screenFbo;
         Shader m_passThrough;
 
+        // Test
+        ComputeShader m_csGradient;
+
         std::vector<RenderItem> m_queue;
         std::vector<InstanceItem> m_instancedQueue;
         std::vector<LightData> m_lights;
@@ -69,9 +74,12 @@ namespace aiko
 
     private:
 
-        const ViewId SCENE_VIEW = 0;
-        const ViewId SCREEN_VIEW = 1;
-        const ViewId IMGUI_VIEW = 2;
+        static constexpr ViewId COMPUTE_VIEW = 0;
+        static constexpr ViewId SCENE_VIEW = 1;
+        static constexpr ViewId SCREEN_VIEW = 2;
+        static constexpr ViewId IMGUI_VIEW = 3;
+
+        static_assert(COMPUTE_VIEW < SCENE_VIEW, "Compute View MUST be less than Scene View");
 
         AikoImgui m_imgui;
 

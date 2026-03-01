@@ -72,6 +72,11 @@ namespace aiko::renderer::bgfx
             AIKO_ASSERT(false, "Not supported texture type");
         }
 
+        if (text.computeWrite == true)
+        {
+            flags |= BGFX_TEXTURE_COMPUTE_WRITE;
+        }
+
         logger::Log::info("%d, %d", text.width, text.height);
         m_textureHandle = ::bgfx::createTexture2D(
             text.width,

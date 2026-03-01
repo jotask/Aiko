@@ -6,6 +6,7 @@
 
 #include "bgfx_platform_helper.h"
 #include "display/display_manager.h"
+#include "impl/bgfx_computebuffer_impl.h"
 #include "impl/bgfx_computeshader_impl.h"
 #include "impl/bgfx_texture_impl.h"
 
@@ -302,11 +303,64 @@ namespace aiko::renderer::bgfx
         ::bgfx::setImage(viewId, texImpl->getTextureHandler(), 0, toBgfxAccess(access));
     }
 
+    void BgfxRenderDevice::setComputeBuffer(ViewId viewId, const ComputeBuffer& buffer, ComputeAccess access)
+    {
+    }
+
     void BgfxRenderDevice::dispatch(ViewId viewId, const ComputeShader& program, uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ)
     {
         auto* csImpl = static_cast<BgfxComputeShaderImpl*>(program.getImpl());
         AIKO_ASSERT(csImpl && csImpl->isValid(), "Invalid compute shader");
         ::bgfx::dispatch(viewId, csImpl->getProgramHandler(), groupsX, groupsY, groupsZ);
+    }
+
+    void BgfxRenderDevice::execute(const ComputePass& pass)
+    {
+        if (pass.shader == nullptr)
+            return;
+
+        auto* csImpl = static_cast<renderer::bgfx::BgfxComputeShaderImpl*>(pass.shader->getImpl());
+        if (csImpl == nullptr || csImpl->isValid() == false)
+            return;
+
+        // Bind images
+        for (const ComputeImageBinding& b : pass.images)
+        {
+            if (b.texture == nullptr)
+                continue;
+
+            auto* texImpl = static_cast<renderer::bgfx::BgfxTextureImpl*>(b.texture->getImpl());
+            AIKO_ASSERT(texImpl && texImpl->isValid(), "Invalid compute image texture");
+
+            ::bgfx::setImage(
+                b.stage,
+                texImpl->getTextureHandler(),
+                0,
+                toBgfxAccess(b.access) // reuse your helper mapping ComputeAccess -> bgfx::Access
+            );
+        }
+
+        // Dispatch
+        if (pass.dispatch.groupsX == 0 || pass.dispatch.groupsY == 0 || pass.dispatch.groupsZ == 0)
+            return;
+
+        for (const ComputeBufferBinding& b : pass.buffers)
+        {
+            if (!b.buffer) continue;
+
+            auto* bufImpl = static_cast<renderer::bgfx::BgfxComputeBufferImpl*>(b.buffer->getImpl());
+            AIKO_ASSERT(bufImpl && bufImpl->isValid(), "Invalid compute buffer");
+
+            ::bgfx::setBuffer(b.stage, bufImpl->handle(), toBgfxAccess(b.access));
+        }
+
+        ::bgfx::dispatch(
+            pass.viewId,
+            csImpl->getProgramHandler(),
+            pass.dispatch.groupsX,
+            pass.dispatch.groupsY,
+            pass.dispatch.groupsZ
+        );
     }
 
     void BgfxRenderDevice::bindFrameUniforms()

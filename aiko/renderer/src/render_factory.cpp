@@ -5,6 +5,7 @@
 #include "platform/bgfx/impl/bgfx_shader_impl.h"
 #include "platform/bgfx/impl/bgfx_texture_impl.h"
 #include "platform/bgfx/impl/bgfx_computeshader_impl.h"
+#include "platform/bgfx/impl/bgfx_computebuffer_impl.h"
 #include "platform/bgfx/impl/bgfx_mesh_impl.h"
 #include "platform/bgfx/impl/bgfx_framebuffer_impl.h"
 #elif defined (AIKO_NATIVE)
@@ -66,6 +67,17 @@ namespace aiko
         {
             #if defined (AIKO_BGFX)
             return std::make_shared<bgfx::BgfxComputeShaderImpl>();
+            #elif defined (AIKO_NATIVE)
+            return std::make_shared<OpenGLShaderImpl>();
+            #else
+            #error Backend not supported
+            #endif
+        }
+
+        AikoPtr<interfaces::IComputeBufferImpl> RendererFactory::createComputeBufferImpl()
+        {
+            #if defined (AIKO_BGFX)
+            return std::make_shared<bgfx::BgfxComputeBufferImpl>();
             #elif defined (AIKO_NATIVE)
             return std::make_shared<OpenGLShaderImpl>();
             #else

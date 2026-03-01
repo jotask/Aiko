@@ -1,5 +1,6 @@
 #pragma once
 
+#include "interfaces/i_computebuffer.h"
 #include "models/shader.h"
 #include "models/texture.h"
 #include "models/frame_buffer.h"
@@ -20,6 +21,7 @@ namespace aiko
             static AikoPtr<interfaces::ITextureImpl> createTextureImpl();
             static AikoPtr<interfaces::IFrameBufferImpl> createFrameBufferImpl();
             static AikoPtr<interfaces::IComputeShaderImpl> createComputeShaderImpl();
+            static AikoPtr<interfaces::IComputeBufferImpl> createComputeBufferImpl();
             static AikoPtr<interfaces::IMeshImpl> createMeshImpl(Mesh*);
         };
     }
