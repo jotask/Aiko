@@ -41,6 +41,8 @@ namespace aiko
         void submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride);
 
         void enqueueCompute(const ComputePass& pass);
+        void requestReadback(const ComputeReadbackRequest& req);
+        bool pollReadback(ComputeReadbackResult& out);
 
         void render(const Camera& camera);
 

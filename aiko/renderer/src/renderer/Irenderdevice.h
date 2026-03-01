@@ -47,9 +47,6 @@ namespace aiko::renderer
         virtual void bindFrame(ViewId viewId, const FrameData& u) = 0;
 
         // Compute Shader
-        virtual void setComputeImage(ViewId viewId, const Texture& texture, ComputeAccess access) = 0;
-        virtual void setComputeBuffer(ViewId viewId, const ComputeBuffer& buffer, ComputeAccess access) = 0;
-        virtual void dispatch( ViewId viewId, const ComputeShader& program, uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) = 0;
         virtual void execute(ViewId viewId, const ComputePass& pass) = 0;
         virtual void requestReadback( const ComputeReadbackRequest& request) = 0;
         virtual bool pollReadback(ComputeReadbackResult& result) = 0;

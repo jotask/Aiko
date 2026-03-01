@@ -20,6 +20,8 @@
     #error OS unsupported!
 #endif
 
+#include <bgfx/bgfx.h>
+
 #include <platform/bgfx/impl/bgfx_shader_impl.h>
 #include <platform/bgfx/impl/bgfx_mesh_impl.h>
 #include <platform/bgfx/impl/bgfx_framebuffer_impl.h>
@@ -99,7 +101,7 @@ namespace aiko::renderer::bgfx
 
         // ::bgfx::setDebug(BGFX_DEBUG_WIREFRAME | BGFX_DEBUG_STATS | BGFX_DEBUG_TEXT);
 
-        m_readbackCopyShader.load("readback_copy.cs");
+        m_csReadbackCopy.load("readback_copy.cs");
 
         return  true;
 
@@ -161,6 +163,29 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::present()
     {
+        // Start new job if none running
+        if (!m_activeReadback && !m_readbackQueue.empty())
+        {
+            startReadbackInternal(m_readbackQueue.front());
+            m_readbackQueue.pop_front();
+        }
+
+        // Process active job
+        if (m_activeReadback)
+        {
+            auto& rb = *m_activeReadback;
+
+            if (rb.stage == PendingReadback::Stage::SubmittedGPUWork)
+            {
+                dispatchPendingReadbackCopy();
+                rb.framesSinceSubmit++;
+            }
+            else if (rb.stage == PendingReadback::Stage::ReadIssued)
+            {
+                rb.framesSinceSubmit++;
+            }
+        }
+
         ::bgfx::frame();
     }
 
@@ -341,24 +366,6 @@ namespace aiko::renderer::bgfx
         ::bgfx::setViewTransform(viewId, u.view.data(), u.projection.data() );
     }
 
-    void BgfxRenderDevice::setComputeImage(ViewId viewId, const Texture& texture, ComputeAccess access)
-    {
-        auto* texImpl = static_cast<BgfxTextureImpl*>(texture.getImpl());
-        AIKO_ASSERT(texImpl && texImpl->isValid(), "Invalid compute texture");
-        ::bgfx::setImage(viewId, texImpl->getTextureHandler(), 0, toBgfxAccess(access));
-    }
-
-    void BgfxRenderDevice::setComputeBuffer(ViewId viewId, const ComputeBuffer& buffer, ComputeAccess access)
-    {
-    }
-
-    void BgfxRenderDevice::dispatch(ViewId viewId, const ComputeShader& program, uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ)
-    {
-        auto* csImpl = static_cast<BgfxComputeShaderImpl*>(program.getImpl());
-        AIKO_ASSERT(csImpl && csImpl->isValid(), "Invalid compute shader");
-        ::bgfx::dispatch(viewId, csImpl->getProgramHandler(), groupsX, groupsY, groupsZ);
-    }
-
     void BgfxRenderDevice::execute(ViewId viewId, const ComputePass& pass)
     {
         if (!pass.shader)
@@ -416,63 +423,169 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::requestReadback(const ComputeReadbackRequest& request)
     {
-        if (!request.buffer)
+
+        if (!request.buffer || request.byteSize == 0)
             return;
 
-        auto* bufImpl =
-            static_cast<BgfxComputeBufferImpl*>(request.buffer->getImpl());
+        ComputeReadbackRequest r = request;
+        if (r.id == 0)
+            r.id = m_nextReadbackId++;
 
-        AIKO_ASSERT(bufImpl && bufImpl->isValid(),
-            "Invalid compute buffer for readback");
-
-        const uint32_t vec4Count = request.byteSize / 16u;
-
-        // Destroy old staging texture
-        if (::bgfx::isValid(m_readback.texture))
-        {
-            ::bgfx::destroy(m_readback.texture);
-        }
-
-        // RGBA32F staging texture
-        m_readback.texture = ::bgfx::createTexture2D(
-            (uint16_t)vec4Count,
-            1,
-            false,
-            1,
-            ::bgfx::TextureFormat::RGBA32F,
-            BGFX_TEXTURE_READ_BACK
-        );
-
-        m_readback.byteSize = request.byteSize;
-        m_readback.cpuBuffer.resize(request.byteSize);
-        m_readback.requested = true;
-
-        //
-        // IMPORTANT:
-        // We DO NOT read yet.
-        // We must copy buffer → texture first.
-        //
+        m_readbackQueue.push_back(r);
     }
 
     bool BgfxRenderDevice::pollReadback(ComputeReadbackResult& result)
     {
-        if (!m_readback.requested)
+        if (!m_completedReadbacks.empty())
+        {
+            result = std::move(m_completedReadbacks.front());
+            m_completedReadbacks.pop_front();
+            return true;
+        }
+
+        if (!m_activeReadback)
             return false;
 
-        uint32_t size =
-            ::bgfx::readTexture(
-                m_readback.texture,
-                m_readback.cpuBuffer.data());
+        auto& rb = *m_activeReadback;
 
-        if (size == 0)
-            return false; // not ready yet
+        if (rb.stage == PendingReadback::Stage::SubmittedGPUWork)
+        {
+            if (rb.framesSinceSubmit < 2)
+                return false;
 
-        result.ready = true;
-        result.data = std::move(m_readback.cpuBuffer);
+            ::bgfx::readTexture(rb.readTex, rb.cpu.data());
 
-        m_readback.requested = false;
+            rb.stage = PendingReadback::Stage::ReadIssued;
+            rb.framesSinceSubmit = 0;
+            return false;
+        }
 
-        return true;
+        if (rb.stage == PendingReadback::Stage::ReadIssued)
+        {
+            if (rb.framesSinceSubmit < 2)
+                return false;
+
+            uint32_t bytes = ::bgfx::readTexture(rb.readTex, rb.cpu.data());
+            if (bytes == 0)
+                return false;
+
+            ComputeReadbackResult r;
+            r.id = rb.id;
+            r.ready = true;
+            r.data = std::move(rb.cpu);
+
+            m_completedReadbacks.push_back(std::move(r));
+
+            cleanupReadback(rb);
+
+            m_activeReadback.reset();
+
+            return false;
+        }
+
+        return false;
+    }
+
+    void BgfxRenderDevice::dispatchPendingReadbackCopy()
+    {
+
+        constexpr ViewId READBACK_VIEW = 250;
+
+        if (!m_activeReadback)
+            return;
+
+        auto& rb = *m_activeReadback;
+
+        AIKO_ASSERT(rb.source != nullptr, "Readback source missing");
+        AIKO_ASSERT(::bgfx::isValid(rb.computeTex), "Readback computeTex invalid");
+        AIKO_ASSERT(::bgfx::isValid(rb.readTex), "Readback readTex invalid");
+
+        auto* srcImpl = static_cast<BgfxComputeBufferImpl*>(rb.source->getImpl());
+        AIKO_ASSERT(srcImpl && srcImpl->isValid(), "Invalid readback source buffer");
+
+        auto* csImpl = static_cast<BgfxComputeShaderImpl*>(m_csReadbackCopy.getImpl());
+        AIKO_ASSERT(csImpl && csImpl->isValid(), "Invalid readback copy shader");
+
+        const uint32_t vec4Count = rb.byteSize / 16u;
+        const uint32_t gx = (vec4Count + 63u) / 64u;
+
+        // Setup view
+        ::bgfx::setViewRect(READBACK_VIEW, 0, 0, 1, 1);
+        ::bgfx::touch(READBACK_VIEW);
+
+        // Bind src buffer and dst computeTex
+        ::bgfx::setBuffer(0, srcImpl->handle(), ::bgfx::Access::Read);
+        ::bgfx::setImage(1, rb.computeTex, 0, ::bgfx::Access::Write);
+
+        // u_params.x = vec4Count
+        const vec4 params(float(vec4Count), 0.0f, 0.0f, 0.0f);
+        ::bgfx::UniformHandle u = csImpl->getUniformHandle("u_params");
+        AIKO_ASSERT(::bgfx::isValid(u), "readback_copy.cs missing u_params");
+        ::bgfx::setUniform(u, &params);
+
+        // Dispatch copy shader
+        ::bgfx::dispatch(READBACK_VIEW, csImpl->getProgramHandler(), gx, 1, 1);
+
+        // Blit computeTex -> readTex
+        ::bgfx::blit(
+            READBACK_VIEW,
+            rb.readTex, 0, 0,
+            rb.computeTex, 0, 0,
+            (uint16_t)vec4Count, 1
+        );
+
+    }
+
+    void BgfxRenderDevice::startReadbackInternal(const ComputeReadbackRequest& request)
+    {
+        if (m_activeReadback.has_value())
+            return;
+
+        if (!request.buffer || request.byteSize == 0)
+            return;
+
+        AIKO_ASSERT((request.byteSize % 16u) == 0u, "Readback byteSize must be multiple of 16 (vec4)");
+
+        m_activeReadback.emplace();
+        auto& rb = *m_activeReadback;
+
+        rb.id = request.id;
+        rb.source = request.buffer;
+        rb.byteSize = request.byteSize;
+        rb.cpu.assign(request.byteSize, 0);
+
+        const uint32_t vec4Count = request.byteSize / 16u;
+
+        rb.computeTex = ::bgfx::createTexture2D(
+            (uint16_t)vec4Count, 1, false, 1,
+            ::bgfx::TextureFormat::RGBA32F,
+            BGFX_TEXTURE_COMPUTE_WRITE
+        );
+
+        rb.readTex = ::bgfx::createTexture2D(
+            (uint16_t)vec4Count, 1, false, 1,
+            ::bgfx::TextureFormat::RGBA32F,
+            BGFX_TEXTURE_READ_BACK | BGFX_TEXTURE_BLIT_DST
+        );
+
+        AIKO_ASSERT(::bgfx::isValid(rb.computeTex), "Failed to create computeTex for readback");
+        AIKO_ASSERT(::bgfx::isValid(rb.readTex), "Failed to create readTex for readback");
+
+        rb.stage = PendingReadback::Stage::SubmittedGPUWork;
+        rb.framesSinceSubmit = 0;
+
+    }
+
+    void BgfxRenderDevice::cleanupReadback(PendingReadback& rb)
+    {
+        if (::bgfx::isValid(rb.computeTex))
+            ::bgfx::destroy(rb.computeTex);
+
+        if (::bgfx::isValid(rb.readTex))
+            ::bgfx::destroy(rb.readTex);
+
+        rb.computeTex = { ::bgfx::kInvalidHandle };
+        rb.readTex    = { ::bgfx::kInvalidHandle };
     }
 
     void BgfxRenderDevice::bindFrameUniforms()

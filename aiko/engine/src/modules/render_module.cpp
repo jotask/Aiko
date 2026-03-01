@@ -97,9 +97,38 @@ namespace aiko
 
         AikoRenderer::it().enqueueCompute(pass);
 
+        // Request readback once per second (TEMP debug)
+        // TEMP: request a readback once, then request again only after we got a result
+        if (!m_readbackRequested)
+        {
+            ComputeReadbackRequest req;
+            req.buffer = &m_posBuffer;
+            req.byteSize = 16 * sizeof(vec4); // first 16 vec4s
+            AikoRenderer::it().requestReadback(req);
+
+            m_readbackRequested = true;
+        }
+
+        if (m_readbackRequested)
+        {
+            ComputeReadbackResult res;
+            if (AikoRenderer::it().pollReadback(res) && res.ready)
+            {
+                const vec4* v = reinterpret_cast<const vec4*>(res.data.data());
+                logger::Log::info("pos0=(%f,%f,%f,%f) pos1=(%f,%f,%f,%f)",
+                    v[0].x,v[0].y,v[0].z,v[0].w,
+                    v[1].x,v[1].y,v[1].z,v[1].w);
+
+                // request next one (optional)
+                m_readbackRequested = false;
+            }
+        }
+
         // NOTE: no particle draw here (compute-only validation).
         // If you want to see it, present m_debugOut in AikoRenderer's screen pass.
         AikoRenderer::it().setDebugTexture(&m_debugOut);
+
+
 
     }
 

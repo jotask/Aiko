@@ -125,6 +125,16 @@ namespace aiko
         m_computeQueue.push_back(pass);
     }
 
+    void AikoRenderer::requestReadback(const ComputeReadbackRequest& req)
+    {
+        m_renderer->requestReadback(req);
+    }
+
+    bool AikoRenderer::pollReadback(ComputeReadbackResult& out)
+    {
+        return m_renderer->pollReadback(out);
+    }
+
     void AikoRenderer::render(const Camera& camera)
     {
 

@@ -35,14 +35,18 @@ namespace aiko
         Mat4f,   // 4x vec4
     };
 
+    using ReadbackId = uint64_t;
+
     struct ComputeReadbackRequest
     {
+        ReadbackId id = 0;                 // filled by caller or device
         const ComputeBuffer* buffer= nullptr;
         uint32_t byteSize = 0;
     };
 
     struct ComputeReadbackResult
     {
+        ReadbackId id = 0;                 // filled by caller or device
         bool ready = false;
         std::vector<uint8_t> data;
     };

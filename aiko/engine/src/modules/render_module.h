@@ -45,6 +45,9 @@ namespace aiko
         Texture m_debugOut;
         u32 m_particleCount = 16384;
 
+        // TEMP readback validation
+        bool m_readbackRequested = false;
+
     };
 
 }

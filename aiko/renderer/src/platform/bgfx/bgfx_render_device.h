@@ -1,5 +1,8 @@
 #pragma once
 
+#include <deque>
+#include <optional>
+
 #include "aiko_types.h"
 #include "renderer/Irenderdevice.h"
 
@@ -10,9 +13,6 @@ namespace aiko::renderer::bgfx
 
     class BgfxRenderDevice final : public IRenderDevice
     {
-
-        #define INVALID_HANDLE {::bgfx::kInvalidHandle};
-
     public:
 
         BgfxRenderDevice();
@@ -44,25 +44,53 @@ namespace aiko::renderer::bgfx
         virtual void bindFrame(ViewId viewId, const FrameData& u) override;
 
         // Compute Shader
-        virtual void setComputeImage(ViewId viewId, const Texture& texture, ComputeAccess access) override;
-        virtual void setComputeBuffer(ViewId viewId, const ComputeBuffer& buffer, ComputeAccess access) override;
-        virtual void dispatch( ViewId viewId, const ComputeShader& program, uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) override;
         virtual void execute(ViewId viewId, const ComputePass& pass) override;
         virtual void requestReadback( const ComputeReadbackRequest& request) override;
         virtual bool pollReadback(ComputeReadbackResult& result) override;
 
     private:
 
+        static constexpr ViewId READBACK_VIEW = 250;
+        static constexpr ViewId READBACK_BLIT_VIEW = 251;
+
+        // --- Compute readback (BGFX internal) ---
         struct PendingReadback
         {
-            ::bgfx::TextureHandle texture = {::bgfx::kInvalidHandle};
+            ReadbackId id = 0;
+            const ComputeBuffer* source = nullptr;
             uint32_t byteSize = 0;
-            bool requested = false;
-            std::vector<uint8_t> cpuBuffer;
+
+            ::bgfx::TextureHandle computeTex = { ::bgfx::kInvalidHandle }; // compute-write
+            ::bgfx::TextureHandle readTex    = { ::bgfx::kInvalidHandle }; // read-back
+
+            uint32_t framesSinceRequest = 0;
+
+            enum class Stage : uint8_t
+            {
+                Idle = 0,
+                SubmittedGPUWork,
+                ReadIssued,
+                Done
+            };
+
+            Stage stage = Stage::Idle;
+            uint32_t framesSinceSubmit = 0;
+
+            std::vector<uint8_t> cpu;
         };
 
-        ComputeShader m_readbackCopyShader;
-        PendingReadback m_readback;
+        void dispatchPendingReadbackCopy();
+        void startReadbackInternal(const ComputeReadbackRequest& r);
+        void cleanupReadback(PendingReadback& rb);
+
+        std::deque<ComputeReadbackRequest> m_readbackQueue;
+        std::deque<ComputeReadbackResult>  m_completedReadbacks;
+        std::optional<PendingReadback>     m_activeReadback;
+
+        ReadbackId m_nextReadbackId = 1;
+
+        // Hidden compute shader that copies buffer -> texture
+        ComputeShader m_csReadbackCopy;
 
         u32 m_width;
         u32 m_height;
