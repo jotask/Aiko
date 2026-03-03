@@ -43,6 +43,9 @@ namespace aiko::renderer::bgfx
 
     private:
 
+        string vertex_file;
+        string fragment_file;
+
         ::bgfx::ProgramHandle m_programHandle;
         std::map<string, ::bgfx::UniformHandle> m_uniforms;
 

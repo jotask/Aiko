@@ -515,6 +515,10 @@ namespace aiko::renderer::bgfx
         bindFrameUniforms();
         bindMaterialUniforms(*desc.material);
 
+        float mtx[16];
+        bx::mtxIdentity(mtx);
+        ::bgfx::setTransform(mtx);
+
         ::bgfx::setBuffer( 7, bufferImpl->handle(), ::bgfx::Access::Read );
 
         ::bgfx::setVertexBuffer(0, meshImpl->getVertexBuffferHandler());
@@ -522,9 +526,8 @@ namespace aiko::renderer::bgfx
 
         ::bgfx::setState(s_default_state);
 
-        :: bgfx::setInstanceCount(desc.instanceCount);
-
-        ::bgfx::submit( viewId, shaderImpl->getProgramHandler() );
+        ::bgfx::setInstanceCount(desc.instanceCount);
+        ::bgfx::submit(viewId, shaderImpl->getProgramHandler());
 
     }
 

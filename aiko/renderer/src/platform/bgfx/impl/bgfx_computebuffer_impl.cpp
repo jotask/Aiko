@@ -29,43 +29,40 @@ namespace aiko::renderer::bgfx
 
         destroy();
 
-        m_format = format;
-        m_count  = count;
+        m_format      = format;
+        m_count       = count;
         m_strideBytes = getStrideBytesFor(format);
 
-        buildLayout(format);
-
-        const bool gpuWritable = access == ComputeAccess::Write || access == ComputeAccess::ReadWrite;
-
-        if (gpuWritable == false && initialData)
-        {
-            const ::bgfx::Memory* mem = nullptr;
-            mem = ::bgfx::copy(initialData, count * m_strideBytes);
-        }
+        buildLayout(format); // must produce a valid VertexLayout
 
         uint16_t flags = 0;
         switch (access)
         {
-        case ComputeAccess::Read:
-            flags = BGFX_BUFFER_COMPUTE_READ;
-            break;
-        case ComputeAccess::Write:
-            flags = BGFX_BUFFER_COMPUTE_WRITE;
-            break;
-        case ComputeAccess::ReadWrite:
-            flags = BGFX_BUFFER_COMPUTE_READ_WRITE;
-            break;
-            default:
-                AIKO_ASSERT(false, "Unknow flag")
+        case ComputeAccess::Read:      flags = BGFX_BUFFER_COMPUTE_READ;       break;
+        case ComputeAccess::Write:     flags = BGFX_BUFFER_COMPUTE_WRITE;      break;
+        case ComputeAccess::ReadWrite: flags = BGFX_BUFFER_COMPUTE_READ_WRITE; break;
+        default: AIKO_ASSERT(false, "Unknown ComputeAccess"); break;
         }
 
-        m_handle = ::bgfx::createDynamicVertexBuffer( count, m_layout, flags );
+        const bool gpuWritable = (access == ComputeAccess::Write) || (access == ComputeAccess::ReadWrite);
 
-        if (gpuWritable == false  && initialData)
+        if (gpuWritable)
         {
-            const ::bgfx::Memory* mem2 = ::bgfx::copy(initialData, count * m_strideBytes);
-            ::bgfx::update(m_handle, 0, mem2);
+            // bgfx rule: can't initialize compute-write buffers from CPU.
+            // Ignore initialData even if provided.
+            m_handle = ::bgfx::createDynamicVertexBuffer(count, m_layout, flags);
         }
+        else
+        {
+            // ComputeAccess::Read only: CPU initialization is allowed.
+            const ::bgfx::Memory* mem = initialData
+                ? ::bgfx::copy(initialData, count * m_strideBytes)
+                : ::bgfx::alloc(count * m_strideBytes);
+
+            m_handle = ::bgfx::createDynamicVertexBuffer(mem, m_layout, flags);
+        }
+
+        printf("stride = %u\n", m_strideBytes);
 
     }
 

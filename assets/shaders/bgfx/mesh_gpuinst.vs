@@ -1,24 +1,27 @@
-$input a_position, a_normal, a_texcoord0, a_color0
+$input a_position, a_texcoord0, a_color0, a_normal
 $output v_texcoord0, v_color0, v_normal, v_worldPos
 
-#include "bgfx_shader.sh"
 #include "bgfx_compute.sh"
-
-// IMPORTANT: don't use stage 0 (reserved for textures)
-BUFFER_RO(u_pos, vec4, 7);
+#include "bgfx_shader.sh"
 
 void main()
 {
+    v_texcoord0 = a_texcoord0;
+    v_color0    = a_color0;
+
+    BUFFER_RO(u_pos, vec4, 7);
 
     uint iid = uint(gl_InstanceID);
+    vec3 instanceOffset = u_pos[iid].xyz;
 
-    vec4 ps = u_pos[iid]; // xyz = translation, w = scale
-    vec3 worldPos = a_position * ps.w + ps.xyz;
+    // u_model is float4x4 u_model[1] in your build, so use [0]
+    vec4 worldPos = mul(u_model[0], vec4(a_position + instanceOffset, 1.0));
 
-    v_worldPos  = worldPos;
-    v_texcoord0 = a_texcoord0;
-    v_normal    = a_normal;
-    v_color0    = vec4(1.0, 1.0, 1.0, 1.0);
+    v_worldPos = worldPos.xyz;
 
-    gl_Position = mul(u_viewProj, vec4(worldPos, 1.0));
+    // normal: also use u_model[0]
+    v_normal = mul(u_model[0], vec4(a_normal.xyz, 0.0)).xyz;
+
+    // guaranteed present in your generated code
+    gl_Position = mul(u_modelViewProj, vec4(a_position + instanceOffset, 1.0));
 }

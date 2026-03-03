@@ -13,7 +13,9 @@ void main()
 {
     uint id = gl_GlobalInvocationID.x;
     uint count = uint(u_params.y);
-    if (id >= count) return;
+
+    if (id >= count)
+        return;
 
     u_pos[id] = u_seedPos[id];
     u_vel[id] = u_seedVel[id];

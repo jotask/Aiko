@@ -89,7 +89,7 @@ namespace aiko
             instShader.load("mesh_gpuinst.vs", "debug_color.fs"); // VS new, FS reuse existing model.fs (or your unlit fs)
 
             m_particleMeshMaterial.m_shader = instShader;
-            m_particleMeshMaterial.m_baseColor = WHITE;
+            m_particleMeshMaterial.m_baseColor = MAGENTA;
             m_particleMeshMaterial.m_lit = false;                // keep it simple first
 
             m_meshParticlesInit = true;
@@ -104,14 +104,6 @@ namespace aiko
     void RenderModule::render()
     {
 
-        Transform trans = {
-            .position = vec3(0.0f),
-            .rotation = vec3(0.0f),
-            .scale = vec3(1.0f)
-        };
-        AikoRenderer::it().submit(trans, m_particleMesh, m_particleMeshMaterial);
-
-        /*
         if (m_needInitDispatch)
         {
             ComputePass init;
@@ -152,7 +144,7 @@ namespace aiko
         pass.dispatch.groupsY = 1;
         pass.dispatch.groupsZ = 1;
 
-        AikoRenderer::it().enqueueCompute(pass);
+        // AikoRenderer::it().enqueueCompute(pass);
 
         // --- Draw mesh particles using GPU instance buffer (NEW) ---
         if (m_meshParticlesInit)

@@ -52,9 +52,6 @@ namespace aiko::renderer::bgfx
 
     private:
 
-        static constexpr ViewId READBACK_VIEW = 250;
-        static constexpr ViewId READBACK_BLIT_VIEW = 251;
-
         // --- Compute readback (BGFX internal) ---
         struct PendingReadback
         {

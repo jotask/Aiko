@@ -175,19 +175,19 @@ namespace aiko
             {
                 .width  = static_cast<u32>(size.x),
                 .height = static_cast<u32>(size.y),
-                .clearColor = false,
-                .clearDepth = false,
+                .clearColor = true,
+                .clearDepth = true,
             };
 
             FrameBuffer fbo = m_screenFbo.getFrameBuffer();
 
-            m_renderer->beginPass(COMPUTE_DRAW, pass, &fbo);
-            m_renderer->bindFrame(COMPUTE_DRAW, frameData);
+            m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
+            m_renderer->bindFrame(SCENE_VIEW, frameData);
 
             // GPU particle draw happens here
             for (auto& desc : m_gpuInstanceDraws)
             {
-                m_renderer->drawMeshInstancedGpu(COMPUTE_DRAW, desc);
+                m_renderer->drawMeshInstancedGpu(SCENE_VIEW, desc);
             }
 
             m_renderer->endPass();

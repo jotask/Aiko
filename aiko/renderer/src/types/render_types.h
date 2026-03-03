@@ -17,6 +17,9 @@ namespace aiko
     constexpr ViewId SCREEN_VIEW = 3;
     constexpr ViewId IMGUI_VIEW = 4;
 
+    constexpr ViewId READBACK_VIEW = 250;
+    constexpr ViewId READBACK_BLIT_VIEW = 251;
+
     constexpr uint16_t MAX_LIGHTS = 8;
 
     // Shader uniform data type

@@ -18,6 +18,9 @@ namespace aiko::renderer::bgfx
     void BgfxShaderImpl::load(const char* vs, const char* fs)
     {
 
+        vertex_file = string(vs);
+        fragment_file = string(fs);
+
         std::string dir = getShaderRootDir();
         std::filesystem::path vshaderPath = dir + vs + std::string(".bin");
         std::filesystem::path fshaderPath = dir + fs + std::string(".bin");
@@ -103,7 +106,7 @@ namespace aiko::renderer::bgfx
         {
             return found->second;
         }
-        logger::Log::error( "UniformNotLoaded %s", name.c_str());
+        logger::Log::error( "[%s/%s] UniformNotLoaded %s", vertex_file.c_str(), fragment_file.c_str(), name.c_str());
         AIKO_ASSERT(false, "Uniform not loaded");
         return {::bgfx::kInvalidHandle};
     }
