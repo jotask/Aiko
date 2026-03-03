@@ -48,8 +48,9 @@ namespace aiko::renderer
 
         // Compute Shader
         virtual void execute(ViewId viewId, const ComputePass& pass) = 0;
-        virtual void requestReadback( const ComputeReadbackRequest& request) = 0;
+        virtual void requestReadback(const ComputeReadbackRequest& request) = 0;
         virtual bool pollReadback(ComputeReadbackResult& result) = 0;
+        virtual void drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc) = 0;
 
     };
 

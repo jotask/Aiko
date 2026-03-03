@@ -6,6 +6,7 @@
 
  namespace aiko
 {
+    class ComputeBuffer;
 
     class Material
     {
@@ -21,6 +22,8 @@
 
     public:
         Shader m_shader;
+
+        const ComputeBuffer* m_gpuInstanceBuffer = nullptr;
 
         bool m_userVertexColor;
         bool m_lit;

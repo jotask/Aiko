@@ -24,38 +24,48 @@ namespace aiko::renderer::bgfx
         return ::bgfx::isValid(m_handle);
     }
 
-    void BgfxComputeBufferImpl::create(ComputeBufferFormat format, uint32_t count, const void* initialData)
+    void BgfxComputeBufferImpl::create(ComputeBufferFormat format, uint32_t count, const void* initialData, ComputeAccess access)
     {
-
-        auto strideBytesFor = [](ComputeBufferFormat fmt) -> uint32_t
-        {
-            switch (fmt)
-            {
-                case ComputeBufferFormat::Vec4f: return 16; // 4 floats
-                default: return 16;
-            }
-        };
 
         destroy();
 
         m_format = format;
         m_count  = count;
-        m_strideBytes = strideBytesFor(format);
+        m_strideBytes = getStrideBytesFor(format);
 
         buildLayout(format);
 
-        const ::bgfx::Memory* mem = nullptr;
+        const bool gpuWritable = access == ComputeAccess::Write || access == ComputeAccess::ReadWrite;
 
-        if (initialData != nullptr)
+        if (gpuWritable == false && initialData)
         {
+            const ::bgfx::Memory* mem = nullptr;
             mem = ::bgfx::copy(initialData, count * m_strideBytes);
         }
 
-        m_handle = ::bgfx::createVertexBuffer(
-            mem,
-            m_layout,
-            BGFX_BUFFER_COMPUTE_READ_WRITE
-        );
+        uint16_t flags = 0;
+        switch (access)
+        {
+        case ComputeAccess::Read:
+            flags = BGFX_BUFFER_COMPUTE_READ;
+            break;
+        case ComputeAccess::Write:
+            flags = BGFX_BUFFER_COMPUTE_WRITE;
+            break;
+        case ComputeAccess::ReadWrite:
+            flags = BGFX_BUFFER_COMPUTE_READ_WRITE;
+            break;
+            default:
+                AIKO_ASSERT(false, "Unknow flag")
+        }
+
+        m_handle = ::bgfx::createDynamicVertexBuffer( count, m_layout, flags );
+
+        if (gpuWritable == false  && initialData)
+        {
+            const ::bgfx::Memory* mem2 = ::bgfx::copy(initialData, count * m_strideBytes);
+            ::bgfx::update(m_handle, 0, mem2);
+        }
 
     }
 
@@ -92,5 +102,15 @@ namespace aiko::renderer::bgfx
         }
 
         m_layout.end();
+    }
+
+    u32 BgfxComputeBufferImpl::getStrideBytesFor(ComputeBufferFormat fmt)
+    {
+        switch (fmt)
+        {
+            case ComputeBufferFormat::Vec4f: return 16; // 4 floats
+            default: return 16;
+        }
+        AIKO_ASSERT(false, "Not supported format")
     }
 }

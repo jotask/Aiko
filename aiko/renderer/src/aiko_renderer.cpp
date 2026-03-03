@@ -59,6 +59,7 @@ namespace aiko
         m_queue.clear();
         m_instancedQueue.clear();
         m_computeQueue.clear();
+        m_gpuInstanceDraws.clear();
         m_lights.clear();
         m_renderer->beginFrame();
         m_imgui.beginFrame();
@@ -135,40 +136,78 @@ namespace aiko
         return m_renderer->pollReadback(out);
     }
 
+    void AikoRenderer::drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc)
+    {
+        m_gpuInstanceDraws.push_back(desc);
+    }
+
     void AikoRenderer::render(const Camera& camera)
     {
 
         const ivec2 size = DisplayManager::it().getDisplay()->getDisplaySize();
 
+        const renderer::FrameData frameData =
+        {
+            .view = camera.getViewMatrix(),
+            .projection = camera.getProjectionMatrix(),
+            .cameraPosition = camera.position,
+            .ambient = m_ambientLight,
+            .lights = m_lights,
+        };
+
+        // PASS 0 — COMPUTE
+        {
+            renderer::PassDescription computePass{};
+            computePass.width  = 1;
+            computePass.height = 1;
+
+            m_renderer->beginPass(COMPUTE_VIEW, computePass, nullptr);
+
+            for (const ComputePass& pass : m_computeQueue)
+                m_renderer->execute(COMPUTE_VIEW, pass);
+
+            m_renderer->endPass();
+        }
+
+        // GPU INSTANCED DRAW PASS
+        {
+            renderer::PassDescription pass =
+            {
+                .width  = static_cast<u32>(size.x),
+                .height = static_cast<u32>(size.y),
+                .clearColor = false,
+                .clearDepth = false,
+            };
+
+            FrameBuffer fbo = m_screenFbo.getFrameBuffer();
+
+            m_renderer->beginPass(COMPUTE_DRAW, pass, &fbo);
+            m_renderer->bindFrame(COMPUTE_DRAW, frameData);
+
+            // GPU particle draw happens here
+            for (auto& desc : m_gpuInstanceDraws)
+            {
+                m_renderer->drawMeshInstancedGpu(COMPUTE_DRAW, desc);
+            }
+
+            m_renderer->endPass();
+        }
+
         // Pass 0 : To offscreen frame buffer
         {
-
-            const renderer::PassDescription pass =
+            renderer::PassDescription pass =
             {
-                .width = static_cast<u32>(size.x),
-                .height = static_cast<u32>(size.y),
+                .width  = (u32)size.x,
+                .height = (u32)size.y,
                 .clearColor = true,
                 .clearDepth = true,
                 .clear = m_background_color
             };
 
             FrameBuffer fbo = m_screenFbo.getFrameBuffer();
+
             m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
-
-            const renderer::FrameData frameData =
-            {
-                .view = camera.getViewMatrix(),
-                .projection = camera.getProjectionMatrix(),
-                .cameraPosition = camera.position,
-                .ambient = m_ambientLight,
-                .lights = m_lights,
-            };
             m_renderer->bindFrame(SCENE_VIEW, frameData);
-
-            for (const ComputePass& pass : m_computeQueue)
-            {
-                m_renderer->execute(COMPUTE_VIEW, pass);
-            }
 
             std::ranges::sort(m_queue, [](const RenderItem& a, const RenderItem& b)
             {

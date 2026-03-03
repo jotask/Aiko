@@ -44,6 +44,8 @@ namespace aiko
         void requestReadback(const ComputeReadbackRequest& req);
         bool pollReadback(ComputeReadbackResult& out);
 
+        void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
+
         void render(const Camera& camera);
 
         void setDebugTexture(const Texture* texture);   // nullptr disables
@@ -68,16 +70,14 @@ namespace aiko
         std::vector<RenderItem> m_queue;
         std::vector<InstanceItem> m_instancedQueue;
         std::vector<ComputePass> m_computeQueue;
+        std::vector<GpuInstanceDrawDesc> m_gpuInstanceDraws;
 
         std::vector<LightData> m_lights;
         AmbientLight m_ambientLight;
 
     private:
 
-        static constexpr ViewId COMPUTE_VIEW = 0;
-        static constexpr ViewId SCENE_VIEW = 1;
-        static constexpr ViewId SCREEN_VIEW = 2;
-        static constexpr ViewId IMGUI_VIEW = 3;
+
 
         static_assert(COMPUTE_VIEW < SCENE_VIEW, "Compute View MUST be less than Scene View");
 

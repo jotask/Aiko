@@ -43,7 +43,17 @@ namespace aiko
         ComputeBuffer m_posBuffer;
         ComputeBuffer m_velBuffer;
         Texture m_debugOut;
-        u32 m_particleCount = 16384;
+        const u32 m_particleCount = 16384;
+
+        // GPU mesh particle draw (NEW)
+        bool m_meshParticlesInit = false;
+        Mesh m_particleMesh;
+        Material m_particleMeshMaterial;
+
+        bool m_needInitDispatch;
+        ComputeShader m_particlesInitCS;
+        ComputeBuffer m_seedPos;
+        ComputeBuffer m_seedVel;
 
         // TEMP readback validation
         bool m_readbackRequested = false;

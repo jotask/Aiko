@@ -11,6 +11,12 @@ namespace aiko
 
     using ViewId = uint16_t;
 
+    constexpr ViewId COMPUTE_VIEW = 0;
+    constexpr ViewId COMPUTE_DRAW = 1;
+    constexpr ViewId SCENE_VIEW = 2;
+    constexpr ViewId SCREEN_VIEW = 3;
+    constexpr ViewId IMGUI_VIEW = 4;
+
     constexpr uint16_t MAX_LIGHTS = 8;
 
     // Shader uniform data type
@@ -67,6 +73,18 @@ namespace aiko
 
     class Mesh;
     class Material;
+
+    struct GpuInstanceDrawDesc
+    {
+        ViewId viewId = 0;
+        const Mesh* mesh = nullptr;
+        const Material* material = nullptr;
+
+        // GPU buffer containing instance records (format must match shader)
+        const ComputeBuffer* instanceBuffer = nullptr;
+
+        uint32_t instanceCount = 0;
+    };
 
     struct RenderItem
     {

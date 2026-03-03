@@ -44,6 +44,8 @@ void main()
         vec2 uv = clamp(p.xy * 0.5 + 0.5, 0.0, 1.0);
         ivec2 pixel = ivec2(uv * vec2(size-1));
 
+        pixel = clamp(pixel, ivec2(0), size - ivec2(1));
+
         imageStore(u_output, pixel, vec4(1,1,1,1));
     }
 }

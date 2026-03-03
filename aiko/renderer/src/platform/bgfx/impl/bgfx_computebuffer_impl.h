@@ -22,12 +22,12 @@ namespace aiko::renderer::bgfx
 
         virtual bool isValid() const override;
 
-        virtual void create(ComputeBufferFormat format, uint32_t count, const void* initialData) override;
+        virtual void create(ComputeBufferFormat format, uint32_t count, const void* initialData, ComputeAccess access) override;
         virtual void update(uint32_t start, uint32_t count, const void* data) override;
 
         virtual void destroy() override;
 
-        ::bgfx::VertexBufferHandle handle() const { return m_handle; }
+        ::bgfx::DynamicVertexBufferHandle handle() const { return m_handle; }
         uint32_t count() const { return m_count; }
         ComputeBufferFormat format() const { return m_format; }
 
@@ -35,7 +35,9 @@ namespace aiko::renderer::bgfx
 
         void buildLayout(ComputeBufferFormat format);
 
-        ::bgfx::VertexBufferHandle m_handle;
+        u32 getStrideBytesFor(ComputeBufferFormat);
+
+        ::bgfx::DynamicVertexBufferHandle m_handle;
         ::bgfx::VertexLayout m_layout;
 
         ComputeBufferFormat m_format = ComputeBufferFormat::Vec4f;

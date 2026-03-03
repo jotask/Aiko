@@ -354,6 +354,20 @@ namespace aiko::renderer::bgfx
         ::bgfx::setIndexBuffer(ib);
         ::bgfx::setInstanceDataBuffer(&idb);
 
+        if (material.m_gpuInstanceBuffer) // or however you expose it
+        {
+            auto* bufImpl =
+                static_cast<BgfxComputeBufferImpl*>(
+                    material.m_gpuInstanceBuffer->getImpl());
+
+            AIKO_ASSERT(bufImpl && bufImpl->isValid(), "Invalid GPU instance buffer");
+
+            ::bgfx::setBuffer(
+                7,                      // MUST match BUFFER_RO(...,7)
+                bufImpl->handle(),
+                ::bgfx::Access::Read);
+        }
+
         ::bgfx::setState(s_default_state);
 
         ::bgfx::submit(viewId, m_boundShader->getProgramHandler());
@@ -484,6 +498,34 @@ namespace aiko::renderer::bgfx
         }
 
         return false;
+    }
+
+    void BgfxRenderDevice::drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc)
+    {
+
+        auto* meshImpl = static_cast<BgfxMeshImpl*>(desc.mesh->getImpl());
+        auto* shaderImpl = static_cast<BgfxShaderImpl*>(desc.material->m_shader.getImpl());
+        auto* bufferImpl = static_cast<BgfxComputeBufferImpl*>(desc.instanceBuffer->getImpl());
+
+        AIKO_ASSERT(meshImpl != nullptr, "Invalid handler");
+        AIKO_ASSERT(shaderImpl != nullptr, "Invalid handler");
+        AIKO_ASSERT(bufferImpl != nullptr, "Invalid handler");
+
+        bindMaterial(*desc.material);
+        bindFrameUniforms();
+        bindMaterialUniforms(*desc.material);
+
+        ::bgfx::setBuffer( 7, bufferImpl->handle(), ::bgfx::Access::Read );
+
+        ::bgfx::setVertexBuffer(0, meshImpl->getVertexBuffferHandler());
+        ::bgfx::setIndexBuffer(meshImpl->getIndexBuffferHandler());
+
+        ::bgfx::setState(s_default_state);
+
+        :: bgfx::setInstanceCount(desc.instanceCount);
+
+        ::bgfx::submit( viewId, shaderImpl->getProgramHandler() );
+
     }
 
     void BgfxRenderDevice::dispatchPendingReadbackCopy()

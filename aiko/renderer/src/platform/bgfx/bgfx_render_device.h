@@ -45,8 +45,10 @@ namespace aiko::renderer::bgfx
 
         // Compute Shader
         virtual void execute(ViewId viewId, const ComputePass& pass) override;
-        virtual void requestReadback( const ComputeReadbackRequest& request) override;
+        virtual void requestReadback(const ComputeReadbackRequest& request) override;
         virtual bool pollReadback(ComputeReadbackResult& result) override;
+
+        virtual void drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc) override;
 
     private:
 

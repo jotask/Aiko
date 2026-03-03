@@ -6,6 +6,7 @@
 
 #include "display/display_manager.h"
 #include "models/camera.h"
+#include "models/mesh_factory.h"
 #include "time/time.h"
 
 namespace aiko
@@ -61,10 +62,37 @@ namespace aiko
                 vel[i] = vec4(-std::sin(a) * 0.2f, std::cos(a) * 0.2f, 0.0f, 0.0f);
             }
 
-            m_posBuffer.createVec4(m_particleCount, pos.data());
-            m_velBuffer.createVec4(m_particleCount, vel.data());
+            // 1️⃣ Seed buffers (CPU uploadable)
+            m_seedPos.createVec4(m_particleCount, pos.data(), ComputeAccess::Read);
+            m_seedVel.createVec4(m_particleCount, vel.data(), ComputeAccess::Read);
+
+            // 2️⃣ Simulation buffers (GPU writable, no CPU init)
+            m_posBuffer.createVec4(m_particleCount, nullptr, ComputeAccess::ReadWrite);
+            m_velBuffer.createVec4(m_particleCount, nullptr, ComputeAccess::ReadWrite);
+
+            m_needInitDispatch = true;
+            m_particlesInitCS.load("particles_init.cs");
 
             m_computeInit = true;
+        }
+
+        // --- GPU instanced mesh particle rendering setup (NEW) ---
+        if (!m_meshParticlesInit)
+        {
+
+            auto data = mesh::factory::generateCube();
+            m_particleMesh.setData(data);
+            m_particleMesh.refresh();             // if your engine requires upload
+
+            // 2) load a shader that supports GPU instance buffer fetch
+            Shader instShader;
+            instShader.load("mesh_gpuinst.vs", "debug_color.fs"); // VS new, FS reuse existing model.fs (or your unlit fs)
+
+            m_particleMeshMaterial.m_shader = instShader;
+            m_particleMeshMaterial.m_baseColor = WHITE;
+            m_particleMeshMaterial.m_lit = false;                // keep it simple first
+
+            m_meshParticlesInit = true;
         }
     }
 
@@ -75,6 +103,35 @@ namespace aiko
 
     void RenderModule::render()
     {
+
+        Transform trans = {
+            .position = vec3(0.0f),
+            .rotation = vec3(0.0f),
+            .scale = vec3(1.0f)
+        };
+        AikoRenderer::it().submit(trans, m_particleMesh, m_particleMeshMaterial);
+
+        /*
+        if (m_needInitDispatch)
+        {
+            ComputePass init;
+            init.shader = &m_particlesInitCS;
+
+            init.buffers.push_back({0, &m_seedPos, ComputeAccess::Read});
+            init.buffers.push_back({1, &m_seedVel, ComputeAccess::Read});
+            init.buffers.push_back({2, &m_posBuffer, ComputeAccess::ReadWrite});
+            init.buffers.push_back({3, &m_velBuffer, ComputeAccess::ReadWrite});
+
+            init.vec4Uniforms.push_back({"u_params", vec4(0, float(m_particleCount), 0, 0)});
+            init.dispatch.groupsX = (m_particleCount + 63) / 64;
+            init.dispatch.groupsY = 1;
+            init.dispatch.groupsZ = 1;
+
+            AikoRenderer::it().enqueueCompute(init);
+
+            m_needInitDispatch = false;
+        }
+
         if (!m_computeInit)
             return;
 
@@ -97,9 +154,26 @@ namespace aiko
 
         AikoRenderer::it().enqueueCompute(pass);
 
+        // --- Draw mesh particles using GPU instance buffer (NEW) ---
+        if (m_meshParticlesInit)
+        {
+            GpuInstanceDrawDesc draw;
+
+            draw.mesh = &m_particleMesh;
+            draw.material = &m_particleMeshMaterial;
+
+            // Use the compute-updated position buffer directly for now
+            draw.instanceBuffer = &m_posBuffer;
+
+            draw.instanceCount = m_particleCount;
+
+            AikoRenderer::it().drawMeshInstancedGpu(draw);
+        }
+
         // Request readback once per second (TEMP debug)
         // TEMP: request a readback once, then request again only after we got a result
-        if (!m_readbackRequested)
+        /*
+        if (m_readbackRequested == false)
         {
             ComputeReadbackRequest req;
             req.buffer = &m_posBuffer;
@@ -123,10 +197,11 @@ namespace aiko
                 m_readbackRequested = false;
             }
         }
+        */
 
         // NOTE: no particle draw here (compute-only validation).
         // If you want to see it, present m_debugOut in AikoRenderer's screen pass.
-        AikoRenderer::it().setDebugTexture(&m_debugOut);
+        // AikoRenderer::it().setDebugTexture(&m_debugOut);
 
 
 

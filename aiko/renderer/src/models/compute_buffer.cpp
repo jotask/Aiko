@@ -21,9 +21,9 @@ namespace aiko
         return backend->isValid();
     }
 
-    void ComputeBuffer::create(ComputeBufferFormat format, uint32_t count, const void* data)
+    void ComputeBuffer::create(ComputeBufferFormat format, uint32_t count, const void* data, ComputeAccess access)
     {
-        backend->create(format, count, data);
+        backend->create(format, count, data, access);
     }
 
     void ComputeBuffer::update(u32 start, u32 count, const void* data)
@@ -36,8 +36,8 @@ namespace aiko
         backend->destroy();
     }
 
-    void ComputeBuffer::createVec4(uint32_t count, const void* initialData)
+    void ComputeBuffer::createVec4(uint32_t count, const void* initialData, ComputeAccess access)
     {
-        create(ComputeBufferFormat::Vec4f, count, initialData);
+        create(ComputeBufferFormat::Vec4f, count, initialData, access);
     }
 }
