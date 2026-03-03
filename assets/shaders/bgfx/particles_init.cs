@@ -17,6 +17,12 @@ void main()
     if (id >= count)
         return;
 
-    u_pos[id] = u_seedPos[id];
-    u_vel[id] = u_seedVel[id];
+    vec3 p = u_seedPos[id].xyz;
+    float dist = max(length(p), 0.001);
+    vec3 dir = p / dist;
+    vec3 tang = normalize(vec3(-dir.y, dir.x, 0.0));
+    float speed = sqrt(2.0 / dist); // uses same G=2.0 as sim
+    u_vel[id] = vec4(tang * speed, 0.0);
+    u_pos[id] = vec4(p, 1.0);
+    
 }

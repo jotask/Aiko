@@ -2,6 +2,7 @@
 
 #include "aiko_renderer.h"
 #include "scene.h"
+#include "components/compute_shader_component.h"
 #include "components/mesh_component.h"
 #include "components/model_component.h"
 #include "models/game_object.h"
@@ -48,6 +49,13 @@ namespace aiko
             {
                 m_worldRenderer.add(transform.get(), &sub.mesh, &sub.material);
             }
+        }
+
+        // TEMPORAL
+        if (obj->hasComponent<ComputeShaderComponent>() == true)
+        {
+            AikoPtr<ComputeShaderComponent> cmp = obj->getComponent<ComputeShaderComponent>();
+            cmp->render();
         }
 
     }

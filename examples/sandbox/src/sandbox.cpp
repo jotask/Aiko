@@ -14,10 +14,13 @@
 #include <aiko_includes.h>
 #include <core/random.h>
 
+#include "components/compute_shader_component.h"
+
 // #define TEST_LOAD_MESHES
 // #define TEST_COMPONENTS
 // #define TEST_PRIMITIVES
 // #define TEST_LIGHTS
+#define TEST_PARTICLE_CS
 
 namespace sb
 {
@@ -111,6 +114,11 @@ namespace sb
             };
             m_lights.push_back(ints);
         }
+#endif
+
+#ifdef TEST_PARTICLE_CS
+        auto ps = this->Instantiate(root, "Particles");
+        auto psCmp = ps->addComponent<aiko::ComputeShaderComponent>();
 #endif
 
     }
