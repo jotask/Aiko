@@ -10,6 +10,7 @@
 namespace nes
 {
     class NesEmulator;
+    class Nes;
     class Ppu;
     class Cpu;
     class Cartridge;

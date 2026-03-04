@@ -1,23 +1,8 @@
 #include "nes_emulator.h"
 
-#include <chrono>
-#include <sstream>
-#include <cmath>
+#include <models/game_object.h>
 
-#include "shared/math.h"
-#include "models/game_object.h"
-#include "components/camera_component.h"
-#include "components/mesh_component.h"
-#include "components/light_component.h"
-#include "systems/render_system.h"
-#include "core/utils.h"
-#include "types/inputs.h"
-#include "models/camera.h"
-#include "shared/math.h"
-#include "core/log.h"
 #include "constants.h"
-#include "nes/bus.h"
-#include "nes/memory.h"
 #include "nes/utils/nes_utils.h"
 #include "nes/cpu/instructions.h"
 #include "nes/tests/online_test_manager.h"
@@ -27,29 +12,22 @@
 
 namespace nes
 {
-
     NesEmulator::NesEmulator()
-        : aiko::Application(aiko::AikoConfig("NesEmulator", 1024, 768, aiko::DARKGREEN))
-        , m_emulator(this, &m_nes)
-    {
-
-    }
-
-    NesEmulator::~NesEmulator()
+        : m_emulator(this, &m_nes)
     {
     }
 
-    aiko::PboTextureComponent* NesEmulator::getNesGo() const
+    aiko::AikoPtr<aiko::TextureComponent> NesEmulator::getNesGo() const
     {
         return m_nesgo;
     }
 
-    aiko::PboTextureComponent* NesEmulator::getPT0() const
+    aiko::AikoPtr<aiko::TextureComponent> NesEmulator::getPT0() const
     {
         return pattern_table_0;
     }
 
-    aiko::PboTextureComponent* NesEmulator::getPalette() const
+    aiko::AikoPtr<aiko::TextureComponent> NesEmulator::getPalette() const
     {
         return palette;
     }
@@ -57,17 +35,19 @@ namespace nes
     void NesEmulator::init()
     {
 
-        auto go = Instantiate("NesTexture");
-        m_nesgo = go->addComponent<aiko::PboTextureComponent>("Pt0", NES_WIDTH, NES_HEIGHT, false).get();
+        auto go = app->Instantiate("NesTexture");
+        m_nesgo = go->addComponent<aiko::TextureComponent>();
+        m_nesgo->getTexture().create(NES_WIDTH, NES_HEIGHT);
 
-        auto table_pattern_go_1 = Instantiate("CHR table");
-        pattern_table_0 = table_pattern_go_1->addComponent<aiko::PboTextureComponent>("Pt0", 256, 128, false).get();
+        auto table_pattern_go_1 = app->Instantiate("CHR table");
+        pattern_table_0 = table_pattern_go_1->addComponent<aiko::TextureComponent>();
+        pattern_table_0->getTexture().create(256, 128);
 
-        auto palette_go = Instantiate("Palette");
-        const Byte size = (Byte) std::sqrt(COLOUR_PALETTE_SIZE);
+        auto palette_go = app->Instantiate("Palette");
         constexpr const Byte palette_width = COLOUR_PALETTE_SIZE / 4;
         constexpr const Byte palette_height = COLOUR_PALETTE_SIZE / 16;
-        palette = palette_go->addComponent<aiko::PboTextureComponent>("pal", palette_width, palette_height, false).get();
+        palette = palette_go->addComponent<aiko::TextureComponent>();
+        palette->getTexture().create(palette_width, palette_height);
 
         m_emulator.init();
         if constexpr (NES_TESTS_ENABLED)

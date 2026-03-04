@@ -18,7 +18,7 @@ namespace nes
         Byte& cycles = this->waitForCycles;
         if constexpr (NES_CPU_LOG)
         {
-            aiko::Log::trace("Executing [", toString(opCode), "] OpCode");
+            aiko::logger::Log::trace("Executing [", toString(opCode), "] OpCode");
         }
 
         OpCode op  = instruction_tables[opCode];
@@ -106,14 +106,14 @@ namespace nes
 
         if constexpr (NES_CPU_LOG)
         {
-            aiko::Log::trace("  OpCode: ", toString(opCode), " Addressing Modes: ", to_string(m_currentAddressMode), " Instruction: ", to_string(m_currentInstruction) );
+            aiko::logger::Log::trace("  OpCode: ", toString(opCode), " Addressing Modes: ", to_string(m_currentAddressMode), " Instruction: ", to_string(m_currentInstruction) );
         }
 
         line++;
 
         if constexpr (NES_CPU_LOG)
         {
-            aiko::Log::info("A:", toString(A), " X: ", toString(X), " Y: ", toString(Y), " P: ", toString(P), " SP: ", toString(stack_pointer), " Line: ", unsigned(line), " PC: ", unsigned(program_counter));
+            aiko::logger::Log::info("A:", toString(A), " X: ", toString(X), " Y: ", toString(Y), " P: ", toString(P), " SP: ", toString(stack_pointer), " Line: ", unsigned(line), " PC: ", unsigned(program_counter));
         }
         if constexpr ( NES_TESTS_ENABLED )
         {

@@ -11,7 +11,7 @@
 namespace sb
 {
 
-    class SortLab : public aiko::Application
+    class SortLab : public aiko::Layer
     {
 
     protected:

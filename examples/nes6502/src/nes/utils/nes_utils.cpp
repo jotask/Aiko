@@ -23,7 +23,7 @@ namespace nes
         auto printP = [&](Byte b, const char* prefix)
             {
                 
-                aiko::Log::error(
+                aiko::logger::Log::error(
                     prefix,
                     "StatusFlags::",
                     " C: ", unsigned(getFlag(b, Cpu::C)),

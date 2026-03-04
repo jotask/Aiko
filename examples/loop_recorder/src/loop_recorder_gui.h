@@ -9,11 +9,10 @@
 namespace aiko::recorder
 {
 
-    class LoopRecorderGui : public Application
+    class LoopRecorderGui : public Layer
     {
     protected:
         virtual void init() override;
-        virtual void update() override;
         virtual void render() override;
 
     private:

@@ -5,14 +5,11 @@
 namespace aiko::ca
 {
 
-    class CellularAutomaton : public Application
+    class CellularAutomaton : public Layer
     {
     protected:
         virtual void init() override;
-        virtual void update() override;
-        virtual void render() override;
     private:
-        GameObject* m_sprite;
     };
 
 }

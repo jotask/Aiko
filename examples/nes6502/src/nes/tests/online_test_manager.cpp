@@ -57,9 +57,9 @@ namespace nes::test::online
 
             for (OnlinesTest& t : tests)
             {
-                aiko::Log::info("RUN ", t.name);
+                aiko::logger::Log::info("RUN ", t.name);
                 t.run();
-                aiko::Log::info("   Test passed ", t.name);
+                aiko::logger::Log::info("   Test passed ", t.name);
             }
 
             int a = 0;

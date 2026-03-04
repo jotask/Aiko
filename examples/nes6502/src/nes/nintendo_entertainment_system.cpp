@@ -1,21 +1,5 @@
 #include "nintendo_entertainment_system.h"
 
-#include <chrono>
-#include <sstream>
-#include <cassert>
-
-#include "shared/math.h"
-#include "models/game_object.h"
-#include "components/camera_component.h"
-#include "components/mesh_component.h"
-#include "components/light_component.h"
-#include "systems/render_system.h"
-#include "core/utils.h"
-#include "types/inputs.h"
-#include "models/camera.h"
-#include "shared/math.h"
-#include "core/log.h"
-
 #include "aiko_extensions/nes_events.h"
 
 #include <aiko_includes.h>

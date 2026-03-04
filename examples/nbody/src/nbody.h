@@ -5,12 +5,10 @@
 namespace nbody
 {
 
-    class NBody : public aiko::Application
+    class NBody : public aiko::Layer
     {
     protected:
         virtual void init() override;
-        virtual void update() override;
-        virtual void render() override;
     private:
     
     };

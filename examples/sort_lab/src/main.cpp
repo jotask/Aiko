@@ -4,7 +4,8 @@
 
 int main()
 {
-	sb::SortLab sb;
-	sb.run();
+	aiko::Application app;
+	app.pushLayer(std::make_unique<sb::SortLab>());
+	app.run();
 	return EXIT_SUCCESS;
 }

@@ -41,7 +41,7 @@ namespace nes
         stream.open(file, std::ios::binary);
         if (stream.is_open() == false)
         {
-            aiko::Log::error("Couldn't load binary file: ", file);
+            aiko::logger::Log::error("Couldn't load binary file: ", file);
             assert(false && "Error loading ROM");
         }
 
@@ -50,7 +50,7 @@ namespace nes
 
         if (memcmp("NES\x1A", header.name, 4) != 0)
         {
-            aiko::Log::error("Inserted invalid cartridge. Only iNES file are supported");
+            aiko::logger::Log::error("Inserted invalid cartridge. Only iNES file are supported");
             assert(false && "UnkownFile");
         }
 

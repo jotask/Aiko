@@ -18,9 +18,7 @@ namespace sb
 {
     void SortLab::init()
     {
-        Application::init();
-
-        auto camera = this->Instantiate("Camera");
+        auto camera = app->Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
         cam->setCameraType(aiko::Camera::CameraType::Orthographic);
 		camera->transform().position = { 0.0f, 0.0f, 25.0f };
@@ -35,19 +33,18 @@ namespace sb
 
     void SortLab::update()
     {
-        Application::update();
-        if (isKeyJustPressed(aiko::Key::KEY_SPACE))
+        if (app->isKeyJustPressed(aiko::Key::KEY_SPACE))
         {
             clear();
             shuffle();
             m_sorters[m_currentSorterIdx]->init();
         }
 
-        if (isKeyJustPressed(aiko::Key::KEY_RIGHT))
+        if (app->isKeyJustPressed(aiko::Key::KEY_RIGHT))
         {
             nextSorter(+1);
         }
-        if (isKeyJustPressed(aiko::Key::KEY_LEFT))
+        if (app->isKeyJustPressed(aiko::Key::KEY_LEFT))
         {
             nextSorter(-1);
         }
@@ -68,7 +65,6 @@ namespace sb
 
     void SortLab::render()
     {
-        Application::render();
 
         constexpr float w = 0.25f;
 
@@ -80,7 +76,7 @@ namespace sb
             const float h = aiko::math::map<float>(number, 0, m_numbers.size(), 1.0f, 10.0f);
             const aiko::vec3 size = {w, h, 0.0f};
             const aiko::vec3 pos = {initial_position_x + ( i * w), 0.0f, 0.0f};
-            getRenderSystem()->drawRectangle(pos, size);
+            app->getRenderSystem()->drawRectangle(pos, size);
         }
 
     }

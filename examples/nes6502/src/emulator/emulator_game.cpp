@@ -27,8 +27,8 @@ namespace nes
         if (ImGui::Begin(name.c_str(), &is_open, flags))
         {
 
-            aiko::PboTextureComponent* pbo = naiko->getApplication()->getNesGo();
-            aiko::texture::Texture texture = pbo->getPboTexture().texture;
+            auto pbo = naiko->getApplication()->getNesGo();
+            const auto texture = pbo->getTexture().getInfo();
             // Using a Child allow to fill all the space of the window.
             // It also allows customization
             ImGui::BeginChild("GameRender");
@@ -66,21 +66,21 @@ namespace nes
             imageHeight = std::min(imageHeight, maxHeight);
 
             ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - imageWidth) * 0.5f, 0));
-            ImGui::Image((ImTextureID)texture.id, ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image((ImTextureID)pbo->getTexture().id(), ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0));
             ImGui::EndChild();
 
         }
         ImGui::End();
     }
 
-    void GameWindow::onNesClock(aiko::Event& event)
+    void GameWindow::onNesClock(NesOnClockEvent& event)
     {
 
         constexpr const uint16_t PARTICLES_AMOUNT = 1000;
 
-        aiko::PboTextureComponent* pbo = naiko->getApplication()->getNesGo();
+        auto pbo = naiko->getApplication()->getNesGo();
 
-        pbo->updatePixels( naiko->getPpu()->getPixels() );
+        pbo->setPixels( naiko->getPpu()->getPixels() );
 
         auto randomPosition = [&]() -> aiko::vec2
         {
@@ -118,30 +118,32 @@ namespace nes
         {
 
             // Clear the previous pixel
-            pbo->updatePixel(p.p.x, p.p.y, aiko::BLACK);
+            pbo->setPixel(p.p.x, p.p.y, aiko::BLACK);
 
             // Update the position
             p.p.x += p.v.x;
             p.p.y += p.v.y;
 
+            const auto info = pbo->getTexture().getInfo();
+
             // Check for boundary collision and reverse direction if necessary
-            if (p.p.x < 0 || p.p.x >= pbo->getPboTexture().texture.width)
+            if (p.p.x < 0 || p.p.x >= info.width)
             {
                 p.v.x = -p.v.x;
                 p.p.x += p.v.x; // Correct the position after reversing direction
             }
-            if (p.p.y < 0 || p.p.y >= pbo->getPboTexture().texture.height)
+            if (p.p.y < 0 || p.p.y >= info.height)
             {
                 p.v.y = -p.v.y;
                 p.p.y += p.v.y; // Correct the position after reversing direction
             }
 
             // Draw the new pixel
-            pbo->updatePixel(p.p.x, p.p.y, aiko::WHITE);
+            pbo->setPixel(p.p.x, p.p.y, aiko::WHITE);
 
         }
 
-        pbo->refreshPixels();
+        pbo->refresh();
     }
 
 }

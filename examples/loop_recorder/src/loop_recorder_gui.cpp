@@ -9,21 +9,13 @@ namespace aiko::recorder
 {
     void LoopRecorderGui::init()
     {
-        Application::init();
         m_loopRecorder.init();
         m_loopVisualizer.init();
         m_loopPlayer.init();
     }
 
-    void LoopRecorderGui::update()
-    {
-        Application::update();
-    }
-
     void LoopRecorderGui::render()
     {
-        Application::render();
-
         if (ImGui::Begin("Loop Recorder"))
         {
             static const LoopRecorder::AudioDevice* current_item = nullptr;

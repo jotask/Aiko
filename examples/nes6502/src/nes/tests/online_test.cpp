@@ -127,7 +127,7 @@ namespace nes::test::online
                     nes::Byte memoryAddressValue = mem->read(state.address);
                     if (memoryAddressValue != state.value)
                     {
-                        aiko::Log::error("Memory is not the expected. Cycle: " , unsigned(x), " Expected: ", unsigned(state.address), " -> ", unsigned(state.value), " Received: ", unsigned(cpu->program_counter), " -> ", unsigned(memoryAddressValue));
+                        aiko::logger::Log::error("Memory is not the expected. Cycle: " , unsigned(x), " Expected: ", unsigned(state.address), " -> ", unsigned(state.value), " Received: ", unsigned(cpu->program_counter), " -> ", unsigned(memoryAddressValue));
                         assert(false && "Memory is not the expected" );
                     }
                 }
@@ -139,32 +139,32 @@ namespace nes::test::online
         {
             if (cpu->program_counter != final.pc)
             {
-                aiko::Log::error("Program Counter not the same. Expected: ", unsigned(final.pc), " Received: ", unsigned(cpu->program_counter));
+                aiko::logger::Log::error("Program Counter not the same. Expected: ", unsigned(final.pc), " Received: ", unsigned(cpu->program_counter));
                 assert(false);
             }
             if (cpu->stack_pointer != final.s)
             {
-                aiko::Log::error("Stack Pointer not the same. Expected: ", unsigned(final.s), " Received: ", unsigned(cpu->stack_pointer));
+                aiko::logger::Log::error("Stack Pointer not the same. Expected: ", unsigned(final.s), " Received: ", unsigned(cpu->stack_pointer));
                 assert(false);
             }
             if (cpu->A != final.a)
             {
-                aiko::Log::error("A not the same. Expected: ", unsigned(final.a), " Received: ", unsigned(cpu->A));
+                aiko::logger::Log::error("A not the same. Expected: ", unsigned(final.a), " Received: ", unsigned(cpu->A));
                 assert(false);
             }
             if (cpu->X != final.x)
             {
-                aiko::Log::error("X not the same. Expected: ", unsigned(final.x), " Received: ", unsigned(cpu->X));
+                aiko::logger::Log::error("X not the same. Expected: ", unsigned(final.x), " Received: ", unsigned(cpu->X));
                 assert(false);
             }
             if (cpu->Y != final.y)
             {
-                aiko::Log::error("Y not the same. Expected: ", unsigned(final.y), " Received: ", unsigned(cpu->Y));
+                aiko::logger::Log::error("Y not the same. Expected: ", unsigned(final.y), " Received: ", unsigned(cpu->Y));
                 assert(false);
             }
             if (cpu->getP() != final.p)
             {
-                aiko::Log::error("P not the same. Expected: ", unsigned(final.p), " Received: ", unsigned(cpu->getP()));
+                aiko::logger::Log::error("P not the same. Expected: ", unsigned(final.p), " Received: ", unsigned(cpu->getP()));
                 printStatusFlags("Expected: ", final.p);
                 printStatusFlags("Received: ", cpu->getP());
                 assert(false);
@@ -176,7 +176,7 @@ namespace nes::test::online
                 nes::Byte readed = mem->read(address);
                 if (readed != value)
                 {
-                    aiko::Log::error("Memory is not the expected. Address: " , unsigned(address), " Expected: ", unsigned(value), " Readed : ", unsigned(readed));
+                    aiko::logger::Log::error("Memory is not the expected. Address: " , unsigned(address), " Expected: ", unsigned(value), " Readed : ", unsigned(readed));
                     assert(false);
                 }
             }

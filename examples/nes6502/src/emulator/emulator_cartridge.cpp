@@ -28,9 +28,9 @@ namespace nes
                 return;
             }
             auto pixels = convertPatternTableToTexture(chr);
-            auto* pbo = naiko->getApplication()->getPT0();
-            pbo->updatePixels(pixels);
-            pbo->refreshPixels();
+            auto pbo = naiko->getApplication()->getPT0();
+            pbo->setPixels(pixels);
+            pbo->refresh();
         }
 
     }
@@ -40,9 +40,10 @@ namespace nes
         if (ImGui::Begin(name.c_str(), &is_open))
         {
             ImGui::BeginChild("CHR table");
-            auto* pbo = naiko->getApplication()->getPT0();
+            auto pbo = naiko->getApplication()->getPT0();
             // Get the dimensions of the texture
-            ImVec2 textureSize = ImVec2(pbo->getPboTexture().texture.width, pbo->getPboTexture().texture.height);
+            const auto info = pbo->getTexture().getInfo();
+            ImVec2 textureSize = ImVec2(info.width, info.height);
 
             // Calculate aspect ratio of the image
             float aspectRatio = textureSize.x / textureSize.y;
@@ -72,7 +73,7 @@ namespace nes
             imageWidth = std::min(imageWidth, maxWidth);
             imageHeight = std::min(imageHeight, maxHeight);
 
-            ImGui::Image((ImTextureID)pbo->getPboTexture().texture.id, ImVec2(imageWidth, imageHeight), ImVec2(0, 0), ImVec2(1, 1));
+            ImGui::Image((ImTextureID)pbo->getTexture().id(), ImVec2(imageWidth, imageHeight), ImVec2(0, 0), ImVec2(1, 1));
             ImGui::EndChild();
         }
         ImGui::End();
