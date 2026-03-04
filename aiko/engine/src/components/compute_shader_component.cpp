@@ -42,8 +42,10 @@ namespace aiko
             m_needInitDispatch = false;
         }
 
-        if (!m_computeInit)
+        if (m_computeInit == false)
+        {
             return;
+        }
 
         ComputePass pass;
         pass.shader = &m_particlesCS;
@@ -65,7 +67,7 @@ namespace aiko
         AikoRenderer::it().enqueueCompute(pass);
 
         // --- Draw mesh particles using GPU instance buffer (NEW) ---
-        if (m_meshParticlesInit)
+        if (m_meshParticlesInit == true)
         {
             GpuInstanceDrawDesc draw;
 
@@ -175,10 +177,7 @@ namespace aiko
             m_particleMesh.setData(data);
 
             // load a shader that supports GPU instance buffer fetch
-            Shader instShader;
-            instShader.load("mesh_gpuinst.vs", "debug_color.fs");
-
-            m_particleMeshMaterial.m_shader = instShader;
+            m_particleMeshMaterial.m_shader.load("mesh_gpuinst.vs", "model.fs");;
             m_particleMeshMaterial.m_baseColor = MAGENTA;
             m_particleMeshMaterial.m_lit = false;
 
