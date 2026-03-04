@@ -90,6 +90,22 @@ namespace aiko
         return inputSystem->isMouseButtonPressed(button);
     }
 
+    void Application::update()
+    {
+        for (auto& layer : m_layers)
+        {
+            layer->onUpdate();
+        }
+    }
+
+    void Application::render()
+    {
+        for (auto& layer : m_layers)
+        {
+            layer->onRender();
+        }
+    }
+
     GameObject* Application::Instantiate(string name)
     {
         SceneSystem* ecs = m_aiko->getSystem<SceneSystem>();
@@ -104,12 +120,6 @@ namespace aiko
         return obj;
     }
 
-    void Application::drawText(string str, float x, float y)
-    {
-        RenderSystem* renderSystem = getRenderSystem();
-        renderSystem->renderText(str, x, y);
-    }
-
     void Application::setActiveCamera(GameObject* obj)
     {
         SceneSystem* ss = m_aiko->getSystem<SceneSystem>();
@@ -117,4 +127,23 @@ namespace aiko
         ss->setActiveCamera(obj);
     }
 
+    void Application::pushLayer(AikoUPtr<Layer> layer)
+    {
+    }
+
+    void Application::pushOverlay(AikoUPtr<Layer> layer)
+    {
+    }
+
+    void Application::onEvent(Event& e)
+    {
+        for (auto it = m_layers.rbegin(); it != m_layers.rend(); ++it)
+        {
+            (*it)->onEvent(e);
+            if (e.handled == true)
+            {
+                break;
+            }
+        }
+    }
 }

@@ -9,6 +9,7 @@ namespace aiko
         Event() = default;
         virtual ~Event() = default;
         virtual EventId     getId() const = 0;
+        bool handled = false;
     };
 
 }

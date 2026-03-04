@@ -22,7 +22,11 @@ file(GLOB_RECURSE AIKO_SRC "src/*.h" "src/*.cpp" "src/*.hpp")
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${AIKO_SRC})
 
 # Main Library
-add_library(Aiko STATIC ${AIKO_SRC})
+add_library(Aiko STATIC ${AIKO_SRC}
+        src/layers/layer.h
+        src/layers/layer_stack.cpp
+        src/layers/layer_stack.h
+        src/layers/layer_type.h)
 target_compile_definitions(Aiko PRIVATE ${AIKO_RENDER} )
 target_compile_definitions(Aiko PUBLIC NOMINMAX )
 

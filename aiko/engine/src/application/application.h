@@ -3,6 +3,8 @@
 #include <aiko_types.h>
 #include <math/math.h>
 
+#include <layers/layer_stack.h>
+
 #include <input/inputs_types.h>
 
 #include "aiko.h"
@@ -37,8 +39,8 @@ namespace aiko
         bool isMouseButtonPressed(MouseButton) const;
 
         virtual void init() {}
-        virtual void update() {}
-        virtual void render() {}
+        virtual void update();
+        virtual void render();
 
         InputSystem* getInputSystem() const;
         RenderSystem* getRenderSystem() const;
@@ -47,17 +49,21 @@ namespace aiko
         vec2 getViewportSize() const;
         float getAspectRatio() const;
 
-        aiko::AikoUPtr<Aiko> m_aiko;
+        AikoUPtr<Aiko> m_aiko;
 
         GameObject* Instantiate(string name);
         GameObject* Instantiate(GameObject* , string name);
 
-        // Draw text
-        void drawText(string, float, float);
-
         void setActiveCamera(GameObject* obj);
 
+        void pushLayer(AikoUPtr<Layer>);
+        void pushOverlay(AikoUPtr<Layer>);
+
+        void onEvent(Event& e);
+
     private:
+
+        LayerStack m_layers;
 
     };
 
