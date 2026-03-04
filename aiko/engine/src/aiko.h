@@ -5,7 +5,8 @@
 #include <algorithm>
 
 #include "aiko_types.h"
-#include "aiko_config.h" 
+#include "aiko_config.h"
+#include "display/display_events.hpp"
 #include "modules/module.h"
 #include "systems/sytem.h"
 #include "events/event.hpp"
@@ -42,7 +43,7 @@ namespace aiko
 
         void run();
 
-        void onWindowClose(Event&);
+        void onWindowClose(WindowCloseEvent&);
 
         void init();
         void update();

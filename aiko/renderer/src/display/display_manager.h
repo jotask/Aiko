@@ -32,8 +32,8 @@ namespace aiko
         Display m_display;
         GLFWwindow* m_native;
 
-        void onKeyPressed(Event& event);
-        void onWindowResize(Event& event);
+        void onKeyPressed(OnKeyPressedEvent& event);
+        void onWindowResize(WindowResizeEvent& event);
 
     };
 

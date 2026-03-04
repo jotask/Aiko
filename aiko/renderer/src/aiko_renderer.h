@@ -5,6 +5,7 @@
 
 #include "core/singleton.h"
 #include "core/transform.h"
+#include "display/display_events.hpp"
 #include "models/camera.h"
 #include "models/shader.h"
 #include "models/texture.h"
@@ -56,7 +57,7 @@ namespace aiko
 
         const Texture* m_debugTexture = nullptr;
 
-        void onWindowResize(Event&);
+        void onWindowResize(WindowResizeEvent&);
 
         AikoPtr<renderer::IRenderDevice> m_renderer;
 

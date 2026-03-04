@@ -86,7 +86,7 @@ namespace aiko
         EventSystem::it().bind<OnKeyPressedEvent>(this, &AikoInput::onKeyPressed);
         EventSystem::it().bind<OnMouseKeyPressedEvent>(this, &AikoInput::onMouseKeyPressed);
         EventSystem::it().bind<OnMouseMoveEvent>(this, &AikoInput::onMouseMoved);
-        EventSystem::it().bind<OnMouseScrollCallbackEvent>(this, &AikoInput::OnMouseScrollCallback);
+        EventSystem::it().bind<OnMouseScrollEvent>(this, &AikoInput::OnMouseScrollCallback);
         GLFWwindow* window = DisplayManager::it().getNativeWindow();
         glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
         setCentredToScreen(false);
@@ -107,12 +107,10 @@ namespace aiko
         m_mouseScrollBack = {};
     }
 
-    void AikoInput::onKeyPressed(Event& event)
+    void AikoInput::onKeyPressed(OnKeyPressedEvent& event)
     {
-        const auto& msg = static_cast<const OnKeyPressedEvent&>(event);
-
-        const Key key = static_cast<Key>(msg.key);
-        const PressedType action = convertToAction(msg.action);
+        const Key key = static_cast<Key>(event.key);
+        const PressedType action = convertToAction(event.action);
 
         if(LOG_INPUT)
         {
@@ -133,12 +131,11 @@ namespace aiko
 
     }
 
-    void AikoInput::onMouseKeyPressed(Event& event)
+    void AikoInput::onMouseKeyPressed(OnMouseKeyPressedEvent& event)
     {
-        const auto& msg = static_cast<const OnMouseKeyPressedEvent&>(event);
 
-        const MouseButton key = static_cast<MouseButton>(msg.button);
-        const PressedType action = convertToAction(msg.action);
+        const MouseButton key = static_cast<MouseButton>(event.button);
+        const PressedType action = convertToAction(event.action);
 
         if (LOG_INPUT)
         {
@@ -159,18 +156,16 @@ namespace aiko
 
     }
 
-    void AikoInput::onMouseMoved(Event& event)
+    void AikoInput::onMouseMoved(OnMouseMoveEvent& event)
     {
-        const auto& msg = static_cast<const OnMouseMoveEvent&>(event);
-        vec2 newMousePosition = { msg.x, msg.y };
+        vec2 newMousePosition = { event.x, event.y };
         m_mouseDelta = newMousePosition - m_mousePosition;
         m_mousePosition = newMousePosition;
     }
 
-    void AikoInput::OnMouseScrollCallback(Event& event)
+    void AikoInput::OnMouseScrollCallback(OnMouseScrollEvent& event)
     {
-        const auto& msg = static_cast<const OnMouseScrollCallbackEvent&>(event);
-        m_mouseScrollBack = { static_cast<float>( msg.xoffset ), static_cast<float>( msg.yoffset ) };
+        m_mouseScrollBack = { static_cast<float>( event.xoffset ), static_cast<float>( event.yoffset ) };
     }
 
     PressedType AikoInput::convertToAction(int action)

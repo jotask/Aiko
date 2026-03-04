@@ -1,14 +1,15 @@
 #pragma once
 
+#include <typeindex>
+
 namespace aiko
 {
     class Event
     {
     public:
-        using EventId = const char*;
+        using EventId = std::type_index;
         Event() = default;
         virtual ~Event() = default;
-        virtual EventId     getId() const = 0;
         bool handled = false;
     };
 

@@ -39,9 +39,8 @@ namespace aiko
     {
     }
 
-    void Aiko::onWindowClose(Event& event)
+    void Aiko::onWindowClose(WindowCloseEvent& event)
     {
-        const auto& msg = static_cast<const WindowCloseEvent&>(event);
         m_shouldStop = true;
     }
 

@@ -121,7 +121,7 @@ namespace aiko
         // Mouse Scrollback
         auto mouse_scroll_callback = [](GLFWwindow* window, double xoffset, double yoffset)
         {
-            OnMouseScrollCallbackEvent even(xoffset, yoffset);
+            OnMouseScrollEvent even(xoffset, yoffset);
             aiko::EventSystem::it().sendEvent(even);
         };
         glfwSetScrollCallback(window, mouse_scroll_callback);
@@ -169,17 +169,15 @@ namespace aiko
         return m_native;
     }
 
-    void DisplayManager::onKeyPressed(Event& event)
+    void DisplayManager::onKeyPressed(OnKeyPressedEvent& event)
     {
-        const auto& msg = static_cast<const OnKeyPressedEvent&>(event);
-        const Key key = static_cast<Key>(msg.key);
+        const Key key = static_cast<Key>(event.key);
         glfwSetWindowShouldClose(m_native, key == KEY_ESCAPE);
     }
 
-    void DisplayManager::onWindowResize(Event& event)
+    void DisplayManager::onWindowResize(WindowResizeEvent& event)
     {
-        const auto& msg = static_cast<const WindowResizeEvent&>(event);
-        m_display.setWindowSize(msg.width, msg.height);
+        m_display.setWindowSize(event.width, event.height);
     }
 
     void DisplayManager::update()

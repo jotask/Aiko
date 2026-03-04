@@ -326,10 +326,9 @@ namespace aiko
         return m_screenFbo.getFrameBuffer();
     }
 
-    void AikoRenderer::onWindowResize(Event& event)
+    void AikoRenderer::onWindowResize(WindowResizeEvent& event)
     {
-        const auto& msg = static_cast<const WindowResizeEvent&>(event);
-        m_renderer->resize(msg.width, msg.height, false);
-        m_screenFbo.resize(msg.width, msg.height);
+        m_renderer->resize(event.width, event.height, false);
+        m_screenFbo.resize(event.width, event.height);
     }
 }

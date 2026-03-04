@@ -7,6 +7,7 @@
 #include <core/singleton.h>
 
 #include "inputs_types.h"
+#include "display/display_events.hpp"
 
 namespace aiko
 {
@@ -44,10 +45,10 @@ namespace aiko
         std::map<Key, InputType> m_keys_inputs;
         std::map<MouseButton, InputType> m_mouse_inputs;
 
-        void onKeyPressed(Event& event);
-        void onMouseKeyPressed(Event& event);
-        void onMouseMoved(Event& event);
-        void OnMouseScrollCallback(Event& event);
+        void onKeyPressed(OnKeyPressedEvent& event);
+        void onMouseKeyPressed(OnMouseKeyPressedEvent& event);
+        void onMouseMoved(OnMouseMoveEvent& event);
+        void OnMouseScrollCallback(OnMouseScrollEvent& event);
 
         PressedType convertToAction(int code);
 
