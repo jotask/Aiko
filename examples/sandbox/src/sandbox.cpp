@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include <application/application.h>
+
 #include "models/game_object.h"
 #include "components/camera_component.h"
 #include "components/mesh_component.h"
@@ -26,39 +28,38 @@ namespace sb
 {
     void Sandbox::init()
     {
-        Application::init();
 
-        auto camera = this->Instantiate("Camera");
+        auto camera = app->Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
 		camera->transform().position = { 0.0f, 1.0f, 3.0f };
 		cam->getCamera().position = camera->transform().position;
 
-        auto root = Instantiate("Root");
+        auto root = app->Instantiate("Root");
 
 #ifdef TEST_LOAD_MESHES
 
-        auto go1 = this->Instantiate(root, "Church");
+        auto go1 = app->Instantiate(root, "Church");
         go1->transform().position = { 0.0f, 0.0f, -15.0f };
         go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model1 = go1->addComponent<aiko::ModelComponent>();
         model1->load("church.obj");
 
-        auto go2 = this->Instantiate(root, "Barracks");
+        auto go2 = app->Instantiate(root, "Barracks");
         go2->transform().position = { -50.0f, 0.0f, -15.0f };
         go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model2 = go2->addComponent<aiko::ModelComponent>();
         model2->load("barracks.obj");
 
-        auto go3 = this->Instantiate(root, "Watermill");
+        auto go3 = app->Instantiate(root, "Watermill");
         go3->transform().position = { 50.0f, 0.0f, -15.0f };
         go3->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go3->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model3 = go3->addComponent<aiko::ModelComponent>();
         model3->load("watermill.obj");
 
-        auto go4 = this->Instantiate(root, "Robot");
+        auto go4 = app->Instantiate(root, "Robot");
         go4->transform().position = { 0.0f, 0.0f, 5.0f };
         go4->transform().rotation = { 0.0f, 0.0f, 0.0f };
         const float scale = 0.25f;
@@ -69,25 +70,25 @@ namespace sb
 #endif
 
 #ifdef TEST_COMPONENTS
-        m_go1 = this->Instantiate(root, "Cube1");
+        m_go1 = app->Instantiate(root, "Cube1");
         m_go1->transform().position = { 1.0f, 0.0f, 5.0f };
         m_go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
         
-        m_go2 = this->Instantiate(root, "Cube2");
+        m_go2 = app->Instantiate(root, "Cube2");
         m_go2->transform().position = { -1.0f, 0.0f, 5.0f };
         m_go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
 
-        m_texture = this->Instantiate(root, "Texture");
+        m_texture = app->Instantiate(root, "Texture");
         m_texture->transform().position = { 0.0f, -0.55f, 5.0f };
         m_texture->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texture->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh3 = m_texture->addComponent<aiko::TextureComponent>("texel_checker.png");
 
-        m_texturePbo = this->Instantiate(root, "PboTexture");
+        m_texturePbo = app->Instantiate(root, "PboTexture");
         m_texturePbo->transform().position = { 0.0f, 0.55f, 5.0f };
         m_texturePbo->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texturePbo->transform().scale = { 1.0f, 1.0f, 1.0f };
@@ -99,7 +100,7 @@ namespace sb
         constexpr float radiusSpawn = 10.0f;
         for (size_t i = 0 ; i < 10; ++i )
         {
-            auto* obj = this->Instantiate(root, "Light");
+            auto* obj = app->Instantiate(root, "Light");
             obj->transform().position = {
                 aiko::utils::getRandomValue(-radiusSpawn, radiusSpawn),
                 aiko::utils::getRandomValue(-radiusSpawn, radiusSpawn),
@@ -117,7 +118,7 @@ namespace sb
 #endif
 
 #ifdef TEST_PARTICLE_CS
-        auto ps = this->Instantiate(root, "Particles");
+        auto ps = app->Instantiate(root, "Particles");
         auto psCmp = ps->addComponent<aiko::ComputeShaderComponent>();
 #endif
 
@@ -125,11 +126,10 @@ namespace sb
 
     void Sandbox::update()
     {
-        Application::update();
 #ifdef TEST_COMPONENTS
         {
             static float angle = 0.0f;
-            angle += 25.0f * getlDeltaTime();
+            angle += 25.0f * app->getlDeltaTime();
             angle = fmod(angle, 360.0f);
             m_go1->transform().rotation = {  angle, 0.0f, 0.0f };
             m_go2->transform().rotation = { -angle, 0.0f, 0.0f };
@@ -139,7 +139,7 @@ namespace sb
         {
             for (auto& light : m_lights)
             {
-                light.angle += 1.0f * getlDeltaTime();
+                light.angle += 1.0f * app->getlDeltaTime();
                 aiko::vec3 pos = {std::sin(light.angle), 0.0f, std::cos(light.angle)};
                 light.obj->transform().position = pos;
             }
@@ -149,32 +149,31 @@ namespace sb
 
     void Sandbox::render()
     {
-        Application::render();
 
 #ifdef TEST_PRIMITIVES
 
         constexpr const float SIZE = 1.0f;
 
         // 2D
-        getRenderSystem()->drawPoint({ 1.0f, 1.0f, 0.0f });
-        getRenderSystem()->renderLine({ -2.0f, -1.0f, 0.0f }, { 2.0f, -1.0f, 0.0f });
+        app->getRenderSystem()->drawPoint({ 1.0f, 1.0f, 0.0f });
+        app->getRenderSystem()->renderLine({ -2.0f, -1.0f, 0.0f }, { 2.0f, -1.0f, 0.0f });
 
-        getRenderSystem()->drawRectangle({ 0.0f, 1.0f, 0.0f }, SIZE);
-        getRenderSystem()->renderCircle({ 2.0f, 1.0f, 0.0f }, SIZE);
-        getRenderSystem()->drawTriangle({ -1.0f, 1.0f, 0.0f }, SIZE);
-        getRenderSystem()->renderNgon({ -2.0f, 1.0f, 0.0f }, SIZE, 6);
+        app->getRenderSystem()->drawRectangle({ 0.0f, 1.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderCircle({ 2.0f, 1.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->drawTriangle({ -1.0f, 1.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderNgon({ -2.0f, 1.0f, 0.0f }, SIZE, 6);
 
         // 3D
-        getRenderSystem()->drawCube({ 1.0f, 0.0f, 0.0f }, SIZE);
-        getRenderSystem()->drawPyramid({ 0.0f, 0.0f, 0.0f }, SIZE);
-        getRenderSystem()->renderSphere({ -1.0f, 0.0f, 0.0f }, SIZE);
-        getRenderSystem()->renderCylinder({ -2.0f, 0.0f, 0.0f }, SIZE, 6);
-        getRenderSystem()->renderPolygon({ -3.0f, 0.0f, 0.0f }, SIZE, 6, 6);
+        app->getRenderSystem()->drawCube({ 1.0f, 0.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->drawPyramid({ 0.0f, 0.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderSphere({ -1.0f, 0.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderCylinder({ -2.0f, 0.0f, 0.0f }, SIZE, 6);
+        app->getRenderSystem()->renderPolygon({ -3.0f, 0.0f, 0.0f }, SIZE, 6, 6);
 
-        getRenderSystem()->renderTorus({ 2.0f, 0.0f, 0.0f }, SIZE);
-        getRenderSystem()->renderKnot({ 3.0f, 0.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderTorus({ 2.0f, 0.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderKnot({ 3.0f, 0.0f, 0.0f }, SIZE);
 
-        getRenderSystem()->drawPlane({ 0.0f, -2.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->drawPlane({ 0.0f, -2.0f, 0.0f }, SIZE);
 
 #endif
 
@@ -183,7 +182,7 @@ namespace sb
         {
             for (auto& light : m_lights)
             {
-                getRenderSystem()->renderSphere(light.obj->transform().position, 0.1f, 25 , light.cmp->color);
+                app->getRenderSystem()->renderSphere(light.obj->transform().position, 0.1f, 25 , light.cmp->color);
             }
         }
 #endif

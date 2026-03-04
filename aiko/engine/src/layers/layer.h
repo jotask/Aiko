@@ -2,18 +2,30 @@
 
 namespace aiko
 {
+
+    class Application;
+
     class Layer
     {
     public:
         Layer() = default;
         virtual ~Layer() = default;
 
-        virtual void onAttach() = 0;
-        virtual void onDetach() = 0;
+        virtual void onAttach() {}
+        virtual void onDetach() {}
 
-        virtual void onUpdate() = 0;
-        virtual void onRender() = 0;
-        virtual void onEvent(Event& e) = 0;
+        virtual void init() {}
+        virtual void dispose() {}
+
+        virtual void update() {}
+        virtual void render() {}
+        virtual void onEvent(Event& e) {}
+
+    protected:
+
+        // Temporal for now
+        friend class Application;
+        Application* app;
 
     };
 }

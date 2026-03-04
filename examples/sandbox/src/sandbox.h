@@ -6,7 +6,7 @@
 namespace sb
 {
 
-    class Sandbox : public aiko::Application
+    class Sandbox : public aiko::Layer
     {
     protected:
         virtual void init() override;

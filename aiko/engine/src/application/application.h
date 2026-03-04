@@ -28,9 +28,12 @@ namespace aiko
         Application(AikoConfig cfg);
         virtual ~Application() = default;
 
+        void pushLayer(AikoUPtr<Layer>);
+        void pushOverlay(AikoUPtr<Layer>);
+
         void run();
 
-    protected:
+    public:
 
         float getlDeltaTime() const;
         bool isKeyPressed(Key) const;
@@ -38,9 +41,10 @@ namespace aiko
         vec2 getMousePosition() const;
         bool isMouseButtonPressed(MouseButton) const;
 
-        virtual void init() {}
+        virtual void init();
         virtual void update();
         virtual void render();
+        virtual void dispose();
 
         InputSystem* getInputSystem() const;
         RenderSystem* getRenderSystem() const;
@@ -55,9 +59,6 @@ namespace aiko
         GameObject* Instantiate(GameObject* , string name);
 
         void setActiveCamera(GameObject* obj);
-
-        void pushLayer(AikoUPtr<Layer>);
-        void pushOverlay(AikoUPtr<Layer>);
 
         void onEvent(Event& e);
 

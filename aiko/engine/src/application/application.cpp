@@ -90,11 +90,19 @@ namespace aiko
         return inputSystem->isMouseButtonPressed(button);
     }
 
+    void Application::init()
+    {
+        for (auto& layer : m_layers)
+        {
+            layer->init();
+        }
+    }
+
     void Application::update()
     {
         for (auto& layer : m_layers)
         {
-            layer->onUpdate();
+            layer->update();
         }
     }
 
@@ -102,7 +110,15 @@ namespace aiko
     {
         for (auto& layer : m_layers)
         {
-            layer->onRender();
+            layer->render();
+        }
+    }
+
+    void Application::dispose()
+    {
+        for (auto& layer : m_layers)
+        {
+            layer->dispose();
         }
     }
 
@@ -129,10 +145,14 @@ namespace aiko
 
     void Application::pushLayer(AikoUPtr<Layer> layer)
     {
+        layer->app = this;
+        m_layers.pushLayer(std::move(layer));
     }
 
     void Application::pushOverlay(AikoUPtr<Layer> layer)
     {
+        layer->app = this;
+        m_layers.pushOverlay(std::move(layer));
     }
 
     void Application::onEvent(Event& e)

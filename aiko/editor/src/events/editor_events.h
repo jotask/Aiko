@@ -12,11 +12,9 @@ namespace aiko
         class HirearchyGameObjectSelectedEvent : public Event
         {
         public:
-            HirearchyGameObjectSelectedEvent() = default;
             HirearchyGameObjectSelectedEvent(GameObject* obj) : selected(obj) {};
             virtual ~HirearchyGameObjectSelectedEvent() = default;
-            virtual EventId     getId() const { return "HirearchyGameObjectSelectedEvent"; }
-            GameObject* selected = nullptr;
+            const GameObject* selected = nullptr;
        };    
     }
 }

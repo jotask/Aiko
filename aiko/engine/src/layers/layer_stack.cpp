@@ -14,6 +14,7 @@ namespace aiko
     {
         for (const auto& layer : m_layers)
         {
+            layer->dispose();
             layer->onDetach();
         }
     }
@@ -47,6 +48,7 @@ namespace aiko
         });
         if (found != layerEnd)
         {
+            (*found)->dispose();
             (*found)->onDetach();
             m_layers.erase(found);
             m_insertIndex--;
@@ -64,6 +66,7 @@ namespace aiko
         });
         if (found != m_layers.end())
         {
+            (*found)->dispose();
             (*found)->onDetach();
             m_layers.erase(found);
         }

@@ -1,10 +1,12 @@
 #include <stdlib.h>
 
 #include "sandbox.h"
+#include "application/application.h"
 
 int main()
 {
-	sb::Sandbox sb;
-	sb.run();
+	aiko::Application app;
+	app.pushLayer(std::make_unique<sb::Sandbox>());
+	app.run();
 	return EXIT_SUCCESS;
 }

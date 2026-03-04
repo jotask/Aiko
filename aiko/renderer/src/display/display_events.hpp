@@ -40,7 +40,10 @@ namespace aiko
     public:
         OnKeyPressedEvent(int key, int scancode, int action, int mods) : key(key), scancode(scancode), action(action), mods(mods) {  };
         virtual ~OnKeyPressedEvent() = default;
-        int key; int scancode; int action; int mods;
+        const int key;
+        const int scancode;
+        const int action;
+        const int mods;
     };
 
     class OnMouseKeyPressedEvent : public Event
@@ -48,7 +51,9 @@ namespace aiko
     public:
         OnMouseKeyPressedEvent(int button, int action, int mods) : button(button), action(action), mods(mods) {  };
         virtual ~OnMouseKeyPressedEvent() = default;
-        int button; int action; int mods;
+        const int button;
+        const int action;
+        const int mods;
     };
 
     class OnMouseMoveEvent : public Event
@@ -56,7 +61,8 @@ namespace aiko
     public:
         OnMouseMoveEvent(float x, float y) : x(x), y(y) {};
         virtual ~OnMouseMoveEvent() = default;
-        float x; float y;
+        const float x;
+        const float y;
     };
 
     class OnMouseScrollEvent : public Event
@@ -64,7 +70,8 @@ namespace aiko
     public:
         OnMouseScrollEvent(double xoffset, double yoffset) : xoffset(xoffset), yoffset(yoffset) {};
         virtual ~OnMouseScrollEvent() = default;
-        double xoffset; double yoffset;
+        const double xoffset;
+        const double yoffset;
     };
 
 }
