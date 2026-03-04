@@ -13,7 +13,7 @@ namespace aiko::renderer
 	{
 		static string getShaderRootDir()
 		{
-			std::string base = global::GLOBAL_ASSET_PATH + "/build/shaders/";
+			std::string base = global::GLOBAL_PATH + "/build/assets/shaders/";
 
 			switch (::bgfx::getRendererType())
 			{

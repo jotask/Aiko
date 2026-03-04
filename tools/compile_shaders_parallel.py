@@ -103,7 +103,7 @@ def compile_one(shader: Path, shaderc_path: Path, folder: str, platform_name: st
     if shader_type is None:
         return (shader, False, f"Skipping {shader.name} (unknown shader type)")
 
-    output_dir = getprojectrootdir() / f"assets/build/shaders/{folder}"
+    output_dir = getprojectrootdir() / f"build/assets/shaders/{folder}"
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / f"{shader.stem}.{shader.suffix[1:]}.bin"
 

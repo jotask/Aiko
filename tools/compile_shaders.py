@@ -84,7 +84,7 @@ def compileshader(shader: Path):
         return
 
     # compile profiler
-    output_dir = getprojectrootdir() / f"assets/build/shaders/{folder}"
+    output_dir = getprojectrootdir() / f"build/assets/shaders/{folder}"
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / f"{shader.stem}.{shader.suffix[1:]}.bin"
 
