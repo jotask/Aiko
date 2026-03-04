@@ -4,6 +4,8 @@
 
 #include <aiko_includes.h>
 
+#include "events/editor_events.h"
+
 namespace aiko
 {
     namespace editor
@@ -17,8 +19,8 @@ namespace aiko
             virtual void render();
 
         private:
-            void onGameObjectSelected(aiko::Event& envt);
-            aiko::GameObject* selectedGo;
+            void onGameObjectSelected(HirearchyGameObjectSelectedEvent& envt);
+            GameObject* selectedGo;
         };
 
     }

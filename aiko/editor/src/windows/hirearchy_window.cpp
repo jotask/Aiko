@@ -5,7 +5,7 @@
 #include <aiko_includes.h>
 #include "events/editor_events.h"
 #include "aiko_editor.h"
-#include "core/components_render.h"
+#include <systems/scene_system.h>
 
 #include <imgui.h>
 
@@ -21,14 +21,14 @@ namespace aiko
 
         void HirearchyWindow::render()
         {
-            static auto* ecs = m_editor->getAiko()->getSystem<aiko::EntityComponentSystem>();
+            static auto* ecs = m_editor->getAiko()->getSystem<SceneSystem>();
             static GameObject* selectedGo = nullptr;
 
             static const auto selectGo = [&](GameObject* ptr)
             {
                 selectedGo = ptr;
                 HirearchyGameObjectSelectedEvent ev(selectedGo);
-                aiko::EventSystem::it().sendEvent(ev);
+                EventSystem::it().sendEvent(ev);
             };
 
             if (ImGui::Begin("Hirearchy"))
@@ -37,7 +37,8 @@ namespace aiko
                 ImGui::SetNextItemOpen(initialOpenState);
                 if (ImGui::TreeNode("Scene"))
                 {
-                    for (GameObject* child : ecs->getObjects())
+                    Scene& scene = ecs->getScene();
+                    for (GameObject* child : scene.getObjects())
                     {
                         const bool isSelected = (child == selectedGo);
                         if (ImGui::Selectable(child->getName().c_str(), isSelected))
@@ -51,7 +52,7 @@ namespace aiko
                             if (ImGui::MenuItem("Delete"))
                             {
                                 // Handle deletion of the GameObject
-                                ecs->destroyGameObject(child);
+                                scene.remove(child);
                                 if (selectedGo == child)
                                 {
                                     selectGo(nullptr);

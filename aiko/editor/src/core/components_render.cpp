@@ -132,7 +132,7 @@ namespace aiko::editor
 
         void drawComponent(aiko::Component* compt)
         {
-            if (isComponent<aiko::Transform>(compt, drawTransform)) return;
+            if (isComponent<aiko::TransforComponent>(compt, drawTransform)) return;
             if (isComponent<aiko::TextureComponent>(compt, drawTexture)) return;
             if (isComponent<aiko::MeshComponent>(compt, drawMesh)) return;
             if (isComponent<aiko::LightComponent>(compt, drawLight)) return;
@@ -141,12 +141,12 @@ namespace aiko::editor
             assert(false && "ERROR :: Component is not supported by the editor");
         }
 
-        void drawTransform(aiko::Transform* t)
+        void drawTransform(aiko::TransforComponent* t)
         {
             ImGui::PushID(t);
-            ImGui::DragFloat3("Position", t->position, IMGUI_VELOCITY);
-            ImGui::DragFloat3("Rotation", t->rotation, IMGUI_VELOCITY);
-            ImGui::DragFloat3("Scale", t->scale, IMGUI_VELOCITY);
+            ImGui::DragFloat3("Position", t->transform.position, IMGUI_VELOCITY);
+            ImGui::DragFloat3("Rotation", t->transform.rotation, IMGUI_VELOCITY);
+            ImGui::DragFloat3("Scale", t->transform.scale, IMGUI_VELOCITY);
             ImGui::PopID();
         }
 

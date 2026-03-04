@@ -10,13 +10,13 @@
 namespace aiko::editor
 {
 
-    class AikoEditor : public aiko::Application
+    class AikoEditor : public Layer
     {
     public:
         using Windows = std::vector<AikoUPtr<Window>>;
 
         AikoEditor();
-        aiko::Aiko* getAiko() const;
+        Aiko* getAiko() const;
 
         const Windows& getWindows() { return m_windows; }
 

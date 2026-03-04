@@ -1,5 +1,7 @@
 #pragma once
 
+#include <events/event.hpp>
+
 namespace aiko
 {
 

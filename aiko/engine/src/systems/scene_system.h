@@ -33,6 +33,9 @@ namespace aiko
         void setActiveCamera(GameObject* obj);
         GameObject* getActiveCamera() const { return m_scene.getActiveCamera(); }
 
+        Scene& getScene();
+        const Scene& getScene() const;
+
     protected:
 
         virtual void connect(ModuleConnector*, SystemConnector*) override;
@@ -40,9 +43,6 @@ namespace aiko
         virtual void render() override;
 
         constexpr static const char* DEFAULT_OBJECT_NAME = "Game Object";
-
-        Scene& getScene();
-        const Scene& getScene() const;
 
     private:
 

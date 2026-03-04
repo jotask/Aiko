@@ -19,12 +19,11 @@ namespace aiko
             : Window(editor, "ComponentWindow")
             , selectedGo(nullptr)
         {
-            aiko::EventSystem::it().bind<HirearchyGameObjectSelectedEvent>(this, &ComponentWindow::onGameObjectSelected);
+            EventSystem::it().bind<HirearchyGameObjectSelectedEvent>(this, &ComponentWindow::onGameObjectSelected);
         }
 
         void ComponentWindow::render()
         {
-            static auto* ecs = m_editor->getAiko()->getSystem<aiko::EntityComponentSystem>();
             if (ImGui::Begin("Components"))
             {
                 if (selectedGo != nullptr)
@@ -92,10 +91,9 @@ namespace aiko
 
         }
 
-        void ComponentWindow::onGameObjectSelected(aiko::Event& envt)
+        void ComponentWindow::onGameObjectSelected(HirearchyGameObjectSelectedEvent& envt)
         {
-            auto& msg = static_cast<HirearchyGameObjectSelectedEvent&>(envt);
-            selectedGo = msg.selected;
+            selectedGo = const_cast<GameObject*>(envt.selected);
         }
 
     }
