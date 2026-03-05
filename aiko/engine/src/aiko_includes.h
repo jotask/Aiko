@@ -13,9 +13,7 @@
 #include "components/camera_component.h"
 #include "components/mesh_component.h"
 #include "components/light_component.h"
-#include "components/texture_component.h"
-#include "components/grid_component.h"
-#include "components/2d/sprite_component.h"
+#include "components/sprite_component.h"
 
 #include "models/shader.h"
 #include "models/mesh.h"
