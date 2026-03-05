@@ -12,22 +12,7 @@ namespace aiko
     {
     
     }
-    
-    void LightComponent::init()
-    {
 
-    }
-
-    void LightComponent::update()
-    {
-
-    }
-
-    void LightComponent::render()
-    {
-
-    }
-    
     void LightComponent::setPrimitive(LightType light)
     {
         this->type = light;

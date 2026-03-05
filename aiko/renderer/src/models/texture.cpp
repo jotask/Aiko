@@ -38,7 +38,7 @@ namespace aiko
 
     void Texture::create()
     {
-        texture::Texture text
+        const texture::Texture text
         {
             .type = texture::TextureType::Sampled,
             .format = texture::TextureFormat::RGBA8,
@@ -51,7 +51,7 @@ namespace aiko
 
     void Texture::create(int width, int height)
     {
-        texture::Texture text
+        const texture::Texture text
         {
             .type = texture::TextureType::Sampled,
             .format = texture::TextureFormat::RGBA8,

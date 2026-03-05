@@ -6,16 +6,12 @@
 
 namespace aiko
 {
-    class LightComponent : public Component, public IUpdate, public IRender3D
+    class LightComponent : public Component
     {
     public:
         LightComponent();
         virtual ~LightComponent() = default;
-    
-        virtual void init() override;
-        virtual void update() override;
-        virtual void render() override;
-    
+
         void setPrimitive(LightType);
 
         Color color;

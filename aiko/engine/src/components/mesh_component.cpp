@@ -24,16 +24,6 @@ namespace aiko
         AIKO_ASSERT(m_mesh.isValid(), "Mesh is invalid");
     }
 
-    void MeshComponent::update()
-    {
-
-    }
-
-    void MeshComponent::render()
-    {
-
-    }
-
     void MeshComponent::load(const char* filename)
     {
         m_mesh.load(filename);

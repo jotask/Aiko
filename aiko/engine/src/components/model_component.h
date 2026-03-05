@@ -7,24 +7,18 @@
 namespace aiko
 {
 
-    class RenderSystem;
-
-    class ModelComponent : public Component, public IUpdate, public IRender3D
+    class ModelComponent : public Component
     {
     public:
-
-        friend class RenderSystem;
 
         ModelComponent();
         virtual ~ModelComponent() = default;
 
-        virtual void init() override;
-        virtual void update() override;
-        virtual void render() override;
+        void load(string);
 
-        void load(const char*);
+        Model& getModel();
+    private:
 
-        RenderSystem*   m_renderSystem;
         Model m_model;
     };
 

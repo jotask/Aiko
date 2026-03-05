@@ -13,24 +13,13 @@ namespace aiko
 
     }
 
-    void ModelComponent::init()
+    void ModelComponent::load(string filename)
     {
-        m_renderSystem = gameobject->getSystem<RenderSystem>();
+        m_model.load(filename.c_str());
     }
 
-    void ModelComponent::load(const char* filename)
+    Model& ModelComponent::getModel()
     {
-        m_model.load(filename);
+        return m_model;
     }
-
-    void ModelComponent::update()
-    {
-
-    }
-
-    void ModelComponent::render()
-    {
-
-    }
-
 }

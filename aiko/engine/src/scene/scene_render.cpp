@@ -5,6 +5,7 @@
 #include "components/compute_shader_component.h"
 #include "components/mesh_component.h"
 #include "components/model_component.h"
+#include "components/sprite_component.h"
 #include "models/game_object.h"
 
 namespace aiko
@@ -34,6 +35,15 @@ namespace aiko
 
         const AikoPtr<TransforComponent> transform = obj->getComponent<TransforComponent>();
 
+        // Texture component
+        if (obj->hasComponent<SpriteComponent>() == true)
+        {
+            AikoPtr<SpriteComponent> cmp = obj->getComponent<SpriteComponent>();
+            Mesh& mesh = cmp->getMesh();
+            Material& material = cmp->getMaterial();
+            m_worldRenderer.add(transform.get(), &mesh, &material);
+        }
+
         // Mesh component
         if (obj->hasComponent<MeshComponent>() == true)
         {
@@ -45,7 +55,7 @@ namespace aiko
         if (obj->hasComponent<ModelComponent>() == true)
         {
             AikoPtr<ModelComponent> cmp = obj->getComponent<ModelComponent>();
-            for (Model::MeshMatData& sub : cmp->m_model.m_meshes)
+            for (Model::MeshMatData& sub : cmp->getModel().m_meshes)
             {
                 m_worldRenderer.add(transform.get(), &sub.mesh, &sub.material);
             }

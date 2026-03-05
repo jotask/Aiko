@@ -11,7 +11,7 @@ namespace aiko
     class Camera;
     class InputSystem;
     
-    class CameraComponent : public Component, public IUpdate, public IRender3D
+    class CameraComponent : public Component, public IUpdate
     {
     public:
         CameraComponent();
@@ -25,7 +25,6 @@ namespace aiko
         void setCameraController(camera::CameraController);
 
         virtual void update() override;
-        virtual void render() override { };
 
         float& radius() { return m_radius; }
         float& speed() { return m_speed; }
