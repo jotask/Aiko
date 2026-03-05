@@ -28,7 +28,7 @@ namespace nes
         {
 
             auto pbo = naiko->getApplication()->getNesGo();
-            const auto texture = pbo->getTexture().getInfo();
+            const auto texture = pbo->getMaterial().m_diffuse.getInfo();
             // Using a Child allow to fill all the space of the window.
             // It also allows customization
             ImGui::BeginChild("GameRender");
@@ -66,7 +66,7 @@ namespace nes
             imageHeight = std::min(imageHeight, maxHeight);
 
             ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - imageWidth) * 0.5f, 0));
-            ImGui::Image((ImTextureID)pbo->getTexture().id(), ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image((ImTextureID)pbo->getMaterial().m_diffuse.id(), ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0));
             ImGui::EndChild();
 
         }
@@ -124,7 +124,7 @@ namespace nes
             p.p.x += p.v.x;
             p.p.y += p.v.y;
 
-            const auto info = pbo->getTexture().getInfo();
+            const auto info = pbo->getMaterial().m_diffuse.getInfo();
 
             // Check for boundary collision and reverse direction if necessary
             if (p.p.x < 0 || p.p.x >= info.width)

@@ -26,9 +26,9 @@ namespace nes
 
         // aiko::texture::RenderTexture2D* getTargetTexture() const { return Application::getTargetTexture(); }
 
-        aiko::AikoPtr<aiko::TextureComponent> getNesGo() const;
-        aiko::AikoPtr<aiko::TextureComponent> getPT0() const;
-        aiko::AikoPtr<aiko::TextureComponent> getPalette() const;
+        aiko::AikoPtr<aiko::SpriteComponent> getNesGo() const;
+        aiko::AikoPtr<aiko::SpriteComponent> getPT0() const;
+        aiko::AikoPtr<aiko::SpriteComponent> getPalette() const;
 
     protected:
         virtual void init() override;
@@ -40,9 +40,9 @@ namespace nes
         Nes m_nes;
         Naiko m_emulator;
 
-        aiko::AikoPtr<aiko::TextureComponent> m_nesgo;
-        aiko::AikoPtr<aiko::TextureComponent> pattern_table_0;
-        aiko::AikoPtr<aiko::TextureComponent> palette;
+        aiko::AikoPtr<aiko::SpriteComponent> m_nesgo;
+        aiko::AikoPtr<aiko::SpriteComponent> pattern_table_0;
+        aiko::AikoPtr<aiko::SpriteComponent> palette;
 
     };
 

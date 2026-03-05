@@ -42,7 +42,8 @@ namespace nes
             ImGui::BeginChild("CHR table");
             auto pbo = naiko->getApplication()->getPT0();
             // Get the dimensions of the texture
-            const auto info = pbo->getTexture().getInfo();
+
+            const auto info = pbo->getMaterial().m_diffuse.getInfo();
             ImVec2 textureSize = ImVec2(info.width, info.height);
 
             // Calculate aspect ratio of the image
@@ -73,7 +74,8 @@ namespace nes
             imageWidth = std::min(imageWidth, maxWidth);
             imageHeight = std::min(imageHeight, maxHeight);
 
-            ImGui::Image((ImTextureID)pbo->getTexture().id(), ImVec2(imageWidth, imageHeight), ImVec2(0, 0), ImVec2(1, 1));
+            ImTextureID tid = (ImTextureID)(uintptr_t)pbo->getMaterial().m_diffuse.id();
+            ImGui::Image(tid, ImVec2(imageWidth, imageHeight), ImVec2(0, 0), ImVec2(1, 1));
             ImGui::EndChild();
         }
         ImGui::End();

@@ -40,9 +40,9 @@ namespace nes
             auto pbo = naiko->getApplication()->getPalette();
             // Get the dimensions of the texture
             constexpr const float size_multiplier = 16;
-            const auto info = pbo->getTexture().getInfo();
+            const auto info = pbo->getMaterial().m_diffuse.getInfo();
             ImVec2 textureSize = ImVec2(info.width * size_multiplier, info.height * size_multiplier);
-            ImGui::Image((ImTextureID)pbo->getTexture().id(), textureSize, ImVec2(0, 0), ImVec2(1, 1));
+            ImGui::Image((ImTextureID)pbo->getMaterial().m_diffuse.id(), textureSize, ImVec2(0, 0), ImVec2(1, 1));
             ImGui::EndChild();
         }
         ImGui::End();
