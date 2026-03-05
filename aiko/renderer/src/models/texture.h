@@ -37,6 +37,10 @@ namespace aiko
         uint id() const;
         texture::Texture getInfo() const;
 
+        void setTextureFilter(texture::TextureFilter min, texture::TextureFilter mag);
+        void setTextureMipFilter(texture::TextureMipFilter mip);
+        void setTextureWrapMode(texture::TextureWrapMode wrapU, texture::TextureWrapMode wrapV);
+
         // load
         void create();
         void create(int, int);

@@ -21,9 +21,35 @@ namespace aiko::texture
         DepthStencil
     };
 
+    enum class TextureFilter
+    {
+        Nearest,
+        Linear,
+    };
+
+    enum class TextureMipFilter
+    {
+        None,
+        Nearest,
+        Linear,
+    };
+
+    enum class TextureWrapMode
+    {
+        Repeat,
+        Clamp,
+        Mirror,
+    };
+
     struct  Texture
     {
-        TextureType      type                   = TextureType::INVALID;
+        TextureFilter   minFilter               = TextureFilter::Linear;
+        TextureFilter   magFilter               = TextureFilter::Linear;
+        TextureMipFilter mipFilter              = TextureMipFilter::Linear;
+        TextureWrapMode wrapU                   = TextureWrapMode::Repeat;
+        TextureWrapMode wrapV                   = TextureWrapMode::Repeat;
+        uint8_t anisotropy                      = 1;
+        TextureType     type                    = TextureType::INVALID;
         TextureFormat   format                  = TextureFormat::INVALID;
         int             width;                  // Texture base width
         int             height;                 // Texture base height

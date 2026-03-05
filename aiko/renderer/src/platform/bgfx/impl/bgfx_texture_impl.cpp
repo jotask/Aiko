@@ -40,7 +40,7 @@ namespace aiko::renderer::bgfx
         return ::bgfx::isValid(m_textureHandle);
     }
 
-    texture::Texture BgfxTextureImpl::getInfo()
+    texture::Texture& BgfxTextureImpl::getInfo()
     {
         return m_texture;
     }
@@ -81,10 +81,10 @@ namespace aiko::renderer::bgfx
         m_textureHandle = ::bgfx::createTexture2D(
             text.width,
             text.height,
-            text.mipmaps,              // no mipmaps
-            1,                         // layers
+            text.mipmaps,
+            1,
             toBGFXFormat(text.format),
-            flags,          // flags, BGFX_TEXTURE_RT if you need a render target
+            flags,
             nullptr
         );
         AIKO_ASSERT(isValid(), "Invalid Texture");
@@ -139,10 +139,17 @@ namespace aiko::renderer::bgfx
     void BgfxTextureImpl::setPixels(std::vector<Color>& pixels)
     {
 
+        AIKO_ASSERT(isValid(), "Invalid texture");
+        AIKO_ASSERT(m_texture.width > 0 && m_texture.height > 0 , "Invalid texture size");
+
         const uint32_t pixelCount = m_texture.width * m_texture.height;
+
+        AIKO_ASSERT(pixels.size() == pixelCount, "Mismatch pixels count and pixel size");
 
         // Allocate memory for RGBA8
         const auto channels = texture::getChannelCount(m_texture.format);
+        AIKO_ASSERT(channels == 4, "Not supported, we only support 4 channesl for now");
+
         const ::bgfx::Memory* newMem = ::bgfx::alloc(pixelCount * channels);
 
         if constexpr(false)
@@ -153,9 +160,6 @@ namespace aiko::renderer::bgfx
         else
         {
             uint8_t* dst = newMem->data;
-            // Random number generator
-            static std::mt19937 rng{ std::random_device{}() };
-            static std::uniform_int_distribution<int> dist(0, 255);
 
             for (uint32_t i = 0; i < pixelCount; ++i)
             {
@@ -174,6 +178,48 @@ namespace aiko::renderer::bgfx
             m_texture.height,
             newMem
         );
+    }
+
+    uint64_t BgfxTextureImpl::getSamplerFlags() const
+    {
+
+        uint64_t flags = 0;
+
+        if (m_texture.minFilter == texture::TextureFilter::Nearest)
+        {
+            flags |= BGFX_SAMPLER_MIN_POINT;
+        }
+
+        if (m_texture.magFilter == texture::TextureFilter::Nearest)
+        {
+            flags |= BGFX_SAMPLER_MAG_POINT;
+        }
+
+        if (m_texture.mipFilter == texture::TextureMipFilter::Nearest)
+        {
+            flags |= BGFX_SAMPLER_MIP_POINT;
+        }
+
+        auto wrapToFlags = [](texture::TextureWrapMode w, bool isU) -> uint64_t
+        {
+            switch (w)
+            {
+            case texture::TextureWrapMode::Repeat: return 0;
+            case texture::TextureWrapMode::Clamp:  return isU ? BGFX_SAMPLER_U_CLAMP : BGFX_SAMPLER_V_CLAMP;
+            case texture::TextureWrapMode::Mirror: return isU ? BGFX_SAMPLER_U_MIRROR: BGFX_SAMPLER_V_MIRROR;
+            }
+            return 0;
+        };
+
+        flags |= wrapToFlags(m_texture.wrapU, true);
+        flags |= wrapToFlags(m_texture.wrapV, false);
+
+        if (m_texture.anisotropy > 1 && m_texture.minFilter == texture::TextureFilter::Linear)
+        {
+            flags |= BGFX_SAMPLER_MIN_ANISOTROPIC;
+        }
+
+        return flags;
     }
 
     ::bgfx::TextureFormat::Enum BgfxTextureImpl::toBGFXFormat(texture::TextureFormat format) const

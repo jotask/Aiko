@@ -20,7 +20,7 @@ namespace aiko::renderer::bgfx
         virtual void use() override;
         virtual void unuse() override;
         virtual bool isValid() const override;
-        virtual texture::Texture getInfo() override;
+        virtual texture::Texture& getInfo() override;
 
         // load
         virtual void create(texture::Texture) override;
@@ -31,6 +31,7 @@ namespace aiko::renderer::bgfx
         virtual void setPixels(std::vector<Color>& pixels) override;
 
         ::bgfx::TextureHandle getTextureHandler() const { return m_textureHandle; }
+        uint64_t getSamplerFlags() const;
 
     private:
 

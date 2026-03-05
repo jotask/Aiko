@@ -36,6 +36,26 @@ namespace aiko
         return backend->getInfo();
     }
 
+    void Texture::setTextureFilter(texture::TextureFilter min, texture::TextureFilter mag)
+    {
+        auto& info = backend->getInfo();
+        info.minFilter = min;
+        info.magFilter = mag;
+    }
+
+    void Texture::setTextureMipFilter(texture::TextureMipFilter mip)
+    {
+        auto& info = backend->getInfo();
+        info.mipFilter = mip;
+    }
+
+    void Texture::setTextureWrapMode(texture::TextureWrapMode wrapU, texture::TextureWrapMode wrapV)
+    {
+        auto& info = backend->getInfo();
+        info.wrapU = wrapU;
+        info.wrapV = wrapV;
+    }
+
     void Texture::create()
     {
         const texture::Texture text

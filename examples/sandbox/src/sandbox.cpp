@@ -1,6 +1,7 @@
 #include "sandbox.h"
 
 #include <cmath>
+#include <chrono>
 
 #include <application/application.h>
 
@@ -8,7 +9,7 @@
 #include "components/camera_component.h"
 #include "components/mesh_component.h"
 #include "components/light_component.h"
-#include "components/texture_component.h"
+#include "components/sprite_component.h"
 #include "components/model_component.h"
 #include "models/camera.h"
 #include "types/color.h"
@@ -86,13 +87,18 @@ namespace sb
         m_texture->transform().position = { 0.0f, -0.55f, 5.0f };
         m_texture->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texture->transform().scale = { 1.0f, 1.0f, 1.0f };
-        auto mesh3 = m_texture->addComponent<aiko::TextureComponent>("texel_checker.png");
+        auto mesh3 = m_texture->addComponent<aiko::SpriteComponent>("texel_checker.png");
 
         m_texturePbo = app->Instantiate(root, "PboTexture");
         m_texturePbo->transform().position = { 0.0f, 0.55f, 5.0f };
         m_texturePbo->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texturePbo->transform().scale = { 1.0f, 1.0f, 1.0f };
-        auto mesh4 = m_texturePbo->addComponent<aiko::TextureComponent>(aiko::TextureComponent::TextureMode::PBO);
+        auto mesh4 = m_texturePbo->addComponent<aiko::SpriteComponent>(128, 128);
+        aiko::Material& material = mesh4->getMaterial();
+        material.m_lit = false;
+        material.m_diffuse.setTextureFilter(aiko::texture::TextureFilter::Nearest, aiko::texture::TextureFilter::Nearest);
+        material.m_diffuse.setTextureMipFilter(aiko::texture::TextureMipFilter::None);
+        material.m_diffuse.setTextureWrapMode(aiko::texture::TextureWrapMode::Clamp, aiko::texture::TextureWrapMode::Clamp);
 
 #endif
 
@@ -133,6 +139,105 @@ namespace sb
             angle = fmod(angle, 360.0f);
             m_go1->transform().rotation = {  angle, 0.0f, 0.0f };
             m_go2->transform().rotation = { -angle, 0.0f, 0.0f };
+
+            {
+
+                aiko::AikoPtr<aiko::SpriteComponent> cmp = m_texturePbo->getComponent<aiko::SpriteComponent>();
+
+                static auto lastTime = std::chrono::steady_clock::now();
+                static double accumulatedTime = 0.0;
+                static const double interval = 1 / 60.0f;
+
+                auto currentTime = std::chrono::steady_clock::now();
+                std::chrono::duration<double> delta = currentTime - lastTime;
+                lastTime = currentTime;
+
+                accumulatedTime += delta.count();
+                bool should_update = false;
+
+                if (accumulatedTime >= interval)
+                {
+                    accumulatedTime -= interval; // Handle possible overflow
+                    should_update = true;
+                }
+
+                if (should_update)
+                {
+
+                    struct Particle
+                    {
+                        aiko::ivec2 pos;
+                        aiko::ivec2 dir;
+                        aiko::Color col;
+                    };
+
+                    constexpr auto N_PARTICLES = 100;
+                    constexpr bool S_CLEAR_BRACKGROUND = false;
+
+                    static std::vector<Particle> s_particles;
+
+                    const auto material = cmp->getMaterial();
+
+                    AIKO_ASSERT(material.m_diffuse.isValid(), "Invalid texture?")
+
+                    const auto info = material.m_diffuse.getInfo();
+
+                    const int w = info.width - 1;
+                    const int h = info.height - 1;
+
+                    if (s_particles.size() != N_PARTICLES)
+                    {
+                        s_particles.clear();
+                        for (uint i = 0 ; i < N_PARTICLES; i++)
+                        {
+                            aiko::ivec2 pos = aiko::ivec2(aiko::utils::getRandomValue(0, w), aiko::utils::getRandomValue(0, h));
+                            aiko::ivec2 dir = aiko::ivec2(aiko::utils::getRandomValue(-1, 1), aiko::utils::getRandomValue(-1, 1));
+                            aiko::Color col = aiko::Color::getRandomColor();
+                            s_particles.push_back({pos, dir, col});
+                        }
+                    }
+                    else
+                    {
+                        for(auto& it : s_particles)
+                        {
+
+                            {
+                                if (it.pos.x == 0 || it.pos.x == w)
+                                {
+                                    it.dir.x *= -1;
+                                }
+                                if (it.pos.y == 0 || it.pos.y == h)
+                                {
+                                    it.dir.y *= -1;
+                                }
+                            }
+
+                            it.pos.x += it.dir.x;
+                            it.pos.y += it.dir.y;
+
+                            it.pos.x = aiko::math::clamp(it.pos.x, 0, w);
+                            it.pos.y = aiko::math::clamp(it.pos.y, 0, h);
+                        }
+                    }
+
+                    if (S_CLEAR_BRACKGROUND)
+                    {
+                        std::vector<aiko::Color> pixels;
+                        pixels.clear();
+                        pixels.reserve(info.width * info.height);
+                        std::fill(pixels.begin(), pixels.end(), aiko::RAYWHITE);
+                        cmp->setPixels(pixels);
+                    }
+                    for (auto it : s_particles)
+                    {
+                        cmp->setPixel(it.pos.x, it.pos.y, it.col);
+                    }
+                    cmp->refresh();
+
+                }
+
+            }
+
         }
 #endif
 #ifdef TEST_LIGHTS

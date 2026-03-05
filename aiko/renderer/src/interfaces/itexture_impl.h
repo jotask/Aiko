@@ -17,7 +17,7 @@ namespace aiko
             virtual void use() = 0;
             virtual void unuse() = 0;
             virtual bool isValid() const = 0;
-            virtual texture::Texture getInfo() = 0;
+            virtual texture::Texture& getInfo() = 0;
 
             // load
             virtual void create(texture::Texture) = 0;

@@ -720,7 +720,7 @@ namespace aiko::renderer::bgfx
                 auto* texImpl = static_cast<BgfxTextureImpl*>(material.m_diffuse.getImpl());
                 if (texImpl && texImpl->isValid() == true)
                 {
-                    ::bgfx::setTexture(0, s_tex, texImpl->getTextureHandler());
+                    ::bgfx::setTexture(0, s_tex, texImpl->getTextureHandler(), texImpl->getSamplerFlags());
                 }
             }
         }
