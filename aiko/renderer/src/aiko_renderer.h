@@ -14,21 +14,22 @@
 #include "models/model.h"
 #include "models/screen_fbo.h"
 #include "renderer/Irenderdevice.h"
-#include "types/color.h"
-#include "types/render_types.h"
+#include <types/color.h>
+#include <types/render_types.h>
 
 #include "imgui/aiko_imgui.h"
+#include "resources/render_resource_manager.h"
 
 namespace aiko
 {
 
-    class AikoRenderer : public Singleton<AikoRenderer>
+    class AikoRenderer
     {
     
     public:
 
-        AikoRenderer();
-        virtual ~AikoRenderer() override = default;
+        AikoRenderer(IAssetProvider& assets);
+        ~AikoRenderer() = default;
 
         void init();
         void beginFrame();
@@ -52,6 +53,8 @@ namespace aiko
         void setDebugTexture(const Texture* texture);   // nullptr disables
 
         FrameBuffer getTargetTexture() const;
+
+        RenderResourceManager& resources() { return m_resources; }
 
     protected:
 
@@ -78,11 +81,10 @@ namespace aiko
 
     private:
 
-
-
         static_assert(COMPUTE_VIEW < SCENE_VIEW, "Compute View MUST be less than Scene View");
 
         AikoImgui m_imgui;
+        RenderResourceManager m_resources;
 
     };
 

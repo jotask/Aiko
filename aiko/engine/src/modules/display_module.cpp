@@ -6,6 +6,17 @@
 
 namespace aiko
 {
+    DisplayModule::DisplayModule(Aiko* aiko)
+        : BaseModule(aiko)
+        // , m_manager(nullptr)
+    {
+    }
+
+    const ivec2 DisplayModule::getDisplaySize() const
+    {
+        return DisplayManager::it().getDisplay()->getDisplaySize();
+    }
+
     void DisplayModule::preInit()
     {
         const AikoConfig cfg = getAiko()->getConfig();
@@ -21,4 +32,5 @@ namespace aiko
     {
         DisplayManager::it().swap();
     }
+
 }

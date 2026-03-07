@@ -5,7 +5,6 @@
 #include "modules/render_module.h"
 
 #include "modules/module_connector.h"
-#include "systems/system_connector.h"
 
 #include "scene/scene.h"
 #include "models/game_object.h"
@@ -28,10 +27,10 @@ namespace aiko
         SceneView view = m_sceneViewBuilder.build(m_scene);
         if(view.camera != nullptr)
         {
-            AikoRenderer::it().submit(view.ambientLight, view.lights);
+            m_renderModule->getRenderer().submit(view.ambientLight, view.lights);
             m_renderModule->setMainCamera(view.camera);
         }
-        m_sceneRenderer.render(m_scene);
+        m_sceneRenderer.render(m_renderModule, m_scene);
     }
 
     void SceneSystem::update()

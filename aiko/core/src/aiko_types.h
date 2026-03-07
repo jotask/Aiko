@@ -67,6 +67,8 @@ namespace aiko
             } while (0)
     #endif
 
+    #define AIKO_UNUSED(var) (void)var;
+
     template<typename ... Args>
     string string_format(const string& format, Args ... args)
     {

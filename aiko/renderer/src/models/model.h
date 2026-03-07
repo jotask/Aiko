@@ -1,28 +1,27 @@
 #pragma once
 
-#include "models/mesh.h"
-#include "models/material.h"
+#include "mesh.h"
+#include "material.h"
 
 namespace aiko
 {
-    class AssetSystem;
     class Model
     {
-        friend class AssetSystem;
-        static AssetSystem* s_assetSystem;
+        // Runtime model resource.
+        // Built from a ModelAsset and owned by RenderResourceManager.
     public:
-
-        struct MeshMatData
-        {
-            Mesh mesh;
-            Material material;
-        };
 
         Model();
         ~Model() = default;
-        void load(const char*);
+        void upload(const ModelAsset&);
+        void unload();
 
-		std::vector<MeshMatData> m_meshes;
+        const AssetId& getModelId() const { return m_modelId; }
+        void setModelId(const AssetId& id) { m_modelId = id; }
+
+    private:
+
+		AssetId m_modelId;
 
     };
 }

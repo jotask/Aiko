@@ -7,7 +7,7 @@ namespace aiko
     namespace mesh::factory
     {
 
-        void recalculateNormals(Mesh::MeshData& data)
+        void recalculateNormals(MeshAsset& data)
         {
 
             const int vertexCount = static_cast<int>(data.m_vertices.size());
@@ -48,10 +48,10 @@ namespace aiko
 
         // 3D
 
-        Mesh::MeshData generateCube()
+        MeshAsset generateCube()
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             data.m_vertices = {
                 {-0.5f,  0.5f,  0.5f}, {-0.5f, -0.5f,  0.5f}, { 0.5f, -0.5f,  0.5f}, { 0.5f,  0.5f,  0.5f}, // Front
@@ -78,10 +78,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generatePyramid()
+        MeshAsset generatePyramid()
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             const float h2 = 1.0f / 2.0f;
             const float b2 = 1.0f / 2.0f;
@@ -119,10 +119,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshSphere(int rings, int slices)
+        MeshAsset generateMeshSphere(int rings, int slices)
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             constexpr const float r2 = 1.0f / 2.0f;
 
@@ -173,10 +173,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshCylinder(int slices)
+        MeshAsset generateMeshCylinder(int slices)
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             constexpr const float r2 = 1.0f / 2.0f;
             constexpr const float halfHeight = 1.0f / 2.0f;
@@ -257,10 +257,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshPlane(float width, float length, int resX, int resZ)
+        MeshAsset generateMeshPlane(float width, float length, int resX, int resZ)
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             // Step size per grid cell
             float stepX = width / float(resX - 1);
@@ -310,10 +310,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshTorus()
+        MeshAsset generateMeshTorus()
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             constexpr const float majorRadius   = 1.0f;
             constexpr const float minorRadius   = 0.3f;
@@ -374,10 +374,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshKnot()
+        MeshAsset generateMeshKnot()
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             constexpr const int p = 2;
             constexpr const int q = 3;
@@ -478,10 +478,10 @@ namespace aiko
 
         // 2D
 
-        Mesh::MeshData generatePoint()
+        MeshAsset generatePoint()
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             data.m_vertices.push_back({ 0.0f });
             data.m_textCoord.push_back({ 0.0f }); // Not used
@@ -491,9 +491,9 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateLine(vec3 start, vec3 end)
+        MeshAsset generateLine(vec3 start, vec3 end)
         {
-            Mesh::MeshData data;
+            MeshAsset data;
             data.m_vertices.push_back(start);
             data.m_vertices.push_back(end);
             data.m_textCoord.push_back({ 0.0f, 1.0f });
@@ -505,10 +505,10 @@ namespace aiko
             return data;
         }
         
-        Mesh::MeshData generateQuad()
+        MeshAsset generateQuad()
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             data.m_vertices =
             {
@@ -537,10 +537,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateCircle(uint segments)
+        MeshAsset generateCircle(uint segments)
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             constexpr float radius = 1.0f / 2.0f;
             constexpr Color color = AIKO_DEFAULT_PRIMITIVE_COLOR;
@@ -575,10 +575,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateTriangle()
+        MeshAsset generateTriangle()
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             data.m_vertices =
             {

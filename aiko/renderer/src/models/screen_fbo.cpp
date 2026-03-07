@@ -29,7 +29,7 @@ namespace aiko
         // Create mesh based on NDC
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             {
 
@@ -71,7 +71,7 @@ namespace aiko
         // Set material
         {
             m_material.m_shader.load("passthrough");
-            m_material.m_userVertexColor = false;
+            m_material.m_useVertexColor = false;
             m_material.m_lit = false;
             m_material.m_baseColor = WHITE;
 
@@ -92,7 +92,7 @@ namespace aiko
         m_frameBuffer.create(width, height);
         AIKO_ASSERT(m_frameBuffer.isValid(), "ScreenFbo framebuffer invalid!");
 
-        m_material.m_diffuse = m_frameBuffer.getColorTexture();
+        m_material.m_diffuseTexture = m_frameBuffer.getColorTexture();
 
     }
 

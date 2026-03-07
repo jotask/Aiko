@@ -4,7 +4,7 @@
 #include <bgfx/bgfx.h>
 #include <math/math.h>
 
-#include <types/textures.h>
+#include <types/texture_types.h>
 
 #include "interfaces/iframebuffer_impl.h"
 #include "models/texture.h"

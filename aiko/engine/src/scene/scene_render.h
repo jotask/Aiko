@@ -9,20 +9,22 @@ namespace aiko
 
     class Scene;
     class GameObject;
+    class RenderModule;
 
     class SceneRenderer
     {
     public:
-        SceneRenderer() = default;
+        SceneRenderer();
         ~SceneRenderer() = default;
 
-        void render(Scene& scene);
+        void render(RenderModule*, Scene& scene);
 
     private:
 
         void submitGameObject(GameObject* obj);
         void submitBatches();
 
+        RenderModule* m_renderModule;
         SceneRenderWorld m_worldRenderer;
 
     };

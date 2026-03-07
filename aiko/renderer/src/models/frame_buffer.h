@@ -3,7 +3,7 @@
 #include <aiko_types.h>
 #include <math/math.h>
 
-#include "models/texture.h"
+#include "texture.h"
 #include "interfaces/iframebuffer_impl.h"
 
  namespace aiko

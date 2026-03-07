@@ -13,13 +13,4 @@ namespace aiko
 
     }
 
-    void ModelComponent::load(string filename)
-    {
-        m_model.load(filename.c_str());
-    }
-
-    Model& ModelComponent::getModel()
-    {
-        return m_model;
-    }
 }

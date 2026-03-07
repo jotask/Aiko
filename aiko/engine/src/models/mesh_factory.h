@@ -3,28 +3,28 @@
 #include <aiko_types.h>
 #include <models/mesh.h>
 
-namespace aiko
+ namespace aiko
 {
     namespace mesh::factory
     {
 
-        void recalculateNormals(Mesh::MeshData& data);
+        void recalculateNormals(MeshAsset& data);
 
         // 2D
-        Mesh::MeshData generatePoint();
-        Mesh::MeshData generateLine(vec3 start, vec3 end);
-        Mesh::MeshData generateQuad();
-        Mesh::MeshData generateCircle(uint segments = 32);
-        Mesh::MeshData generateTriangle();
+        MeshAsset generatePoint();
+        MeshAsset generateLine(vec3 start, vec3 end);
+        MeshAsset generateQuad();
+        MeshAsset generateCircle(uint segments = 32);
+        MeshAsset generateTriangle();
 
         // 3D
-        Mesh::MeshData generatePyramid();
-        Mesh::MeshData generateMeshSphere(int rings, int slices);
-        Mesh::MeshData generateCube();
-        Mesh::MeshData generateMeshCylinder(int slices);
-        Mesh::MeshData generateMeshPlane(float width, float length, int resX, int resZ);
-        Mesh::MeshData generateMeshTorus();
-        Mesh::MeshData generateMeshKnot();
+        MeshAsset generatePyramid();
+        MeshAsset generateMeshSphere(int rings, int slices);
+        MeshAsset generateCube();
+        MeshAsset generateMeshCylinder(int slices);
+        MeshAsset generateMeshPlane(float width, float length, int resX, int resZ);
+        MeshAsset generateMeshTorus();
+        MeshAsset generateMeshKnot();
 
     }
 

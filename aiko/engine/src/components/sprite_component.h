@@ -1,7 +1,8 @@
 #pragma once
 
 #include <aiko_types.h>
-#include <models/mesh.h>
+#include "assets/asset_id.h"
+#include "assets/types/mesh_asset.h"
 
 #include "models/component.h"
 
@@ -10,6 +11,11 @@ namespace aiko
 
     class SpriteComponent : public Component
     {
+
+        // Scene/reference sprite component.
+        // Stores CPU-side sprite data and material references.
+        // Does not own runtime GPU resources directly.
+
     public:
 
         SpriteComponent(size_t, size_t);
@@ -26,12 +32,15 @@ namespace aiko
         void setPixels(std::vector<Color> pixels);
         void refresh();
 
-        Mesh& getMesh();
-        Material& getMaterial();
+        const AssetId& getMeshId() const { return m_meshId; }
+        const MaterialAsset& getMaterial() const { return m_material; }
 
     private:
-        Mesh            m_mesh;
-        Material        m_material;
+        AssetId             m_meshId;
+        MaterialAsset       m_material;
+
+        size_t m_width = 0;
+        size_t m_height = 0;
 
         std::vector<Color> pixels;
         bool is_dirty = false;

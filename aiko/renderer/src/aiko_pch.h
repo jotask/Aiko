@@ -18,6 +18,4 @@
     #error Not supported!
 #endif
 
-#include <stb_image.h>
-
 #include <magic_enum/magic_enum.hpp>

@@ -2,8 +2,8 @@
 
 #include <vector>
 #include <aiko_types.h>
-
-#include "types/color.h"
+#include <types/color.h>
+#include <metadata/texture_meta.h>
 
 namespace aiko
 {
@@ -17,15 +17,14 @@ namespace aiko
             virtual void use() = 0;
             virtual void unuse() = 0;
             virtual bool isValid() const = 0;
-            virtual texture::Texture& getInfo() = 0;
+            virtual TextureInfo getInfo() = 0;
 
             // load
-            virtual void create(texture::Texture) = 0;
-            virtual void load(string) = 0;
+            virtual void create(const TextureDesc&) = 0;
             virtual void unload() = 0;
 
             // Modify
-            virtual void setPixels(std::vector<Color>& pixels) = 0;
+            virtual void setPixels(const std::vector<Color>& pixels) = 0;
 
         };
     }

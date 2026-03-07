@@ -16,6 +16,7 @@
 #include "modules/input_module.h"
 
 // Systems
+#include "modules/assets_manager_module.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
 #include "systems/scene_system.h"
@@ -68,6 +69,7 @@ namespace aiko
         m_modules.emplace_back(std::make_unique<DisplayModule>(this));
         m_modules.emplace_back(std::make_unique<RenderModule>(this));
         m_modules.emplace_back(std::make_unique<InputModule>(this));
+        m_modules.emplace_back(std::make_unique<AssetsManagerModule>(this));
 
         ModuleConnector moduleConnector(m_modules);
 

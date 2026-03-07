@@ -8,9 +8,13 @@
 #include "components/sprite_component.h"
 #include "models/game_object.h"
 
+#include "modules/render_module.h"
+
 namespace aiko
 {
-    void SceneRenderer::render(Scene& scene)
+
+
+    void SceneRenderer::render(RenderModule* renderer, Scene& scene)
     {
         m_worldRenderer.clear();
         for (auto* go : scene.getObjects())
@@ -79,7 +83,7 @@ namespace aiko
             // One single draw, not batching
             if (count == 1)
             {
-                AikoRenderer::it().submit(
+                m_renderModule->getRenderer().submit(
                     batch.instances.front().transform->transform,
                     *batch.mesh,
                     *batch.material
@@ -102,7 +106,7 @@ namespace aiko
                 };
                 instanceData.push_back(data);
             };
-            AikoRenderer::it().submit(
+            m_renderModule->getRenderer().submit(
                 *batch.mesh,
                 *batch.material,
                 instanceData.data(),

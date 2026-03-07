@@ -4,6 +4,7 @@
 
 #include <aiko_renderer.h>
 
+#include "assets_manager_module.h"
 #include "display/display_manager.h"
 #include "models/camera.h"
 #include "models/mesh_factory.h"
@@ -14,6 +15,7 @@ namespace aiko
     RenderModule::RenderModule(Aiko* aiko)
         : BaseModule(aiko)
         , m_mainCamera(nullptr)
+        , m_renderer(nullptr)
     {
     }
 
@@ -24,12 +26,18 @@ namespace aiko
 
     void RenderModule::submitLights(const AmbientLight& ambient, const std::vector<LightData>& data)
     {
-        AikoRenderer::it().submit(ambient, data);
+        m_renderer->submit(ambient, data);
+    }
+
+    void RenderModule::connect(ModuleConnector* moduleConnector)
+    {
+        BIND_MODULE_REQUIRED(AssetsManagerModule, moduleConnector, m_assetManager);
     }
 
     void RenderModule::init()
     {
-        AikoRenderer::it().init();
+        m_renderer = std::make_unique<AikoRenderer>(*m_assetManager->getManager());
+        m_renderer->init();
     }
 
     void RenderModule::update()
@@ -40,20 +48,20 @@ namespace aiko
     void RenderModule::beginFrame()
     {
         m_instances.clear();
-        AikoRenderer::it().beginFrame();
+        m_renderer->beginFrame();
     }
 
     void RenderModule::endFrame()
     {
         AIKO_ASSERT(m_mainCamera != nullptr, "Main camera not set. Forgot to call set Main camera?");
-        AikoRenderer::it().render(*m_mainCamera);
-        AikoRenderer::it().endFrame();
+        m_renderer->render(*m_mainCamera);
+        m_renderer->endFrame();
         m_instances.clear();
     }
 
     void RenderModule::dispose()
     {
-        AikoRenderer::it().dispose();
+        m_renderer->dispose();
     }
 
 }

@@ -31,65 +31,48 @@ namespace aiko
         return backend->id();
     }
 
-    texture::Texture Texture::getInfo() const
+    TextureInfo Texture::getInfo() const
     {
         return backend->getInfo();
     }
 
-    void Texture::setTextureFilter(texture::TextureFilter min, texture::TextureFilter mag)
-    {
-        auto& info = backend->getInfo();
-        info.minFilter = min;
-        info.magFilter = mag;
-    }
-
-    void Texture::setTextureMipFilter(texture::TextureMipFilter mip)
-    {
-        auto& info = backend->getInfo();
-        info.mipFilter = mip;
-    }
-
-    void Texture::setTextureWrapMode(texture::TextureWrapMode wrapU, texture::TextureWrapMode wrapV)
-    {
-        auto& info = backend->getInfo();
-        info.wrapU = wrapU;
-        info.wrapV = wrapV;
-    }
-
     void Texture::create()
     {
-        const texture::Texture text
+        const TextureDesc text
         {
-            .type = texture::TextureType::Sampled,
-            .format = texture::TextureFormat::RGBA8,
+            .type = TextureType::Sampled,
+            .format = TextureFormat::RGBA8,
             .width = 1,
             .height = 1,
-            .mipmaps =  false,
+            .mipmaps = 1,
+            .computeWrite = false,
         };
         this->create(text);
     }
 
     void Texture::create(int width, int height)
     {
-        const texture::Texture text
+        const TextureDesc text
         {
-            .type = texture::TextureType::Sampled,
-            .format = texture::TextureFormat::RGBA8,
+            .type = TextureType::Sampled,
+            .format = TextureFormat::RGBA8,
             .width = width,
             .height = height,
-            .mipmaps =  false,
+            .mipmaps =  1,
+            .computeWrite = false,
         };
         this->create(text);
     }
 
-    void Texture::create(texture::Texture text)
+    void Texture::create(const TextureDesc& text)
     {
         backend->create(text);
     }
 
-    void Texture::load(string file_path)
+    void Texture::upload(const TextureAsset& asset)
     {
-        backend->load(file_path);
+        create(asset.desc);
+        setPixels(asset.pixels);
     }
 
     void Texture::unload()
@@ -97,7 +80,7 @@ namespace aiko
         backend->unload();
     }
 
-    void Texture::setPixels(std::vector<Color>& pixels)
+    void Texture::setPixels(const std::vector<Color>& pixels)
     {
         backend->setPixels(pixels);
     }

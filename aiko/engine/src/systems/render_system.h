@@ -2,15 +2,19 @@
 
 #include <memory>
 #include <vector>
+#include <deque>
 
 #include <aiko_types.h>
 #include <models/shader.h>
 #include <models/mesh.h>
 #include <models/light.h>
 #include <models/texture.h>
-#include <types/textures.h>
+#include <types/texture_types.h>
 #include <aiko_renderer.h>
 
+#include "components/mesh_component.h"
+#include "components/model_component.h"
+#include "components/sprite_component.h"
 #include "systems/base_system.h"
 #include "models/game_object.h"
 #include "models/model.h"
@@ -20,6 +24,7 @@ namespace aiko
 
     class SceneSystem;
     class RenderModule;
+    class AssetsManagerModule;
 
     class RenderSystem : public BaseSystem
     {
@@ -27,7 +32,6 @@ namespace aiko
 
         friend class Mesh;
         friend class Shader;
-        friend class MeshComponent;
 
         RenderSystem();
         virtual ~RenderSystem() = default;
@@ -38,13 +42,13 @@ namespace aiko
 
         void render(const Transform& trans, const Model& model);
         void render(const Transform& trans, const Mesh&, const Material&);
+        void render(const Transform& trans, const MeshComponent& meshComponent);
+        void render(const Transform& trans, const ModelComponent& modelComponent);
+        void render(const Transform& trans, const SpriteComponent& meshComponent);
 
         FrameBuffer getTargetTexture() const;
 
         Camera* getMainCamera();
-
-        // Font
-        void renderText(string, float, float);
 
     protected:
     
@@ -52,8 +56,12 @@ namespace aiko
     
     private:
 
+        AssetsManagerModule* m_assetManagerModule;
         RenderModule* m_renderModule;
         SceneSystem* m_sceneSystem;
+
+        std::deque<Mesh> m_frameMeshes;
+        std::deque<Material> m_frameMaterials;
 
     // ---------------------------------------------------
     //                   PRIMITIVES

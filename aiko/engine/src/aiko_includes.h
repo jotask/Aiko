@@ -24,7 +24,7 @@
 
 #include "types/render_types.h"
 #include "types/camera_controller_types.h"
-#include "types/textures.h"
+#include "types/texture_types.h"
 #include "types/color.h"
 
 #include "systems/render_system.h"

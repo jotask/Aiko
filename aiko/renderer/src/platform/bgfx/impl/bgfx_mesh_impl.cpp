@@ -31,12 +31,12 @@ namespace aiko::renderer::bgfx
         ::bgfx::destroy(m_indexBuffer);
     }
 
-    void BgfxMeshImpl::refresh()
+    void BgfxMeshImpl::refresh(const MeshAsset& asset)
     {
 
         // Vertex buffer
         {
-            const auto vertices = convertToVBH();
+            const auto vertices = convertToVBH(asset);
             AIKO_ASSERT(vertices.empty() == false , "No vertices");
             const ::bgfx::Memory* memV = ::bgfx::copy(vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(VertexInformation)));
             if (::bgfx::isValid(m_vertexBuffer) == true)
@@ -52,7 +52,7 @@ namespace aiko::renderer::bgfx
 
         // Indices buffer
         {
-            const auto indices = convertToIBH();
+            const auto indices = convertToIBH(asset);
             AIKO_ASSERT(indices.empty() == false , "No indices");
             const ::bgfx::Memory* memI = ::bgfx::copy(indices.data(), static_cast<uint32_t>(indices.size() * sizeof(uint16_t)));
             if (::bgfx::isValid(m_indexBuffer) == true)
@@ -75,32 +75,31 @@ namespace aiko::renderer::bgfx
         return static_cast<uint>(vbIDX) << 16 | ibIDX;
     }
 
-    std::vector<VertexInformation> BgfxMeshImpl::convertToVBH()
+    std::vector<VertexInformation> BgfxMeshImpl::convertToVBH(const MeshAsset& asset)
     {
 
-        const Mesh::MeshData data = m_mesh->getData();
         std::vector<VertexInformation> vertices;
 
-        for (size_t i = 0; i < data.m_vertices.size(); ++i)
+        for (size_t i = 0; i < asset.m_vertices.size(); ++i)
         {
             VertexInformation v{0};
 
             // position
-            const auto vertex = data.m_vertices[i];
+            const auto vertex = asset.m_vertices[i];
             v.x = vertex.x;
             v.y = vertex.y;
             v.z = vertex.z;
 
             // uv
-            const auto textCoord = data.m_textCoord[i];
+            const auto textCoord = asset.m_textCoord[i];
             v.u = textCoord.x;
             v.v = textCoord.y;
 
             // color
-            v.abgr = data.m_colors[i].rgba();
+            v.abgr = asset.m_colors[i].rgba();
 
             // Normal
-            const auto normal = data.m_normals[i];
+            const auto normal = asset.m_normals[i];
             v.n_x = normal.x;
             v.n_y = normal.y;
             v.n_z = normal.z;
@@ -112,14 +111,11 @@ namespace aiko::renderer::bgfx
 
     }
 
-    std::vector<uint16_t> BgfxMeshImpl::convertToIBH()
+    std::vector<uint16_t> BgfxMeshImpl::convertToIBH(const MeshAsset& asset)
     {
-
-        const Mesh::MeshData data = m_mesh->getData();
-
         std::vector<uint16_t> indices16;
-        indices16.reserve(data.m_indices.size());
-        for (uint32_t idx : data.m_indices)
+        indices16.reserve(asset.m_indices.size());
+        for (uint32_t idx : asset.m_indices)
         {
             indices16.push_back(static_cast<uint16_t>(idx));
         }

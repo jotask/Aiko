@@ -3,11 +3,11 @@
 #include <aiko_types.h>
 #include <math/math.h>
 
-#include "models/texture.h"
-#include "models/frame_buffer.h"
-#include "models/mesh.h"
+#include "texture.h"
+#include "frame_buffer.h"
+#include "mesh.h"
 
-namespace aiko
+ namespace aiko
 {
     namespace renderer
     {

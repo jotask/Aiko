@@ -1,4 +1,4 @@
-#include "camera.h"
+#include "models/camera.h"
 
 #include <math/math_transform.h>
 

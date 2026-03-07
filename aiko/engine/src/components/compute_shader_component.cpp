@@ -1,5 +1,6 @@
 #include "compute_shader_component.h"
 
+#include <time/time.h>
 #include "display/display_manager.h"
 #include "models/mesh_factory.h"
 
@@ -22,6 +23,8 @@ namespace aiko
 
     void ComputeShaderComponent::render()
     {
+        AIKO_NOT_IMPLEMENTED;
+        /*
         if (m_needInitDispatch)
         {
             ComputePass init;
@@ -115,8 +118,6 @@ namespace aiko
         // If you want to see it, present m_debugOut in AikoRenderer's screen pass.
         // AikoRenderer::it().setDebugTexture(&m_debugOut);
 
-
-
     }
 
     void ComputeShaderComponent::refreshAll()
@@ -132,11 +133,11 @@ namespace aiko
             }
 
             m_debugOut.create({
-                .type = texture::TextureType::Sampled,
-                .format = texture::TextureFormat::RGBA8,
+                .type = TextureType::Sampled,
+                .format = TextureFormat::RGBA8,
                 .width = size.x,
                 .height = size.y,
-                .mipmaps = false,
+                .mipmaps = 1,
                 .computeWrite = true
             });
 

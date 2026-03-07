@@ -1,7 +1,7 @@
 #pragma once
 
 #include "aiko_types.h"
-#include "types/color.h"
+#include "../../../../../aiko/core/src/types/color.h"
 
 namespace aiko::ca
 {

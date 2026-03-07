@@ -1,9 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <aiko_types.h>
-
-#include "types/color.h"
+#include <assets/types/mesh_asset.h>
 
 namespace aiko
 {
@@ -26,7 +24,7 @@ namespace aiko
             virtual void unload() = 0;
 
             // modify
-            virtual void refresh() = 0;
+            virtual void refresh(const MeshAsset& asset) = 0;
 
             virtual uint id() = 0;
 

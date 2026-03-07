@@ -2,7 +2,7 @@
 
 #include <aiko_types.h>
 
-#include "models/texture.h"
+#include <models/texture.h>
 
 namespace aiko
 {

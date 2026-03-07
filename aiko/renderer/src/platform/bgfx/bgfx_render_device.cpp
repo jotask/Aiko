@@ -703,10 +703,10 @@ namespace aiko::renderer::bgfx
         m_boundShader->setVec4("u_baseColor", material.m_baseColor.toVec4());
 
         // flags
-        const bool hasTexture = material.m_diffuse.isValid();
+        const bool hasTexture = material.m_diffuseTexture.isValid();
         m_boundShader->setVec4("u_flags", vec4(
                 hasTexture == true ? 1.0f : 0.0f,
-                material.m_userVertexColor == true ? 1.0f : 0.0f,
+                material.m_useVertexColor == true ? 1.0f : 0.0f,
                 material.m_lit == true ? 1.0f : 0.0f,
                 0.0f
             ));
@@ -717,10 +717,10 @@ namespace aiko::renderer::bgfx
             ::bgfx::UniformHandle s_tex = m_boundShader->getUniformHandle("u_texture");
             if (::bgfx::isValid(s_tex) == true)
             {
-                auto* texImpl = static_cast<BgfxTextureImpl*>(material.m_diffuse.getImpl());
+                auto* texImpl = static_cast<BgfxTextureImpl*>(material.m_diffuseTexture.getImpl());
                 if (texImpl && texImpl->isValid() == true)
                 {
-                    ::bgfx::setTexture(0, s_tex, texImpl->getTextureHandler(), texImpl->getSamplerFlags());
+                    ::bgfx::setTexture(0, s_tex, texImpl->getTextureHandler() /*, texImpl->getSamplerFlags()*/);
                 }
             }
         }

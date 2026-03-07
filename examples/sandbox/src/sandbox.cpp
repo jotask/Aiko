@@ -11,8 +11,8 @@
 #include "components/light_component.h"
 #include "components/sprite_component.h"
 #include "components/model_component.h"
-#include "models/camera.h"
-#include "types/color.h"
+#include "../../../aiko/renderer/src/models/camera.h"
+#include "../../../aiko/core/src/types/color.h"
 
 #include <aiko_includes.h>
 #include <core/random.h>
@@ -96,9 +96,9 @@ namespace sb
         auto mesh4 = m_texturePbo->addComponent<aiko::SpriteComponent>(128, 128);
         aiko::Material& material = mesh4->getMaterial();
         material.m_lit = false;
-        material.m_diffuse.setTextureFilter(aiko::texture::TextureFilter::Nearest, aiko::texture::TextureFilter::Nearest);
-        material.m_diffuse.setTextureMipFilter(aiko::texture::TextureMipFilter::None);
-        material.m_diffuse.setTextureWrapMode(aiko::texture::TextureWrapMode::Clamp, aiko::texture::TextureWrapMode::Clamp);
+        // material.setTextureFilter(aiko::TextureFilter::Nearest, aiko::TextureFilter::Nearest);
+        // material.setTextureMipFilter(aiko::TextureMipFilter::None);
+        // material.setTextureWrapMode(aiko::TextureWrapMode::Clamp, aiko::TextureWrapMode::Clamp);
 
 #endif
 

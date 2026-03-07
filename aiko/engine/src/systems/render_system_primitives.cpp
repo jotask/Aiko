@@ -16,6 +16,7 @@
 #include "components/transform_component.h"
 #include "components/mesh_component.h"
 #include "models/mesh_factory.h"
+#include "modules/render_module.h"
 
 namespace aiko
 {
@@ -25,7 +26,7 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generatePoint());
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
     void RenderSystem::drawTriangle(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -33,7 +34,7 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateTriangle());
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
     void RenderSystem::drawRectangle(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -42,14 +43,14 @@ namespace aiko
         t.position = pos;
         t.scale = size;
         static const Mesh mesh(mesh::factory::generateQuad());
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
     void RenderSystem::renderLine(vec3 start, vec3 end, Color color, bool border, float thickness)
     {
         Transform t;
         static const Mesh mesh(mesh::factory::generateLine(start, end));
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
     void RenderSystem::renderCircle(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -57,7 +58,7 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateCircle());
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
     void RenderSystem::renderNgon(vec3 pos, vec3 size, uint segment, Color color, bool border, float thickness)
@@ -65,7 +66,7 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateCircle(segment));
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
     void RenderSystem::drawPlane(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -75,7 +76,7 @@ namespace aiko
         const float ssize = 10.0f;
         const int resolution = 5;
         static const Mesh mesh(mesh::factory::generateMeshPlane(ssize, ssize, resolution, resolution));
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
     void RenderSystem::drawPyramid(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -83,7 +84,7 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generatePyramid());
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
     void RenderSystem::drawCube(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -92,7 +93,7 @@ namespace aiko
         t.position = pos;
         t.scale *= size;
         static const Mesh mesh(mesh::factory::generateCube());
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
     void RenderSystem::renderSphere(vec3 pos, vec3 size, int segments, Color color, bool border, float thickness)
@@ -105,7 +106,7 @@ namespace aiko
         m_materialPrimitives.m_baseColor = color;
         m_materialPrimitives.m_lit = false;
         static const Mesh mesh(mesh::factory::generateMeshSphere(segments, segments));
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
         m_materialPrimitives.m_baseColor = c;
         m_materialPrimitives.m_lit = l;
     }
@@ -115,7 +116,7 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateMeshSphere(sectors, sectors));
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
     void RenderSystem::renderCylinder(vec3 pos, vec3 size, uint sectors, Color color, bool border, float thickness)
@@ -123,7 +124,7 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateMeshCylinder(sectors));
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
     void RenderSystem::renderTorus(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -131,7 +132,7 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateMeshTorus());
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
     void RenderSystem::renderKnot(vec3 pos, vec3 size, Color color, bool border, float thickness)
@@ -139,7 +140,7 @@ namespace aiko
         Transform t;
         t.position = pos;
         static const Mesh mesh(mesh::factory::generateMeshKnot());
-        AikoRenderer::it().submit(t, mesh, m_materialPrimitives);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
 }

@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #include "aiko_types.h"
-#include "types/render_types.h"   // for ViewId, ComputeAccess
+#include "render_types.h"
 #include "models/texture.h"
 
 namespace aiko

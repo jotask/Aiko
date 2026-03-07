@@ -12,8 +12,9 @@
 
 namespace aiko
 {
-    AikoRenderer::AikoRenderer()
+    AikoRenderer::AikoRenderer(IAssetProvider& assets)
             : m_renderer(renderer::RendererFactory::createRenderDevice())
+            , m_resources(assets)
             , m_background_color(RAYWHITE)
     {
 

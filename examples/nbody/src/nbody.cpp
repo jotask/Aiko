@@ -2,7 +2,7 @@
 
 #include "models/game_object.h"
 #include "components/camera_component.h"
-#include "models/camera.h"
+#include "../../../aiko/renderer/src/models/camera.h"
 
 #include <aiko_includes.h>
 

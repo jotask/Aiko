@@ -14,7 +14,7 @@ namespace aiko
         {
         public:
 
-            using Id = aiko::string;
+            using Id = string;
 
             Uuid()
                 : m_uuid(generate_uuid_v4())
@@ -23,12 +23,12 @@ namespace aiko
             }
 
             Uuid(Id uuid)
-                : m_uuid(uuid)
+                : m_uuid(std::move(uuid))
             {
 
             }
 
-            const Id get() const
+            const Id& get() const
             {
                 return m_uuid;
             }
@@ -38,15 +38,11 @@ namespace aiko
                 return m_uuid == other.m_uuid;
             }
 
-            Id& operator&()
-            {
-                return m_uuid;
-            }
-
         private:
+
             Id m_uuid;
 
-            Id generate_uuid_v4()
+            static Id generate_uuid_v4()
             {
 
                 static std::random_device              rd;
@@ -88,4 +84,17 @@ namespace aiko
         };
 
     }
+}
+
+namespace std
+{
+
+    template<>
+    struct hash<aiko::uuid::Uuid>
+    {
+        size_t operator()(const aiko::uuid::Uuid& id) const noexcept
+        {
+            return hash<std::string>()(id.get());
+        }
+    };
 }

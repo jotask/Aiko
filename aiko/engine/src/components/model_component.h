@@ -2,7 +2,6 @@
 
 #include "aiko_types.h"
 #include "models/component.h"
-#include "models/model.h"
 
 namespace aiko
 {
@@ -14,12 +13,12 @@ namespace aiko
         ModelComponent();
         virtual ~ModelComponent() = default;
 
-        void load(string);
+        void setModelId(const AssetId& id) { m_modelId = id; }
+        const AssetId& getModelId() const { return m_modelId; }
 
-        Model& getModel();
     private:
 
-        Model m_model;
+        AssetId m_modelId;
     };
 
 }
