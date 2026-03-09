@@ -11,6 +11,14 @@ namespace aiko
         // Built from a ModelAsset and owned by RenderResourceManager.
     public:
 
+        // Copy
+        Model(const Model&) = delete;
+        Model& operator=(const Model&) = delete;
+
+        // Move
+        Model(Model&&) noexcept = default;
+        Model& operator=(Model&&) noexcept = default;
+
         Model();
         ~Model() = default;
         void upload(const ModelAsset&);

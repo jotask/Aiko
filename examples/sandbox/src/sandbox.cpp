@@ -76,26 +76,31 @@ namespace sb
         m_go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
+        mesh1->loadDebugCube();
         
         m_go2 = app->Instantiate(root, "Cube2");
         m_go2->transform().position = { -1.0f, 0.0f, 5.0f };
         m_go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
+        mesh2->loadDebugCube();
 
         m_texture = app->Instantiate(root, "Texture");
         m_texture->transform().position = { 0.0f, -0.55f, 5.0f };
         m_texture->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texture->transform().scale = { 1.0f, 1.0f, 1.0f };
-        auto mesh3 = m_texture->addComponent<aiko::SpriteComponent>("texel_checker.png");
+        auto mesh3 = m_texture->addComponent<aiko::SpriteComponent>();
+        mesh3->load("texel_checker.png");
 
         m_texturePbo = app->Instantiate(root, "PboTexture");
         m_texturePbo->transform().position = { 0.0f, 0.55f, 5.0f };
         m_texturePbo->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texturePbo->transform().scale = { 1.0f, 1.0f, 1.0f };
-        auto mesh4 = m_texturePbo->addComponent<aiko::SpriteComponent>(128, 128);
-        aiko::Material& material = mesh4->getMaterial();
-        material.m_lit = false;
+        auto mesh4 = m_texturePbo->addComponent<aiko::SpriteComponent>();
+        mesh4->create(128, 128);
+
+        aiko::MaterialAsset& material = mesh4->getMaterial();
+        material.lit = false;
         // material.setTextureFilter(aiko::TextureFilter::Nearest, aiko::TextureFilter::Nearest);
         // material.setTextureMipFilter(aiko::TextureMipFilter::None);
         // material.setTextureWrapMode(aiko::TextureWrapMode::Clamp, aiko::TextureWrapMode::Clamp);
@@ -176,14 +181,16 @@ namespace sb
 
                     static std::vector<Particle> s_particles;
 
-                    const auto material = cmp->getMaterial();
+                    const aiko::MaterialAsset material = cmp->getMaterial();
 
-                    AIKO_ASSERT(material.m_diffuse.isValid(), "Invalid texture?")
+                    // AIKO_ASSERT(material.m_diffuseTexture.isValid(), "Invalid texture?")
+                    // const auto info = material.m_diffuseTexture.getInfo();
 
-                    const auto info = material.m_diffuse.getInfo();
-
-                    const int w = info.width - 1;
-                    const int h = info.height - 1;
+                    // TEMP for compilation
+                    constexpr int texWidth = 128;
+                    constexpr int texHeight = 128;
+                    const int w = texWidth - 1;
+                    const int h = texHeight - 1;
 
                     if (s_particles.size() != N_PARTICLES)
                     {
@@ -223,10 +230,8 @@ namespace sb
                     if (S_CLEAR_BRACKGROUND)
                     {
                         std::vector<aiko::Color> pixels;
-                        pixels.clear();
-                        pixels.reserve(info.width * info.height);
-                        std::fill(pixels.begin(), pixels.end(), aiko::RAYWHITE);
-                        cmp->setPixels(pixels);
+                        pixels.resize(texWidth * texHeight, aiko::RAYWHITE);
+                        cmp->setPixels(std::move(pixels));
                     }
                     for (auto it : s_particles)
                     {

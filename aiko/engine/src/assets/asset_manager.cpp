@@ -7,6 +7,7 @@ namespace aiko
 
     const TextureAsset& AssetManager::getTextureAsset(const AssetId& id)
     {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get texture from invalid UUID")
         auto it = m_textureAssets.find(id);
         if (it != m_textureAssets.end())
         {
@@ -21,6 +22,7 @@ namespace aiko
 
     const MeshAsset& AssetManager::getMeshAsset(const AssetId& id)
     {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get mesh from invalid UUID")
         auto it = m_meshAssets.find(id);
         if (it != m_meshAssets.end())
         {
@@ -37,6 +39,7 @@ namespace aiko
 
     const ModelAsset& AssetManager::getModelAsset(const AssetId& id)
     {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get model from invalid UUID")
         auto it = m_modelAssets.find(id);
         if (it != m_modelAssets.end())
         {
@@ -53,6 +56,7 @@ namespace aiko
 
     const ShaderAsset& AssetManager::getShaderAsset(const AssetId& id)
     {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get shader from invalid UUID")
         auto it = m_shaderAssets.find(id);
         if (it != m_shaderAssets.end())
         {
@@ -61,23 +65,62 @@ namespace aiko
 
         auto pathIt = m_shaderPaths.find(id);
         AIKO_ASSERT(pathIt != m_shaderPaths.end(), "Shader asset id not registered");
-        AIKO_ASSERT(false, "Shader asset loading is not implemented yet");
 
-        static ShaderAsset dummy{};
-        return dummy;
+        ShaderAsset asset = AssetImporter::loadShader(pathIt->second, this);
+        auto [insertedIt, _] = m_shaderAssets.emplace(id, std::move(asset));
+        return insertedIt->second;
+    }
+
+
+    TextureAsset& AssetManager::getMutableTextureAsset(const AssetId& id)
+    {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get texture from invalid UUID")
+        auto it = m_textureAssets.find(id);
+        if (it != m_textureAssets.end())
+        {
+            return it->second;
+        }
+        auto pathIt = m_texturePaths.find(id);
+        AIKO_ASSERT(pathIt != m_texturePaths.end(), "Texture asset id not registered");
+        TextureAsset asset = AssetImporter::loadTexture(pathIt->second, this);
+        auto [insertedIt, _] = m_textureAssets.emplace(id, std::move(asset));
+        return insertedIt->second;
     }
 
     AssetId AssetManager::registerTexture(std::string_view path)
     {
+        const string p(path);
+        for (const auto& [id, existingPath] : m_texturePaths)
+        {
+            if (existingPath == p)
+            {
+                return id;
+            }
+        }
         AssetId id;
-        m_texturePaths[id] = string(path);
+        m_texturePaths[id] = p;
+        return id;
+    }
+
+    AssetId AssetManager::registerTexture(const TextureAsset& asset)
+    {
+        AssetId id;
+        m_textureAssets.emplace(id, asset);
         return id;
     }
 
     AssetId AssetManager::registerMesh(std::string_view path)
     {
+        const string p(path);
+        for (const auto& [id, existingPath] : m_meshPaths)
+        {
+            if (existingPath == p)
+            {
+                return id;
+            }
+        }
         AssetId id;
-        m_meshPaths[id] = string(path);
+        m_meshPaths[id] = p;
         return id;
     }
 
@@ -90,15 +133,31 @@ namespace aiko
 
     AssetId AssetManager::registerModel(std::string_view path)
     {
+        const string p(path);
+        for (const auto& [id, existingPath] : m_modelPaths)
+        {
+            if (existingPath == p)
+            {
+                return id;
+            }
+        }
         AssetId id;
-        m_modelPaths[id] = string(path);
+        m_modelPaths[id] = p;
         return id;
     }
 
     AssetId AssetManager::registerShader(std::string_view path)
     {
+        const string p(path);
+        for (const auto& [id, existingPath] : m_shaderPaths)
+        {
+            if (existingPath == p)
+            {
+                return id;
+            }
+        }
         AssetId id;
-        m_shaderPaths[id] = string(path);
+        m_shaderPaths[id] = p;
         return id;
     }
 
@@ -128,6 +187,11 @@ namespace aiko
         m_meshAssets.clear();
         m_modelAssets.clear();
         m_shaderAssets.clear();
+
+        m_texturePaths.clear();
+        m_meshPaths.clear();
+        m_modelPaths.clear();
+        m_shaderPaths.clear();
     }
 
     void AssetManager::unloadTexture(const AssetId& id)

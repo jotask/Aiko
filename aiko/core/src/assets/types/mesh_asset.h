@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+
+#include "material_asset.h"
 #include "math/math_vector.h"
 #include "assets/asset_id.h"
 
@@ -13,15 +15,6 @@ namespace aiko
         std::vector<vec3>       m_normals;
         std::vector<Color>      m_colors;
         std::vector<uint32_t>   m_indices;
-    };
-
-    struct MaterialAsset
-    {
-        AssetId shaderId;
-        AssetId diffuseTextureId;
-        Color baseColor = WHITE;
-        bool useVertexColor = false;
-        bool lit = true;
     };
 
     struct ModelAsset

@@ -75,6 +75,27 @@ namespace aiko
         setPixels(asset.pixels);
     }
 
+    void Texture::update(const TextureAsset& asset)
+    {
+        if (!isValid())
+        {
+            upload(asset);
+            return;
+        }
+
+        const TextureInfo info = getInfo();
+        if (info.width != asset.desc.width ||
+            info.height != asset.desc.height ||
+            info.format != asset.desc.format)
+        {
+            unload();
+            upload(asset);
+            return;
+        }
+
+        backend->update(asset);
+    }
+
     void Texture::unload()
     {
         backend->unload();

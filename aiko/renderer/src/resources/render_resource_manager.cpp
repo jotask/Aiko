@@ -45,7 +45,6 @@ namespace aiko
 
     Model& RenderResourceManager::getModel(const AssetId& id)
     {
-
         auto it = m_models.find(id);
         if (it != m_models.end())
         {
@@ -58,6 +57,23 @@ namespace aiko
 
         Model& ref = *model;
         m_models.emplace(id, std::move(model));
+        return ref;
+    }
+
+    Shader& RenderResourceManager::getShader(const AssetId& id)
+    {
+        auto it = m_shaders.find(id);
+        if (it != m_shaders.end())
+        {
+            return *it->second;
+        }
+        const ShaderAsset& asset = m_assetProvider.getShaderAsset(id);
+
+        auto shader = std::make_unique<Shader>();
+        shader->load(asset.vertexPath.c_str(), asset.fragmentPath.c_str());
+
+        Shader& ref = *shader;
+        m_shaders.emplace(id, std::move(shader));
         return ref;
     }
 
@@ -74,6 +90,22 @@ namespace aiko
     bool RenderResourceManager::hasModel(const AssetId& id) const
     {
         return m_models.find(id) != m_models.end();
+    }
+
+    bool RenderResourceManager::hasShader(const AssetId& id) const
+    {
+        return m_shaders.find(id) != m_shaders.end();
+    }
+
+    void RenderResourceManager::updateTexture(const AssetId& id)
+    {
+        auto it = m_textures.find(id);
+        if (it == m_textures.end())
+        {
+            return;
+        }
+        const TextureAsset& asset = m_assetProvider.getTextureAsset(id);
+        it->second->update(asset);
     }
 
     void RenderResourceManager::unloadTexture(const AssetId& id)
@@ -106,6 +138,16 @@ namespace aiko
         }
     }
 
+    void RenderResourceManager::unloadShader(const AssetId& id)
+    {
+        auto it = m_shaders.find(id);
+        if (it != m_shaders.end())
+        {
+            it->second->unload();
+            m_shaders.erase(it);
+        }
+    }
+
     void RenderResourceManager::clear()
     {
         for (auto& texture : m_textures)
@@ -129,8 +171,16 @@ namespace aiko
                 model.second->unload();
             }
         }
+        for (auto& shader : m_shaders)
+        {
+            if (shader.second != nullptr)
+            {
+                shader.second->unload();
+            }
+        }
         m_textures.clear();
         m_meshes.clear();
         m_models.clear();
+        m_shaders.clear();
     }
 }

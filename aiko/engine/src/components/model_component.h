@@ -2,6 +2,7 @@
 
 #include "aiko_types.h"
 #include "models/component.h"
+#include "metadata/material_instance.h"
 
 namespace aiko
 {
@@ -16,9 +17,16 @@ namespace aiko
         void setModelId(const AssetId& id) { m_modelId = id; }
         const AssetId& getModelId() const { return m_modelId; }
 
+        void load(string);
+
+        MaterialInstance& getMaterialInstance() { return m_materialInstance; }
+        const MaterialInstance& getMaterialInstance() const { return m_materialInstance; }
+
     private:
 
-        AssetId m_modelId;
+        AssetId m_modelId = InvalidAssetId;
+        MaterialInstance m_materialInstance;
+
     };
 
 }

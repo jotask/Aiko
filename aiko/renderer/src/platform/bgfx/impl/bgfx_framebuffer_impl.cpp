@@ -34,7 +34,7 @@ namespace aiko::renderer::bgfx
         return ::bgfx::isValid(m_frameBuffer);
     }
 
-    void BgfxFrameBufferImpl::create(Texture color, Texture depth)
+    void BgfxFrameBufferImpl::create(Texture& color, Texture& depth)
     {
 
         BgfxTextureImpl* colorTexture = static_cast<BgfxTextureImpl*>(color.getImpl());

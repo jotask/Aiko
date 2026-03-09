@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules/base_module.h"
+#include "resources/iresource_invalidator.h"
 
 namespace aiko
 {

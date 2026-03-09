@@ -168,7 +168,7 @@ namespace aiko
 
             const bool hasVertexColors = paiMesh->HasVertexColors(0);
             submesh.material.useVertexColor = hasVertexColors;
-            submesh.material.shaderId = InvalidAssetId;
+            submesh.material.shaderId = manager->registerShader("model");
             submesh.material.diffuseTextureId = InvalidAssetId;
             submesh.material.lit = true;
 
@@ -201,6 +201,10 @@ namespace aiko
 
     ShaderAsset AssetImporter::loadShader(const string& path, AssetManager* manager)
     {
-        AIKO_NOT_IMPLEMENTED;
+        AIKO_UNUSED(manager);
+        ShaderAsset asset{};
+        asset.vertexPath = path + ".vs";
+        asset.fragmentPath = path + ".fs";
+        return asset;
     }
 }

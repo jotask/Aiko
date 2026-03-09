@@ -20,7 +20,10 @@ namespace aiko
         virtual const ModelAsset& getModelAsset(const AssetId& id) override;
         virtual const ShaderAsset& getShaderAsset(const AssetId& id) override;
 
+        TextureAsset& getMutableTextureAsset(const AssetId& id);
+
         AssetId registerTexture(std::string_view path);
+        AssetId registerTexture(const TextureAsset& asset);
         AssetId registerMesh(std::string_view path);
         AssetId registerMesh(const MeshAsset& asset);
         AssetId registerModel(std::string_view path);

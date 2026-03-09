@@ -28,7 +28,7 @@ namespace aiko::renderer::bgfx
         virtual bool isValid() const override;
 
         // load
-        virtual void create(Texture color, Texture depth) override;
+        virtual void create(Texture& color, Texture& depth) override;
 
         virtual void unload() override;
 

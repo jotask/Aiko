@@ -52,7 +52,7 @@ namespace aiko
 
         void setDebugTexture(const Texture* texture);   // nullptr disables
 
-        FrameBuffer getTargetTexture() const;
+        const FrameBuffer& getTargetTexture() const;
 
         RenderResourceManager& resources() { return m_resources; }
 

@@ -180,7 +180,7 @@ namespace aiko
                 .clearDepth = true,
             };
 
-            FrameBuffer fbo = m_screenFbo.getFrameBuffer();
+            const FrameBuffer& fbo = m_screenFbo.getFrameBuffer();
 
             m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
             m_renderer->bindFrame(SCENE_VIEW, frameData);
@@ -205,7 +205,7 @@ namespace aiko
                 .clear = m_background_color
             };
 
-            FrameBuffer fbo = m_screenFbo.getFrameBuffer();
+            const FrameBuffer& fbo = m_screenFbo.getFrameBuffer();
 
             m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
             m_renderer->bindFrame(SCENE_VIEW, frameData);
@@ -322,7 +322,7 @@ namespace aiko
         m_debugTexture = texture;
     }
 
-    FrameBuffer AikoRenderer::getTargetTexture() const
+    const FrameBuffer& AikoRenderer::getTargetTexture() const
     {
         return m_screenFbo.getFrameBuffer();
     }

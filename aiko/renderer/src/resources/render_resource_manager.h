@@ -8,6 +8,7 @@
 #include "models/texture.h"
 #include "models/mesh.h"
 #include "models/model.h"
+#include "models/shader.h"
 
 namespace aiko
 {
@@ -20,15 +21,22 @@ namespace aiko
 
         Texture& getTexture(const AssetId& id);
         Mesh& getMesh(const AssetId& id);
+        // Runtime Model support is currently scaffolding only.
+        // Active model rendering path resolves ModelAsset submeshes in RenderSystem.
         Model& getModel(const AssetId& id);
+        Shader& getShader(const AssetId& id);
 
         bool hasTexture(const AssetId& id) const;
         bool hasMesh(const AssetId& id) const;
         bool hasModel(const AssetId& id) const;
+        bool hasShader(const AssetId& id) const;
+
+        void updateTexture(const AssetId& id);
 
         void unloadTexture(const AssetId& id);
         void unloadMesh(const AssetId& id);
         void unloadModel(const AssetId& id);
+        void unloadShader(const AssetId& id);
         void clear();
 
     private:
@@ -37,6 +45,7 @@ namespace aiko
         std::unordered_map<AssetId, AikoUPtr<Texture>> m_textures;
         std::unordered_map<AssetId, AikoUPtr<Mesh>> m_meshes;
         std::unordered_map<AssetId, AikoUPtr<Model>> m_models;
+        std::unordered_map<AssetId, AikoUPtr<Shader>> m_shaders;
 
     };
 

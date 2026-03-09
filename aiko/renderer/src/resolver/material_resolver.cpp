@@ -1,37 +1,46 @@
 #include "material_resolver.h"
 
 #include "aiko_renderer.h"
+#include "../../../engine/src/assets/asset_manager.h"
 
 namespace aiko
 {
 
-    Material MaterialResolver::resolve(const MaterialAsset& materialAsset, AikoRenderer& renderer)
+    AikoUPtr<Material> MaterialResolver::resolve(const MaterialAsset& materialAsset, IAssetProvider& assets, AikoRenderer& renderer)
     {
-        Material material{};
 
-        material.m_useVertexColor = materialAsset.useVertexColor;
-        material.m_lit = materialAsset.lit;
-        material.m_baseColor = materialAsset.baseColor;
+        auto material = std::make_unique<Material>();
+
+        material->m_useVertexColor = materialAsset.useVertexColor;
+        material->m_lit = materialAsset.lit;
+        material->m_baseColor = materialAsset.baseColor;
 
         if (materialAsset.shaderId != InvalidAssetId)
         {
-            // TODO: resolve ShaderAsset -> runtime Shader once shader asset loading is implemented.
-            material.m_shader.load("model");
+            material->m_shader = &renderer.resources().getShader(materialAsset.shaderId);
         }
         else
         {
-            material.m_shader.load("model");
+            static AssetId s_defaultModelShaderId = InvalidAssetId;
+            if (s_defaultModelShaderId == InvalidAssetId)
+            {
+                // This assumes the asset provider is AssetManager and path registration is deduplicated.
+                AssetManager* assetManager = dynamic_cast<AssetManager*>(&assets);
+                AIKO_ASSERT(assetManager != nullptr, "MaterialResolver requires AssetManager for default shader registration");
+                s_defaultModelShaderId = assetManager->registerShader("model");
+            }
+            material->m_shader = &renderer.resources().getShader(s_defaultModelShaderId);
         }
 
         if (materialAsset.diffuseTextureId != InvalidAssetId)
         {
-            material.m_diffuseTexture = renderer.resources().getTexture(materialAsset.diffuseTextureId);
+            material->m_diffuseTexture = &renderer.resources().getTexture(materialAsset.diffuseTextureId);
         }
 
         return material;
     }
 
-    Material MaterialResolver::resolve(const MaterialAsset& asset, const MaterialInstance& instance, AikoRenderer& renderer)
+    AikoUPtr<Material> MaterialResolver::resolve(const MaterialAsset& asset, const MaterialInstance& instance, IAssetProvider& assets, AikoRenderer& renderer)
     {
         MaterialAsset effective = asset;
 
@@ -40,7 +49,7 @@ namespace aiko
             effective.shaderId = instance.shaderId;
         }
 
-        return resolve(effective, renderer);
+        return resolve(effective, assets, renderer);
     }
 
 }

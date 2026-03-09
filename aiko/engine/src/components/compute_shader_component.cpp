@@ -1,7 +1,5 @@
 #include "compute_shader_component.h"
 
-#include <time/time.h>
-#include "display/display_manager.h"
 #include "models/mesh_factory.h"
 
 namespace aiko
@@ -23,7 +21,7 @@ namespace aiko
 
     void ComputeShaderComponent::render()
     {
-        AIKO_NOT_IMPLEMENTED;
+        // AIKO_NOT_IMPLEMENTED;
         /*
         if (m_needInitDispatch)
         {
@@ -122,6 +120,7 @@ namespace aiko
 
     void ComputeShaderComponent::refreshAll()
     {
+        /*
         // TEMP compute validation
         {
             auto size = DisplayManager::it().getDisplay()->getDisplaySize();
@@ -174,16 +173,22 @@ namespace aiko
         if (m_meshParticlesInit == false)
         {
 
-            auto data = mesh::factory::generateCube();
-            m_particleMesh.setData(data);
+            AssetManager* assets = gameobject->getAiko()->getAssetManager();
 
-            // load a shader that supports GPU instance buffer fetch
-            m_particleMeshMaterial.m_shader.load("mesh_gpuinst.vs", "model.fs");;
+            AssetId gpuInstShaderId = assets->registerShader("mesh_gpuinst");
+            m_particleMeshMaterial.m_shader =
+                &gameobject->getSystem<RenderSystem>()
+                     ->getRenderModule()
+                     ->getRenderer()
+                     .resources()
+                     .getShader(gpuInstShaderId);
+
             m_particleMeshMaterial.m_baseColor = MAGENTA;
             m_particleMeshMaterial.m_lit = false;
-
-            m_meshParticlesInit = true;
+            m_particleMeshMaterial.m_useVertexColor = false;
+            m_particleMeshMaterial.m_diffuseTexture = nullptr;
 
         }
+        */
     }
 }

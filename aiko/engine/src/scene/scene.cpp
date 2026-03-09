@@ -38,6 +38,7 @@ namespace aiko
     {
         m_objects.clear();
         m_activeCamera = nullptr;
+        // TODO Clear render system cache?
     }
 
     std::vector<GameObject*> Scene::getObjects() const

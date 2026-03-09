@@ -20,8 +20,8 @@
         friend class renderer::RendererFactory;
 
         // Copy
-        FrameBuffer(const FrameBuffer&) = default;
-        FrameBuffer& operator=(const FrameBuffer&) = default;
+        FrameBuffer(const FrameBuffer&) = delete;
+        FrameBuffer& operator=(const FrameBuffer&) = delete;
 
         // Move
         FrameBuffer(FrameBuffer&&) noexcept = default;
@@ -43,6 +43,8 @@
 
         Texture& getColorTexture() { return colorTexture; }
         Texture& getDepthTexture() { return depthTexture; }
+        const Texture& getColorTexture() const { return colorTexture; }
+        const Texture& getDepthTexture() const { return depthTexture; }
 
     private:
 

@@ -24,6 +24,7 @@ namespace aiko
             virtual void unload() = 0;
 
             // Modify
+            virtual void update(const TextureAsset& asset) = 0;
             virtual void setPixels(const std::vector<Color>& pixels) = 0;
 
         };

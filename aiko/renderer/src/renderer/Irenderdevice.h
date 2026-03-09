@@ -29,7 +29,7 @@ namespace aiko::renderer
         virtual void beginFrame() = 0;
         virtual void endFrame() = 0;
 
-        virtual void beginPass(ViewId viewId, const PassDescription& pass, FrameBuffer* frameBuffer = nullptr) = 0;
+        virtual void beginPass(ViewId viewId, const PassDescription& pass, const FrameBuffer* frameBuffer = nullptr) = 0;
         virtual void endPass() = 0;
 
         virtual void present() = 0;

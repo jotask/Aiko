@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <deque>
+#include <unordered_map>
 
 #include <aiko_types.h>
 #include <models/shader.h>
@@ -18,6 +19,7 @@
 #include "systems/base_system.h"
 #include "models/game_object.h"
 #include "models/model.h"
+#include <resources/iresource_invalidator.h>
 
 namespace aiko
 {
@@ -39,29 +41,39 @@ namespace aiko
         virtual void init() override;
         virtual void update() override;
         virtual void render() override;
+        virtual void dispose() override;
 
-        void render(const Transform& trans, const Model& model);
         void render(const Transform& trans, const Mesh&, const Material&);
         void render(const Transform& trans, const MeshComponent& meshComponent);
         void render(const Transform& trans, const ModelComponent& modelComponent);
         void render(const Transform& trans, const SpriteComponent& meshComponent);
 
-        FrameBuffer getTargetTexture() const;
+        const FrameBuffer& getTargetTexture() const;
 
         Camera* getMainCamera();
 
+        void clearCaches();
+
     protected:
-    
+
         virtual void connect(ModuleConnector*, SystemConnector*) override;
-    
+
     private:
+
+        struct CachedMaterialEntry
+        {
+            AikoUPtr<Material> material;
+            AssetId textureId = InvalidAssetId;
+        };
 
         AssetsManagerModule* m_assetManagerModule;
         RenderModule* m_renderModule;
         SceneSystem* m_sceneSystem;
 
-        std::deque<Mesh> m_frameMeshes;
-        std::deque<Material> m_frameMaterials;
+        std::unordered_map<string, AikoUPtr<Mesh>> m_modelSubmeshCache;
+        std::unordered_map<string, CachedMaterialEntry> m_materialCache;
+
+        Material& resolveCachedMaterial(const MaterialAsset& materialAsset, const MaterialInstance& materialInstance);
 
     // ---------------------------------------------------
     //                   PRIMITIVES

@@ -19,13 +19,19 @@
         friend class RenderModule;
         friend class RenderSystem;
 
+        Material(const Material&) = delete;
+        Material& operator=(const Material&) = delete;
+
+        Material(Material&&) noexcept = default;
+        Material& operator=(Material&&) noexcept = default;
+
         Material();
         ~Material() = default;
 
         u64 id() const;
 
     public:
-        Shader m_shader;
+        Shader* m_shader = nullptr;
 
         const ComputeBuffer* m_gpuInstanceBuffer = nullptr;
 
@@ -33,7 +39,7 @@
         bool m_lit;
 
 		Color m_baseColor;
-        Texture m_diffuseTexture;
+        Texture* m_diffuseTexture = nullptr;
 
     };
 

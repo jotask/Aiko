@@ -12,6 +12,7 @@ namespace aiko
     Shader::Shader()
         : backend(renderer::RendererFactory::createShaderImpl())
     {
+        AIKO_ASSERT(backend != nullptr, "RendererFactory::createShaderImpl returned null");
     }
 
     uint Shader::id() const

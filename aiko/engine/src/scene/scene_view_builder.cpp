@@ -13,7 +13,7 @@ namespace aiko
         view.clear();
         view.camera = findMainCamera(scene);
         view.ambientLight.color = WHITE;
-        view.ambientLight.intensity = 0.1f;
+        view.ambientLight.intensity = 0.75f;
         gatherLights(scene, view);
         return view;
     }

@@ -119,6 +119,11 @@ namespace aiko::renderer::bgfx
         m_texture = {};
     }
 
+    void BgfxTextureImpl::update(const TextureAsset& asset)
+    {
+        setPixels(asset.pixels);
+    }
+
     void BgfxTextureImpl::setPixels(const std::vector<Color>& pixels)
     {
 

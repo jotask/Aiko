@@ -17,6 +17,7 @@
 
 // Systems
 #include "modules/assets_manager_module.h"
+#include "systems/asset_system.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
 #include "systems/scene_system.h"
@@ -48,6 +49,22 @@ namespace aiko
     void Aiko::close()
     {
         m_shouldStop = true;
+    }
+
+    IComponentAssetAccess* Aiko::getComponentAssetAccess()
+    {
+        auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const aiko::AikoUPtr<System>& module) {
+                return dynamic_cast<IComponentAssetAccess*>(module.get()) != nullptr;
+            });
+        return (it != m_systems.end()) ? dynamic_cast<IComponentAssetAccess*>(it->get()) : nullptr;
+    }
+
+    IRenderResourceInvalidator* Aiko::getResourceInvalidator()
+    {
+        auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const aiko::AikoUPtr<System>& module) {
+                return dynamic_cast<IRenderResourceInvalidator*>(module.get()) != nullptr;
+            });
+        return (it != m_systems.end()) ? dynamic_cast<IRenderResourceInvalidator*>(it->get()) : nullptr;
     }
 
     void Aiko::run()
@@ -82,6 +99,7 @@ namespace aiko
         // Systems
         m_systems.emplace_back(std::make_unique<SceneSystem>());
         m_systems.emplace_back(std::make_unique<RenderSystem>());
+        m_systems.emplace_back(std::make_unique<AssetSystem>());
         m_systems.emplace_back(std::make_unique<InputSystem>());
         m_systems.emplace_back(std::make_unique<ParticleSystem>());
 

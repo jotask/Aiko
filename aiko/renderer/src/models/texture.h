@@ -20,8 +20,8 @@ namespace aiko
         friend class renderer::RendererFactory;
 
         // Copy
-        Texture(const Texture&) = default;
-        Texture& operator=(const Texture&) = default;
+        Texture(const Texture&) = delete;
+        Texture& operator=(const Texture&) = delete;
 
         // Move
         Texture(Texture&&) noexcept = default;
@@ -43,6 +43,7 @@ namespace aiko
         void create(int width, int height);
         void create(const TextureDesc& desc);
         void upload(const TextureAsset& asset);
+        void update(const TextureAsset& asset);
         void unload();
 
         // Modify

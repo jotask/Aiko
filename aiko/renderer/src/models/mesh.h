@@ -24,8 +24,8 @@
         friend class renderer::RendererFactory;
 
          // Copy
-         Mesh(const Mesh&) = default;
-         Mesh& operator=(const Mesh&) = default;
+         Mesh(const Mesh&) = delete;
+         Mesh& operator=(const Mesh&) = delete;
 
          // Move
          Mesh(Mesh&&) noexcept = default;

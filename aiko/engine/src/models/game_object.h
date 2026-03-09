@@ -10,7 +10,6 @@
 #include "aiko_types.h"
 #include "component.h"
 #include "components/transform_component.h"
-#include "types/scene_types.h"
 
 namespace aiko
 {
@@ -49,6 +48,7 @@ namespace aiko
         // FIXME: For now, so we can easily get components
         template<class T>
         auto getSystem();
+        Aiko* getAiko() const { return aiko; }
 
         std::vector<Component*> getComponents();
 
@@ -73,7 +73,8 @@ namespace aiko
     {
         if (hasComponent<T>() == true)
         {
-            // throw std::exception();
+            logger::Log::error("Couldn't add Component");
+            return  nullptr;
         }
         m_components.emplace_back(std::make_shared<T>(args...));
         AikoPtr<Component> back = m_components.back();
@@ -96,7 +97,7 @@ namespace aiko
     {
         if (hasComponent<T>() == false)
         {
-            throw std::exception();
+            return nullptr;
         }
         auto it = std::find_if(m_components.begin(), m_components.end(), [](const std::shared_ptr<Component>& component) {
             return dynamic_cast<T*>(component.get()) != nullptr;

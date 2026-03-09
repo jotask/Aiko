@@ -17,6 +17,9 @@ namespace aiko
 
         virtual void init() override;
 
+        void load(string path);
+        void loadDebugCube();
+
         void setMeshId(const AssetId& id) { m_meshId = id; }
         const AssetId& getMeshId() const { return m_meshId; };
         MaterialAsset& getMaterial() { return m_material; }
@@ -27,7 +30,7 @@ namespace aiko
 
     private:
 
-        AssetId         m_meshId;
+        AssetId         m_meshId = InvalidAssetId;
         MaterialAsset   m_material;
         MaterialInstance m_materialInstance;
 

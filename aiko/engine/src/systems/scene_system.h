@@ -3,7 +3,6 @@
 #include "systems/base_system.h"
 #include "types/scene_types.h"
 
-#include "scene/scene_render.h"
 #include "scene/scene_view_builder.h"
 
 #include "models/game_object.h"
@@ -14,6 +13,7 @@ namespace aiko
 {
 
     class RenderModule;
+    class RenderSystem;
     class GameObject;
     
     class SceneSystem : public BaseSystem
@@ -47,8 +47,8 @@ namespace aiko
     private:
 
         RenderModule* m_renderModule;
+        RenderSystem* m_renderSystem;
 
-        SceneRenderer m_sceneRenderer;
         SceneViewBuilder m_sceneViewBuilder;
 
         Scene m_scene;
