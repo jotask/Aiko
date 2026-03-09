@@ -9,6 +9,10 @@ namespace aiko
     {
         string vertexPath;
         string fragmentPath;
+    };
+
+    struct ComputeShaderAsset
+    {
         string computePath;
     };
 

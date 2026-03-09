@@ -19,6 +19,7 @@ namespace aiko
         virtual const MeshAsset& getMeshAsset(const AssetId& id) override;
         virtual const ModelAsset& getModelAsset(const AssetId& id) override;
         virtual const ShaderAsset& getShaderAsset(const AssetId& id) override;
+        virtual const ComputeShaderAsset& getComputeShaderAsset(const AssetId& id) override;
 
         TextureAsset& getMutableTextureAsset(const AssetId& id);
 
@@ -28,17 +29,20 @@ namespace aiko
         AssetId registerMesh(const MeshAsset& asset);
         AssetId registerModel(std::string_view path);
         AssetId registerShader(std::string_view path);
+        AssetId registerComputeShader(std::string_view path);
 
         bool hasTextureAsset(const AssetId& id) const;
         bool hasMeshAsset(const AssetId& id) const;
         bool hasModelAsset(const AssetId& id) const;
         bool hasShaderAsset(const AssetId& id) const;
+        bool hasComputeShaderAsset(const AssetId& id) const;
 
         void clear();
         void unloadTexture(const AssetId& id);
         void unloadMesh(const AssetId& id);
         void unloadModel(const AssetId& id);
         void unloadShader(const AssetId& id);
+        void unloadComputeShader(const AssetId& id);
 
     private:
 
@@ -46,11 +50,13 @@ namespace aiko
         std::unordered_map<AssetId, string> m_meshPaths;
         std::unordered_map<AssetId, string> m_modelPaths;
         std::unordered_map<AssetId, string> m_shaderPaths;
+        std::unordered_map<AssetId, string> m_computeShaderPaths;
 
         std::unordered_map<AssetId, TextureAsset> m_textureAssets;
         std::unordered_map<AssetId, MeshAsset> m_meshAssets;
         std::unordered_map<AssetId, ModelAsset> m_modelAssets;
         std::unordered_map<AssetId, ShaderAsset> m_shaderAssets;
+        std::unordered_map<AssetId, ComputeShaderAsset> m_computeShaderAssets;
 
     };
 

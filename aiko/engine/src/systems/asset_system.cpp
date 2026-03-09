@@ -43,6 +43,11 @@ namespace aiko
         return m_assetModule->getManager()->registerTexture(asset);
     }
 
+    AssetId AssetSystem::registerComputeShader(std::string_view path)
+    {
+        return m_assetModule->getManager()->registerComputeShader(path);
+    }
+
     TextureAsset& AssetSystem::getMutableTextureAsset(const AssetId& id)
     {
         return m_assetModule->getManager()->getMutableTextureAsset(id);
@@ -51,5 +56,20 @@ namespace aiko
     void AssetSystem::invalidateTexture(const AssetId& id)
     {
         m_renderModule->getRenderer().resources().updateTexture(id);
+    }
+
+    void AssetSystem::invalidateMesh(const AssetId& id)
+    {
+        m_renderModule->getRenderer().resources().unloadMesh(id);
+    }
+
+    void AssetSystem::invalidateModel(const AssetId& id)
+    {
+        m_renderModule->getRenderer().resources().unloadModel(id);
+    }
+
+    void AssetSystem::invalidateShader(const AssetId& id)
+    {
+        m_renderModule->getRenderer().resources().unloadShader(id);
     }
 }

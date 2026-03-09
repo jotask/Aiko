@@ -71,6 +71,22 @@ namespace aiko
         return insertedIt->second;
     }
 
+    const ComputeShaderAsset& AssetManager::getComputeShaderAsset(const AssetId& id)
+    {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get shader from invalid UUID")
+        auto it = m_computeShaderAssets.find(id);
+        if (it != m_computeShaderAssets.end())
+        {
+            return it->second;
+        }
+
+        auto pathIt = m_computeShaderPaths.find(id);
+        AIKO_ASSERT(pathIt != m_computeShaderPaths.end(), "Shader asset id not registered");
+
+        ComputeShaderAsset asset = AssetImporter::loadComputeShader(pathIt->second, this);
+        auto [insertedIt, _] = m_computeShaderAssets.emplace(id, std::move(asset));
+        return insertedIt->second;
+    }
 
     TextureAsset& AssetManager::getMutableTextureAsset(const AssetId& id)
     {
@@ -161,6 +177,21 @@ namespace aiko
         return id;
     }
 
+    AssetId AssetManager::registerComputeShader(std::string_view path)
+    {
+        const string p(path);
+        for (const auto& [id, existingPath] : m_computeShaderPaths)
+        {
+            if (existingPath == p)
+            {
+                return id;
+            }
+        }
+        AssetId id;
+        m_computeShaderPaths[id] = p;
+        return id;
+    }
+
     bool AssetManager::hasTextureAsset(const AssetId& id) const
     {
         return m_textureAssets.find(id) != m_textureAssets.end() || m_texturePaths.find(id) != m_texturePaths.end() ;
@@ -181,17 +212,25 @@ namespace aiko
         return m_shaderAssets.find(id) != m_shaderAssets.end() || m_shaderPaths.find(id) != m_shaderPaths.end() ;
     }
 
+    bool AssetManager::hasComputeShaderAsset(const AssetId& id) const
+    {
+        return m_computeShaderAssets.find(id) != m_computeShaderAssets.end() || m_computeShaderPaths.find(id) != m_computeShaderPaths.end() ;
+    }
+
     void AssetManager::clear()
     {
         m_textureAssets.clear();
         m_meshAssets.clear();
         m_modelAssets.clear();
         m_shaderAssets.clear();
+        m_computeShaderAssets.clear();
 
         m_texturePaths.clear();
         m_meshPaths.clear();
         m_modelPaths.clear();
         m_shaderPaths.clear();
+        m_computeShaderPaths.clear();
+
     }
 
     void AssetManager::unloadTexture(const AssetId& id)
@@ -212,5 +251,9 @@ namespace aiko
     void AssetManager::unloadShader(const AssetId& id)
     {
         m_shaderAssets.erase(id);
+    }
+
+    void AssetManager::unloadComputeShader(const AssetId& id)
+    {
     }
 }

@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include <assets/asset_id.h>
 #include "material_asset.h"
 #include "math/math_vector.h"
 #include "assets/asset_id.h"
@@ -21,7 +22,7 @@ namespace aiko
     {
         struct SubMesh
         {
-            MeshAsset mesh;
+            AssetId meshId = InvalidAssetId;
             MaterialAsset material;
         };
         std::vector<SubMesh> submeshes;

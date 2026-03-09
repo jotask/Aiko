@@ -17,6 +17,7 @@ namespace aiko
         virtual const MeshAsset& getMeshAsset(const AssetId& id) = 0;
         virtual const ModelAsset& getModelAsset(const AssetId& id) = 0;
         virtual const ShaderAsset& getShaderAsset(const AssetId& id) = 0;
+        virtual const ComputeShaderAsset& getComputeShaderAsset(const AssetId& id) = 0;
     };
 
 }

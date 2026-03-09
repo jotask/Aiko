@@ -1,15 +1,24 @@
 #pragma once
 
-#include "mesh.h"
-#include "material.h"
+#include <vector>
+
+#include "assets/types/mesh_asset.h"
+#include "assets/iasset_provider.h"
 
 namespace aiko
 {
+
+    class RenderResourceManager;
+
     class Model
     {
-        // Runtime model resource.
-        // Built from a ModelAsset and owned by RenderResourceManager.
     public:
+
+        struct SubMesh
+        {
+            AssetId meshId = InvalidAssetId;
+            const MaterialAsset* material = nullptr;
+        };
 
         // Copy
         Model(const Model&) = delete;
@@ -19,17 +28,18 @@ namespace aiko
         Model(Model&&) noexcept = default;
         Model& operator=(Model&&) noexcept = default;
 
-        Model();
+        Model() = default;
         ~Model() = default;
-        void upload(const ModelAsset&);
+
+        void upload(const ModelAsset& asset);
         void unload();
 
-        const AssetId& getModelId() const { return m_modelId; }
-        void setModelId(const AssetId& id) { m_modelId = id; }
+        const std::vector<SubMesh>& getSubMeshes() const { return m_subMeshes; }
+        std::vector<SubMesh>& getSubMeshes() { return m_subMeshes; }
 
     private:
 
-		AssetId m_modelId;
+        std::vector<SubMesh> m_subMeshes;
 
     };
 }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <cstdint>
 
 #include "aiko_types.h"
 #include "render_types.h"
@@ -40,7 +39,7 @@ namespace aiko
     struct ComputeReadbackRequest
     {
         ReadbackId id = 0;                 // filled by caller or device
-        const ComputeBuffer* buffer= nullptr;
+        const ComputeBuffer* buffer = nullptr;
         uint32_t byteSize = 0;
     };
 
@@ -66,7 +65,7 @@ namespace aiko
 
     struct ComputePass
     {
-        const ComputeShader* shader = nullptr;
+        ComputeShader* shader = nullptr;
         std::vector<ComputeImageBinding> images;
         ComputeDispatch dispatch;
         std::vector<ComputeBufferBinding> buffers;

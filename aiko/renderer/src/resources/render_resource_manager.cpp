@@ -50,6 +50,7 @@ namespace aiko
         {
             return *it->second;
         }
+
         const ModelAsset& asset = m_assetProvider.getModelAsset(id);
 
         auto model = std::make_unique<Model>();
@@ -77,6 +78,25 @@ namespace aiko
         return ref;
     }
 
+    ComputeShader& RenderResourceManager::getComputeShader(const AssetId& id)
+    {
+        auto it = m_computeShaders.find(id);
+        if (it != m_computeShaders.end())
+        {
+            return *it->second;
+        }
+        const ComputeShaderAsset& asset = m_assetProvider.getComputeShaderAsset(id);
+
+        AIKO_ASSERT(asset.computePath.empty() == false, "Shader asset has no compute path");
+
+        auto shader = std::make_unique<ComputeShader>();
+        shader->load(asset.computePath);
+
+        ComputeShader& ref = *shader;
+        m_computeShaders.emplace(id, std::move(shader));
+        return ref;
+    }
+
     bool RenderResourceManager::hasTexture(const AssetId& id) const
     {
         return m_textures.find(id) != m_textures.end();
@@ -95,6 +115,11 @@ namespace aiko
     bool RenderResourceManager::hasShader(const AssetId& id) const
     {
         return m_shaders.find(id) != m_shaders.end();
+    }
+
+    bool RenderResourceManager::hasComputeShader(const AssetId& id) const
+    {
+        return m_computeShaders.find(id) != m_computeShaders.end();
     }
 
     void RenderResourceManager::updateTexture(const AssetId& id)
@@ -148,6 +173,16 @@ namespace aiko
         }
     }
 
+    void RenderResourceManager::unloadComputeShader(const AssetId& id)
+    {
+        auto it = m_computeShaders.find(id);
+        if (it != m_computeShaders.end())
+        {
+            it->second->unload();
+            m_computeShaders.erase(it);
+        }
+    }
+
     void RenderResourceManager::clear()
     {
         for (auto& texture : m_textures)
@@ -178,9 +213,17 @@ namespace aiko
                 shader.second->unload();
             }
         }
+        for (auto& compute : m_computeShaders)
+        {
+            if (compute.second != nullptr)
+            {
+                compute.second->unload();
+            }
+        }
         m_textures.clear();
         m_meshes.clear();
         m_models.clear();
         m_shaders.clear();
+        m_computeShaders.clear();
     }
 }

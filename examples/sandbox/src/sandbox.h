@@ -25,6 +25,14 @@ namespace sb
             float angle;
         };
         std::vector<LightInst> m_lights;
+
+
+        aiko::GameObject* m_computeObj = nullptr;
+        aiko::ComputeBuffer m_testBuffer;
+        bool m_computeDispatched = false;
+        bool m_readbackRequested = false;
+        aiko::ReadbackId m_readbackId = 1;
+
     };
 
 }

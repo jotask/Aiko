@@ -17,6 +17,7 @@ namespace aiko
         static MeshAsset loadMesh(const string& path, AssetManager* manager);
         static ModelAsset loadModel(const string& path, AssetManager* manager);
         static ShaderAsset loadShader(const string& path, AssetManager* manager);
+        static ComputeShaderAsset loadComputeShader(const string& path, AssetManager* manager);
     };
 
 }

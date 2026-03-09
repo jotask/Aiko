@@ -5,6 +5,7 @@
 
 #include "texture.h"
 #include "frame_buffer.h"
+#include "material.h"
 #include "mesh.h"
 
  namespace aiko

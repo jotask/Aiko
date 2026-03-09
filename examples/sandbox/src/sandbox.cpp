@@ -11,8 +11,8 @@
 #include "components/light_component.h"
 #include "components/sprite_component.h"
 #include "components/model_component.h"
-#include "../../../aiko/renderer/src/models/camera.h"
-#include "../../../aiko/core/src/types/color.h"
+#include "models/camera.h"
+#include "types/color.h"
 
 #include <aiko_includes.h>
 #include <core/random.h>
@@ -27,6 +27,10 @@
 
 namespace sb
 {
+
+    static constexpr uint32_t kCount = 64;
+
+
     void Sandbox::init()
     {
 
@@ -129,8 +133,15 @@ namespace sb
 #endif
 
 #ifdef TEST_PARTICLE_CS
-        auto ps = app->Instantiate(root, "Particles");
-        auto psCmp = ps->addComponent<aiko::ComputeShaderComponent>();
+        // auto ps = app->Instantiate(root, "Particles");
+        // auto psCmp = ps->addComponent<aiko::ComputeShaderComponent>();
+
+        m_computeObj = app->Instantiate(root, "ComputeTest");
+        auto computeCmp = m_computeObj->addComponent<aiko::ComputeShaderComponent>();
+        computeCmp->load("compute_test");
+
+        m_testBuffer.createVec4(kCount, nullptr, aiko::ComputeAccess::ReadWrite);
+
 #endif
 
     }
@@ -255,6 +266,50 @@ namespace sb
             }
         }
 #endif
+
+        if (m_computeObj != nullptr && m_computeDispatched == false)
+        {
+            auto computeCmp = m_computeObj->getComponent<aiko::ComputeShaderComponent>();
+            AIKO_ASSERT(computeCmp != nullptr, "Missing ComputeShaderComponent");
+
+            aiko::ComputePass pass{};
+            pass.buffers.push_back({ 0, &m_testBuffer, aiko::ComputeAccess::ReadWrite });
+            pass.vec4Uniforms.push_back({ "u_params", aiko::vec4(float(kCount), 0.0f, 0.0f, 0.0f) });
+            pass.dispatch.groupsX = 1;   // 64 threads if local_size_x = 64
+            pass.dispatch.groupsY = 1;
+            pass.dispatch.groupsZ = 1;
+
+            app->getRenderSystem()->dispatch(pass, *computeCmp);
+
+            m_computeDispatched = true;
+        }
+        if (m_computeDispatched && m_readbackRequested == false)
+        {
+            aiko::ComputeReadbackRequest req{};
+            req.id = m_readbackId;
+            req.buffer = &m_testBuffer;
+            req.byteSize = 64 * sizeof(aiko::vec4);
+
+            app->getRenderSystem()->requestReadback(req);
+
+            m_readbackRequested = true;
+        }
+        if (m_readbackRequested)
+        {
+            aiko::ComputeReadbackResult res{};
+            app->getRenderSystem()->pollReadback(res);
+            if ( res.ready && res.id == m_readbackId)
+            {
+                const aiko::vec4* values = reinterpret_cast<const aiko::vec4*>(res.data.data());
+
+                for (int i = 0; i < 4; ++i)
+                {
+                    aiko::logger::Log::info( "compute[%d] = (%f, %f, %f, %f)",i, values[i].x, values[i].y, values[i].z, values[i].w );
+                }
+
+                m_readbackRequested = false;
+            }
+        }
     }
 
     void Sandbox::render()

@@ -164,7 +164,8 @@ namespace aiko
 
             ModelAsset::SubMesh submesh{};
 
-            submesh.mesh = importAiMesh(paiMesh);
+            MeshAsset meshAsset = importAiMesh(paiMesh);
+            submesh.meshId = manager->registerMesh(meshAsset);
 
             const bool hasVertexColors = paiMesh->HasVertexColors(0);
             submesh.material.useVertexColor = hasVertexColors;
@@ -202,9 +203,21 @@ namespace aiko
     ShaderAsset AssetImporter::loadShader(const string& path, AssetManager* manager)
     {
         AIKO_UNUSED(manager);
-        ShaderAsset asset{};
-        asset.vertexPath = path + ".vs";
-        asset.fragmentPath = path + ".fs";
+        const ShaderAsset asset
+        {
+            .vertexPath = path + ".vs",
+            .fragmentPath = path + ".fs"
+        };
+        return asset;
+    }
+
+    ComputeShaderAsset AssetImporter::loadComputeShader(const string& path, AssetManager* manager)
+    {
+        AIKO_UNUSED(manager);
+        const ComputeShaderAsset asset
+        {
+            .computePath = path + ".cs"
+        };
         return asset;
     }
 }

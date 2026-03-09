@@ -7,6 +7,10 @@ namespace aiko
     {
     public:
         virtual ~IRenderResourceInvalidator() = default;
+
         virtual void invalidateTexture(const AssetId& id) = 0;
+        virtual void invalidateMesh(const AssetId& id) = 0;
+        virtual void invalidateModel(const AssetId& id) = 0;
+        virtual void invalidateShader(const AssetId& id) = 0;
     };
 }

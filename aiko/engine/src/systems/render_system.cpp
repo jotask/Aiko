@@ -26,7 +26,7 @@ namespace aiko
         AssetId shaderId = m_assetManagerModule->getManager()->registerShader("model");
         m_materialPrimitives.m_shader = &m_renderModule->getRenderer().resources().getShader(shaderId);
         m_materialPrimitives.m_lit = true;
-        m_materialPrimitives.m_useVertexColor = false;
+        m_materialPrimitives.m_useVertexColor = true;
         m_materialPrimitives.m_diffuseTexture = nullptr;
     }
 
@@ -55,13 +55,32 @@ namespace aiko
 
     void RenderSystem::clearCaches()
     {
-        m_modelSubmeshCache.clear();
         m_materialCache.clear();
     }
 
     void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Material& mat)
     {
         m_renderModule->getRenderer().submit(trans, mesh, mat);
+    }
+
+    void RenderSystem::render(const Transform& trans, const Model& model)
+    {
+        const MaterialInstance defaultInstance{};
+        render(trans, model, defaultInstance);
+    }
+
+    void RenderSystem::render(const Transform& trans, const Model& model, const MaterialInstance& instance)
+    {
+        for (const auto& submesh : model.getSubMeshes())
+        {
+            AIKO_ASSERT(submesh.meshId != InvalidAssetId, "Runtime model submesh has invalid mesh id");
+            AIKO_ASSERT(submesh.material != nullptr, "Runtime model submesh has null material");
+
+            Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(submesh.meshId);
+            Material& runtimeMaterial = resolveCachedMaterial(*submesh.material, instance);
+
+            m_renderModule->getRenderer().submit(trans, mesh, runtimeMaterial);
+        }
     }
 
     void RenderSystem::render(const Transform& trans, const MeshComponent& meshComponent)
@@ -78,30 +97,9 @@ namespace aiko
         const AssetId& modelId = modelComponent.getModelId();
         AIKO_ASSERT(modelId != InvalidAssetId, "ModelComponent has no model id assigned");
 
-        const ModelAsset& modelAsset = m_assetManagerModule->getManager()->getModelAsset(modelId);
+        Model& runtimeModel = m_renderModule->getRenderer().resources().getModel(modelId);
+        render(trans, runtimeModel, modelComponent.getMaterialInstance());
 
-        for (size_t i = 0; i < modelAsset.submeshes.size(); ++i)
-        {
-            const auto& submesh = modelAsset.submeshes[i];
-
-            const string key = modelId.get() + ":" + std::to_string(i);
-
-            Mesh* mesh = nullptr;
-            auto it = m_modelSubmeshCache.find(key);
-            if (it == m_modelSubmeshCache.end())
-            {
-                auto runtimeMesh = std::make_unique<Mesh>();
-                runtimeMesh->upload(submesh.mesh);
-                mesh = runtimeMesh.get();
-                m_modelSubmeshCache.emplace(key, std::move(runtimeMesh));
-            }
-            else
-            {
-                mesh = it->second.get();
-            }
-            Material& runtimeMaterial = resolveCachedMaterial(submesh.material, modelComponent.getMaterialInstance());
-            m_renderModule->getRenderer().submit(trans, *mesh, runtimeMaterial);
-        }
     }
 
     void RenderSystem::render(const Transform& trans, const SpriteComponent& spriteComponent)
@@ -111,6 +109,30 @@ namespace aiko
         Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
         Material& runtimeMaterial = resolveCachedMaterial( spriteComponent.getMaterial(), spriteComponent.getMaterialInstance());
         m_renderModule->getRenderer().submit(trans, mesh, runtimeMaterial);
+    }
+
+    void RenderSystem::dispatch(const ComputePass& pass, const AssetId& shaderId)
+    {
+        AIKO_ASSERT(shaderId != InvalidAssetId, "Attempting to dispatch compute with invalid shader id");
+        ComputeShader& shader = m_renderModule->getRenderer().resources().getComputeShader(shaderId);
+        ComputePass runtimePass = pass;
+        runtimePass.shader = &shader;
+        m_renderModule->getRenderer().enqueueCompute(runtimePass);
+    }
+
+    void RenderSystem::dispatch(const ComputePass& pass, const ComputeShaderComponent& component)
+    {
+        dispatch(pass, component.getShaderId());
+    }
+
+    void RenderSystem::requestReadback(const ComputeReadbackRequest& req)
+    {
+        m_renderModule->getRenderer().requestReadback(req);
+    }
+
+    void RenderSystem::pollReadback(ComputeReadbackResult& req)
+    {
+        m_renderModule->getRenderer().pollReadback(req);
     }
 
     const FrameBuffer& RenderSystem::getTargetTexture() const
