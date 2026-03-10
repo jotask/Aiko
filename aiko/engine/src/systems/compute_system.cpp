@@ -3,6 +3,7 @@
 #include "systems/system_connector.h"
 #include "systems/scene_system.h"
 #include "systems/render_system.h"
+#include "time/time.h"
 
 namespace aiko
 {
@@ -15,18 +16,16 @@ namespace aiko
 
     const Texture* ComputeSystem::getOutputTexture(const ComputeShaderComponent* component) const
     {
-        auto it = m_runtime.find(component);
-        if (it == m_runtime.end() || it->second == nullptr)
+        const RuntimeState* state = tryGetState(component);
+        if (state == nullptr)
         {
             return nullptr;
         }
-
-        const RuntimeState& state = *it->second;
-        if (state.output.isValid() == false)
+        if (state->output.isValid() == false)
         {
             return nullptr;
         }
-        return &state.output;
+        return &state->output;
     }
 
     void ComputeSystem::update()
@@ -38,7 +37,6 @@ namespace aiko
             {
                 continue;
             }
-            ;
             if (auto cmp = object->getComponent<ComputeShaderComponent>())
             {
                 updateComponent(object, *cmp);
@@ -46,9 +44,26 @@ namespace aiko
         }
     }
 
+    void ComputeSystem::render()
+    {
+        const auto& objects = m_sceneSystem->getScene().getObjects();
+        for (const auto& object : objects)
+        {
+            if (object == nullptr)
+            {
+                continue;
+            }
+            if (auto cmp = object->getComponent<ComputeShaderComponent>())
+            {
+                renderComponent(object, *cmp);
+            }
+        }
+    }
+
     void ComputeSystem::dispose()
     {
         destroyStates();
+        BaseSystem::dispose();
     }
 
     void ComputeSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
@@ -122,17 +137,57 @@ namespace aiko
                 state.output.create(desc);
                 state.outputWidth = width;
                 state.outputHeight = height;
+                state.dispatched = false;
             }
         }
 
-        if (state.dispatched == false)
+        if (cmp.usesOutputTexture() == true)
+        {
+            if (auto spriteCmp = obj->getComponent<SpriteComponent>())
+            {
+                if (state.output.isValid() == true)
+                {
+                    spriteCmp->getMaterialInstance().runtimeDiffuseTexture = &state.output;
+                }
+            }
+        }
+
+    }
+
+    void ComputeSystem::renderComponent(GameObject* obj, ComputeShaderComponent& cmp)
+    {
+
+        RuntimeState* state = tryGetState(&cmp);
+
+        if (state == nullptr)
+        {
+            return;
+        }
+
+        const uint32_t count = cmp.getElementCount();
+
+        const AssetId& shaderId = cmp.getShaderId();
+        if (shaderId == InvalidAssetId)
+        {
+            return;
+        }
+
+        if (shouldDispatch(cmp, *state) == true)
         {
             ComputePass pass = {};
-            pass.vec4Uniforms.push_back({ "u_params", vec4(float(count), 0.0f, 0.0f, 0.0f) });
+            if (cmp.usesOutputTexture())
+            {
+                const float t = Time::it().secondSinceStart();
+                pass.vec4Uniforms.push_back({ "u_params", vec4(t, 0.0f, 0.0f, 0.0f) });
+            }
+            else
+            {
+                pass.vec4Uniforms.push_back({ "u_params", vec4(float(count), 0.0f, 0.0f, 0.0f) });
+            }
 
             if (cmp.usesOutputTexture() == false)
             {
-                pass.buffers.push_back({ 0, &state.buffer, ComputeAccess::ReadWrite });
+                pass.buffers.push_back({ 0, &state->buffer, ComputeAccess::ReadWrite });
             }
 
             if (cmp.usesOutputTexture() == true)
@@ -153,59 +208,67 @@ namespace aiko
 
             if (cmp.usesOutputTexture() == true)
             {
-                pass.images.push_back({0, &state.output, ComputeAccess::Write });
+                pass.images.push_back({0, &state->output, ComputeAccess::Write });
             }
 
             m_renderSystem->dispatch(pass, shaderId);
-            state.dispatched = true;
+            state->dispatched = true;
 
         }
 
-        if (cmp.usesOutputTexture() == false && cmp.consumeReadbackRequest() == true && state.readbackRequested == false)
+        if (cmp.usesOutputTexture() == false && cmp.consumeReadbackRequest() == true && state->readbackRequested == false)
         {
-            state.readbackId = m_nextReadbackId++;
+            state->readbackId = m_nextReadbackId++;
 
-            AIKO_ASSERT(state.buffer.isValid(), "Attempting readback from invalid compute buffer");
+            AIKO_ASSERT(state->buffer.isValid(), "Attempting readback from invalid compute buffer");
 
             ComputeReadbackRequest req = {};
-            req.id = state.readbackId;
-            req.buffer = &state.buffer;
+            req.id = state->readbackId;
+            req.buffer = &state->buffer;
             req.byteSize =  count * sizeof(vec4);
             m_renderSystem->requestReadback(req);
-            state.readbackRequested = true;
+            state->readbackRequested = true;
 
         }
 
-        if (state.readbackRequested == true)
+        if (state->readbackRequested == true)
         {
             ComputeReadbackResult result = {};
             m_renderSystem->pollReadback(result);
-            if (result.ready == true && result.id == state.readbackId)
+            if (result.ready == true && result.id == state->readbackId)
             {
                 cmp.setLastReadback(std::move(result));
-                state.readbackRequested = false;
-            }
-        }
-
-        if (cmp.usesOutputTexture() == true)
-        {
-            if (auto spriteCmp = obj->getComponent<SpriteComponent>())
-            {
-                if (state.output.isValid() == true)
-                {
-                    spriteCmp->getMaterialInstance().runtimeDiffuseTexture = &state.output;
-                }
+                state->readbackRequested = false;
             }
         }
 
     }
 
-    ComputeSystem::RuntimeState& ComputeSystem::getOrCreateState(const ComputeShaderComponent* cmp)
+    ComputeSystem::RuntimeState* ComputeSystem::tryGetState(const ComputeShaderComponent* cmp)
     {
         auto it = m_runtime.find(cmp);
         if (it != m_runtime.end())
         {
-            return *it->second;
+            return it->second.get();
+        }
+        return nullptr;
+    }
+
+    const ComputeSystem::RuntimeState* ComputeSystem::tryGetState(const ComputeShaderComponent* cmp) const
+    {
+        auto it = m_runtime.find(cmp);
+        if (it != m_runtime.end())
+        {
+            return it->second.get();
+        }
+        return nullptr;
+    }
+
+    ComputeSystem::RuntimeState& ComputeSystem::getOrCreateState(const ComputeShaderComponent* cmp)
+    {
+        if (RuntimeState* state = tryGetState(cmp))
+        {
+            return *state;
         }
         auto state = std::make_unique<RuntimeState>();
         RuntimeState& ref = *state;
@@ -221,5 +284,44 @@ namespace aiko
             state.second->output.unload();
         }
         m_runtime.clear();
+    }
+
+    bool ComputeSystem::shouldDispatch(ComputeShaderComponent& cmp, RuntimeState& state)
+    {
+        switch (cmp.getExecutionMode())
+        {
+        case ComputeShaderComponent::ComputeExecutionMode::Once:
+            {
+                return state.dispatched == false;
+            }
+
+        case ComputeShaderComponent::ComputeExecutionMode::Continuous:
+            {
+                const float interval = cmp.getUpdateInterval();
+
+                if (interval <= 0.0f)
+                {
+                    return true;
+                }
+
+                const auto dt = Time::it().getDeltaTime();
+
+                state.accumulator += dt;
+                if (state.accumulator >= interval)
+                {
+                    state.accumulator = 0.0f;
+                    return true;
+                }
+
+                return false;
+            }
+
+        case ComputeShaderComponent::ComputeExecutionMode::OnDemand:
+            {
+                return cmp.consumeDispatchRequest();
+            }
+        }
+
+        return false;
     }
 }

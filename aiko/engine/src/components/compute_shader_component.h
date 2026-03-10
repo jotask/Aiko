@@ -8,6 +8,14 @@ namespace aiko
     class ComputeShaderComponent : public Component , public IUpdate
     {
     public:
+
+        enum class ComputeExecutionMode
+        {
+            Once,
+            Continuous,
+            OnDemand,
+        };
+
         ComputeShaderComponent();
         virtual ~ComputeShaderComponent() = default;
 
@@ -40,6 +48,15 @@ namespace aiko
         void setUseOutputTexture(bool value) { m_useOutputTexture = value; }
         bool usesOutputTexture() const { return m_useOutputTexture; }
 
+        void setExecutionMode(ComputeExecutionMode mode) { m_executionMode = mode; }
+        ComputeExecutionMode getExecutionMode() const { return m_executionMode; }
+
+        void setUpdateInterval(float seconds) { m_intervalStep = seconds;}
+        float getUpdateInterval() const { return m_intervalStep; }
+
+        void requestDispatch();
+        bool consumeDispatchRequest();
+
     private:
 
         AssetId m_shaderId = InvalidAssetId;
@@ -48,6 +65,9 @@ namespace aiko
         bool m_requestReadback = true;
 
         ComputeReadbackResult m_lastReadback;
+        ComputeExecutionMode m_executionMode = ComputeExecutionMode::Once;
+        float m_intervalStep = 0.0f;
+        bool m_dispatchRequested = false;
 
         // Texture readback
         uint32_t m_outputWidth = 0;

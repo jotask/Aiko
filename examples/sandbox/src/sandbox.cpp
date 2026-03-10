@@ -146,7 +146,7 @@ namespace sb
             auto computeCmp = computer_test->addComponent<aiko::ComputeShaderComponent>();
             computeCmp->load("compute_test");
             computeCmp->setElementCount(64);
-            computeCmp->requestReadback();
+            computeCmp->setExecutionMode(aiko::ComputeShaderComponent::ComputeExecutionMode::OnDemand);
         }
 
         if constexpr(true)
@@ -160,6 +160,8 @@ namespace sb
             computeCmp->load("gradient");
             computeCmp->setUseOutputTexture(true);
             computeCmp->setOutputSize(512, 512);
+            computeCmp->setExecutionMode(aiko::ComputeShaderComponent::ComputeExecutionMode::Continuous);
+            computeCmp->setUpdateInterval(0.0f);
 
             auto sprite = computeGradient->addComponent<aiko::SpriteComponent>();
             sprite->create(512, 512);

@@ -52,4 +52,16 @@ namespace aiko
         m_outputWidth = width;
         m_outputHeight = height;
     }
+
+    void ComputeShaderComponent::requestDispatch()
+    {
+        m_dispatchRequested = true;
+    }
+
+    bool ComputeShaderComponent::consumeDispatchRequest()
+    {
+        const bool value = m_dispatchRequested;
+        m_dispatchRequested = false;
+        return value;
+    }
 }

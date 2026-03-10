@@ -23,6 +23,7 @@ namespace aiko
     protected:
 
         virtual void update() override;
+        virtual void render() override;
         virtual void dispose() override;
 
         virtual void connect(ModuleConnector*, SystemConnector*) override;
@@ -41,11 +42,22 @@ namespace aiko
             Texture output;
             uint32_t outputWidth = 0;
             uint32_t outputHeight = 0;
+
+            // Execution mode
+            float accumulator = 0.0f;
+            bool dirty = false;
         };
 
         void updateComponent(GameObject*, ComputeShaderComponent&);
+        void renderComponent(GameObject*, ComputeShaderComponent&);
+
+        RuntimeState* tryGetState(const ComputeShaderComponent* cmp);
+        const RuntimeState* tryGetState(const ComputeShaderComponent* cmp) const;
+
         RuntimeState& getOrCreateState(const ComputeShaderComponent*);
         void destroyStates();
+
+        bool shouldDispatch(ComputeShaderComponent& cmp, RuntimeState& state);
 
         std::unordered_map<const ComputeShaderComponent*, AikoUPtr<RuntimeState>> m_runtime;
         ReadbackId m_nextReadbackId = 1;
