@@ -49,7 +49,14 @@ namespace aiko
             effective.shaderId = instance.shaderId;
         }
 
-        return resolve(effective, assets, renderer);
+        AikoUPtr<Material> material = resolve(effective, assets, renderer);
+
+        if (instance.runtimeDiffuseTexture != nullptr)
+        {
+            material->m_diffuseTexture = const_cast<Texture*>(instance.runtimeDiffuseTexture);
+        }
+
+        return material;
     }
 
 }

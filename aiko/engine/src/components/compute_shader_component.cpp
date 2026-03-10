@@ -46,4 +46,10 @@ namespace aiko
         m_requestReadback = false;
         return value;
     }
+
+    void ComputeShaderComponent::setOutputSize(uint32_t width, uint32_t height)
+    {
+        m_outputWidth = width;
+        m_outputHeight = height;
+    }
 }

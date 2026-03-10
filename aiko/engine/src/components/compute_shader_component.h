@@ -32,6 +32,14 @@ namespace aiko
         bool hasReadback() const { return m_lastReadback.ready; }
         void clearReadback() { m_lastReadback = {}; }
 
+        void setOutputSize(uint32_t width, uint32_t height);
+
+        uint32_t getOutputWidth() const { return m_outputWidth; }
+        uint32_t getOutputHeight() const { return m_outputHeight; }
+
+        void setUseOutputTexture(bool value) { m_useOutputTexture = value; }
+        bool usesOutputTexture() const { return m_useOutputTexture; }
+
     private:
 
         AssetId m_shaderId = InvalidAssetId;
@@ -40,6 +48,11 @@ namespace aiko
         bool m_requestReadback = true;
 
         ComputeReadbackResult m_lastReadback;
+
+        // Texture readback
+        uint32_t m_outputWidth = 0;
+        uint32_t m_outputHeight = 0;
+        bool m_useOutputTexture = false;
 
 
     };

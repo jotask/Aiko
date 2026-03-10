@@ -6,10 +6,27 @@
 
 namespace aiko
 {
+
     ComputeSystem::ComputeSystem()
         : m_renderSystem(nullptr)
         , m_sceneSystem(nullptr)
     {
+    }
+
+    const Texture* ComputeSystem::getOutputTexture(const ComputeShaderComponent* component) const
+    {
+        auto it = m_runtime.find(component);
+        if (it == m_runtime.end() || it->second == nullptr)
+        {
+            return nullptr;
+        }
+
+        const RuntimeState& state = *it->second;
+        if (state.output.isValid() == false)
+        {
+            return nullptr;
+        }
+        return &state.output;
     }
 
     void ComputeSystem::update()
@@ -58,30 +75,97 @@ namespace aiko
 
         if (state.initialized == false)
         {
-            state.buffer.createVec4(count, nullptr, ComputeAccess::ReadWrite);
+            if (cmp.usesOutputTexture() == false)
+            {
+                state.buffer.createVec4(count, nullptr, ComputeAccess::ReadWrite);
+            }
+
             state.initialized = true;
             state.dispatched = false;
             state.readbackRequested = false;
             state.readbackId = 0;
         }
 
+        if (cmp.usesOutputTexture() == true)
+        {
+            const uint32_t width = cmp.getOutputWidth();
+            const uint32_t height = cmp.getOutputHeight();
+
+            static auto needsOutputResize = [](const RuntimeState& state, uint32_t width, uint32_t height) -> bool
+            {
+                if (state.output.isValid() == false)
+                {
+                    return true;
+                }
+
+                return state.outputWidth != width || state.outputHeight != height;
+            };
+            if (needsOutputResize(state, width, height) == true)
+            {
+                if (state.output.isValid() == true)
+                {
+                    state.output.unload();
+                }
+
+                const TextureDesc desc =
+                {
+                    .type = TextureType::Sampled,
+                    .format = TextureFormat::RGBA8,
+                    .width = static_cast<int>(width),
+                    .height = static_cast<int>(height),
+                    .mipmaps = 1,
+                    .computeWrite = true,
+                };
+
+                AIKO_ASSERT(width > 0 && height > 0, "Compute output texture size must be > 0");
+
+                state.output.create(desc);
+                state.outputWidth = width;
+                state.outputHeight = height;
+            }
+        }
+
         if (state.dispatched == false)
         {
             ComputePass pass = {};
-            pass.buffers.push_back({ 0, &state.buffer, ComputeAccess::ReadWrite});
             pass.vec4Uniforms.push_back({ "u_params", vec4(float(count), 0.0f, 0.0f, 0.0f) });
-            pass.dispatch.groupsX = (count + 63) / 64;
-            pass.dispatch.groupsY = 1;
-            pass.dispatch.groupsZ = 1;
+
+            if (cmp.usesOutputTexture() == false)
+            {
+                pass.buffers.push_back({ 0, &state.buffer, ComputeAccess::ReadWrite });
+            }
+
+            if (cmp.usesOutputTexture() == true)
+            {
+                const uint32_t width = cmp.getOutputWidth();
+                const uint32_t height = cmp.getOutputHeight();
+
+                pass.dispatch.groupsX = (width + 7) / 8;
+                pass.dispatch.groupsY = (height + 7) / 8;
+                pass.dispatch.groupsZ = 1;
+            }
+            else
+            {
+                pass.dispatch.groupsX = (count + 63) / 64;
+                pass.dispatch.groupsY = 1;
+                pass.dispatch.groupsZ = 1;
+            }
+
+            if (cmp.usesOutputTexture() == true)
+            {
+                pass.images.push_back({0, &state.output, ComputeAccess::Write });
+            }
 
             m_renderSystem->dispatch(pass, shaderId);
             state.dispatched = true;
 
         }
 
-        if (cmp.consumeReadbackRequest() == true && state.readbackRequested == false)
+        if (cmp.usesOutputTexture() == false && cmp.consumeReadbackRequest() == true && state.readbackRequested == false)
         {
             state.readbackId = m_nextReadbackId++;
+
+            AIKO_ASSERT(state.buffer.isValid(), "Attempting readback from invalid compute buffer");
 
             ComputeReadbackRequest req = {};
             req.id = state.readbackId;
@@ -100,6 +184,17 @@ namespace aiko
             {
                 cmp.setLastReadback(std::move(result));
                 state.readbackRequested = false;
+            }
+        }
+
+        if (cmp.usesOutputTexture() == true)
+        {
+            if (auto spriteCmp = obj->getComponent<SpriteComponent>())
+            {
+                if (state.output.isValid() == true)
+                {
+                    spriteCmp->getMaterialInstance().runtimeDiffuseTexture = &state.output;
+                }
             }
         }
 
@@ -123,6 +218,7 @@ namespace aiko
         for (auto& state : m_runtime)
         {
             state.second->buffer.unload();
+            state.second->output.unload();
         }
         m_runtime.clear();
     }

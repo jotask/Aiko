@@ -140,11 +140,33 @@ namespace sb
 
 #ifdef TEST_CS
 
-        auto computer_test = app->Instantiate(root, "ComputeTest");
-        auto computeCmp = computer_test->addComponent<aiko::ComputeShaderComponent>();
-        computeCmp->load("compute_test");
-        computeCmp->setElementCount(64);
-        computeCmp->requestReadback();
+        if constexpr(true)
+        {
+            auto computer_test = app->Instantiate(root, "ComputeTest");
+            auto computeCmp = computer_test->addComponent<aiko::ComputeShaderComponent>();
+            computeCmp->load("compute_test");
+            computeCmp->setElementCount(64);
+            computeCmp->requestReadback();
+        }
+
+        if constexpr(true)
+        {
+            auto computeGradient = app->Instantiate(root, "GradientCompute");
+
+            computeGradient->transform().position = { 0.0f, 0.0f, 1.0f };
+            computeGradient->transform().scale = { 2.0f, 2.0f, 1.0f };
+
+            auto computeCmp = computeGradient->addComponent<aiko::ComputeShaderComponent>();
+            computeCmp->load("gradient");
+            computeCmp->setUseOutputTexture(true);
+            computeCmp->setOutputSize(512, 512);
+
+            auto sprite = computeGradient->addComponent<aiko::SpriteComponent>();
+            sprite->create(512, 512);
+            sprite->getMaterial().lit = false;
+            sprite->getMaterial().useVertexColor = false;
+
+        }
 
 #endif
 

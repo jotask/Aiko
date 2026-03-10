@@ -149,11 +149,17 @@ namespace aiko
     {
         const AssetId shaderId = instance.shaderId != InvalidAssetId ? instance.shaderId : material.shaderId;
 
+        const uint64_t runtimeTextureKey =
+            instance.runtimeDiffuseTexture != nullptr
+                ? reinterpret_cast<uint64_t>(instance.runtimeDiffuseTexture)
+                : 0ull;
+
         return shaderId.get() + "|" +
                material.diffuseTextureId.get() + "|" +
                std::to_string(material.useVertexColor) + "|" +
                std::to_string(material.lit) + "|" +
-               std::to_string(material.baseColor.rgba());
+               std::to_string(material.baseColor.rgba()) + "|" +
+               std::to_string(runtimeTextureKey);
     }
 
     Material& RenderSystem::resolveCachedMaterial(const MaterialAsset& materialAsset, const MaterialInstance& materialInstance)

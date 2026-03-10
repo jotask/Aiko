@@ -18,6 +18,8 @@ namespace aiko
         ComputeSystem();
         virtual ~ComputeSystem() = default;
 
+        const Texture* getOutputTexture(const ComputeShaderComponent* component) const;
+
     protected:
 
         virtual void update() override;
@@ -34,6 +36,11 @@ namespace aiko
             bool readbackRequested = false;
             ReadbackId readbackId = 0;
             ComputeBuffer buffer;
+
+            // Texture
+            Texture output;
+            uint32_t outputWidth = 0;
+            uint32_t outputHeight = 0;
         };
 
         void updateComponent(GameObject*, ComputeShaderComponent&);
