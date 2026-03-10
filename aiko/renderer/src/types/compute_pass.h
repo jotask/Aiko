@@ -47,7 +47,7 @@ namespace aiko
     {
         ReadbackId id = 0;                 // filled by caller or device
         bool ready = false;
-        std::vector<uint8_t> data;
+        std::vector<uint8_t> data; // raw bytes
     };
 
     struct ComputeBufferBinding

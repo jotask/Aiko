@@ -18,6 +18,7 @@
 // Systems
 #include "modules/assets_manager_module.h"
 #include "systems/asset_system.h"
+#include "systems/compute_system.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
 #include "systems/scene_system.h"
@@ -100,6 +101,7 @@ namespace aiko
         m_systems.emplace_back(std::make_unique<SceneSystem>());
         m_systems.emplace_back(std::make_unique<RenderSystem>());
         m_systems.emplace_back(std::make_unique<AssetSystem>());
+        m_systems.emplace_back(std::make_unique<ComputeSystem>());
         m_systems.emplace_back(std::make_unique<InputSystem>());
         m_systems.emplace_back(std::make_unique<ParticleSystem>());
 
