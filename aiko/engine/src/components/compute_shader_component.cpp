@@ -13,8 +13,7 @@ namespace aiko
 
     void ComputeShaderComponent::update()
     {
-        // FIXME
-        // DEBUG remove this
+        /*
         if (hasReadback() == true)
         {
             const auto& readback = getLastReadback();
@@ -25,6 +24,7 @@ namespace aiko
             logger::Log::info("compute[3] = (%f, %f, %f, %f)", values[3].x, values[3].y, values[3].z, values[3].w);
             clearReadback();
         }
+        */
     }
 
     void ComputeShaderComponent::load(string path)

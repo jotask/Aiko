@@ -23,9 +23,13 @@ void main()
     float fy = float(gid.y) / float(max(size.y - 1, 1));
     float t  = u_params.x;
 
-    float r = 0.5 + 0.5 * sin((fx * 8.0) + t);
-    float g = 0.5 + 0.5 * sin((fy * 8.0) + t * 1.3);
-    float b = 0.5 + 0.5 * sin(((fx + fy) * 8.0) + t * 0.7);
+    float r = 0.65 + 0.20 * sin(fx * 10.0 + t) + 0.15 * sin(fy * 6.0 + t * 0.7);
+    float g = 0.65 + 0.20 * sin(fy * 12.0 + t * 1.3) + 0.15 * sin((fx + fy) * 5.0 + t * 0.4);
+    float b = 0.65 + 0.20 * sin((fx + fy) * 8.0 + t * 0.9) + 0.15 * sin(fx * 4.0 - t * 0.6);
+
+    r = clamp(r, 0.0, 1.0);
+    g = clamp(g, 0.0, 1.0);
+    b = clamp(b, 0.0, 1.0);
 
     imageStore(u_output, ivec2(gid.xy), vec4(r, g, b, 1.0));
 }
