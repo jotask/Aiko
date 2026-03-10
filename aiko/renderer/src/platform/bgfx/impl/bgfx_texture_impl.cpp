@@ -152,10 +152,10 @@ namespace aiko::renderer::bgfx
             for (uint32_t i = 0; i < pixelCount; ++i)
             {
                 Color c = pixels[i];
-                dst[i * 4 + 0] = c.r * 255;
-                dst[i * 4 + 1] = c.g * 255;
-                dst[i * 4 + 2] = c.b * 255;
-                dst[i * 4 + 3] = c.a * 255;
+                dst[i * 4 + 0] = static_cast<uint8_t>(std::clamp(c.r, 0.0f, 1.0f) * 255.0f);
+                dst[i * 4 + 1] = static_cast<uint8_t>(std::clamp(c.g, 0.0f, 1.0f) * 255.0f);
+                dst[i * 4 + 2] = static_cast<uint8_t>(std::clamp(c.b, 0.0f, 1.0f) * 255.0f);
+                dst[i * 4 + 3] = static_cast<uint8_t>(std::clamp(c.a, 0.0f, 1.0f) * 255.0f);
             }
         }
 

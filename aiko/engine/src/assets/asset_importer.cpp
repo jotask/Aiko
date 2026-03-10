@@ -48,7 +48,7 @@ namespace aiko
         for (size_t i = 0; i < pixelCount; ++i)
         {
             const size_t offset = i * 4;
-            asset.pixels[i] = Color(
+            asset.pixels[i] = Color::fromBytes(
                 data[offset + 0], // r
                 data[offset + 1], // g
                 data[offset + 2], // b
