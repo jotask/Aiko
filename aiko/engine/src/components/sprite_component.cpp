@@ -24,7 +24,7 @@ namespace aiko
     {
         AIKO_ASSERT(file.empty() == false, "Attempting to load empty file");
         IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
-        m_meshId = assets->registerMesh(aiko::mesh::factory::generateQuad());
+        m_meshId = assets->registerMesh(mesh::factory::generateQuad());
         m_material.diffuseTextureId = assets->registerTexture(file);
         is_dirty = false;
         pixels.clear();
