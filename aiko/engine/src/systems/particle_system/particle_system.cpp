@@ -84,8 +84,10 @@ namespace aiko
             state.readbackRequested = false;
             state.readbackId = 0;
         }
+
         if (state.renderInitialized == false)
         {
+            // Generate Quad and add billboard
             auto meshData = mesh::factory::generateCube();
             state.particleMesh.upload(meshData);
 
@@ -102,7 +104,10 @@ namespace aiko
         {
             state.initDispatched = false;
             state.readbackRequested = false;
-            state.readbackId = 0;
+            state.readbackId = InvalidReadbackId;
+            state.spawnAccumulator = 0.0f;
+            state.spawnThisFrame = 0;
+            state.spawnCursor = 0;
         }
     }
 
@@ -117,6 +122,20 @@ namespace aiko
         }
 
         const uint32_t count = emitter.getMaxParticles();
+        const vec3 emitterPos = obj->transform().position;
+
+        if (count == 0)
+        {
+            return;
+        }
+
+        const float dt = Time::it().getDeltaTime();
+        state->spawnAccumulator += emitter.getSpawnRate() * dt;
+        state->spawnThisFrame = static_cast<uint32_t>(state->spawnAccumulator);
+        state->spawnAccumulator -= static_cast<float>(state->spawnThisFrame);
+        const uint32_t spawnStart = state->spawnCursor;
+        state->spawnCursor = (state->spawnCursor + state->spawnThisFrame) % count;
+        state->spawnSeed += state->spawnThisFrame;
 
         if (state->initDispatched == false)
         {
@@ -125,10 +144,8 @@ namespace aiko
             initPass.buffers.push_back({ 1, &state->velocityBuffer, ComputeAccess::ReadWrite });
             initPass.buffers.push_back({ 2, &state->lifeBuffer, ComputeAccess::ReadWrite });
 
-            initPass.vec4Uniforms.push_back({
-                "u_params",
-                vec4(float(count), emitter.getLifetime(), emitter.getStartSpeed(), 0.0f)
-            });
+            initPass.vec4Uniforms.push_back({ "u_params", vec4(float(count), emitter.getLifetime(), emitter.getStartSpeed(), 0.0f)});
+            initPass.vec4Uniforms.push_back({ "u_emitterPos", vec4(emitterPos.x, emitterPos.y, emitterPos.z, 0.0f)});
 
             initPass.dispatch.groupsX = (count + 63) / 64;
             initPass.dispatch.groupsY = 1;
@@ -145,7 +162,57 @@ namespace aiko
 
         updatePass.vec4Uniforms.push_back({
             "u_params",
-            vec4(Time::it().getDeltaTime(), emitter.getLifetime(), 0.0f, 0.0f)
+            vec4(dt, emitter.getLifetime(), emitter.getStartSpeed(), 0.0f)
+        });
+
+        updatePass.vec4Uniforms.push_back({
+            "u_emitterPos",
+            vec4(emitterPos.x, emitterPos.y, emitterPos.z, 0.0f)
+        });
+
+        updatePass.vec4Uniforms.push_back({
+            "u_spawnWindow",
+            vec4(float(spawnStart), float(state->spawnThisFrame), float(count), 0.0f)
+        });
+
+        updatePass.vec4Uniforms.push_back({
+            "u_spawnShape",
+            vec4(float(static_cast<int>(emitter.getSpawnShape())), 0.0f, 0.0f, 0.0f)
+        });
+
+        updatePass.vec4Uniforms.push_back({
+            "u_spawnData",
+            vec4(
+                emitter.getSpawnRadius(),
+                emitter.getSpawnBoxExtents().x,
+                emitter.getSpawnBoxExtents().y,
+                emitter.getSpawnBoxExtents().z
+            )
+        });
+
+        updatePass.vec4Uniforms.push_back({
+            "u_direction",
+            vec4(
+                emitter.getDirection().x,
+                emitter.getDirection().y,
+                emitter.getDirection().z,
+                emitter.getDirectionRandomness()
+            )
+        });
+
+        updatePass.vec4Uniforms.push_back({
+            "u_gravity",
+            vec4(
+                emitter.getGravity().x,
+                emitter.getGravity().y,
+                emitter.getGravity().z,
+                0.0f
+            )
+        });
+
+        updatePass.vec4Uniforms.push_back({
+            "u_spawnSeed",
+            vec4(float(state->spawnSeed), 0.0f, 0.0f, 0.0f)
         });
 
         updatePass.dispatch.groupsX = (count + 63) / 64;
@@ -157,7 +224,6 @@ namespace aiko
         // Temporary debug readback of positions
         if( m_debugReadbackEnabled == true)
         {
-
             if (state->readbackRequested == false)
             {
                 state->readbackId = m_nextReadbackId++;

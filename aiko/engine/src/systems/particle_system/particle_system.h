@@ -34,6 +34,12 @@ namespace aiko
             bool initialized = false;
             bool initDispatched = false;
 
+            uint32_t spawnSeed = 0;
+
+            float spawnAccumulator = 0.0f;
+            uint32_t spawnThisFrame = 0;
+            uint32_t spawnCursor = 0;
+
             ComputeBuffer positionBuffer;
             ComputeBuffer velocityBuffer;
             ComputeBuffer lifeBuffer;
