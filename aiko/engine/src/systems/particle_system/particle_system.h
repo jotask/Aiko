@@ -1,34 +1,73 @@
 #pragma once
 
-#include <vector>
+#include <unordered_map>
 
-#include "aiko_types.h"
+#include <aiko_types.h>
 #include "systems/base_system.h"
-#include "systems/particle_system/particle_emitter.h"
+#include "types/compute_pass.h"
 
 namespace aiko
 {
     class RenderModule;
+    class AssetsManagerModule;
+    class SceneSystem;
+    class RenderSystem;
+    class ParticleEmitterComponent;
+    class GameObject;
+
     class ParticleSystem : public BaseSystem
     {
     public:
-
         ParticleSystem() = default;
         virtual ~ParticleSystem() = default;
-
-        ParticleEmitter* createEmitter(size_t nParticle);
-
     protected:
-    
         virtual void connect(ModuleConnector*, SystemConnector*) override;
         virtual void init() override;
         virtual void update() override;
         virtual void render() override;
+        virtual void dispose() override;
     
     private:
-        RenderModule* m_renderModule;
 
-        std::vector<ParticleEmitter> m_emitters;
+        struct RuntimeState
+        {
+            bool initialized = false;
+            bool initDispatched = false;
+
+            ComputeBuffer positionBuffer;
+            ComputeBuffer velocityBuffer;
+            ComputeBuffer lifeBuffer;
+
+            ComputeReadbackResult lastReadback;
+            bool readbackRequested = false;
+            ReadbackId readbackId = InvalidReadbackId;
+
+            // GPU render
+            bool renderInitialized = false;
+            Mesh particleMesh;
+            Material particleMaterial;
+        };
+
+        void updateEmitter(GameObject*, ParticleEmitterComponent&);
+        void renderEmitter(GameObject*, ParticleEmitterComponent&);
+
+        RuntimeState* tryGetState(const ParticleEmitterComponent* cmp);
+        RuntimeState& getOrCreateState(const ParticleEmitterComponent* cmp);
+        void destroyStates();
+
+        RenderModule* m_renderModule;
+        AssetsManagerModule* m_assetManagerModule;
+        RenderSystem* m_renderSystem;
+        SceneSystem* m_sceneSystem;
+
+        AssetId m_initShaderId = InvalidAssetId;
+        AssetId m_updateShaderId = InvalidAssetId;
+
+        ReadbackId m_nextReadbackId = InvalidReadbackId + 1;
+
+        std::unordered_map<const ParticleEmitterComponent*, AikoUPtr<RuntimeState>> m_runtime;
+
+        const bool m_debugReadbackEnabled = false;
 
     };
 

@@ -162,9 +162,18 @@ namespace aiko
         return id;
     }
 
+    AssetId AssetManager::registerShader(std::string_view vsPath, std::string_view fsPath)
+    {
+        ShaderAsset asset{};
+        asset.vertexPath = string(vsPath);
+        asset.fragmentPath = string(fsPath);
+        return registerShaderAsset(asset);
+    }
+
     AssetId AssetManager::registerShader(std::string_view path)
     {
         const string p(path);
+
         for (const auto& [id, existingPath] : m_shaderPaths)
         {
             if (existingPath == p)
@@ -172,6 +181,14 @@ namespace aiko
                 return id;
             }
         }
+
+        const string explicitKey = p + ".vs|" + p + ".fs";
+        auto explicitIt = m_shaderExplicitKeys.find(explicitKey);
+        if (explicitIt != m_shaderExplicitKeys.end())
+        {
+            return explicitIt->second;
+        }
+
         AssetId id;
         m_shaderPaths[id] = p;
         return id;
@@ -231,6 +248,8 @@ namespace aiko
         m_shaderPaths.clear();
         m_computeShaderPaths.clear();
 
+        m_shaderExplicitKeys.clear();
+
     }
 
     void AssetManager::unloadTexture(const AssetId& id)
@@ -250,10 +269,44 @@ namespace aiko
 
     void AssetManager::unloadShader(const AssetId& id)
     {
-        m_shaderAssets.erase(id);
+        auto it = m_shaderAssets.find(id);
+        if (it != m_shaderAssets.end())
+        {
+            const ShaderAsset& asset = it->second;
+            if (asset.vertexPath.empty() == false && asset.fragmentPath.empty() == false)
+            {
+                const string key = asset.vertexPath + "|" + asset.fragmentPath;
+                m_shaderExplicitKeys.erase(key);
+            }
+            m_shaderAssets.erase(it);
+            return;
+        }
+
+        m_shaderPaths.erase(id);
     }
 
     void AssetManager::unloadComputeShader(const AssetId& id)
     {
+        m_computeShaderAssets.erase(id);
+        m_computeShaderPaths.erase(id);
+    }
+
+    AssetId AssetManager::registerShaderAsset(const ShaderAsset& asset)
+    {
+        AIKO_ASSERT(asset.vertexPath.empty() == false, "ShaderAsset vertexPath is empty");
+        AIKO_ASSERT(asset.fragmentPath.empty() == false, "ShaderAsset fragmentPath is empty");
+
+        const string key = asset.vertexPath + "|" + asset.fragmentPath;
+
+        auto it = m_shaderExplicitKeys.find(key);
+        if (it != m_shaderExplicitKeys.end())
+        {
+            return it->second;
+        }
+
+        AssetId id;
+        m_shaderAssets.emplace(id, asset);
+        m_shaderExplicitKeys.emplace(key, id);
+        return id;
     }
 }

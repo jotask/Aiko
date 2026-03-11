@@ -11,6 +11,7 @@
 #include "components/light_component.h"
 #include "components/sprite_component.h"
 #include "components/model_component.h"
+#include "components/particle_emitter_component.h"
 #include "models/camera.h"
 #include "types/color.h"
 
@@ -134,8 +135,13 @@ namespace sb
 #endif
 
 #ifdef TEST_PARTICLE_CS
-        // auto ps = app->Instantiate(root, "Particles");
-        // auto psCmp = ps->addComponent<aiko::ComputeShaderComponent>();
+        auto ps = app->Instantiate(root, "Particle Emitter");
+        auto emitter = ps->addComponent<aiko::ParticleEmitterComponent>();
+        emitter->setMaxParticles(256);
+        emitter->setLifetime(4.0f);
+        emitter->setStartSpeed(0.5f);
+        emitter->setPlaying(true);
+        emitter->requestReset();
 #endif
 
 #ifdef TEST_CS

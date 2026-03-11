@@ -28,6 +28,7 @@ namespace aiko
         AssetId registerMesh(std::string_view path);
         AssetId registerMesh(const MeshAsset& asset);
         AssetId registerModel(std::string_view path);
+        AssetId registerShader(std::string_view vsPath,std::string_view fsPath);
         AssetId registerShader(std::string_view path);
         AssetId registerComputeShader(std::string_view path);
 
@@ -46,6 +47,8 @@ namespace aiko
 
     private:
 
+        AssetId registerShaderAsset(const ShaderAsset& asset);
+
         std::unordered_map<AssetId, string> m_texturePaths;
         std::unordered_map<AssetId, string> m_meshPaths;
         std::unordered_map<AssetId, string> m_modelPaths;
@@ -57,6 +60,8 @@ namespace aiko
         std::unordered_map<AssetId, ModelAsset> m_modelAssets;
         std::unordered_map<AssetId, ShaderAsset> m_shaderAssets;
         std::unordered_map<AssetId, ComputeShaderAsset> m_computeShaderAssets;
+
+        std::unordered_map<std::string, AssetId> m_shaderExplicitKeys;
 
     };
 
