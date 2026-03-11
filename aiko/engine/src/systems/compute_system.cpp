@@ -175,7 +175,7 @@ namespace aiko
         if (shouldDispatch(cmp, *state) == true)
         {
             ComputePass pass = {};
-            if (cmp.usesOutputTexture())
+            if (cmp.usesOutputTexture() == true)
             {
                 const float t = Time::it().secondSinceStart();
                 pass.vec4Uniforms.push_back({ "u_params", vec4(t, 0.0f, 0.0f, 0.0f) });
@@ -234,11 +234,13 @@ namespace aiko
         if (state->readbackRequested == true)
         {
             ComputeReadbackResult result = {};
-            m_renderSystem->pollReadback(result);
-            if (result.ready == true && result.id == state->readbackId)
+            if (m_renderSystem->pollReadback(result) == true)
             {
-                cmp.setLastReadback(std::move(result));
-                state->readbackRequested = false;
+                if (result.ready == true && result.id == state->readbackId)
+                {
+                    cmp.setLastReadback(std::move(result));
+                    state->readbackRequested = false;
+                }
             }
         }
 

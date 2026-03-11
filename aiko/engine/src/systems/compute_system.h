@@ -35,7 +35,7 @@ namespace aiko
             bool initialized = false;
             bool dispatched = false;
             bool readbackRequested = false;
-            ReadbackId readbackId = 0;
+            ReadbackId readbackId = InvalidReadbackId;
             ComputeBuffer buffer;
 
             // Texture
@@ -60,7 +60,7 @@ namespace aiko
         bool shouldDispatch(ComputeShaderComponent& cmp, RuntimeState& state);
 
         std::unordered_map<const ComputeShaderComponent*, AikoUPtr<RuntimeState>> m_runtime;
-        ReadbackId m_nextReadbackId = 1;
+        ReadbackId m_nextReadbackId = InvalidReadbackId + 1;
 
         RenderSystem* m_renderSystem;
         SceneSystem* m_sceneSystem;

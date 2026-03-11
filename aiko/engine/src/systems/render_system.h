@@ -50,7 +50,7 @@ namespace aiko
         void dispatch(const ComputePass& pass, const ComputeShaderComponent& component);
 
         void requestReadback(const ComputeReadbackRequest&);
-        void pollReadback(ComputeReadbackResult&);
+        bool pollReadback(ComputeReadbackResult&);
 
         const FrameBuffer& getTargetTexture() const;
 

@@ -35,6 +35,7 @@ namespace aiko
     };
 
     using ReadbackId = uint64_t;
+    static constexpr ReadbackId InvalidReadbackId = 0;
 
     struct ComputeReadbackRequest
     {

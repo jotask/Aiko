@@ -130,9 +130,9 @@ namespace aiko
         m_renderModule->getRenderer().requestReadback(req);
     }
 
-    void RenderSystem::pollReadback(ComputeReadbackResult& req)
+    bool RenderSystem::pollReadback(ComputeReadbackResult& req)
     {
-        m_renderModule->getRenderer().pollReadback(req);
+        return m_renderModule->getRenderer().pollReadback(req);
     }
 
     const FrameBuffer& RenderSystem::getTargetTexture() const
