@@ -536,6 +536,67 @@ namespace aiko::renderer::bgfx
 
     }
 
+    void BgfxRenderDevice::drawTransient(ViewId viewId, const TransientDrawDesc& desc)
+    {
+        AIKO_ASSERT(desc.material != nullptr, "Invalid material");
+        AIKO_ASSERT(desc.material->m_shader != nullptr, "LineDrawDesc material requires a valid shader");
+        AIKO_ASSERT(desc.material->m_shader->isValid(), "Invalid line shader");
+
+        const uint32_t vertexCount = static_cast<uint32_t>(desc.vertices.size());
+        if (vertexCount == 0)
+        {
+            return;
+        }
+
+        if (::bgfx::getAvailTransientVertexBuffer(vertexCount, s_global_layout) < vertexCount)
+        {
+            return;
+        }
+
+        ::bgfx::TransientVertexBuffer tvb;
+        ::bgfx::allocTransientVertexBuffer(&tvb, vertexCount, s_global_layout);
+
+        auto* verts = reinterpret_cast<VertexInformation*>(tvb.data);
+
+        for (uint32_t i = 0; i < vertexCount; ++i)
+        {
+            const TransientVertex& src = desc.vertices[i];
+            verts[i].x = src.position.x;
+            verts[i].y = src.position.y;
+            verts[i].z = src.position.z;
+            verts[i].u = src.uv.x;
+            verts[i].v = src.uv.y;
+            verts[i].n_x = src.normal.x;
+            verts[i].n_y = src.normal.y;
+            verts[i].n_z = src.normal.z;
+            verts[i].abgr = src.color.rgba();
+        }
+
+        bindFrameUniforms();
+        bindMaterialUniforms(*desc.material);
+
+        ::bgfx::setTransform(desc.mtx.data());
+        ::bgfx::setVertexBuffer(0, &tvb);
+
+        uint64_t state = s_default_state;
+
+        switch (desc.topology)
+        {
+            case TransientTopology::Points:     state |= BGFX_STATE_PT_POINTS; break;
+            case TransientTopology::Lines:      state |= BGFX_STATE_PT_LINES;  break;
+            case TransientTopology::Triangles:  break;
+            default: AIKO_ASSERT(false, "Unsupported transient topology"); break;
+        }
+
+        ::bgfx::setState(state);
+
+        auto* shaderImpl = static_cast<BgfxShaderImpl*>(desc.material->m_shader->getImpl());
+        AIKO_ASSERT(shaderImpl != nullptr, "Invalid line shader impl");
+
+        ::bgfx::submit(viewId, shaderImpl->getProgramHandler());
+
+    }
+
     void BgfxRenderDevice::dispatchPendingReadbackCopy()
     {
 

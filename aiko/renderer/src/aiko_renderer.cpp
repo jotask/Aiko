@@ -58,6 +58,7 @@ namespace aiko
     void AikoRenderer::beginFrame()
     {
         m_queue.clear();
+        m_transientQueue.clear();
         m_instancedQueue.clear();
         m_computeQueue.clear();
         m_gpuInstanceDraws.clear();
@@ -120,6 +121,62 @@ namespace aiko
         memcpy(item.data.data(), data, byteCount);
 
         m_instancedQueue.push_back(std::move(item));
+    }
+
+    void AikoRenderer::submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology)
+    {
+        TransientDrawDesc data = {};
+        data.mtx = transform.getMatrix();
+        data.material = &material;
+        data.topology = topology;
+
+        auto makeVertex = [&](uint32_t index) -> TransientVertex
+        {
+            TransientVertex v{};
+
+            v.position = meshAsset.m_vertices[index];
+
+            if (index < meshAsset.m_textCoord.size())
+            {
+                v.uv = meshAsset.m_textCoord[index];
+            }
+
+            if (index < meshAsset.m_normals.size())
+            {
+                v.normal = meshAsset.m_normals[index];
+            }
+
+            if (index < meshAsset.m_colors.size())
+            {
+                v.color = meshAsset.m_colors[index];
+            }
+            else
+            {
+                v.color = WHITE;
+            }
+
+            return v;
+        };
+
+        if (meshAsset.m_indices.empty() == false)
+        {
+            data.vertices.reserve(meshAsset.m_indices.size());
+            for (uint32_t index : meshAsset.m_indices)
+            {
+                data.vertices.push_back(makeVertex(index));
+            }
+        }
+        else
+        {
+            data.vertices.reserve(meshAsset.m_vertices.size());
+            for (uint32_t i = 0; i < static_cast<uint32_t>(meshAsset.m_vertices.size()); ++i)
+            {
+                data.vertices.push_back(makeVertex(i));
+            }
+        }
+
+        m_transientQueue.push_back(std::move(data));
+
     }
 
     void AikoRenderer::enqueueCompute(const ComputePass& pass)
@@ -274,6 +331,32 @@ namespace aiko
                         m_renderer->bindMaterial(*batch.material);
                     }
                     m_renderer->drawMeshInstanced(SCENE_VIEW, *batch.mesh, *batch.material, batch.data.data(), batch.count, batch.stride);
+                }
+            }
+
+            {
+
+                std::ranges::sort(m_transientQueue, [](const TransientDrawDesc& a, const TransientDrawDesc& b)
+                {
+                    const auto aId = a.material != nullptr ? a.material->id() : 0;
+                    const auto bId = b.material != nullptr ? b.material->id() : 0;
+                    return aId < bId;
+                });
+
+                u64 lastMaterialId = ~0ull;
+                for (const TransientDrawDesc& data : m_transientQueue)
+                {
+                    if (data.material == nullptr || data.vertices.empty())
+                    {
+                        continue;
+                    }
+                    u64 materialId = data.material->id();
+                    if (materialId != lastMaterialId)
+                    {
+                        lastMaterialId = materialId;
+                        m_renderer->bindMaterial(*data.material);
+                    }
+                    m_renderer->drawTransient(SCENE_VIEW, data);
                 }
             }
 

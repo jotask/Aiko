@@ -46,7 +46,6 @@ namespace aiko
     void RenderSystem::dispose()
     {
         BaseSystem::dispose();
-        m_primitiveMeshCache.dispose();
         clearCaches();
     }
 

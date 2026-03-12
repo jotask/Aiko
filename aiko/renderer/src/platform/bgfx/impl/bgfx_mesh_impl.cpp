@@ -1,9 +1,6 @@
 #include "bgfx_mesh_impl.h"
 
-#include <core/file.h>
-
 #include "models/mesh.h"
-#include "platform/bgfx/bgfx_platform_helper.h"
 #include "platform/bgfx/bgfx_types.h"
 
 namespace aiko::renderer::bgfx

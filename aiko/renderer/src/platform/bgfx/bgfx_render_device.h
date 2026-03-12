@@ -50,6 +50,8 @@ namespace aiko::renderer::bgfx
 
         virtual void drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc) override;
 
+        virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) override;
+
     private:
 
         // --- Compute readback (BGFX internal) ---

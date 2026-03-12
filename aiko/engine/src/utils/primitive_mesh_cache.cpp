@@ -4,50 +4,18 @@
 
 namespace aiko
 {
+
     void PrimitiveMeshCache::init()
     {
-        #define GEN_MESH(var, mesh)             \
-        {                                       \
-            (var) = std::make_unique<Mesh>();   \
-            (var)->upload((mesh));              \
-        }
-
-        GEN_MESH(m_pointMesh, mesh::factory::generatePoint());
-        GEN_MESH(m_lineMesh, mesh::factory::generateLine(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f)));
-        GEN_MESH(m_triangleMesh, mesh::factory::generateTriangle());
-        GEN_MESH(m_rectangleMesh, mesh::factory::generateQuad());
-        GEN_MESH(m_pyramidMesh, mesh::factory::generatePyramid());
-        GEN_MESH(m_cubeMesh, mesh::factory::generateCube());
-        GEN_MESH(m_torusMesh, mesh::factory::generateMeshTorus());
-        GEN_MESH(m_knotMesh, mesh::factory::generateMeshKnot());
-
+        m_triangleMesh = std::make_unique<MeshAsset>( mesh::factory::generateTriangle());
+        m_rectangleMesh = std::make_unique<MeshAsset>( mesh::factory::generateQuad());
+        m_pyramidMesh = std::make_unique<MeshAsset>( mesh::factory::generatePyramid());
+        m_cubeMesh = std::make_unique<MeshAsset>( mesh::factory::generateCube());
+        m_torusMesh = std::make_unique<MeshAsset>( mesh::factory::generateMeshTorus());
+        m_knotMesh = std::make_unique<MeshAsset>( mesh::factory::generateMeshKnot());
     }
 
-    void PrimitiveMeshCache::dispose()
-    {
-        #define DISPOSE_CACHE(var)                              \
-        {                                                       \
-            for (auto& tmp : (var)) tmp.second->unload();       \
-            (var).clear();                                      \
-        }
-
-        DISPOSE_CACHE(m_circleCache);
-        DISPOSE_CACHE(m_gridCache);
-        DISPOSE_CACHE(m_sphereCache);
-        DISPOSE_CACHE(m_cylinderCache);
-
-        m_pointMesh->unload();
-        m_lineMesh->unload();
-        m_triangleMesh->unload();
-        m_rectangleMesh->unload();
-        m_pyramidMesh->unload();
-        m_cubeMesh->unload();
-        m_torusMesh->unload();
-        m_knotMesh->unload();
-
-    }
-
-    Mesh& PrimitiveMeshCache::getOrCreateCircleMesh(uint segments)
+    MeshAsset& PrimitiveMeshCache::getOrCreateCircleMesh(uint segments)
     {
         AIKO_ASSERT(segments >= 3, "Mesh cirlcle should contain at least 3 segments");
         auto it = m_circleCache.find(segments);
@@ -55,16 +23,13 @@ namespace aiko
         {
             return *it->second;
         }
-
-        auto mesh = std::make_unique<Mesh>();
-        mesh->upload(mesh::factory::generateCircle(segments));
-
-        Mesh& ref = *mesh;
+        AikoUPtr<MeshAsset> mesh = std::make_unique<MeshAsset>(mesh::factory::generateCircle(segments));
+        MeshAsset& ref = *mesh;
         m_circleCache.emplace(segments, std::move(mesh));
         return ref;
     }
 
-    Mesh& PrimitiveMeshCache::getOrCreateGridMesh(ivec2 resolution)
+    MeshAsset& PrimitiveMeshCache::getOrCreateGridMesh(ivec2 resolution)
     {
         AIKO_ASSERT(resolution.x >= 2, "Mesh grid resolution to slow");
         AIKO_ASSERT(resolution.y >= 2, "Mesh grid resolution to slow");
@@ -78,15 +43,13 @@ namespace aiko
             return *it->second;
         }
 
-        auto mesh = std::make_unique<Mesh>();
-        mesh->upload(mesh::factory::generateMeshPlane(1.0f, 1.0f, resolution.x, resolution.y));
-
-        Mesh& ref = *mesh;
+        AikoUPtr<MeshAsset> mesh = std::make_unique<MeshAsset>(mesh::factory::generateMeshPlane(1.0f, 1.0f, resolution.x, resolution.y));
+        MeshAsset& ref = *mesh;
         m_gridCache.emplace(key, std::move(mesh));
         return ref;
     }
 
-    Mesh& PrimitiveMeshCache::getOrCreateSphereMesh(int rings, int sectors)
+    MeshAsset& PrimitiveMeshCache::getOrCreateSphereMesh(int rings, int sectors)
     {
 
         AIKO_ASSERT(rings >= 3, "Mesh sphere too few rings");
@@ -101,16 +64,13 @@ namespace aiko
         {
             return *it->second;
         }
-
-        auto mesh = std::make_unique<Mesh>();
-        mesh->upload(mesh::factory::generateMeshSphere(rings, sectors));
-
-        Mesh& ref = *mesh;
+        AikoUPtr<MeshAsset> mesh = std::make_unique<MeshAsset>(mesh::factory::generateMeshSphere(rings, sectors));
+        MeshAsset& ref = *mesh;
         m_sphereCache.emplace(key, std::move(mesh));
         return ref;
     }
 
-    Mesh& PrimitiveMeshCache::getOrCreateCylinderMesh(uint sectors)
+    MeshAsset& PrimitiveMeshCache::getOrCreateCylinderMesh(uint sectors)
     {
         AIKO_ASSERT(sectors >= 3, "Mesh cylinder should contain more sectors");
         auto it = m_cylinderCache.find(sectors);
@@ -118,11 +78,8 @@ namespace aiko
         {
             return *it->second;
         }
-
-        auto mesh = std::make_unique<Mesh>();
-        mesh->upload(mesh::factory::generateMeshCylinder(sectors));
-
-        Mesh& ref = *mesh;
+        AikoUPtr<MeshAsset> mesh = std::make_unique<MeshAsset>(mesh::factory::generateMeshCylinder(sectors));
+        MeshAsset& ref = *mesh;
         m_cylinderCache.emplace(sectors, std::move(mesh));
         return ref;
     }
@@ -131,4 +88,5 @@ namespace aiko
     {
         return (uint64_t(a) << 32) | uint64_t(b);
     }
+
 }

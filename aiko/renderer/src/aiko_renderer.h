@@ -42,6 +42,8 @@ namespace aiko
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
         void submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride);
 
+        void submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology);
+
         void enqueueCompute(const ComputePass& pass);
         void requestReadback(const ComputeReadbackRequest& req);
         bool pollReadback(ComputeReadbackResult& out);
@@ -75,6 +77,8 @@ namespace aiko
         std::vector<InstanceItem> m_instancedQueue;
         std::vector<ComputePass> m_computeQueue;
         std::vector<GpuInstanceDrawDesc> m_gpuInstanceDraws;
+
+        std::vector<TransientDrawDesc> m_transientQueue;
 
         std::vector<LightData> m_lights;
         AmbientLight m_ambientLight;
