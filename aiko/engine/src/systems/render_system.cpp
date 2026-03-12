@@ -25,22 +25,11 @@ namespace aiko
     {
         AssetId shaderId = m_assetManagerModule->getManager()->registerShader("model");
         m_materialPrimitives.m_shader = &m_renderModule->getRenderer().resources().getShader(shaderId);
-        m_materialPrimitives.m_lit = true;
-        m_materialPrimitives.m_useVertexColor = true;
-        m_materialPrimitives.m_diffuseTexture = nullptr;
+        m_materialPrimitives.m_lit = false;
+        m_materialPrimitives.m_useVertexColor = false;
+        m_materialPrimitives.m_baseColor = MAGENTA;
 
         m_primitiveMeshCache.init();
-
-    }
-
-    void RenderSystem::update()
-    {
-
-    }
-
-    void RenderSystem::render()
-    {
-
     }
 
     void RenderSystem::dispose()

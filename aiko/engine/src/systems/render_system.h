@@ -33,8 +33,6 @@ namespace aiko
         virtual ~RenderSystem() = default;
 
         virtual void init() override;
-        virtual void update() override;
-        virtual void render() override;
         virtual void dispose() override;
 
         void render(const Transform& trans, const Mesh&, const Material&);
@@ -82,6 +80,7 @@ namespace aiko
     // ---------------------------------------------------
 
         PrimitiveMeshCache m_primitiveMeshCache;
+        TransientTopology m_defaultTransientTopology = TransientTopology::Triangles;
         Material m_materialPrimitives;
         Material& resolvePrimitiveMaterial(Material* material);
 
