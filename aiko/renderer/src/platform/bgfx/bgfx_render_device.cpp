@@ -521,6 +521,13 @@ namespace aiko::renderer::bgfx
 
         ::bgfx::setBuffer( 7, bufferImpl->handle(), ::bgfx::Access::Read );
 
+        if (desc.lifeInstanceBuffer != nullptr)
+        {
+            auto* lifeImpl = static_cast<BgfxComputeBufferImpl*>(desc.lifeInstanceBuffer->getImpl());
+            AIKO_ASSERT(lifeImpl != nullptr, "Invalid handler");
+            ::bgfx::setBuffer(8, lifeImpl->handle(), ::bgfx::Access::Read);
+        }
+
         ::bgfx::setVertexBuffer(0, meshImpl->getVertexBuffferHandler());
         ::bgfx::setIndexBuffer(meshImpl->getIndexBuffferHandler());
 
@@ -710,6 +717,14 @@ namespace aiko::renderer::bgfx
                 material.m_lit == true ? 1.0f : 0.0f,
                 0.0f
             ));
+
+        for (const auto& [name, value] : material.m_customVec4Uniforms)
+        {
+            if (m_boundShader->hasUniform(name))
+            {
+                m_boundShader->setVec4(name, value);
+            }
+        }
 
         if (hasTexture == true)
         {

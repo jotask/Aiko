@@ -19,7 +19,7 @@ namespace aiko
     {
     public:
         ParticleSystem() = default;
-        virtual ~ParticleSystem() = default;
+        virtual ~ParticleSystem() override = default;
     protected:
         virtual void connect(ModuleConnector*, SystemConnector*) override;
         virtual void init() override;

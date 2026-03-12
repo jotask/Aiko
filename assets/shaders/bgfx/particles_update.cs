@@ -48,6 +48,10 @@ void main()
 {
     uint idx = gl_GlobalInvocationID.x;
 
+    uint totalCount = uint(u_spawnWindow.z);
+    if (idx >= totalCount)
+        return;
+
     vec4 pos = u_pos[idx];
     vec4 vel = u_vel[idx];
     vec4 life = u_life[idx];

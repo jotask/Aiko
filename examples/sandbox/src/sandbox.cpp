@@ -20,11 +20,11 @@
 
 #include "components/compute_shader_component.h"
 
-#define TEST_LOAD_MESHES
-#define TEST_COMPONENTS
-#define TEST_PRIMITIVES
-#define TEST_LIGHTS
-#define TEST_CS
+// #define TEST_LOAD_MESHES
+// #define TEST_COMPONENTS
+// #define TEST_PRIMITIVES
+// #define TEST_LIGHTS
+// #define TEST_CS
 #define TEST_PARTICLE_CS
 
 namespace sb
@@ -134,16 +134,6 @@ namespace sb
         }
 #endif
 
-#ifdef TEST_PARTICLE_CS
-        auto ps = app->Instantiate(root, "Particle Emitter");
-        auto emitter = ps->addComponent<aiko::ParticleEmitterComponent>();
-        emitter->setMaxParticles(256);
-        emitter->setLifetime(4.0f);
-        emitter->setStartSpeed(0.5f);
-        emitter->setPlaying(true);
-        emitter->requestReset();
-#endif
-
 #ifdef TEST_CS
 
         if constexpr(true)
@@ -206,7 +196,7 @@ namespace sb
             emitter->setStartSpeed(2.5f);
             emitter->setDirection({1.0f, 1.0f, 0.0f});
             emitter->setDirectionRandomness(1.0f);
-            emitter->setGravity({0.0f, 0.0f, 0.0f});
+            emitter->setGravity({0.0f, -1.5f, 0.0f});
         }
 
         emitter->requestReset();

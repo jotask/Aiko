@@ -75,6 +75,9 @@ namespace aiko
         // GPU buffer containing instance records (format must match shader)
         const ComputeBuffer* instanceBuffer = nullptr;
 
+        // Optional extra particle data buffer for render shaders.
+        const ComputeBuffer* lifeInstanceBuffer = nullptr;
+
         uint32_t instanceCount = 0;
     };
 

@@ -56,6 +56,18 @@ namespace aiko
         vec3 getGravity() const { return m_gravity; }
         void setGravity(vec3 value) { m_gravity = value; }
 
+        Color getStartLifeColor() const { return m_startColorLife; }
+        void setStartLifeColor(Color value) { m_startColorLife = value; }
+
+        Color getEndLifeColor() const { return m_endColorLife; }
+        void setEndLifeColor(Color value) { m_endColorLife = value; }
+
+        float getStartLifeScale() const { return m_startLifeScale; }
+        void setStartLifeScale(float value) { m_startLifeScale = value; }
+
+        float getEndLifeScale() const { return m_endLifeScale; }
+        void setEndLifeScale(float value) { m_endLifeScale = value; }
+
     private:
 
         // Spawn
@@ -74,6 +86,12 @@ namespace aiko
         float m_startSpeed = 1.0f;
         bool m_playing = true;
         bool m_resetRequested = true;
+
+        // Over life
+        Color m_startColorLife = RED;
+        Color m_endColorLife = YELLOW;
+        float m_startLifeScale = 0.05f;
+        float m_endLifeScale = 0.0f;
     };
 
 }

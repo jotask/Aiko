@@ -4,6 +4,8 @@
 #include "models/texture.h"
 #include "types/color.h"
 
+#include <unordered_map>
+
  namespace aiko
 {
     class ComputeBuffer;
@@ -40,6 +42,8 @@
 
 		Color m_baseColor;
         Texture* m_diffuseTexture = nullptr;
+
+        std::unordered_map<std::string, vec4> m_customVec4Uniforms;
 
     };
 

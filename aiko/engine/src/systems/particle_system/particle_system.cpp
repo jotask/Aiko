@@ -1,5 +1,6 @@
 #include "particle_system.h"
 
+#include <time/time.h>
 #include "modules/render_module.h"
 #include "modules/assets_manager_module.h"
 #include "systems/scene_system.h"
@@ -22,8 +23,6 @@ namespace aiko
     {
         m_initShaderId = aiko->getComponentAssetAccess()->registerComputeShader("particles_init");
         m_updateShaderId = aiko->getComponentAssetAccess()->registerComputeShader("particles_update");
-        logger::Log::info("Particle init shader id = %s", m_initShaderId.get().c_str());
-        logger::Log::info("Particle update shader id = %s", m_updateShaderId.get().c_str());
     }
 
     void ParticleSystem::update()
@@ -93,9 +92,9 @@ namespace aiko
 
             AssetId shaderId = m_assetManagerModule->getManager()->registerShader("mesh_gpuinst.vs", "model.fs");
             state.particleMaterial.m_shader = &m_renderModule->getRenderer().resources().getShader(shaderId);
-            state.particleMaterial.m_baseColor = MAGENTA;
+            state.particleMaterial.m_baseColor = WHITE;
             state.particleMaterial.m_lit = false;
-            state.particleMaterial.m_useVertexColor = false;
+            state.particleMaterial.m_useVertexColor = true;
 
             state.renderInitialized = true;
         }
@@ -130,9 +129,12 @@ namespace aiko
         }
 
         const float dt = Time::it().getDeltaTime();
+
         state->spawnAccumulator += emitter.getSpawnRate() * dt;
-        state->spawnThisFrame = static_cast<uint32_t>(state->spawnAccumulator);
-        state->spawnAccumulator -= static_cast<float>(state->spawnThisFrame);
+        const auto requestedSpawn = static_cast<uint32_t>(state->spawnAccumulator);
+        state->spawnThisFrame = std::min(requestedSpawn, count);
+        state->spawnAccumulator -= static_cast<float>(requestedSpawn);
+
         const uint32_t spawnStart = state->spawnCursor;
         state->spawnCursor = (state->spawnCursor + state->spawnThisFrame) % count;
         state->spawnSeed += state->spawnThisFrame;
@@ -260,10 +262,16 @@ namespace aiko
 
         if (state->renderInitialized)
         {
+
+            state->particleMaterial.m_customVec4Uniforms["u_particleSizeLife"] = vec4(emitter.getStartLifeScale(), emitter.getEndLifeScale(), 0.0f, 0.0f);
+            state->particleMaterial.m_customVec4Uniforms["u_particleStartColor"] = emitter.getStartLifeColor().toVec4();
+            state->particleMaterial.m_customVec4Uniforms["u_particleEndColor"]   = emitter.getEndLifeColor().toVec4();
+
             GpuInstanceDrawDesc draw{};
             draw.mesh = &state->particleMesh;
             draw.material = &state->particleMaterial;
             draw.instanceBuffer = &state->positionBuffer;
+            draw.lifeInstanceBuffer = &state->lifeBuffer;
             draw.instanceCount = count;
 
             m_renderModule->getRenderer().drawMeshInstancedGpu(draw);
