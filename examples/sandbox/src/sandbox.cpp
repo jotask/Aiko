@@ -149,8 +149,8 @@ namespace sb
         {
             auto computeGradient = app->Instantiate(root, "GradientCompute");
 
-            computeGradient->transform().position = { 0.0f, 0.0f, 1.0f };
-            computeGradient->transform().scale = { 2.0f, 2.0f, 1.0f };
+            computeGradient->transform().position = { 0.0f, 2.5f, 0.0f };
+            computeGradient->transform().scale = { 1.0f, 1.0f, 1.0f };
 
             auto computeCmp = computeGradient->addComponent<aiko::ComputeShaderComponent>();
             computeCmp->load("gradient");
@@ -172,10 +172,10 @@ namespace sb
         auto ps = app->Instantiate(root, "Particle Emitter");
         ps->transform().position = { 0.0f, 0.0f, -3.5f };
         auto emitter = ps->addComponent<aiko::ParticleEmitterComponent>();
-        emitter->setMaxParticles(1024);
+        emitter->setMaxParticles(1024 * 1024);
         emitter->setLifetime(4.0f);
         emitter->setStartSpeed(2.0f);
-        emitter->setSpawnRate(100.0f);
+        emitter->setSpawnRate(1000.0f);
         emitter->setPlaying(true);
         emitter->setSpawnShape(aiko::ParticleEmitterComponent::ParticleSpawnShape::Point);
         constexpr float spawnSize = 2.5f;
@@ -334,26 +334,20 @@ namespace sb
 
         constexpr const float SIZE = 1.0f;
 
-        // 2D
-        app->getRenderSystem()->drawPoint({ 1.0f, 1.0f, 0.0f });
+        app->getRenderSystem()->renderPoint({ 1.0f, 1.0f, 0.0f });
         app->getRenderSystem()->renderLine({ -2.0f, -1.0f, 0.0f }, { 2.0f, -1.0f, 0.0f });
-
-        app->getRenderSystem()->drawRectangle({ 0.0f, 1.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->renderCircle({ 2.0f, 1.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->drawTriangle({ -1.0f, 1.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderRectangle({ 0.0f, 1.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderCircle({ 2.0f, 1.0f, 0.0f }, SIZE, 32);
+        app->getRenderSystem()->renderTriangle({ -1.0f, 1.0f, 0.0f }, SIZE);
         app->getRenderSystem()->renderNgon({ -2.0f, 1.0f, 0.0f }, SIZE, 6);
-
-        // 3D
-        app->getRenderSystem()->drawCube({ 1.0f, 0.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->drawPyramid({ 0.0f, 0.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderCube({ 1.0f, 0.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderPyramid({ 0.0f, 0.0f, 0.0f }, SIZE);
         app->getRenderSystem()->renderSphere({ -1.0f, 0.0f, 0.0f }, SIZE);
         app->getRenderSystem()->renderCylinder({ -2.0f, 0.0f, 0.0f }, SIZE, 6);
         app->getRenderSystem()->renderPolygon({ -3.0f, 0.0f, 0.0f }, SIZE, 6, 6);
-
         app->getRenderSystem()->renderTorus({ 2.0f, 0.0f, 0.0f }, SIZE);
         app->getRenderSystem()->renderKnot({ 3.0f, 0.0f, 0.0f }, SIZE);
-
-        app->getRenderSystem()->drawPlane({ 0.0f, -2.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderGrid({ 0.0f, -2.0f, 0.0f }, SIZE, {10, 10});
 
 #endif
 
@@ -362,7 +356,7 @@ namespace sb
         {
             for (auto& light : m_lights)
             {
-                app->getRenderSystem()->renderSphere(light.obj->transform().position, 0.1f, 25 , light.cmp->color);
+                app->getRenderSystem()->renderSphere(light.obj->transform().position, 0.1f, 25 /*, light.cmp->color*/ );
             }
         }
 #endif

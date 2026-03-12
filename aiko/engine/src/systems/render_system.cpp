@@ -28,6 +28,9 @@ namespace aiko
         m_materialPrimitives.m_lit = true;
         m_materialPrimitives.m_useVertexColor = true;
         m_materialPrimitives.m_diffuseTexture = nullptr;
+
+        m_primitiveMeshCache.init();
+
     }
 
     void RenderSystem::update()
@@ -43,6 +46,7 @@ namespace aiko
     void RenderSystem::dispose()
     {
         BaseSystem::dispose();
+        m_primitiveMeshCache.dispose();
         clearCaches();
     }
 

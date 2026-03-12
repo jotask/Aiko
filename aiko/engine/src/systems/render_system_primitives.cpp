@@ -1,145 +1,138 @@
 #include "render_system.h"
 
-#include <stdexcept>
-#include <memory>
-#include <iostream>
-#include <format>
-
 #include <aiko_types.h>
 #include <math/math.h>
-#include <models/light.h>
-#include <types/color.h>
-#include <time/time.h>
 
-#include "modules/module_connector.h"
-#include "systems/system_connector.h"
 #include "components/transform_component.h"
-#include "components/mesh_component.h"
-#include "models/mesh_factory.h"
 #include "modules/render_module.h"
 
 namespace aiko
 {
 
-    void RenderSystem::drawPoint(vec3 pos, Color color, bool border, float thickness)
+    void RenderSystem::renderPoint(vec3 pos)
     {
         Transform t;
         t.position = pos;
-        static const Mesh mesh(mesh::factory::generatePoint());
+        Mesh& mesh = m_primitiveMeshCache.getPointMesh();
         m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
-    void RenderSystem::drawTriangle(vec3 pos, vec3 size, Color color, bool border, float thickness)
-    {
-        Transform t;
-        t.position = pos;
-        static const Mesh mesh(mesh::factory::generateTriangle());
-        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
-    }
-
-    void RenderSystem::drawRectangle(vec3 pos, vec3 size, Color color, bool border, float thickness)
+    void RenderSystem::renderTriangle(vec3 pos, vec3 size)
     {
         Transform t;
         t.position = pos;
         t.scale = size;
-        static const Mesh mesh(mesh::factory::generateQuad());
+        Mesh& mesh = m_primitiveMeshCache.getTriangleMesh();
         m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
-    void RenderSystem::renderLine(vec3 start, vec3 end, Color color, bool border, float thickness)
-    {
-        Transform t;
-        static const Mesh mesh(mesh::factory::generateLine(start, end));
-        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
-    }
-
-    void RenderSystem::renderCircle(vec3 pos, vec3 size, Color color, bool border, float thickness)
-    {
-        Transform t;
-        t.position = pos;
-        static const Mesh mesh(mesh::factory::generateCircle());
-        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
-    }
-
-    void RenderSystem::renderNgon(vec3 pos, vec3 size, uint segment, Color color, bool border, float thickness)
-    {
-        Transform t;
-        t.position = pos;
-        static const Mesh mesh(mesh::factory::generateCircle(segment));
-        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
-    }
-
-    void RenderSystem::drawPlane(vec3 pos, vec3 size, Color color, bool border, float thickness)
-    {
-        Transform t;
-        t.position = pos;
-        const float ssize = 10.0f;
-        const int resolution = 5;
-        static const Mesh mesh(mesh::factory::generateMeshPlane(ssize, ssize, resolution, resolution));
-        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
-    }
-
-    void RenderSystem::drawPyramid(vec3 pos, vec3 size, Color color, bool border, float thickness)
-    {
-        Transform t;
-        t.position = pos;
-        static const Mesh mesh(mesh::factory::generatePyramid());
-        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
-    }
-
-    void RenderSystem::drawCube(vec3 pos, vec3 size, Color color, bool border, float thickness)
-    {
-        Transform t;
-        t.position = pos;
-        t.scale *= size;
-        static const Mesh mesh(mesh::factory::generateCube());
-        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
-    }
-
-    void RenderSystem::renderSphere(vec3 pos, vec3 size, int segments, Color color, bool border, float thickness)
+    void RenderSystem::renderRectangle(vec3 pos, vec3 size)
     {
         Transform t;
         t.position = pos;
         t.scale = size;
-        auto c = m_materialPrimitives.m_baseColor;
-        auto l = m_materialPrimitives.m_lit;
-        m_materialPrimitives.m_baseColor = color;
-        m_materialPrimitives.m_lit = false;
-        static const Mesh mesh(mesh::factory::generateMeshSphere(segments, segments));
-        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
-        m_materialPrimitives.m_baseColor = c;
-        m_materialPrimitives.m_lit = l;
-    }
-
-    void RenderSystem::renderPolygon(vec3 pos, vec3 size, int rings, int sectors, Color color, bool border, float thickness)
-    {
-        Transform t;
-        t.position = pos;
-        static const Mesh mesh(mesh::factory::generateMeshSphere(sectors, sectors));
+        Mesh& mesh = m_primitiveMeshCache.getRectangleMesh();
         m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
-    void RenderSystem::renderCylinder(vec3 pos, vec3 size, uint sectors, Color color, bool border, float thickness)
+    void RenderSystem::renderLine(vec3 start, vec3 end)
     {
         Transform t;
-        t.position = pos;
-        static const Mesh mesh(mesh::factory::generateMeshCylinder(sectors));
+        Mesh& mesh = m_primitiveMeshCache.getOrCreateLineMesh(start, end);
         m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
-    void RenderSystem::renderTorus(vec3 pos, vec3 size, Color color, bool border, float thickness)
+    void RenderSystem::renderCircle(vec3 pos, vec3 size, uint segments)
     {
         Transform t;
         t.position = pos;
-        static const Mesh mesh(mesh::factory::generateMeshTorus());
+        t.scale = size;
+        Mesh& mesh = m_primitiveMeshCache.getOrCreateCircleMesh(segments);
         m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 
-    void RenderSystem::renderKnot(vec3 pos, vec3 size, Color color, bool border, float thickness)
+    void RenderSystem::renderNgon(vec3 pos, vec3 size, uint segment)
     {
         Transform t;
         t.position = pos;
-        static const Mesh mesh(mesh::factory::generateMeshKnot());
+        t.scale = size;
+        Mesh& mesh = m_primitiveMeshCache.getOrCreateCircleMesh(segment);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
+    }
+
+    void RenderSystem::renderGrid(vec3 pos, vec3 size, ivec2 resolution)
+    {
+        if (resolution.x < 2 || resolution.y < 2)
+        {
+            return;
+        }
+        Transform t;
+        t.position = pos;
+        t.scale = size;
+        Mesh& mesh = m_primitiveMeshCache.getOrCreateGridMesh(resolution);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
+    }
+
+    void RenderSystem::renderPyramid(vec3 pos, vec3 size)
+    {
+        Transform t;
+        t.position = pos;
+        t.scale = size;
+        Mesh& mesh = m_primitiveMeshCache.getPyramidMesh();
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
+    }
+
+    void RenderSystem::renderCube(vec3 pos, vec3 size)
+    {
+        Transform t;
+        t.position = pos;
+        t.scale = size;
+        Mesh& mesh = m_primitiveMeshCache.getCubeMesh();
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
+    }
+
+    void RenderSystem::renderSphere(vec3 pos, vec3 size, int segments)
+    {
+        Transform t;
+        t.position = pos;
+        t.scale = size;
+        Mesh& mesh = m_primitiveMeshCache.getOrCreateSphereMesh(segments, segments);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
+    }
+
+    void RenderSystem::renderPolygon(vec3 pos, vec3 size, int rings, int sectors)
+    {
+        Transform t;
+        t.position = pos;
+        t.scale = size;
+        Mesh& mesh = m_primitiveMeshCache.getOrCreateSphereMesh(rings, sectors);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
+    }
+
+    void RenderSystem::renderCylinder(vec3 pos, vec3 size, uint sectors)
+    {
+        Transform t;
+        t.position = pos;
+        t.scale = size;
+        Mesh& mesh = m_primitiveMeshCache.getOrCreateCylinderMesh(sectors);
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
+    }
+
+    void RenderSystem::renderTorus(vec3 pos, vec3 size)
+    {
+        Transform t;
+        t.position = pos;
+        t.scale = size;
+        Mesh& mesh = m_primitiveMeshCache.getTorusMesh();
+        m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
+    }
+
+    void RenderSystem::renderKnot(vec3 pos, vec3 size)
+    {
+        Transform t;
+        t.position = pos;
+        t.scale = size;
+        Mesh& mesh = m_primitiveMeshCache.getKnotMesh();
         m_renderModule->getRenderer().submit(t, mesh, m_materialPrimitives);
     }
 

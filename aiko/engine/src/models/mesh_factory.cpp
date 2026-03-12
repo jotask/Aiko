@@ -310,19 +310,15 @@ namespace aiko
             return data;
         }
 
-        MeshAsset generateMeshTorus()
+        MeshAsset generateMeshTorus(float majorRadius, float minorRadius, uint radSeg, uint sides)
         {
 
             MeshAsset data;
 
-            constexpr const float majorRadius   = 1.0f;
-            constexpr const float minorRadius   = 0.3f;
-            constexpr const uint radSeg         = 32;
-            constexpr const uint sides          = 16;
             constexpr const Color color         = AIKO_DEFAULT_PRIMITIVE_COLOR;
 
-            constexpr const float maxDiameter = 2.0f * (majorRadius + minorRadius);
-            constexpr const float scale = 1.0f / maxDiameter;
+            const float maxDiameter = 2.0f * (majorRadius + minorRadius);
+            const float scale = 1.0f / maxDiameter;
 
             for (int i = 0; i <= radSeg; ++i)
             {
@@ -374,17 +370,11 @@ namespace aiko
             return data;
         }
 
-        MeshAsset generateMeshKnot()
+        MeshAsset generateMeshKnot(int p, int q, float radius, float tube, int radSeg, int sides)
         {
 
             MeshAsset data;
 
-            constexpr const int p = 2;
-            constexpr const int q = 3;
-            constexpr const float radius = 1.0f;
-            constexpr const float tube = 0.2f;
-            constexpr const int radSeg = 128;
-            constexpr const int sides = 16;
             constexpr const Color color = AIKO_DEFAULT_PRIMITIVE_COLOR;
 
             constexpr const float size = 1.0f;
@@ -480,9 +470,7 @@ namespace aiko
 
         MeshAsset generatePoint()
         {
-
             MeshAsset data;
-
             data.m_vertices.push_back({ 0.0f });
             data.m_textCoord.push_back({ 0.0f }); // Not used
             data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);

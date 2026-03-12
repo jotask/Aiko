@@ -4,8 +4,6 @@
 #include <unordered_map>
 
 #include <aiko_types.h>
-#include <models/mesh.h>
-#include <models/texture.h>
 #include <aiko_renderer.h>
 
 #include "components/compute_shader_component.h"
@@ -15,6 +13,7 @@
 #include "systems/base_system.h"
 #include "models/game_object.h"
 #include "models/model.h"
+#include "utils/primitive_mesh_cache.h"
 
 namespace aiko
 {
@@ -82,34 +81,26 @@ namespace aiko
     //                   PRIMITIVES
     // ---------------------------------------------------
 
-        #define PRIMITIVE_FNT_DEFAULT_ARGS Color color = AIKO_DEFAULT_PRIMITIVE_COLOR, bool border = false, float border_thickness = 0.05f
-        #define PRIMITIVE_FNT(method_name, ...) void method_name( __VA_ARGS__, PRIMITIVE_FNT_DEFAULT_ARGS ) 
-
+        PrimitiveMeshCache m_primitiveMeshCache;
         Material m_materialPrimitives;
 
     public:
 
-        // 2d
-        PRIMITIVE_FNT(drawPoint, vec3 pos);
-        PRIMITIVE_FNT(renderLine, vec3 start, vec3 end);
+        void renderPoint(vec3 pos);
+        void renderLine(vec3 start, vec3 end);
+        void renderTriangle(vec3 pos, vec3 size);
+        void renderRectangle(vec3 pos, vec3 size);
+        void renderCircle(vec3 pos, vec3 size, uint segments);
+        void renderNgon(vec3 pos, vec3 size, uint polygons);
+        void renderGrid(vec3 pos, vec3 size, ivec2 resolution);
+        void renderPyramid(vec3 pos, vec3 size);
+        void renderCube(vec3 pos, vec3 size);
+        void renderSphere(vec3 pos, vec3 size, int = 25);
+        void renderPolygon(vec3 pos, vec3 size, int rings, int sectors);
+        void renderCylinder(vec3 pos, vec3 size, uint sectors);
+        void renderTorus(vec3 pos, vec3 size);
+        void renderKnot(vec3 pos, vec3 size);
 
-        PRIMITIVE_FNT(drawTriangle, vec3 pos, vec3 size);
-        PRIMITIVE_FNT(drawRectangle, vec3 pos, vec3 size);
-        PRIMITIVE_FNT(renderCircle, vec3 pos, vec3 size);
-        PRIMITIVE_FNT(renderNgon, vec3 pos, vec3 size, uint polygons);
-
-        // 3d
-        PRIMITIVE_FNT(drawPlane, vec3 pos, vec3 size);
-        PRIMITIVE_FNT(drawPyramid, vec3 pos, vec3 size);
-        PRIMITIVE_FNT(drawCube, vec3 pos, vec3 size);
-        PRIMITIVE_FNT(renderSphere, vec3 pos, vec3 size, int = 25);
-        PRIMITIVE_FNT(renderPolygon, vec3 pos, vec3 size, int rings, int sectors);
-        PRIMITIVE_FNT(renderCylinder, vec3 pos, vec3 size, uint sectors);
-
-        PRIMITIVE_FNT(renderTorus, vec3 pos, vec3 size);
-        PRIMITIVE_FNT(renderKnot, vec3 pos, vec3 size);
-
-    private:
 
     };
 
