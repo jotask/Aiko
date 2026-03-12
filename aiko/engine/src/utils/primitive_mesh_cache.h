@@ -17,6 +17,7 @@ namespace aiko
         void dispose();
 
         Mesh& getPointMesh() const { return *m_pointMesh.get(); }
+        Mesh& getLineMesh() const { return *m_lineMesh.get(); }
         Mesh& getTriangleMesh() const { return *m_triangleMesh.get(); }
         Mesh& getRectangleMesh() const { return *m_rectangleMesh.get(); }
         Mesh& getPyramidMesh() const { return *m_pyramidMesh.get(); }
@@ -24,7 +25,6 @@ namespace aiko
         Mesh& getTorusMesh() const { return *m_torusMesh.get(); }
         Mesh& getKnotMesh() const { return *m_knotMesh.get(); }
 
-        Mesh& getOrCreateLineMesh(vec3 start, vec3 end);
         Mesh& getOrCreateCircleMesh(uint segments);
         Mesh& getOrCreateGridMesh(ivec2 resolution);
         Mesh& getOrCreateSphereMesh(int rings, int sectors);
@@ -35,6 +35,7 @@ namespace aiko
         using MeshCache = std::unordered_map<uint64_t, AikoUPtr<Mesh>>;
 
         AikoUPtr<Mesh> m_pointMesh = nullptr;
+        AikoUPtr<Mesh> m_lineMesh = nullptr;
         AikoUPtr<Mesh> m_triangleMesh = nullptr;
         AikoUPtr<Mesh> m_rectangleMesh = nullptr;
         AikoUPtr<Mesh> m_pyramidMesh = nullptr;
@@ -45,7 +46,6 @@ namespace aiko
         AikoUPtr<Mesh> m_knotMesh = nullptr;
         // ENDTODO
 
-        MeshCache m_lineCache;
         MeshCache m_circleCache;
         MeshCache m_gridCache;
         MeshCache m_sphereCache;

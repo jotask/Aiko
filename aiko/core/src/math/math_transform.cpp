@@ -76,6 +76,11 @@ namespace aiko
             return glm::radians(angle);
         }
 
+        float degrees(float angle)
+        {
+            return glm::degrees(angle);
+        }
+
         int max(int a, int b)
         {
 			return glm::max(a, b);

@@ -83,23 +83,24 @@ namespace aiko
 
         PrimitiveMeshCache m_primitiveMeshCache;
         Material m_materialPrimitives;
+        Material& resolvePrimitiveMaterial(Material* material);
 
     public:
 
-        void renderPoint(vec3 pos);
-        void renderLine(vec3 start, vec3 end);
-        void renderTriangle(vec3 pos, vec3 size);
-        void renderRectangle(vec3 pos, vec3 size);
-        void renderCircle(vec3 pos, vec3 size, uint segments);
-        void renderNgon(vec3 pos, vec3 size, uint polygons);
-        void renderGrid(vec3 pos, vec3 size, ivec2 resolution);
-        void renderPyramid(vec3 pos, vec3 size);
-        void renderCube(vec3 pos, vec3 size);
-        void renderSphere(vec3 pos, vec3 size, int = 25);
-        void renderPolygon(vec3 pos, vec3 size, int rings, int sectors);
-        void renderCylinder(vec3 pos, vec3 size, uint sectors);
-        void renderTorus(vec3 pos, vec3 size);
-        void renderKnot(vec3 pos, vec3 size);
+        void renderPoint(vec3 pos, Material* material = nullptr);
+        void renderLine(vec3 start, vec3 end, Material* material = nullptr);
+        void renderTriangle(vec3 pos, vec3 size, Material* material = nullptr);
+        void renderRectangle(vec3 pos, vec3 size, Material* material = nullptr);
+        void renderCircle(vec3 pos, vec3 size, uint segments, Material* material = nullptr);
+        void renderNgon(vec3 pos, vec3 size, uint polygons, Material* material = nullptr);
+        void renderGrid(vec3 pos, vec3 size, ivec2 resolution, Material* material = nullptr);
+        void renderPyramid(vec3 pos, vec3 size, Material* material = nullptr);
+        void renderCube(vec3 pos, vec3 size, Material* material = nullptr);
+        void renderSphere(vec3 pos, vec3 size, int = 25, Material* material = nullptr);
+        void renderPolygon(vec3 pos, vec3 size, int rings, int sectors, Material* material = nullptr);
+        void renderCylinder(vec3 pos, vec3 size, uint sectors, Material* material = nullptr);
+        void renderTorus(vec3 pos, vec3 size, Material* material = nullptr);
+        void renderKnot(vec3 pos, vec3 size, Material* material = nullptr);
 
 
     };

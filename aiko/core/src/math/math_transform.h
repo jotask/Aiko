@@ -25,6 +25,7 @@ namespace aiko
         float cos(float);
         float sin(float);
         float radians(float);
+        float degrees(float);
 
         int max(int, int);
 

@@ -13,6 +13,7 @@ namespace aiko
         }
 
         GEN_MESH(m_pointMesh, mesh::factory::generatePoint());
+        GEN_MESH(m_lineMesh, mesh::factory::generateLine(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f)));
         GEN_MESH(m_triangleMesh, mesh::factory::generateTriangle());
         GEN_MESH(m_rectangleMesh, mesh::factory::generateQuad());
         GEN_MESH(m_pyramidMesh, mesh::factory::generatePyramid());
@@ -30,13 +31,13 @@ namespace aiko
             (var).clear();                                      \
         }
 
-        DISPOSE_CACHE(m_lineCache);
         DISPOSE_CACHE(m_circleCache);
         DISPOSE_CACHE(m_gridCache);
         DISPOSE_CACHE(m_sphereCache);
         DISPOSE_CACHE(m_cylinderCache);
 
         m_pointMesh->unload();
+        m_lineMesh->unload();
         m_triangleMesh->unload();
         m_rectangleMesh->unload();
         m_pyramidMesh->unload();
@@ -44,55 +45,6 @@ namespace aiko
         m_torusMesh->unload();
         m_knotMesh->unload();
 
-    }
-
-    Mesh& PrimitiveMeshCache::getOrCreateLineMesh(vec3 start, vec3 end)
-    {
-
-        auto floatBits = [](float v) -> uint32_t
-        {
-            uint32_t bits;
-            std::memcpy(&bits, &v, sizeof(uint32_t));
-            return bits;
-        };
-
-        auto hashVec3 = [floatBits](vec3 v) -> uint64_t
-        {
-            uint64_t h = 1469598103934665603ull;
-
-            auto mix = [&h](uint32_t bits)
-            {
-                h ^= uint64_t(bits);
-                h *= 1099511628211ull;
-            };
-
-            mix(floatBits(v.x));
-            mix(floatBits(v.y));
-            mix(floatBits(v.z));
-            return h;
-        };
-
-        auto makeLineKey = [hashVec3](vec3 start, vec3 end) -> uint64_t
-        {
-            uint64_t a = hashVec3(start);
-            uint64_t b = hashVec3(end);
-            return a ^ (b + 0x9e3779b97f4a7c15ull + (a << 6) + (a >> 2));
-        };
-
-        const uint64_t key = makeLineKey(start, end);
-
-        auto it = m_lineCache.find(key);
-        if (it != m_lineCache.end())
-        {
-            return *it->second;
-        }
-
-        auto mesh = std::make_unique<Mesh>();
-        mesh->upload(mesh::factory::generateLine(start, end));
-
-        Mesh& ref = *mesh;
-        m_lineCache.emplace(key, std::move(mesh));
-        return ref;
     }
 
     Mesh& PrimitiveMeshCache::getOrCreateCircleMesh(uint segments)
