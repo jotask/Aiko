@@ -20,7 +20,7 @@ namespace aiko
 
     bool ScreenFbo::isValid()
     {
-        return m_mesh.isValid() == true && m_material.m_shader.isValid() == true;
+        return m_mesh.isValid() == true && m_material.m_shader != nullptr && m_material.m_shader->isValid() == true;
     }
 
     void ScreenFbo::create(int width, int height)
@@ -29,7 +29,7 @@ namespace aiko
         // Create mesh based on NDC
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             {
 
@@ -64,18 +64,19 @@ namespace aiko
                 };
             }
 
-            m_mesh.setData(data);
+            m_mesh.upload(data);
 
         }
 
         // Set material
         {
-            m_material.m_shader.load("passthrough");
-            m_material.m_userVertexColor = false;
+            passthrough.load("passthrough");
+            m_material.m_shader = & passthrough;
+            m_material.m_useVertexColor = false;
             m_material.m_lit = false;
             m_material.m_baseColor = WHITE;
 
-            AIKO_ASSERT(m_material.m_shader.isValid(), "ScreenFbo shader invalid!");
+            AIKO_ASSERT(m_material.m_shader->isValid(), "ScreenFbo shader invalid!");
 
         }
 
@@ -92,29 +93,14 @@ namespace aiko
         m_frameBuffer.create(width, height);
         AIKO_ASSERT(m_frameBuffer.isValid(), "ScreenFbo framebuffer invalid!");
 
-        m_material.m_diffuse = m_frameBuffer.getColorTexture();
+        m_material.m_diffuseTexture = &m_frameBuffer.getColorTexture();
 
     }
 
     void ScreenFbo::unload()
     {
         m_mesh.unload();
-        m_material.m_shader.unload();
-    }
-
-    FrameBuffer ScreenFbo::getFrameBuffer() const
-    {
-        return m_frameBuffer;
-    }
-
-    Mesh ScreenFbo::getMesh() const
-    {
-        return m_mesh;
-    }
-
-    Material ScreenFbo::getMaterial() const
-    {
-        return m_material;
+        m_material.m_shader->unload();
     }
 
 }

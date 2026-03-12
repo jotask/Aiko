@@ -5,6 +5,7 @@
 #include "modules/render_module.h"
 
 #include "modules/module_connector.h"
+#include "systems/render_system.h"
 #include "systems/system_connector.h"
 
 #include "scene/scene.h"
@@ -21,6 +22,7 @@ namespace aiko
     void SceneSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule);
+        BIND_SYSTEM_REQUIRED(RenderSystem, systemConnector, m_renderSystem)
     }
 
     void SceneSystem::render()
@@ -28,10 +30,31 @@ namespace aiko
         SceneView view = m_sceneViewBuilder.build(m_scene);
         if(view.camera != nullptr)
         {
-            AikoRenderer::it().submit(view.ambientLight, view.lights);
+            m_renderModule->getRenderer().submit(view.ambientLight, view.lights);
             m_renderModule->setMainCamera(view.camera);
         }
-        m_sceneRenderer.render(m_scene);
+        for (const auto& go : m_scene.objects())
+        {
+            if (go == nullptr) continue;
+            if (!go->hasComponent<TransforComponent>()) continue;
+
+            const auto transform = go->getComponent<TransforComponent>();
+
+            if (auto cmp = go->getComponent<MeshComponent>())
+            {
+                m_renderSystem->render(transform->transform, *cmp);
+            }
+
+            if (auto cmp = go->getComponent<ModelComponent>())
+            {
+                m_renderSystem->render(transform->transform, *cmp);
+            }
+
+            if (auto cmp = go->getComponent<SpriteComponent>())
+            {
+                m_renderSystem->render(transform->transform, *cmp);
+            }
+        }
     }
 
     void SceneSystem::update()

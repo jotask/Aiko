@@ -5,6 +5,7 @@
 #include <math/math.h>
 
 #include "aiko_types.h"
+#include "assets/types/mesh_asset.h"
 #include "types/color.h"
 #include "interfaces/imesh_impl.h"
 
@@ -20,33 +21,17 @@
     {
     public:
 
-         struct MeshData
-         {
-
-             using Vertices = std::vector<vec3>;
-             using TeexCoords = std::vector<vec2>;
-             using Normals = std::vector<vec3>;
-             using Colors = std::vector<Color>;
-             using Indices = std::vector<uint32_t>;
-
-             Vertices m_vertices;
-             TeexCoords m_textCoord;
-             Normals m_normals;
-             Colors m_colors;
-             Indices m_indices;
-         };
-
         friend class renderer::RendererFactory;
 
          // Copy
-         Mesh(const Mesh&) = default;
-         Mesh& operator=(const Mesh&) = default;
+         Mesh(const Mesh&) = delete;
+         Mesh& operator=(const Mesh&) = delete;
 
          // Move
          Mesh(Mesh&&) noexcept = default;
          Mesh& operator=(Mesh&&) noexcept = default;
 
-        Mesh(const MeshData data);
+        Mesh(const MeshAsset& data);
         Mesh();
         ~Mesh() = default;
 
@@ -57,15 +42,11 @@
         virtual void refresh();
         virtual uint id() const;
 
-        void load(string file);
-
-        MeshData getData() const;
-        void setData(const MeshData data);
+        void upload(const MeshAsset& asset);
 
      private:
 
         AikoPtr<interfaces::IMeshImpl> backend;
-        MeshData m_data;
 
     };
 

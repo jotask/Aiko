@@ -1,12 +1,14 @@
 #pragma once
 
 #include "modules/base_module.h"
+#include "resources/iresource_invalidator.h"
 
 namespace aiko
 {
 
-    class Camera;
     class DisplayModule;
+    class AssetsManagerModule;
+    class Camera;
     class Mesh;
     class Shader;
 
@@ -21,8 +23,13 @@ namespace aiko
         void setMainCamera(const Camera* camera); // TEMPORAL, this should be removed from here
         void submitLights(const AmbientLight& ambient, const std::vector<LightData>& data);
 
+        // TODO : Temporal, we should just proxy to renderer
+        AikoRenderer& getRenderer() { return *m_renderer.get(); }
+
     protected:
 
+
+        virtual void connect(ModuleConnector*) override;
         virtual void init() override;
         virtual void update() override;
         virtual void beginFrame() override;
@@ -31,9 +38,12 @@ namespace aiko
 
     private:
 
+        AssetsManagerModule* m_assetManager;
         const Camera* m_mainCamera;
 
         std::vector<InstanceItem> m_instances;
+
+        AikoUPtr<AikoRenderer> m_renderer;
 
     };
 

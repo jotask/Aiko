@@ -2,7 +2,7 @@
 
 #include "constants.h"
 #include "models/game_object.h"
-#include "systems/render_system.h"
+#include "assets/asset_manager.h"
 
 namespace aiko
 {
@@ -13,13 +13,9 @@ namespace aiko
 
     }
 
-    void ModelComponent::load(string filename)
+    void ModelComponent::load(string path)
     {
-        m_model.load(filename.c_str());
-    }
-
-    Model& ModelComponent::getModel()
-    {
-        return m_model;
+        IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
+        setModelId(assets->registerModel(path));
     }
 }

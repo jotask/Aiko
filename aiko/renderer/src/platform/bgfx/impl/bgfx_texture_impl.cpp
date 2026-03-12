@@ -8,9 +8,6 @@
 
 #include "constants.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
 namespace aiko::renderer::bgfx
 {
 
@@ -40,30 +37,33 @@ namespace aiko::renderer::bgfx
         return ::bgfx::isValid(m_textureHandle);
     }
 
-    texture::Texture& BgfxTextureImpl::getInfo()
+    TextureInfo BgfxTextureImpl::getInfo()
     {
         return m_texture;
     }
 
-    void BgfxTextureImpl::create(texture::Texture text)
+    void BgfxTextureImpl::create(const TextureDesc& desc)
     {
 
-        AIKO_ASSERT(text.type != texture::TextureType::INVALID, "Invalid texture is not a valid texture type")
+        unload();
 
-        uint64_t flags = 0;
+        const bool hasMips = desc.mipmaps > 1;
 
-        switch (text.type)
+        uint64_t flags = BGFX_TEXTURE_NONE;
+
+        switch (desc.type)
         {
-        case texture::TextureType::Sampled:
+        case TextureType::Sampled:
             {
                 flags = BGFX_TEXTURE_NONE;
             }
             break;
-        case texture::TextureType::RenderTarget:
+        case TextureType::RenderTarget:
             {
                 flags = BGFX_TEXTURE_RT;
             }
-        case texture::TextureType::DepthStencil:
+            break;
+        case TextureType::DepthStencil:
             {
                 flags = BGFX_TEXTURE_RT;
             }
@@ -72,71 +72,59 @@ namespace aiko::renderer::bgfx
             AIKO_ASSERT(false, "Not supported texture type");
         }
 
-        if (text.computeWrite == true)
+        if (desc.type == TextureType::DepthStencil)
+        {
+            AIKO_ASSERT(
+                desc.format == TextureFormat::D24S8 ||
+                desc.format == TextureFormat::D32F,
+                "Depth texture must use depth format"
+            );
+        }
+
+        if (desc.computeWrite == true)
         {
             flags |= BGFX_TEXTURE_COMPUTE_WRITE;
         }
 
-        logger::Log::info("%d, %d", text.width, text.height);
         m_textureHandle = ::bgfx::createTexture2D(
-            text.width,
-            text.height,
-            text.mipmaps,
+            desc.width,
+            desc.height,
+            hasMips,
             1,
-            toBGFXFormat(text.format),
+            toBGFXFormat(desc.format),
             flags,
             nullptr
         );
         AIKO_ASSERT(isValid(), "Invalid Texture");
-        m_texture = text;
-    }
-
-    void BgfxTextureImpl::load(string file_path)
-    {
-        std::string base = global::GLOBAL_ASSET_PATH;
-        base += std::string(file_path);
-
-        AIKO_ASSERT(std::filesystem::exists(base), "Texture don't exist");
-
-        int width, height, channels;
-        // Load image data with stb_image
-        stbi_set_flip_vertically_on_load(true);
-        unsigned char* data = stbi_load(base.c_str(), &width, &height, &channels, 4); // force RGBA
-
-        AIKO_ASSERT(data, "Texture Failed to load texture.")
-
-        // Create bgfx memory from image data
-        const ::bgfx::Memory* mem = ::bgfx::copy(data, width * height * 4);
-        stbi_image_free(data);
-
-        const auto textureFormat = texture::TextureFormat::BGRA8;
-
-        // Create bgfx memory from image data
-        m_textureHandle = ::bgfx::createTexture2D(
-            width,
-            height,
-            false,            // no mipmaps for simplicity
-            1,                // number of layers
-            toBGFXFormat(textureFormat),
-            0,                // flags
-            mem
-        );
-
-        AIKO_ASSERT(::bgfx::isValid(m_textureHandle), "Invalid Texture");
-        m_texture.width = width;
-        m_texture.height = height;
-        m_texture.mipmaps = false;
-        m_texture.format = textureFormat;
-
+        m_texture =
+        {
+            .type = desc.type,
+            .format = desc.format,
+            .width = desc.width,
+            .height = desc.height,
+            .mipmaps = desc.mipmaps,
+            .computeWrite = desc.computeWrite,
+            .valid = isValid()
+        };
     }
 
     void BgfxTextureImpl::unload()
     {
-        ::bgfx::destroy(m_textureHandle);
+        if (isValid() == true)
+        {
+            ::bgfx::destroy(m_textureHandle);
+            m_textureHandle = { :: bgfx::kInvalidHandle };
+        }
+        AIKO_ASSERT(isValid() == false, "Valid texture after unload?")
         m_texture = {};
     }
 
-    void BgfxTextureImpl::setPixels(std::vector<Color>& pixels)
+    void BgfxTextureImpl::update(const TextureAsset& asset)
+    {
+        setPixels(asset.pixels);
+    }
+
+    void BgfxTextureImpl::setPixels(const std::vector<Color>& pixels)
     {
 
         AIKO_ASSERT(isValid(), "Invalid texture");
@@ -147,7 +135,7 @@ namespace aiko::renderer::bgfx
         AIKO_ASSERT(pixels.size() == pixelCount, "Mismatch pixels count and pixel size");
 
         // Allocate memory for RGBA8
-        const auto channels = texture::getChannelCount(m_texture.format);
+        const auto channels = getChannelCount(m_texture.format);
         AIKO_ASSERT(channels == 4, "Not supported, we only support 4 channesl for now");
 
         const ::bgfx::Memory* newMem = ::bgfx::alloc(pixelCount * channels);
@@ -164,10 +152,10 @@ namespace aiko::renderer::bgfx
             for (uint32_t i = 0; i < pixelCount; ++i)
             {
                 Color c = pixels[i];
-                dst[i * 4 + 0] = c.r * 255;
-                dst[i * 4 + 1] = c.g * 255;
-                dst[i * 4 + 2] = c.b * 255;
-                dst[i * 4 + 3] = c.a * 255;
+                dst[i * 4 + 0] = static_cast<uint8_t>(std::clamp(c.r, 0.0f, 1.0f) * 255.0f);
+                dst[i * 4 + 1] = static_cast<uint8_t>(std::clamp(c.g, 0.0f, 1.0f) * 255.0f);
+                dst[i * 4 + 2] = static_cast<uint8_t>(std::clamp(c.b, 0.0f, 1.0f) * 255.0f);
+                dst[i * 4 + 3] = static_cast<uint8_t>(std::clamp(c.a, 0.0f, 1.0f) * 255.0f);
             }
         }
 
@@ -180,33 +168,34 @@ namespace aiko::renderer::bgfx
         );
     }
 
+    /*
     uint64_t BgfxTextureImpl::getSamplerFlags() const
     {
 
         uint64_t flags = 0;
 
-        if (m_texture.minFilter == texture::TextureFilter::Nearest)
+        if (m_texture.minFilter == TextureFilter::Nearest)
         {
             flags |= BGFX_SAMPLER_MIN_POINT;
         }
 
-        if (m_texture.magFilter == texture::TextureFilter::Nearest)
+        if (m_texture.magFilter == TextureFilter::Nearest)
         {
             flags |= BGFX_SAMPLER_MAG_POINT;
         }
 
-        if (m_texture.mipFilter == texture::TextureMipFilter::Nearest)
+        if (m_texture.mipFilter == TextureMipFilter::Nearest)
         {
             flags |= BGFX_SAMPLER_MIP_POINT;
         }
 
-        auto wrapToFlags = [](texture::TextureWrapMode w, bool isU) -> uint64_t
+        auto wrapToFlags = [](TextureWrapMode w, bool isU) -> uint64_t
         {
             switch (w)
             {
-            case texture::TextureWrapMode::Repeat: return 0;
-            case texture::TextureWrapMode::Clamp:  return isU ? BGFX_SAMPLER_U_CLAMP : BGFX_SAMPLER_V_CLAMP;
-            case texture::TextureWrapMode::Mirror: return isU ? BGFX_SAMPLER_U_MIRROR: BGFX_SAMPLER_V_MIRROR;
+            case TextureWrapMode::Repeat: return 0;
+            case TextureWrapMode::Clamp:  return isU ? BGFX_SAMPLER_U_CLAMP : BGFX_SAMPLER_V_CLAMP;
+            case TextureWrapMode::Mirror: return isU ? BGFX_SAMPLER_U_MIRROR: BGFX_SAMPLER_V_MIRROR;
             }
             return 0;
         };
@@ -214,21 +203,22 @@ namespace aiko::renderer::bgfx
         flags |= wrapToFlags(m_texture.wrapU, true);
         flags |= wrapToFlags(m_texture.wrapV, false);
 
-        if (m_texture.anisotropy > 1 && m_texture.minFilter == texture::TextureFilter::Linear)
+        if (m_texture.anisotropy > 1 && m_texture.minFilter == TextureFilter::Linear)
         {
             flags |= BGFX_SAMPLER_MIN_ANISOTROPIC;
         }
 
         return flags;
     }
+    */
 
-    ::bgfx::TextureFormat::Enum BgfxTextureImpl::toBGFXFormat(texture::TextureFormat format) const
+    ::bgfx::TextureFormat::Enum BgfxTextureImpl::toBGFXFormat(TextureFormat format) const
     {
         switch (format)
         {
-            case texture::TextureFormat::BGRA8: return ::bgfx::TextureFormat::BGRA8;
-            case texture::TextureFormat::RGBA8: return ::bgfx::TextureFormat::RGBA8;
-            case texture::TextureFormat::D24S8: return ::bgfx::TextureFormat::D24S8;
+            case TextureFormat::BGRA8: return ::bgfx::TextureFormat::BGRA8;
+            case TextureFormat::RGBA8: return ::bgfx::TextureFormat::RGBA8;
+            case TextureFormat::D24S8: return ::bgfx::TextureFormat::D24S8;
             default: AIKO_ASSERT(false, "Texture format not supported by backend")
         }
         return ::bgfx::TextureFormat::Enum::Unknown;

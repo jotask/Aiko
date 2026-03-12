@@ -2,68 +2,70 @@
 
 #include "models/mesh_factory.h"
 
+#include "assets/asset_manager.h"
+#include "models/game_object.h"
+
+#include "systems/render_system.h"
+
 namespace aiko
 {
 
-    SpriteComponent::SpriteComponent(size_t width, size_t height)
+    SpriteComponent::SpriteComponent()
         : Component("Sprite")
     {
-        create(width, height);
-    }
 
-    SpriteComponent::SpriteComponent(string file)
-        : Component("Sprite")
-    {
-        load(file);
     }
 
     void SpriteComponent::init()
     {
-        m_material.m_shader.load("model");
-        AIKO_ASSERT(m_material.m_shader.isValid(), "Shader is invalid");
-        const Mesh::MeshData data = mesh::factory::generateQuad();
-        m_mesh.setData(data);
-        AIKO_ASSERT(m_mesh.isValid(), "Mesh is invalid");
     }
 
     void SpriteComponent::load(string file)
     {
-        AIKO_ASSERT(file.empty() == false, "Attempting to load empty file")
-        if (m_material.m_diffuse.isValid() == true)
-        {
-            m_material.m_diffuse.unload();
-        }
-        m_material.m_diffuse.load(file);
-        AIKO_ASSERT(m_material.m_diffuse.isValid(), "Texture is invalid");
+        AIKO_ASSERT(file.empty() == false, "Attempting to load empty file");
+        IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
+        m_meshId = assets->registerMesh(mesh::factory::generateQuad());
+        m_material.diffuseTextureId = assets->registerTexture(file);
         is_dirty = false;
-        const auto info = m_material.m_diffuse.getInfo();
-        const size_t pixel_size = info.width * info.height;
-        pixels.reserve(pixel_size);
-        pixels.resize(pixel_size);
-        std::fill(pixels.begin(), pixels.end(), RAYWHITE);
+        pixels.clear();
     }
 
     void SpriteComponent::create(size_t width, size_t height)
     {
-        m_material.m_diffuse.create(width, height);
-        AIKO_ASSERT(m_material.m_diffuse.isValid(), "Invalid texture");
+        IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
+        m_meshId = assets->registerMesh(aiko::mesh::factory::generateQuad());
+        m_width = width;
+        m_height = height;
         is_dirty = true;
+
         const size_t pixel_size = width * height;
-        pixels.reserve(pixel_size);
-        pixels.resize(pixel_size);
-        std::fill(pixels.begin(), pixels.end(), RAYWHITE);
+        pixels.clear();
+        pixels.resize(pixel_size, RAYWHITE);
+
+        TextureAsset textureAsset{};
+        textureAsset.desc.type = TextureType::Sampled;
+        textureAsset.desc.format = TextureFormat::RGBA8;
+        textureAsset.desc.width = static_cast<uint>(width);
+        textureAsset.desc.height = static_cast<uint>(height);
+        textureAsset.desc.mipmaps = 1;
+        textureAsset.desc.computeWrite = false;
+        textureAsset.pixels = pixels;
+
+        m_material.diffuseTextureId = assets->registerTexture(textureAsset);
+
     }
 
     void SpriteComponent::setPixel(size_t x, size_t y, Color c)
     {
-        const auto info = m_material.m_diffuse.getInfo();
-        const size_t index = y * info.width + x;
-        AIKO_ASSERT(x < info.width && y < info.height, "OOB pixel coords");
-        AIKO_ASSERT(pixels.size() == size_t(info.width) * info.height, "Pixel buffer mismatch");
+        AIKO_ASSERT(x < m_width && y < m_height, "OOB pixel coords");
+        const size_t index = y * m_width + x;
+        AIKO_ASSERT(index < pixels.size(), "Pixel buffer mismatch");
+
         if (pixels[index] == c)
         {
             return;
         }
+
         pixels[index] = c;
         is_dirty = true;
     }
@@ -71,8 +73,7 @@ namespace aiko
     void SpriteComponent::setPixels(std::vector<Color> ps)
     {
         AIKO_ASSERT(pixels.size() == ps.size(), "New pixels don't match texture size");
-        pixels.clear();
-        pixels.insert(pixels.end(), ps.begin(), ps.end());
+        pixels = std::move(ps);
         is_dirty = true;
     }
 
@@ -82,18 +83,22 @@ namespace aiko
         {
             return;
         }
+        AIKO_ASSERT(m_material.diffuseTextureId != InvalidAssetId, "SpriteComponent has no texture asset id");
+
+        IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
+        TextureAsset& textureAsset = assets->getMutableTextureAsset(m_material.diffuseTextureId);
+
+        textureAsset.pixels = pixels;
+        textureAsset.desc.width = static_cast<uint>(m_width);
+        textureAsset.desc.height = static_cast<uint>(m_height);
+
         is_dirty = false;
-        m_material.m_diffuse.setPixels(pixels);
-    }
 
-    Mesh& SpriteComponent::getMesh()
-    {
-        return m_mesh;
-    }
+        // Invalidate runtime texture cache so the renderer recreates it from updated CPU asset data.
+        IRenderResourceInvalidator* invalidator = gameobject->getAiko()->getResourceInvalidator();
+        AIKO_ASSERT(invalidator != nullptr, "No RenderSystem available");
+        invalidator->invalidateTexture(m_material.diffuseTextureId);
 
-    Material& SpriteComponent::getMaterial()
-    {
-        return m_material;
     }
 
 }

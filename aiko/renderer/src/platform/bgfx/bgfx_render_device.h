@@ -26,7 +26,7 @@ namespace aiko::renderer::bgfx
         virtual void beginFrame() override;
         virtual void endFrame() override;
 
-        virtual void beginPass(ViewId viewId, const PassDescription& pass, FrameBuffer* frameBuffer = nullptr) override;
+        virtual void beginPass(ViewId viewId, const PassDescription& pass, const FrameBuffer* frameBuffer = nullptr) override;
         virtual void endPass() override;
 
         virtual void present() override;
@@ -49,6 +49,8 @@ namespace aiko::renderer::bgfx
         virtual bool pollReadback(ComputeReadbackResult& result) override;
 
         virtual void drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc) override;
+
+        virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) override;
 
     private:
 

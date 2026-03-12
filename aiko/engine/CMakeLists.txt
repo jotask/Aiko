@@ -29,7 +29,7 @@ target_compile_definitions(Aiko PUBLIC NOMINMAX )
 target_precompile_headers(Aiko PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/aiko_pch.h>")
  
 target_compile_features(Aiko PRIVATE cxx_std_17)
-target_link_libraries(Aiko PRIVATE TracyClient EnTT assimp )
+target_link_libraries(Aiko PRIVATE TracyClient EnTT assimp stb )
 target_link_libraries(Aiko PUBLIC AikoCore AikoRenderer magic_enum imgui )
 
 set_target_properties(Aiko PROPERTIES UNITY_BUILD ON)

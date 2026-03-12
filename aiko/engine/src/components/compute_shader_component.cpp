@@ -1,7 +1,8 @@
 #include "compute_shader_component.h"
 
-#include "display/display_manager.h"
 #include "models/mesh_factory.h"
+#include "assets/icomponent_assetaccess.h"
+#include "models/game_object.h"
 
 namespace aiko
 {
@@ -10,179 +11,57 @@ namespace aiko
     {
     }
 
-    void ComputeShaderComponent::init()
+    void ComputeShaderComponent::update()
     {
-        refreshAll();
-    }
-
-    void ComputeShaderComponent::load(string computer_shader)
-    {
-
-    }
-
-    void ComputeShaderComponent::render()
-    {
-        if (m_needInitDispatch)
-        {
-            ComputePass init;
-            init.shader = &m_particlesInitCS;
-
-            init.buffers.push_back({0, &m_seedPos, ComputeAccess::Read});
-            init.buffers.push_back({1, &m_seedVel, ComputeAccess::Read});
-            init.buffers.push_back({2, &m_posBuffer, ComputeAccess::ReadWrite});
-            init.buffers.push_back({3, &m_velBuffer, ComputeAccess::ReadWrite});
-
-            init.vec4Uniforms.push_back({"u_params", vec4(0, float(m_particleCount), 0, 0)});
-            init.dispatch.groupsX = (m_particleCount + 63) / 64;
-            init.dispatch.groupsY = 1;
-            init.dispatch.groupsZ = 1;
-
-            AikoRenderer::it().enqueueCompute(init);
-
-            m_needInitDispatch = false;
-        }
-
-        if (m_computeInit == false)
-        {
-            return;
-        }
-
-        ComputePass pass;
-        pass.shader = &m_particlesCS;
-
-        // stage 0/1 match shader BUFFER_RW(u_pos...0) and BUFFER_RW(u_vel...1)
-        pass.buffers.push_back({ 0, &m_posBuffer, ComputeAccess::ReadWrite });
-        pass.buffers.push_back({ 1, &m_velBuffer, ComputeAccess::ReadWrite });
-
-        // stage 2 matches IMAGE2D_WO(u_output, rgba8, 2)
-        pass.images.push_back({ 2, &m_debugOut, ComputeAccess::Write });
-
-        const float dt = Time::it().getDeltaTime();
-        pass.vec4Uniforms.push_back({ "u_params", vec4(dt, float(m_particleCount), 0.0f, 0.0f) });
-
-        pass.dispatch.groupsX = (m_particleCount + 63) / 64;
-        pass.dispatch.groupsY = 1;
-        pass.dispatch.groupsZ = 1;
-
-        AikoRenderer::it().enqueueCompute(pass);
-
-        // --- Draw mesh particles using GPU instance buffer (NEW) ---
-        if (m_meshParticlesInit == true)
-        {
-            GpuInstanceDrawDesc draw;
-
-            draw.mesh = &m_particleMesh;
-            draw.material = &m_particleMeshMaterial;
-
-            // Use the compute-updated position buffer directly for now
-            draw.instanceBuffer = &m_posBuffer;
-
-            draw.instanceCount = m_particleCount;
-
-            AikoRenderer::it().drawMeshInstancedGpu(draw);
-        }
-
-        // Request readback once per second (TEMP debug)
-        // TEMP: request a readback once, then request again only after we got a result
         /*
-        if (m_readbackRequested == false)
+        if (hasReadback() == true)
         {
-            ComputeReadbackRequest req;
-            req.buffer = &m_posBuffer;
-            req.byteSize = 16 * sizeof(vec4); // first 16 vec4s
-            AikoRenderer::it().requestReadback(req);
-
-            m_readbackRequested = true;
-        }
-
-        if (m_readbackRequested)
-        {
-            ComputeReadbackResult res;
-            if (AikoRenderer::it().pollReadback(res) && res.ready)
-            {
-                const vec4* v = reinterpret_cast<const vec4*>(res.data.data());
-                logger::Log::info("pos0=(%f,%f,%f,%f) pos1=(%f,%f,%f,%f)",
-                    v[0].x,v[0].y,v[0].z,v[0].w,
-                    v[1].x,v[1].y,v[1].z,v[1].w);
-
-                // request next one (optional)
-                m_readbackRequested = false;
-            }
+            const auto& readback = getLastReadback();
+            const vec4* values = reinterpret_cast<const vec4*>(readback.data.data());
+            logger::Log::info("compute[0] = (%f, %f, %f, %f)", values[0].x, values[0].y, values[0].z, values[0].w);
+            logger::Log::info("compute[1] = (%f, %f, %f, %f)", values[1].x, values[1].y, values[1].z, values[1].w);
+            logger::Log::info("compute[2] = (%f, %f, %f, %f)", values[2].x, values[2].y, values[2].z, values[2].w);
+            logger::Log::info("compute[3] = (%f, %f, %f, %f)", values[3].x, values[3].y, values[3].z, values[3].w);
+            clearReadback();
         }
         */
-
-        // NOTE: no particle draw here (compute-only validation).
-        // If you want to see it, present m_debugOut in AikoRenderer's screen pass.
-        // AikoRenderer::it().setDebugTexture(&m_debugOut);
-
-
-
     }
 
-    void ComputeShaderComponent::refreshAll()
+    void ComputeShaderComponent::load(string path)
     {
-        // TEMP compute validation
-        {
-            auto size = DisplayManager::it().getDisplay()->getDisplaySize();
+        AIKO_ASSERT(path.empty() == false, "Attempting to load empty compute shader path");
+        IComponentAssetAccess* accessor = gameobject->getAiko()->getComponentAssetAccess();
+        AIKO_ASSERT(accessor != nullptr, "No AssetSystem available");
+        setShaderId(accessor->registerComputeShader(path));
+    }
 
-            // output texture for compute (matches IMAGE2D_WO(u_output, rgba8, 2))
-            if (m_debugOut.isValid() == true)
-            {
-                m_debugOut.unload();
-            }
+    void ComputeShaderComponent::requestReadback()
+    {
+        m_requestReadback = true;
+    }
 
-            m_debugOut.create({
-                .type = texture::TextureType::Sampled,
-                .format = texture::TextureFormat::RGBA8,
-                .width = size.x,
-                .height = size.y,
-                .mipmaps = false,
-                .computeWrite = true
-            });
+    bool ComputeShaderComponent::consumeReadbackRequest()
+    {
+        const bool value = m_requestReadback;
+        m_requestReadback = false;
+        return value;
+    }
 
-            m_particlesCS.load("particles.cs");
+    void ComputeShaderComponent::setOutputSize(uint32_t width, uint32_t height)
+    {
+        m_outputWidth = width;
+        m_outputHeight = height;
+    }
 
-            std::vector<vec4> pos(m_particleCount);
-            std::vector<vec4> vel(m_particleCount);
+    void ComputeShaderComponent::requestDispatch()
+    {
+        m_dispatchRequested = true;
+    }
 
-            for (u32 i = 0; i < m_particleCount; ++i)
-            {
-                float t = float(i) / float(m_particleCount);
-                float a = t * 6.2831853f;
-                float r = 0.25f;
-
-                pos[i] = vec4(std::cos(a) * r, std::sin(a) * r, 0.0f, 1.0f);
-                vel[i] = vec4(-std::sin(a) * 0.2f, std::cos(a) * 0.2f, 0.0f, 0.0f);
-            }
-
-            // 1. Seed buffers (CPU uploadable)
-            m_seedPos.createVec4(m_particleCount, pos.data(), ComputeAccess::Read);
-            m_seedVel.createVec4(m_particleCount, vel.data(), ComputeAccess::Read);
-
-            // 2. Simulation buffers (GPU writable, no CPU init)
-            m_posBuffer.createVec4(m_particleCount, nullptr, ComputeAccess::ReadWrite);
-            m_velBuffer.createVec4(m_particleCount, nullptr, ComputeAccess::ReadWrite);
-
-            m_needInitDispatch = true;
-            m_particlesInitCS.load("particles_init.cs");
-
-            m_computeInit = true;
-        }
-
-        // --- GPU instanced mesh particle rendering setup (NEW) ---
-        if (m_meshParticlesInit == false)
-        {
-
-            auto data = mesh::factory::generateCube();
-            m_particleMesh.setData(data);
-
-            // load a shader that supports GPU instance buffer fetch
-            m_particleMeshMaterial.m_shader.load("mesh_gpuinst.vs", "model.fs");;
-            m_particleMeshMaterial.m_baseColor = MAGENTA;
-            m_particleMeshMaterial.m_lit = false;
-
-            m_meshParticlesInit = true;
-
-        }
+    bool ComputeShaderComponent::consumeDispatchRequest()
+    {
+        const bool value = m_dispatchRequested;
+        m_dispatchRequested = false;
+        return value;
     }
 }

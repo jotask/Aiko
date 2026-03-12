@@ -1,10 +1,9 @@
 #pragma once
 
 #include <vector>
-#include <cstdint>
 
 #include "aiko_types.h"
-#include "types/render_types.h"   // for ViewId, ComputeAccess
+#include "render_types.h"
 #include "models/texture.h"
 
 namespace aiko
@@ -36,11 +35,12 @@ namespace aiko
     };
 
     using ReadbackId = uint64_t;
+    static constexpr ReadbackId InvalidReadbackId = 0;
 
     struct ComputeReadbackRequest
     {
         ReadbackId id = 0;                 // filled by caller or device
-        const ComputeBuffer* buffer= nullptr;
+        const ComputeBuffer* buffer = nullptr;
         uint32_t byteSize = 0;
     };
 
@@ -48,7 +48,7 @@ namespace aiko
     {
         ReadbackId id = 0;                 // filled by caller or device
         bool ready = false;
-        std::vector<uint8_t> data;
+        std::vector<uint8_t> data; // raw bytes
     };
 
     struct ComputeBufferBinding
@@ -66,7 +66,7 @@ namespace aiko
 
     struct ComputePass
     {
-        const ComputeShader* shader = nullptr;
+        ComputeShader* shader = nullptr;
         std::vector<ComputeImageBinding> images;
         ComputeDispatch dispatch;
         std::vector<ComputeBufferBinding> buffers;

@@ -7,7 +7,7 @@ namespace aiko
     namespace mesh::factory
     {
 
-        void recalculateNormals(Mesh::MeshData& data)
+        void recalculateNormals(MeshAsset& data)
         {
 
             const int vertexCount = static_cast<int>(data.m_vertices.size());
@@ -48,10 +48,10 @@ namespace aiko
 
         // 3D
 
-        Mesh::MeshData generateCube()
+        MeshAsset generateCube()
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             data.m_vertices = {
                 {-0.5f,  0.5f,  0.5f}, {-0.5f, -0.5f,  0.5f}, { 0.5f, -0.5f,  0.5f}, { 0.5f,  0.5f,  0.5f}, // Front
@@ -64,7 +64,7 @@ namespace aiko
 
             data.m_textCoord = std::vector<vec2>(data.m_vertices.size(), {0.0f,1.0f});
 
-            data.m_colors = std::vector<Color>(data.m_vertices.size(), AIKO_DEFAULT_PRIMITIVE_COLOR);
+            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
 
             data.m_indices = {
                 0,2,1,      0,3,2,       // Front
@@ -78,10 +78,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generatePyramid()
+        MeshAsset generatePyramid()
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             const float h2 = 1.0f / 2.0f;
             const float b2 = 1.0f / 2.0f;
@@ -105,7 +105,7 @@ namespace aiko
                 {1.0f, 0.0f},
             };
 
-            data.m_colors = std::vector<Color>(data.m_vertices.size(), AIKO_DEFAULT_PRIMITIVE_COLOR);
+            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
 
             data.m_indices =
             {
@@ -119,10 +119,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshSphere(int rings, int slices)
+        MeshAsset generateMeshSphere(int rings, int slices)
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             constexpr const float r2 = 1.0f / 2.0f;
 
@@ -147,7 +147,7 @@ namespace aiko
 
                     data.m_vertices.push_back({x, y, z});
                     data.m_textCoord.push_back({ u, v });
-                    data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
+                    data.m_colors.push_back(WHITE);
 
                 }
             }
@@ -173,10 +173,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshCylinder(int slices)
+        MeshAsset generateMeshCylinder(int slices)
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             constexpr const float r2 = 1.0f / 2.0f;
             constexpr const float halfHeight = 1.0f / 2.0f;
@@ -193,12 +193,12 @@ namespace aiko
                 // Bottom circle vertex
                 data.m_vertices.push_back({ x, -halfHeight, z });
                 data.m_textCoord.push_back({ u, 0.0f });
-                data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
+                data.m_colors.push_back(WHITE);
 
                 // Top circle vertex
                 data.m_vertices.push_back({ x, halfHeight, z });
                 data.m_textCoord.push_back({ u, 1.0f });
-                data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
+                data.m_colors.push_back(WHITE);
 
             }
 
@@ -227,7 +227,7 @@ namespace aiko
             const int bottomCenterIndex = int(data.m_vertices.size());
             data.m_vertices.push_back({ 0.0f, -halfHeight, 0.0f });
             data.m_textCoord.push_back({ 0.5f, 0.5f });
-            data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
+            data.m_colors.push_back(WHITE);
 
             // Generate bottom cap
             for (int i = 0; i < slices; ++i)
@@ -242,7 +242,7 @@ namespace aiko
             const int topCenterIndex = bottomCenterIndex + 1;
             data.m_vertices.push_back({ 0.0f, halfHeight, 0.0f });
             data.m_textCoord.push_back({ 0.5f, 0.5f });
-            data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
+            data.m_colors.push_back(WHITE);
 
             // Generate top cap
             for (int i = 0; i < slices; ++i)
@@ -257,10 +257,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshPlane(float width, float length, int resX, int resZ)
+        MeshAsset generateMeshPlane(float width, float length, int resX, int resZ)
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             // Step size per grid cell
             float stepX = width / float(resX - 1);
@@ -277,7 +277,7 @@ namespace aiko
 
                     data.m_vertices.push_back({ vx, vy, vz });
                     data.m_textCoord.push_back({ float(x) / (resX - 1), float(z) / (resZ - 1) });
-                    data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR); // all white
+                    data.m_colors.push_back(WHITE); // all white
                 }
             }
 
@@ -310,19 +310,15 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshTorus()
+        MeshAsset generateMeshTorus(float majorRadius, float minorRadius, uint radSeg, uint sides)
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
-            constexpr const float majorRadius   = 1.0f;
-            constexpr const float minorRadius   = 0.3f;
-            constexpr const uint radSeg         = 32;
-            constexpr const uint sides          = 16;
-            constexpr const Color color         = AIKO_DEFAULT_PRIMITIVE_COLOR;
+            constexpr const Color color         = WHITE;
 
-            constexpr const float maxDiameter = 2.0f * (majorRadius + minorRadius);
-            constexpr const float scale = 1.0f / maxDiameter;
+            const float maxDiameter = 2.0f * (majorRadius + minorRadius);
+            const float scale = 1.0f / maxDiameter;
 
             for (int i = 0; i <= radSeg; ++i)
             {
@@ -374,18 +370,12 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateMeshKnot()
+        MeshAsset generateMeshKnot(int p, int q, float radius, float tube, int radSeg, int sides)
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
-            constexpr const int p = 2;
-            constexpr const int q = 3;
-            constexpr const float radius = 1.0f;
-            constexpr const float tube = 0.2f;
-            constexpr const int radSeg = 128;
-            constexpr const int sides = 16;
-            constexpr const Color color = AIKO_DEFAULT_PRIMITIVE_COLOR;
+            constexpr const Color color = WHITE;
 
             constexpr const float size = 1.0f;
 
@@ -478,37 +468,35 @@ namespace aiko
 
         // 2D
 
-        Mesh::MeshData generatePoint()
+        MeshAsset generatePoint()
         {
-
-            Mesh::MeshData data;
-
+            MeshAsset data;
             data.m_vertices.push_back({ 0.0f });
             data.m_textCoord.push_back({ 0.0f }); // Not used
-            data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
+            data.m_colors.push_back(WHITE);
             data.m_indices.push_back(0);
             recalculateNormals(data);
             return data;
         }
 
-        Mesh::MeshData generateLine(vec3 start, vec3 end)
+        MeshAsset generateLine(vec3 start, vec3 end)
         {
-            Mesh::MeshData data;
+            MeshAsset data;
             data.m_vertices.push_back(start);
             data.m_vertices.push_back(end);
             data.m_textCoord.push_back({ 0.0f, 1.0f });
             data.m_textCoord.push_back({ 0.0f, 1.0f });
-            data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
-            data.m_colors.push_back(AIKO_DEFAULT_PRIMITIVE_COLOR);
+            data.m_colors.push_back(WHITE);
+            data.m_colors.push_back(WHITE);
             data.m_indices = { 0, 1 };
             recalculateNormals(data);
             return data;
         }
         
-        Mesh::MeshData generateQuad()
+        MeshAsset generateQuad()
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             data.m_vertices =
             {
@@ -526,7 +514,7 @@ namespace aiko
                 {0.0f, 1.0f},
             };
 
-            data.m_colors = std::vector<Color>(data.m_vertices.size(), AIKO_DEFAULT_PRIMITIVE_COLOR);
+            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
 
             data.m_indices =
             {
@@ -537,13 +525,13 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateCircle(uint segments)
+        MeshAsset generateCircle(uint segments)
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             constexpr float radius = 1.0f / 2.0f;
-            constexpr Color color = AIKO_DEFAULT_PRIMITIVE_COLOR;
+            constexpr Color color = WHITE;
 
             // Center vertex
             data.m_vertices.push_back({ 0.0f });
@@ -575,10 +563,10 @@ namespace aiko
             return data;
         }
 
-        Mesh::MeshData generateTriangle()
+        MeshAsset generateTriangle()
         {
 
-            Mesh::MeshData data;
+            MeshAsset data;
 
             data.m_vertices =
             {
@@ -594,7 +582,7 @@ namespace aiko
                 {1.0f, 0.0f},
             };
 
-            data.m_colors = std::vector<Color>(data.m_vertices.size(), AIKO_DEFAULT_PRIMITIVE_COLOR);
+            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
 
             data.m_indices =
             {

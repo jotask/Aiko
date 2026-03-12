@@ -8,7 +8,7 @@
 
 #include "models/game_object.h"
 #include "components/camera_component.h"
-#include "models/camera.h"
+#include "../../../aiko/renderer/src/models/camera.h"
 
 #include "algorithm/bubble_sort.h"
 #include "algorithm/insertion_sort.h"

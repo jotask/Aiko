@@ -17,15 +17,15 @@
         friend class renderer::RendererFactory;
 
         // Copy
-        ComputeShader(const ComputeShader&) = default;
-        ComputeShader& operator=(const ComputeShader&) = default;
+        ComputeShader(const ComputeShader&) = delete;
+        ComputeShader& operator=(const ComputeShader&) = delete;
 
         // Move
         ComputeShader(ComputeShader&&) noexcept = default;
         ComputeShader& operator=(ComputeShader&&) noexcept = default;
 
         ComputeShader();
-        virtual ~ComputeShader() = default;
+        ~ComputeShader() = default;
 
         void* getImpl() const { return backend.get(); }
 

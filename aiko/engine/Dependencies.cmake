@@ -70,6 +70,25 @@ set_target_properties(EnTT PROPERTIES FOLDER "Dependencies")
 #----------------------------------------------------------------------
 
 FetchContent_Declare(
+        stb
+        GIT_REPOSITORY  https://github.com/nothings/stb.git
+        GIT_TAG         master
+        GIT_SHALLOW     TRUE
+        GIT_PROGRESS    TRUE
+)
+FetchContent_GetProperties(stb)
+if(NOT stb_POPULATED)
+    FetchContent_MakeAvailable(stb)
+    message("Fetching stb")
+
+    add_library(stb INTERFACE ${stb_SOURCE_DIR})
+    target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
+endif()
+set_target_properties(stb PROPERTIES FOLDER "Dependencies")
+
+#----------------------------------------------------------------------
+
+FetchContent_Declare(
     magic_enum
     GIT_REPOSITORY https://github.com/Neargye/magic_enum.git
     GIT_TAG        v0.9.7

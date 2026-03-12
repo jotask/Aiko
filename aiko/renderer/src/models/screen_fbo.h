@@ -3,11 +3,12 @@
 #include <aiko_types.h>
 #include <math/math.h>
 
-#include "models/texture.h"
-#include "models/frame_buffer.h"
-#include "models/mesh.h"
+#include "texture.h"
+#include "frame_buffer.h"
+#include "material.h"
+#include "mesh.h"
 
-namespace aiko
+ namespace aiko
 {
     namespace renderer
     {
@@ -21,12 +22,12 @@ namespace aiko
         friend class renderer::RendererFactory;
 
         // Copy
-        ScreenFbo(const ScreenFbo&) = default;
-        ScreenFbo& operator=(const ScreenFbo&) = default;
+        ScreenFbo(const ScreenFbo&) = delete;
+        ScreenFbo& operator=(const ScreenFbo&) = delete;
 
         // Move
-        ScreenFbo(ScreenFbo&&) noexcept = default;
-        ScreenFbo& operator=(ScreenFbo&&) noexcept = default;
+        ScreenFbo(ScreenFbo&&) noexcept = delete;
+        ScreenFbo& operator=(ScreenFbo&&) noexcept = delete;
 
         ScreenFbo();
         ~ScreenFbo() = default;
@@ -41,12 +42,13 @@ namespace aiko
         void unload();
 
         // getters
-        FrameBuffer getFrameBuffer() const;
-        Mesh getMesh() const;
-        Material getMaterial() const;
+        const FrameBuffer& getFrameBuffer() const { return m_frameBuffer; }
+        const Mesh& getMesh() const { return m_mesh; }
+        const Material& getMaterial() const { return m_material; }
 
     private:
 
+        Shader passthrough;
         FrameBuffer m_frameBuffer;
         Mesh m_mesh;
         Material m_material;

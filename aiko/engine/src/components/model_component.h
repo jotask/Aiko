@@ -2,7 +2,7 @@
 
 #include "aiko_types.h"
 #include "models/component.h"
-#include "models/model.h"
+#include "metadata/material_instance.h"
 
 namespace aiko
 {
@@ -14,12 +14,19 @@ namespace aiko
         ModelComponent();
         virtual ~ModelComponent() = default;
 
+        void setModelId(const AssetId& id) { m_modelId = id; }
+        const AssetId& getModelId() const { return m_modelId; }
+
         void load(string);
 
-        Model& getModel();
+        MaterialInstance& getMaterialInstance() { return m_materialInstance; }
+        const MaterialInstance& getMaterialInstance() const { return m_materialInstance; }
+
     private:
 
-        Model m_model;
+        AssetId m_modelId = InvalidAssetId;
+        MaterialInstance m_materialInstance;
+
     };
 
 }

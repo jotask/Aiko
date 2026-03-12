@@ -11,6 +11,7 @@
 #include "components/light_component.h"
 #include "components/sprite_component.h"
 #include "components/model_component.h"
+#include "components/particle_emitter_component.h"
 #include "models/camera.h"
 #include "types/color.h"
 
@@ -23,10 +24,15 @@
 #define TEST_COMPONENTS
 #define TEST_PRIMITIVES
 #define TEST_LIGHTS
+#define TEST_CS
 #define TEST_PARTICLE_CS
 
 namespace sb
 {
+
+    static constexpr uint32_t kCount = 64;
+
+
     void Sandbox::init()
     {
 
@@ -76,29 +82,34 @@ namespace sb
         m_go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
+        mesh1->loadDebugCube();
         
         m_go2 = app->Instantiate(root, "Cube2");
         m_go2->transform().position = { -1.0f, 0.0f, 5.0f };
         m_go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
+        mesh2->loadDebugCube();
 
         m_texture = app->Instantiate(root, "Texture");
         m_texture->transform().position = { 0.0f, -0.55f, 5.0f };
         m_texture->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texture->transform().scale = { 1.0f, 1.0f, 1.0f };
-        auto mesh3 = m_texture->addComponent<aiko::SpriteComponent>("texel_checker.png");
+        auto mesh3 = m_texture->addComponent<aiko::SpriteComponent>();
+        mesh3->load("texel_checker.png");
 
         m_texturePbo = app->Instantiate(root, "PboTexture");
         m_texturePbo->transform().position = { 0.0f, 0.55f, 5.0f };
         m_texturePbo->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texturePbo->transform().scale = { 1.0f, 1.0f, 1.0f };
-        auto mesh4 = m_texturePbo->addComponent<aiko::SpriteComponent>(128, 128);
-        aiko::Material& material = mesh4->getMaterial();
-        material.m_lit = false;
-        material.m_diffuse.setTextureFilter(aiko::texture::TextureFilter::Nearest, aiko::texture::TextureFilter::Nearest);
-        material.m_diffuse.setTextureMipFilter(aiko::texture::TextureMipFilter::None);
-        material.m_diffuse.setTextureWrapMode(aiko::texture::TextureWrapMode::Clamp, aiko::texture::TextureWrapMode::Clamp);
+        auto mesh4 = m_texturePbo->addComponent<aiko::SpriteComponent>();
+        mesh4->create(128, 128);
+
+        aiko::MaterialAsset& material = mesh4->getMaterial();
+        material.lit = false;
+        // material.setTextureFilter(aiko::TextureFilter::Nearest, aiko::TextureFilter::Nearest);
+        // material.setTextureMipFilter(aiko::TextureMipFilter::None);
+        // material.setTextureWrapMode(aiko::TextureWrapMode::Clamp, aiko::TextureWrapMode::Clamp);
 
 #endif
 
@@ -123,10 +134,74 @@ namespace sb
         }
 #endif
 
-#ifdef TEST_PARTICLE_CS
-        auto ps = app->Instantiate(root, "Particles");
-        auto psCmp = ps->addComponent<aiko::ComputeShaderComponent>();
+#ifdef TEST_CS
+
+        if constexpr(true)
+        {
+            auto computer_test = app->Instantiate(root, "ComputeTest");
+            auto computeCmp = computer_test->addComponent<aiko::ComputeShaderComponent>();
+            computeCmp->load("compute_test");
+            computeCmp->setElementCount(64);
+            computeCmp->setExecutionMode(aiko::ComputeShaderComponent::ComputeExecutionMode::OnDemand);
+        }
+
+        if constexpr(true)
+        {
+            auto computeGradient = app->Instantiate(root, "GradientCompute");
+
+            computeGradient->transform().position = { 0.0f, 2.5f, 0.0f };
+            computeGradient->transform().scale = { 1.0f, 1.0f, 1.0f };
+
+            auto computeCmp = computeGradient->addComponent<aiko::ComputeShaderComponent>();
+            computeCmp->load("gradient");
+            computeCmp->setUseOutputTexture(true);
+            computeCmp->setOutputSize(512, 512);
+            computeCmp->setExecutionMode(aiko::ComputeShaderComponent::ComputeExecutionMode::Continuous);
+            computeCmp->setUpdateInterval(0.0f);
+
+            auto sprite = computeGradient->addComponent<aiko::SpriteComponent>();
+            sprite->create(512, 512);
+            sprite->getMaterial().lit = false;
+            sprite->getMaterial().useVertexColor = false;
+
+        }
+
 #endif
+
+#ifdef TEST_PARTICLE_CS
+        auto ps = app->Instantiate(root, "Particle Emitter");
+        ps->transform().position = { 0.0f, 0.0f, -3.5f };
+        auto emitter = ps->addComponent<aiko::ParticleEmitterComponent>();
+        emitter->setMaxParticles(1024 * 1024);
+        emitter->setLifetime(4.0f);
+        emitter->setStartSpeed(2.0f);
+        emitter->setSpawnRate(1000.0f);
+        emitter->setPlaying(true);
+        emitter->setSpawnShape(aiko::ParticleEmitterComponent::ParticleSpawnShape::Point);
+        constexpr float spawnSize = 2.5f;
+        emitter->setSpawnRadius(spawnSize);
+        emitter->setSpawnBoxExtents({spawnSize, spawnSize, spawnSize});
+
+        // Point
+        if (emitter->getSpawnShape() == aiko::ParticleEmitterComponent::ParticleSpawnShape::Point)
+        {
+            emitter->setDirection({1.0f, 0.0f, 0.0f});
+            emitter->setDirectionRandomness(0.85f);
+            emitter->setGravity({0.0f, -1.5f, 0.0f});
+        }
+
+        // Sphere
+        if (emitter->getSpawnShape() == aiko::ParticleEmitterComponent::ParticleSpawnShape::Sphere)
+        {
+            emitter->setStartSpeed(2.5f);
+            emitter->setDirection({1.0f, 1.0f, 0.0f});
+            emitter->setDirectionRandomness(1.0f);
+            emitter->setGravity({0.0f, -1.5f, 0.0f});
+        }
+
+        emitter->requestReset();
+#endif
+
 
     }
 
@@ -176,14 +251,16 @@ namespace sb
 
                     static std::vector<Particle> s_particles;
 
-                    const auto material = cmp->getMaterial();
+                    const aiko::MaterialAsset material = cmp->getMaterial();
 
-                    AIKO_ASSERT(material.m_diffuse.isValid(), "Invalid texture?")
+                    // AIKO_ASSERT(material.m_diffuseTexture.isValid(), "Invalid texture?")
+                    // const auto info = material.m_diffuseTexture.getInfo();
 
-                    const auto info = material.m_diffuse.getInfo();
-
-                    const int w = info.width - 1;
-                    const int h = info.height - 1;
+                    // TEMP for compilation
+                    constexpr int texWidth = 128;
+                    constexpr int texHeight = 128;
+                    const int w = texWidth - 1;
+                    const int h = texHeight - 1;
 
                     if (s_particles.size() != N_PARTICLES)
                     {
@@ -223,10 +300,8 @@ namespace sb
                     if (S_CLEAR_BRACKGROUND)
                     {
                         std::vector<aiko::Color> pixels;
-                        pixels.clear();
-                        pixels.reserve(info.width * info.height);
-                        std::fill(pixels.begin(), pixels.end(), aiko::RAYWHITE);
-                        cmp->setPixels(pixels);
+                        pixels.resize(texWidth * texHeight, aiko::RAYWHITE);
+                        cmp->setPixels(std::move(pixels));
                     }
                     for (auto it : s_particles)
                     {
@@ -259,26 +334,20 @@ namespace sb
 
         constexpr const float SIZE = 1.0f;
 
-        // 2D
-        app->getRenderSystem()->drawPoint({ 1.0f, 1.0f, 0.0f });
+        app->getRenderSystem()->renderPoint({ 1.0f, 1.0f, 0.0f });
         app->getRenderSystem()->renderLine({ -2.0f, -1.0f, 0.0f }, { 2.0f, -1.0f, 0.0f });
-
-        app->getRenderSystem()->drawRectangle({ 0.0f, 1.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->renderCircle({ 2.0f, 1.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->drawTriangle({ -1.0f, 1.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderRectangle({ 0.0f, 1.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderCircle({ 2.0f, 1.0f, 0.0f }, SIZE, 32);
+        app->getRenderSystem()->renderTriangle({ -1.0f, 1.0f, 0.0f }, SIZE);
         app->getRenderSystem()->renderNgon({ -2.0f, 1.0f, 0.0f }, SIZE, 6);
-
-        // 3D
-        app->getRenderSystem()->drawCube({ 1.0f, 0.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->drawPyramid({ 0.0f, 0.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderCube({ 1.0f, 0.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderPyramid({ 0.0f, 0.0f, 0.0f }, SIZE);
         app->getRenderSystem()->renderSphere({ -1.0f, 0.0f, 0.0f }, SIZE);
         app->getRenderSystem()->renderCylinder({ -2.0f, 0.0f, 0.0f }, SIZE, 6);
         app->getRenderSystem()->renderPolygon({ -3.0f, 0.0f, 0.0f }, SIZE, 6, 6);
-
         app->getRenderSystem()->renderTorus({ 2.0f, 0.0f, 0.0f }, SIZE);
         app->getRenderSystem()->renderKnot({ 3.0f, 0.0f, 0.0f }, SIZE);
-
-        app->getRenderSystem()->drawPlane({ 0.0f, -2.0f, 0.0f }, SIZE);
+        app->getRenderSystem()->renderGrid({ 0.0f, -2.0f, 0.0f }, SIZE, {10, 10});
 
 #endif
 
@@ -287,7 +356,7 @@ namespace sb
         {
             for (auto& light : m_lights)
             {
-                app->getRenderSystem()->renderSphere(light.obj->transform().position, 0.1f, 25 , light.cmp->color);
+                app->getRenderSystem()->renderSphere(light.obj->transform().position, 0.1f, 25 /*, light.cmp->color*/ );
             }
         }
 #endif

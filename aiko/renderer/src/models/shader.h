@@ -19,12 +19,12 @@ namespace aiko
         friend class renderer::RendererFactory;
 
         // Copy
-        Shader(const Shader&) = default;
-        Shader& operator=(const Shader&) = default;
+        Shader(const Shader&) = delete;
+        Shader& operator=(const Shader&) = delete;
 
         // Move
-        Shader(Shader&&) noexcept = default;
-        Shader& operator=(Shader&&) noexcept = default;
+        Shader(Shader&&) noexcept = delete;
+        Shader& operator=(Shader&&) noexcept = delete;
 
         Shader();
         ~Shader() = default;

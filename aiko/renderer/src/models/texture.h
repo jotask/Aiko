@@ -2,7 +2,8 @@
 
 #include <aiko_types.h>
 
-#include "types/textures.h"
+#include "assets/types/texture_asset.h"
+#include "types/texture_types.h"
 #include "interfaces/itexture_impl.h"
 
 namespace aiko
@@ -19,8 +20,8 @@ namespace aiko
         friend class renderer::RendererFactory;
 
         // Copy
-        Texture(const Texture&) = default;
-        Texture& operator=(const Texture&) = default;
+        Texture(const Texture&) = delete;
+        Texture& operator=(const Texture&) = delete;
 
         // Move
         Texture(Texture&&) noexcept = default;
@@ -35,21 +36,18 @@ namespace aiko
         void unuse();
         bool isValid() const;
         uint id() const;
-        texture::Texture getInfo() const;
-
-        void setTextureFilter(texture::TextureFilter min, texture::TextureFilter mag);
-        void setTextureMipFilter(texture::TextureMipFilter mip);
-        void setTextureWrapMode(texture::TextureWrapMode wrapU, texture::TextureWrapMode wrapV);
+        TextureInfo getInfo() const;
 
         // load
         void create();
-        void create(int, int);
-        void create(texture::Texture);
-        void load(string);
+        void create(int width, int height);
+        void create(const TextureDesc& desc);
+        void upload(const TextureAsset& asset);
+        void update(const TextureAsset& asset);
         void unload();
 
         // Modify
-        virtual void setPixels(std::vector<Color>&);
+        virtual void setPixels(const std::vector<Color>&);
 
     private:
 

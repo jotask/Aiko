@@ -13,7 +13,7 @@ namespace aiko
 
     ComputeBuffer::~ComputeBuffer()
     {
-        destroy();
+        unload();
     }
 
     bool ComputeBuffer::isValid() const
@@ -31,7 +31,7 @@ namespace aiko
         backend->update(start, count, data);
     }
 
-    void ComputeBuffer::destroy()
+    void ComputeBuffer::unload()
     {
         backend->destroy();
     }

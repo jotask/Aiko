@@ -29,7 +29,7 @@ namespace aiko::renderer
         virtual void beginFrame() = 0;
         virtual void endFrame() = 0;
 
-        virtual void beginPass(ViewId viewId, const PassDescription& pass, FrameBuffer* frameBuffer = nullptr) = 0;
+        virtual void beginPass(ViewId viewId, const PassDescription& pass, const FrameBuffer* frameBuffer = nullptr) = 0;
         virtual void endPass() = 0;
 
         virtual void present() = 0;
@@ -51,6 +51,9 @@ namespace aiko::renderer
         virtual void requestReadback(const ComputeReadbackRequest& request) = 0;
         virtual bool pollReadback(ComputeReadbackResult& result) = 0;
         virtual void drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc) = 0;
+
+        // Transient primitives
+        virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) = 0;
 
     };
 

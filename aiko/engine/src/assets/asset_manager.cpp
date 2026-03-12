@@ -1,0 +1,312 @@
+#include "asset_manager.h"
+
+#include "asset_importer.h"
+
+namespace aiko
+{
+
+    const TextureAsset& AssetManager::getTextureAsset(const AssetId& id)
+    {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get texture from invalid UUID")
+        auto it = m_textureAssets.find(id);
+        if (it != m_textureAssets.end())
+        {
+            return it->second;
+        }
+        auto pathIt = m_texturePaths.find(id);
+        AIKO_ASSERT(pathIt != m_texturePaths.end(), "Texture asset id not registered");
+        TextureAsset asset = AssetImporter::loadTexture(pathIt->second, this);
+        auto [insertedIt, _] = m_textureAssets.emplace(id, std::move(asset));
+        return insertedIt->second;
+    }
+
+    const MeshAsset& AssetManager::getMeshAsset(const AssetId& id)
+    {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get mesh from invalid UUID")
+        auto it = m_meshAssets.find(id);
+        if (it != m_meshAssets.end())
+        {
+            return it->second;
+        }
+
+        auto pathIt = m_meshPaths.find(id);
+        AIKO_ASSERT(pathIt != m_meshPaths.end(), "Mesh asset id not registered");
+
+        MeshAsset asset = AssetImporter::loadMesh(pathIt->second, this);
+        auto [insertedIt, _] = m_meshAssets.emplace(id, std::move(asset));
+        return insertedIt->second;
+    }
+
+    const ModelAsset& AssetManager::getModelAsset(const AssetId& id)
+    {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get model from invalid UUID")
+        auto it = m_modelAssets.find(id);
+        if (it != m_modelAssets.end())
+        {
+            return it->second;
+        }
+
+        auto pathIt = m_modelPaths.find(id);
+        AIKO_ASSERT(pathIt != m_modelPaths.end(), "Model asset id not registered");
+
+        ModelAsset asset = AssetImporter::loadModel(pathIt->second, this);
+        auto [insertedIt, _] = m_modelAssets.emplace(id, std::move(asset));
+        return insertedIt->second;
+    }
+
+    const ShaderAsset& AssetManager::getShaderAsset(const AssetId& id)
+    {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get shader from invalid UUID")
+        auto it = m_shaderAssets.find(id);
+        if (it != m_shaderAssets.end())
+        {
+            return it->second;
+        }
+
+        auto pathIt = m_shaderPaths.find(id);
+        AIKO_ASSERT(pathIt != m_shaderPaths.end(), "Shader asset id not registered");
+
+        ShaderAsset asset = AssetImporter::loadShader(pathIt->second, this);
+        auto [insertedIt, _] = m_shaderAssets.emplace(id, std::move(asset));
+        return insertedIt->second;
+    }
+
+    const ComputeShaderAsset& AssetManager::getComputeShaderAsset(const AssetId& id)
+    {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get shader from invalid UUID")
+        auto it = m_computeShaderAssets.find(id);
+        if (it != m_computeShaderAssets.end())
+        {
+            return it->second;
+        }
+
+        auto pathIt = m_computeShaderPaths.find(id);
+        AIKO_ASSERT(pathIt != m_computeShaderPaths.end(), "Shader asset id not registered");
+
+        ComputeShaderAsset asset = AssetImporter::loadComputeShader(pathIt->second, this);
+        auto [insertedIt, _] = m_computeShaderAssets.emplace(id, std::move(asset));
+        return insertedIt->second;
+    }
+
+    TextureAsset& AssetManager::getMutableTextureAsset(const AssetId& id)
+    {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get texture from invalid UUID")
+        auto it = m_textureAssets.find(id);
+        if (it != m_textureAssets.end())
+        {
+            return it->second;
+        }
+        auto pathIt = m_texturePaths.find(id);
+        AIKO_ASSERT(pathIt != m_texturePaths.end(), "Texture asset id not registered");
+        TextureAsset asset = AssetImporter::loadTexture(pathIt->second, this);
+        auto [insertedIt, _] = m_textureAssets.emplace(id, std::move(asset));
+        return insertedIt->second;
+    }
+
+    AssetId AssetManager::registerTexture(std::string_view path)
+    {
+        const string p(path);
+        for (const auto& [id, existingPath] : m_texturePaths)
+        {
+            if (existingPath == p)
+            {
+                return id;
+            }
+        }
+        AssetId id;
+        m_texturePaths[id] = p;
+        return id;
+    }
+
+    AssetId AssetManager::registerTexture(const TextureAsset& asset)
+    {
+        AssetId id;
+        m_textureAssets.emplace(id, asset);
+        return id;
+    }
+
+    AssetId AssetManager::registerMesh(std::string_view path)
+    {
+        const string p(path);
+        for (const auto& [id, existingPath] : m_meshPaths)
+        {
+            if (existingPath == p)
+            {
+                return id;
+            }
+        }
+        AssetId id;
+        m_meshPaths[id] = p;
+        return id;
+    }
+
+    AssetId AssetManager::registerMesh(const MeshAsset& asset)
+    {
+        AssetId id;
+        m_meshAssets.emplace(id, asset);
+        return id;
+    }
+
+    AssetId AssetManager::registerModel(std::string_view path)
+    {
+        const string p(path);
+        for (const auto& [id, existingPath] : m_modelPaths)
+        {
+            if (existingPath == p)
+            {
+                return id;
+            }
+        }
+        AssetId id;
+        m_modelPaths[id] = p;
+        return id;
+    }
+
+    AssetId AssetManager::registerShader(std::string_view vsPath, std::string_view fsPath)
+    {
+        ShaderAsset asset{};
+        asset.vertexPath = string(vsPath);
+        asset.fragmentPath = string(fsPath);
+        return registerShaderAsset(asset);
+    }
+
+    AssetId AssetManager::registerShader(std::string_view path)
+    {
+        const string p(path);
+
+        for (const auto& [id, existingPath] : m_shaderPaths)
+        {
+            if (existingPath == p)
+            {
+                return id;
+            }
+        }
+
+        const string explicitKey = p + ".vs|" + p + ".fs";
+        auto explicitIt = m_shaderExplicitKeys.find(explicitKey);
+        if (explicitIt != m_shaderExplicitKeys.end())
+        {
+            return explicitIt->second;
+        }
+
+        AssetId id;
+        m_shaderPaths[id] = p;
+        return id;
+    }
+
+    AssetId AssetManager::registerComputeShader(std::string_view path)
+    {
+        const string p(path);
+        for (const auto& [id, existingPath] : m_computeShaderPaths)
+        {
+            if (existingPath == p)
+            {
+                return id;
+            }
+        }
+        AssetId id;
+        m_computeShaderPaths[id] = p;
+        return id;
+    }
+
+    bool AssetManager::hasTextureAsset(const AssetId& id) const
+    {
+        return m_textureAssets.find(id) != m_textureAssets.end() || m_texturePaths.find(id) != m_texturePaths.end() ;
+    }
+
+    bool AssetManager::hasMeshAsset(const AssetId& id) const
+    {
+        return m_meshAssets.find(id) != m_meshAssets.end() || m_meshPaths.find(id) != m_meshPaths.end() ;
+    }
+
+    bool AssetManager::hasModelAsset(const AssetId& id) const
+    {
+        return m_modelAssets.find(id) != m_modelAssets.end() || m_modelPaths.find(id) != m_modelPaths.end() ;
+    }
+
+    bool AssetManager::hasShaderAsset(const AssetId& id) const
+    {
+        return m_shaderAssets.find(id) != m_shaderAssets.end() || m_shaderPaths.find(id) != m_shaderPaths.end() ;
+    }
+
+    bool AssetManager::hasComputeShaderAsset(const AssetId& id) const
+    {
+        return m_computeShaderAssets.find(id) != m_computeShaderAssets.end() || m_computeShaderPaths.find(id) != m_computeShaderPaths.end() ;
+    }
+
+    void AssetManager::clear()
+    {
+        m_textureAssets.clear();
+        m_meshAssets.clear();
+        m_modelAssets.clear();
+        m_shaderAssets.clear();
+        m_computeShaderAssets.clear();
+
+        m_texturePaths.clear();
+        m_meshPaths.clear();
+        m_modelPaths.clear();
+        m_shaderPaths.clear();
+        m_computeShaderPaths.clear();
+
+        m_shaderExplicitKeys.clear();
+
+    }
+
+    void AssetManager::unloadTexture(const AssetId& id)
+    {
+        m_textureAssets.erase(id);
+    }
+
+    void AssetManager::unloadMesh(const AssetId& id)
+    {
+        m_meshAssets.erase(id);
+    }
+
+    void AssetManager::unloadModel(const AssetId& id)
+    {
+        m_modelAssets.erase(id);
+    }
+
+    void AssetManager::unloadShader(const AssetId& id)
+    {
+        auto it = m_shaderAssets.find(id);
+        if (it != m_shaderAssets.end())
+        {
+            const ShaderAsset& asset = it->second;
+            if (asset.vertexPath.empty() == false && asset.fragmentPath.empty() == false)
+            {
+                const string key = asset.vertexPath + "|" + asset.fragmentPath;
+                m_shaderExplicitKeys.erase(key);
+            }
+            m_shaderAssets.erase(it);
+            return;
+        }
+
+        m_shaderPaths.erase(id);
+    }
+
+    void AssetManager::unloadComputeShader(const AssetId& id)
+    {
+        m_computeShaderAssets.erase(id);
+        m_computeShaderPaths.erase(id);
+    }
+
+    AssetId AssetManager::registerShaderAsset(const ShaderAsset& asset)
+    {
+        AIKO_ASSERT(asset.vertexPath.empty() == false, "ShaderAsset vertexPath is empty");
+        AIKO_ASSERT(asset.fragmentPath.empty() == false, "ShaderAsset fragmentPath is empty");
+
+        const string key = asset.vertexPath + "|" + asset.fragmentPath;
+
+        auto it = m_shaderExplicitKeys.find(key);
+        if (it != m_shaderExplicitKeys.end())
+        {
+            return it->second;
+        }
+
+        AssetId id;
+        m_shaderAssets.emplace(id, asset);
+        m_shaderExplicitKeys.emplace(key, id);
+        return id;
+    }
+}

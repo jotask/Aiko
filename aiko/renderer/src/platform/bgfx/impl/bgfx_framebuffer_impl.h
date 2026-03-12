@@ -4,7 +4,7 @@
 #include <bgfx/bgfx.h>
 #include <math/math.h>
 
-#include <types/textures.h>
+#include <types/texture_types.h>
 
 #include "interfaces/iframebuffer_impl.h"
 #include "models/texture.h"
@@ -28,7 +28,7 @@ namespace aiko::renderer::bgfx
         virtual bool isValid() const override;
 
         // load
-        virtual void create(Texture color, Texture depth) override;
+        virtual void create(Texture& color, Texture& depth) override;
 
         virtual void unload() override;
 

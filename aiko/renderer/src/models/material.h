@@ -4,6 +4,8 @@
 #include "models/texture.h"
 #include "types/color.h"
 
+#include <unordered_map>
+
  namespace aiko
 {
     class ComputeBuffer;
@@ -12,8 +14,18 @@
     {
     public:
 
+        // Runtime render material.
+        // Owns/binds GPU-facing resources such as shader and textures.
+        // This is NOT a CPU asset description.
+
         friend class RenderModule;
         friend class RenderSystem;
+
+        Material(const Material&) = delete;
+        Material& operator=(const Material&) = delete;
+
+        Material(Material&&) noexcept = default;
+        Material& operator=(Material&&) noexcept = default;
 
         Material();
         ~Material() = default;
@@ -21,15 +33,17 @@
         u64 id() const;
 
     public:
-        Shader m_shader;
+        Shader* m_shader = nullptr;
 
         const ComputeBuffer* m_gpuInstanceBuffer = nullptr;
 
-        bool m_userVertexColor;
+        bool m_useVertexColor;
         bool m_lit;
 
 		Color m_baseColor;
-        Texture m_diffuse;
+        Texture* m_diffuseTexture = nullptr;
+
+        std::unordered_map<std::string, vec4> m_customVec4Uniforms;
 
     };
 

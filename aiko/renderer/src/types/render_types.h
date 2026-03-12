@@ -63,29 +63,52 @@ namespace aiko
         ReadWrite
     };
 
-    class Rectangle
-    {
-    public:
-        Rectangle(float x, float y, float width, float height)
-            : x(x), y(y), width(width), height(height) { };
-        float x;
-        float y;
-        float width;
-        float height;
-    };
-
     class Mesh;
     class Material;
+
+    struct GpuReadBufferBinding
+    {
+        uint8_t slot = 0;
+        const ComputeBuffer* buffer;
+    };
+
+    enum class TransientTopology
+    {
+        Points,
+        Lines,
+        Triangles
+    };
+
+    struct TransientVertex
+    {
+        vec3 position = vec3(0.0f);
+        vec2 uv = vec2(0.0f);
+        vec3 normal = vec3(0.0f);
+        Color color = WHITE;
+    };
+
+    struct TransientGeometry
+    {
+        TransientTopology topology = TransientTopology::Triangles;
+        std::vector<TransientVertex> vertices;
+        std::vector<uint32_t> indices;
+    };
+
+    struct TransientDrawDesc
+    {
+        mat4 mtx = mat4(1.0f);
+        const Material* material = nullptr;
+        TransientTopology topology = TransientTopology::Triangles;
+        std::vector<TransientVertex> vertices;
+        std::vector<uint32_t> indices;
+    };
 
     struct GpuInstanceDrawDesc
     {
         ViewId viewId = 0;
         const Mesh* mesh = nullptr;
         const Material* material = nullptr;
-
-        // GPU buffer containing instance records (format must match shader)
-        const ComputeBuffer* instanceBuffer = nullptr;
-
+        std::vector<GpuReadBufferBinding> readBuffers;
         uint32_t instanceCount = 0;
     };
 

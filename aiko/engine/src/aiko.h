@@ -4,8 +4,10 @@
 #include <vector>
 #include <algorithm>
 
+#include <resources/iresource_invalidator.h>
 #include "aiko_types.h"
 #include "aiko_config.h"
+#include "assets/icomponent_assetaccess.h"
 #include "display/display_events.hpp"
 #include "modules/module.h"
 #include "systems/sytem.h"
@@ -13,6 +15,7 @@
 
 namespace aiko
 {
+    class AssetManager;
 
     class Application;
     class GameObject;
@@ -36,6 +39,10 @@ namespace aiko
         void close();
 
         const AikoConfig getConfig() const { return cfg; }
+
+        // Temporal
+        IComponentAssetAccess* getComponentAssetAccess();
+        IRenderResourceInvalidator* getResourceInvalidator();
 
     private:
 

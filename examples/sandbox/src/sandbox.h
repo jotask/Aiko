@@ -25,6 +25,7 @@ namespace sb
             float angle;
         };
         std::vector<LightInst> m_lights;
+
     };
 
 }

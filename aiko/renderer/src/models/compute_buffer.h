@@ -17,8 +17,8 @@
         friend class renderer::RendererFactory;
 
         // Copy
-        ComputeBuffer(const ComputeBuffer&) = default;
-        ComputeBuffer& operator=(const ComputeBuffer&) = default;
+        ComputeBuffer(const ComputeBuffer&) = delete;
+        ComputeBuffer& operator=(const ComputeBuffer&) = delete;
 
         // Move
         ComputeBuffer(ComputeBuffer&&) noexcept = default;
@@ -34,7 +34,7 @@
         void create(ComputeBufferFormat format, u32 count, const void* initialData, ComputeAccess access);
         void update(u32 start, u32 count, const void* data);
 
-        void destroy();
+        void unload();
 
         uint id();
 

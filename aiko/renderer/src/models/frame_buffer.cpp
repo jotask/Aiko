@@ -1,4 +1,4 @@
-#include "frame_buffer.h"
+#include "models/frame_buffer.h"
 
 #include "render_factory.h"
 
@@ -35,8 +35,8 @@ namespace aiko
     {
         colorTexture.create(
             {
-                .type = texture::TextureType::RenderTarget,
-                .format = texture::TextureFormat::RGBA8,
+                .type = TextureType::RenderTarget,
+                .format = TextureFormat::RGBA8,
                 .width = width,
                 .height = height,
                 .mipmaps = false,
@@ -44,8 +44,8 @@ namespace aiko
             });
         depthTexture.create(
             {
-                .type = texture::TextureType::DepthStencil,
-                .format = texture::TextureFormat::D24S8,
+                .type = TextureType::DepthStencil,
+                .format = TextureFormat::D24S8,
                 .width = width,
                 .height = height,
                 .mipmaps = false,
