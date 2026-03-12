@@ -270,8 +270,8 @@ namespace aiko
             GpuInstanceDrawDesc draw{};
             draw.mesh = &state->particleMesh;
             draw.material = &state->particleMaterial;
-            draw.instanceBuffer = &state->positionBuffer;
-            draw.lifeInstanceBuffer = &state->lifeBuffer;
+            draw.readBuffers.push_back({7, &state->positionBuffer});
+            draw.readBuffers.push_back({8, &state->lifeBuffer});
             draw.instanceCount = count;
 
             m_renderModule->getRenderer().drawMeshInstancedGpu(draw);

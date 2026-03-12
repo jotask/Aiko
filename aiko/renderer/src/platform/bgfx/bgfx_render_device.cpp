@@ -505,11 +505,9 @@ namespace aiko::renderer::bgfx
 
         auto* meshImpl = static_cast<BgfxMeshImpl*>(desc.mesh->getImpl());
         auto* shaderImpl = static_cast<BgfxShaderImpl*>(desc.material->m_shader->getImpl());
-        auto* bufferImpl = static_cast<BgfxComputeBufferImpl*>(desc.instanceBuffer->getImpl());
 
         AIKO_ASSERT(meshImpl != nullptr, "Invalid handler");
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid handler");
-        AIKO_ASSERT(bufferImpl != nullptr, "Invalid handler");
 
         bindMaterial(*desc.material);
         bindFrameUniforms();
@@ -519,13 +517,13 @@ namespace aiko::renderer::bgfx
         bx::mtxIdentity(mtx);
         ::bgfx::setTransform(mtx);
 
-        ::bgfx::setBuffer( 7, bufferImpl->handle(), ::bgfx::Access::Read );
-
-        if (desc.lifeInstanceBuffer != nullptr)
+        // Bind buffers
+        for (const GpuReadBufferBinding& buffer : desc.readBuffers)
         {
-            auto* lifeImpl = static_cast<BgfxComputeBufferImpl*>(desc.lifeInstanceBuffer->getImpl());
-            AIKO_ASSERT(lifeImpl != nullptr, "Invalid handler");
-            ::bgfx::setBuffer(8, lifeImpl->handle(), ::bgfx::Access::Read);
+            AIKO_ASSERT(buffer.buffer != nullptr, "Gpu read buffer is null");
+            auto* buffImpl = static_cast<BgfxComputeBufferImpl*>(buffer.buffer->getImpl());
+            AIKO_ASSERT(buffImpl != nullptr, "Invalid buffer handler");
+            ::bgfx::setBuffer(buffer.slot, buffImpl->handle(), ::bgfx::Access::Read);
         }
 
         ::bgfx::setVertexBuffer(0, meshImpl->getVertexBuffferHandler());

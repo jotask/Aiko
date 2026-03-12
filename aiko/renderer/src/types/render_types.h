@@ -66,18 +66,18 @@ namespace aiko
     class Mesh;
     class Material;
 
+    struct GpuReadBufferBinding
+    {
+        uint8_t slot = 0;
+        const ComputeBuffer* buffer;
+    };
+
     struct GpuInstanceDrawDesc
     {
         ViewId viewId = 0;
         const Mesh* mesh = nullptr;
         const Material* material = nullptr;
-
-        // GPU buffer containing instance records (format must match shader)
-        const ComputeBuffer* instanceBuffer = nullptr;
-
-        // Optional extra particle data buffer for render shaders.
-        const ComputeBuffer* lifeInstanceBuffer = nullptr;
-
+        std::vector<GpuReadBufferBinding> readBuffers;
         uint32_t instanceCount = 0;
     };
 
