@@ -33,8 +33,8 @@ namespace aiko::renderer::bgfx
     bool BgfxRenderDevice::init(const DeviceInitDesc& desc)
     {
 
-        AIKO_TODO("Enable render multi-thread only on release");
-        ::bgfx::renderFrame();
+        // Uncomment this to enable single thread render
+        // ::bgfx::renderFrame();
 
         GLFWwindow* window = static_cast<GLFWwindow*>(desc.nativeWindowHandle);
         AIKO_ASSERT(window != nullptr, "Window is not GLFW?");
