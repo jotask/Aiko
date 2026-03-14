@@ -10,16 +10,6 @@
 #include "impl/bgfx_computeshader_impl.h"
 #include "impl/bgfx_texture_impl.h"
 
-#if defined(AIKO_WINDOWS)
-    #define GLFW_EXPOSE_NATIVE_WIN32
-    #include <GLFW/glfw3native.h>
-#elif defined(AIKO_LINUX)
-    #define GLFW_EXPOSE_NATIVE_X11
-    #include <GLFW/glfw3native.h>
-#else
-    #error OS unsupported!
-#endif
-
 #include <bgfx/bgfx.h>
 
 #include <platform/bgfx/impl/bgfx_shader_impl.h>
@@ -50,17 +40,15 @@ namespace aiko::renderer::bgfx
         AIKO_ASSERT(window != nullptr, "Window is not GLFW?");
 
         ::bgfx::Init init;
-        init.type = ::bgfx::RendererType::Count; // auto choose renderer (DirectX, OpenGL, etc.)
-        #if defined(AIKO_WINDOWS)
-            init.platformData.nwh = glfwGetWin32Window(window);
-        #elif defined(AIKO_LINUX)
 
+        auto setup = setupBgfxPlatformData(init, window);
+        if (setup.ok == false)
+        {
+            logger::Log::error("Failed to setup BGFX platform data");
+            return false;
+        }
 
-            init.platformData.nwh = (void*)(uintptr_t)glfwGetX11Window(window);
-            init.platformData.ndt = glfwGetX11Display();
-        #else
-            #error OS unsupported!
-        #endif
+        init.type = setup.preferredRenderer;
         init.resolution.width = desc.width;
         init.resolution.height = desc.height;
         init.resolution.reset = desc.vsync ? BGFX_RESET_VSYNC : BGFX_RESET_NONE;
@@ -68,6 +56,13 @@ namespace aiko::renderer::bgfx
         if (::bgfx::init(init) == false)
         {
             logger::Log::error("Failed to init BGFX");
+            return false;
+        }
+
+        if (::bgfx::getRendererType() == ::bgfx::RendererType::Noop)
+        {
+            logger::Log::error("BGFX initialized with Noop only. Check bgfx build/backend configuration.");
+            ::bgfx::shutdown();
             return false;
         }
 

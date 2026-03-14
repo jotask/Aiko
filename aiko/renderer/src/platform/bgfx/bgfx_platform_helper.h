@@ -6,7 +6,18 @@
 
 #include "constants.h"
 #include "types/render_types.h"
-#include <magic_enum/magic_enum.hpp>
+
+#include <bgfx/bgfx.h>
+#include <GLFW/glfw3.h>
+
+#if defined(AIKO_LINUX)
+	#define GLFW_EXPOSE_NATIVE_X11
+	#define GLFW_EXPOSE_NATIVE_WAYLAND
+	#include <GLFW/glfw3native.h>
+#elif defined(AIKO_WINDOWS)
+	#define GLFW_EXPOSE_NATIVE_WIN32
+	#include <GLFW/glfw3native.h>
+#endif
 
 namespace aiko::renderer
 {
@@ -30,8 +41,8 @@ namespace aiko::renderer
 			case ::bgfx::RendererType::Noop:
 			case ::bgfx::RendererType::Count:
 			default:
-				auto str = magic_enum::enum_name(::bgfx::getRendererType());
-				logger::Log::critical("Unsupported BGFX renderer [%s]", str.data());
+				const auto renderer = ::bgfx::getRendererName(::bgfx::getRendererType());
+				logger::Log::critical("Unsupported BGFX renderer [%s]", renderer);
 				AIKO_ASSERT(false, "Unsupported BGFX renderer");
 			}
 
@@ -72,6 +83,60 @@ namespace aiko::renderer
 			}
 			AIKO_ASSERT(false, "Not supported compute access");
 			return ::bgfx::Access::Read;
+		}
+
+		struct BgfxPlatformSetupResult
+		{
+			bool ok = false;
+			::bgfx::RendererType::Enum preferredRenderer = ::bgfx::RendererType::Count;
+		};
+
+		inline BgfxPlatformSetupResult setupBgfxPlatformData(::bgfx::Init& init, GLFWwindow* window)
+		{
+			BgfxPlatformSetupResult result{};
+
+			if (window == nullptr)
+			{
+				return result;
+			}
+
+			#if defined(AIKO_WINDOWS)
+			init.platformData.nwh = glfwGetWin32Window(window);
+			init.platformData.ndt = nullptr;
+			result.preferredRenderer = ::bgfx::RendererType::Direct3D12;
+			result.ok = (init.platformData.nwh != nullptr);
+			return result;
+			#elif defined(AIKO_LINUX)
+
+			const int platform = glfwGetPlatform();
+
+			if (platform == GLFW_PLATFORM_X11)
+			{
+				init.platformData.nwh = (void*)(uintptr_t)glfwGetX11Window(window);
+				init.platformData.ndt = glfwGetX11Display();
+				init.platformData.type = ::bgfx::NativeWindowHandleType::Default;
+				result.preferredRenderer = ::bgfx::RendererType::Vulkan;
+				result.ok = (init.platformData.nwh != nullptr && init.platformData.ndt != nullptr);
+				return result;
+			}
+
+			if (platform == GLFW_PLATFORM_WAYLAND)
+			{
+				init.platformData.nwh = glfwGetWaylandWindow(window);
+				init.platformData.ndt = glfwGetWaylandDisplay();
+				init.platformData.type = ::bgfx::NativeWindowHandleType::Wayland;
+				// Safer fallback for now.
+				result.preferredRenderer = ::bgfx::RendererType::OpenGL;
+				result.ok = (init.platformData.nwh != nullptr && init.platformData.ndt != nullptr);
+				return result;
+			}
+
+			return result;
+
+#else
+			#error Not supported platform
+			return result;
+#endif
 		}
 
 	}
