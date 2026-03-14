@@ -6,6 +6,7 @@
 
 #include "constants.h"
 #include "types/render_types.h"
+#include <magic_enum/magic_enum.hpp>
 
 namespace aiko::renderer
 {
@@ -29,7 +30,9 @@ namespace aiko::renderer
 			case ::bgfx::RendererType::Noop:
 			case ::bgfx::RendererType::Count:
 			default:
-				throw std::runtime_error("Unsupported bgfx renderer or Noop.");
+				auto str = magic_enum::enum_name(::bgfx::getRendererType());
+				logger::Log::critical("Unsupported BGFX renderer [%s]", str.data());
+				AIKO_ASSERT(false, "Unsupported BGFX renderer");
 			}
 
 			return base;
