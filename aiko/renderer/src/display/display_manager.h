@@ -32,6 +32,9 @@ namespace aiko
         Display m_display;
         GLFWwindow* m_native;
 
+        bool centerWindow(GLFWwindow* window);
+        void setupWindowCallbacks(GLFWwindow* window);
+
         void onKeyPressed(OnKeyPressedEvent& event);
         void onWindowResize(WindowResizeEvent& event);
 

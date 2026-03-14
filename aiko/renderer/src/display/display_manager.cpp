@@ -15,6 +15,11 @@ namespace aiko
     void DisplayManager::init(string title, const uint width, uint height)
     {
 
+        glfwSetErrorCallback([](int code, const char* desc)
+        {
+            logger::Log::error("GLFW error [%d]: %s", code, desc ? desc : "unknown");
+        });
+
         AIKO_ASSERT(glfwInit() == GLFW_TRUE, "Failed to init Window")
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // no OpenGL
@@ -26,74 +31,111 @@ namespace aiko
             AIKO_ASSERT(false, "Failed to create GLFW window")
         }
 
-        auto glfwSetWindowCenter = [](GLFWwindow* window) -> bool
-        {
-            
-            if (window == nullptr)
-            {
-                return false;
-            }
+        centerWindow(window);
 
-            int windowWidth, windowHeight;
-            glfwGetWindowSize(window, &windowWidth, &windowHeight);
-
-            int monitorCount;
-            GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
-            if (!monitors || monitorCount == 0)
-            {
-                return false;
-            }
-
-            // Pick the monitor with the biggest intersection with the window
-            GLFWmonitor* bestMonitor = monitors[0];
-            int bestArea = 0;
-
-            int wx, wy;
-            glfwGetWindowPos(window, &wx, &wy);
-
-            for (int i = 0; i < monitorCount; ++i)
-            {
-                int mx, my;
-                glfwGetMonitorPos(monitors[i], &mx, &my);
-                const GLFWvidmode* mode = glfwGetVideoMode(monitors[i]);
-                if (!mode) continue;
-
-                const int overlapX = std::max(0, std::min(wx + windowWidth, mx + mode->width) - std::max(wx, mx));
-                const int overlapY = std::max(0, std::min(wy + windowHeight, my + mode->height) - std::max(wy, my));
-                const int area = overlapX * overlapY;
-
-                if (area > bestArea)
-                {
-                    bestArea = area;
-                    bestMonitor = monitors[i];
-                }
-            }
-
-            // Center on the best monitor
-            const GLFWvidmode* mode = glfwGetVideoMode(bestMonitor);
-            if (mode == nullptr)
-            {
-                return false;
-            }
-
-            int mx, my;
-            glfwGetMonitorPos(bestMonitor, &mx, &my);
-
-            int posX = mx + (mode->width - windowWidth) / 2;
-            int posY = my + (mode->height - windowHeight) / 2;
-
-            glfwSetWindowPos(window, posX, posY);
-
-            return true;
-            
-        };
-        
-        glfwSetWindowCenter(window);
-        
-        glfwMakeContextCurrent(window);
-        glfwSwapInterval(0);
         glfwShowWindow(window);
-        
+
+        setupWindowCallbacks(window);
+
+        int glfw_major, glfw_minor, glfw_patch;
+        glfwGetVersion(&glfw_major, &glfw_minor, &glfw_patch);
+        logger::Log::info() << "GLFW Version: " << glfw_major << "." << glfw_minor << "." << glfw_patch;
+
+        m_display.setWindowTitle(title);
+        m_display.setWindowSize(width, height);
+
+        m_native = window;
+
+        EventSystem::it().bind<OnKeyPressedEvent>(this, &DisplayManager::onKeyPressed);
+        EventSystem::it().bind<WindowResizeEvent>(this, &DisplayManager::onWindowResize);
+
+    }
+
+    void DisplayManager::swap()
+    {
+        // glfwSwapBuffers(m_native);
+    }
+
+    void DisplayManager::dispose()
+    {
+        glfwDestroyWindow(m_native);
+        glfwTerminate();
+    }
+
+    Display* DisplayManager::getDisplay()
+    {
+        return &m_display;
+    }
+
+    GLFWwindow * DisplayManager::getNativeWindow() const
+    {
+        return m_native;
+    }
+
+    bool DisplayManager::centerWindow(GLFWwindow* window)
+    {
+        if (window == nullptr)
+        {
+            return false;
+        }
+
+        int windowWidth, windowHeight;
+        glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+        int monitorCount;
+        GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
+        if (!monitors || monitorCount == 0)
+        {
+            return false;
+        }
+
+        // Pick the monitor with the biggest intersection with the window
+        GLFWmonitor* bestMonitor = monitors[0];
+        int bestArea = 0;
+
+        int wx, wy;
+        glfwGetWindowPos(window, &wx, &wy);
+
+        for (int i = 0; i < monitorCount; ++i)
+        {
+            int mx, my;
+            glfwGetMonitorPos(monitors[i], &mx, &my);
+            const GLFWvidmode* mode = glfwGetVideoMode(monitors[i]);
+            if (!mode) continue;
+
+            const int overlapX = std::max(0, std::min(wx + windowWidth, mx + mode->width) - std::max(wx, mx));
+            const int overlapY = std::max(0, std::min(wy + windowHeight, my + mode->height) - std::max(wy, my));
+            const int area = overlapX * overlapY;
+
+            if (area > bestArea)
+            {
+                bestArea = area;
+                bestMonitor = monitors[i];
+            }
+        }
+
+        // Center on the best monitor
+        const GLFWvidmode* mode = glfwGetVideoMode(bestMonitor);
+        if (mode == nullptr)
+        {
+            return false;
+        }
+
+        int mx, my;
+        glfwGetMonitorPos(bestMonitor, &mx, &my);
+
+        int posX = mx + (mode->width - windowWidth) / 2;
+        int posY = my + (mode->height - windowHeight) / 2;
+
+        glfwSetWindowPos(window, posX, posY);
+
+        return true;
+
+    }
+
+    void DisplayManager::setupWindowCallbacks(GLFWwindow* window)
+    {
+
         // window resize
         auto lamba = [](GLFWwindow* window, int width, int height)
         {
@@ -128,45 +170,12 @@ namespace aiko
 
         // Mouse position
         auto cursor_position_callback = [](GLFWwindow* window, double xpos, double ypos)
-            {
-                OnMouseMoveEvent even(xpos, ypos);
-                aiko::EventSystem::it().sendEvent(even);
-            };
+        {
+            OnMouseMoveEvent even(xpos, ypos);
+            aiko::EventSystem::it().sendEvent(even);
+        };
         glfwSetCursorPosCallback(window, cursor_position_callback);
 
-        int glfw_major, glfw_minor, glfw_patch;
-        glfwGetVersion(&glfw_major, &glfw_minor, &glfw_patch);
-        logger::Log::info() << "GLFW Version: " << glfw_major << "." << glfw_minor << "." << glfw_patch;
-
-        m_display.setWindowTitle(title);
-        m_display.setWindowSize(width, height);
-
-        m_native = window;
-
-        EventSystem::it().bind<OnKeyPressedEvent>(this, &DisplayManager::onKeyPressed);
-        EventSystem::it().bind<WindowResizeEvent>(this, &DisplayManager::onWindowResize);
-
-    }
-
-    void DisplayManager::swap()
-    {
-        glfwSwapBuffers(m_native);
-    }
-
-    void DisplayManager::dispose()
-    {
-        glfwDestroyWindow(m_native);
-        glfwTerminate();
-    }
-
-    Display* DisplayManager::getDisplay()
-    {
-        return &m_display;
-    }
-
-    GLFWwindow * DisplayManager::getNativeWindow() const
-    {
-        return m_native;
     }
 
     void DisplayManager::onKeyPressed(OnKeyPressedEvent& event)

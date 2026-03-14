@@ -31,7 +31,7 @@ set_target_properties(glad-generate-files PROPERTIES FOLDER "Dependencies")
 #----------------------------------------------------------------------
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-option(GLFW_LIBRARY_TYPE "Link glfw static or dynamic" STATIC)
+set(GLFW_LIBRARY_TYPE "STATIC" CACHE STRING "Link glfw static or dynamic" FORCE)
 option(GLFW_BUILD_TESTS "" OFF)
 option(GLFW_BUILD_DOCS "" OFF)
 option(GLFW_INSTALL "" OFF)
@@ -39,7 +39,7 @@ option(GLFW_BUILD_EXAMPLES "" OFF)
 FetchContent_Declare(
         glfw
         GIT_REPOSITORY https://github.com/glfw/glfw
-        GIT_TAG        3.3.8
+        GIT_TAG        3.4
         GIT_SHALLOW    TRUE
         GIT_PROGRESS   TRUE
 )
