@@ -15,6 +15,7 @@ uniform vec4 u_spawnSeed;   // x=spawn seed
 
 float hash1(float n)
 {
+    n = fract(n * 0.0001) * 10000.0;
     return fract(sin(n) * 43758.5453123);
 }
 
@@ -41,6 +42,15 @@ vec3 safeNormalize(vec3 v)
     if (len > 1e-6)
         return v / len;
     return vec3(0.0, 0.0, 0.0);
+}
+
+vec3 randomUnitVector(float seed)
+{
+    vec2 rnd = hash2(seed);
+    float z = rnd.x * 2.0 - 1.0;
+    float a = rnd.y * 6.2831853;
+    float r = sqrt(max(0.0, 1.0 - z * z));
+    return vec3(r * cos(a), r * sin(a), z);
 }
 
 NUM_THREADS(64, 1, 1)
@@ -123,8 +133,7 @@ void main()
             }
             else if (shape == 3u) // Sphere (random inside volume)
             {
-                vec3 rndDir = hash3(seed1) * 2.0 - 1.0;
-                rndDir = safeNormalize(rndDir);
+                vec3 rndDir = randomUnitVector(seed1);
 
                 float radius = pow(hash1(seed2), 1.0 / 3.0) * u_spawnData.x;
                 spawnOffset = rndDir * radius;
@@ -134,9 +143,7 @@ void main()
             if (length(baseDir) < 1e-6)
                 baseDir = vec3(0.0, 1.0, 0.0);
 
-            vec3 randDir = safeNormalize(hash3(seed2) * 2.0 - 1.0);
-            if (length(randDir) < 1e-6)
-                randDir = vec3(0.0, 1.0, 0.0);
+            vec3 randDir = randomUnitVector(seed2);
 
             vec3 outwardDir = safeNormalize(spawnOffset);
             if (length(outwardDir) < 1e-6)
@@ -172,7 +179,7 @@ void main()
             float speedJitter = mix(0.8, 1.2, hash1(seed3));
 
             pos.xyz = u_emitterPos.xyz + spawnOffset;
-            vel.xyz = dir * (startSpeed * speedJitter);
+            vel.xyz = randDir * (startSpeed * speedJitter);
             life.x = lifetime;
             life.y = lifetime;
         }
