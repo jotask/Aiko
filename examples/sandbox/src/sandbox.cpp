@@ -30,9 +30,6 @@
 namespace sb
 {
 
-    static constexpr uint32_t kCount = 64;
-
-
     void Sandbox::init()
     {
 
