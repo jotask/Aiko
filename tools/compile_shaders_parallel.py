@@ -1,5 +1,4 @@
 from pathlib import Path
-import sys
 import subprocess
 import platform
 import os
@@ -46,6 +45,38 @@ class Color(Enum):
 def colorPrint(severity: Color, msg):
     print(f"\033[{severity.value}m{msg}\033[0m")
 
+def detect_linux_window_system() -> str:
+    session_type = os.environ.get("XDG_SESSION_TYPE", "").lower()
+    if session_type == "wayland":
+        return "wayland"
+    if session_type == "x11":
+        return "x11"
+    # Fallbacks
+    if os.environ.get("WAYLAND_DISPLAY"):
+        return "wayland"
+    if os.environ.get("DISPLAY"):
+        return "x11"
+    return "unknown"
+
+def detect_backend_for_system():
+    # NOTE: Your original code hard-coded dx11 for windows, spirv for linux.
+    # Keep behavior identical unless you want to use the profiles list.
+    if SYSTEM == "windows":
+        colorPrint(Color.INFO, f"Windows system detected")
+        return ("dx11", "windows", "s_5_0")  # folder, platform, profile
+    elif SYSTEM == "linux":
+        session_type = detect_linux_window_system()
+        if session_type == "wayland":
+            colorPrint(Color.INFO, f"Linux system detected under {session_type}")
+            return Profile("linux",   "150", "glsl")
+        elif session_type == "x11":
+            colorPrint(Color.INFO, f"Linux system detected under {session_type}")
+            return Profile("linux",   "spirv", "spirv")
+        else:
+            raise RuntimeError(f"Unsupported Linux session type")
+    else:
+        raise RuntimeError(f"Unsupported SYSTEM={SYSTEM}")
+
 def getprojectrootdir():
     return Path(__file__).parents[1].resolve()
 
@@ -78,16 +109,6 @@ def find_shader_files(shader_dir: Path, recursive: bool) -> list[Path]:
     exts = {".vs", ".fs", ".cs"}
     it = shader_dir.rglob("*") if recursive else shader_dir.iterdir()
     return [f for f in it if f.is_file() and f.suffix in exts]
-
-def detect_backend_for_system():
-    # NOTE: Your original code hard-coded dx11 for windows, spirv for linux.
-    # Keep behavior identical unless you want to use the profiles list.
-    if SYSTEM == "windows":
-        return ("dx11", "windows", "s_5_0")  # folder, platform, profile
-    elif SYSTEM == "linux":
-        return ("spirv", "linux", "spirv")
-    else:
-        raise RuntimeError(f"Unsupported SYSTEM={SYSTEM}")
 
 def shader_type_from_suffix(shader: Path) -> str | None:
     if shader.suffix == ".vs":
@@ -145,7 +166,7 @@ def main():
         return 1
 
     shaderc_path = getshadercpath()
-    folder, platform_name, profile = detect_backend_for_system()
+    profiler = detect_backend_for_system()
 
     # Pick worker count: leave 1 core free, but at least 1.
     cpu = os.cpu_count() or 4
@@ -156,7 +177,7 @@ def main():
     failures = []
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futures = {
-            ex.submit(compile_one, f, shaderc_path, folder, platform_name, profile): f
+            ex.submit(compile_one, f, shaderc_path, profiler.folder, profiler.platform, profiler.profile): f
             for f in onlyfiles
         }
         for fut in as_completed(futures):
