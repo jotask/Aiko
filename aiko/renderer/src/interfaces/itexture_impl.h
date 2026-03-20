@@ -4,6 +4,7 @@
 #include <aiko_types.h>
 #include <types/color.h>
 #include <metadata/texture_meta.h>
+#include "assets/types/texture_asset.h"
 
 namespace aiko
 {

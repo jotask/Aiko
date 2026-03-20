@@ -7,6 +7,8 @@
 #include "systems/render_system.h"
 #include "components/particle_emitter_component.h"
 #include "models/mesh_factory.h"
+#include "modules/module_connector.h"
+#include "systems/system_connector.h"
 
 namespace aiko
 {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "types/color.h"
 #include "assets/asset_id.h"
 
 namespace aiko
