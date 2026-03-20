@@ -1,19 +1,37 @@
 {
-  "version": 3,
+  "version": 6,
   "configurePresets": [
     {
-      "name": "aiko build",
-      "binaryDir": "${sourceDir}/build/${presetName}",
+      "name": "core-debug",
+      "displayName": "Core only / Debug",
       "generator": "Ninja",
-      "hidden": false,
-      "description": "Aiko preset",
-      "environment": {
-        "CC": "/usr/bin/gcc",
-        "CXX": "/usr/bin/g++"
-      },
+      "binaryDir": "${sourceDir}/build/core-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "TRUE"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "AIKO_BUILD_EXAMPLES": "OFF",
+        "AIKO_ENABLE_UNITY": "OFF"
+      }
+    },
+    {
+      "name": "all-debug",
+      "displayName": "Core + examples / Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/all-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "AIKO_BUILD_EXAMPLES": "ON",
+        "AIKO_ENABLE_UNITY": "OFF"
+      }
+    },
+    {
+      "name": "all-debug-unity",
+      "displayName": "Core + examples / Debug / Unity",
+      "inherits": "all-debug",
+      "binaryDir": "${sourceDir}/build/all-debug-unity",
+      "cacheVariables": {
+        "AIKO_ENABLE_UNITY": "ON"
       }
     }
   ]
