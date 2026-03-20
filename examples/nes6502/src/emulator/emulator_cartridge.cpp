@@ -43,8 +43,7 @@ namespace nes
             auto pbo = naiko->getApplication()->getPT0();
             // Get the dimensions of the texture
 
-            const auto info = pbo->getMaterial().m_diffuse.getInfo();
-            ImVec2 textureSize = ImVec2(info.width, info.height);
+            ImVec2 textureSize = ImVec2(pbo->getWidth(), pbo->getHeight());
 
             // Calculate aspect ratio of the image
             float aspectRatio = textureSize.x / textureSize.y;
@@ -73,8 +72,9 @@ namespace nes
             // Ensure that the image does not exceed the available space
             imageWidth = std::min(imageWidth, maxWidth);
             imageHeight = std::min(imageHeight, maxHeight);
-
+            
             ImTextureID tid = (ImTextureID)(uintptr_t)pbo->getMaterial().m_diffuse.id();
+
             ImGui::Image(tid, ImVec2(imageWidth, imageHeight), ImVec2(0, 0), ImVec2(1, 1));
             ImGui::EndChild();
         }

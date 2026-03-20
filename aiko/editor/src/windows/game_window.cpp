@@ -28,9 +28,9 @@ namespace aiko
             if(ImGui::Begin("Game"))
             {
 
-                FrameBuffer aikoTarget = renderSystem->getTargetTexture();
+                const FrameBuffer& aikoTarget = renderSystem->getTargetTexture();
 
-                Texture texture = aikoTarget.getColorTexture();
+                const Texture& texture = aikoTarget.getColorTexture();
                 // Using a Child allow to fill all the space of the window.
                 // It also allows customization
                 ImGui::BeginChild("GameRender");

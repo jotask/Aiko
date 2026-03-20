@@ -23,7 +23,7 @@ namespace aiko::editor
             GridX,
             Light,
             Mesh,
-            Texture,
+            Sprite,
         };
 
         std::vector<aiko::string> getComponents(aiko::GameObject* obj)
@@ -40,9 +40,8 @@ namespace aiko::editor
             {
                 constexpr auto pmt = [](auto*) {};
                 if (isComponent<aiko::Transform>(tmp, pmt)) { addCmp(ComponentsTypes::Tranform); continue; };
-                if (isComponent<aiko::TextureComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Texture); continue; };
+                if (isComponent<aiko::SpriteComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Sprite); continue; };
                 if (isComponent<aiko::MeshComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Mesh); continue; };
-                if (isComponent<aiko::GridXComponent>(tmp, pmt)) { addCmp(ComponentsTypes::GridX); continue; };
                 if (isComponent<aiko::LightComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Light); continue; };;
                 assert(false && "ERROR :: Component is not supported by the editor");
             }
@@ -77,17 +76,14 @@ namespace aiko::editor
                 case ComponentsTypes::Camera:
                     obj->removeComponent<::aiko::CameraComponent>();
                     break;
-                case ComponentsTypes::GridX:
-                    obj->removeComponent<::aiko::GridXComponent>();
-                    break;
                 case ComponentsTypes::Light:
                     obj->removeComponent<::aiko::LightComponent>();
                     break;
                 case ComponentsTypes::Mesh:
                     obj->removeComponent<::aiko::MeshComponent>();
                     break;
-                case ComponentsTypes::Texture:
-                    obj->removeComponent<::aiko::TextureComponent>();
+                case ComponentsTypes::Sprite:
+                    obj->removeComponent<::aiko::SpriteComponent>();
                     break;
                 default:
                     break;
@@ -111,17 +107,14 @@ namespace aiko::editor
                 case ComponentsTypes::Camera:
                     obj->addComponent<::aiko::CameraComponent>();
                     break;
-                case ComponentsTypes::GridX:
-                    obj->addComponent<::aiko::GridXComponent>();
-                    break;
                 case ComponentsTypes::Light:
                     obj->addComponent<::aiko::LightComponent>();
                     break;
                 case ComponentsTypes::Mesh:
                     obj->addComponent<::aiko::MeshComponent>();
                     break;
-                case ComponentsTypes::Texture:
-                    obj->addComponent<::aiko::TextureComponent>();
+                case ComponentsTypes::Sprite:
+                    obj->addComponent<::aiko::SpriteComponent>();
                     break;
                 default:
                     assert(false);
@@ -133,10 +126,9 @@ namespace aiko::editor
         void drawComponent(aiko::Component* compt)
         {
             if (isComponent<aiko::TransforComponent>(compt, drawTransform)) return;
-            if (isComponent<aiko::TextureComponent>(compt, drawTexture)) return;
+            if (isComponent<aiko::SpriteComponent>(compt, drawSprite)) return;
             if (isComponent<aiko::MeshComponent>(compt, drawMesh)) return;
             if (isComponent<aiko::LightComponent>(compt, drawLight)) return;
-            if (isComponent<aiko::GridXComponent>(compt, drawGrid)) return;
             if (isComponent<aiko::CameraComponent>(compt, drawCamera)) return;
             assert(false && "ERROR :: Component is not supported by the editor");
         }
@@ -150,12 +142,15 @@ namespace aiko::editor
             ImGui::PopID();
         }
 
-        void drawTexture(aiko::TextureComponent* text)
+        void drawSprite(aiko::SpriteComponent* text)
         {
+            AIKO_NOT_IMPLEMENTED;
+            /*
             ImGui::PushID(text);
             Texture texture = text->getTexture();
             imgui::Image(texture);
             ImGui::PopID();
+            */
         }
 
         void drawMesh(aiko::MeshComponent* mesh)
@@ -167,12 +162,6 @@ namespace aiko::editor
         void drawLight(aiko::LightComponent* light)
         {
             ImGui::PushID(light);
-            ImGui::PopID();
-        }
-
-        void drawGrid(aiko::GridXComponent* grid)
-        {
-            ImGui::PushID(grid);
             ImGui::PopID();
         }
 

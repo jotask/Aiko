@@ -17,11 +17,9 @@ namespace aiko::editor
         void drawComponent(aiko::Component*);
 
         void drawTransform(aiko::TransforComponent*);
-        void drawTexture(aiko::TextureComponent*);
+        void drawSprite(aiko::SpriteComponent*);
         void drawMesh(aiko::MeshComponent*);
         void drawLight(aiko::LightComponent*);
-        void drawGrid(aiko::GridXComponent*);
-        void drawGrid(aiko::GridXComponent*);
         void drawCamera(aiko::CameraComponent*);
 
         template <typename T>

@@ -130,49 +130,40 @@ namespace aiko
         data.material = &material;
         data.topology = topology;
 
-        auto makeVertex = [&](uint32_t index) -> TransientVertex
+        data.vertices.reserve(meshAsset.m_vertices.size());
+
+        for (uint32_t i = 0; i < static_cast<uint32_t>(meshAsset.m_vertices.size()); ++i)
         {
-            TransientVertex v{};
 
-            v.position = meshAsset.m_vertices[index];
+            TransientVertex v = {};
 
-            if (index < meshAsset.m_textCoord.size())
+            v.position = meshAsset.m_vertices[i];
+
+            if (i < meshAsset.m_textCoord.size())
             {
-                v.uv = meshAsset.m_textCoord[index];
+                v.uv = meshAsset.m_textCoord[i];
             }
 
-            if (index < meshAsset.m_normals.size())
+            if (i < meshAsset.m_normals.size())
             {
-                v.normal = meshAsset.m_normals[index];
+                v.normal = meshAsset.m_normals[i];
             }
 
-            if (index < meshAsset.m_colors.size())
+            if (i < meshAsset.m_colors.size())
             {
-                v.color = meshAsset.m_colors[index];
+                v.color = meshAsset.m_colors[i];
             }
             else
             {
                 v.color = WHITE;
             }
 
-            return v;
-        };
+            data.vertices.push_back(v);
+        }
 
         if (meshAsset.m_indices.empty() == false)
         {
-            data.vertices.reserve(meshAsset.m_indices.size());
-            for (uint32_t index : meshAsset.m_indices)
-            {
-                data.vertices.push_back(makeVertex(index));
-            }
-        }
-        else
-        {
-            data.vertices.reserve(meshAsset.m_vertices.size());
-            for (uint32_t i = 0; i < static_cast<uint32_t>(meshAsset.m_vertices.size()); ++i)
-            {
-                data.vertices.push_back(makeVertex(i));
-            }
+            data.indices = meshAsset.m_indices;
         }
 
         m_transientQueue.push_back(std::move(data));

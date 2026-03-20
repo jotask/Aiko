@@ -538,6 +538,8 @@ namespace aiko::renderer::bgfx
         AIKO_ASSERT(desc.material->m_shader->isValid(), "Invalid line shader");
 
         const uint32_t vertexCount = static_cast<uint32_t>(desc.vertices.size());
+        const uint32_t indexCount  = static_cast<uint32_t>(desc.indices.size());
+
         if (vertexCount == 0)
         {
             return;
@@ -548,8 +550,29 @@ namespace aiko::renderer::bgfx
             return;
         }
 
+        if (indexCount > 0 && ::bgfx::getAvailTransientIndexBuffer(indexCount) < indexCount)
+        {
+            return;
+        }
+
         ::bgfx::TransientVertexBuffer tvb;
         ::bgfx::allocTransientVertexBuffer(&tvb, vertexCount, s_global_layout);
+
+        ::bgfx::TransientIndexBuffer tib;
+        const bool useIndices = indexCount > 0;
+
+        if (useIndices == true)
+        {
+            ::bgfx::allocTransientIndexBuffer(&tib, indexCount);
+
+            auto* indices = reinterpret_cast<uint16_t*>(tib.data);
+
+            for (uint32_t i = 0; i < indexCount; ++i)
+            {
+                AIKO_ASSERT(desc.indices[i] <= 0xFFFF, "Transient index exceeds uint16 range");
+                indices[i] = static_cast<uint16_t>(desc.indices[i]);
+            }
+        }
 
         auto* verts = reinterpret_cast<VertexInformation*>(tvb.data);
 
@@ -572,6 +595,10 @@ namespace aiko::renderer::bgfx
 
         ::bgfx::setTransform(desc.mtx.data());
         ::bgfx::setVertexBuffer(0, &tvb);
+        if (useIndices == true)
+        {
+            ::bgfx::setIndexBuffer(&tib);
+        }
 
         uint64_t state = s_default_state;
 

@@ -170,32 +170,17 @@ namespace sb
         ps->transform().position = { 0.0f, 0.0f, -3.5f };
         auto emitter = ps->addComponent<aiko::ParticleEmitterComponent>();
         emitter->setMaxParticles(1024 * 1024);
-        emitter->setLifetime(4.0f);
+        emitter->setLifetime(1.0f);
+        emitter->setDirection({0.0f, 1.0f, 0.0f});
+        emitter->setDirectionRandomness(0.85f);
+        emitter->setGravity({0.0f, -1.5f, 0.0f});
         emitter->setStartSpeed(2.0f);
-        emitter->setSpawnRate(1000.0f);
+        emitter->setSpawnRate(1000.0f * 100.0f);
         emitter->setPlaying(true);
         emitter->setSpawnShape(aiko::ParticleEmitterComponent::ParticleSpawnShape::Point);
         constexpr float spawnSize = 2.5f;
         emitter->setSpawnRadius(spawnSize);
         emitter->setSpawnBoxExtents({spawnSize, spawnSize, spawnSize});
-
-        // Point
-        if (emitter->getSpawnShape() == aiko::ParticleEmitterComponent::ParticleSpawnShape::Point)
-        {
-            emitter->setDirection({1.0f, 0.0f, 0.0f});
-            emitter->setDirectionRandomness(0.85f);
-            emitter->setGravity({0.0f, -1.5f, 0.0f});
-        }
-
-        // Sphere
-        if (emitter->getSpawnShape() == aiko::ParticleEmitterComponent::ParticleSpawnShape::Sphere)
-        {
-            emitter->setStartSpeed(2.5f);
-            emitter->setDirection({1.0f, 1.0f, 0.0f});
-            emitter->setDirectionRandomness(1.0f);
-            emitter->setGravity({0.0f, -1.5f, 0.0f});
-        }
-
         emitter->requestReset();
 #endif
 

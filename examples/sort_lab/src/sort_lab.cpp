@@ -76,7 +76,7 @@ namespace sb
             const float h = aiko::math::map<float>(number, 0, m_numbers.size(), 1.0f, 10.0f);
             const aiko::vec3 size = {w, h, 0.0f};
             const aiko::vec3 pos = {initial_position_x + ( i * w), 0.0f, 0.0f};
-            app->getRenderSystem()->drawRectangle(pos, size);
+            app->getRenderSystem()->renderRectangle(pos, size);
         }
 
     }

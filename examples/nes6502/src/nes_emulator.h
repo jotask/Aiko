@@ -8,11 +8,6 @@
 #include "nes/nintendo_entertainment_system.h"
 #include "emulator/emulator.h"
 
-namespace aiko
-{
-    class TextureComponent;
-}
-
 namespace nes
 {
     class NesComponent;
