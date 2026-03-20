@@ -5,17 +5,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(AikoFramework LANGUAGES CXX)
 
-if (WIN32)
-    set(AIKO_CURRENT_PLATFORM AIKO_WINDOWS)
-    message("Compiling for Windows")
-elseif (UNIX)
-    set(AIKO_CURRENT_PLATFORM AIKO_LINUX)
-    message("Compiling for linux")
-else()
-    message(FATAL_ERROR "Unsupported OS")
-endif()
+include(cmake/ProjectOptions.cmake)
+aiko_setup_options()
+aiko_detect_platform()
 
-add_subdirectory("${CMAKE_SOURCE_DIR}/aiko")
-add_subdirectory("${CMAKE_SOURCE_DIR}/examples")
+add_subdirectory(aiko)
+
+if(AIKO_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT AikoEditor )
