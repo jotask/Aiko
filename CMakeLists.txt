@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(AikoFramework LANGUAGES CXX)
+project(AikoFramework LANGUAGES C CXX)
 
 include(cmake/ProjectOptions.cmake)
 aiko_setup_options()
