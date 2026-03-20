@@ -16,7 +16,7 @@ aiko_set_common_source_layout(AikoRenderer ${CMAKE_CURRENT_SOURCE_DIR}/src ${AIK
 target_compile_definitions(AikoRenderer PRIVATE ${AIKO_RENDER} )
 target_precompile_headers(AikoRenderer PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/aiko_pch.h>")
 
-target_link_libraries(AikoRenderer PRIVATE AikoCore glfw glad imgui bx bimg bgfx assimp )
+target_link_libraries(AikoRenderer PRIVATE AikoCore glfw glad imgui bx bimg bgfx assimp Tracy::TracyClient )
 target_link_libraries(AikoRenderer PUBLIC magic_enum )
 
 target_include_directories(AikoRenderer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

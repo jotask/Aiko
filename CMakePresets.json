@@ -22,7 +22,21 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "AIKO_BUILD_EXAMPLES": "ON",
-        "AIKO_ENABLE_UNITY": "OFF"
+        "AIKO_ENABLE_UNITY": "OFF",
+        "AIKO_PROFILER": "OFF"
+      }
+    },
+    {
+      "name": "all-debug-profiler",
+      "displayName": "Core + examples / Debug / Profiler",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/all-debug-profiler",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "AIKO_BUILD_EXAMPLES": "ON",
+        "AIKO_ENABLE_UNITY": "OFF",
+        "AIKO_PROFILER": "ON"
       }
     },
     {

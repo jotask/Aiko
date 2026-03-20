@@ -5,6 +5,8 @@ function(aiko_setup_options)
     set(AIKO_RENDER "AIKO_BGFX" CACHE STRING "Render backend")
     set_property(CACHE AIKO_RENDER PROPERTY STRINGS AIKO_BGFX AIKO_NATIVE)
 
+    option(AIKO_PROFILER "Enable profiling tools" OFF)
+
     # Initialize unity build for targets created after this point
     if(AIKO_ENABLE_UNITY)
         set(CMAKE_UNITY_BUILD ON PARENT_SCOPE)
@@ -34,6 +36,10 @@ function(aiko_apply_defaults target_name)
 
     if(AIKO_ENABLE_UNITY)
         set_target_properties(${target_name} PROPERTIES UNITY_BUILD ON)
+    endif()
+
+    if(AIKO_PROFILER)
+        target_compile_definitions(${target_name} PRIVATE AIKO_PROFILER)
     endif()
 endfunction()
 

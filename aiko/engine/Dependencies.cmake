@@ -43,15 +43,43 @@ FetchContent_Declare(
     GIT_PROGRESS    TRUE
 )
 
-set(TRACY_ENABLE OFF CACHE BOOL "Enable profiling")
-#set(TRACY_NO_SYSTEM_TRACING ON CACHE BOOL "Disable System Tracing")
-set(TRACY_ONLY_IPV4 OFF CACHE BOOL "IPv4 only")
-option(TRACY_ENABLE "Enable profiling" OFF)
-#option(TRACY_NO_SYSTEM_TRACING "Disable System Tracing" ON)
-option(TRACY_ONLY_IPV4 "IPv4 only" OFF)
+set(TRACY_ENABLE ${AIKO_PROFILER} CACHE BOOL "Enable profiling" FORCE)
 message("Fetching tracy")
 FetchContent_MakeAvailable(tracy)
 set_target_properties(TracyClient PROPERTIES FOLDER "Dependencies")
+
+if (AIKO_PROFILER)
+
+    set(TRACY_PROFILER_BIN "${tracy_SOURCE_DIR}/profiler/build/tracy-profiler")
+    set(TRACY_PROFILER_LAUNCHER "${CMAKE_CURRENT_BINARY_DIR}/run-tracy-profiler.sh")
+
+    file(GENERATE OUTPUT "${TRACY_PROFILER_LAUNCHER}" CONTENT
+            "#!/usr/bin/env bash
+            set -e
+            exec \"${TRACY_PROFILER_BIN}\"
+    ")
+
+    add_custom_target(TracyProfilerBuild
+            COMMAND ${CMAKE_COMMAND}
+            -S ${tracy_SOURCE_DIR}/profiler
+            -B ${tracy_SOURCE_DIR}/profiler/build
+            -DCMAKE_BUILD_TYPE=Release
+            -DLEGACY=ON
+            COMMAND ${CMAKE_COMMAND}
+            --build ${tracy_SOURCE_DIR}/profiler/build
+            --parallel 2
+            WORKING_DIRECTORY ${tracy_SOURCE_DIR}
+            COMMENT "Building Tracy profiler"
+    )
+
+    add_custom_target(TracyProfiler
+            COMMAND /bin/bash "${TRACY_PROFILER_LAUNCHER}"
+            DEPENDS TracyProfilerBuild
+            USES_TERMINAL
+            COMMENT "Launching Tracy profiler"
+    )
+
+endif()
 
 #----------------------------------------------------------------------
 
