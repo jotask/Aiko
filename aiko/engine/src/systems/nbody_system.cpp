@@ -67,15 +67,15 @@ namespace aiko
         destroyStates();
     }
 
-    void NBodySystem::updateSimulation(GameObject* obj, NBodyComponent& emitter)
+    void NBodySystem::updateSimulation(GameObject* obj, NBodyComponent& simulation)
     {
         AIKO_UNUSED(obj);
 
-        RuntimeState& state = getOrCreateState(&emitter);
+        RuntimeState& state = getOrCreateState(&simulation);
 
         if (state.initialized == false)
         {
-            const uint32_t count = emitter.getMaxBodies();
+            const uint32_t count = simulation.getMaxBodies();
 
             state.positionMassBuffer.createVec4(count, nullptr, ComputeAccess::ReadWrite);
             state.velocityBuffer.createVec4(count, nullptr, ComputeAccess::ReadWrite);
@@ -105,23 +105,23 @@ namespace aiko
             state.renderInitialized = true;
         }
 
-        if (emitter.consumeResetRequest() == true)
+        if (simulation.consumeResetRequest() == true)
         {
             state.initDispatched = false;
         }
     }
 
-    void NBodySystem::renderSimulation(GameObject* obj, NBodyComponent& emitter)
+    void NBodySystem::renderSimulation(GameObject* obj, NBodyComponent& simulation)
     {
         AIKO_UNUSED(obj);
 
-        RuntimeState* state = tryGetState(&emitter);
-        if (state == nullptr || emitter.isPlaying() == false)
+        RuntimeState* state = tryGetState(&simulation);
+        if (state == nullptr || simulation.isPlaying() == false)
         {
             return;
         }
 
-        const uint32_t count = emitter.getMaxBodies();
+        const uint32_t count = simulation.getMaxBodies();
         const vec3 emitterPos = obj->transform().position;
 
         if (count == 0)
@@ -141,9 +141,9 @@ namespace aiko
                 "u_params",
                 vec4(
                     float(count),
-                    emitter.getInitialRadius(),
-                    emitter.getInitialSpeed(),
-                    emitter.getSoftening()
+                    simulation.getInitialRadius(),
+                    simulation.getInitialSpeed(),
+                    simulation.getSoftening()
                 )
             });
 
@@ -154,16 +154,16 @@ namespace aiko
 
             initPass.vec4Uniforms.push_back({
                 "u_initMode",
-                vec4(float(static_cast<int>(emitter.getInitMode())), 0.0f, 0.0f, 0.0f)
+                vec4(float(static_cast<int>(simulation.getInitMode())), 0.0f, 0.0f, 0.0f)
             });
 
             initPass.vec4Uniforms.push_back({
                 "u_gravity",
                 vec4(
-                    emitter.getGravitationalConstant().x,
-                    emitter.getGravitationalConstant().y,
-                    emitter.getGravitationalConstant().z,
-                    emitter.getCentralMass()
+                    simulation.getGravitationalConstant().x,
+                    simulation.getGravitationalConstant().y,
+                    simulation.getGravitationalConstant().z,
+                    simulation.getCentralMass()
                 )
             });
 
@@ -186,8 +186,8 @@ namespace aiko
             "u_params",
             vec4(
                 dt,
-                emitter.getTimeScale(),
-                emitter.getSoftening(),
+                simulation.getTimeScale(),
+                simulation.getSoftening(),
                 float(count)
             )
         });
@@ -195,10 +195,10 @@ namespace aiko
         updatePass.vec4Uniforms.push_back({
             "u_gravity",
             vec4(
-                emitter.getGravitationalConstant().x,
-                emitter.getGravitationalConstant().y,
-                emitter.getGravitationalConstant().z,
-                emitter.getCentralMass()
+                simulation.getGravitationalConstant().x,
+                simulation.getGravitationalConstant().y,
+                simulation.getGravitationalConstant().z,
+                simulation.getCentralMass()
             )
         });
 
@@ -215,7 +215,7 @@ namespace aiko
         {
 
             state->bodyMaterial.m_customVec4Uniforms["u_billboardParams"] = vec4(
-                emitter.getRenderScale(),
+                simulation.getRenderScale(),
                 0.0f,
                 0.0f,
                 0.0f

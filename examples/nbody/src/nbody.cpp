@@ -22,7 +22,7 @@ namespace nbody
         go->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto nbody = go->addComponent<aiko::NBodyComponent>();
-        nbody->applyStablePreset();
+        nbody->applyStressTestPreset();
 
     }
 

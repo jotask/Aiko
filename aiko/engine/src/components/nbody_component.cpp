@@ -31,7 +31,7 @@ namespace aiko
     {
         setMaxBodies(1024);
         setInitMode(NBodyInitMode::DiskOrbit);
-        setCentralMass(100.0f);
+        setCentralMass(500.0f);
         setGravitationalConstant(vec3(0.4f));
         setSoftening(0.2f);
         setTimeScale(1.0f);
@@ -57,13 +57,14 @@ namespace aiko
 
     void NBodyComponent::applyStressTestPreset()
     {
-        setMaxBodies(16384);
+        setMaxBodies(32768);
         setGravitationalConstant(vec3(0.5f));
+        setCentralMass(500.0f);
         setSoftening(0.2f);
         setTimeScale(1.0f);
         setInitialRadius(10.0f);
         setInitialSpeed(0.4f);
-        setRenderScale(0.03f);
+        setRenderScale(0.8f);
         setPlaying(true);
         requestReset();
     }
