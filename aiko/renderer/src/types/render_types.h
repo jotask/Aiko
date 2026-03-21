@@ -8,6 +8,8 @@ namespace aiko
 {
 
     class ComputeBuffer;
+    class Mesh;
+    class Material;
 
     using ViewId = uint16_t;
 
@@ -63,9 +65,6 @@ namespace aiko
         ReadWrite
     };
 
-    class Mesh;
-    class Material;
-
     struct GpuReadBufferBinding
     {
         uint8_t slot = 0;
@@ -105,10 +104,16 @@ namespace aiko
 
     struct GpuInstanceDrawDesc
     {
-        ViewId viewId = 0;
         const Mesh* mesh = nullptr;
         const Material* material = nullptr;
         std::vector<GpuReadBufferBinding> readBuffers;
+        uint32_t instanceCount = 0;
+    };
+
+    struct GpuBillboardDrawDesc
+    {
+        const Material* material = nullptr;
+        const ComputeBuffer* positionBuffer = nullptr;
         uint32_t instanceCount = 0;
     };
 

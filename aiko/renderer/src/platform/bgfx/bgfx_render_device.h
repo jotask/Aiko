@@ -49,6 +49,7 @@ namespace aiko::renderer::bgfx
         virtual bool pollReadback(ComputeReadbackResult& result) override;
 
         virtual void drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc) override;
+        virtual void drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc) override;
 
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) override;
 

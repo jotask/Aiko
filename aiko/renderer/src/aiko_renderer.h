@@ -49,6 +49,7 @@ namespace aiko
         bool pollReadback(ComputeReadbackResult& out);
 
         void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
+        void drawBillboards(const GpuBillboardDrawDesc& desc);
 
         void render(const Camera& camera);
 
@@ -77,6 +78,7 @@ namespace aiko
         std::vector<InstanceItem> m_instancedQueue;
         std::vector<ComputePass> m_computeQueue;
         std::vector<GpuInstanceDrawDesc> m_gpuInstanceDraws;
+        std::vector<GpuBillboardDrawDesc> m_gpuBillboardQueue;
 
         std::vector<TransientDrawDesc> m_transientQueue;
 

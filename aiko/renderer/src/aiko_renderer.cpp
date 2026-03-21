@@ -60,6 +60,7 @@ namespace aiko
         m_queue.clear();
         m_transientQueue.clear();
         m_instancedQueue.clear();
+        m_gpuBillboardQueue.clear();
         m_computeQueue.clear();
         m_gpuInstanceDraws.clear();
         m_lights.clear();
@@ -190,6 +191,11 @@ namespace aiko
         m_gpuInstanceDraws.push_back(desc);
     }
 
+    void AikoRenderer::drawBillboards(const GpuBillboardDrawDesc& desc)
+    {
+        m_gpuBillboardQueue.push_back(desc);
+    }
+
     void AikoRenderer::render(const Camera& camera)
     {
 
@@ -237,6 +243,11 @@ namespace aiko
             for (auto& desc : m_gpuInstanceDraws)
             {
                 m_renderer->drawMeshInstancedGpu(SCENE_VIEW, desc);
+            }
+
+            for (const GpuBillboardDrawDesc& desc : m_gpuBillboardQueue)
+            {
+                m_renderer->drawBillboards(SCENE_VIEW, desc);
             }
 
             m_renderer->endPass();

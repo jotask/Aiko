@@ -531,6 +531,71 @@ namespace aiko::renderer::bgfx
 
     }
 
+    void BgfxRenderDevice::drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc)
+    {
+        AIKO_ASSERT(desc.material != nullptr, "GpuBillboardDrawDesc requires a valid material");
+        AIKO_ASSERT(desc.material->m_shader != nullptr, "GpuBillboardDrawDesc material requires a valid shader");
+        AIKO_ASSERT(desc.material->m_shader->isValid(), "Invalid billboard shader");
+        AIKO_ASSERT(desc.positionBuffer != nullptr, "GpuBillboardDrawDesc requires a valid position buffer");
+
+        if (::bgfx::getAvailTransientVertexBuffer(4, s_global_layout) < 4)
+        {
+            return;
+        }
+
+        if (::bgfx::getAvailTransientIndexBuffer(6) < 6)
+        {
+            return;
+        }
+
+        ::bgfx::TransientVertexBuffer tvb;
+        ::bgfx::allocTransientVertexBuffer(&tvb, 4, s_global_layout);
+
+        auto* verts = reinterpret_cast<VertexInformation*>(tvb.data);
+
+        const uint32_t abgr = 0xffffffffu;
+
+        // Unit quad in XY around origin.
+        verts[0] = { -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, abgr };
+        verts[1] = {  0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, abgr };
+        verts[2] = {  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, abgr };
+        verts[3] = { -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, abgr };
+
+        ::bgfx::TransientIndexBuffer tib;
+        ::bgfx::allocTransientIndexBuffer(&tib, 6);
+
+        auto* indices = reinterpret_cast<uint16_t*>(tib.data);
+        indices[0] = 0; indices[1] = 1; indices[2] = 2;
+        indices[3] = 0; indices[4] = 2; indices[5] = 3;
+
+        bindMaterial(*desc.material);
+        bindFrameUniforms();
+        bindMaterialUniforms(*desc.material);
+
+        auto* buffImpl = static_cast<BgfxComputeBufferImpl*>(desc.positionBuffer->getImpl());
+        AIKO_ASSERT(buffImpl != nullptr, "Invalid billboard position buffer");
+        ::bgfx::setBuffer(7, buffImpl->handle(), ::bgfx::Access::Read);
+
+        const float mtx[16] =
+        {
+            1.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+        };
+
+        ::bgfx::setTransform(mtx);
+        ::bgfx::setVertexBuffer(0, &tvb);
+        ::bgfx::setIndexBuffer(&tib);
+        ::bgfx::setInstanceCount(desc.instanceCount);
+        ::bgfx::setState(s_default_state);
+
+        auto* shaderImpl = static_cast<BgfxShaderImpl*>(desc.material->m_shader->getImpl());
+        AIKO_ASSERT(shaderImpl != nullptr, "Invalid billboard shader impl");
+
+        ::bgfx::submit(viewId, shaderImpl->getProgramHandler());
+    }
+
     void BgfxRenderDevice::drawTransient(ViewId viewId, const TransientDrawDesc& desc)
     {
         AIKO_ASSERT(desc.material != nullptr, "Invalid material");

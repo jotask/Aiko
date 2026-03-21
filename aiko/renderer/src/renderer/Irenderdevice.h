@@ -50,7 +50,9 @@ namespace aiko::renderer
         virtual void execute(ViewId viewId, const ComputePass& pass) = 0;
         virtual void requestReadback(const ComputeReadbackRequest& request) = 0;
         virtual bool pollReadback(ComputeReadbackResult& result) = 0;
+
         virtual void drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc) = 0;
+        virtual void drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc) = 0;
 
         // Transient primitives
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) = 0;
