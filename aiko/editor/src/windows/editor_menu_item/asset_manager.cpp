@@ -128,7 +128,7 @@ namespace aiko
                     if (selected_index != -1)
                     {
                         Asset& asset = assets[selected_index];
-                        drawInputText("Uuid", &asset.uid, true);
+                        ImGui::LabelText("Uuid", "%s", asset.uid.get().data());
                         drawInputText("Name", asset.name);
                         drawInputText("Path", asset.path);
 
