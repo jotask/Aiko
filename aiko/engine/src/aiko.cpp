@@ -22,7 +22,7 @@
 #include "systems/render_system.h"
 #include "systems/input_system.h"
 #include "systems/scene_system.h"
-#include "systems/particle_system/particle_system.h"
+#include "systems/particle_system.h"
 
 namespace aiko
 {
