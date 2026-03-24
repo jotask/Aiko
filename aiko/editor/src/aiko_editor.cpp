@@ -43,12 +43,14 @@ namespace aiko::editor
         m_go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<MeshComponent>();
+        mesh1->loadDebugCube();
 
         auto m_go2 = app->Instantiate(root, "Cube2");
         m_go2->transform().position = { -1.0f, 0.0f, 0.0f };
         m_go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<MeshComponent>();
+        mesh2->loadDebugCube();
 
     }
 
