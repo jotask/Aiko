@@ -13,7 +13,8 @@ namespace aiko
         {
         public:
             Window(AikoEditor*, const char*);
-            ~Window() = default;
+            virtual ~Window() = default;
+            virtual void init() = 0;
             virtual void render() = 0;
             bool isOpen() const { return is_open; };
             const char* getName() const { return name.c_str(); }
@@ -25,7 +26,7 @@ namespace aiko
             const EditorContext& context() const;
         private:
             AikoEditor* m_editor;
-            aiko::string name;
+            string name;
         };
 
     }

@@ -17,7 +17,7 @@ namespace aiko::editor
                     if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
                     {
                         // Resize string and update data pointers
-                        aiko::string* str = (aiko::string*)data->UserData;
+                        string* str = (string*)data->UserData;
                         IM_ASSERT(data->Buf == str->c_str());
                         str->resize(data->BufTextLen);
                         data->Buf = (char*)str->c_str();

@@ -15,12 +15,9 @@ namespace aiko
         {
         public:
             ComponentWindow(AikoEditor*);
-            ~ComponentWindow() = default;
-            virtual void render();
-
-        private:
-            void onGameObjectSelected(HirearchyGameObjectSelectedEvent& envt);
-            GameObject* selectedGo;
+            virtual ~ComponentWindow() = default;
+            virtual void init() override;
+            virtual void render() override;
         };
 
     }

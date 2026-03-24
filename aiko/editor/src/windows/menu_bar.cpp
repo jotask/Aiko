@@ -23,6 +23,10 @@ namespace aiko
             m_items.emplace_back(std::make_unique<ImGuiDemo>(editor));
         }
 
+        void MenuBar::init()
+        {
+        }
+
         void MenuBar::render()
         {
             if (ImGui::BeginMainMenuBar())
@@ -40,13 +44,13 @@ namespace aiko
                     if (ImGui::MenuItem("Exit", "Alt+F4"))
                     {
                         // Handle exiting the application
-                        m_editor->getAiko()->close();
+                        getAiko()->close();
                     }
                     ImGui::EndMenu();
                 }
                 if (ImGui::BeginMenu("Editor"))
                 {
-                    for (auto& tmp : m_editor->getWindows())
+                    for (auto& tmp : getEditor()->getWindows())
                     {
                         if (tmp.get() == this)
                         {

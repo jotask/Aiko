@@ -21,10 +21,14 @@ namespace aiko
 
         }
 
+        void GameWindow::init()
+        {
+        }
+
         void GameWindow::render()
         {
 
-            static auto* renderSystem = m_editor->getAiko()->getSystem<aiko::RenderSystem>();
+            static auto* renderSystem = getAiko()->getSystem<RenderSystem>();
             if(ImGui::Begin("Game"))
             {
 

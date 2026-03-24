@@ -11,8 +11,9 @@ namespace aiko
         {
         public:
             GameWindow(AikoEditor*);
-            ~GameWindow() = default;
-            virtual void render();
+            virtual ~GameWindow() = default;
+            virtual void init() override;
+            virtual void render() override;
         };
 
     }

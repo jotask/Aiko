@@ -17,9 +17,11 @@ namespace aiko
 
         ComponentWindow::ComponentWindow(AikoEditor* editor)
             : Window(editor, "ComponentWindow")
-            , selectedGo(nullptr)
         {
-            EventSystem::it().bind<HirearchyGameObjectSelectedEvent>(this, &ComponentWindow::onGameObjectSelected);
+        }
+
+        void ComponentWindow::init()
+        {
         }
 
         void ComponentWindow::render()

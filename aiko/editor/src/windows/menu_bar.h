@@ -15,9 +15,10 @@ namespace aiko
         public:
             MenuBar(AikoEditor*);
             ~MenuBar() = default;
-            virtual void render();
+            virtual void init() override;
+            virtual void render() override;
         private:
-            std::vector<aiko::AikoPtr<MenuItem>> m_items;
+            std::vector<AikoPtr<MenuItem>> m_items;
         };
 
     }

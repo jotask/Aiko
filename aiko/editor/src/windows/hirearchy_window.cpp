@@ -19,6 +19,10 @@ namespace aiko
         {
         }
 
+        void HirearchyWindow::init()
+        {
+        }
+
         void HirearchyWindow::render()
         {
             static auto* ecs = m_editor->getAiko()->getSystem<SceneSystem>();
