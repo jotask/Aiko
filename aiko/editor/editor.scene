@@ -1,0 +1,107 @@
+- uuid: 2cce532a-5bc8-4b20-9517-ee4d359628b8
+  name: Camera
+  components:
+    - type: TransforComponent
+      data:
+        position:
+          x: 0
+          y: 0
+          z: 0
+        rotation:
+          x: 0
+          y: 0
+          z: 0
+        scale:
+          x: 1
+          y: 1
+          z: 1
+    - type: CameraComponent
+      data:
+        type: Perspective
+        controller: Orbit
+        fov: 45
+        dir:
+          x: 0.2514925
+          y: 0
+          z: -0.9678593
+- uuid: 90cf2e88-edf2-41ab-8df3-18fd6827fcdd
+  name: Root
+  components:
+    - type: TransforComponent
+      data:
+        position:
+          x: 0
+          y: 0
+          z: 0
+        rotation:
+          x: 0
+          y: 0
+          z: 0
+        scale:
+          x: 1
+          y: 1
+          z: 1
+- uuid: 737d5724-35aa-411e-b858-c539fa612261
+  name: Cube1
+  components:
+    - type: TransforComponent
+      data:
+        position:
+          x: 1
+          y: 0
+          z: 0
+        rotation:
+          x: 0
+          y: 0
+          z: 0
+        scale:
+          x: 1
+          y: 1
+          z: 1
+    - type: MeshComponent
+      data:
+        meshAsset: 2b708cdf-f8ae-4c5c-b6dc-5fed51a1cf2a
+        materialAsset:
+          shaderId: 00000000-0000-0000-0000-000000000000
+          diffuseTextureId: 00000000-0000-0000-0000-000000000000
+          color:
+            r: 1
+            g: 1
+            b: 1
+            a: 1
+          useVertexColor: false
+          lit: true
+        materialInstance:
+          shaderId: 00000000-0000-0000-0000-000000000000
+- uuid: 2a0d05f6-688d-41c1-b753-1e8b2a16b72d
+  name: Cube2
+  components:
+    - type: TransforComponent
+      data:
+        position:
+          x: -1
+          y: 0
+          z: 0
+        rotation:
+          x: 0
+          y: 0
+          z: 0
+        scale:
+          x: 1
+          y: 1
+          z: 1
+    - type: MeshComponent
+      data:
+        meshAsset: 0e2d1276-dfa4-461d-bf66-2d6304b8bd53
+        materialAsset:
+          shaderId: 00000000-0000-0000-0000-000000000000
+          diffuseTextureId: 00000000-0000-0000-0000-000000000000
+          color:
+            r: 1
+            g: 1
+            b: 1
+            a: 1
+          useVertexColor: false
+          lit: true
+        materialInstance:
+          shaderId: 00000000-0000-0000-0000-000000000000

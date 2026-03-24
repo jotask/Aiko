@@ -43,9 +43,6 @@ FetchContent_Declare(
         GIT_PROGRESS TRUE
 )
 
-FetchContent_GetProperties(imguifiledialog)
-if(NOT imguifiledialog_POPULATED)
-    FetchContent_Populate(imguifiledialog)
-endif()
+FetchContent_MakeAvailable(imguifiledialog)
 
 #----------------------------------------------------------------------

@@ -29,6 +29,7 @@ namespace aiko
         float& radius() { return m_radius; }
         float& speed() { return m_speed; }
 
+        const Camera& getCamera() const { return m_camera; }
         Camera& getCamera() { return m_camera; }
 
         bool isMain() const { return isMainCamera; }

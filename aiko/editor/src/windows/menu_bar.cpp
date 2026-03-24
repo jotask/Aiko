@@ -1,5 +1,6 @@
 #include "menu_bar.h"
 
+#include "constants.h"
 #include "aiko_editor.h"
 #include "aiko.h"
 #include "systems/render_system.h"
@@ -43,15 +44,17 @@ namespace aiko
                     {
                         // Trigger file open dialog or handle opening files
                         IGFD::FileDialogConfig config;
-                        config.path = ".";
-                        ImGuiFileDialog::Instance()->OpenDialog("loadFileDlgKey", "Choose File", ".cpp,.h,.hpp", config);
+                        config.path = global::GLOBAL_SCENE_FILES_PATH;
+                        config.fileName = "editor.scene";
+                        ImGuiFileDialog::Instance()->OpenDialog("loadFileDlgKey", "Choose File", ".scene", config);
                     }
                     if (ImGui::MenuItem("Save", "Ctrl+S"))
                     {
                         // Handle saving current work
                         IGFD::FileDialogConfig config;
-                        config.path = ".";
-                        ImGuiFileDialog::Instance()->OpenDialog("saveChooseFileDlgKey", "Choose File", ".cpp,.h,.hpp", config);
+                        config.path = global::GLOBAL_SCENE_FILES_PATH;
+                        config.fileName = "editor.scene";
+                        ImGuiFileDialog::Instance()->OpenDialog("saveChooseFileDlgKey", "Choose File", ".scene", config);
                     }
                     if (ImGui::MenuItem("Open ImGui Example", nullptr, &m_isImguiExampleOpen))
                     {

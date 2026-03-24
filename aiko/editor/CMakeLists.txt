@@ -1,5 +1,10 @@
 include(Dependencies.cmake)
 
+set(GLOBAL_PATH ${CMAKE_SOURCE_DIR}/)
+set(GLOBAL_ASSET_PATH ${CMAKE_SOURCE_DIR}/assets/)
+set(GLOBAL_SCENE_FILES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/)
+configure_file(constants.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/constants.h)
+
 file(GLOB_RECURSE AIKO_EDITOR_SRC "src/*.h" "src/*.cpp" "src/*.hpp")
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${AIKO_EDITOR_SRC})
