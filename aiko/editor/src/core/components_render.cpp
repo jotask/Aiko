@@ -14,123 +14,136 @@ namespace aiko::editor
     namespace component
     {
 
+        static const std::vector<ComponentEditorEntry> s_componentEntries =
+        {{
+            {
+                "Transform",
+                [](aiko::GameObject* go) { return go->getComponent<aiko::TransforComponent>() != nullptr; },
+                [](aiko::GameObject* go) { go->addComponent<aiko::TransforComponent>(); },
+                [](aiko::GameObject* go) { go->removeComponent<aiko::TransforComponent>(); },
+                [](aiko::Component* c) -> bool
+                {
+                    if (auto* t = dynamic_cast<aiko::TransforComponent*>(c))
+                    {
+                        drawTransform(t);
+                        return true;
+                    }
+                    return false;
+                }
+            },
+            {
+                "Camera",
+                [](aiko::GameObject* go) { return go->getComponent<aiko::CameraComponent>() != nullptr; },
+                [](aiko::GameObject* go) { go->addComponent<aiko::CameraComponent>(); },
+                [](aiko::GameObject* go) { go->removeComponent<aiko::CameraComponent>(); },
+                [](aiko::Component* c) -> bool
+                {
+                    if (auto* t = dynamic_cast<aiko::CameraComponent*>(c))
+                    {
+                        drawCamera(t);
+                        return true;
+                    }
+                    return false;
+                }
+            },
+            {
+                "Light",
+                [](aiko::GameObject* go) { return go->getComponent<aiko::LightComponent>() != nullptr; },
+                [](aiko::GameObject* go) { go->addComponent<aiko::LightComponent>(); },
+                [](aiko::GameObject* go) { go->removeComponent<aiko::LightComponent>(); },
+                [](aiko::Component* c) -> bool
+                {
+                    if (auto* t = dynamic_cast<aiko::LightComponent*>(c))
+                    {
+                        drawLight(t);
+                        return true;
+                    }
+                    return false;
+                }
+            },
+            {
+                "Mesh",
+                [](aiko::GameObject* go) { return go->getComponent<aiko::MeshComponent>() != nullptr; },
+                [](aiko::GameObject* go) { go->addComponent<aiko::MeshComponent>(); },
+                [](aiko::GameObject* go) { go->removeComponent<aiko::MeshComponent>(); },
+                [](aiko::Component* c) -> bool
+                {
+                    if (auto* t = dynamic_cast<aiko::MeshComponent*>(c))
+                    {
+                        drawMesh(t);
+                        return true;
+                    }
+                    return false;
+                }
+            },
+            {
+                "Sprite",
+                [](aiko::GameObject* go) { return go->getComponent<aiko::SpriteComponent>() != nullptr; },
+                [](aiko::GameObject* go) { go->addComponent<aiko::SpriteComponent>(); },
+                [](aiko::GameObject* go) { go->removeComponent<aiko::SpriteComponent>(); },
+                [](aiko::Component* c) -> bool
+                {
+                    if (auto* t = dynamic_cast<aiko::SpriteComponent*>(c))
+                    {
+                        drawSprite(t);
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        }};
+
         constexpr const float IMGUI_VELOCITY = .25f;
 
-        enum class ComponentsTypes
+        std::vector<string> getMissingComponents(GameObject* obj)
         {
-            Tranform,
-            Camera,
-            GridX,
-            Light,
-            Mesh,
-            Sprite,
-        };
-
-        std::vector<aiko::string> getComponents(aiko::GameObject* obj)
-        {
-            ComponentsTypes type;
-            std::vector<aiko::string> tmp;
-
-            auto addCmp = [&](ComponentsTypes type)
-                {
-                    tmp.push_back(magic_enum::enum_name(type).data());
-                };
-
-            for (auto* tmp : obj->getComponents())
+            std::vector<string> result;
+            for (const auto& entry : s_componentEntries)
             {
-                constexpr auto pmt = [](auto*) {};
-                if (isComponent<aiko::Transform>(tmp, pmt)) { addCmp(ComponentsTypes::Tranform); continue; };
-                if (isComponent<aiko::SpriteComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Sprite); continue; };
-                if (isComponent<aiko::MeshComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Mesh); continue; };
-                if (isComponent<aiko::LightComponent>(tmp, pmt)) { addCmp(ComponentsTypes::Light); continue; };;
-                assert(false && "ERROR :: Component is not supported by the editor");
-            }
-            return tmp;
-        }
-
-        std::vector<aiko::string> getMissingComponents(aiko::GameObject* obj)
-        {
-            std::vector<aiko::string> componentes = getComponents(obj);
-            std::vector<aiko::string> result;
-
-            magic_enum::enum_for_each<ComponentsTypes>([&](auto val)
+                if (entry.has(obj) == false)
                 {
-                    aiko::string str = aiko::string(magic_enum::enum_name<ComponentsTypes>(val));
-                    auto found = std::find(componentes.begin(), componentes.end(), str );
-                    if (found == componentes.end())
-                    {
-                        result.push_back(aiko::string(str));
-                    }
-                });
-
+                    result.push_back(entry.name);
+                }
+            }
             return result;
         }
 
-        void removeComponent(aiko::string name, aiko::GameObject* obj)
+        void removeComponent(string name, GameObject* obj)
         {
-            auto component = magic_enum::enum_cast<component::ComponentsTypes>(name);
-            if (component.has_value() == true)
+            for (const auto& entry : s_componentEntries)
             {
-                switch (component.value())
+                if (entry.name == name)
                 {
-                case ComponentsTypes::Camera:
-                    obj->removeComponent<::aiko::CameraComponent>();
-                    break;
-                case ComponentsTypes::Light:
-                    obj->removeComponent<::aiko::LightComponent>();
-                    break;
-                case ComponentsTypes::Mesh:
-                    obj->removeComponent<::aiko::MeshComponent>();
-                    break;
-                case ComponentsTypes::Sprite:
-                    obj->removeComponent<::aiko::SpriteComponent>();
-                    break;
-                default:
-                    break;
+                    entry.remove(obj);
+                    return;
                 }
             }
+            AIKO_ASSERT(false, "ERROR :: Component is not supported by the editor");
         }
 
-        std::vector<aiko::string> getAllComponents()
+        void addComponent(string name, GameObject* obj)
         {
-            std::array strs = magic_enum::enum_names<ComponentsTypes>();
-            return std::vector<aiko::string>(strs.begin(), strs.end());
-        }
-
-        void addComponent(aiko::string name, aiko::GameObject* obj)
-        {
-            auto component = magic_enum::enum_cast<component::ComponentsTypes>(name);
-            if ( component.has_value() == true )
+            for (const auto& entry : s_componentEntries)
             {
-                switch (component.value())
+                if (entry.name == name)
                 {
-                case ComponentsTypes::Camera:
-                    obj->addComponent<::aiko::CameraComponent>();
-                    break;
-                case ComponentsTypes::Light:
-                    obj->addComponent<::aiko::LightComponent>();
-                    break;
-                case ComponentsTypes::Mesh:
-                    obj->addComponent<::aiko::MeshComponent>();
-                    break;
-                case ComponentsTypes::Sprite:
-                    obj->addComponent<::aiko::SpriteComponent>();
-                    break;
-                default:
-                    assert(false);
-                    break;
+                    entry.add(obj);
+                    return;
                 }
             }
+            AIKO_ASSERT(false, "ERROR :: Component is not supported by the editor");
         }
 
-        void drawComponent(aiko::Component* compt)
+        void drawComponent(Component* compt)
         {
-            if (isComponent<aiko::TransforComponent>(compt, drawTransform)) return;
-            if (isComponent<aiko::SpriteComponent>(compt, drawSprite)) return;
-            if (isComponent<aiko::MeshComponent>(compt, drawMesh)) return;
-            if (isComponent<aiko::LightComponent>(compt, drawLight)) return;
-            if (isComponent<aiko::CameraComponent>(compt, drawCamera)) return;
-            assert(false && "ERROR :: Component is not supported by the editor");
+            for (const auto& entry : s_componentEntries)
+            {
+                if (entry.draw(compt) == true)
+                {
+                    return;
+                }
+            }
+            AIKO_ASSERT(false, "ERROR :: Component is not supported by the editor");
         }
 
         void drawTransform(aiko::TransforComponent* t)

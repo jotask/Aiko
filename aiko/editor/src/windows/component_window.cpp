@@ -3,7 +3,6 @@
 #include "window.h"
 
 #include <aiko_includes.h>
-#include "events/editor_events.h"
 #include "core/components_render.h"
 #include "aiko_editor.h"
 #include "core/imgui_helper.h"
@@ -26,26 +25,28 @@ namespace aiko
 
         void ComponentWindow::render()
         {
+            GameObject* selectedGameObject = context().getSelectedGameObject();
+            std::vector<Component*> componentsToRemove;
             if (ImGui::Begin("Components"))
             {
-                if (selectedGo != nullptr)
+                if (selectedGameObject != nullptr)
                 {
-                    ImGui::Text("Uuid: %s", selectedGo->uuid().get().c_str() );
-                    string name = selectedGo->getName();
+                    ImGui::Text("Uuid: %s", selectedGameObject->uuid().get().c_str() );
+                    string name = selectedGameObject->getName();
                     if (imgui::InputText("Name", &name))
                     {
-                        selectedGo->setName(name);
+                        selectedGameObject->setName(name);
                     }
                     ImGui::Spacing();
                     ImGui::Spacing();
-                    for (Component* comp : selectedGo->getComponents())
+                    for (Component* comp : selectedGameObject->getComponents())
                     {
                         if (ImGui::CollapsingHeader(comp->getName(), ImGuiTreeNodeFlags_DefaultOpen))
                         {
                             ImGui::PushID(comp);
                             if (ImGui::Button("Remove") == true)
                             {
-                                selectedGo->removeComponent(comp);
+                                componentsToRemove.push_back(comp);
                                 ImGui::PopID();
                                 continue;
                             }
@@ -70,14 +71,14 @@ namespace aiko
                             "  \"xxx,yyy\"  display lines containing \"xxx\" or \"yyy\"\n"
                             "  \"-xxx\"     hide lines containing \"xxx\"");
                         filter.Draw();
-                        std::vector<string> components = component::getMissingComponents(selectedGo);
+                        std::vector<string> components = component::getMissingComponents(selectedGameObject);
                         for(string component : components)
                         {
                             if (filter.PassFilter(component.c_str()))
                             {
                                 if (ImGui::Selectable(component.c_str()) == true)
                                 {
-                                    component::addComponent(component, selectedGo);
+                                    component::addComponent(component, selectedGameObject);
                                 }
                             }
                         }
@@ -91,11 +92,14 @@ namespace aiko
             }
             ImGui::End();
 
-        }
+            if (selectedGameObject != nullptr)
+            {
+                for(Component* cmp : componentsToRemove)
+                {
+                    selectedGameObject->removeComponent(cmp);
+                }
+            }
 
-        void ComponentWindow::onGameObjectSelected(HirearchyGameObjectSelectedEvent& envt)
-        {
-            selectedGo = const_cast<GameObject*>(envt.selected);
         }
 
     }
