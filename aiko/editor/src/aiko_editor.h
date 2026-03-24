@@ -7,6 +7,8 @@
 
 #include "windows/window.h"
 
+#include "core/editor_context.h"
+
 namespace aiko::editor
 {
 
@@ -20,10 +22,14 @@ namespace aiko::editor
 
         const Windows& getWindows() { return m_windows; }
 
+        EditorContext& context() { return m_context; }
+        const EditorContext& context() const { return m_context; }
+
     protected:
         virtual void init() override;
         virtual void render() override;
 
+        EditorContext m_context;
         Windows m_windows;
 
     };
