@@ -8,7 +8,9 @@
 #include <magic_enum/magic_enum.hpp>
 
 #include "components/camera_component.h"
+#include "components/light_component.h"
 #include "components/mesh_component.h"
+#include "components/sprite_component.h"
 
 #include "serializer/nodes/core_nodes_ymal.h"
 #include "serializer/nodes/render_nodes_ymal.h"
@@ -80,6 +82,48 @@ namespace YAML
         }
 
         static bool decode(const Node& node, aiko::MeshComponent& rhs)
+        {
+            if (node.IsMap() == false)
+            {
+                return false;
+            }
+            AIKO_NOT_IMPLEMENTED;
+            return true;
+        }
+    };
+
+    template<>
+    struct convert<aiko::LightComponent>
+    {
+        static Node encode(const aiko::LightComponent& rhs)
+        {
+            Node node;
+            AIKO_NOT_IMPLEMENTED;
+            return node;
+        }
+
+        static bool decode(const Node& node, aiko::LightComponent& rhs)
+        {
+            if (node.IsMap() == false)
+            {
+                return false;
+            }
+            AIKO_NOT_IMPLEMENTED;
+            return true;
+        }
+    };
+
+    template<>
+    struct convert<aiko::SpriteComponent>
+    {
+        static Node encode(const aiko::SpriteComponent& rhs)
+        {
+            Node node;
+            AIKO_NOT_IMPLEMENTED;
+            return node;
+        }
+
+        static bool decode(const Node& node, aiko::SpriteComponent& rhs)
         {
             if (node.IsMap() == false)
             {

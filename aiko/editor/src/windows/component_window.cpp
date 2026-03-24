@@ -3,7 +3,8 @@
 #include "window.h"
 
 #include <aiko_includes.h>
-#include "core/components_render.h"
+#include "registry/components_render.h"
+#include "registry/components_functionality.h"
 #include "aiko_editor.h"
 #include "core/imgui_helper.h"
 

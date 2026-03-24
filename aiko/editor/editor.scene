@@ -1,4 +1,4 @@
-- uuid: 2cce532a-5bc8-4b20-9517-ee4d359628b8
+- uuid: 97aab97c-1fc6-4e90-82a5-33e07ca38a34
   name: Camera
   components:
     - type: TransforComponent
@@ -17,14 +17,19 @@
           z: 1
     - type: CameraComponent
       data:
-        type: Perspective
-        controller: Orbit
-        fov: 45
-        dir:
-          x: 0.2514925
+        controller_type: Orbit
+        view_type: Perspective
+        isMain: true
+        cam_position:
+          x: -2.5980902
           y: 0
-          z: -0.9678593
-- uuid: 90cf2e88-edf2-41ab-8df3-18fd6827fcdd
+          z: -2.3451924
+        cam_target:
+          x: 0
+          y: 0
+          z: 0
+        fov: 45
+- uuid: 397e06a2-bdc0-4fa7-9a89-e5ab72406d2b
   name: Root
   components:
     - type: TransforComponent
@@ -41,7 +46,7 @@
           x: 1
           y: 1
           z: 1
-- uuid: 737d5724-35aa-411e-b858-c539fa612261
+- uuid: 3e56a4c8-b5fe-4693-9bed-19b6315f0ede
   name: Cube1
   components:
     - type: TransforComponent
@@ -60,8 +65,8 @@
           z: 1
     - type: MeshComponent
       data:
-        meshAsset: 2b708cdf-f8ae-4c5c-b6dc-5fed51a1cf2a
-        materialAsset:
+        meshId: 05a0f388-da42-4ec8-886b-dd7921a976d1
+        material:
           shaderId: 00000000-0000-0000-0000-000000000000
           diffuseTextureId: 00000000-0000-0000-0000-000000000000
           color:
@@ -73,7 +78,7 @@
           lit: true
         materialInstance:
           shaderId: 00000000-0000-0000-0000-000000000000
-- uuid: 2a0d05f6-688d-41c1-b753-1e8b2a16b72d
+- uuid: 83c11c67-08c2-4789-93d0-7994f307709b
   name: Cube2
   components:
     - type: TransforComponent
@@ -92,8 +97,8 @@
           z: 1
     - type: MeshComponent
       data:
-        meshAsset: 0e2d1276-dfa4-461d-bf66-2d6304b8bd53
-        materialAsset:
+        meshId: 3d2ac286-9c91-44e3-b631-9e8b16d96412
+        material:
           shaderId: 00000000-0000-0000-0000-000000000000
           diffuseTextureId: 00000000-0000-0000-0000-000000000000
           color:
