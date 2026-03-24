@@ -33,3 +33,19 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(yaml-cpp)
 
 #----------------------------------------------------------------------
+
+# ImGuiFileDialog
+FetchContent_Declare(
+        imguifiledialog
+        GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog.git
+        GIT_TAG v0.6.8
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+)
+
+FetchContent_GetProperties(imguifiledialog)
+if(NOT imguifiledialog_POPULATED)
+    FetchContent_Populate(imguifiledialog)
+endif()
+
+#----------------------------------------------------------------------

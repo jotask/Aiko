@@ -9,11 +9,11 @@ namespace aiko::editor
     class SceneSerializerYAML
     {
     public:
-        SceneSerializerYAML() = default;
-        ~SceneSerializerYAML() = default;
+        SceneSerializerYAML() = delete;
+        ~SceneSerializerYAML() = delete;
 
-        void serializeScene(const Scene& scene, const string& path);
-        void deserializeScene(Scene& scene, const string& path);
+        static void serializeScene(const Scene& scene, const string& path);
+        static void deserializeScene(Scene& scene, const string& path);
 
     };
 }

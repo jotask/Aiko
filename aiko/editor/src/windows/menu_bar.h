@@ -5,6 +5,8 @@
 #include <aiko_includes.h>
 #include "editor_menu_item/menu_item.h"
 
+#include "serializer/scene_serializer_YAML.h"
+
 namespace aiko
 {
     namespace editor
@@ -18,7 +20,11 @@ namespace aiko
             virtual void init() override;
             virtual void render() override;
         private:
+
             std::vector<AikoPtr<MenuItem>> m_items;
+
+            bool m_isImguiExampleOpen = false;
+
         };
 
     }
