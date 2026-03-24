@@ -1,5 +1,6 @@
 #include "aiko_editor.h"
 
+#include "core/editor_style.h"
 #include "windows/game_window.h"
 #include "windows/hirearchy_window.h"
 #include "windows/menu_bar.h"
@@ -8,7 +9,6 @@
 #include <aiko_includes.h>
 
 #include <imgui.h>
-#include <imgui_internal.h>
 
 namespace aiko::editor
 {
@@ -30,6 +30,8 @@ namespace aiko::editor
 
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+        applyEditorStyle();
 
         m_windows.emplace_back(std::make_unique<MenuBar>(this));
         m_windows.emplace_back(std::make_unique<GameWindow>(this));
