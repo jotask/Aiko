@@ -90,6 +90,14 @@ namespace aiko
         return inputSystem->isMouseButtonPressed(button);
     }
 
+    void Application::registerSystems()
+    {
+        for (auto& layer : m_layers)
+        {
+            layer->registerSystems();
+        }
+    }
+
     void Application::init()
     {
         for (auto& layer : m_layers)

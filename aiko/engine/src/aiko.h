@@ -44,6 +44,9 @@ namespace aiko
         IComponentAssetAccess* getComponentAssetAccess();
         IRenderResourceInvalidator* getResourceInvalidator();
 
+        template<typename TSystem, typename... Args>
+        TSystem* registerSystem(Args&& ...);
+
     private:
 
         Application* m_application;
@@ -86,4 +89,14 @@ namespace aiko
         return (found != m_systems.end()) ? dynamic_cast<T*>(found->get()) : nullptr;
     }
 
+    template <typename TSystem, typename ... Args>
+    TSystem* Aiko::registerSystem(Args&&... args)
+    {
+        static_assert(std::is_base_of_v<System, TSystem>, "System must derive from System");
+        auto instance = std::make_unique<TSystem>(std::forward<Args>(args)...);
+        instance->aiko = this;
+        TSystem* raw = instance.get();
+        m_systems.emplace_back(std::move(instance));
+        return raw;
+    }
 }

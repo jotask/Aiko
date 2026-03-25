@@ -55,6 +55,8 @@ namespace aiko
 
         AikoUPtr<Aiko> m_aiko;
 
+        void registerSystems();
+
         GameObject* Instantiate(string name);
         GameObject* Instantiate(GameObject* , string name);
 

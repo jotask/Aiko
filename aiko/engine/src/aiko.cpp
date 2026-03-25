@@ -23,7 +23,6 @@
 #include "systems/input_system.h"
 #include "systems/scene_system.h"
 #include "systems/particle_system.h"
-#include "systems/nbody_system.h"
 
 namespace aiko
 {
@@ -99,16 +98,16 @@ namespace aiko
         for (auto&& module : m_modules) module->postInit();
 
         // Systems
-        m_systems.emplace_back(std::make_unique<SceneSystem>());
-        m_systems.emplace_back(std::make_unique<RenderSystem>());
-        m_systems.emplace_back(std::make_unique<AssetSystem>());
-        m_systems.emplace_back(std::make_unique<ComputeSystem>());
-        m_systems.emplace_back(std::make_unique<InputSystem>());
-        m_systems.emplace_back(std::make_unique<ParticleSystem>());
-        m_systems.emplace_back(std::make_unique<NBodySystem>());
+        registerSystem<SceneSystem>();
+        registerSystem<RenderSystem>();
+        registerSystem<AssetSystem>();
+        registerSystem<ComputeSystem>();
+        registerSystem<InputSystem>();
+        registerSystem<ParticleSystem>();
+
+        m_application->registerSystems();
 
         SystemConnector systemConnector(m_systems);
-        for (auto&& system : m_systems) system->aiko = this;
         for (auto&& system : m_systems) system->connect(&moduleConnector, &systemConnector);
         for (auto&& system : m_systems) system->init();
 

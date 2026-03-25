@@ -16,6 +16,8 @@ namespace aiko
         virtual void onAttach() {}
         virtual void onDetach() {}
 
+        virtual void registerSystems() {}
+
         virtual void init() {}
         virtual void dispose() {}
 
