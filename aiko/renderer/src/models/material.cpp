@@ -1,6 +1,6 @@
 #include "material.h"
 
-#include <stdexcept>
+#include <core/utils.h>
 
 namespace aiko
 {
@@ -16,20 +16,12 @@ namespace aiko
 
     u64 Material::id() const
     {
-
-        const u64 shaderId = (m_shader != nullptr && m_shader->isValid()) ? static_cast<u64>(m_shader->id()) : 0ull;
-        const u64 textureId = m_diffuseTexture != nullptr && m_diffuseTexture->isValid() ? static_cast<u64>(m_diffuseTexture->id()) : 0ull;
-
-        u64 flags = 0;
-        if (m_useVertexColor == true) flags     |= 1ull << 0;
-        if (m_lit == true) flags                |= 1ull << 1;
-
-        u64 id = 0;
-        id |= (shaderId & 0xffffull) << 48;
-        id |= (textureId & 0xffffffffull) << 16;
-        id |= (flags & 0xffffull);
-
-        return id;
+        std::size_t seed = 0;
+        utils::hashCombine(std::hash<AssetId>{}(m_shaderId), seed);
+        utils::hashCombine(std::hash<AssetId>{}(m_diffuseTextureId), seed);
+        utils::hashCombine(std::hash<bool>{}(m_useVertexColor), seed);
+        utils::hashCombine(std::hash<bool>{}(m_lit), seed);
+        return static_cast<u64>(seed);
     }
 
 }

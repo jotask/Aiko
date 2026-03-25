@@ -11,7 +11,7 @@
 namespace aiko
 {
 
-    class AssetManager : public IAssetProvider
+    class AssetManager : public IAssetProvider, public IAssetRegistry
     {
     public:
 
@@ -23,14 +23,14 @@ namespace aiko
 
         TextureAsset& getMutableTextureAsset(const AssetId& id);
 
-        AssetId registerTexture(std::string_view path);
-        AssetId registerTexture(const TextureAsset& asset);
-        AssetId registerMesh(std::string_view path);
-        AssetId registerMesh(const MeshAsset& asset);
-        AssetId registerModel(std::string_view path);
-        AssetId registerShader(std::string_view vsPath,std::string_view fsPath);
-        AssetId registerShader(std::string_view path);
-        AssetId registerComputeShader(std::string_view path);
+        virtual AssetId registerTexture(std::string_view path) override;
+        virtual AssetId registerTexture(const TextureAsset& asset) override;
+        virtual AssetId registerMesh(std::string_view path) override;
+        virtual AssetId registerMesh(const MeshAsset& asset) override;
+        virtual AssetId registerModel(std::string_view path) override;
+        virtual AssetId registerShader(std::string_view vsPath,std::string_view fsPath) override;
+        virtual AssetId registerShader(std::string_view path) override;
+        virtual AssetId registerComputeShader(std::string_view path) override;
 
         bool hasTextureAsset(const AssetId& id) const;
         bool hasMeshAsset(const AssetId& id) const;

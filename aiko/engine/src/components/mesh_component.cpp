@@ -28,5 +28,7 @@ namespace aiko
         IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
         const AssetId cubeMeshId = assets->registerMesh(aiko::mesh::factory::generateCube());
         setMeshId(cubeMeshId);
+        m_material.shaderId = assets->registerShader("model");
+
     }
 }

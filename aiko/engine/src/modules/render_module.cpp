@@ -36,7 +36,7 @@ namespace aiko
 
     void RenderModule::init()
     {
-        m_renderer = std::make_unique<AikoRenderer>(*m_assetManager->getManager());
+        m_renderer = std::make_unique<AikoRenderer>(*m_assetManager->getManager(), m_assetManager->getManager());
         m_renderer->init();
     }
 

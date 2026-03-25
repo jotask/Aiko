@@ -46,9 +46,10 @@
         const Mesh& getMesh() const { return m_mesh; }
         const Material& getMaterial() const { return m_material; }
 
+        void setMaterial(Material&& material);
+
     private:
 
-        Shader passthrough;
         FrameBuffer m_frameBuffer;
         Mesh m_mesh;
         Material m_material;

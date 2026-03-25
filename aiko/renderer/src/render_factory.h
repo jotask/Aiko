@@ -10,12 +10,17 @@
 
 namespace aiko
 {
+    class RenderResourceManager;
+}
+
+namespace aiko
+{
     namespace renderer
     {
         class RendererFactory
         {
         public:
-            static AikoPtr<IRenderDevice> createRenderDevice();
+            static AikoPtr<IRenderDevice> createRenderDevice(RenderResourceManager*);
 
             static AikoPtr<interfaces::IShaderImpl> createShaderImpl();
             static AikoPtr<interfaces::ITextureImpl> createTextureImpl();

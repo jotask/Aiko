@@ -1,5 +1,7 @@
 #include "render_factory.h"
 
+#include "resources/render_resource_manager.h"
+
 #if defined (AIKO_BGFX)
 #include "platform/bgfx/bgfx_render_device.h"
 #include "platform/bgfx/impl/bgfx_shader_impl.h"
@@ -18,10 +20,10 @@ namespace aiko
 {
     namespace renderer
     {
-        AikoPtr<IRenderDevice> RendererFactory::createRenderDevice()
+        AikoPtr<IRenderDevice> RendererFactory::createRenderDevice(RenderResourceManager* resources)
         {
             #if defined (AIKO_BGFX)
-            return std::make_shared<bgfx::BgfxRenderDevice>();
+            return std::make_shared<bgfx::BgfxRenderDevice>(resources);
             #elif defined (AIKO_NATIVE)
             #error Not implemented
             return std::make_shared<OpenGLShaderImpl>();

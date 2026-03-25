@@ -20,7 +20,7 @@ namespace aiko
 
     bool ScreenFbo::isValid()
     {
-        return m_mesh.isValid() == true && m_material.m_shader != nullptr && m_material.m_shader->isValid() == true;
+        return m_mesh.isValid() == true && m_material.m_shaderId != InvalidAssetId;
     }
 
     void ScreenFbo::create(int width, int height)
@@ -67,19 +67,6 @@ namespace aiko
             m_mesh.upload(data);
 
         }
-
-        // Set material
-        {
-            passthrough.load("passthrough");
-            m_material.m_shader = & passthrough;
-            m_material.m_useVertexColor = false;
-            m_material.m_lit = false;
-            m_material.m_baseColor = WHITE;
-
-            AIKO_ASSERT(m_material.m_shader->isValid(), "ScreenFbo shader invalid!");
-
-        }
-
         resize(width, height);
 
     }
@@ -93,14 +80,21 @@ namespace aiko
         m_frameBuffer.create(width, height);
         AIKO_ASSERT(m_frameBuffer.isValid(), "ScreenFbo framebuffer invalid!");
 
-        m_material.m_diffuseTexture = &m_frameBuffer.getColorTexture();
+        m_material.m_runtimeDiffuseTexture = &m_frameBuffer.getColorTexture();
+        m_material.m_diffuseTextureId = InvalidAssetId;
 
     }
 
     void ScreenFbo::unload()
     {
         m_mesh.unload();
-        m_material.m_shader->unload();
+        m_frameBuffer.unload();
+        m_material.m_runtimeDiffuseTexture = nullptr;
+    }
+
+    void ScreenFbo::setMaterial(Material&& material)
+    {
+        m_material = std::move(material);
     }
 
 }

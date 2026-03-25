@@ -23,8 +23,7 @@ namespace aiko
 
     void RenderSystem::init()
     {
-        AssetId shaderId = m_assetManagerModule->getManager()->registerShader("model");
-        m_materialPrimitives.m_shader = &m_renderModule->getRenderer().resources().getShader(shaderId);
+        m_materialPrimitives.m_shaderId = m_assetManagerModule->getManager()->registerShader("model");
         m_materialPrimitives.m_lit = false;
         m_materialPrimitives.m_useVertexColor = false;
         m_materialPrimitives.m_baseColor = MAGENTA;

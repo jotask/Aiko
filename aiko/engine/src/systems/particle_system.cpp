@@ -92,8 +92,7 @@ namespace aiko
             auto meshData = mesh::factory::generateCube();
             state.particleMesh.upload(meshData);
 
-            AssetId shaderId = m_assetManagerModule->getManager()->registerShader("particles_gpuinst.vs", "model.fs");
-            state.particleMaterial.m_shader = &m_renderModule->getRenderer().resources().getShader(shaderId);
+            state.particleMaterial.m_shaderId = m_assetManagerModule->getManager()->registerShader("particles_gpuinst.vs", "model.fs");
             state.particleMaterial.m_baseColor = WHITE;
             state.particleMaterial.m_lit = false;
             state.particleMaterial.m_useVertexColor = true;

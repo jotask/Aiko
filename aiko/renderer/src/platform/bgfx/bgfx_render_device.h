@@ -15,7 +15,7 @@ namespace aiko::renderer::bgfx
     {
     public:
 
-        BgfxRenderDevice();
+        BgfxRenderDevice(RenderResourceManager*);
         virtual ~BgfxRenderDevice() override;
 
         virtual bool init(const renderer::DeviceInitDesc& desc) override;

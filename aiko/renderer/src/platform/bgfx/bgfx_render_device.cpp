@@ -16,11 +16,14 @@
 #include <platform/bgfx/impl/bgfx_mesh_impl.h>
 #include <platform/bgfx/impl/bgfx_framebuffer_impl.h>
 
+#include "resources/render_resource_manager.h"
+
 namespace aiko::renderer::bgfx
 {
 
-    BgfxRenderDevice::BgfxRenderDevice()
-        : m_boundShader(nullptr)
+    BgfxRenderDevice::BgfxRenderDevice(RenderResourceManager* resources)
+        : IRenderDevice(resources)
+        , m_boundShader(nullptr)
     {
         static_assert(sizeof(::bgfx::ViewId) == sizeof(ViewId),    "Bgfx ViewId type has changed");
         static_assert(std::is_same<::bgfx::ViewId, ViewId>::value, "Bgfx ViewId type has changed");
@@ -192,8 +195,8 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::bindMaterial(const Material& material)
     {
-        AIKO_ASSERT(material.m_shader->isValid(), "Invalid Shader");
-        BgfxShaderImpl* shaderImpl = static_cast<BgfxShaderImpl*>(material.m_shader->getImpl());
+        AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "Invalid Shader");
+        BgfxShaderImpl* shaderImpl = static_cast<BgfxShaderImpl*>(getResources()->getShader(material.m_shaderId).getImpl());
         AIKO_ASSERT(shaderImpl != nullptr, "Material has not shader!");
         m_boundShader = shaderImpl;
     }
@@ -246,7 +249,7 @@ namespace aiko::renderer::bgfx
         BgfxTextureImpl* depthTexture = static_cast<BgfxTextureImpl*>(fb.getDepthTexture().getImpl());
         AIKO_ASSERT(depthTexture != nullptr, "Invalid depth texture for frame buffer");
 
-        BgfxShaderImpl* shaderImpl = static_cast<BgfxShaderImpl*>(screen.getMaterial().m_shader->getImpl());
+        BgfxShaderImpl* shaderImpl = static_cast<BgfxShaderImpl*>(getResources()->getShader(screen.getMaterial().m_shaderId).getImpl());
         AIKO_ASSERT(shaderImpl != nullptr, "Screen program has no impl");
 
         BgfxMeshImpl* meshImpl = static_cast<BgfxMeshImpl*>(screen.getMesh().getImpl());
@@ -290,7 +293,7 @@ namespace aiko::renderer::bgfx
         BgfxTextureImpl* colorTexture = static_cast<BgfxTextureImpl*>(texture.getImpl());
         AIKO_ASSERT(colorTexture != nullptr, "Invalid texture impl");
 
-        BgfxShaderImpl* shaderImpl = static_cast<BgfxShaderImpl*>(screen.getMaterial().m_shader->getImpl());
+        BgfxShaderImpl* shaderImpl = static_cast<BgfxShaderImpl*>(getResources()->getShader(screen.getMaterial().m_shaderId).getImpl());
         AIKO_ASSERT(shaderImpl != nullptr, "Screen program has no impl");
 
         BgfxMeshImpl* meshImpl = static_cast<BgfxMeshImpl*>(screen.getMesh().getImpl());
@@ -499,7 +502,7 @@ namespace aiko::renderer::bgfx
     {
 
         auto* meshImpl = static_cast<BgfxMeshImpl*>(desc.mesh->getImpl());
-        auto* shaderImpl = static_cast<BgfxShaderImpl*>(desc.material->m_shader->getImpl());
+        auto* shaderImpl = static_cast<BgfxShaderImpl*>(getResources()->getShader(desc.material->m_shaderId).getImpl());
 
         AIKO_ASSERT(meshImpl != nullptr, "Invalid handler");
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid handler");
@@ -534,8 +537,7 @@ namespace aiko::renderer::bgfx
     void BgfxRenderDevice::drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc)
     {
         AIKO_ASSERT(desc.material != nullptr, "GpuBillboardDrawDesc requires a valid material");
-        AIKO_ASSERT(desc.material->m_shader != nullptr, "GpuBillboardDrawDesc material requires a valid shader");
-        AIKO_ASSERT(desc.material->m_shader->isValid(), "Invalid billboard shader");
+        AIKO_ASSERT(desc.material->m_shaderId != InvalidAssetId, "GpuBillboardDrawDesc material requires a valid shader");
         AIKO_ASSERT(desc.positionBuffer != nullptr, "GpuBillboardDrawDesc requires a valid position buffer");
 
         if (::bgfx::getAvailTransientVertexBuffer(4, s_global_layout) < 4)
@@ -590,7 +592,8 @@ namespace aiko::renderer::bgfx
         ::bgfx::setInstanceCount(desc.instanceCount);
         ::bgfx::setState(s_default_state);
 
-        auto* shaderImpl = static_cast<BgfxShaderImpl*>(desc.material->m_shader->getImpl());
+        auto* shaderImpl = static_cast<BgfxShaderImpl*>(getResources()->getShader(desc.material->m_shaderId).getImpl());
+        AIKO_ASSERT(shaderImpl->isValid(), "Invalid billboard shader");
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid billboard shader impl");
 
         ::bgfx::submit(viewId, shaderImpl->getProgramHandler());
@@ -599,8 +602,7 @@ namespace aiko::renderer::bgfx
     void BgfxRenderDevice::drawTransient(ViewId viewId, const TransientDrawDesc& desc)
     {
         AIKO_ASSERT(desc.material != nullptr, "Invalid material");
-        AIKO_ASSERT(desc.material->m_shader != nullptr, "LineDrawDesc material requires a valid shader");
-        AIKO_ASSERT(desc.material->m_shader->isValid(), "Invalid line shader");
+        AIKO_ASSERT(desc.material->m_shaderId != InvalidAssetId, "LineDrawDesc material requires a valid shader");
 
         const uint32_t vertexCount = static_cast<uint32_t>(desc.vertices.size());
         const uint32_t indexCount  = static_cast<uint32_t>(desc.indices.size());
@@ -677,7 +679,8 @@ namespace aiko::renderer::bgfx
 
         ::bgfx::setState(state);
 
-        auto* shaderImpl = static_cast<BgfxShaderImpl*>(desc.material->m_shader->getImpl());
+        auto* shaderImpl = static_cast<BgfxShaderImpl*>(getResources()->getShader(desc.material->m_shaderId).getImpl());
+        AIKO_ASSERT(shaderImpl->isValid(), "Invalid line shader");
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid line shader impl");
 
         ::bgfx::submit(viewId, shaderImpl->getProgramHandler());
@@ -855,8 +858,25 @@ namespace aiko::renderer::bgfx
         // u_baseColor
         m_boundShader->setVec4("u_baseColor", material.m_baseColor.toVec4());
 
+        const Texture* resolvedTexture = nullptr;
+
+        // Runtime texture override takes priority.
+        if (material.m_runtimeDiffuseTexture != nullptr && material.m_runtimeDiffuseTexture->isValid())
+        {
+            resolvedTexture = material.m_runtimeDiffuseTexture;
+        }
+        else if (material.m_diffuseTextureId != InvalidAssetId)
+        {
+            Texture& texture = getResources()->getTexture(material.m_diffuseTextureId);
+            if (texture.isValid() == true)
+            {
+                resolvedTexture = &texture;
+            }
+        }
+
         // flags
-        const bool hasTexture = material.m_diffuseTexture != nullptr && material.m_diffuseTexture->isValid();
+        const bool hasTexture = resolvedTexture != nullptr;
+
         m_boundShader->setVec4("u_flags", vec4(
                 hasTexture == true ? 1.0f : 0.0f,
                 material.m_useVertexColor == true ? 1.0f : 0.0f,
@@ -878,7 +898,7 @@ namespace aiko::renderer::bgfx
             ::bgfx::UniformHandle s_tex = m_boundShader->getUniformHandle("u_texture");
             if (::bgfx::isValid(s_tex) == true)
             {
-                auto* texImpl = static_cast<BgfxTextureImpl*>(material.m_diffuseTexture->getImpl());
+                auto* texImpl = static_cast<BgfxTextureImpl*>(resolvedTexture->getImpl());
                 if (texImpl && texImpl->isValid() == true)
                 {
                     ::bgfx::setTexture(0, s_tex, texImpl->getTextureHandler() /*, texImpl->getSamplerFlags()*/);

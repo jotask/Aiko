@@ -26,6 +26,7 @@ namespace aiko
         IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
         m_meshId = assets->registerMesh(mesh::factory::generateQuad());
         m_material.diffuseTextureId = assets->registerTexture(file);
+        m_material.shaderId = assets->registerShader("model");
         is_dirty = false;
         pixels.clear();
     }
@@ -34,6 +35,7 @@ namespace aiko
     {
         IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
         m_meshId = assets->registerMesh(aiko::mesh::factory::generateQuad());
+        m_material.shaderId = assets->registerShader("model");
         m_width = width;
         m_height = height;
         is_dirty = true;

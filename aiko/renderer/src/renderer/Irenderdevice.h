@@ -12,13 +12,18 @@
 #include "renderer/frame_uniforms.h"
 #include "types/compute_pass.h"
 
+namespace aiko
+{
+    class RenderResourceManager;
+}
+
 namespace aiko::renderer
 {
 
     class IRenderDevice
     {
     public:
-        IRenderDevice() = default;
+        IRenderDevice(RenderResourceManager* manager) : m_resource_manager(manager) {};
         virtual ~IRenderDevice() = default;
 
         virtual bool init(const DeviceInitDesc& desc) = 0;
@@ -56,6 +61,14 @@ namespace aiko::renderer
 
         // Transient primitives
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) = 0;
+
+    protected:
+
+        RenderResourceManager* getResources() const { return m_resource_manager; }
+
+    private:
+
+        RenderResourceManager* m_resource_manager;
 
     };
 

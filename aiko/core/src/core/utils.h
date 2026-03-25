@@ -15,5 +15,7 @@ namespace aiko
 
         string getExePath();
 
+        void hashCombine(const std::size_t value, std::size_t& seed );
+
     }
 }

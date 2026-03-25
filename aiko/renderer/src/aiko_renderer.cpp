@@ -12,8 +12,9 @@
 
 namespace aiko
 {
-    AikoRenderer::AikoRenderer(IAssetProvider& assets)
-            : m_renderer(renderer::RendererFactory::createRenderDevice())
+    AikoRenderer::AikoRenderer(IAssetProvider& assets, IAssetRegistry* registry)
+            : m_renderer(renderer::RendererFactory::createRenderDevice(&m_resources))
+            , m_assetRegistry(registry)
             , m_resources(assets)
             , m_background_color(RAYWHITE)
     {
@@ -46,6 +47,14 @@ namespace aiko
         {
             m_screenFbo.unload();
         }
+        Material screenFboMaterial = {};
+        screenFboMaterial.m_shaderId = m_assetRegistry->registerShader("passthrough");
+        screenFboMaterial.m_useVertexColor = false;
+        screenFboMaterial.m_lit = false;
+        screenFboMaterial.m_baseColor = WHITE;
+        AIKO_ASSERT(screenFboMaterial.m_shaderId != InvalidAssetId, "ScreenFbo shader invalid!");
+        m_screenFbo.setMaterial(std::move(screenFboMaterial));
+
         m_screenFbo.create(size.x, size.y);
 
         // bind to on window resize

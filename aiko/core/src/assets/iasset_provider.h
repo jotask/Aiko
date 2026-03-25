@@ -20,4 +20,19 @@ namespace aiko
         virtual const ComputeShaderAsset& getComputeShaderAsset(const AssetId& id) = 0;
     };
 
+    class IAssetRegistry
+    {
+    public:
+        virtual ~IAssetRegistry() = default;
+
+        virtual AssetId registerTexture(std::string_view path) = 0;
+        virtual AssetId registerTexture(const TextureAsset& asset) = 0;
+        virtual AssetId registerMesh(std::string_view path) = 0;
+        virtual AssetId registerMesh(const MeshAsset& asset) = 0;
+        virtual AssetId registerModel(std::string_view path) = 0;
+        virtual AssetId registerShader(std::string_view vsPath,std::string_view fsPath) = 0;
+        virtual AssetId registerShader(std::string_view path) = 0;
+        virtual AssetId registerComputeShader(std::string_view path) = 0;
+    };
+
 }

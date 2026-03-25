@@ -33,7 +33,8 @@
         u64 id() const;
 
     public:
-        Shader* m_shader = nullptr;
+
+        AssetId m_shaderId = InvalidAssetId;
 
         const ComputeBuffer* m_gpuInstanceBuffer = nullptr;
 
@@ -41,7 +42,8 @@
         bool m_lit;
 
 		Color m_baseColor;
-        Texture* m_diffuseTexture = nullptr;
+        AssetId m_diffuseTextureId = InvalidAssetId;
+        const Texture* m_runtimeDiffuseTexture = nullptr;
 
         std::unordered_map<std::string, vec4> m_customVec4Uniforms;
 

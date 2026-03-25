@@ -28,7 +28,7 @@ namespace aiko
     
     public:
 
-        AikoRenderer(IAssetProvider& assets);
+        AikoRenderer(IAssetProvider& assets, IAssetRegistry* registry);
         ~AikoRenderer() = default;
 
         void init();
@@ -72,7 +72,6 @@ namespace aiko
         Color m_background_color;
 
         ScreenFbo m_screenFbo;
-        Shader m_passThrough;
 
         std::vector<RenderItem> m_queue;
         std::vector<InstanceItem> m_instancedQueue;
@@ -90,6 +89,7 @@ namespace aiko
         static_assert(COMPUTE_VIEW < SCENE_VIEW, "Compute View MUST be less than Scene View");
 
         AikoImgui m_imgui;
+        IAssetRegistry* m_assetRegistry = nullptr;
         RenderResourceManager m_resources;
 
     };
