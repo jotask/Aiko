@@ -1,11 +1,12 @@
 #pragma once
 
-#include "models/component.h"
+#include <math/math_vector.h>
+#include <models/component.h>
 
-namespace aiko
+namespace nbody
 {
 
-    class NBodyComponent : public Component
+    class NBodyComponent : public aiko::Component
     {
     public:
 
@@ -21,8 +22,8 @@ namespace aiko
         uint64_t getMaxBodies() const { return m_maxBodies; }
         void setMaxBodies(uint64_t value) { m_maxBodies = value; }
 
-        vec3 getGravitationalConstant() const { return m_gravitationalConstant; }
-        void setGravitationalConstant(vec3 value) { m_gravitationalConstant = value; }
+        aiko::vec3 getGravitationalConstant() const { return m_gravitationalConstant; }
+        void setGravitationalConstant(aiko::vec3 value) { m_gravitationalConstant = value; }
 
         NBodyInitMode getInitMode() const { return m_initMode; }
         void setInitMode(NBodyInitMode value) { m_initMode = value; }
@@ -60,7 +61,7 @@ namespace aiko
 
         uint64_t m_maxBodies;
         NBodyInitMode m_initMode;
-        vec3 m_gravitationalConstant;
+        aiko::vec3 m_gravitationalConstant;
         float m_centralMass;
         float m_softening;
         float m_timeScale;

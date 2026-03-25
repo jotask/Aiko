@@ -1,13 +1,13 @@
 #include "nbody_component.h"
 
-namespace aiko
+namespace nbody
 {
     
     NBodyComponent::NBodyComponent()
         : Component("NBodyComponent")
         , m_maxBodies(1024)
         , m_initMode(NBodyInitMode::Sphere)
-        , m_gravitationalConstant(vec3(1.0f, 1.0f, 1.0f))
+        , m_gravitationalConstant(aiko::vec3(1.0f, 1.0f, 1.0f))
         , m_centralMass(0.0f)
         , m_softening(0.1f)
         , m_timeScale(1.0f)
@@ -32,7 +32,7 @@ namespace aiko
         setMaxBodies(1024);
         setInitMode(NBodyInitMode::DiskOrbit);
         setCentralMass(500.0f);
-        setGravitationalConstant(vec3(0.4f));
+        setGravitationalConstant(aiko::vec3(0.4f));
         setSoftening(0.2f);
         setTimeScale(1.0f);
         setInitialRadius(6.0f);
@@ -45,7 +45,7 @@ namespace aiko
     void NBodyComponent::applyChaoticPreset()
     {
         setMaxBodies(1024);
-        setGravitationalConstant(vec3(2.0f));
+        setGravitationalConstant(aiko::vec3(2.0f));
         setSoftening(0.05f);
         setTimeScale(1.0f);
         setInitialRadius(4.0f);
@@ -58,7 +58,7 @@ namespace aiko
     void NBodyComponent::applyStressTestPreset()
     {
         setMaxBodies(32768);
-        setGravitationalConstant(vec3(0.5f));
+        setGravitationalConstant(aiko::vec3(0.5f));
         setCentralMass(500.0f);
         setSoftening(0.2f);
         setTimeScale(1.0f);

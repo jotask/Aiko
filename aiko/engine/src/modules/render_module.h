@@ -1,13 +1,14 @@
 #pragma once
 
 #include "modules/base_module.h"
-#include "resources/iresource_invalidator.h"
+#include "models/light.h"
 
 namespace aiko
 {
 
     class DisplayModule;
     class AssetsManagerModule;
+    class AikoRenderer;
     class Camera;
     class Mesh;
     class Shader;
