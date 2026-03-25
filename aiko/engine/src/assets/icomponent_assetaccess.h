@@ -18,6 +18,8 @@ namespace aiko
         virtual AssetId registerTexture(std::string_view path) = 0;
         virtual AssetId registerTexture(const TextureAsset& asset) = 0;
         virtual AssetId registerComputeShader(std::string_view path) = 0;
+        virtual AssetId registerShader(std::string_view path) = 0;
+        virtual AssetId registerShader(std::string_view vs, std::string_view fs) = 0;
 
         virtual TextureAsset& getMutableTextureAsset(const AssetId& id) = 0;
     };

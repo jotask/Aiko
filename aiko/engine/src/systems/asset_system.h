@@ -25,6 +25,8 @@ namespace aiko
         virtual AssetId registerTexture(std::string_view path) override;
         virtual AssetId registerTexture(const TextureAsset& asset) override;
         virtual AssetId registerComputeShader(std::string_view path) override;
+        virtual AssetId registerShader(std::string_view path) override;
+        virtual AssetId registerShader(std::string_view vs, std::string_view fs) override;
 
         virtual TextureAsset& getMutableTextureAsset(const AssetId& id) override;
 

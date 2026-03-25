@@ -48,6 +48,16 @@ namespace aiko
         return m_assetModule->getManager()->registerComputeShader(path);
     }
 
+    AssetId AssetSystem::registerShader(std::string_view path)
+    {
+        return m_assetModule->getManager()->registerShader(path);
+    }
+
+    AssetId AssetSystem::registerShader(std::string_view vs, std::string_view fs)
+    {
+        return m_assetModule->getManager()->registerShader(vs, fs);
+    }
+
     TextureAsset& AssetSystem::getMutableTextureAsset(const AssetId& id)
     {
         return m_assetModule->getManager()->getMutableTextureAsset(id);
