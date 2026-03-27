@@ -647,7 +647,7 @@ namespace aiko::renderer::bgfx
             for (uint32_t i = 0; i < indexCount; ++i)
             {
                 AIKO_ASSERT(desc.indices[i] <= 0xFFFF, "Transient index exceeds uint16 range");
-                indices[i] = static_cast<uint16_t>(desc.indices[i]);
+                indices[i] = desc.indices[i];
             }
         }
 

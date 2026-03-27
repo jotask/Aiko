@@ -15,7 +15,7 @@ namespace aiko
         std::vector<vec2>       m_textCoord;
         std::vector<vec3>       m_normals;
         std::vector<Color>      m_colors;
-        std::vector<uint32_t>   m_indices;
+        std::vector<uint16_t>   m_indices;
     };
 
     struct ModelAsset

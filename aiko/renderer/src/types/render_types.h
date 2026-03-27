@@ -90,7 +90,7 @@ namespace aiko
     {
         TransientTopology topology = TransientTopology::Triangles;
         std::vector<TransientVertex> vertices;
-        std::vector<uint32_t> indices;
+        std::vector<uint16_t> indices;
     };
 
     struct TransientDrawDesc
@@ -99,7 +99,7 @@ namespace aiko
         const Material* material = nullptr;
         TransientTopology topology = TransientTopology::Triangles;
         std::vector<TransientVertex> vertices;
-        std::vector<uint32_t> indices;
+        std::vector<uint16_t> indices;
     };
 
     struct GpuInstanceDrawDesc
