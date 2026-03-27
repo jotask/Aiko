@@ -40,7 +40,11 @@ function(aiko_apply_defaults target_name)
 
     if(AIKO_PROFILER)
         target_compile_definitions(${target_name} PRIVATE AIKO_PROFILER)
+        target_compile_definitions(${target_name} PRIVATE AIKO_PROFILE_COPIES)
     endif()
+
+    target_compile_definitions(${target_name} PRIVATE DEBUG)
+
 endfunction()
 
 function(aiko_set_common_source_layout target_name root_dir)
