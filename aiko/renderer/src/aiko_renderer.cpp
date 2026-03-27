@@ -1,6 +1,7 @@
 #include "aiko_renderer.h"
 
 #include <events/events.hpp>
+#include <intrumentor/profiler.h>
 
 #include "display/display_events.hpp"
 
@@ -83,6 +84,7 @@ namespace aiko
         const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
         m_imgui.endFrame(size.x, size.y);
         m_renderer->present();
+        AIKO_FRAME_MARK
     }
 
     void AikoRenderer::dispose()
@@ -208,6 +210,7 @@ namespace aiko
     void AikoRenderer::render(const Camera& camera)
     {
 
+        AIKO_ZONE_SCOPED
         const ivec2 size = DisplayManager::it().getDisplay()->getDisplaySize();
 
         const renderer::FrameData frameData =

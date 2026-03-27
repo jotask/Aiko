@@ -16,7 +16,7 @@ aiko_set_common_source_layout(Aiko ${CMAKE_CURRENT_SOURCE_DIR}/src ${AIKO_SRC})
 target_compile_definitions(Aiko PRIVATE ${AIKO_RENDER} )
 target_precompile_headers(Aiko PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/aiko_pch.h>")
  
-target_link_libraries(Aiko PRIVATE Tracy::TracyClient EnTT assimp stb )
+target_link_libraries(Aiko PRIVATE EnTT assimp stb )
 target_link_libraries(Aiko PUBLIC AikoCore AikoRenderer magic_enum imgui )
 
 target_include_directories(Aiko PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

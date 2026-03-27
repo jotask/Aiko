@@ -2,6 +2,7 @@
 
 #include "components/camera_component.h"
 #include "display/display_manager.h"
+#include <intrumentor/profiler.h>
 #include "modules/render_module.h"
 
 #include "modules/module_connector.h"
@@ -27,6 +28,8 @@ namespace aiko
 
     void SceneSystem::render()
     {
+
+        AIKO_ZONE_SCOPED
         SceneView view = m_sceneViewBuilder.build(m_scene);
         if(view.camera != nullptr)
         {
@@ -59,6 +62,7 @@ namespace aiko
 
     void SceneSystem::update()
     {
+        AIKO_ZONE_SCOPED
         for (const auto& go : m_scene.objects())
         {
             if (go != nullptr)
