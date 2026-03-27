@@ -50,7 +50,7 @@ namespace aiko::renderer::bgfx
         std::map<string, ::bgfx::UniformHandle> m_uniforms;
 
         ::bgfx::UniformHandle getUniformLocation(const string& name);
-        void setShaderUniform(string name, vec4 value);
+        void setShaderUniform(const string& name, vec4 value);
 
 
     };

@@ -138,7 +138,7 @@ namespace aiko
 
     static string buildMaterialKey(const MaterialAsset& material, const MaterialInstance& instance)
     {
-        const AssetId shaderId = instance.shaderId != InvalidAssetId ? instance.shaderId : material.shaderId;
+        const AssetId& shaderId = instance.shaderId != InvalidAssetId ? instance.shaderId : material.shaderId;
 
         const uint64_t runtimeTextureKey =
             instance.runtimeDiffuseTexture != nullptr

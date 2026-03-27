@@ -318,7 +318,7 @@ namespace aiko
 
             // Instanced batch
             {
-                std::ranges::sort(m_instancedQueue, [](const InstanceItem& a, const InstanceItem b)
+                std::ranges::sort(m_instancedQueue, [](const InstanceItem& a, const InstanceItem& b)
                 {
                     const u64 aMat = a.material ? a.material->id() : 0;
                     const u64 bMat = b.material ? b.material->id() : 0;
