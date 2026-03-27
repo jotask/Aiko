@@ -96,9 +96,7 @@ namespace nbody
 
         if (state.renderInitialized == false)
         {
-
-            aiko::AssetId shaderId = m_assetManagerModule->getManager()->registerShader("gpu_billboard.vs", "model.fs");
-            state.bodyMaterial.m_shader = &m_renderModule->getRenderer().resources().getShader(shaderId);
+            state.bodyMaterial.m_shaderId = m_assetManagerModule->getManager()->registerShader("gpu_billboard.vs", "model.fs");
             state.bodyMaterial.m_baseColor = aiko::RED;
             state.bodyMaterial.m_lit = false;
             state.bodyMaterial.m_useVertexColor = true;
