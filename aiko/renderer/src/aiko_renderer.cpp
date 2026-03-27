@@ -233,35 +233,6 @@ namespace aiko
             m_renderer->endPass();
         }
 
-        // GPU INSTANCED DRAW PASS
-        {
-            renderer::PassDescription pass =
-            {
-                .width  = static_cast<u32>(size.x),
-                .height = static_cast<u32>(size.y),
-                .clearColor = true,
-                .clearDepth = true,
-            };
-
-            const FrameBuffer& fbo = m_screenFbo.getFrameBuffer();
-
-            m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
-            m_renderer->bindFrame(SCENE_VIEW, frameData);
-
-            // GPU particle draw happens here
-            for (auto& desc : m_gpuInstanceDraws)
-            {
-                m_renderer->drawMeshInstancedGpu(SCENE_VIEW, desc);
-            }
-
-            for (const GpuBillboardDrawDesc& desc : m_gpuBillboardQueue)
-            {
-                m_renderer->drawBillboards(SCENE_VIEW, desc);
-            }
-
-            m_renderer->endPass();
-        }
-
         // Pass 0 : To offscreen frame buffer
         {
             renderer::PassDescription pass =
@@ -277,6 +248,16 @@ namespace aiko
 
             m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
             m_renderer->bindFrame(SCENE_VIEW, frameData);
+
+            for (auto& desc : m_gpuInstanceDraws)
+            {
+                m_renderer->drawMeshInstancedGpu(SCENE_VIEW, desc);
+            }
+
+            for (const GpuBillboardDrawDesc& desc : m_gpuBillboardQueue)
+            {
+                m_renderer->drawBillboards(SCENE_VIEW, desc);
+            }
 
             std::ranges::sort(m_queue, [](const RenderItem& a, const RenderItem& b)
             {
