@@ -95,13 +95,7 @@ namespace aiko::renderer::bgfx
 
     ::bgfx::UniformHandle BgfxShaderImpl::getUniformLocation(const string& name)
     {
-
-        auto found = std::find_if(m_uniforms.begin(), m_uniforms.end(),
-            [name](const std::pair<string, ::bgfx::UniformHandle> & t) -> bool
-            {
-                return t.first == name;
-            });
-
+        auto found = m_uniforms.find(name);
         if (found != m_uniforms.end())
         {
             return found->second;
@@ -111,7 +105,7 @@ namespace aiko::renderer::bgfx
         return {::bgfx::kInvalidHandle};
     }
 
-    void BgfxShaderImpl::setShaderUniform(string name, vec4 value)
+    void BgfxShaderImpl::setShaderUniform(const string& name, vec4 value)
     {
         ::bgfx::UniformHandle loc = getUniformLocation(name);
         if (::bgfx::isValid(loc) == false)
@@ -172,7 +166,13 @@ namespace aiko::renderer::bgfx
 
     ::bgfx::UniformHandle BgfxShaderImpl::getUniformHandle(const string &name)
     {
-        return m_uniforms[name];
+        auto found = m_uniforms.find(name);
+        if (found != m_uniforms.end())
+        {
+            return found->second;
+        }
+        logger::Log::error( "[%s/%s] UniformNotLoaded %s", vertex_file.c_str(), fragment_file.c_str(), name.c_str());
+        return ::bgfx::UniformHandle{::bgfx::kInvalidHandle};
     }
 
     bool BgfxShaderImpl::hasUniform(const string& name) const

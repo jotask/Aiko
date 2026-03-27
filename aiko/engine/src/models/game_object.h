@@ -95,10 +95,6 @@ namespace aiko
     template<class T>
     AikoPtr<T> GameObject::getComponent()
     {
-        if (hasComponent<T>() == false)
-        {
-            return nullptr;
-        }
         auto it = std::find_if(m_components.begin(), m_components.end(), [](const std::shared_ptr<Component>& component) {
             return dynamic_cast<T*>(component.get()) != nullptr;
         });
