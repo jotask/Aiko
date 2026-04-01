@@ -1,7 +1,5 @@
 #include "render_system.h"
 
-#include <stdexcept>
-
 #include <aiko_types.h>
 
 #include "modules/module_connector.h"
@@ -13,7 +11,6 @@
 #include "components/sprite_component.h"
 #include "components/model_component.h"
 #include <intrumentor/profiler.h>
-#include "resolver/material_resolver.h"
 
 namespace aiko
 {
@@ -47,7 +44,7 @@ namespace aiko
 
     void RenderSystem::clearCaches()
     {
-        m_materialCache.clear();
+
     }
 
     void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Material& mat)
@@ -70,11 +67,8 @@ namespace aiko
         {
             AIKO_ASSERT(submesh.meshId != InvalidAssetId, "Runtime model submesh has invalid mesh id");
             AIKO_ASSERT(submesh.material != nullptr, "Runtime model submesh has null material");
-
             Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(submesh.meshId);
-            Material& runtimeMaterial = resolveCachedMaterial(*submesh.material, instance);
-
-            m_renderModule->getRenderer().submit(trans, mesh, runtimeMaterial);
+            m_renderModule->getRenderer().submit(trans, mesh, *submesh.material, instance);
         }
     }
 
@@ -84,8 +78,7 @@ namespace aiko
         const AssetId& meshId = meshComponent.getMeshId();
         AIKO_ASSERT(meshId != InvalidAssetId, "MeshComponent has no mesh id assigned");
         Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
-        Material& runtimeMaterial = resolveCachedMaterial( meshComponent.getMaterial(), meshComponent.getMaterialInstance());
-        m_renderModule->getRenderer().submit(trans, mesh, runtimeMaterial);
+        m_renderModule->getRenderer().submit(trans, mesh, meshComponent.getMaterial(), meshComponent.getMaterialInstance());
     }
 
     void RenderSystem::render(const Transform& trans, const ModelComponent& modelComponent)
@@ -105,8 +98,7 @@ namespace aiko
         const AssetId& meshId = spriteComponent.getMeshId();
         AIKO_ASSERT(meshId != InvalidAssetId, "SpriteComponent has no mesh id assigned");
         Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
-        Material& runtimeMaterial = resolveCachedMaterial( spriteComponent.getMaterial(), spriteComponent.getMaterialInstance());
-        m_renderModule->getRenderer().submit(trans, mesh, runtimeMaterial);
+        m_renderModule->getRenderer().submit(trans, mesh, spriteComponent.getMaterial(), spriteComponent.getMaterialInstance());
     }
 
     void RenderSystem::dispatch(const ComputePass& pass, const AssetId& shaderId)
@@ -146,47 +138,4 @@ namespace aiko
     {
         return m_sceneSystem->getMainCamera();
     }
-
-    static string buildMaterialKey(const MaterialAsset& material, const MaterialInstance& instance)
-    {
-        AIKO_FUNCTION_PROFILE
-        const AssetId& shaderId = instance.shaderId != InvalidAssetId ? instance.shaderId : material.shaderId;
-
-        const uint64_t runtimeTextureKey =
-            instance.runtimeDiffuseTexture != nullptr
-                ? reinterpret_cast<uint64_t>(instance.runtimeDiffuseTexture)
-                : 0ull;
-
-        return shaderId.get() + "|" +
-               material.diffuseTextureId.get() + "|" +
-               std::to_string(material.useVertexColor) + "|" +
-               std::to_string(material.lit) + "|" +
-               std::to_string(material.baseColor.rgba()) + "|" +
-               std::to_string(runtimeTextureKey);
-    }
-
-    Material& RenderSystem::resolveCachedMaterial(const MaterialAsset& materialAsset, const MaterialInstance& materialInstance)
-    {
-        AIKO_FUNCTION_PROFILE
-        const string key = buildMaterialKey(materialAsset, materialInstance);
-
-        auto it = m_materialCache.find(key);
-        if (it != m_materialCache.end())
-        {
-            return *it->second.material;
-        }
-
-        auto material = MaterialResolver::resolve( materialAsset, materialInstance, *m_assetManagerModule->getManager(), m_renderModule->getRenderer());
-
-        Material& ref = *material;
-
-        CachedMaterialEntry entry{};
-        entry.textureId = materialAsset.diffuseTextureId;
-        entry.material = std::move(material);
-
-        m_materialCache.emplace(key, std::move(entry));
-        return ref;
-
-    }
-
 }

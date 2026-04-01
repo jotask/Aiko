@@ -3,6 +3,9 @@
 #include <events/event.hpp>
 #include <aiko_types.h>
 
+#include "assets/types/material_asset.h"
+#include "metadata/material_instance.h"
+
 #include "core/singleton.h"
 #include "core/transform.h"
 #include "display/display_events.hpp"
@@ -19,6 +22,8 @@
 
 #include "imgui/aiko_imgui.h"
 #include "resources/render_resource_manager.h"
+
+#include <deque>
 
 namespace aiko
 {
@@ -41,6 +46,7 @@ namespace aiko
         void submit(const AmbientLight& ambient, const vector<LightData>& data);
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
         void submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride);
+        void submit(const Transform& transform, const Mesh& mesh, const MaterialAsset& materialAsset, const MaterialInstance& materialInstance);
 
         void submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology);
 
@@ -87,6 +93,9 @@ namespace aiko
     private:
 
         static_assert(COMPUTE_VIEW < SCENE_VIEW, "Compute View MUST be less than Scene View");
+
+        Material& stageMaterial(const MaterialAsset& materialAsset, const MaterialInstance& materialInstance);
+        std::deque<Material> m_frameMaterials;
 
         AikoImgui m_imgui;
         IAssetRegistry* m_assetRegistry = nullptr;

@@ -68,6 +68,7 @@ namespace aiko
     void AikoRenderer::beginFrame()
     {
         AIKO_FUNCTION_PROFILE;
+        m_frameMaterials.clear();
         m_queue.clear();
         m_transientQueue.clear();
         m_instancedQueue.clear();
@@ -137,6 +138,14 @@ namespace aiko
         memcpy(item.data.data(), data, byteCount);
 
         m_instancedQueue.push_back(std::move(item));
+    }
+
+    void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const MaterialAsset& materialAsset,
+        const MaterialInstance& materialInstance)
+    {
+        AIKO_FUNCTION_PROFILE
+        Material& stagedMaterial = stageMaterial(materialAsset, materialInstance);
+        submit(transform, mesh, stagedMaterial);
     }
 
     void AikoRenderer::submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology)
@@ -413,5 +422,34 @@ namespace aiko
     {
         m_renderer->resize(event.width, event.height, false);
         m_screenFbo.resize(event.width, event.height);
+    }
+
+    Material& AikoRenderer::stageMaterial(const MaterialAsset& materialAsset, const MaterialInstance& materialInstance)
+    {
+        m_frameMaterials.emplace_back();
+        Material& material = m_frameMaterials.back();
+
+        material.m_shaderId =
+            materialInstance.shaderId != InvalidAssetId
+                ? materialInstance.shaderId
+                : materialAsset.shaderId;
+
+        material.m_gpuInstanceBuffer = nullptr;
+
+        material.m_useVertexColor = materialAsset.useVertexColor;
+        material.m_lit = materialAsset.lit;
+        material.m_baseColor = materialAsset.baseColor;
+
+        material.m_diffuseTextureId = materialAsset.diffuseTextureId;
+        material.m_runtimeDiffuseTexture = materialInstance.runtimeDiffuseTexture;
+
+        if (material.m_runtimeDiffuseTexture != nullptr)
+        {
+            material.m_diffuseTextureId = InvalidAssetId;
+        }
+
+        material.m_customVec4Uniforms.clear();
+
+        return material;
     }
 }

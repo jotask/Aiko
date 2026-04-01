@@ -14,10 +14,6 @@
     {
     public:
 
-        // Runtime render material.
-        // Owns/binds GPU-facing resources such as shader and textures.
-        // This is NOT a CPU asset description.
-
         friend class RenderModule;
         friend class RenderSystem;
 

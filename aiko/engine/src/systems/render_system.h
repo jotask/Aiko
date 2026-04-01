@@ -61,19 +61,9 @@ namespace aiko
 
     private:
 
-        struct CachedMaterialEntry
-        {
-            AikoUPtr<Material> material;
-            AssetId textureId = InvalidAssetId;
-        };
-
         AssetsManagerModule* m_assetManagerModule;
         RenderModule* m_renderModule;
         SceneSystem* m_sceneSystem;
-
-        std::unordered_map<string, CachedMaterialEntry> m_materialCache;
-
-        Material& resolveCachedMaterial(const MaterialAsset& materialAsset, const MaterialInstance& materialInstance);
 
     // ---------------------------------------------------
     //                   PRIMITIVES
