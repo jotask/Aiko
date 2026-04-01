@@ -38,7 +38,7 @@ set_target_properties(glm PROPERTIES FOLDER "Dependencies")
 FetchContent_Declare(
     tracy
     GIT_REPOSITORY  https://github.com/wolfpld/tracy.git
-    GIT_TAG         master
+    GIT_TAG         v0.13.1
     GIT_SHALLOW     TRUE
     GIT_PROGRESS    TRUE
 )
@@ -78,6 +78,41 @@ if (AIKO_PROFILER)
             USES_TERMINAL
             COMMENT "Launching Tracy profiler"
     )
+
+endif()
+
+if (AIKO_PROFILER)
+
+    set(TRACY_CSVEXPORT_BIN "${tracy_SOURCE_DIR}/csvexport/build/tracy-csvexport")
+    set(TRACY_CSVEXPORT_LAUNCHER "${CMAKE_CURRENT_BINARY_DIR}/run-tracy-csvexport.sh")
+
+    add_custom_target(TracyCsvExportBuild
+            COMMAND ${CMAKE_COMMAND}
+            -S ${tracy_SOURCE_DIR}/csvexport
+            -B ${tracy_SOURCE_DIR}/csvexport/build
+            -DCMAKE_BUILD_TYPE=Release
+            COMMAND ${CMAKE_COMMAND}
+            --build ${tracy_SOURCE_DIR}/csvexport/build
+            --parallel 2
+            WORKING_DIRECTORY ${tracy_SOURCE_DIR}
+            COMMENT "Building Tracy csvexport"
+    )
+
+    file(GENERATE OUTPUT "${TRACY_CSVEXPORT_LAUNCHER}" CONTENT
+            "#!/usr/bin/env bash
+            set -euo pipefail
+
+            if [ \"$#\" -lt 2 ]; then
+                echo \"Usage: $0 <input.tracy> <output.csv>\" >&2
+                exit 1
+            fi
+
+            input=\"$1\"
+            output=\"$2\"
+
+            \"${TRACY_CSVEXPORT_BIN}\" -u \"$input\" > \"$output\"
+            echo \"Wrote $output\"
+            ")
 
 endif()
 
