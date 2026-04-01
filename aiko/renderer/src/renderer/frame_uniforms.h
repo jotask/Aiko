@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 
 #include <math/math_vector.h>
 

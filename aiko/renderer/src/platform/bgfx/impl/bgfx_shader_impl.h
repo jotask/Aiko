@@ -1,6 +1,6 @@
 #pragma once
 
-#include <map>
+#include <unordered_map>
 
 #include <aiko_types.h>
 #include <math/math_vector.h>
@@ -33,7 +33,6 @@ namespace aiko::renderer::bgfx
         virtual void setVec3(const string& name, const vec3& value) override;
         virtual void setVec4(const string& name, const vec4& value) override;
         virtual void setMat4(const string& name, const mat4& mat) override;
-
         virtual void setVec4Array(const string& name, const vec4* values, uint32_t count) override;
 
         ::bgfx::ProgramHandle getProgramHandler() const { return m_programHandle; }
@@ -47,7 +46,7 @@ namespace aiko::renderer::bgfx
         string fragment_file;
 
         ::bgfx::ProgramHandle m_programHandle;
-        std::map<string, ::bgfx::UniformHandle> m_uniforms;
+        std::unordered_map<string, ::bgfx::UniformHandle> m_uniforms;
 
         ::bgfx::UniformHandle getUniformLocation(const string& name);
         void setShaderUniform(const string& name, vec4 value);

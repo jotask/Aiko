@@ -49,7 +49,7 @@ namespace aiko::renderer
 			return base;
 		}
 
-		static void dumpShaderUniforms(::bgfx::ShaderHandle shader, std::map<string, ::bgfx::UniformHandle>& m_uniforms, const char* str)
+		static void dumpShaderUniforms(::bgfx::ShaderHandle shader, std::unordered_map<string, ::bgfx::UniformHandle>& m_uniforms, const char* str)
 		{
 			constexpr uint16_t MAX_UNIFORMS = 128;
 

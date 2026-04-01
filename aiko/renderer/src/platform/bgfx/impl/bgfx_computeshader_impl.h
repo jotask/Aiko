@@ -1,6 +1,6 @@
 #pragma once
 
-#include <map>
+#include <unordered_map>
 
 #include <aiko_types.h>
 #include <bgfx/bgfx.h>
@@ -32,7 +32,7 @@ namespace aiko::renderer::bgfx
     private:
 
         ::bgfx::ProgramHandle m_programHandle;
-        std::map<string, ::bgfx::UniformHandle> m_uniforms;
+        std::unordered_map<string, ::bgfx::UniformHandle> m_uniforms;
 
     };
 }

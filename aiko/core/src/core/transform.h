@@ -19,7 +19,7 @@ namespace aiko
 
             // Create rotation matrix from rotation angles around each axis
             mat4 rotationMatrix(1.0f);
-            rotationMatrix = math::rotate(mat4(1.0f), math::radians(rotation.x), vec3(1.0f, 0.0f, 0.0f));
+            rotationMatrix = math::rotate(rotationMatrix, math::radians(rotation.x), vec3(1.0f, 0.0f, 0.0f));
             rotationMatrix = math::rotate(rotationMatrix,    math::radians(rotation.y), vec3(0.0f, 1.0f, 0.0f));
             rotationMatrix = math::rotate(rotationMatrix,    math::radians(rotation.z), vec3(0.0f, 0.0f, 1.0f));
 
