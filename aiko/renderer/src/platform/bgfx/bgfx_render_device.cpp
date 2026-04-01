@@ -204,7 +204,7 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(mesh.isValid(), "Invalid Mesh");
         auto* meshImpl = static_cast<BgfxMeshImpl*>(mesh.getImpl());
         AIKO_ASSERT(meshImpl != nullptr, "Mesh has no BGFX impl");
@@ -331,7 +331,7 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         bindMaterial(material);
 
         auto* meshImpl = static_cast<BgfxMeshImpl*>(mesh.getImpl());
@@ -383,7 +383,7 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::execute(ViewId viewId, const ComputePass& pass)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         if (!pass.shader)
             return;
 
@@ -439,7 +439,7 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::requestReadback(const ComputeReadbackRequest& request)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
 
         if (!request.buffer || request.byteSize == 0)
             return;
@@ -453,7 +453,7 @@ namespace aiko::renderer::bgfx
 
     bool BgfxRenderDevice::pollReadback(ComputeReadbackResult& result)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         if (!m_completedReadbacks.empty())
         {
             result = std::move(m_completedReadbacks.front());
@@ -507,7 +507,7 @@ namespace aiko::renderer::bgfx
     void BgfxRenderDevice::drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc)
     {
 
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
 
         auto* meshImpl = static_cast<BgfxMeshImpl*>(desc.mesh->getImpl());
         auto* shaderImpl = static_cast<BgfxShaderImpl*>(getResources()->getShader(desc.material->m_shaderId).getImpl());
@@ -544,7 +544,7 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(desc.material != nullptr, "GpuBillboardDrawDesc requires a valid material");
         AIKO_ASSERT(desc.material->m_shaderId != InvalidAssetId, "GpuBillboardDrawDesc material requires a valid shader");
         AIKO_ASSERT(desc.positionBuffer != nullptr, "GpuBillboardDrawDesc requires a valid position buffer");
@@ -610,7 +610,7 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::drawTransient(ViewId viewId, const TransientDrawDesc& desc)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(desc.material != nullptr, "Invalid material");
         AIKO_ASSERT(desc.material->m_shaderId != InvalidAssetId, "LineDrawDesc material requires a valid shader");
 

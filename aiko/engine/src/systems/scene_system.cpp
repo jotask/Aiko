@@ -28,8 +28,7 @@ namespace aiko
 
     void SceneSystem::render()
     {
-
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         SceneView view = m_sceneViewBuilder.build(m_scene);
         if(view.camera != nullptr)
         {
@@ -62,7 +61,7 @@ namespace aiko
 
     void SceneSystem::update()
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         for (const auto& go : m_scene.objects())
         {
             if (go != nullptr)

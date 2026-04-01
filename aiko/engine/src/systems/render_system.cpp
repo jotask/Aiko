@@ -52,20 +52,20 @@ namespace aiko
 
     void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Material& mat)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         m_renderModule->getRenderer().submit(trans, mesh, mat);
     }
 
     void RenderSystem::render(const Transform& trans, const Model& model)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         const MaterialInstance defaultInstance{};
         render(trans, model, defaultInstance);
     }
 
     void RenderSystem::render(const Transform& trans, const Model& model, const MaterialInstance& instance)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         for (const auto& submesh : model.getSubMeshes())
         {
             AIKO_ASSERT(submesh.meshId != InvalidAssetId, "Runtime model submesh has invalid mesh id");
@@ -80,7 +80,7 @@ namespace aiko
 
     void RenderSystem::render(const Transform& trans, const MeshComponent& meshComponent)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         const AssetId& meshId = meshComponent.getMeshId();
         AIKO_ASSERT(meshId != InvalidAssetId, "MeshComponent has no mesh id assigned");
         Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
@@ -90,7 +90,7 @@ namespace aiko
 
     void RenderSystem::render(const Transform& trans, const ModelComponent& modelComponent)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         const AssetId& modelId = modelComponent.getModelId();
         AIKO_ASSERT(modelId != InvalidAssetId, "ModelComponent has no model id assigned");
 
@@ -101,7 +101,7 @@ namespace aiko
 
     void RenderSystem::render(const Transform& trans, const SpriteComponent& spriteComponent)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         const AssetId& meshId = spriteComponent.getMeshId();
         AIKO_ASSERT(meshId != InvalidAssetId, "SpriteComponent has no mesh id assigned");
         Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
@@ -111,7 +111,7 @@ namespace aiko
 
     void RenderSystem::dispatch(const ComputePass& pass, const AssetId& shaderId)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(shaderId != InvalidAssetId, "Attempting to dispatch compute with invalid shader id");
         ComputeShader& shader = m_renderModule->getRenderer().resources().getComputeShader(shaderId);
         ComputePass runtimePass = pass;
@@ -121,19 +121,19 @@ namespace aiko
 
     void RenderSystem::dispatch(const ComputePass& pass, const ComputeShaderComponent& component)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         dispatch(pass, component.getShaderId());
     }
 
     void RenderSystem::requestReadback(const ComputeReadbackRequest& req)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         m_renderModule->getRenderer().requestReadback(req);
     }
 
     bool RenderSystem::pollReadback(ComputeReadbackResult& req)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         return m_renderModule->getRenderer().pollReadback(req);
     }
 
@@ -149,7 +149,7 @@ namespace aiko
 
     static string buildMaterialKey(const MaterialAsset& material, const MaterialInstance& instance)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         const AssetId& shaderId = instance.shaderId != InvalidAssetId ? instance.shaderId : material.shaderId;
 
         const uint64_t runtimeTextureKey =
@@ -167,7 +167,7 @@ namespace aiko
 
     Material& RenderSystem::resolveCachedMaterial(const MaterialAsset& materialAsset, const MaterialInstance& materialInstance)
     {
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         const string key = buildMaterialKey(materialAsset, materialInstance);
 
         auto it = m_materialCache.find(key);

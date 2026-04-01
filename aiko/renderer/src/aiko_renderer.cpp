@@ -67,6 +67,7 @@ namespace aiko
 
     void AikoRenderer::beginFrame()
     {
+        AIKO_FUNCTION_PROFILE;
         m_queue.clear();
         m_transientQueue.clear();
         m_instancedQueue.clear();
@@ -80,6 +81,7 @@ namespace aiko
 
     void AikoRenderer::endFrame()
     {
+        AIKO_FUNCTION_PROFILE;
         m_renderer->endFrame();
         const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
         m_imgui.endFrame(size.x, size.y);
@@ -99,12 +101,14 @@ namespace aiko
 
     void AikoRenderer::submit(const AmbientLight& ambient, const vector<LightData>& data)
     {
+        AIKO_FUNCTION_PROFILE
         m_ambientLight = ambient;
         m_lights.insert(m_lights.end(), data.begin(), data.end());
     }
 
     void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const Material& material)
     {
+        AIKO_FUNCTION_PROFILE
         RenderItem item =
         {
             .mesh = &mesh,
@@ -116,7 +120,7 @@ namespace aiko
 
     void AikoRenderer::submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride)
     {
-
+        AIKO_FUNCTION_PROFILE
         if (data == nullptr || instanceCount == 0 || stride == 0)
         {
             return;
@@ -137,6 +141,7 @@ namespace aiko
 
     void AikoRenderer::submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology)
     {
+        AIKO_FUNCTION_PROFILE
         TransientDrawDesc data = {};
         data.mtx = transform.getMatrix();
         data.material = &material;
@@ -209,8 +214,7 @@ namespace aiko
 
     void AikoRenderer::render(const Camera& camera)
     {
-
-        AIKO_ZONE_SCOPED
+        AIKO_FUNCTION_PROFILE
         const ivec2 size = DisplayManager::it().getDisplay()->getDisplaySize();
 
         const renderer::FrameData frameData =
