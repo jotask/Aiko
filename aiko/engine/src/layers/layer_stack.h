@@ -4,8 +4,6 @@
 
 #include <aiko_types.h>
 
-#include <vector>
-
 namespace aiko
 {
 
@@ -29,7 +27,7 @@ namespace aiko
 
     private:
 
-        std::vector<AikoUPtr<Layer>> m_layers;
+        vector<AikoUPtr<Layer>> m_layers;
         size_t m_insertIndex;
 
     };

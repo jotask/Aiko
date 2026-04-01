@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include <aiko_includes.h>
 
 #include "windows/editor_menu_item/menu_item.h"
@@ -33,7 +31,7 @@ namespace aiko
             void load_file(const char* file);
             void save_file();
 
-            std::vector<Asset> assets;
+            vector<Asset> assets;
             string file_path;
         };
 

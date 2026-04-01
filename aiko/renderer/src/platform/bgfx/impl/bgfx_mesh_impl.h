@@ -21,8 +21,8 @@ namespace aiko::renderer::bgfx
         virtual void refresh(const MeshAsset&) override;
         virtual uint id() override;
 
-        std::vector<VertexInformation> convertToVBH(const MeshAsset&);
-        std::vector<uint16_t> convertToIBH(const MeshAsset&);
+        vector<VertexInformation> convertToVBH(const MeshAsset&);
+        vector<uint16_t> convertToIBH(const MeshAsset&);
 
         ::bgfx::DynamicVertexBufferHandle getVertexBuffferHandler() const { return m_vertexBuffer; }
         ::bgfx::DynamicIndexBufferHandle getIndexBuffferHandler() const { return m_indexBuffer; }

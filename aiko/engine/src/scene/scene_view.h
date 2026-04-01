@@ -2,8 +2,6 @@
 
 #include "models/light.h"
 
-#include <vector>
-
 namespace aiko
 {
     class Camera;
@@ -11,7 +9,7 @@ namespace aiko
     {
         const Camera* camera = nullptr;
         AmbientLight ambientLight = {};
-        std::vector<LightData> lights;
+        vector<LightData> lights;
 
         void clear()
         {

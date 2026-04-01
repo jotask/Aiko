@@ -3,7 +3,6 @@
 #include "core/singleton.h"
 #include "events/event.hpp"
 
-#include <vector>
 #include <unordered_map>
 #include <typeindex>
 #include <cstring>
@@ -70,8 +69,8 @@ namespace aiko
 
         };
 
-        std::unordered_map<Event::EventId, std::vector<Slot>> m_map;
-        std::vector<Slot> m_any;
+        std::unordered_map<Event::EventId, vector<Slot>> m_map;
+        vector<Slot> m_any;
 
         template<class E>
         static Slot makeFreeSlot(void(*fnt)(E&));

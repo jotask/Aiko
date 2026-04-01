@@ -24,7 +24,7 @@ namespace aiko
         m_mainCamera = camera;
     }
 
-    void RenderModule::submitLights(const AmbientLight& ambient, const std::vector<LightData>& data)
+    void RenderModule::submitLights(const AmbientLight& ambient, const vector<LightData>& data)
     {
         m_renderer->submit(ambient, data);
     }

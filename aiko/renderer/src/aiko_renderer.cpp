@@ -97,7 +97,7 @@ namespace aiko
         m_background_color = color;
     }
 
-    void AikoRenderer::submit(const AmbientLight& ambient, const std::vector<LightData>& data)
+    void AikoRenderer::submit(const AmbientLight& ambient, const vector<LightData>& data)
     {
         m_ambientLight = ambient;
         m_lights.insert(m_lights.end(), data.begin(), data.end());

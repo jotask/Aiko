@@ -78,7 +78,7 @@ namespace aiko::renderer::bgfx
             Stage stage = Stage::Idle;
             uint32_t framesSinceSubmit = 0;
 
-            std::vector<uint8_t> cpu;
+            vector<uint8_t> cpu;
         };
 
         void dispatchPendingReadbackCopy();

@@ -2,8 +2,6 @@
 
 #include <aiko_types.h>
 
-#include <vector>
-
 namespace aiko
 {
     class GameObject;
@@ -18,7 +16,7 @@ namespace aiko
 namespace aiko::editor::component
 {
 
-    std::vector<string> getMissingComponents(GameObject*);
+    vector<string> getMissingComponents(GameObject*);
     void addComponent(string, GameObject*);
     void removeComponent(string, GameObject*);
 

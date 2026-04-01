@@ -41,9 +41,9 @@ namespace aiko
         // TODO Clear render system cache?
     }
 
-    std::vector<GameObject*> Scene::getObjects() const
+    vector<GameObject*> Scene::getObjects() const
     {
-        std::vector<GameObject*> objs;
+        vector<GameObject*> objs;
         objs.reserve(m_objects.size());
         for (const auto& obj : m_objects)
         {

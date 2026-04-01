@@ -47,7 +47,7 @@ namespace aiko
         void unload();
 
         // Modify
-        virtual void setPixels(const std::vector<Color>&);
+        virtual void setPixels(const vector<Color>&);
 
     private:
 

@@ -31,7 +31,7 @@ namespace aiko::editor::component
     }                                                   \
     return false;
 
-    const std::vector<ComponentEditorEntry> s_componentEntries =
+    const vector<ComponentEditorEntry> s_componentEntries =
     {
         {
             "TransformComponent",

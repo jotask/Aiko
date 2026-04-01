@@ -1,9 +1,5 @@
  #pragma once
 
-#include <vector>
-
-#include <math/math.h>
-
 #include "aiko_types.h"
 #include "assets/types/mesh_asset.h"
 #include "types/color.h"

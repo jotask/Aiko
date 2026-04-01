@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 namespace aiko
 {
 
@@ -37,7 +35,7 @@ namespace aiko
     {
         Mesh* mesh = nullptr;
         Material* material = nullptr;
-        std::vector<RenderInstance> instances;
+        vector<RenderInstance> instances;
 
     };
 

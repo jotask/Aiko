@@ -3,8 +3,6 @@
 #include "aiko_types.h"
 #include "assets/asset_id.h"
 
-#include <vector>
-
 namespace aiko
 {
 
@@ -16,7 +14,7 @@ namespace aiko
 
     struct ModelMeta
     {
-        std::vector<MeshMeta> meshes;
+        vector<MeshMeta> meshes;
     };
 
 }

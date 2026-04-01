@@ -22,7 +22,7 @@ namespace aiko
             return string(shaderStream.str());
         }
 
-        static std::vector<uint8_t> readFileBytes(const char* file_path)
+        static vector<uint8_t> readFileBytes(const char* file_path)
         {
             AIKO_ASSERT(std::filesystem::exists(file_path), "File don't exist!");
             std::ifstream file(file_path, std::ios::binary);

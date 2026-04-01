@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 #include <algorithm>
 
 #include "aiko_types.h"
@@ -23,7 +22,7 @@ namespace aiko
     {
     public:
     
-        using Systems = std::vector<aiko::AikoUPtr<System>>;
+        using Systems = vector<AikoUPtr<System>>;
     
         SystemConnector(Systems& systems)
             : m_systems(systems)

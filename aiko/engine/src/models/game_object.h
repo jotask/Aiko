@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include <functional>
 #include <algorithm>
 
@@ -50,7 +48,7 @@ namespace aiko
         auto getSystem();
         Aiko* getAiko() const { return aiko; }
 
-        std::vector<Component*> getComponents();
+        vector<Component*> getComponents();
 
         const uuid::Uuid& uuid() const { return m_uuid; }
 
@@ -61,7 +59,7 @@ namespace aiko
         uuid::Uuid m_uuid;
 
         string name;
-        std::vector<AikoPtr<Component>> m_components;
+        vector<AikoPtr<Component>> m_components;
 
         void update();
         void render();

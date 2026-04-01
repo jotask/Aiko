@@ -43,7 +43,7 @@ namespace aiko::renderer::bgfx
         AIKO_ASSERT(colorTexture->isValid(), "Invalid color texture")
         AIKO_ASSERT(depthTexture->isValid(), "Invalid depth texture")
 
-        std::vector fbTextures = { colorTexture->getTextureHandler(), depthTexture->getTextureHandler() };
+        vector fbTextures = { colorTexture->getTextureHandler(), depthTexture->getTextureHandler() };
         m_frameBuffer = ::bgfx::createFrameBuffer(fbTextures.size(), fbTextures.data(), false);
 
     }

@@ -72,10 +72,10 @@ namespace aiko::renderer::bgfx
         return static_cast<uint>(vbIDX) << 16 | ibIDX;
     }
 
-    std::vector<VertexInformation> BgfxMeshImpl::convertToVBH(const MeshAsset& asset)
+    vector<VertexInformation> BgfxMeshImpl::convertToVBH(const MeshAsset& asset)
     {
 
-        std::vector<VertexInformation> vertices;
+        vector<VertexInformation> vertices;
 
         for (size_t i = 0; i < asset.m_vertices.size(); ++i)
         {
@@ -108,9 +108,9 @@ namespace aiko::renderer::bgfx
 
     }
 
-    std::vector<uint16_t> BgfxMeshImpl::convertToIBH(const MeshAsset& asset)
+    vector<uint16_t> BgfxMeshImpl::convertToIBH(const MeshAsset& asset)
     {
-        std::vector<uint16_t> indices16;
+        vector<uint16_t> indices16;
         indices16.reserve(asset.m_indices.size());
         for (uint32_t idx : asset.m_indices)
         {

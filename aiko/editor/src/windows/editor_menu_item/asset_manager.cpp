@@ -198,7 +198,7 @@ namespace aiko
         void AssetManager::save_file()
         {
             Json::Value root;
-            for (std::vector<Asset>::iterator it = assets.begin(); it != assets.end(); it++)
+            for (vector<Asset>::iterator it = assets.begin(); it != assets.end(); it++)
             {
                 Json::Value jsonVect;
                 jsonVect["uuid"] = it->uid.get();

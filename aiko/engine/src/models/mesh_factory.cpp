@@ -62,9 +62,9 @@ namespace aiko
                 {-0.5f,  0.5f,  0.5f}, {-0.5f,  0.5f, -0.5f}, {-0.5f, -0.5f, -0.5f}, {-0.5f, -0.5f,  0.5f}, // Left
             };
 
-            data.m_textCoord = std::vector<vec2>(data.m_vertices.size(), {0.0f,1.0f});
+            data.m_textCoord = vector<vec2>(data.m_vertices.size(), {0.0f,1.0f});
 
-            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
+            data.m_colors = vector<Color>(data.m_vertices.size(), WHITE);
 
             data.m_indices = {
                 0,2,1,      0,3,2,       // Front
@@ -105,7 +105,7 @@ namespace aiko
                 {1.0f, 0.0f},
             };
 
-            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
+            data.m_colors = vector<Color>(data.m_vertices.size(), WHITE);
 
             data.m_indices =
             {
@@ -380,7 +380,7 @@ namespace aiko
             constexpr const float size = 1.0f;
 
             // Store temporary vertices before scaling
-            std::vector<vec3> positions;
+            vector<vec3> positions;
             positions.reserve((radSeg + 1) * (sides + 1));
 
             for (int i = 0; i <= radSeg; ++i)
@@ -514,7 +514,7 @@ namespace aiko
                 {0.0f, 1.0f},
             };
 
-            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
+            data.m_colors = vector<Color>(data.m_vertices.size(), WHITE);
 
             data.m_indices =
             {
@@ -582,7 +582,7 @@ namespace aiko
                 {1.0f, 0.0f},
             };
 
-            data.m_colors = std::vector<Color>(data.m_vertices.size(), WHITE);
+            data.m_colors = vector<Color>(data.m_vertices.size(), WHITE);
 
             data.m_indices =
             {

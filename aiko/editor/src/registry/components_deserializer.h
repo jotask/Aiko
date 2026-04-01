@@ -1,8 +1,5 @@
 #pragma once
 
-#include <aiko_types.h>
-#include <vector>
-
 namespace aiko
 {
     class GameObject;

@@ -6,7 +6,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <functional>
-#include <vector>
+
 
 namespace aiko::editor::component
 {
@@ -22,6 +22,6 @@ namespace aiko::editor::component
         std::function<bool(const YAML::Node& node, GameObject& obj)> deserialize;
     };
 
-    extern const std::vector<ComponentEditorEntry> s_componentEntries;
+    extern const vector<ComponentEditorEntry> s_componentEntries;
 
 }

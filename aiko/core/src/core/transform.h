@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "math/math.h"
 
 namespace aiko
@@ -9,7 +7,7 @@ namespace aiko
     struct Transform
     {
         Transform* parent = nullptr;
-        std::vector<Transform*> childs;
+        vector<Transform*> childs;
 
         vec3 position = {0.0f};
         vec3 rotation = {0.0f};

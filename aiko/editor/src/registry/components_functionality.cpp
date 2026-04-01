@@ -7,9 +7,9 @@ namespace aiko::editor
     namespace component
     {
 
-        std::vector<string> getMissingComponents(GameObject* obj)
+        vector<string> getMissingComponents(GameObject* obj)
         {
-            std::vector<string> result;
+            vector<string> result;
             for (const auto& entry : s_componentEntries)
             {
                 if (entry.has(obj) == false)

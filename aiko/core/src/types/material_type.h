@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+
 #include "math/math.h"
 
 namespace aiko

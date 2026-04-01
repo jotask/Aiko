@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "assets/types/mesh_asset.h"
 #include "assets/iasset_provider.h"
 
@@ -34,12 +32,12 @@ namespace aiko
         void upload(const ModelAsset& asset);
         void unload();
 
-        const std::vector<SubMesh>& getSubMeshes() const { return m_subMeshes; }
-        std::vector<SubMesh>& getSubMeshes() { return m_subMeshes; }
+        const vector<SubMesh>& getSubMeshes() const { return m_subMeshes; }
+        vector<SubMesh>& getSubMeshes() { return m_subMeshes; }
 
     private:
 
-        std::vector<SubMesh> m_subMeshes;
+        vector<SubMesh> m_subMeshes;
 
     };
 }

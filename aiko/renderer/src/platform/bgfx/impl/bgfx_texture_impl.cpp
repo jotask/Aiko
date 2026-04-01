@@ -124,7 +124,7 @@ namespace aiko::renderer::bgfx
         setPixels(asset.pixels);
     }
 
-    void BgfxTextureImpl::setPixels(const std::vector<Color>& pixels)
+    void BgfxTextureImpl::setPixels(const vector<Color>& pixels)
     {
 
         AIKO_ASSERT(isValid(), "Invalid texture");

@@ -1,7 +1,5 @@
 #include "component_serializer.h"
 
-#include <vector>
-
 #include <serializer/nodes/core_nodes_ymal.h>
 #include <serializer/nodes/component_nodes_ymal.h>
 

@@ -10,7 +10,7 @@ namespace aiko
     struct TextureAsset
     {
         TextureDesc desc;
-        std::vector<Color> pixels;
+        vector<Color> pixels;
     };
 
 }

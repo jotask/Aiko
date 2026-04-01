@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "aiko_types.h"
 #include "render_types.h"
 #include "models/texture.h"
@@ -48,7 +46,7 @@ namespace aiko
     {
         ReadbackId id = 0;                 // filled by caller or device
         bool ready = false;
-        std::vector<uint8_t> data; // raw bytes
+        vector<uint8_t> data; // raw bytes
     };
 
     struct ComputeBufferBinding
@@ -67,10 +65,10 @@ namespace aiko
     struct ComputePass
     {
         ComputeShader* shader = nullptr;
-        std::vector<ComputeImageBinding> images;
+        vector<ComputeImageBinding> images;
         ComputeDispatch dispatch;
-        std::vector<ComputeBufferBinding> buffers;
-        std::vector<ComputeVec4Uniform> vec4Uniforms;
+        vector<ComputeBufferBinding> buffers;
+        vector<ComputeVec4Uniform> vec4Uniforms;
     };
 
 }

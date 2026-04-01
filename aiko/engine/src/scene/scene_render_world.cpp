@@ -26,13 +26,13 @@ namespace aiko
         batch.instances.push_back({ .transform = trans });
     }
 
-    const std::vector<RenderBatch>& SceneRenderWorld::batches() const
+    const vector<RenderBatch>& SceneRenderWorld::batches() const
     {
         if (m_batches.empty() == true)
         {
             for (auto& kv : m_batchMap)
             {
-                const_cast<std::vector<RenderBatch>&>(m_batches).push_back(kv.second);
+                const_cast<vector<RenderBatch>&>(m_batches).push_back(kv.second);
             }
         }
         return m_batches;

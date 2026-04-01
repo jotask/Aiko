@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 #include <algorithm>
 
 #include <resources/iresource_invalidator.h>
@@ -26,8 +25,8 @@ namespace aiko
 
         friend class Application;
 
-        using Modules = std::vector<AikoUPtr<Module>>;
-        using Systems = std::vector<AikoUPtr<System>>;
+        using Modules = vector<AikoUPtr<Module>>;
+        using Systems = vector<AikoUPtr<System>>;
 
         Aiko(Application* app);
         Aiko(Application* app, AikoConfig cfg);

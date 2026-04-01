@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 #include <algorithm>
 
 #include <aiko_types.h>
@@ -24,7 +23,7 @@ namespace aiko
     {
     public:
     
-        using Modules = std::vector<AikoUPtr<Module>>;
+        using Modules = vector<AikoUPtr<Module>>;
     
         ModuleConnector(Modules& modules)
             : m_modules(modules)

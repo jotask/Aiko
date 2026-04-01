@@ -1,21 +1,19 @@
 #pragma once
 
-#include <vector>
-
+#include <aiko_types.h>
 #include <assets/asset_id.h>
+#include <math/math_vector.h>
 #include "material_asset.h"
-#include "math/math_vector.h"
-#include "assets/asset_id.h"
 
 namespace aiko
 {
     struct MeshAsset
     {
-        std::vector<vec3>       m_vertices;
-        std::vector<vec2>       m_textCoord;
-        std::vector<vec3>       m_normals;
-        std::vector<Color>      m_colors;
-        std::vector<uint16_t>   m_indices;
+        vector<vec3>       m_vertices;
+        vector<vec2>       m_textCoord;
+        vector<vec3>       m_normals;
+        vector<Color>      m_colors;
+        vector<uint16_t>   m_indices;
     };
 
     struct ModelAsset
@@ -25,7 +23,7 @@ namespace aiko
             AssetId meshId = InvalidAssetId;
             MaterialAsset material;
         };
-        std::vector<SubMesh> submeshes;
+        vector<SubMesh> submeshes;
     };
 
 }

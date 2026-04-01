@@ -1,5 +1,7 @@
 #include "sprite_component.h"
 
+#include <algorithm>
+
 #include "models/mesh_factory.h"
 
 #include "assets/asset_manager.h"
@@ -72,10 +74,10 @@ namespace aiko
         is_dirty = true;
     }
 
-    void SpriteComponent::setPixels(std::vector<Color> ps)
+    void SpriteComponent::setPixels(const vector<Color>& ps)
     {
         AIKO_ASSERT(pixels.size() == ps.size(), "New pixels don't match texture size");
-        pixels = std::move(ps);
+        std::ranges::copy(ps, pixels.begin());
         is_dirty = true;
     }
 

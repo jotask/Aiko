@@ -22,7 +22,7 @@ namespace aiko
         virtual ~RenderModule() = default;
 
         void setMainCamera(const Camera* camera); // TEMPORAL, this should be removed from here
-        void submitLights(const AmbientLight& ambient, const std::vector<LightData>& data);
+        void submitLights(const AmbientLight& ambient, const vector<LightData>& data);
 
         // TODO : Temporal, we should just proxy to renderer
         AikoRenderer& getRenderer() { return *m_renderer.get(); }
@@ -42,7 +42,7 @@ namespace aiko
         AssetsManagerModule* m_assetManager;
         const Camera* m_mainCamera;
 
-        std::vector<InstanceItem> m_instances;
+        vector<InstanceItem> m_instances;
 
         AikoUPtr<AikoRenderer> m_renderer;
 

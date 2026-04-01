@@ -29,7 +29,7 @@ namespace aiko
 
         // TODO TMP for now
         void setPixel(size_t x, size_t y, Color c);
-        void setPixels(std::vector<Color> pixels);
+        void setPixels(const vector<Color>& pixels);
         void refresh();
 
         MaterialAsset& getMaterial() { return m_material; }
@@ -53,7 +53,7 @@ namespace aiko
         size_t m_width = 0;
         size_t m_height = 0;
 
-        std::vector<Color> pixels;
+        vector<Color> pixels;
         bool is_dirty = false;
 
     };

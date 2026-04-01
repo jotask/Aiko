@@ -2,9 +2,9 @@
 
 #include <memory>
 #include <string>
-#include <assert.h>
-#include <stdint.h>
-#include <format>
+#include <cassert>
+#include <cstdint>
+#include <vector>
 #include <stdexcept>
 
 #if defined(__cplusplus)
@@ -22,6 +22,10 @@ namespace aiko
     using u32 = uint32_t;
     using u64 = uint64_t;
     using string = std::string;
+    using string_view = std::string_view;
+
+    template <typename T>
+    using vector = std::vector<T>;
 
     template<class T>
     using AikoPtr = std::shared_ptr<T>;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vector>
 #include <aiko_types.h>
 #include <types/color.h>
 #include <metadata/texture_meta.h>
@@ -26,7 +25,7 @@ namespace aiko
 
             // Modify
             virtual void update(const TextureAsset& asset) = 0;
-            virtual void setPixels(const std::vector<Color>& pixels) = 0;
+            virtual void setPixels(const vector<Color>& pixels) = 0;
 
         };
     }

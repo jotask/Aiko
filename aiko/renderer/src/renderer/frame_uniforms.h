@@ -33,7 +33,7 @@ namespace aiko::renderer
 
         AmbientLight ambient;
 
-        std::vector<LightData> lights;
+        vector<LightData> lights;
 
     };
 

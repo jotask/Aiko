@@ -27,7 +27,7 @@ namespace aiko
         void ComponentWindow::render()
         {
             GameObject* selectedGameObject = context().getSelectedGameObject();
-            std::vector<Component*> componentsToRemove;
+            vector<Component*> componentsToRemove;
             if (ImGui::Begin("Components"))
             {
                 if (selectedGameObject != nullptr)
@@ -72,7 +72,7 @@ namespace aiko
                             "  \"xxx,yyy\"  display lines containing \"xxx\" or \"yyy\"\n"
                             "  \"-xxx\"     hide lines containing \"xxx\"");
                         filter.Draw();
-                        std::vector<string> components = component::getMissingComponents(selectedGameObject);
+                        vector<string> components = component::getMissingComponents(selectedGameObject);
                         for(string component : components)
                         {
                             if (filter.PassFilter(component.c_str()))
