@@ -2,12 +2,16 @@
 
 #include <deque>
 #include <optional>
+#include <unordered_set>
 
 #include "aiko_types.h"
+#include "bgfx_types.h"
+#include "core/utils.h"
 #include "renderer/Irenderdevice.h"
 
 namespace aiko::renderer::bgfx
 {
+    class BgfxTextureImpl;
 
     class BgfxShaderImpl;
 
@@ -81,6 +85,55 @@ namespace aiko::renderer::bgfx
             vector<uint8_t> cpu;
         };
 
+        struct PreparedFrameUniforms
+        {
+            vec3 cameraPosition = vec3(0.0f);
+            vec4 ambientColor = vec4(0.0f);
+            float ambientIntensity = 0.0f;
+
+            uint32_t lightCount = 0;
+
+            vec4 lightType[MAX_LIGHTS] = {};
+            vec4 lightPosRange[MAX_LIGHTS] = {};
+            vec4 lightDir[MAX_LIGHTS] = {};
+            vec4 lightColorInt[MAX_LIGHTS] = {};
+            vec4 lightSpotCos[MAX_LIGHTS] = {};
+        };
+
+        struct MaterialBindingKey
+        {
+            AssetId shaderId = InvalidAssetId;
+            AssetId diffuseTextureId = InvalidAssetId;
+            const Texture* runtimeDiffuseTexture = nullptr;
+
+            bool operator==(const MaterialBindingKey& other) const
+            {
+                return shaderId == other.shaderId
+                    && diffuseTextureId == other.diffuseTextureId
+                    && runtimeDiffuseTexture == other.runtimeDiffuseTexture;
+            }
+        };
+
+        struct MaterialBindingKeyHash
+        {
+            size_t operator()(const MaterialBindingKey& key) const
+            {
+                std::size_t seed = 0;
+                utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
+                utils::hashCombine(std::hash<AssetId>{}(key.diffuseTextureId), seed);
+                utils::hashCombine(std::hash<const Texture*>{}(key.runtimeDiffuseTexture), seed);
+                return seed;
+            }
+        };
+
+        struct CachedMaterialBinding
+        {
+            BgfxShaderImpl* shader = nullptr;
+            ::bgfx::UniformHandle textureSampler = AIKO_INVALID_HANDLE;
+            BgfxTextureImpl* texture = nullptr;
+            bool hasTexture = false;
+        };
+
         void dispatchPendingReadbackCopy();
         void startReadbackInternal(const ComputeReadbackRequest& r);
         void cleanupReadback(PendingReadback& rb);
@@ -99,9 +152,20 @@ namespace aiko::renderer::bgfx
         bool m_vsync = true;
 
         FrameData m_frameData;
+        PreparedFrameUniforms m_preparedFrameUniforms;
+        std::unordered_set<const BgfxShaderImpl*> m_frameUniformsUploaded;
+
+        std::unordered_map<MaterialBindingKey, CachedMaterialBinding, MaterialBindingKeyHash> m_materialBindingCache;
+        const CachedMaterialBinding* m_boundMaterialBinding = nullptr;
+        const Material* m_lastMaterialUniformSource = nullptr;
+        const Material* m_lastBoundMaterialSource = nullptr;
 
         BgfxShaderImpl* m_boundShader;
 
+        MaterialBindingKey makeMaterialBindingKey(const Material& material) const;
+        const CachedMaterialBinding& resolveMaterialBinding(const Material& material);
+
+        void prepareFrameUniforms();
         void bindFrameUniforms();
         void bindMaterialUniforms(const Material& material);
 

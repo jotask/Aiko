@@ -23,7 +23,10 @@
 #include "imgui/aiko_imgui.h"
 #include "resources/render_resource_manager.h"
 
+#include <unordered_map>
 #include <deque>
+
+#include "core/utils.h"
 
 namespace aiko
 {
@@ -81,9 +84,11 @@ namespace aiko
 
         std::vector<RenderItem> m_queue;
         std::vector<InstanceItem> m_instancedQueue;
+        std::vector<uint8_t> m_instanceDataArena;
         std::vector<ComputePass> m_computeQueue;
         std::vector<GpuInstanceDrawDesc> m_gpuInstanceDraws;
         std::vector<GpuBillboardDrawDesc> m_gpuBillboardQueue;
+        std::vector<uint8_t> m_mergedInstanceDataArena;
 
         std::vector<TransientDrawDesc> m_transientQueue;
 
@@ -92,10 +97,110 @@ namespace aiko
 
     private:
 
+        struct FrameMaterialKey
+        {
+            AssetId shaderId = InvalidAssetId;
+            AssetId diffuseTextureId = InvalidAssetId;
+            const Texture* runtimeDiffuseTexture = nullptr;
+
+            bool useVertexColor = false;
+            bool lit = false;
+            Color baseColor = WHITE;
+
+            bool operator==(const FrameMaterialKey& other) const
+            {
+                return shaderId == other.shaderId
+                    && diffuseTextureId == other.diffuseTextureId
+                    && runtimeDiffuseTexture == other.runtimeDiffuseTexture
+                    && useVertexColor == other.useVertexColor
+                    && lit == other.lit
+                    && baseColor.rgba() == other.baseColor.rgba();
+            }
+        };
+
+        struct FrameMaterialKeyHash
+        {
+            size_t operator()(const FrameMaterialKey& key) const
+            {
+                std::size_t seed = 0;
+                utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
+                utils::hashCombine(std::hash<AssetId>{}(key.diffuseTextureId), seed);
+                utils::hashCombine(std::hash<const Texture*>{}(key.runtimeDiffuseTexture), seed);
+                utils::hashCombine(std::hash<bool>{}(key.useVertexColor), seed);
+                utils::hashCombine(std::hash<bool>{}(key.lit), seed);
+                utils::hashCombine(std::hash<u32>{}(key.baseColor.rgba()), seed);
+                return seed;
+            }
+        };
+
+        struct PreparedRenderPacket
+        {
+            MeshDrawPacket draw;
+            u64 materialId = 0;
+        };
+
+        struct PreparedInstancedPacket
+        {
+            InstancedDrawPacket draw;
+            u64 materialId = 0;
+            u32 meshId = 0;
+
+            size_t mergedDataOffset = 0;
+            size_t mergedByteCount = 0;
+        };
+
+        struct PreparedTransientPacket
+        {
+            const TransientDrawDesc* item = nullptr;
+            u64 materialId = 0;
+        };
+
+        struct PreparedScenePass
+        {
+            vector<const GpuInstanceDrawDesc*> gpuInstances;
+            vector<const GpuBillboardDrawDesc*> gpuBillboards;
+            vector<PreparedRenderPacket> opaque;
+            vector<PreparedInstancedPacket> instanced;
+            vector<PreparedTransientPacket> transient;
+        };
+
+        struct TransientCacheKey
+        {
+            const MeshAsset* meshAsset = nullptr;
+            TransientTopology topology = TransientTopology::Triangles;
+
+            bool operator==(const TransientCacheKey& other) const
+            {
+                return meshAsset == other.meshAsset
+                    && topology == other.topology;
+            }
+        };
+
+        struct TransientCacheKeyHash
+        {
+            size_t operator()(const TransientCacheKey& key) const
+            {
+                std::size_t seed = 0;
+                utils::hashCombine(std::hash<const MeshAsset*>{}(key.meshAsset), seed);
+                utils::hashCombine(std::hash<int>{}(static_cast<int>(key.topology)), seed);
+                return seed;
+            }
+        };
+
+        renderer::FrameData buildSceneFrameData(const Camera& camera) const;
+        void executeComputePasses();
+        PreparedScenePass buildScenePass();
+        void submitScenePass(const renderer::FrameData& frameData, const PreparedScenePass& passData, const ivec2& size);
+        void submitPresentPass(const ivec2& size);
+
         static_assert(COMPUTE_VIEW < SCENE_VIEW, "Compute View MUST be less than Scene View");
 
         Material& stageMaterial(const MaterialAsset& materialAsset, const MaterialInstance& materialInstance);
         std::deque<Material> m_frameMaterials;
+        std::unordered_map<FrameMaterialKey, Material*, FrameMaterialKeyHash> m_frameMaterialCache;
+
+        const TransientGeometry& resolveTransientGeometry(const MeshAsset& meshAsset, TransientTopology topology);
+        std::unordered_map<TransientCacheKey, TransientGeometry, TransientCacheKeyHash> m_transientGeometryCache;
 
         AikoImgui m_imgui;
         IAssetRegistry* m_assetRegistry = nullptr;

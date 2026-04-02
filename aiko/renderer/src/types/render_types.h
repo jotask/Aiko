@@ -98,8 +98,11 @@ namespace aiko
         mat4 mtx = mat4(1.0f);
         const Material* material = nullptr;
         TransientTopology topology = TransientTopology::Triangles;
-        std::vector<TransientVertex> vertices;
-        std::vector<uint16_t> indices;
+
+        const TransientGeometry* geometry = nullptr; // cached/shared geometry if available
+
+        std::vector<TransientVertex> vertices;       // fallback inline geometry
+        std::vector<uint16_t> indices;               // fallback inline geometry
     };
 
     struct GpuInstanceDrawDesc
@@ -124,6 +127,22 @@ namespace aiko
         mat4 transform = mat4(1.0f);
     };
 
+    struct MeshDrawPacket
+    {
+        const Mesh* mesh = nullptr;
+        const Material* material = nullptr;
+        mat4 world = mat4(1.0f);
+    };
+
+    struct InstancedDrawPacket
+    {
+        const Mesh* mesh = nullptr;
+        const Material* material = nullptr;
+        const void* data = nullptr;
+        uint32_t instanceCount = 0;
+        uint16_t stride = 0;
+    };
+
     struct InstanceData
     {
         vec3 position;
@@ -134,11 +153,14 @@ namespace aiko
 
     struct InstanceItem
     {
-        const Mesh* mesh            = nullptr;
-        const Material* material    = nullptr;
-        std::vector<uint8_t> data;
-        uint32_t count              = 0;
-        uint16_t stride             = 0;
+        const Mesh* mesh         = nullptr;
+        const Material* material = nullptr;
+
+        size_t dataOffset        = 0;
+        size_t byteCount         = 0;
+
+        uint32_t count           = 0;
+        uint16_t stride          = 0;
     };
 
 }

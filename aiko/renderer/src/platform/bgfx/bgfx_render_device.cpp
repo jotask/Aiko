@@ -108,7 +108,11 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::shutdown()
     {
-
+        m_materialBindingCache.clear();
+        m_boundMaterialBinding = nullptr;
+        m_boundShader = nullptr;
+        m_lastMaterialUniformSource = nullptr;
+        m_lastBoundMaterialSource = nullptr;
     }
 
     void BgfxRenderDevice::resize(u32 width, u32 height, bool vsync)
@@ -120,6 +124,11 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::beginFrame()
     {
+        m_frameUniformsUploaded.clear();
+        m_boundShader = nullptr;
+        m_boundMaterialBinding = nullptr;
+        m_lastMaterialUniformSource = nullptr;
+        m_lastBoundMaterialSource = nullptr;
         // ::bgfx::setDebug(BGFX_DEBUG_STATS);
     }
 
@@ -196,10 +205,28 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::bindMaterial(const Material& material)
     {
-        AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "Invalid Shader");
-        BgfxShaderImpl* shaderImpl = static_cast<BgfxShaderImpl*>(getResources()->getShader(material.m_shaderId).getImpl());
-        AIKO_ASSERT(shaderImpl != nullptr, "Material has not shader!");
-        m_boundShader = shaderImpl;
+        AIKO_FUNCTION_PROFILE
+
+        if (m_lastBoundMaterialSource == &material)
+        {
+            return;
+        }
+
+        const CachedMaterialBinding& binding = resolveMaterialBinding(material);
+        AIKO_ASSERT(binding.shader != nullptr, "Material binding shader is null");
+
+        const bool bindingChanged =
+            m_boundMaterialBinding != &binding ||
+            m_boundShader != binding.shader;
+
+        m_boundMaterialBinding = &binding;
+        m_boundShader = binding.shader;
+        m_lastBoundMaterialSource = &material;
+
+        if (bindingChanged)
+        {
+            m_lastMaterialUniformSource = nullptr;
+        }
     }
 
     void BgfxRenderDevice::drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material)
@@ -377,8 +404,13 @@ namespace aiko::renderer::bgfx
 
     void BgfxRenderDevice::bindFrame(ViewId viewId, const FrameData& u)
     {
+        AIKO_FUNCTION_PROFILE
         m_frameData = u;
-        ::bgfx::setViewTransform(viewId, u.view.data(), u.projection.data() );
+        prepareFrameUniforms();
+        m_frameUniformsUploaded.clear();
+        m_lastMaterialUniformSource = nullptr;
+        m_lastBoundMaterialSource = nullptr;
+        ::bgfx::setViewTransform(viewId, u.view.data(), u.projection.data());
     }
 
     void BgfxRenderDevice::execute(ViewId viewId, const ComputePass& pass)
@@ -510,12 +542,11 @@ namespace aiko::renderer::bgfx
         AIKO_FUNCTION_PROFILE
 
         auto* meshImpl = static_cast<BgfxMeshImpl*>(desc.mesh->getImpl());
-        auto* shaderImpl = static_cast<BgfxShaderImpl*>(getResources()->getShader(desc.material->m_shaderId).getImpl());
-
         AIKO_ASSERT(meshImpl != nullptr, "Invalid handler");
-        AIKO_ASSERT(shaderImpl != nullptr, "Invalid handler");
 
         bindMaterial(*desc.material);
+        AIKO_ASSERT(m_boundShader != nullptr, "Invalid bound shader");
+
         bindFrameUniforms();
         bindMaterialUniforms(*desc.material);
 
@@ -538,7 +569,7 @@ namespace aiko::renderer::bgfx
         ::bgfx::setState(s_default_state);
 
         ::bgfx::setInstanceCount(desc.instanceCount);
-        ::bgfx::submit(viewId, shaderImpl->getProgramHandler());
+        ::bgfx::submit(viewId, m_boundShader->getProgramHandler());
 
     }
 
@@ -601,11 +632,9 @@ namespace aiko::renderer::bgfx
         ::bgfx::setInstanceCount(desc.instanceCount);
         ::bgfx::setState(s_default_state);
 
-        auto* shaderImpl = static_cast<BgfxShaderImpl*>(getResources()->getShader(desc.material->m_shaderId).getImpl());
-        AIKO_ASSERT(shaderImpl->isValid(), "Invalid billboard shader");
-        AIKO_ASSERT(shaderImpl != nullptr, "Invalid billboard shader impl");
+        AIKO_ASSERT(m_boundShader != nullptr, "Invalid bound billboard shader");
+        ::bgfx::submit(viewId, m_boundShader->getProgramHandler());
 
-        ::bgfx::submit(viewId, shaderImpl->getProgramHandler());
     }
 
     void BgfxRenderDevice::drawTransient(ViewId viewId, const TransientDrawDesc& desc)
@@ -614,8 +643,13 @@ namespace aiko::renderer::bgfx
         AIKO_ASSERT(desc.material != nullptr, "Invalid material");
         AIKO_ASSERT(desc.material->m_shaderId != InvalidAssetId, "LineDrawDesc material requires a valid shader");
 
-        const uint32_t vertexCount = static_cast<uint32_t>(desc.vertices.size());
-        const uint32_t indexCount  = static_cast<uint32_t>(desc.indices.size());
+        const bool useCachedGeometry = desc.geometry != nullptr;
+
+        const auto& vertices = useCachedGeometry ? desc.geometry->vertices : desc.vertices;
+        const auto& indices  = useCachedGeometry ? desc.geometry->indices  : desc.indices;
+
+        const uint32_t vertexCount = static_cast<uint32_t>(vertices.size());
+        const uint32_t indexCount  = static_cast<uint32_t>(indices.size());
 
         if (vertexCount == 0)
         {
@@ -642,12 +676,12 @@ namespace aiko::renderer::bgfx
         {
             ::bgfx::allocTransientIndexBuffer(&tib, indexCount);
 
-            auto* indices = reinterpret_cast<uint16_t*>(tib.data);
+            auto* dstIndices = reinterpret_cast<uint16_t*>(tib.data);
 
             for (uint32_t i = 0; i < indexCount; ++i)
             {
-                AIKO_ASSERT(desc.indices[i] <= 0xFFFF, "Transient index exceeds uint16 range");
-                indices[i] = desc.indices[i];
+                AIKO_ASSERT(indices[i] <= 0xFFFF, "Transient index exceeds uint16 range");
+                dstIndices[i] = indices[i];
             }
         }
 
@@ -655,7 +689,7 @@ namespace aiko::renderer::bgfx
 
         for (uint32_t i = 0; i < vertexCount; ++i)
         {
-            const TransientVertex& src = desc.vertices[i];
+            const TransientVertex& src = vertices[i];
             verts[i].x = src.position.x;
             verts[i].y = src.position.y;
             verts[i].z = src.position.z;
@@ -689,11 +723,10 @@ namespace aiko::renderer::bgfx
 
         ::bgfx::setState(state);
 
-        auto* shaderImpl = static_cast<BgfxShaderImpl*>(getResources()->getShader(desc.material->m_shaderId).getImpl());
-        AIKO_ASSERT(shaderImpl->isValid(), "Invalid line shader");
-        AIKO_ASSERT(shaderImpl != nullptr, "Invalid line shader impl");
+        AIKO_ASSERT(m_boundShader != nullptr, "Transient draw requires a bound shader");
+        AIKO_ASSERT(m_boundShader->isValid(), "Invalid bound transient shader");
 
-        ::bgfx::submit(viewId, shaderImpl->getProgramHandler());
+        ::bgfx::submit(viewId, m_boundShader->getProgramHandler());
 
     }
 
@@ -795,8 +828,111 @@ namespace aiko::renderer::bgfx
         if (::bgfx::isValid(rb.readTex))
             ::bgfx::destroy(rb.readTex);
 
-        rb.computeTex = { ::bgfx::kInvalidHandle };
-        rb.readTex    = { ::bgfx::kInvalidHandle };
+        rb.computeTex = AIKO_INVALID_HANDLE;
+        rb.readTex    = AIKO_INVALID_HANDLE;
+    }
+
+    BgfxRenderDevice::MaterialBindingKey BgfxRenderDevice::makeMaterialBindingKey(const Material& material) const
+    {
+        MaterialBindingKey key{};
+        key.shaderId = material.m_shaderId;
+        key.diffuseTextureId = material.m_diffuseTextureId;
+        key.runtimeDiffuseTexture = material.m_runtimeDiffuseTexture;
+        return key;
+    }
+
+    const BgfxRenderDevice::CachedMaterialBinding& BgfxRenderDevice::resolveMaterialBinding(const Material& material)
+    {
+        AIKO_FUNCTION_PROFILE
+
+    const MaterialBindingKey key = makeMaterialBindingKey(material);
+
+        if (auto it = m_materialBindingCache.find(key); it != m_materialBindingCache.end())
+        {
+            return it->second;
+        }
+
+        CachedMaterialBinding binding{};
+
+        AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "Invalid Shader");
+        binding.shader = static_cast<BgfxShaderImpl*>(getResources()->getShader(material.m_shaderId).getImpl());
+        AIKO_ASSERT(binding.shader != nullptr, "Material shader has no BGFX impl");
+
+        const Texture* resolvedTexture = nullptr;
+
+        if (material.m_runtimeDiffuseTexture != nullptr && material.m_runtimeDiffuseTexture->isValid())
+        {
+            resolvedTexture = material.m_runtimeDiffuseTexture;
+        }
+        else if (material.m_diffuseTextureId != InvalidAssetId)
+        {
+            Texture& texture = getResources()->getTexture(material.m_diffuseTextureId);
+            if (texture.isValid())
+            {
+                resolvedTexture = &texture;
+            }
+        }
+
+        if (resolvedTexture != nullptr)
+        {
+            binding.texture = static_cast<BgfxTextureImpl*>(resolvedTexture->getImpl());
+            if (binding.texture != nullptr && binding.texture->isValid())
+            {
+                binding.textureSampler = binding.shader->getUniformHandle("u_texture");
+                binding.hasTexture = ::bgfx::isValid(binding.textureSampler);
+            }
+            else
+            {
+                binding.texture = nullptr;
+            }
+        }
+
+        auto [it, inserted] = m_materialBindingCache.emplace(key, binding);
+        AIKO_ASSERT(inserted, "Failed to cache material binding");
+        return it->second;
+    }
+
+    void BgfxRenderDevice::prepareFrameUniforms()
+    {
+        AIKO_FUNCTION_PROFILE
+
+        m_preparedFrameUniforms.cameraPosition = m_frameData.cameraPosition;
+        m_preparedFrameUniforms.ambientColor = m_frameData.ambient.color.toVec4();
+        m_preparedFrameUniforms.ambientIntensity = m_frameData.ambient.intensity;
+
+        m_preparedFrameUniforms.lightCount =
+            static_cast<uint32_t>(std::min(
+                static_cast<int>(m_frameData.lights.size()),
+                static_cast<int>(MAX_LIGHTS)));
+
+        for (uint32_t i = 0; i < MAX_LIGHTS; ++i)
+        {
+            m_preparedFrameUniforms.lightType[i] = vec4(0.0f);
+            m_preparedFrameUniforms.lightPosRange[i] = vec4(0.0f);
+            m_preparedFrameUniforms.lightDir[i] = vec4(0.0f);
+            m_preparedFrameUniforms.lightColorInt[i] = vec4(0.0f);
+            m_preparedFrameUniforms.lightSpotCos[i] = vec4(0.0f);
+        }
+
+        for (uint32_t i = 0; i < m_preparedFrameUniforms.lightCount; ++i)
+        {
+            const LightData& l = m_frameData.lights[i];
+
+            m_preparedFrameUniforms.lightType[i] =
+                vec4(static_cast<float>(l.type), 0.0f, 0.0f, 0.0f);
+
+            m_preparedFrameUniforms.lightPosRange[i] =
+                vec4(l.position.x, l.position.y, l.position.z, l.range);
+
+            m_preparedFrameUniforms.lightDir[i] =
+                vec4(l.direction.x, l.direction.y, l.direction.z, 0.0f);
+
+            m_preparedFrameUniforms.lightColorInt[i] =
+                vec4(l.color.r, l.color.g, l.color.b, l.intensity);
+
+            m_preparedFrameUniforms.lightSpotCos[i] =
+                vec4(l.innerCos, l.outerCos, 0.0f, 0.0f);
+        }
     }
 
     void BgfxRenderDevice::bindFrameUniforms()
@@ -806,19 +942,32 @@ namespace aiko::renderer::bgfx
             return;
         }
 
+        const auto [it, inserted] = m_frameUniformsUploaded.insert(m_boundShader);
+        if (inserted == false)
+        {
+            return;
+        }
+
         if (m_boundShader->hasUniform("u_cameraPos"))
         {
-            m_boundShader->setVec3("u_cameraPos", m_frameData.cameraPosition);
+            m_boundShader->setVec3("u_cameraPos", m_preparedFrameUniforms.cameraPosition);
         }
 
         if (m_boundShader->hasUniform("u_ambientColor"))
         {
-            m_boundShader->setVec4("u_ambientColor", m_frameData.ambient.color.toVec4());
+            m_boundShader->setVec4("u_ambientColor", m_preparedFrameUniforms.ambientColor);
         }
 
         if (m_boundShader->hasUniform("u_ambientIntensity"))
         {
-            m_boundShader->setFloat("u_ambientIntensity", m_frameData.ambient.intensity);
+            m_boundShader->setFloat("u_ambientIntensity", m_preparedFrameUniforms.ambientIntensity);
+        }
+
+        if (m_boundShader->hasUniform("u_lightCount"))
+        {
+            m_boundShader->setVec4(
+                "u_lightCount",
+                vec4(static_cast<float>(m_preparedFrameUniforms.lightCount), 0.0f, 0.0f, 0.0f));
         }
 
         if (m_boundShader->hasUniform("u_lightType") &&
@@ -827,35 +976,16 @@ namespace aiko::renderer::bgfx
             m_boundShader->hasUniform("u_lightColorInt") &&
             m_boundShader->hasUniform("u_lightSpotCos"))
         {
-            vec4 type[MAX_LIGHTS] = {};
-            vec4 posRange[MAX_LIGHTS] = {};
-            vec4 dir[MAX_LIGHTS] = {};
-            vec4 colorInt[MAX_LIGHTS] = {};
-            vec4 spot[MAX_LIGHTS] = {};
+            const uint32_t count = m_preparedFrameUniforms.lightCount;
 
-            const int count = std::min(static_cast<int>(m_frameData.lights.size()), static_cast<int>(MAX_LIGHTS));
-
-            // also upload lightCount if shader expects it
-            if (m_boundShader->hasUniform("u_lightCount"))
+            if (count > 0)
             {
-                m_boundShader->setVec4("u_lightCount", vec4(static_cast<float>(count), 0, 0, 0));
+                m_boundShader->setVec4Array("u_lightType", m_preparedFrameUniforms.lightType, count);
+                m_boundShader->setVec4Array("u_lightPosRange", m_preparedFrameUniforms.lightPosRange, count);
+                m_boundShader->setVec4Array("u_lightDir", m_preparedFrameUniforms.lightDir, count);
+                m_boundShader->setVec4Array("u_lightColorInt", m_preparedFrameUniforms.lightColorInt, count);
+                m_boundShader->setVec4Array("u_lightSpotCos", m_preparedFrameUniforms.lightSpotCos, count);
             }
-
-            for (int i = 0; i < count; ++i)
-            {
-                const LightData& l = m_frameData.lights.at(i);
-                type[i]     = vec4(static_cast<float>(l.type), 0, 0, 0);
-                posRange[i] = vec4(l.position.x, l.position.y, l.position.z, l.range);
-                dir[i]      = vec4(l.direction.x, l.direction.y, l.direction.z, 0);
-                colorInt[i] = vec4(l.color.r, l.color.g, l.color.b, l.intensity);
-                spot[i]     = vec4(l.innerCos, l.outerCos, 0, 0);
-            }
-
-            m_boundShader->setVec4Array("u_lightType", type, count);
-            m_boundShader->setVec4Array("u_lightPosRange", posRange, count);
-            m_boundShader->setVec4Array("u_lightDir", dir, count);
-            m_boundShader->setVec4Array("u_lightColorInt", colorInt, count);
-            m_boundShader->setVec4Array("u_lightSpotCos", spot, count);
         }
 
     }
@@ -863,36 +993,31 @@ namespace aiko::renderer::bgfx
     void BgfxRenderDevice::bindMaterialUniforms(const Material& material)
     {
 
-        if (m_boundShader == nullptr) return;
+        if (m_boundShader == nullptr)
+        {
+            return;
+        }
+
+        if (m_lastMaterialUniformSource == &material)
+        {
+            return;
+        }
 
         // u_baseColor
         m_boundShader->setVec4("u_baseColor", material.m_baseColor.toVec4());
 
-        const Texture* resolvedTexture = nullptr;
+        const bool hasTexture =
+            m_boundMaterialBinding != nullptr &&
+            m_boundMaterialBinding->hasTexture &&
+            m_boundMaterialBinding->texture != nullptr;
 
-        // Runtime texture override takes priority.
-        if (material.m_runtimeDiffuseTexture != nullptr && material.m_runtimeDiffuseTexture->isValid())
-        {
-            resolvedTexture = material.m_runtimeDiffuseTexture;
-        }
-        else if (material.m_diffuseTextureId != InvalidAssetId)
-        {
-            Texture& texture = getResources()->getTexture(material.m_diffuseTextureId);
-            if (texture.isValid() == true)
-            {
-                resolvedTexture = &texture;
-            }
-        }
-
-        // flags
-        const bool hasTexture = resolvedTexture != nullptr;
-
-        m_boundShader->setVec4("u_flags", vec4(
-                hasTexture == true ? 1.0f : 0.0f,
-                material.m_useVertexColor == true ? 1.0f : 0.0f,
-                material.m_lit == true ? 1.0f : 0.0f,
-                0.0f
-            ));
+        m_boundShader->setVec4(
+            "u_flags",
+            vec4(
+                hasTexture ? 1.0f : 0.0f,
+                material.m_useVertexColor ? 1.0f : 0.0f,
+                material.m_lit ? 1.0f : 0.0f,
+                0.0f));
 
         for (const auto& [name, value] : material.m_customVec4Uniforms)
         {
@@ -902,19 +1027,15 @@ namespace aiko::renderer::bgfx
             }
         }
 
-        if (hasTexture == true)
+        if (hasTexture)
         {
-            // sampler name in model.fs is u_texture
-            ::bgfx::UniformHandle s_tex = m_boundShader->getUniformHandle("u_texture");
-            if (::bgfx::isValid(s_tex) == true)
-            {
-                auto* texImpl = static_cast<BgfxTextureImpl*>(resolvedTexture->getImpl());
-                if (texImpl && texImpl->isValid() == true)
-                {
-                    ::bgfx::setTexture(0, s_tex, texImpl->getTextureHandler() /*, texImpl->getSamplerFlags()*/);
-                }
-            }
+            ::bgfx::setTexture(
+                0,
+                m_boundMaterialBinding->textureSampler,
+                m_boundMaterialBinding->texture->getTextureHandler());
         }
+
+        m_lastMaterialUniformSource = &material;
 
     }
 

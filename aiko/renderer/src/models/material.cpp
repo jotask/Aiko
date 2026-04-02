@@ -19,6 +19,7 @@ namespace aiko
         std::size_t seed = 0;
         utils::hashCombine(std::hash<AssetId>{}(m_shaderId), seed);
         utils::hashCombine(std::hash<AssetId>{}(m_diffuseTextureId), seed);
+        utils::hashCombine(std::hash<const Texture*>{}(m_runtimeDiffuseTexture), seed);
         utils::hashCombine(std::hash<bool>{}(m_useVertexColor), seed);
         utils::hashCombine(std::hash<bool>{}(m_lit), seed);
         return static_cast<u64>(seed);

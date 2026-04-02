@@ -62,6 +62,43 @@ namespace aiko::renderer
         // Transient primitives
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) = 0;
 
+        void submitMesh(ViewId viewId, const MeshDrawPacket& packet)
+        {
+            AIKO_ASSERT(packet.mesh != nullptr, "MeshDrawPacket has null mesh");
+            AIKO_ASSERT(packet.material != nullptr, "MeshDrawPacket has null material");
+
+            bindMaterial(*packet.material);
+            drawMesh(viewId, packet.world, *packet.mesh, *packet.material);
+        }
+
+        void submitInstanced(ViewId viewId, const InstancedDrawPacket& packet)
+        {
+            AIKO_ASSERT(packet.mesh != nullptr, "InstancedDrawPacket has null mesh");
+            AIKO_ASSERT(packet.material != nullptr, "InstancedDrawPacket has null material");
+            AIKO_ASSERT(packet.data != nullptr, "InstancedDrawPacket has null data");
+            AIKO_ASSERT(packet.instanceCount > 0, "InstancedDrawPacket has zero instanceCount");
+            AIKO_ASSERT(packet.stride > 0, "InstancedDrawPacket has zero stride");
+
+            drawMeshInstanced(viewId, *packet.mesh, *packet.material, packet.data, packet.instanceCount, packet.stride);
+        }
+
+        void submitTransient(ViewId viewId, const TransientDrawDesc& desc)
+        {
+            AIKO_ASSERT(desc.material != nullptr, "TransientDrawDesc has null material");
+            bindMaterial(*desc.material);
+            drawTransient(viewId, desc);
+        }
+
+        void submitGpuInstanced(ViewId viewId, const GpuInstanceDrawDesc& desc)
+        {
+            drawMeshInstancedGpu(viewId, desc);
+        }
+
+        void submitBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc)
+        {
+            drawBillboards(viewId, desc);
+        }
+
     protected:
 
         RenderResourceManager* getResources() const { return m_resource_manager; }
