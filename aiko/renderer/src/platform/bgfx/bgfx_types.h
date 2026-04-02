@@ -14,6 +14,8 @@ namespace aiko
 
     #define AIKO_DISABLE_CODE if constexpr(false)
 
+    #define AIKO_INVALID_HANDLE { ::bgfx::kInvalidHandle }
+
     #define GET_BACKEND_IMPL(obj, Type, name) \
         Type* name = static_cast<Type*>(obj);\
         AIKO_ASSERT(name != nullptr, "Invalid native");

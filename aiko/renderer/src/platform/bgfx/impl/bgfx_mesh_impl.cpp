@@ -11,8 +11,8 @@ namespace aiko::renderer::bgfx
 
     BgfxMeshImpl::BgfxMeshImpl(const Mesh* mesh)
         : IMeshImpl(mesh)
-        , m_vertexBuffer({::bgfx::kInvalidHandle})
-        , m_indexBuffer({::bgfx::kInvalidHandle})
+        , m_vertexBuffer(AIKO_INVALID_HANDLE)
+        , m_indexBuffer(AIKO_INVALID_HANDLE)
     {
 
     }

@@ -6,12 +6,13 @@
 #include <core/file.h>
 
 #include "platform/bgfx/bgfx_platform_helper.h"
+#include "platform/bgfx/bgfx_types.h"
 
 namespace aiko::renderer::bgfx
 {
 
     BgfxShaderImpl::BgfxShaderImpl()
-        : m_programHandle({::bgfx::kInvalidHandle})
+        : m_programHandle(AIKO_INVALID_HANDLE)
     {
     }
 
@@ -69,7 +70,7 @@ namespace aiko::renderer::bgfx
             return;
         }
         ::bgfx::destroy(m_programHandle);
-        m_programHandle = {::bgfx::kInvalidHandle};
+        m_programHandle = AIKO_INVALID_HANDLE;
     }
 
 
@@ -102,7 +103,7 @@ namespace aiko::renderer::bgfx
         }
         logger::Log::error( "[%s/%s] UniformNotLoaded %s", vertex_file.c_str(), fragment_file.c_str(), name.c_str());
         AIKO_ASSERT(false, "Uniform not loaded");
-        return {::bgfx::kInvalidHandle};
+        return AIKO_INVALID_HANDLE;
     }
 
     void BgfxShaderImpl::setShaderUniform(const string& name, vec4 value)
@@ -172,7 +173,7 @@ namespace aiko::renderer::bgfx
             return found->second;
         }
         logger::Log::error( "[%s/%s] UniformNotLoaded %s", vertex_file.c_str(), fragment_file.c_str(), name.c_str());
-        return ::bgfx::UniformHandle{::bgfx::kInvalidHandle};
+        return AIKO_INVALID_HANDLE;
     }
 
     bool BgfxShaderImpl::hasUniform(const string& name) const

@@ -1,5 +1,7 @@
 #include "aiko_imgui.h"
 
+#include "platform/bgfx/bgfx_types.h"
+
 #if defined(AIKO_BGFX)
     #include <bgfx/bgfx.h>
     #include "platform/bgfx/imgui/imgui_impl_bgfx.h"
@@ -60,7 +62,7 @@ namespace aiko
     {
         ImGui::Render();
 
-        ::bgfx::setViewFrameBuffer(m_viewId, {::bgfx::kInvalidHandle});
+        ::bgfx::setViewFrameBuffer(m_viewId, AIKO_INVALID_HANDLE);
         ::bgfx::setViewRect(m_viewId, 0, 0, static_cast<uint16_t>(width), static_cast<uint16_t>(height));
 
         ::bgfx::touch(m_viewId);

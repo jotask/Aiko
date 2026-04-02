@@ -62,8 +62,8 @@ namespace aiko::renderer::bgfx
             const ComputeBuffer* source = nullptr;
             uint32_t byteSize = 0;
 
-            ::bgfx::TextureHandle computeTex = { ::bgfx::kInvalidHandle }; // compute-write
-            ::bgfx::TextureHandle readTex    = { ::bgfx::kInvalidHandle }; // read-back
+            ::bgfx::TextureHandle computeTex = AIKO_INVALID_HANDLE; // compute-write
+            ::bgfx::TextureHandle readTex    = AIKO_INVALID_HANDLE; // read-back
 
             uint32_t framesSinceRequest = 0;
 

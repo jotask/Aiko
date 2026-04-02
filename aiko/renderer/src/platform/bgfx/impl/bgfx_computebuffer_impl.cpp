@@ -6,11 +6,12 @@
 #include <core/file.h>
 
 #include "platform/bgfx/bgfx_platform_helper.h"
+#include "platform/bgfx/bgfx_types.h"
 
 namespace aiko::renderer::bgfx
 {
     BgfxComputeBufferImpl::BgfxComputeBufferImpl()
-        : m_handle({::bgfx::kInvalidHandle})
+        : m_handle(AIKO_INVALID_HANDLE)
     {
     }
 
@@ -77,7 +78,7 @@ namespace aiko::renderer::bgfx
         {
             logger::Log::info("Destroy compute VB handle idx=%u", m_handle.idx);
             ::bgfx::destroy(m_handle);
-            m_handle = {::bgfx::kInvalidHandle};
+            m_handle = AIKO_INVALID_HANDLE;
         }
     }
 

@@ -6,6 +6,7 @@
 #include <core/file.h>
 
 #include "platform/bgfx/bgfx_platform_helper.h"
+#include "platform/bgfx/bgfx_types.h"
 
 namespace aiko::renderer::bgfx
 {
@@ -59,7 +60,7 @@ namespace aiko::renderer::bgfx
     {
         auto it = m_uniforms.find(name);
         if (it == m_uniforms.end())
-            return { ::bgfx::kInvalidHandle };
+            return AIKO_INVALID_HANDLE;
         return it->second;
     }
 }

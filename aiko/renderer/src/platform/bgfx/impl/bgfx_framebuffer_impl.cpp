@@ -4,13 +4,14 @@
 
 #include <core/file.h>
 
+#include "platform/bgfx/bgfx_types.h"
 #include "platform/bgfx/impl/bgfx_texture_impl.h"
 
 namespace aiko::renderer::bgfx
 {
 
     BgfxFrameBufferImpl::BgfxFrameBufferImpl()
-        : m_frameBuffer({::bgfx::kInvalidHandle})
+        : m_frameBuffer(AIKO_INVALID_HANDLE)
     {
     }
 

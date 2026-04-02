@@ -133,7 +133,7 @@ namespace aiko::renderer::bgfx
 
         if (frameBuffer == nullptr)
         {
-            ::bgfx::setViewFrameBuffer(viewId, { ::bgfx::kInvalidHandle }); // backbuffer
+            ::bgfx::setViewFrameBuffer(viewId, AIKO_INVALID_HANDLE); // backbuffer
         }
         else
         {
@@ -257,7 +257,7 @@ namespace aiko::renderer::bgfx
         BgfxMeshImpl* meshImpl = static_cast<BgfxMeshImpl*>(screen.getMesh().getImpl());
         AIKO_ASSERT(meshImpl != nullptr, "Mesh has no impl");
 
-        ::bgfx::setViewFrameBuffer(viewId, {::bgfx::kInvalidHandle});
+        ::bgfx::setViewFrameBuffer(viewId, AIKO_INVALID_HANDLE);
 
         ::bgfx::setViewRect(viewId, 0, 0, static_cast<uint16_t>(displaySize.x), static_cast<uint16_t>(displaySize.y));
 
@@ -301,7 +301,7 @@ namespace aiko::renderer::bgfx
         BgfxMeshImpl* meshImpl = static_cast<BgfxMeshImpl*>(screen.getMesh().getImpl());
         AIKO_ASSERT(meshImpl != nullptr, "Mesh has no impl");
 
-        ::bgfx::setViewFrameBuffer(viewId, { ::bgfx::kInvalidHandle });
+        ::bgfx::setViewFrameBuffer(viewId, AIKO_INVALID_HANDLE);
 
         ::bgfx::setViewRect(viewId, 0, 0,
             static_cast<uint16_t>(displaySize.x),

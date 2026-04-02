@@ -7,12 +7,13 @@
 #include <core/file.h>
 
 #include "constants.h"
+#include "platform/bgfx/bgfx_types.h"
 
 namespace aiko::renderer::bgfx
 {
 
     BgfxTextureImpl::BgfxTextureImpl()
-        : m_textureHandle({::bgfx::kInvalidHandle})
+        : m_textureHandle(AIKO_INVALID_HANDLE)
         , m_texture ( {})
     {
     }
