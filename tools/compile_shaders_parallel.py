@@ -13,6 +13,9 @@ class Profile:
         self.profile = profile
         self.folder = folder
 
+    def print(self):
+        colorPrint(Color.INFO, f"Platform: {self.platform}, Profile: {self.profile}, Folder: {self.folder}")
+
 # (Your profiles list is currently unused in compileshader, keeping it as-is)
 profiles = [
     Profile("windows", "vs_5_0", "dx11"),
@@ -66,11 +69,10 @@ def detect_backend_for_system():
         return ("dx11", "windows", "s_5_0")  # folder, platform, profile
     elif SYSTEM == "linux":
         session_type = detect_linux_window_system()
+        colorPrint(Color.INFO, f"Linux system detected under {session_type}")
         if session_type == "wayland":
-            colorPrint(Color.INFO, f"Linux system detected under {session_type}")
             return Profile("linux",   "150", "glsl")
         elif session_type == "x11":
-            colorPrint(Color.INFO, f"Linux system detected under {session_type}")
             return Profile("linux",   "spirv", "spirv")
         else:
             raise RuntimeError(f"Unsupported Linux session type")
@@ -167,6 +169,7 @@ def main():
 
     shaderc_path = getshadercpath()
     profiler = detect_backend_for_system()
+    profiler.print()
 
     # Pick worker count: leave 1 core free, but at least 1.
     cpu = os.cpu_count() or 4
