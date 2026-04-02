@@ -22,7 +22,7 @@ void main()
 
     // normals: since we don't rotate, keep as-is
     // (if you add rotation later, this must change)
-    v_normal = a_normal;
+    v_normal = a_normal.xyz;
 
     // clip position (IMPORTANT)
     // If your bgfx_shader.sh provides u_viewProj, use this:

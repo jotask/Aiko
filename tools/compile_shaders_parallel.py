@@ -8,35 +8,24 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 SYSTEM = platform.system().lower()  # 'windows', 'linux', or 'darwin'
 
 class Profile:
-    def __init__(self, platform: str, profile: str, folder: str):
+    def __init__(self, platform: str, profile_vs: str, profile_fs: str, profile_cs: str, folder: str):
         self.platform = platform
-        self.profile = profile
+        self.profile_vs = profile_vs
+        self.profile_fs = profile_fs
+        self.profile_cs = profile_cs
         self.folder = folder
 
-    def print(self):
-        colorPrint(Color.INFO, f"Platform: {self.platform}, Profile: {self.profile}, Folder: {self.folder}")
+    def profile_for(self, shader_type: str) -> str:
+        if shader_type == "vertex":
+            return self.profile_vs
+        if shader_type == "fragment":
+            return self.profile_fs
+        if shader_type == "compute":
+            return self.profile_cs
+        raise ValueError(f"Unsupported shader type: {shader_type}")
 
-# (Your profiles list is currently unused in compileshader, keeping it as-is)
-profiles = [
-    Profile("windows", "vs_5_0", "dx11"),
-    Profile("windows", "ps_5_0", "dx11"),
-    Profile("windows", "vs_5_1", "dx12"),
-    Profile("windows", "ps_5_1", "dx12"),
-    Profile("windows", "150", "glsl"),
-    Profile("linux",   "150", "glsl"),
-    Profile("osx",     "150", "glsl"),
-    Profile("windows", "300_es", "essl"),
-    Profile("linux",   "300_es", "essl"),
-    Profile("osx",     "300_es", "essl"),
-    Profile("windows", "100_es", "essl"),
-    Profile("linux",   "100_es", "essl"),
-    Profile("osx",     "100_es", "essl"),
-    Profile("windows", "spirv", "spirv"),
-    Profile("linux",   "spirv", "spirv"),
-    Profile("osx",     "spirv", "spirv"),
-    Profile("osx", "metal", "metal"),
-    Profile("ios", "metal", "metal"),
-]
+    def print(self):
+        colorPrint(Color.INFO, f"Platform: {self.platform}, Profile Vs: {self.profile_vs}, Profile Fs: {self.profile_fs}, Profile Cs: {self.profile_cs}, Folder: {self.folder}")
 
 class Color(Enum):
     INFO    = "37"
@@ -53,7 +42,7 @@ def detect_linux_window_system() -> str:
     if session_type == "wayland":
         return "wayland"
     if session_type == "x11":
-        return "x11"
+        return "wayland"
     # Fallbacks
     if os.environ.get("WAYLAND_DISPLAY"):
         return "wayland"
@@ -62,18 +51,16 @@ def detect_linux_window_system() -> str:
     return "unknown"
 
 def detect_backend_for_system():
-    # NOTE: Your original code hard-coded dx11 for windows, spirv for linux.
-    # Keep behavior identical unless you want to use the profiles list.
     if SYSTEM == "windows":
         colorPrint(Color.INFO, f"Windows system detected")
-        return ("dx11", "windows", "s_5_0")  # folder, platform, profile
+        return Profile("windows", "s_5_0", "s_5_0", "s_5_0", "dx11")
     elif SYSTEM == "linux":
         session_type = detect_linux_window_system()
         colorPrint(Color.INFO, f"Linux system detected under {session_type}")
         if session_type == "wayland":
-            return Profile("linux",   "150", "glsl")
+            return Profile("linux", "120", "120", "430", "glsl")
         elif session_type == "x11":
-            return Profile("linux",   "spirv", "spirv")
+            return Profile("linux", "spirv", "spirv", "spirv", "spirv")
         else:
             raise RuntimeError(f"Unsupported Linux session type")
     else:
@@ -121,7 +108,7 @@ def shader_type_from_suffix(shader: Path) -> str | None:
         return "compute"
     return None
 
-def compile_one(shader: Path, shaderc_path: Path, folder: str, platform_name: str, profile: str):
+def compile_one(shader: Path, shaderc_path: Path, folder: str, platform_name: str, profiler: Profile):
     shader_type = shader_type_from_suffix(shader)
     if shader_type is None:
         return (shader, False, f"Skipping {shader.name} (unknown shader type)")
@@ -140,14 +127,13 @@ def compile_one(shader: Path, shaderc_path: Path, folder: str, platform_name: st
         "-o", str(output_file),
         "--type", shader_type,
         "--platform", platform_name,
-        "--profile", profile,
+        "--profile", profiler.profile_for(shader_type),
         "-i", str(shader.parent),
         "-i", str(getshaderincludesBgfxShader()),
         "-i", str(getshaderincludesCommon()),
         "--varyingdef", str(local_varying),
     ]
 
-    # Run
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         msg = (
@@ -180,7 +166,7 @@ def main():
     failures = []
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futures = {
-            ex.submit(compile_one, f, shaderc_path, profiler.folder, profiler.platform, profiler.profile): f
+            ex.submit(compile_one, f, shaderc_path, profiler.folder, profiler.platform, profiler): f
             for f in onlyfiles
         }
         for fut in as_completed(futures):
