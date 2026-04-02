@@ -22,6 +22,13 @@
 namespace aiko::renderer::bgfx
 {
 
+    namespace
+    {
+        constexpr bool kTest_enableBGFXDebugStats = false;
+        constexpr bool kTest_enableBGFXText = false;
+        constexpr bool kTest_enableBGFXWireFrame = false;
+    }
+
     BgfxRenderDevice::BgfxRenderDevice(RenderResourceManager* resources)
         : IRenderDevice(resources)
         , m_boundShader(nullptr)
@@ -98,7 +105,11 @@ namespace aiko::renderer::bgfx
             logger::Log::info() << "BGFX Renderer: " << ::bgfx::getRendererName(::bgfx::getRendererType());
         }
 
-        // ::bgfx::setDebug(BGFX_DEBUG_WIREFRAME | BGFX_DEBUG_STATS | BGFX_DEBUG_TEXT);
+        uint64_t debug_stats = BGFX_DEBUG_NONE;
+        if (kTest_enableBGFXDebugStats) { debug_stats |= BGFX_DEBUG_STATS; }
+        if (kTest_enableBGFXText)       { debug_stats |= BGFX_DEBUG_TEXT; }
+        if (kTest_enableBGFXWireFrame)  { debug_stats |= BGFX_DEBUG_WIREFRAME; }
+        ::bgfx::setDebug(debug_stats);
 
         m_csReadbackCopy.load("readback_copy.cs");
 
@@ -129,7 +140,6 @@ namespace aiko::renderer::bgfx
         m_boundMaterialBinding = nullptr;
         m_lastMaterialUniformSource = nullptr;
         m_lastBoundMaterialSource = nullptr;
-        // ::bgfx::setDebug(BGFX_DEBUG_STATS);
     }
 
     void BgfxRenderDevice::endFrame()

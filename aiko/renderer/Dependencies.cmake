@@ -52,7 +52,7 @@ set_target_properties(glfw PROPERTIES FOLDER "Dependencies")
 FetchContent_Declare(
         imgui
         GIT_REPOSITORY https://github.com/ocornut/imgui
-        GIT_TAG        docking
+        GIT_TAG        v1.92.6-docking
         GIT_SHALLOW    TRUE
         GIT_PROGRESS   TRUE
 )

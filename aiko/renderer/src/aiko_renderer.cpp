@@ -80,7 +80,8 @@ namespace aiko
         m_gpuInstanceDraws.clear();
         m_lights.clear();
         m_renderer->beginFrame();
-        m_imgui.beginFrame();
+        auto size = DisplayManager::it().getDisplay()->getDisplaySize();
+        m_imgui.beginFrame(size.x, size.y);
     }
 
     void AikoRenderer::endFrame()
@@ -152,8 +153,7 @@ namespace aiko
         m_instancedQueue.push_back(item);
     }
 
-    void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const MaterialAsset& materialAsset,
-        const MaterialInstance& materialInstance)
+    void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const MaterialAsset& materialAsset, const MaterialInstance& materialInstance)
     {
         AIKO_FUNCTION_PROFILE
         Material& stagedMaterial = stageMaterial(materialAsset, materialInstance);
