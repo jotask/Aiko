@@ -14,7 +14,7 @@ namespace aiko::renderer::bgfx
     {
     public:
 
-        BgfxComputeShaderImpl() = default;
+        BgfxComputeShaderImpl();
         virtual ~BgfxComputeShaderImpl() override = default;
 
         virtual bool isValid() const override;
@@ -27,10 +27,11 @@ namespace aiko::renderer::bgfx
 
         ::bgfx::ProgramHandle getProgramHandler() const { return m_programHandle; }
 
-        ::bgfx::UniformHandle getUniformHandle(const std::string& name) const;
+        ::bgfx::UniformHandle getUniformHandle(const string& name);
 
     private:
 
+        string m_file;
         ::bgfx::ProgramHandle m_programHandle;
         std::unordered_map<string, ::bgfx::UniformHandle> m_uniforms;
 

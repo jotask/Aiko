@@ -10,6 +10,10 @@
 
 namespace aiko::renderer::bgfx
 {
+    BgfxComputeShaderImpl::BgfxComputeShaderImpl()
+        : m_programHandle(AIKO_INVALID_HANDLE)
+    {
+    }
 
     bool BgfxComputeShaderImpl::isValid() const
     {
@@ -18,6 +22,9 @@ namespace aiko::renderer::bgfx
 
     void BgfxComputeShaderImpl::load(string file)
     {
+
+        m_file = file;
+
         std::string dir = getShaderRootDir();
         std::filesystem::path cshaderPath = dir + file + std::string(".bin");
 
@@ -34,7 +41,6 @@ namespace aiko::renderer::bgfx
         AIKO_ASSERT(::bgfx::isValid(csh), "Failed to create compute shader!");
 
         m_programHandle = ::bgfx::createProgram(csh, true);
-
         AIKO_ASSERT( ::bgfx::isValid(m_programHandle), "Failed to create compute shader!");
 
         {
@@ -49,6 +55,22 @@ namespace aiko::renderer::bgfx
 
     void BgfxComputeShaderImpl::unload()
     {
+        if (::bgfx::isValid(m_programHandle))
+        {
+            ::bgfx::destroy(m_programHandle);
+            m_programHandle = AIKO_INVALID_HANDLE;
+        }
+
+        for (auto& [_, handle] : m_uniforms)
+        {
+            if (::bgfx::isValid(handle))
+            {
+                ::bgfx::destroy(handle);
+            }
+        }
+
+        m_uniforms.clear();
+        m_file.clear();
     }
 
     uint BgfxComputeShaderImpl::id()
@@ -56,11 +78,22 @@ namespace aiko::renderer::bgfx
         return m_programHandle.idx;
     }
 
-    ::bgfx::UniformHandle BgfxComputeShaderImpl::getUniformHandle(const std::string& name) const
+    ::bgfx::UniformHandle BgfxComputeShaderImpl::getUniformHandle(const string& name)
     {
         auto it = m_uniforms.find(name);
-        if (it == m_uniforms.end())
-            return AIKO_INVALID_HANDLE;
-        return it->second;
+        if (it != m_uniforms.end())
+        {
+            return it->second;
+        }
+        ::bgfx::UniformHandle handle =::bgfx::createUniform(name.c_str(), ::bgfx::UniformType::Vec4);
+        if (::bgfx::isValid(handle) == true)
+        {
+            logger::Log::info("[%s] Lazily created compute uniform %s", m_file.c_str(), name.c_str());
+            m_uniforms.emplace(name, handle);
+            return handle;
+        }
+
+        logger::Log::error("[%s] Failed to create compute uniform %s", m_file.c_str(), name.c_str());
+        return AIKO_INVALID_HANDLE;
     }
 }
