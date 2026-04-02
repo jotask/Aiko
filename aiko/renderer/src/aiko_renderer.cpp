@@ -485,19 +485,23 @@ namespace aiko
         m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
         m_renderer->bindFrame(SCENE_VIEW, frameData);
 
-        for (const GpuInstanceDrawDesc* desc : passData.gpuInstances)
         {
-            if (desc != nullptr)
+            for (const GpuInstanceDrawDesc* desc : passData.gpuInstances)
             {
-                m_renderer->submitGpuInstanced(SCENE_VIEW, *desc);
+                if (desc != nullptr)
+                {
+                    m_renderer->submitGpuInstanced(SCENE_VIEW, *desc);
+                }
             }
         }
 
-        for (const GpuBillboardDrawDesc* desc : passData.gpuBillboards)
         {
-            if (desc != nullptr)
+            for (const GpuBillboardDrawDesc* desc : passData.gpuBillboards)
             {
-                m_renderer->submitBillboards(SCENE_VIEW, *desc);
+                if (desc != nullptr)
+                {
+                    m_renderer->submitBillboards(SCENE_VIEW, *desc);
+                }
             }
         }
 
