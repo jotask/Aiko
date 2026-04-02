@@ -157,7 +157,7 @@ namespace aiko
 
         mat4 ortho(float left, float right, float bottom, float top, float znear, float zfar)
         {
-            glm::mat4 projection = glm::ortho(left, right, bottom ,top, znear, zfar);
+            glm::mat4 projection = glm::ortho(left, right, bottom ,top, zfar, znear);
             return toAiko(projection);
         }
 
