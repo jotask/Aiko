@@ -9,88 +9,74 @@
 namespace aiko
 {
 
-    class ivec2
+    template <typename T>
+    class vec2def
     {
     public:
-        constexpr ivec2() : ivec2(0) { };
-        constexpr ivec2(const int xy) : ivec2(xy, xy) { };
-        constexpr ivec2(const int x, const int y) : x(x), y(y) { };
+        constexpr vec2def() : vec2def(0) { };
+        constexpr vec2def(const T xy) : vec2def(xy, xy) { };
+        constexpr vec2def(const T x, const T y) : x(x), y(y) { };
         int magnitude() const { return std::sqrt(x * x + y * y); };
         int product() const { return x * y; };
-        int x;
-        int y;
-        bool operator==(ivec2& other) const { return { x == other.x && y == other.y }; }
-        bool operator==(const ivec2& other) const { return { x == other.x && y == other.y }; }
-        bool operator!=(ivec2& other) const { return !(*this == other); }
-        bool operator!=(const ivec2& other) const { return !(*this == other); }
-        bool operator<(const ivec2& other) const { if (x != other.x) { return x < other.x; } return y < other.y; }
-        ivec2 operator*(const ivec2& other) const { return { x * other.x, y * other.y }; }
-        ivec2 operator+(const ivec2& other) const { return { x + other.x, y + other.y }; }
-
+        T x;
+        T y;
+        bool operator==(vec2def& other) const { return { x == other.x && y == other.y }; }
+        bool operator==(const vec2def& other) const { return { x == other.x && y == other.y }; }
+        bool operator!=(vec2def& other) const { return !(*this == other); }
+        bool operator!=(const vec2def& other) const { return !(*this == other); }
+        bool operator<(const vec2def& other) const { if (x != other.x) { return x < other.x; } return y < other.y; }
+        vec2def operator*(const vec2def& other) const { return { x * other.x, y * other.y }; }
+        vec2def operator+(const vec2def& other) const { return { x + other.x, y + other.y }; }
+        vec2def operator-(const vec2def& other) const { return { x - other.x, y - other.y }; }
     };
 
-    class vec2
+    using ivec2 = vec2def<int>;
+    using vec2 = vec2def<float>;
+
+    template <typename T>
+    class vec3def
     {
     public:
-        vec2() : vec2(0.0f) { };
-        vec2(ivec2 other) : vec2( static_cast<float>(other.x), static_cast<float>(other.y)) { };
-        vec2(float xyz) : vec2(xyz, xyz) { };
-        vec2(float x, float y) : x(x), y(y) { };
-        float x;
-        float y;
+        vec3def() : vec3def(0.0f) { };
+        vec3def(vec2def<T> other) : vec3def(other, 0) { };
+        vec3def(vec2def<T> other, T z) : vec3def(other.x, other.y, z) { };
+        vec3def(T xyz) : vec3def(xyz, xyz, xyz) { };
+        vec3def(T x, T y, T z) : x(x), y(y), z(z) { };
 
-        vec2 operator*(const float& scalar) const { return { x * scalar, y * scalar }; }
-        vec2 operator+(vec2& other) const { return { x + other.x, y + other.y }; }
-        vec2 operator+(const vec2& other) const { return { x + other.x, y + other.y }; }
-        vec2 operator-(vec2& other) const { return { x - other.x, y - other.y }; }
-        vec2 operator+=(vec2& other) const { return { x + other.x, y + other.y }; }
-        bool operator==(vec2& other) const { return { x == other.x && y == other.y }; }
+        T x;
+        T y;
+        T z;
 
-    };
-
-    class vec3
-    {
-    public:
-        vec3() : vec3(0.0f) { };
-        vec3(ivec2 other) : vec3(other.x, other.y, 0) { };
-        vec3(vec2 other) : vec3(other, 0) { };
-        vec3(vec2 other, float z) : vec3(other.x, other.y, z) { };
-        vec3(float xyz) : vec3(xyz, xyz, xyz) { };
-        vec3(float x, float y, float z) : x(x), y(y), z(z) { };
-        float x;
-        float y;
-        float z;
-
-        operator float* () {
+        operator T* () {
             return &x;
         }
 
         // Addition
-        vec3 operator+(const vec3& other) const {
-            return vec3(x + other.x, y + other.y, z + other.z);
+        vec3def operator+(const vec3def& other) const {
+            return vec3def(x + other.x, y + other.y, z + other.z);
         }
 
         // Subtraction
-        vec3 operator-(const vec3& other) const {
-            return vec3(x - other.x, y - other.y, z - other.z);
+        vec3def operator-(const vec3def& other) const {
+            return vec3def(x - other.x, y - other.y, z - other.z);
         }
 
         // Multiplication
-        vec3 operator*(float scalar) const {
-            return vec3(x * scalar, y * scalar, z * scalar);
+        vec3def operator*(float scalar) const {
+            return vec3def(x * scalar, y * scalar, z * scalar);
         }
 
-        vec3 operator*(const vec3& other) const {
-            return vec3{ x * other.x, y * other.y, z * other.z };
+        vec3def operator*(const vec3def& other) const {
+            return vec3def{ x * other.x, y * other.y, z * other.z };
         }
 
         // Division
-        vec3 operator/(float scalar) const {
-            return vec3(x / scalar, y / scalar, z / scalar);
+        vec3def operator/(float scalar) const {
+            return vec3def(x / scalar, y / scalar, z / scalar);
         }
 
         // Compound Addition
-        vec3& operator+=(const vec3& other) {
+        vec3def& operator+=(const vec3def& other) {
             x += other.x;
             y += other.y;
             z += other.z;
@@ -98,7 +84,7 @@ namespace aiko
         }
 
         // Compound Subtraction
-        vec3& operator-=(const vec3& other) {
+        vec3def& operator-=(const vec3def& other) {
             x -= other.x;
             y -= other.y;
             z -= other.z;
@@ -106,19 +92,19 @@ namespace aiko
         }
 
         // Compound Multiplication (for scalar multiplication)
-        vec3& operator*=(float scalar) {
+        vec3def& operator*=(float scalar) {
             x *= scalar;
             y *= scalar;
             z *= scalar;
             return *this;
         }
-        vec3& operator*=(vec3 other) {
+        vec3def& operator*=(vec3def other) {
             *this = *this * other;
             return *this;
         }
 
         // Compound Division (for scalar division)
-        vec3& operator/=(float scalar) {
+        vec3def& operator/=(float scalar) {
             x /= scalar;
             y /= scalar;
             z /= scalar;
@@ -127,18 +113,24 @@ namespace aiko
 
     };
 
-    class vec4
+    using ivec3 = vec3def<int>;
+    using vec3 = vec3def<float>;
+
+    template<typename T>
+    class vec4def
     {
     public:
-        vec4() : vec4(0.0f) { };
-        vec4(float xyzw) : vec4(xyzw, xyzw, xyzw, xyzw) { };
-        vec4(vec3 v3) : vec4(v3.x, v3.y, v3.z, 0.0f) { };
-        vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) { };
-        float x;
-        float y;
-        float z;
-        float w;
+        vec4def() : vec4def(0.0f) { };
+        vec4def(T xyzw) : vec4def(xyzw, xyzw, xyzw, xyzw) { };
+        vec4def(vec3def<T> v3) : vec4def(v3.x, v3.y, v3.z, 0.0f) { };
+        vec4def(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) { };
+        T x;
+        T y;
+        T z;
+        T w;
     };
+
+    using vec4 = vec4def<float>;
 
     class mat4
     {
