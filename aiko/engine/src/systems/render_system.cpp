@@ -35,6 +35,14 @@ namespace aiko
         clearCaches();
     }
 
+    void RenderSystem::submitMesh(const Transform& trans, const AssetId& meshId, const Material& material)
+    {
+        AIKO_FUNCTION_PROFILE
+        AIKO_ASSERT(meshId != InvalidAssetId, "MeshComponent has no mesh id assigned");
+        Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
+        render(trans, mesh, material);
+    }
+
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)

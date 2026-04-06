@@ -35,6 +35,9 @@ namespace aiko
         virtual void init() override;
         virtual void dispose() override;
 
+
+        void submitMesh(const Transform& trans, const AssetId&, const Material&);
+
         void render(const Transform& trans, const Mesh&, const Material&);
         void render(const Transform& trans, const Model& model);
         void render(const Transform& trans, const Model& model, const MaterialInstance&);
