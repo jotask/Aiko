@@ -25,6 +25,7 @@ namespace vw
         void generate();
         void update();
         void render();
+        void gizmos();
     private:
 
         struct ChunkData
