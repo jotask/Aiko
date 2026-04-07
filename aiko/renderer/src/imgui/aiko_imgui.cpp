@@ -15,6 +15,7 @@
     #error NOT IMPLEMENTED
 #endif
 
+#include <imgui_impl_glfw.h>
 #include <imgui.h>
 #include <GLFW/glfw3.h>
 
@@ -50,6 +51,7 @@ namespace aiko
         ImGui::StyleColorsDark();
         //ImGui::StyleColorsLight();
 
+        ImGui_ImplGlfw_InitForOther(window, true);
         ImGui_Implbgfx_Init(m_viewId);
 
         m_isInitialized = true;
