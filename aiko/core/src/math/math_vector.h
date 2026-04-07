@@ -37,11 +37,11 @@ namespace aiko
     class vec3def
     {
     public:
-        vec3def() : vec3def(0.0f) { };
-        vec3def(vec2def<T> other) : vec3def(other, 0) { };
-        vec3def(vec2def<T> other, T z) : vec3def(other.x, other.y, z) { };
-        vec3def(T xyz) : vec3def(xyz, xyz, xyz) { };
-        vec3def(T x, T y, T z) : x(x), y(y), z(z) { };
+        constexpr vec3def() : vec3def(0.0f) { };
+        constexpr vec3def(vec2def<T> other) : vec3def(other, 0) { };
+        constexpr vec3def(vec2def<T> other, T z) : vec3def(other.x, other.y, z) { };
+        constexpr vec3def(T xyz) : vec3def(xyz, xyz, xyz) { };
+        constexpr vec3def(T x, T y, T z) : x(x), y(y), z(z) { };
 
         T x;
         T y;
@@ -120,10 +120,10 @@ namespace aiko
     class vec4def
     {
     public:
-        vec4def() : vec4def(0.0f) { };
-        vec4def(T xyzw) : vec4def(xyzw, xyzw, xyzw, xyzw) { };
-        vec4def(vec3def<T> v3) : vec4def(v3.x, v3.y, v3.z, 0.0f) { };
-        vec4def(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) { };
+        constexpr vec4def() : vec4def(0.0f) { };
+        constexpr vec4def(T xyzw) : vec4def(xyzw, xyzw, xyzw, xyzw) { };
+        constexpr vec4def(vec3def<T> v3) : vec4def(v3.x, v3.y, v3.z, 0.0f) { };
+        constexpr vec4def(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) { };
         T x;
         T y;
         T z;
@@ -150,12 +150,6 @@ namespace aiko
             elements[5]  = identity;
             elements[10] = identity;
             elements[15] = identity;
-            /*
-            for (int i = 0; i < std::size; ++i)
-            {
-                elements[i][i] = identity;
-            }
-            */
         }
 
         mat4(const float(&data)[16])
