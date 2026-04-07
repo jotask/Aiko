@@ -4,6 +4,11 @@
 #include "components/light_component.h"
 #include "world/world.h"
 
+namespace aiko
+{
+    class LightComponent;
+}
+
 namespace vw
 {
 
@@ -17,15 +22,8 @@ namespace vw
 
         World m_world;
 
-        struct LightInst
-        {
-            aiko::GameObject* obj;
-            aiko::AikoPtr<aiko::LightComponent> cmp;
-            float angle;
-        };
-        std::vector<LightInst> m_lights;
+        aiko::AikoPtr<aiko::LightComponent> m_lightComponent;
 
-    
     };
 
 }

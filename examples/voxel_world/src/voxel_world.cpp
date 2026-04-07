@@ -6,8 +6,9 @@
 
 #include <aiko_includes.h>
 
-#include "world/types/chunk_types.h"
-#include "world/types/world_types.h"
+#include <imgui.h>
+
+#include "voxel_world_constants.h"
 
 namespace vw
 {
@@ -25,24 +26,9 @@ namespace vw
 
         m_world.generate();
 
-        constexpr float radiusSpawn = WORLD_SIZE * CHUNK_SIZE.x * VOXEL_SIZE;
-        for (size_t i = 0 ; i < 10; ++i )
-        {
-            auto* obj = app->Instantiate("Light");
-            obj->transform().position = {
-                aiko::utils::getRandomValue(0.0f, radiusSpawn),
-                aiko::utils::getRandomValue(0.0f, radiusSpawn),
-                aiko::utils::getRandomValue(0.0f, radiusSpawn),
-            };
-            auto cmp = obj->addComponent<aiko::LightComponent>();
-            cmp->setPointLight(aiko::WHITE, 1.0f);
-            const LightInst ints = {
-                .obj = obj,
-                .cmp = cmp,
-                .angle = aiko::utils::getRandomValue(0.0f, 360.f)
-            };
-            m_lights.push_back(ints);
-        }
+        auto* obj = app->Instantiate("Light");
+        m_lightComponent = obj->addComponent<aiko::LightComponent>();
+        m_lightComponent->setDirectional(aiko::WHITE, aiko::vec3 { 1, -1, 0}, 1.0f);
 
     }
 
@@ -54,22 +40,22 @@ namespace vw
             m_world.generate();
         }
         m_world.update();
-
-        {
-            for (auto& light : m_lights)
-            {
-                light.angle += 1.0f * app->getlDeltaTime();
-                aiko::vec3 pos = {std::sin(light.angle), 0.0f, std::cos(light.angle)};
-                light.obj->transform().position = pos;
-            }
-        }
-
     }
 
     void VoxelWorld::render()
     {
         Layer::render();
         m_world.render();
+        m_world.gizmos();
+
+        if (c_imgui_ambient_light)
+        if (ImGui::Begin("Ambient Light"))
+        {
+            ImGui::SliderFloat("Intensity", &m_lightComponent->intensity, 0.0f, 1.0f);
+            ImGui::SliderFloat3("Direction", &m_lightComponent->direction.x, -1.0f, 1.0f);
+            ImGui::ColorEdit4("Color", &m_lightComponent->color.r);
+            ImGui::End();
+        }
     }
 }
 

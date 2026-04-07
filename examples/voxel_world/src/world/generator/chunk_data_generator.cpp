@@ -6,6 +6,7 @@
 #include <math/math_vector.h>
 
 #include <PerlinNoise.hpp>
+#include <imgui.h>
 
 namespace vw
 {
@@ -57,5 +58,21 @@ namespace vw
         }
     }
 
+    aiko::vector<float> ChunkDataGenerator::generatePlotTest(const GeneratorSettings& cfg, std::size_t amount)
+    {
+        const siv::PerlinNoise::seed_type seed = cfg.seed;
+        const siv::PerlinNoise perlin {seed};
+
+        aiko::vector<float> samples;
+
+        for (size_t i = 0 ; i < amount ; i++)
+        {
+            const auto data = perlin.octave1D(i * cfg.noiseScale, cfg.octaves, cfg.persistance);
+            samples.push_back(data);
+        }
+
+        return samples;
+
+    }
 }
 

@@ -20,6 +20,8 @@ namespace vw
 
         static void generateChunkData(const GeneratorSettings& cfg, const ChunkCoord& coord, ChunkData& data);
         static void clearChunkData(ChunkData& data);
+
+        static aiko::vector<float> generatePlotTest(const GeneratorSettings& cfg, std::size_t samples );
     private:
     };
 

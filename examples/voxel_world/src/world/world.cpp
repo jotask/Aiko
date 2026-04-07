@@ -4,7 +4,10 @@
 
 #include "generator/chunk_data_generator.h"
 #include "world/generator/chunk_mesh_generator.h"
-#include "models/mesh_factory.h"
+
+#include <imgui.h>
+
+#include "voxel_world_constants.h"
 
 namespace vw
 {
@@ -80,6 +83,34 @@ namespace vw
                 .scale = {1.0f}
             };
             m_renderSystem->submitMesh(trans, chunk.second.meshId, chunk.second.material );
+        }
+    }
+
+    void World::gizmos()
+    {
+        if (c_imgui_world_generation)
+        if (ImGui::Begin("ChunkGeneration"))
+        {
+            ImGui::Text("Generation");
+            ImGui::DragInt("Seed", &generationConfig.seed);
+            ImGui::SliderFloat("NoiseScale", &generationConfig.noiseScale, 0.0001f, 0.1f );
+            ImGui::SliderInt("Octaves", &generationConfig.octaves, 0, 32);
+            ImGui::SliderFloat("Persistance", &generationConfig.persistance, 0.0f, 1.0f);
+            ImGui::SliderFloat("Amplitude", &generationConfig.amplitude, 0.0f, 100.0f);
+            if (ImGui::Button("RegenerateWorld") == true)
+            {
+                m_regenerationRequested = true;
+            }
+            ImGui::End();
+        }
+
+        if (c_imgui_world_plot_test)
+        if (ImGui::Begin("PlotGeneration"))
+        {
+            constexpr std::size_t amount = 100;
+            const auto samples = ChunkDataGenerator::generatePlotTest(generationConfig, amount);
+            ImGui::PlotLines("Samples", samples.data(), amount);
+            ImGui::End();
         }
     }
 

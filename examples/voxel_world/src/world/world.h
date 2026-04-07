@@ -42,6 +42,8 @@ namespace vw
 
         std::unordered_map<ChunkKey, ChunkData, ChunkKeyHash> m_chunks;
 
+        bool m_regenerationRequested = false;
+
         void unload();
 
     };
