@@ -21,6 +21,7 @@ namespace vw
 
     void World::generate()
     {
+
         unload();
 
         auto generateChunk = [&](int x, int z)
@@ -35,7 +36,7 @@ namespace vw
             chunk.material.m_lit = true;
 
             ChunkDataGenerator::clearChunkData(chunk.chunk.getData());
-            ChunkDataGenerator::generateChunkData(key.coord, chunk.chunk.getData());
+            ChunkDataGenerator::generateChunkData(generationConfig, key.coord, chunk.chunk.getData());
 
             chunk.meshId = m_assetsAccess->registerMesh(ChunkMeshGenerator::generateMeshAsset(chunk.chunk.getData()));
         };

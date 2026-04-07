@@ -10,22 +10,14 @@
 namespace vw
 {
 
-    void ChunkDataGenerator::generateChunkData(const ChunkCoord& coord, ChunkData& data)
+    void ChunkDataGenerator::generateChunkData(const GeneratorSettings& cfg, const ChunkCoord& coord, ChunkData& data)
     {
         clearChunkData(data);
 
-
-        const siv::PerlinNoise::seed_type seed = 123456u;
-
+        const siv::PerlinNoise::seed_type seed = cfg.seed;
         const siv::PerlinNoise perlin {seed};
 
-        const float noiseScale = 0.01;
-
-        const std::int32_t octaves = 4;
-        const float persistance = 0.5f;
-
         const auto baseHeight = CHUNK_SIZE.y / 2;
-        const float amplitude = 10.0f;
 
         for (std::size_t z = 0 ; z < CHUNK_SIZE.z; ++z)
         {
@@ -33,10 +25,10 @@ namespace vw
             {
 
                 const aiko::ivec2 voxelWorldPos = ( coord * aiko::ivec2(CHUNK_SIZE.x, CHUNK_SIZE.z ) ) + aiko::ivec2(x, z);
-                const aiko::vec2 noiseSampleCoord = aiko::vec2(voxelWorldPos.x,voxelWorldPos.y) * noiseScale;
-                const double noise = perlin.octave2D(noiseSampleCoord.x, noiseSampleCoord.y, octaves, persistance);
+                const aiko::vec2 noiseSampleCoord = aiko::vec2(voxelWorldPos.x,voxelWorldPos.y) * cfg.noiseScale;
+                const double noise = perlin.octave2D(noiseSampleCoord.x, noiseSampleCoord.y, cfg.octaves, cfg.persistance);
 
-                const auto height = baseHeight + noise * amplitude;
+                const auto height = baseHeight + noise * cfg.amplitude;
 
                 for (std::size_t y = 0 ; y < CHUNK_SIZE.y; ++y)
                 {

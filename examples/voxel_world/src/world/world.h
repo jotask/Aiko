@@ -5,8 +5,8 @@
 
 #include "chunk.h"
 #include "assets/types/mesh_asset.h"
+#include "generator/chunk_data_generator.h"
 #include "models/material.h"
-#include "models/mesh.h"
 #include "types/world_types.h"
 
 namespace aiko
@@ -33,6 +33,8 @@ namespace vw
             aiko::Material material = {};
             aiko::AssetId meshId = aiko::InvalidAssetId;
         };
+
+        ChunkDataGenerator::GeneratorSettings generationConfig = {};
 
         aiko::RenderSystem* m_renderSystem;
         aiko::IComponentAssetAccess* m_assetsAccess;
