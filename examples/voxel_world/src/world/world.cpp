@@ -31,7 +31,7 @@ namespace vw
             ChunkData& chunk = m_chunks.at(key);
 
             chunk.material.m_shaderId = m_assetsAccess->registerShader("model");
-            chunk.material.m_baseColor = aiko::Color::getRandomColor();
+            chunk.material.m_baseColor = aiko::WHITE;
             chunk.material.m_useVertexColor = true;
             chunk.material.m_lit = true;
 
@@ -39,6 +39,7 @@ namespace vw
             ChunkDataGenerator::generateChunkData(generationConfig, key.coord, chunk.chunk.getData());
 
             chunk.meshId = m_assetsAccess->registerMesh(ChunkMeshGenerator::generateMeshAsset(chunk.chunk.getData()));
+
         };
 
         if constexpr (WORLD_SIZE == 1)
@@ -61,10 +62,11 @@ namespace vw
 
     void World::update()
     {
-        for (auto& chunk : m_chunks)
-        {
-
-        }
+      if (m_regenerationRequested == true)
+      {
+          m_regenerationRequested = false;
+          generate();
+      }
     }
 
     void World::render()
