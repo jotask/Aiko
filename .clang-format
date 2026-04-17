@@ -13,7 +13,7 @@ AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 AlwaysBreakAfterDefinitionReturnType: false
 AlwaysBreakTemplateDeclarations: Yes
-BraceWrapping: 
+BraceWrapping:
   AfterCaseLabel: true
   AfterClass: true
   AfterControlStatement: true
@@ -38,13 +38,30 @@ ColumnLimit: 120
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ContinuationIndentWidth: 8
 FixNamespaceComments: false
-IncludeCategories: 
-  - Regex: '^<.*'
+
+IncludeBlocks: Regroup
+
+IncludeCategories:
+  # 1) internal/private project headers
+  - Regex: '^"(.*(/internal/|/detail/|/src/).*)"'
     Priority: 1
-  - Regex: '^".*'
+
+  # 2) other project headers
+  - Regex: '^".*"'
     Priority: 2
-  - Regex: '.*'
+
+  # 3) external / third-party headers (heuristic: angle includes with a path)
+  - Regex: '^<[^>]+/[^>]+>$'
     Priority: 3
+
+  # 4) standard library / system headers
+  - Regex: '^<[^>]+>$'
+    Priority: 4
+
+  # fallback
+  - Regex: '.*'
+    Priority: 5
+
 IncludeIsMainRegex: '([-_](test|unittest))?$'
 IndentCaseLabels: true
 IndentPPDirectives: BeforeHash
@@ -54,7 +71,12 @@ MacroBlockBegin: ''
 MacroBlockEnd: ''
 NamespaceIndentation: All
 PointerAlignment: Left
-SortIncludes: true
+
+SortIncludes:
+  Enabled: true
+  IgnoreCase: false
+  IgnoreExtension: false
+
 SpaceAfterCStyleCast: true
 SpaceAfterTemplateKeyword: false
 SpaceBeforeRangeBasedForLoopColon: false

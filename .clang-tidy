@@ -11,6 +11,7 @@ Checks: >
   -readability-uppercase-literal-suffix,
   bugprone-*,
   portability-*,
+  -portability-avoid-pragma-once,
   misc-*,
   readability-braces-around-statements
 
