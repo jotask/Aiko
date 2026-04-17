@@ -7,8 +7,8 @@
 
 namespace aiko
 {
-
-    namespace logger {
+    namespace logger
+    {
         class Log
         {
         public:
@@ -87,3 +87,10 @@ namespace aiko
         };
     }
 }
+
+#define AIKO_LOG_TRACE(...)    ::aiko::logger::Log::trace(__VA_ARGS__)
+#define AIKO_LOG_DEBUG(...)    ::aiko::logger::Log::debug(__VA_ARGS__)
+#define AIKO_LOG_INFO(...)     ::aiko::logger::Log::info(__VA_ARGS__)
+#define AIKO_LOG_WARNING(...)  ::aiko::logger::Log::warning(__VA_ARGS__)
+#define AIKO_LOG_ERROR(...)    ::aiko::logger::Log::error(__VA_ARGS__)
+#define AIKO_LOG_CRITICAL(...) ::aiko::logger::Log::critical(__VA_ARGS__)
