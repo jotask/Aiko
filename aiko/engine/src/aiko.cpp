@@ -23,6 +23,7 @@
 #include "systems/input_system.h"
 #include "systems/scene_system.h"
 #include "systems/particle_system.h"
+#include "systems/physics_system.h"
 
 namespace aiko
 {
@@ -103,6 +104,7 @@ namespace aiko
         registerSystem<AssetSystem>();
         registerSystem<ComputeSystem>();
         registerSystem<InputSystem>();
+        registerSystem<PhysicsSystem>();
         registerSystem<ParticleSystem>();
 
         m_application->registerSystems();
