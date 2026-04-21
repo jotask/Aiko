@@ -3,15 +3,8 @@
 #include <memory>
 #include <string>
 #include <cassert>
-#include <cstdint>
 #include <vector>
 #include <stdexcept>
-
-#if defined(__cplusplus)
-#define CLITERAL(type)      type
-#else
-#define CLITERAL(type)      (type)
-#endif
 
 namespace aiko
 {
@@ -33,55 +26,7 @@ namespace aiko
     template<class T>
     using AikoUPtr = std::unique_ptr<T>;
 
-    #if defined(_MSC_VER)
-    #define AIKO_DEBUG_BREAK __debugbreak()
-    #elif defined(__GNUC__) || defined(__clang__)
-    #define AIKO_DEBUG_BREAK __builtin_trap();
-    #else
-    #define AIKO_DEBUG_BREAK ((void)0)
-    #endif
-
-    #define AIKO_ASSERT(cond, msg) assert(cond && msg);
-    #define AIKO_ASSERTF(cond, fmt, ...)                                                \
-            do {                                                                        \
-                if (!(cond)) {                                                          \
-                    logger::Log::error(fmt, __VA_ARGS__);                               \
-                    assert(cond);                                                       \
-                }                                                                       \
-            } while (0);
-
-    // TODO the TODO
-    #define AIKO_TODO(msg)                                                              \
-        do                                                                              \
-        {                                                                               \
-            printf("%s::%d::%s::[TODO] %s\n", __FILE__, __LINE__, __FUNCTION__, msg);   \
-        }                                                                               \
-        while (0);                                                                      \
-
-    #define AIKO_STRICT_NOT_IMPLEMENTED false
-
-    #if AIKO_STRICT_NOT_IMPLEMENTED
-        #define AIKO_NOT_IMPLEMENTED static_assert(false, "NOT IMPLEMENTED")
-    #else
-        #define AIKO_NOT_IMPLEMENTED                                               \
-            do                                                                     \
-            {                                                                      \
-                AIKO_TODO("NOT IMPLEMENTED");                                      \
-                AIKO_DEBUG_BREAK;                                                        \
-            } while (0)
-    #endif
-
-    #define AIKO_UNUSED(var) (void)var;
-
-    template<typename ... Args>
-    string string_format(const string& format, Args ... args)
-    {
-        int size_s = std::snprintf(nullptr, 0, format.c_str(), args ...) + 1; // Extra space for '\0'
-        if (size_s <= 0) { throw std::runtime_error("Error during formatting."); }
-        auto size = static_cast<size_t>(size_s);
-        std::unique_ptr<char[]> buf(new char[size]);
-        std::snprintf(buf.get(), size, format.c_str(), args ...);
-        return string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
-    }
-
 }
+
+#include "aiko_macros.h"
+
