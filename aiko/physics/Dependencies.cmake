@@ -6,6 +6,21 @@ set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
 
 #----------------------------------------------------------------------
 
+# Jolt CPU feature overrides for Intel i5-3570
+set(USE_SSE4_1 ON  CACHE BOOL "" FORCE)
+set(USE_SSE4_2 ON  CACHE BOOL "" FORCE)
+set(USE_AVX    ON  CACHE BOOL "" FORCE)
+set(USE_F16C   ON  CACHE BOOL "" FORCE)
+
+set(USE_AVX2   OFF CACHE BOOL "" FORCE)
+set(USE_FMADD  OFF CACHE BOOL "" FORCE)
+set(USE_LZCNT  OFF CACHE BOOL "" FORCE)
+set(USE_TZCNT  OFF CACHE BOOL "" FORCE)
+
+# safest temporary debug option:
+# set(USE_AVX    OFF CACHE BOOL "" FORCE)
+# set(USE_F16C   OFF CACHE BOOL "" FORCE)
+
 FetchContent_Declare(
         JoltPhysics
         GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics
