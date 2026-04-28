@@ -31,4 +31,12 @@ namespace aiko
         m_material.shaderId = assets->registerShader("model");
 
     }
+
+    void MeshComponent::loadMesh(const MeshAsset& asset)
+    {
+        IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
+        const AssetId meshId = assets->registerMesh(asset);
+        setMeshId(meshId);
+        m_material.shaderId = assets->registerShader("model");
+    }
 }

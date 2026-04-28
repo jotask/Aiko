@@ -20,6 +20,8 @@ namespace aiko
         void load(string path);
         void loadDebugCube();
 
+        void loadMesh(const MeshAsset& asset);
+
         void setMeshId(const AssetId& id) { m_meshId = id; }
         const AssetId& getMeshId() const { return m_meshId; };
         MaterialAsset& getMaterial() { return m_material; }
