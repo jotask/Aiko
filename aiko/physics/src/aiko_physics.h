@@ -7,13 +7,18 @@
 #include <aiko_types.h>
 #include <core/transform.h>
 
+#include <optional>
+
+#include "player_controller_types.h"
 namespace aiko::physics
 {
 
     struct PhysicsImpl;
+    class PlayerController;
 
     class AikoPhysics
     {
+        friend class PlayerController;
     public:
 
         AikoPhysics();

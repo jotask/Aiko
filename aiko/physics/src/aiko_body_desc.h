@@ -23,5 +23,7 @@ namespace aiko::physics
 
         bool activate = true;
 
+        bool debugDraw = false;
+
     };
 }

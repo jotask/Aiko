@@ -6,6 +6,20 @@ namespace aiko::physics
     TriangleMeshShapeDesc makeTriangleMeshShapeDesc( const MeshAsset& asset )
     {
 
+        AIKO_ASSERT(asset.m_vertices.empty() == false, "Mesh has no vertices");
+        AIKO_ASSERT(asset.m_indices.empty() == false, "Mesh has no indices");
+        AIKO_ASSERT((asset.m_indices.size() % 3) == 0, "Mesh indices are not a triangle list");
+
+        for (uint32_t i = 0; i < asset.m_indices.size(); ++i)
+        {
+            AIKO_ASSERT(asset.m_indices[i] < asset.m_vertices.size(), "Mesh index out of range");
+        }
+
+        for (const vec3& v : asset.m_vertices)
+        {
+            AIKO_ASSERT(std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z), "Mesh vertex is NaN/Inf");
+        }
+
         TriangleMeshShapeDesc out{};
 
         if (asset.m_vertices.empty())

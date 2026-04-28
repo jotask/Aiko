@@ -8,7 +8,10 @@ namespace aiko::physics
 {
 
     using BodyId = u32;
+    using CharacterId = u32;
     constexpr BodyId InvalidBodyId = std::numeric_limits<BodyId>::max();
+    constexpr CharacterId InvalidCharacterId = std::numeric_limits<CharacterId>::max();
+
     constexpr uint cTempAllocatorSize = 10 * 1024 * 1024;
     constexpr float kPhysicsDeltaTime = 1.0f / 60.0f;
 

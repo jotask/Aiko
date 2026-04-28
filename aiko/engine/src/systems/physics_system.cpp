@@ -7,13 +7,9 @@
 
 namespace aiko
 {
+    PhysicsSystem::PhysicsSystem() = default;
 
-    PhysicsSystem::PhysicsSystem()
-    {
-
-    }
-
-    void PhysicsSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
+    void PhysicsSystem::connect(ModuleConnector*, SystemConnector* systemConnector)
     {
         BIND_SYSTEM_REQUIRED(RenderSystem, systemConnector, m_renderSystem);
     }
@@ -22,13 +18,10 @@ namespace aiko
     {
         m_physics.init();
 
-        generatedDebugPhysicsScene();
-
         m_debugMaterial.m_shaderId = aiko->getComponentAssetAccess()->registerShader("model");
-        m_debugMaterial.m_baseColor = WHITE;
+        m_debugMaterial.m_baseColor = MAGENTA;
         m_debugMaterial.m_useVertexColor = true;
-        m_debugMaterial.m_lit = true;
-
+        m_debugMaterial.m_lit = false;
     }
 
     void PhysicsSystem::update()
@@ -41,6 +34,30 @@ namespace aiko
         int subSteps = 0;
         while (m_physicsAccumulator >= physics::kPhysicsDeltaTime && subSteps < kMaxSubSteps)
         {
+            for (RigidBodyComponent* body : m_rigidBodies)
+            {
+                if (body != nullptr)
+                {
+                    body->ensurePhysicsInitialized(m_physics);
+                }
+            }
+
+            for (PlayerControllerComponent* controller : m_playerControllers)
+            {
+                if (controller != nullptr)
+                {
+                    controller->ensurePhysicsInitialized(m_physics);
+                }
+            }
+
+            for (PlayerControllerComponent* controller : m_playerControllers)
+            {
+                if (controller != nullptr)
+                {
+                    controller->fixedUpdate(physics::kPhysicsDeltaTime);
+                }
+            }
+
             const physics::StepDesc stepDesc
             {
                 .deltaTime = physics::kPhysicsDeltaTime,
@@ -49,160 +66,107 @@ namespace aiko
 
             m_physics.step(stepDesc);
 
+            for (RigidBodyComponent* body : m_rigidBodies)
+            {
+                if (body != nullptr)
+                {
+                    body->syncFromPhysics(m_physics);
+                }
+            }
+
             m_physicsAccumulator -= physics::kPhysicsDeltaTime;
             ++subSteps;
         }
 
-        for (DebugBody& body : bodies)
+        for (RigidBodyComponent* body : m_rigidBodies)
         {
-            if (body.body != physics::InvalidBodyId)
-            {
-                body.transform = m_physics.getTransform(body.body);
-            }
+            ensureDebugMesh(body);
+        }
+
+        for (PlayerControllerComponent* controller : m_playerControllers)
+        {
+            ensureDebugMesh(controller);
         }
 
         const vector<physics::PhysicsEvent> events = m_physics.drainEvents();
-
         for (const physics::PhysicsEvent& event : events)
         {
             switch (event.type)
             {
-            case physics::PhysicsEventType::BodyActivated:
-                logger::Log::trace("Body activated: {}", event.bodyA);
-                break;
-
-            case physics::PhysicsEventType::BodyDeactivated:
-                logger::Log::trace("Body deactivated: {}", event.bodyA);
-                break;
-
-            case physics::PhysicsEventType::ContactAdded:
-                logger::Log::trace("Contact added: {} <-> {}", event.bodyA, event.bodyB);
-                break;
-
-            case physics::PhysicsEventType::ContactRemoved:
-                logger::Log::trace("Contact removed: {} <-> {}", event.bodyA, event.bodyB);
-                break;
+                case physics::PhysicsEventType::BodyActivated:
+                    logger::Log::trace("Body activated: {}", event.bodyA);
+                    break;
+                case physics::PhysicsEventType::BodyDeactivated:
+                    logger::Log::trace("Body deactivated: {}", event.bodyA);
+                    break;
+                case physics::PhysicsEventType::ContactAdded:
+                    logger::Log::trace("Contact added: {} <-> {}", event.bodyA, event.bodyB);
+                    break;
+                case physics::PhysicsEventType::ContactRemoved:
+                    logger::Log::trace("Contact removed: {} <-> {}", event.bodyA, event.bodyB);
+                    break;
             }
         }
-
-
     }
 
     void PhysicsSystem::render()
     {
         BaseSystem::render();
-        for (DebugBody& body : bodies)
+
+        for (RigidBodyComponent* body : m_rigidBodies)
         {
-            if (body.body != physics::InvalidBodyId)
+            if (body != nullptr && body->debug().enabled && body->debug().built)
             {
-                m_renderSystem->render(body.transform, body.mesh, m_debugMaterial);
+                Transform debugTransform = body->getWorldTransform();
+                debugTransform.scale *= 1.01f;
+                m_renderSystem->render(debugTransform, body->debug().mesh, m_debugMaterial);
+            }
+        }
+
+        for (PlayerControllerComponent* controller : m_playerControllers)
+        {
+            if (controller != nullptr && controller->debug().enabled && controller->debug().built)
+            {
+                Transform debugTransform = controller->getWorldTransform();
+                debugTransform.scale *= 1.01f;
+                m_renderSystem->render(debugTransform, controller->debug().mesh, m_debugMaterial);
             }
         }
     }
 
     void PhysicsSystem::dispose()
     {
-        for (DebugBody& body : bodies)
+        for (RigidBodyComponent* body : m_rigidBodies)
         {
-            if (body.body != physics::InvalidBodyId)
+            if (body != nullptr)
             {
-                m_physics.destroyBody(body.body);
-                body.body = physics::InvalidBodyId;
+                body->physicsShutdown(m_physics);
             }
         }
-        bodies.clear();
+
+        for (PlayerControllerComponent* controller : m_playerControllers)
+        {
+            if (controller != nullptr)
+            {
+                controller->physicsShutdown();
+            }
+        }
+
+        m_rigidBodies.clear();
+        m_playerControllers.clear();
+
         m_physics.shutdown();
         BaseSystem::dispose();
-    }
-
-    void PhysicsSystem::generatedDebugPhysicsScene()
-    {
-        bodies.clear();
-
-        // generate sphere
-        if constexpr (true)
-        {
-
-            physics::BodyDesc bodyDesc{};
-            bodyDesc.motionType = physics::MotionType::Dynamic;
-            bodyDesc.layer = physics::ObjectLayer::Moving;
-            bodyDesc.activate = true;
-
-            bodyDesc.transform.position = vec3(0.0f, 64.0f, 0.0f);
-            bodyDesc.transform.rotation = vec3(0.0f);
-            bodyDesc.transform.scale = vec3(1.0f);
-
-            bodyDesc.shape.type = physics::ShapeType::Sphere;
-            bodyDesc.shape.sphere.radius = 1.0f;
-
-            bodyDesc.restitution = 0.85f;
-
-            const physics::BodyId body = m_physics.createBody(bodyDesc);
-
-            AIKO_ASSERT(body != physics::InvalidBodyId, "Invalid body creation")
-
-            DebugBody debugBody =
-            {
-                .transform = bodyDesc.transform,
-                .body = body,
-                .mesh = {}
-            };
-
-            const physics::BodyMeshData meshData = m_physics.getBodyMeshData(body, false);
-            MeshAsset meshAsset = makeMeshAssetFromPhysics(meshData);
-            debugBody.mesh.upload(meshAsset);
-
-            bodies.push_back(std::move(debugBody));
-
-            // m_physics.setLinearVelocity(body, vec3(3.0f, 0.0f, 0.0f));
-            // m_physics.addImpulse(body, vec3(0.0f, 8.0f, 0.0f));
-
-        }
-
-        // generate floor
-        if constexpr (false)
-        {
-
-            physics::BodyDesc bodyDesc{};
-            bodyDesc.motionType = physics::MotionType::Static;
-            bodyDesc.layer = physics::ObjectLayer::NonMoving;
-            bodyDesc.activate = false;
-
-            bodyDesc.transform.position = vec3(0.0f, -10.0f, 0.0f);
-            bodyDesc.transform.rotation = vec3(0.0f);
-            bodyDesc.transform.scale = vec3(1.0f);
-
-            bodyDesc.shape.type = physics::ShapeType::Box;
-            bodyDesc.shape.box.halfExtent = vec3(10.0f, 0.25f, 10.0f);
-
-            bodyDesc.restitution = 0.85f;
-
-            const physics::BodyId body = m_physics.createBody(bodyDesc);
-
-            AIKO_ASSERT(body != physics::InvalidBodyId, "Invalid body creation")
-
-            DebugBody debugBody =
-            {
-                .transform = bodyDesc.transform,
-                .body = body,
-                .mesh = {}
-            };
-
-            const physics::BodyMeshData meshData = m_physics.getBodyMeshData(body, false);
-            MeshAsset meshAsset = makeMeshAssetFromPhysics(meshData);
-            debugBody.mesh.upload(meshAsset);
-
-            bodies.push_back(std::move(debugBody));
-
-        }
-
     }
 
     MeshAsset PhysicsSystem::makeMeshAssetFromPhysics(const physics::BodyMeshData& data)
     {
         MeshAsset asset{};
 
-        AIKO_ASSERT( data.vertices.size() <= std::numeric_limits<uint16_t>::max(), "Physics mesh is too large for MeshAsset uint16_t indices" );
+        AIKO_ASSERT(
+            data.vertices.size() <= std::numeric_limits<uint16_t>::max(),
+            "Physics mesh is too large for MeshAsset uint16_t indices"
+        );
 
         asset.m_vertices = data.vertices;
         asset.m_textCoord.assign(data.vertices.size(), vec2(0.0f, 0.0f));
@@ -215,7 +179,103 @@ namespace aiko
         }
 
         mesh::factory::recalculateNormals(asset);
-
         return asset;
+    }
+
+    void PhysicsSystem::ensureDebugMesh(RigidBodyComponent* component)
+    {
+        if (component == nullptr)
+        {
+            return;
+        }
+
+        if (component->debug().enabled == false || component->debug().built == true || component->isPhysicsInitialized() == false)
+        {
+            return;
+        }
+
+        const physics::BodyMeshData meshData = m_physics.getBodyMeshData(component->getBodyId(), false);
+
+        logger::Log::trace(
+            "Rigid debug mesh build: body={%zu}, verts={%zu}, indices={%zu}",
+            component->getBodyId(),
+            meshData.vertices.size(),
+            meshData.indices.size()
+        );
+
+        if (meshData.vertices.empty() || meshData.indices.empty())
+        {
+            return;
+        }
+
+        MeshAsset meshAsset = makeMeshAssetFromPhysics(meshData);
+        component->debug().mesh.upload(meshAsset);
+        component->debug().built = true;
+    }
+
+    void PhysicsSystem::ensureDebugMesh(PlayerControllerComponent* component)
+    {
+        if (component == nullptr)
+        {
+            return;
+        }
+
+        if (!component->debug().enabled || component->debug().built || !component->isPhysicsInitialized())
+        {
+            return;
+        }
+
+        const physics::BodyMeshData meshData = component->getController().getMeshData(false);
+
+        logger::Log::trace(
+            "Player debug mesh build: verts={%zu}, indices={%zu}",
+            meshData.vertices.size(),
+            meshData.indices.size()
+        );
+
+        if (meshData.vertices.empty() || meshData.indices.empty())
+        {
+            return;
+        }
+
+        MeshAsset meshAsset = makeMeshAssetFromPhysics(meshData);
+        component->debug().mesh.upload(meshAsset);
+        component->debug().built = true;
+    }
+
+    void PhysicsSystem::registerRigidBody(RigidBodyComponent* component)
+    {
+        if (component == nullptr)
+        {
+            return;
+        }
+
+        if (std::find(m_rigidBodies.begin(), m_rigidBodies.end(), component) == m_rigidBodies.end())
+        {
+            m_rigidBodies.push_back(component);
+        }
+    }
+
+    void PhysicsSystem::unregisterRigidBody(RigidBodyComponent* component)
+    {
+        std::erase(m_rigidBodies, component);
+    }
+
+    void PhysicsSystem::registerPlayerController(PlayerControllerComponent* component)
+    {
+        if (component == nullptr)
+        {
+            return;
+        }
+
+        if (std::find(m_playerControllers.begin(), m_playerControllers.end(), component) == m_playerControllers.end())
+        {
+            m_playerControllers.push_back(component);
+        }
+    }
+
+    void PhysicsSystem::unregisterPlayerController(PlayerControllerComponent* component)
+    {
+        std::erase(m_playerControllers, component);
     }
 }

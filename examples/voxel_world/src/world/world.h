@@ -3,14 +3,19 @@
 
 #include <unordered_map>
 
+#include "aiko_physics.h"
 #include "chunk.h"
 #include "assets/types/mesh_asset.h"
+#include "components/mesh_component.h"
+#include "components/rigid_body_component.h"
 #include "generator/chunk_data_generator.h"
 #include "models/material.h"
 #include "types/world_types.h"
 
 namespace aiko
 {
+    class Application;
+    class PhysicsSystem;
     class IComponentAssetAccess;
     class RenderSystem;
 }
@@ -21,26 +26,26 @@ namespace vw
     class World
     {
     public:
-        void setup(aiko::RenderSystem*, aiko::IComponentAssetAccess*);
+        void setup(aiko::Application* app);
         void generate();
         void update();
-        void render();
         void gizmos();
     private:
 
-        struct ChunkData
+        struct ChunkObj
         {
             Chunk chunk = {};
-            aiko::Material material = {};
-            aiko::AssetId meshId = aiko::InvalidAssetId;
+            aiko::GameObject* m_object;
+            aiko::AikoPtr<aiko::MeshComponent> m_mesh;
+            aiko::AikoPtr<aiko::RigidBodyComponent> m_body;
         };
+
+        aiko::Application* m_app;
+        aiko::GameObject* m_worldRoot;
 
         ChunkDataGenerator::GeneratorSettings generationConfig = {};
 
-        aiko::RenderSystem* m_renderSystem;
-        aiko::IComponentAssetAccess* m_assetsAccess;
-
-        std::unordered_map<ChunkKey, ChunkData, ChunkKeyHash> m_chunks;
+        std::unordered_map<ChunkKey, ChunkObj, ChunkKeyHash> m_chunks;
 
         bool m_regenerationRequested = false;
 

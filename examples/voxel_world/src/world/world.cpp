@@ -1,24 +1,28 @@
 #include "world.h"
 
+#include <format>
 #include <systems/render_system.h>
 
 #include "generator/chunk_data_generator.h"
+#include "models/game_object.h"
 #include "world/generator/chunk_mesh_generator.h"
 
 #include <imgui.h>
 
 #include "voxel_world_constants.h"
+#include "bridge/mesh_asset_to_shape.h"
+#include "systems/physics_system.h"
 
 namespace vw
 {
 
-    void World::setup(aiko::RenderSystem* renderer, aiko::IComponentAssetAccess* assets)
+    void World::setup(aiko::Application* app)
     {
-        m_renderSystem = renderer;
-        m_assetsAccess = assets;
+        m_app = app;
+        AIKO_ASSERT(m_app != nullptr, "Nullptr Application")
 
-        AIKO_ASSERT(m_renderSystem != nullptr, "Render System null!")
-        AIKO_ASSERT(m_assetsAccess != nullptr, "Assets Accessor null!")
+        m_worldRoot = m_app->Instantiate("World");
+        AIKO_ASSERT(m_worldRoot != nullptr, "Couldn't create World Root GameObject")
 
     }
 
@@ -29,19 +33,54 @@ namespace vw
 
         auto generateChunk = [&](int x, int z)
         {
-            const ChunkKey key = { .coord = { x, z} };
-            m_chunks.emplace(key, Chunk());
-            ChunkData& chunk = m_chunks.at(key);
 
+            const ChunkCoord coord = { x, z };
+
+            Chunk chunk = {};
+
+            ChunkDataGenerator::clearChunkData(chunk.getData());
+            ChunkDataGenerator::generateChunkData(generationConfig, coord, chunk.getData());
+
+            const std::string chunk_name = std::format("Chunk({}, {})", x, z);
+            aiko::GameObject* chunkGO = m_app->Instantiate(m_worldRoot, chunk_name.c_str());
+
+            auto meshCMP = chunkGO->addComponent<aiko::MeshComponent>();
+            auto bodyCMP = chunkGO->addComponent<aiko::RigidBodyComponent>();
+
+            const aiko::MeshAsset asset = ChunkMeshGenerator::generateMeshAsset(chunk.getData());
+            meshCMP->loadMesh(asset);
+
+            /*
             chunk.material.m_shaderId = m_assetsAccess->registerShader("model");
             chunk.material.m_baseColor = aiko::WHITE;
             chunk.material.m_useVertexColor = true;
             chunk.material.m_lit = true;
+            */
 
-            ChunkDataGenerator::clearChunkData(chunk.chunk.getData());
-            ChunkDataGenerator::generateChunkData(generationConfig, key.coord, chunk.chunk.getData());
+            const aiko::Transform transform =
+            {
+                .position = {coord.x * static_cast<float>(CHUNK_SIZE.x), 0.0f, coord.y * static_cast<float>(CHUNK_SIZE.z) },
+                .rotation =  {0.0f, 0.0f, 0.0f},
+                .scale = {1.0f, 1.0f, 1.0f}
+            };
 
-            chunk.meshId = m_assetsAccess->registerMesh(ChunkMeshGenerator::generateMeshAsset(chunk.chunk.getData()));
+            aiko::physics::BodyDesc desc = {};
+            desc.motionType = aiko::physics::MotionType::Static;
+            desc.transform = transform;
+            desc.shape.type = aiko::physics::ShapeType::TriangleMesh;
+            desc.shape.triangleMesh = aiko::physics::makeTriangleMeshShapeDesc(asset);
+            bodyCMP->create(desc);
+
+            const ChunkKey key = { .coord = { x, z} };
+            const ChunkObj data =
+            {
+                .chunk =  {},
+                .m_object = chunkGO,
+                .m_mesh = meshCMP,
+                .m_body = bodyCMP,
+            };
+
+            m_chunks.emplace(key, data);
 
         };
 
@@ -65,24 +104,17 @@ namespace vw
 
     void World::update()
     {
-      if (m_regenerationRequested == true)
-      {
-          m_regenerationRequested = false;
-          generate();
-      }
-    }
-
-    void World::render()
-    {
         for (auto& chunk : m_chunks)
         {
-            const aiko::Transform trans =
-            {
-                .position = {chunk.first.coord.x * static_cast<float>(CHUNK_SIZE.x), 0.0f, chunk.first.coord.y * static_cast<float>(CHUNK_SIZE.z) },
-                .rotation = {0.0f},
-                .scale = {1.0f}
-            };
-            m_renderSystem->submitMesh(trans, chunk.second.meshId, chunk.second.material );
+            aiko::Transform& trans = chunk.second.m_object->transform();
+            trans.position = {chunk.first.coord.x * static_cast<float>(CHUNK_SIZE.x), 0.0f, chunk.first.coord.y * static_cast<float>(CHUNK_SIZE.z) };
+            trans.rotation = {0.0f};
+            trans.scale = {1.0f};
+        }
+        if (m_regenerationRequested == true)
+        {
+          m_regenerationRequested = false;
+          generate();
         }
     }
 
@@ -116,7 +148,7 @@ namespace vw
 
     void World::unload()
     {
-        // TODO unload meshes
+        // TODO remove game objects
         m_chunks.clear();
     }
 }

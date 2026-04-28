@@ -6,6 +6,8 @@
 
 namespace aiko
 {
+    class CameraComponent;
+    class PlayerControllerComponent;
     class LightComponent;
 }
 
@@ -22,7 +24,10 @@ namespace vw
 
         World m_world;
 
+        aiko::AikoPtr<aiko::CameraComponent> m_playerCamera;
+        aiko::AikoPtr<aiko::PlayerControllerComponent> m_playerComponent;
         aiko::AikoPtr<aiko::LightComponent> m_lightComponent;
+
 
     };
 

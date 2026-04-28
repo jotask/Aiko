@@ -15,6 +15,8 @@
 
 #include <math/math.h>
 
+#include "Jolt/Physics/Character/CharacterID.h"
+
 namespace aiko::physics
 {
 
@@ -28,7 +30,11 @@ namespace aiko::physics
 
         inline vec3 fromJoltVec3(JPH::Vec3Arg v)
         {
-            return vec3(v.GetX(), v.GetY(), v.GetZ());
+            return vec3(
+                static_cast<float>(v.GetX()),
+                static_cast<float>(v.GetY()),
+                static_cast<float>(v.GetZ())
+            );
         }
 
         inline JPH::Quat toJoltRotation(const vec3& eulerDegrees)
@@ -49,6 +55,11 @@ namespace aiko::physics
                 math::degrees(eulerRadians.GetY()),
                 math::degrees(eulerRadians.GetZ())
             );
+        }
+
+        inline JPH::Quat toYawRotation(float yawRadians)
+        {
+            return JPH::Quat::sRotation(JPH::Vec3::sAxisY(), yawRadians);
         }
 
         inline JPH::EMotionType toJoltMotionType(MotionType type)
@@ -91,6 +102,11 @@ namespace aiko::physics
         inline JPH::BodyID toJoltBodyId(BodyId id)
         {
             return JPH::BodyID(id);
+        }
+
+        inline JPH::CharacterID toJoltCharacterId(CharacterId id)
+        {
+            return JPH::CharacterID(id);
         }
     }
 

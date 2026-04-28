@@ -3,51 +3,48 @@
 #include <aiko_physics.h>
 
 #include "systems/base_system.h"
+#include "components/rigid_body_component.h"
+#include "components/player_controller_component.h"
 
 namespace aiko
 {
-
     class RenderSystem;
 
     class PhysicsSystem : public BaseSystem
     {
     public:
         PhysicsSystem();
-        virtual ~PhysicsSystem() = default;
+        ~PhysicsSystem() override = default;
 
-        // FIXME proxy for now
+        void registerRigidBody(RigidBodyComponent* component);
+        void unregisterRigidBody(RigidBodyComponent* component);
+
+        void registerPlayerController(PlayerControllerComponent* component);
+        void unregisterPlayerController(PlayerControllerComponent* component);
+
         physics::AikoPhysics& getPhysics() { return m_physics; }
 
     protected:
-
-        virtual void connect(ModuleConnector*, SystemConnector*) override;
-
-        virtual void init() override;
-        virtual void update() override;
-        virtual void render() override;
-        virtual void dispose() override;
+        void connect(ModuleConnector*, SystemConnector*) override;
+        void init() override;
+        void update() override;
+        void render() override;
+        void dispose() override;
 
     private:
-
-        struct DebugBody
-        {
-            Transform transform{};
-            physics::BodyId body = physics::InvalidBodyId;
-            Mesh mesh = {};
-        };
-
-        vector<DebugBody> bodies;
-        void generatedDebugPhysicsScene();
-
         MeshAsset makeMeshAssetFromPhysics(const physics::BodyMeshData& data);
 
-        RenderSystem* m_renderSystem;
+        void ensureDebugMesh(RigidBodyComponent* component);
+        void ensureDebugMesh(PlayerControllerComponent* component);
+
+    private:
+        RenderSystem* m_renderSystem = nullptr;
         physics::AikoPhysics m_physics;
 
+        vector<RigidBodyComponent*> m_rigidBodies;
+        vector<PlayerControllerComponent*> m_playerControllers;
+
         float m_physicsAccumulator = 0.0f;
-
         Material m_debugMaterial;
-
     };
-
 }

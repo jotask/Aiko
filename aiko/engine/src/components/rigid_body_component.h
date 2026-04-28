@@ -1,27 +1,42 @@
 #pragma once
 
-#include <aiko_types.h>
-#include "assets/asset_id.h"
-#include "assets/types/mesh_asset.h"
-#include "metadata/material_instance.h"
+#include <aiko_physics.h>
 
 #include "models/component.h"
+#include "components/physics_debug_proxy.h"
 
 namespace aiko
 {
+    class PhysicsSystem;
 
     class RigidBodyComponent : public Component
     {
-
     public:
-
         RigidBodyComponent();
-        virtual ~RigidBodyComponent() = default;
+        ~RigidBodyComponent() override = default;
 
-        virtual void init() override;
+        void init() override;
+
+        void create(const physics::BodyDesc& desc);
+        void destroy();
+
+        bool isPhysicsInitialized() const { return m_initialized; }
+        physics::BodyId getBodyId() const { return m_bodyId; }
+
+        const Transform& getWorldTransform() const;
+
+        PhysicsDebugProxy& debug() { return m_debug; }
+        const PhysicsDebugProxy& debug() const { return m_debug; }
+
+        void ensurePhysicsInitialized(physics::AikoPhysics& world);
+        void syncFromPhysics(physics::AikoPhysics& world);
+        void physicsShutdown(physics::AikoPhysics& world);
 
     private:
+        physics::BodyDesc m_desc{};
+        physics::BodyId m_bodyId = physics::InvalidBodyId;
+        bool m_initialized = false;
 
+        PhysicsDebugProxy m_debug{};
     };
-
 }

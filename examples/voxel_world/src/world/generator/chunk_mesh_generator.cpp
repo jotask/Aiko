@@ -1,5 +1,7 @@
 #include "chunk_mesh_generator.h"
 
+#include <limits>
+
 #include <magic_enum/magic_enum.hpp>
 #include <magic_enum/magic_enum_utility.hpp>
 
@@ -98,6 +100,8 @@ namespace vw
 
         // Add 4 vertices
         const std::size_t vertexOffset = mesh.m_vertices.size();
+
+        AIKO_ASSERT( vertexOffset + 3 <= std::numeric_limits<uint16_t>::max(), "MeshAsset uint16_t index overflow in chunk mesh");
 
         addFaceDirection(mesh, dir, current);
 
