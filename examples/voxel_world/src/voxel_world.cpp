@@ -21,7 +21,7 @@ namespace vw
     {
 
         aiko::GameObject* camera = app->Instantiate("Camera");
-        m_playerCamera = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
+        m_playerCamera = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Static);
         camera->transform().position = { 32.0f, 77.0f, 32.0f };
         m_playerCamera->getCamera().position = camera->transform().position;
         m_playerCamera->speed() *=  2.0f;
@@ -105,13 +105,14 @@ namespace vw
 
         m_world.update();
 
+        aiko::InputSystem* input = app->getInputSystem();
+        const aiko::vec2 mouseDelta = input->getMouseDelta();
+        constexpr float sensitivity = 0.001f;
         aiko::Camera& camera = m_playerCamera->getCamera();
-
-        const aiko::vec3 camPos = m_playerComponent->getCameraPosition();
-        const aiko::vec3 camForward = m_playerComponent->getCameraForward();
-
-        camera.position = camPos;
-        camera.target = camPos + camForward;
+        m_playerComponent->addLookDelta(mouseDelta.x * sensitivity, mouseDelta.y * sensitivity);
+        camera.position = m_playerComponent->getCameraPosition();
+        camera.target = camera.position + m_playerComponent->getCameraForward();
+        input->setIsMouseCentred(true);
 
     }
 

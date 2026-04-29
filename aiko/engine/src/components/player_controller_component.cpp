@@ -49,7 +49,7 @@ namespace aiko
 
     void PlayerControllerComponent::addLookDelta(float yawDelta, float pitchDelta)
     {
-        m_yawRadians += yawDelta;
+        m_yawRadians -= yawDelta;
         m_pitchRadians -= pitchDelta;
 
         const float kPitchLimit = math::radians(89.0f);
@@ -83,7 +83,7 @@ namespace aiko
 
     void PlayerControllerComponent::ensurePhysicsInitialized(physics::AikoPhysics& world)
     {
-        if (m_initialized == false)
+        if (m_initialized == true)
         {
             return;
         }
