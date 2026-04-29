@@ -50,13 +50,6 @@ namespace vw
             const aiko::MeshAsset asset = ChunkMeshGenerator::generateMeshAsset(chunk.getData());
             meshCMP->loadMesh(asset);
 
-            /*
-            chunk.material.m_shaderId = m_assetsAccess->registerShader("model");
-            chunk.material.m_baseColor = aiko::WHITE;
-            chunk.material.m_useVertexColor = true;
-            chunk.material.m_lit = true;
-            */
-
             const aiko::Transform transform =
             {
                 .position = {coord.x * static_cast<float>(CHUNK_SIZE.x), 0.0f, coord.y * static_cast<float>(CHUNK_SIZE.z) },
@@ -121,28 +114,32 @@ namespace vw
     void World::gizmos()
     {
         if (c_imgui_world_generation)
-        if (ImGui::Begin("ChunkGeneration"))
         {
-            ImGui::Text("Generation");
-            ImGui::DragInt("Seed", &generationConfig.seed);
-            ImGui::SliderFloat("NoiseScale", &generationConfig.noiseScale, 0.0001f, 0.1f );
-            ImGui::SliderInt("Octaves", &generationConfig.octaves, 0, 32);
-            ImGui::SliderFloat("Persistance", &generationConfig.persistance, 0.0f, 1.0f);
-            ImGui::SliderFloat("Amplitude", &generationConfig.amplitude, 0.0f, 100.0f);
-            if (ImGui::Button("RegenerateWorld") == true)
+            if (ImGui::Begin("ChunkGeneration"))
             {
-                m_regenerationRequested = true;
+                ImGui::Text("Generation");
+                ImGui::DragInt("Seed", &generationConfig.seed);
+                ImGui::SliderFloat("NoiseScale", &generationConfig.noiseScale, 0.0001f, 0.1f );
+                ImGui::SliderInt("Octaves", &generationConfig.octaves, 0, 32);
+                ImGui::SliderFloat("Persistance", &generationConfig.persistance, 0.0f, 1.0f);
+                ImGui::SliderFloat("Amplitude", &generationConfig.amplitude, 0.0f, 100.0f);
+                if (ImGui::Button("RegenerateWorld") == true)
+                {
+                    m_regenerationRequested = true;
+                }
+                ImGui::End();
             }
-            ImGui::End();
         }
 
         if (c_imgui_world_plot_test)
-        if (ImGui::Begin("PlotGeneration"))
         {
-            constexpr std::size_t amount = 100;
-            const auto samples = ChunkDataGenerator::generatePlotTest(generationConfig, amount);
-            ImGui::PlotLines("Samples", samples.data(), amount);
-            ImGui::End();
+            if (ImGui::Begin("PlotGeneration"))
+            {
+                constexpr std::size_t amount = 100;
+                const auto samples = ChunkDataGenerator::generatePlotTest(generationConfig, amount);
+                ImGui::PlotLines("Samples", samples.data(), amount);
+                ImGui::End();
+            }
         }
     }
 
