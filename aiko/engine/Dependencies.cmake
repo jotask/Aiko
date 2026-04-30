@@ -7,28 +7,38 @@ set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
 #----------------------------------------------------------------------
 
 FetchContent_Declare(
-    assimp
-    GIT_REPOSITORY https://github.com/assimp/assimp.git
-    GIT_TAG        v5.3.1
-    GIT_SHALLOW    TRUE
-    GIT_PROGRESS   TRUE
+        assimp
+        GIT_REPOSITORY https://github.com/assimp/assimp.git
+        GIT_TAG        v5.3.1
+        GIT_SHALLOW    TRUE
+        GIT_PROGRESS   TRUE
 )
+
 message("Fetching assimp")
+
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "" FORCE)
 set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
 
+# Better than patching -Werror afterward
+set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable(assimp)
+
 if (TARGET assimp)
     target_compile_options(assimp PRIVATE
-            -Wno-error
             -Wno-dangling-reference
             -Wno-error=dangling-reference
     )
+
+    set_target_properties(assimp PROPERTIES FOLDER "Dependencies")
 endif()
-set_target_properties(assimp PROPERTIES FOLDER "Dependencies")
-set_target_properties(zlibstatic PROPERTIES FOLDER "Dependencies")
+
+if (TARGET zlibstatic)
+    set_target_properties(zlibstatic PROPERTIES FOLDER "Dependencies")
+endif()
+
 if (TARGET UpdateAssimpLibsDebugSymbolsAndDLLs)
     set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "Dependencies")
 endif()
@@ -39,7 +49,7 @@ endif()
 FetchContent_Declare(
     EnTT
     GIT_REPOSITORY  https://github.com/skypjack/entt.git
-    GIT_TAG         main
+    GIT_TAG         v3.16.0
     GIT_SHALLOW     TRUE
     GIT_PROGRESS    TRUE
 )

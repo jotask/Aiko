@@ -8,25 +8,25 @@ set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
 #----------------------------------------------------------------------
 
 FetchContent_Declare(
-    glad
-    GIT_REPOSITORY https://github.com/Dav1dde/glad.git
-    GIT_SHALLOW    TRUE
-    GIT_PROGRESS   TRUE
+        glad
+        GIT_REPOSITORY https://github.com/Dav1dde/glad.git
+        GIT_TAG        v2.0.8
+        GIT_SHALLOW    TRUE
+        GIT_PROGRESS   TRUE
+        SOURCE_SUBDIR  cmake
 )
 
-set(GLAD_PROFILE "core" CACHE STRING "OpenGL profile")
-set(GLAD_API "gl=4.6" CACHE STRING "API type/version pairs, like \"gl=4.6\", no version means latest")
-set(GLAD_GENERATOR "c" CACHE STRING "Language to generate the binding for")
-set(GLAD_EXTENSIONS "GL_ARB_bindless_texture" CACHE STRING "Extensions to take into consideration when generating the bindings")
+FetchContent_MakeAvailable(glad)
 
-FetchContent_GetProperties(glad)
+glad_add_library(
+        glad
+        STATIC
+        REPRODUCIBLE
+        API gl:core=4.6
+        EXTENSIONS GL_ARB_bindless_texture
+)
 
-if(NOT glad_POPULATED)
-    message("Fetching glad")
-    FetchContent_MakeAvailable(glad)
-endif()
 set_target_properties(glad PROPERTIES FOLDER "Dependencies")
-set_target_properties(glad-generate-files PROPERTIES FOLDER "Dependencies")
 
 #----------------------------------------------------------------------
 

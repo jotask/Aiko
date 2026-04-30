@@ -1,5 +1,3 @@
-include(Dependencies.cmake)
-
 set(NES_ASSET_PATH ${CMAKE_CURRENT_SOURCE_DIR}/assets/)
 configure_file(constants.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/constants.h)
 

@@ -9,6 +9,8 @@ FetchContent_Declare(
     catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
     GIT_TAG v3.12.0
+    GIT_SHALLOW    TRUE
+    GIT_PROGRESS   TRUE
 )
 
 FetchContent_MakeAvailable(catch2)
@@ -16,9 +18,11 @@ FetchContent_MakeAvailable(catch2)
 #----------------------------------------------------------------------
 
 FetchContent_Declare(
-        llvm
-        GIT_REPOSITORY https://github.com/llvm/llvm-project.git
-        GIT_TAG llvmorg-21.1.8
+    llvm
+    GIT_REPOSITORY https://github.com/llvm/llvm-project.git
+    GIT_TAG llvmorg-21.1.8
+    GIT_SHALLOW    TRUE
+    GIT_PROGRESS   TRUE
 )
 
 # Configure LLVM options before adding

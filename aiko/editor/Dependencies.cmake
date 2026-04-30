@@ -15,7 +15,7 @@ set(BUILD_OBJECT_LIBS OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
     jsoncpp
     GIT_REPOSITORY https://github.com/open-source-parsers/jsoncpp.git
-    GIT_TAG        master
+    GIT_TAG        1.9.7
     GIT_SHALLOW    TRUE
     GIT_PROGRESS   TRUE
 )
@@ -26,9 +26,11 @@ FetchContent_MakeAvailable(jsoncpp)
 #----------------------------------------------------------------------
 
 FetchContent_Declare(
-        yaml-cpp
-        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-        GIT_TAG yaml-cpp-0.9.0
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG yaml-cpp-0.9.0
+    GIT_SHALLOW    TRUE
+    GIT_PROGRESS   TRUE
 )
 FetchContent_MakeAvailable(yaml-cpp)
 
@@ -36,11 +38,11 @@ FetchContent_MakeAvailable(yaml-cpp)
 
 # ImGuiFileDialog
 FetchContent_Declare(
-        imguifiledialog
-        GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog.git
-        GIT_TAG v0.6.8
-        GIT_SHALLOW TRUE
-        GIT_PROGRESS TRUE
+    imguifiledialog
+    GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog.git
+    GIT_TAG v0.6.8
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
 )
 
 FetchContent_MakeAvailable(imguifiledialog)

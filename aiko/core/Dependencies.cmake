@@ -23,7 +23,7 @@ set_target_properties(spdlog PROPERTIES FOLDER "Dependencies")
 FetchContent_Declare(
     glm
     GIT_REPOSITORY https://github.com/g-truc/glm
-    GIT_TAG        master
+    GIT_TAG        1.0.3
     GIT_SHALLOW    TRUE
     GIT_PROGRESS   TRUE
 )
