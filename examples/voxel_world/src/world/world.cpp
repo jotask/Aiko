@@ -31,52 +31,6 @@ namespace vw
 
         unload();
 
-        auto generateChunk = [&](int x, int z)
-        {
-
-            const ChunkCoord coord = { x, z };
-
-            Chunk chunk = {};
-
-            ChunkDataGenerator::clearChunkData(chunk.getData());
-            ChunkDataGenerator::generateChunkData(generationConfig, coord, chunk.getData());
-
-            const std::string chunk_name = std::format("Chunk({}, {})", x, z);
-            aiko::GameObject* chunkGO = m_app->Instantiate(m_worldRoot, chunk_name.c_str());
-
-            auto meshCMP = chunkGO->addComponent<aiko::MeshComponent>();
-            auto bodyCMP = chunkGO->addComponent<aiko::RigidBodyComponent>();
-
-            const aiko::MeshAsset asset = ChunkMeshGenerator::generateMeshAsset(chunk.getData());
-            meshCMP->loadMesh(asset);
-
-            const aiko::Transform transform =
-            {
-                .position = {coord.x * static_cast<float>(CHUNK_SIZE.x), 0.0f, coord.y * static_cast<float>(CHUNK_SIZE.z) },
-                .rotation =  {0.0f, 0.0f, 0.0f},
-                .scale = {1.0f, 1.0f, 1.0f}
-            };
-
-            aiko::physics::BodyDesc desc = {};
-            desc.motionType = aiko::physics::MotionType::Static;
-            desc.transform = transform;
-            desc.shape.type = aiko::physics::ShapeType::TriangleMesh;
-            desc.shape.triangleMesh = aiko::physics::makeTriangleMeshShapeDesc(asset);
-            bodyCMP->create(desc);
-
-            const ChunkKey key = { .coord = { x, z} };
-            const ChunkObj data =
-            {
-                .chunk =  {},
-                .m_object = chunkGO,
-                .m_mesh = meshCMP,
-                .m_body = bodyCMP,
-            };
-
-            m_chunks.emplace(key, data);
-
-        };
-
         if constexpr (WORLD_SIZE == 1)
         {
             generateChunk(0, 0);
@@ -141,6 +95,52 @@ namespace vw
                 ImGui::End();
             }
         }
+    }
+
+    void World::generateChunk(int x, int z)
+    {
+
+        const ChunkCoord coord = { x, z };
+
+        Chunk chunk = {};
+
+        ChunkDataGenerator::clearChunkData(chunk.getData());
+        ChunkDataGenerator::generateChunkData(generationConfig, coord, chunk.getData());
+
+        const std::string chunk_name = std::format("Chunk({}, {})", x, z);
+        aiko::GameObject* chunkGO = m_app->Instantiate(m_worldRoot, chunk_name.c_str());
+
+        auto meshCMP = chunkGO->addComponent<aiko::MeshComponent>();
+        auto bodyCMP = chunkGO->addComponent<aiko::RigidBodyComponent>();
+
+        const aiko::MeshAsset asset = ChunkMeshGenerator::generateMeshAsset(chunk.getData());
+        meshCMP->loadMesh(asset);
+
+        const aiko::Transform transform =
+        {
+            .position = {coord.x * static_cast<float>(CHUNK_SIZE.x), 0.0f, coord.y * static_cast<float>(CHUNK_SIZE.z) },
+            .rotation =  {0.0f, 0.0f, 0.0f},
+            .scale = {1.0f, 1.0f, 1.0f}
+        };
+
+        aiko::physics::BodyDesc desc = {};
+        desc.motionType = aiko::physics::MotionType::Static;
+        desc.transform = transform;
+        desc.shape.type = aiko::physics::ShapeType::TriangleMesh;
+        desc.shape.triangleMesh = aiko::physics::makeTriangleMeshShapeDesc(asset);
+        bodyCMP->create(desc);
+
+        const ChunkKey key = { .coord = { x, z} };
+        const ChunkObj data =
+        {
+            .chunk =  {},
+            .m_object = chunkGO,
+            .m_mesh = meshCMP,
+            .m_body = bodyCMP,
+        };
+
+        m_chunks.emplace(key, data);
+
     }
 
     void World::unload()

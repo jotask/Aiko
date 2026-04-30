@@ -49,6 +49,7 @@ namespace vw
 
         bool m_regenerationRequested = false;
 
+        void generateChunk(int x, int z);
         void unload();
 
     };
