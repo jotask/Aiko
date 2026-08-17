@@ -1,6 +1,6 @@
 include(Dependencies.cmake)
 
-file(GLOB_RECURSE EXAMPLE_LR_SRC CONFIGURE_DEPENDS "src/*.h" "src/*.cpp" "src/*.hpp")
+aiko_collect_target_sources(EXAMPLE_LR_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${EXAMPLE_LR_SRC})
 

@@ -1,9 +1,12 @@
 function(aiko_setup_options)
     option(AIKO_ENABLE_UNITY "Enable unity/jumbo builds" OFF)
     option(AIKO_BUILD_EXAMPLES "Build example executables" OFF)
+    if(AIKO_BUILD_EXAMPLES)
+        option(AIKO_BUILD_EXAMPLES_NAIKO_LLVM "Build example executables" OFF)
+    endif()
 
     set(AIKO_RENDER "AIKO_BGFX" CACHE STRING "Render backend")
-    set_property(CACHE AIKO_RENDER PROPERTY STRINGS AIKO_BGFX AIKO_NATIVE)
+    set_property(CACHE AIKO_RENDER PROPERTY STRINGS AIKO_BGFX AIKO_NATIVE AIKO_VULKAN)
 
     option(AIKO_PROFILER "Enable profiling tools" OFF)
 
@@ -23,6 +26,28 @@ function(aiko_detect_platform)
     else()
         message(FATAL_ERROR "Unsupported OS")
     endif()
+endfunction()
+
+function(aiko_collect_target_sources output_variable root_dir)
+    if(NOT IS_DIRECTORY "${root_dir}")
+        message(FATAL_ERROR "Source root does not exist: ${root_dir}")
+    endif()
+
+    file(GLOB_RECURSE collected_sources CONFIGURE_DEPENDS LIST_DIRECTORIES false "${root_dir}/*")
+    list(FILTER collected_sources INCLUDE REGEX "\\.(c|cc|cxx|cpp|h|hh|hxx|hpp|inl|ipp)$")
+
+    set(${output_variable} ${collected_sources} PARENT_SCOPE)
+endfunction()
+
+function(aiko_collect_target_sources_flat output_variable root_dir)
+    if(NOT IS_DIRECTORY "${root_dir}")
+        message(FATAL_ERROR "Source root does not exist: ${root_dir}")
+    endif()
+
+    file(GLOB collected_sources CONFIGURE_DEPENDS LIST_DIRECTORIES false "${root_dir}/*")
+    list(FILTER collected_sources INCLUDE REGEX "\\.(c|cc|cxx|cpp|h|hh|hxx|hpp|inl|ipp)$")
+
+    set(${output_variable} ${collected_sources} PARENT_SCOPE)
 endfunction()
 
 function(aiko_apply_defaults target_name)
