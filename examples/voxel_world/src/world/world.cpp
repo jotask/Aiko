@@ -11,7 +11,9 @@
 
 #include "voxel_world_constants.h"
 #include "bridge/mesh_asset_to_shape.h"
+#include "generator/chunk_generation_type.h"
 #include "systems/physics_system.h"
+#include "threads/queue_thread.h"
 
 namespace vw
 {
@@ -100,12 +102,32 @@ namespace vw
     void World::generateChunk(int x, int z)
     {
 
-        const ChunkCoord coord = { x, z };
+        const ChunkDataGenerationRequest req
+        {
+            .coord = { x, z }
+        };
+
+        aiko::QueueThread::Job worker = [&] (const ChunkDataGenerationRequest& req ) -> ChunkDataGenerationResponse
+        {
+            ChunkData data = {};
+            ChunkDataGenerator::clearChunkData(data);
+            ChunkDataGenerator::generateChunkData(generationConfig, req.coord, data);
+            const aiko::MeshAsset asset = ChunkMeshGenerator::generateMeshAsset(data);
+            const aiko::physics::TriangleMeshShapeDesc shape = aiko::physics::makeTriangleMeshShapeDesc(asset);
+
+            const ChunkDataGenerationResponse req =
+            {
+                .data = std::move(data),
+                .asset = std::move(asset),
+                .shape = std::move(shape),
+            };
+
+            return std::move(req);
+
+        };
 
         Chunk chunk = {};
 
-        ChunkDataGenerator::clearChunkData(chunk.getData());
-        ChunkDataGenerator::generateChunkData(generationConfig, coord, chunk.getData());
 
         const std::string chunk_name = std::format("Chunk({}, {})", x, z);
         aiko::GameObject* chunkGO = m_app->Instantiate(m_worldRoot, chunk_name.c_str());
@@ -113,12 +135,11 @@ namespace vw
         auto meshCMP = chunkGO->addComponent<aiko::MeshComponent>();
         auto bodyCMP = chunkGO->addComponent<aiko::RigidBodyComponent>();
 
-        const aiko::MeshAsset asset = ChunkMeshGenerator::generateMeshAsset(chunk.getData());
         meshCMP->loadMesh(asset);
 
         const aiko::Transform transform =
         {
-            .position = {coord.x * static_cast<float>(CHUNK_SIZE.x), 0.0f, coord.y * static_cast<float>(CHUNK_SIZE.z) },
+            .position = {req.coord.x * static_cast<float>(CHUNK_SIZE.x), 0.0f, req.coord.y * static_cast<float>(CHUNK_SIZE.z) },
             .rotation =  {0.0f, 0.0f, 0.0f},
             .scale = {1.0f, 1.0f, 1.0f}
         };
