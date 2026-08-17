@@ -5,7 +5,7 @@ function(aiko_setup_options)
         option(AIKO_BUILD_EXAMPLES_NAIKO_LLVM "Build example executables" OFF)
     endif()
 
-    set(AIKO_RENDER "AIKO_BGFX" CACHE STRING "Render backend")
+    set(AIKO_RENDER "AIKO_VULKAN" CACHE STRING "Render backend")
     set_property(CACHE AIKO_RENDER PROPERTY STRINGS AIKO_BGFX AIKO_NATIVE AIKO_VULKAN)
 
     option(AIKO_PROFILER "Enable profiling tools" OFF)

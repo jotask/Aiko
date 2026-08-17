@@ -9,7 +9,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "AIKO_RENDER": "AIKO_BGFX",
+        "AIKO_RENDER": "AIKO_VULKAN",
         "AIKO_BUILD_EXAMPLES": "OFF",
         "AIKO_ENABLE_UNITY": "OFF"
       }
@@ -22,7 +22,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "AIKO_RENDER": "AIKO_BGFX",
+        "AIKO_RENDER": "AIKO_VULKAN",
         "AIKO_BUILD_EXAMPLES": "ON",
         "AIKO_ENABLE_UNITY": "OFF",
         "AIKO_PROFILER": "OFF"
@@ -36,7 +36,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "AIKO_RENDER": "AIKO_BGFX",
+        "AIKO_RENDER": "AIKO_VULKAN",
         "AIKO_BUILD_EXAMPLES": "ON",
         "AIKO_ENABLE_UNITY": "OFF",
         "AIKO_PROFILER": "ON"
