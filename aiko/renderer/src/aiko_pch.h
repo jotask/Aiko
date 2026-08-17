@@ -15,7 +15,7 @@
 #elif defined(AIKO_NATIVE)
     #error Not Implemented!
 #elif defined(AIKO_VULKAN)
-    #include <vulkan/vulkan.hpp>
+    #include <volk.h>
 #else
     #error Not supported!
 #endif
