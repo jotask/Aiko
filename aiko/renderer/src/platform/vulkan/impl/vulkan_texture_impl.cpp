@@ -33,7 +33,7 @@ namespace aiko::renderer::vulkan
 
     bool VulkanTextureImpl::isValid() const
     {
-
+        return false;
     }
 
     TextureInfo VulkanTextureImpl::getInfo()
