@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Collision/ContactListener.h>
