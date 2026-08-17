@@ -88,7 +88,7 @@ namespace aiko
         EventSystem::it().bind<OnMouseMoveEvent>(this, &AikoInput::onMouseMoved);
         EventSystem::it().bind<OnMouseScrollEvent>(this, &AikoInput::OnMouseScrollCallback);
         GLFWwindow* window = DisplayManager::it().getNativeWindow();
-        glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+        glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
         setCentredToScreen(false);
     }
 
