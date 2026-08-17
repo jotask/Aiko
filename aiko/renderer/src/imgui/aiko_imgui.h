@@ -6,6 +6,16 @@ class GLFWwindow;
 
 namespace aiko
 {
+
+    class AikoImguiImpl
+    {
+        public:
+        virtual ~AikoImguiImpl() = default;
+        virtual void init(const ViewId id, GLFWwindow*) = 0;
+        virtual void beginFrame(int width, int height) = 0;
+        virtual void endFrame(int width, int height) = 0;
+    };
+
     class AikoImgui
     {
     public:
@@ -18,5 +28,6 @@ namespace aiko
         GLFWwindow* m_window;
         ViewId m_viewId;
         bool m_isInitialized;
+        AikoPtr<AikoImguiImpl> backend;
     };
 }

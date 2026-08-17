@@ -3,14 +3,14 @@
 #include "aiko_renderer.h"
 #include "display/display_manager.h"
 #include "intrumentor/profiler.h"
-#include "platform/bgfx/bgfx_types.h"
 #include "time/time.h"
 
 #if defined(AIKO_BGFX)
-    #include <bgfx/bgfx.h>
     #include "platform/bgfx/imgui/imgui_impl_bgfx.h"
 #elif defined(AIKO_NATIVE)
     #error TODO Not Implemented
+#elif defined(AIKO_VULKAN)
+    #include "platform/vulkan/imgui/vulkan_imgui_aiko.h"
 #else
     #error NOT IMPLEMENTED
 #endif
@@ -24,8 +24,26 @@
 
 namespace aiko
 {
+
+    namespace
+    {
+        AikoPtr<AikoImguiImpl> getAikoImguiImpl()
+        {
+            #if defined (AIKO_BGFX)
+            return std::make_unique<renderer::bgfx::BgfxImguiImpl>();
+            #elif defined (AIKO_NATIVE)
+            #error Not implemented
+            #elif defined (AIKO_VULKAN)
+            return std::make_unique<renderer::vulkan::VulkanImguiImpl>();
+            #else
+            #error Backend not supported
+            #endif
+        }
+    }
+
     AikoImgui::AikoImgui()
         : m_isInitialized(false)
+        , backend(std::move(getAikoImguiImpl()))
     {
     }
 
@@ -51,8 +69,7 @@ namespace aiko
         ImGui::StyleColorsDark();
         //ImGui::StyleColorsLight();
 
-        ImGui_ImplGlfw_InitForOther(window, true);
-        ImGui_Implbgfx_Init(m_viewId);
+        backend->init(id, window);
 
         m_isInitialized = true;
 
@@ -71,23 +88,18 @@ namespace aiko
         io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
         io.DeltaTime = Time::it().getDeltaTime();
 
-        ImGui_Implbgfx_NewFrame();
+        backend->beginFrame(width, height);
+
         ImGui::NewFrame();
+
     }
 
     void AikoImgui::endFrame(int width, int height)
     {
         AIKO_FUNCTION_PROFILE
-
         AIKO_ASSERT(m_isInitialized == true, "Calling endFrame without initialize first.");
-
         ImGui::Render();
-
-        ::bgfx::setViewFrameBuffer(m_viewId, AIKO_INVALID_HANDLE);
-        ::bgfx::setViewRect(m_viewId, 0, 0, static_cast<uint16_t>(width), static_cast<uint16_t>(height));
-        ::bgfx::touch(m_viewId);
-
-        ImGui_Implbgfx_RenderDrawLists(ImGui::GetDrawData());
+        backend->endFrame(width, height);
     }
 
 }
