@@ -12,6 +12,15 @@
 #include "platform/bgfx/impl/bgfx_framebuffer_impl.h"
 #elif defined (AIKO_NATIVE)
 
+
+#elif defined (AIKO_VULKAN)
+#include "platform/vulkan/vulkan_render_device.h"
+#include "platform/vulkan/impl/vulkan_shader_impl.h"
+#include "platform/vulkan/impl/vulkan_texture_impl.h"
+#include "platform/vulkan/impl/vulkan_computeshader_impl.h"
+#include "platform/vulkan/impl/vulkan_computebuffer_impl.h"
+#include "platform/vulkan/impl/vulkan_mesh_impl.h"
+#include "platform/vulkan/impl/vulkan_framebuffer_impl.h"
 #else
 #error Backend not supported
 #endif
@@ -26,7 +35,8 @@ namespace aiko
             return std::make_shared<bgfx::BgfxRenderDevice>(resources);
             #elif defined (AIKO_NATIVE)
             #error Not implemented
-            return std::make_shared<OpenGLShaderImpl>();
+            #elif defined (AIKO_VULKAN)
+            return std::make_shared<vulkan::VulkanRenderDevice>(resources);
             #else
             #error Backend not supported
             #endif
@@ -37,7 +47,9 @@ namespace aiko
             #if defined (AIKO_BGFX)
             return std::make_shared<bgfx::BgfxShaderImpl>();
             #elif defined (AIKO_NATIVE)
-            return std::make_shared<OpenGLShaderImpl>();
+            #error Not implemented
+            #elif defined (AIKO_VULKAN)
+            return std::make_shared<vulkan::VulkanShaderImpl>();
             #else
             #error Backend not supported
             #endif
@@ -48,7 +60,9 @@ namespace aiko
             #if defined (AIKO_BGFX)
             return std::make_shared<bgfx::BgfxTextureImpl>();
             #elif defined (AIKO_NATIVE)
-            return std::make_shared<OpenGLShaderImpl>();
+            #error Not implemented
+            #elif defined (AIKO_VULKAN)
+            return std::make_shared<vulkan::VulkanTextureImpl>();
             #else
             #error Backend not supported
             #endif
@@ -59,7 +73,9 @@ namespace aiko
             #if defined (AIKO_BGFX)
             return std::make_shared<bgfx::BgfxFrameBufferImpl>();
             #elif defined (AIKO_NATIVE)
-            return std::make_shared<OpenGLShaderImpl>();
+            #error Not implemented
+            #elif defined (AIKO_VULKAN)
+            return std::make_shared<vulkan::VulkanFrameBufferImpl>();
             #else
             #error Backend not supported
             #endif
@@ -70,7 +86,9 @@ namespace aiko
             #if defined (AIKO_BGFX)
             return std::make_shared<bgfx::BgfxComputeShaderImpl>();
             #elif defined (AIKO_NATIVE)
-            return std::make_shared<OpenGLShaderImpl>();
+            #error Not implemented
+            #elif defined (AIKO_VULKAN)
+            return std::make_shared<vulkan::VulkanComputeShaderImpl>();
             #else
             #error Backend not supported
             #endif
@@ -81,7 +99,9 @@ namespace aiko
             #if defined (AIKO_BGFX)
             return std::make_shared<bgfx::BgfxComputeBufferImpl>();
             #elif defined (AIKO_NATIVE)
-            return std::make_shared<OpenGLShaderImpl>();
+            #error Not implemented
+            #elif defined (AIKO_VULKAN)
+            return std::make_shared<vulkan::VulkanComputeBufferImpl>();
             #else
             #error Backend not supported
             #endif
@@ -92,7 +112,9 @@ namespace aiko
             #if defined (AIKO_BGFX)
             return std::make_shared<bgfx::BgfxMeshImpl>(mesh);
             #elif defined (AIKO_NATIVE)
-            return std::make_shared<OpenGLShaderImpl>();
+            #error Not implemented
+            #elif defined (AIKO_VULKAN)
+            return std::make_shared<vulkan::VulkanMeshImpl>(mesh);
             #else
             #error Backend not supported
             #endif

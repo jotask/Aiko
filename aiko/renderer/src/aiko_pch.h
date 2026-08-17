@@ -13,6 +13,9 @@
     #include <bx/math.h>
     #include <bx/timer.h>
 #elif defined(AIKO_NATIVE)
+    #error Not Implemented!
+#elif defined(AIKO_VULKAN)
+    #include <vulkan/vulkan.hpp>
 #else
     #error Not supported!
 #endif
