@@ -56,6 +56,8 @@ namespace aiko
     void FrameBuffer::unload()
     {
         backend->unload();
+        colorTexture.unload();
+        depthTexture.unload();
     }
 
 }
