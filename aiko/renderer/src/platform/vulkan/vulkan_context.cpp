@@ -27,11 +27,13 @@ namespace aiko::renderer::vulkan
         return *s_currentContext;
     }
 
-    void VulkanContext::init()
+    void VulkanContext::init(const DeviceInitDesc& desc)
     {
 
         AIKO_ASSERT(s_currentContext == nullptr || s_currentContext == this, "Multiple VulkanContext instances are active");
         s_currentContext = this;
+
+        m_vsync = desc.vsync;
 
         createInstance();
         setupDebugMessenger();
@@ -333,7 +335,7 @@ namespace aiko::renderer::vulkan
         SwapChainSupportDetails swapChainSupport = querySwapChainSupport(m_physicalDevice, m_surface);
 
         const VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-        VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+        VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes, m_vsync);
         VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilties);
 
         uint32_t imageCount = swapChainSupport.capabilties.minImageCount + 1;
@@ -1148,22 +1150,32 @@ namespace aiko::renderer::vulkan
         return availableFormats[0];
     }
 
-    VkPresentModeKHR VulkanContext::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+    VkPresentModeKHR VulkanContext::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync)
     {
-        for (const auto& availablePresentMode : availablePresentModes)
+        if (vsync ==  true)
         {
-            if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR)
-            {
-                logger::Log::info("Using IMMEDIATE present mode");
-                return availablePresentMode;
-            }
-            if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-            {
+            logger::Log::info("Using FIFO present mode (VSync enabled)");
+            return VK_PRESENT_MODE_FIFO_KHR;
+        }
 
+        for (const VkPresentModeKHR mode : availablePresentModes)
+        {
+            if (mode == VK_PRESENT_MODE_MAILBOX_KHR)
+            {
                 logger::Log::info("Using MAILBOX present mode");
-                return availablePresentMode;
+                return mode;
             }
         }
+
+        for (const VkPresentModeKHR mode : availablePresentModes)
+        {
+            if (mode == VK_PRESENT_MODE_IMMEDIATE_KHR)
+            {
+                logger::Log::info("Using IMMEDIATE present mode");
+                return mode;
+            }
+        }
+
         logger::Log::info("Using FIFO present mode");
         return VK_PRESENT_MODE_FIFO_KHR;
     }

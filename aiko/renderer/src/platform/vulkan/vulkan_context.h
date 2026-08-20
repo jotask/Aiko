@@ -9,7 +9,7 @@ namespace aiko::renderer::vulkan
 
         static VulkanContext& current();
 
-        void init();
+        void init(const DeviceInitDesc&);
         void shutdown();
 
         VkInstance instance() const { return m_vk; }
@@ -63,7 +63,9 @@ namespace aiko::renderer::vulkan
         uint32_t m_currentFrame = 0;
         uint32_t m_currentImageIndex = 0;
         VkCommandBuffer m_activeCommandBuffer = VK_NULL_HANDLE;
+
         bool m_framebufferResized = false;
+        bool m_vsync = false;
 
     public:
 
@@ -92,7 +94,7 @@ namespace aiko::renderer::vulkan
         QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
         VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-        VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+        VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync);
         VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
         VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
         bool isDeviceSuitable(VkPhysicalDevice device);

@@ -34,11 +34,14 @@ namespace aiko::renderer::vulkan
 
     bool VulkanRenderDevice::init(const DeviceInitDesc& desc)
     {
+
         const VkResult result = volkInitialize();
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to initialize Volk/Vulkan");
+
         logger::Log::info("Vulkan Initialized");
 
-        m_context.init();
+        m_context.init(desc);
+
         createScreenPipelineLayout();
         createScreenPipeline();
         createScreenDescriptorPool();

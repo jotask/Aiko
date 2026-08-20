@@ -236,7 +236,7 @@ namespace aiko
             return;
         }
         m_windowResizeRequest = { event.width, event.height };
-        m_renderer->resize(event.width, event.height, false);
+        m_renderer->resize(event.width, event.height, false); // FIX the hardcode vsync
     }
 
     renderer::FrameData AikoRenderer::buildSceneFrameData(const Camera& camera) const
