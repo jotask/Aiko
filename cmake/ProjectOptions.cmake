@@ -75,3 +75,65 @@ endfunction()
 function(aiko_set_common_source_layout target_name root_dir)
     source_group(TREE ${root_dir} FILES ${ARGN})
 endfunction()
+
+function(aiko_add_vulkan_shader_target target_name)
+    set(oneValueArgs SOURCE_DIR BINARY_DIR TARGET_ENV)
+    cmake_parse_arguments(AIKO_SHADER "" "${oneValueArgs}" "" ${ARGN})
+
+    if(NOT AIKO_SHADER_TARGET_ENV)
+        set(AIKO_SHADER_TARGET_ENV vulkan1.0)
+    endif()
+
+    find_program(GLSLC_EXECUTABLE
+            NAMES glslc
+            HINTS "$ENV{VULKAN_SDK}/bin" "$ENV{VULKAN_SDK}/Bin"
+    )
+
+    if(NOT GLSLC_EXECUTABLE)
+        message(FATAL_ERROR "glslc not found. Install Vulkan SDK or shaderc tools.")
+    endif()
+
+    file(MAKE_DIRECTORY "${AIKO_SHADER_BINARY_DIR}")
+
+    file(GLOB_RECURSE AIKO_VULKAN_GLSL_SHADERS CONFIGURE_DEPENDS
+            "${AIKO_SHADER_SOURCE_DIR}/*.vert"
+            "${AIKO_SHADER_SOURCE_DIR}/*.frag"
+            "${AIKO_SHADER_SOURCE_DIR}/*.comp"
+            "${AIKO_SHADER_SOURCE_DIR}/*.geom"
+            "${AIKO_SHADER_SOURCE_DIR}/*.tesc"
+            "${AIKO_SHADER_SOURCE_DIR}/*.tese"
+    )
+
+    set(AIKO_VULKAN_SPIRV_SHADERS)
+
+    foreach(SHADER ${AIKO_VULKAN_GLSL_SHADERS})
+        file(RELATIVE_PATH SHADER_REL "${AIKO_SHADER_SOURCE_DIR}" "${SHADER}")
+
+        set(SPIRV_FILE "${AIKO_SHADER_BINARY_DIR}/${SHADER_REL}.spv")
+        set(DEP_FILE "${SPIRV_FILE}.d")
+
+        get_filename_component(SPIRV_DIR "${SPIRV_FILE}" DIRECTORY)
+
+        add_custom_command(
+                OUTPUT "${SPIRV_FILE}"
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${SPIRV_DIR}"
+                COMMAND "${GLSLC_EXECUTABLE}"
+                "--target-env=${AIKO_SHADER_TARGET_ENV}"
+                -I "${AIKO_SHADER_SOURCE_DIR}"
+                -MD -MF "${DEP_FILE}"
+                "${SHADER}"
+                -o "${SPIRV_FILE}"
+                DEPENDS "${SHADER}"
+                DEPFILE "${DEP_FILE}"
+                COMMENT "Compiling Vulkan shader ${SHADER_REL}"
+                VERBATIM
+        )
+
+        list(APPEND AIKO_VULKAN_SPIRV_SHADERS "${SPIRV_FILE}")
+    endforeach()
+
+    add_custom_target(${target_name}
+            ALL
+            DEPENDS ${AIKO_VULKAN_SPIRV_SHADERS}
+    )
+endfunction()
