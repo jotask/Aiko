@@ -779,80 +779,80 @@ namespace aiko::renderer::vulkan
     {
         QueueFamilyIndices indices;
 
-    uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(
-        device,
-        &queueFamilyCount,
-        nullptr
-    );
+        uint32_t queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(
+            device,
+            &queueFamilyCount,
+            nullptr
+        );
 
-    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 
-    vkGetPhysicalDeviceQueueFamilyProperties(device,&queueFamilyCount, queueFamilies.data());
+        vkGetPhysicalDeviceQueueFamilyProperties(device,&queueFamilyCount, queueFamilies.data());
 
-    std::optional<uint32_t> computeFallback;
+        std::optional<uint32_t> computeFallback;
 
-    for (uint32_t i = 0; i < queueFamilyCount; ++i)
-    {
-        const VkQueueFamilyProperties& queueFamily = queueFamilies[i];
-
-        if (queueFamily.queueCount == 0)
+        for (uint32_t i = 0; i < queueFamilyCount; ++i)
         {
-            continue;
-        }
+            const VkQueueFamilyProperties& queueFamily = queueFamilies[i];
 
-        // -------------------------------------------------------------
-        // Graphics queue
-        // -------------------------------------------------------------
-
-        if (!indices.graphicsFamily.has_value() && (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT))
-        {
-            indices.graphicsFamily = i;
-        }
-
-        // -------------------------------------------------------------
-        // Compute queue
-        //
-        // Prefer a dedicated compute queue that does not also perform
-        // graphics work.
-        // -------------------------------------------------------------
-
-        if (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)
-        {
-            if (!(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT))
+            if (queueFamily.queueCount == 0)
             {
-                if (indices.computeFamily.has_value() == false)
+                continue;
+            }
+
+            // -------------------------------------------------------------
+            // Graphics queue
+            // -------------------------------------------------------------
+
+            if (!indices.graphicsFamily.has_value() && (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT))
+            {
+                indices.graphicsFamily = i;
+            }
+
+            // -------------------------------------------------------------
+            // Compute queue
+            //
+            // Prefer a dedicated compute queue that does not also perform
+            // graphics work.
+            // -------------------------------------------------------------
+
+            if (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)
+            {
+                if (!(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT))
                 {
-                    indices.computeFamily = i;
+                    if (indices.computeFamily.has_value() == false)
+                    {
+                        indices.computeFamily = i;
+                    }
+                }
+                else if (computeFallback.has_value() == false)
+                {
+                    computeFallback = i;
                 }
             }
-            else if (computeFallback.has_value() == false)
+
+            // -------------------------------------------------------------
+            // Presentation queue
+            // -------------------------------------------------------------
+
+            VkBool32 presentSupport = VK_FALSE;
+
+            const VkResult presentResult = vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &presentSupport );
+            AIKO_ASSERT(presentResult == VK_SUCCESS, "Failed to query surface support!");
+
+            if (indices.presentFamily.has_value() == false && presentSupport == true)
             {
-                computeFallback = i;
+                indices.presentFamily = i;
             }
         }
 
-        // -------------------------------------------------------------
-        // Presentation queue
-        // -------------------------------------------------------------
-
-        VkBool32 presentSupport = VK_FALSE;
-
-        const VkResult presentResult = vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &presentSupport );
-        AIKO_ASSERT(presentResult == VK_SUCCESS, "Failed to query surface support!");
-
-        if (indices.presentFamily.has_value() == false && presentSupport == true)
+        if (indices.computeFamily.has_value() == false)
         {
-            indices.presentFamily = i;
+            indices.computeFamily = computeFallback;
         }
-    }
 
-    if (indices.computeFamily.has_value() == false)
-    {
-        indices.computeFamily = computeFallback;
-    }
-
-    return indices;
+        return indices;
     }
 
     void VulkanContext::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
