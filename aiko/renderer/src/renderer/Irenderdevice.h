@@ -28,6 +28,7 @@ namespace aiko::renderer
 
         virtual bool init(const DeviceInitDesc& desc) = 0;
         virtual void shutdown() = 0;
+        virtual void waitIdle() {};
 
         virtual void resize(u32 width, u32 height, bool vsync) = 0;
 

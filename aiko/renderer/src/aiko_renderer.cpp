@@ -61,7 +61,7 @@ namespace aiko
         // bind to on window resize
         EventSystem::it().bind<WindowResizeEvent>(this, &AikoRenderer::onWindowResize);
 
-        m_imgui.init(IMGUI_VIEW, DisplayManager::it().getNativeWindow());
+        m_imgui.init(DisplayManager::it().getNativeWindow());
 
     }
 
@@ -80,7 +80,7 @@ namespace aiko
         m_gpuInstanceDraws.clear();
         m_lights.clear();
         m_renderer->beginFrame();
-        auto size = DisplayManager::it().getDisplay()->getDisplaySize();
+        const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
         m_imgui.beginFrame(size.x, size.y);
     }
 
@@ -88,15 +88,17 @@ namespace aiko
     {
         AIKO_FUNCTION_PROFILE;
         m_renderer->endFrame();
-        const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
-        m_imgui.endFrame(size.x, size.y);
         m_renderer->present();
         AIKO_FRAME_MARK
     }
 
     void AikoRenderer::dispose()
     {
+        m_renderer->waitIdle();
+        m_imgui.dispose();
         m_transientGeometryCache.clear();
+        m_screenFbo.unload();
+        m_resources.clear();
         m_renderer->shutdown();
     }
 
@@ -224,6 +226,10 @@ namespace aiko
 
     void AikoRenderer::onWindowResize(WindowResizeEvent& event)
     {
+        if (event.width <= 0 || event.height <= 0)
+        {
+            return;
+        }
         m_renderer->resize(event.width, event.height, false);
         m_screenFbo.resize(event.width, event.height);
     }
@@ -566,6 +572,8 @@ namespace aiko
         {
             m_renderer->presentFrameBufferToScreen(SCREEN_VIEW, m_screenFbo);
         }
+
+        m_imgui.endFrame(size.x, size.y);
 
         m_renderer->endPass();
     }

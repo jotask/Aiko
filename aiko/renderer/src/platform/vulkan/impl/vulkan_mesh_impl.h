@@ -23,7 +23,17 @@ namespace aiko::renderer::vulkan
 
         Texture* getTexture() { return &m_texture; }
 
+        VkBuffer vertexBuffer() const { return m_vertexBuffer; }
+        VkBuffer indexBuffer() const { return m_indexBuffer; }
+        u32 indexCount() const { return m_indexCount; }
+
     private:
+
+        VkBuffer m_vertexBuffer = VK_NULL_HANDLE;
+        VkDeviceMemory m_vertexMemory = VK_NULL_HANDLE;
+        VkBuffer m_indexBuffer = VK_NULL_HANDLE;
+        VkDeviceMemory m_indexMemory = VK_NULL_HANDLE;
+        u32 m_indexCount = 0;
 
         Texture m_texture;
 

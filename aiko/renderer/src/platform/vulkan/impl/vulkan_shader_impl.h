@@ -34,10 +34,18 @@ namespace aiko::renderer::vulkan
 
         bool hasUniform(const string& name) const;
 
+        VkShaderModule vertexModule() const { return m_vertexModule; }
+        VkShaderModule fragmentModule() const { return m_fragmentModule; }
+
     private:
 
         string vertex_file;
         string fragment_file;
+
+        VkShaderModule m_vertexModule = VK_NULL_HANDLE;
+        VkShaderModule m_fragmentModule = VK_NULL_HANDLE;
+
+        VkShaderModule createShaderModule(VkDevice device, const vector<uint8_t>& code);
 
     };
 }

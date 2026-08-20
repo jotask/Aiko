@@ -20,12 +20,12 @@
 
 #include "components/compute_shader_component.h"
 
-#define TEST_LOAD_MESHES
+// #define TEST_LOAD_MESHES
 #define TEST_COMPONENTS
 #define TEST_PRIMITIVES
 #define TEST_LIGHTS
-#define TEST_CS
-#define TEST_PARTICLE_CS
+// #define TEST_CS
+// #define TEST_PARTICLE_CS
 
 namespace sb
 {
@@ -74,29 +74,32 @@ namespace sb
 #endif
 
 #ifdef TEST_COMPONENTS
+
+        constexpr float zAxis = 0.0f;
+
         m_go1 = app->Instantiate(root, "Cube1");
-        m_go1->transform().position = { 1.0f, 0.0f, 5.0f };
+        m_go1->transform().position = { 1.0f, 0.0f, zAxis };
         m_go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
         mesh1->loadDebugCube();
         
         m_go2 = app->Instantiate(root, "Cube2");
-        m_go2->transform().position = { -1.0f, 0.0f, 5.0f };
+        m_go2->transform().position = { -1.0f, 0.0f, zAxis };
         m_go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
         mesh2->loadDebugCube();
 
         m_texture = app->Instantiate(root, "Texture");
-        m_texture->transform().position = { 0.0f, -0.55f, 5.0f };
+        m_texture->transform().position = { 0.0f, -0.55f, zAxis };
         m_texture->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texture->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh3 = m_texture->addComponent<aiko::SpriteComponent>();
         mesh3->load("texel_checker.png");
 
         m_texturePbo = app->Instantiate(root, "PboTexture");
-        m_texturePbo->transform().position = { 0.0f, 0.55f, 5.0f };
+        m_texturePbo->transform().position = { 0.0f, 0.55f, zAxis };
         m_texturePbo->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texturePbo->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh4 = m_texturePbo->addComponent<aiko::SpriteComponent>();
