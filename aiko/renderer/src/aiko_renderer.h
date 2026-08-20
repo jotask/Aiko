@@ -25,6 +25,7 @@
 
 #include <unordered_map>
 #include <deque>
+#include <optional>
 
 #include "core/utils.h"
 
