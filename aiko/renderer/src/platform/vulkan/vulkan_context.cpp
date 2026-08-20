@@ -50,7 +50,99 @@ namespace aiko::renderer::vulkan
 
     void VulkanContext::shutdown()
     {
-        // TODO destroy Vulkan resources here first
+        if (m_device != VK_NULL_HANDLE)
+        {
+            vkDeviceWaitIdle(m_device);
+        }
+
+        if (m_device != VK_NULL_HANDLE)
+        {
+            cleanupSwapChain();
+        }
+
+        for (VkSemaphore semaphore : m_imageAvailableSemaphores)
+        {
+            if (semaphore != VK_NULL_HANDLE)
+            {
+                vkDestroySemaphore(m_device, semaphore, nullptr);
+            }
+        }
+        m_imageAvailableSemaphores.clear();
+
+        for (VkSemaphore semaphore : m_computeFinishedSemaphores)
+        {
+            if (semaphore != VK_NULL_HANDLE)
+            {
+                vkDestroySemaphore(m_device, semaphore, nullptr);
+            }
+        }
+        m_computeFinishedSemaphores.clear();
+
+        for (VkFence fence : m_inFlightFences)
+        {
+            if (fence != VK_NULL_HANDLE)
+            {
+                vkDestroyFence(m_device, fence, nullptr);
+            }
+        }
+        m_inFlightFences.clear();
+
+        for (VkFence fence : m_computeInFlightFences)
+        {
+            if (fence != VK_NULL_HANDLE)
+            {
+                vkDestroyFence(m_device, fence, nullptr);
+            }
+        }
+        m_computeInFlightFences.clear();
+
+        if (m_commandPool != VK_NULL_HANDLE)
+        {
+            vkDestroyCommandPool(m_device, m_commandPool, nullptr);
+            m_commandPool = VK_NULL_HANDLE;
+        }
+
+        m_commandBuffers.clear();
+        m_activeCommandBuffer = VK_NULL_HANDLE;
+
+        if (m_renderPass != VK_NULL_HANDLE)
+        {
+            vkDestroyRenderPass(m_device, m_renderPass, nullptr);
+            m_renderPass = VK_NULL_HANDLE;
+        }
+
+        if (m_device != VK_NULL_HANDLE)
+        {
+            vkDestroyDevice(m_device, nullptr);
+            m_device = VK_NULL_HANDLE;
+        }
+
+        m_graphicsQueue = VK_NULL_HANDLE;
+        m_presentQueue = VK_NULL_HANDLE;
+        m_computeQueue = VK_NULL_HANDLE;
+        m_physicalDevice = VK_NULL_HANDLE;
+
+        if (m_surface != VK_NULL_HANDLE)
+        {
+            vkDestroySurfaceKHR(m_vk, m_surface, nullptr);
+            m_surface = VK_NULL_HANDLE;
+        }
+
+        if (m_debugMessenger != VK_NULL_HANDLE)
+        {
+            DestroyDebugUtilsMessengerEXT(m_vk, m_debugMessenger, nullptr );
+            m_debugMessenger = VK_NULL_HANDLE;
+        }
+
+        if (m_vk != VK_NULL_HANDLE)
+        {
+            vkDestroyInstance(m_vk, nullptr);
+            m_vk = VK_NULL_HANDLE;
+        }
+
+        m_currentFrame = 0;
+        m_currentImageIndex = 0;
+
         if (s_currentContext == this)
         {
             s_currentContext = nullptr;
