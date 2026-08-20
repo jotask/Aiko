@@ -80,6 +80,11 @@ namespace aiko
         m_gpuInstanceDraws.clear();
         m_lights.clear();
         m_renderer->beginFrame();
+        if (m_windowResizeRequest != std::nullopt)
+        {
+            m_screenFbo.resize(m_windowResizeRequest->x, m_windowResizeRequest->y);
+            m_windowResizeRequest = std::nullopt;
+        }
         const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
         m_imgui.beginFrame(size.x, size.y);
     }
@@ -230,8 +235,8 @@ namespace aiko
         {
             return;
         }
+        m_windowResizeRequest = { event.width, event.height };
         m_renderer->resize(event.width, event.height, false);
-        m_screenFbo.resize(event.width, event.height);
     }
 
     renderer::FrameData AikoRenderer::buildSceneFrameData(const Camera& camera) const

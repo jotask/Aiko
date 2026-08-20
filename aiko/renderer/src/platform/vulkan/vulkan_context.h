@@ -63,6 +63,7 @@ namespace aiko::renderer::vulkan
         uint32_t m_currentFrame = 0;
         uint32_t m_currentImageIndex = 0;
         VkCommandBuffer m_activeCommandBuffer = VK_NULL_HANDLE;
+        bool m_framebufferResized = false;
 
     public:
 
@@ -85,6 +86,8 @@ namespace aiko::renderer::vulkan
 
         void recreateSwapChain();
         void cleanupSwapChain();
+
+        void requestSwapChainRecreation();
 
         QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);

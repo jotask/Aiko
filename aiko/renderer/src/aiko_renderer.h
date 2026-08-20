@@ -206,6 +206,8 @@ namespace aiko
         IAssetRegistry* m_assetRegistry = nullptr;
         RenderResourceManager m_resources;
 
+        std::optional<ivec2> m_windowResizeRequest = std::nullopt;
+
     };
 
 }

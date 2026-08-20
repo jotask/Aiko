@@ -70,7 +70,7 @@ namespace aiko::renderer::vulkan
         AIKO_UNUSED(width);
         AIKO_UNUSED(height);
         AIKO_UNUSED(vsync);
-        m_context.recreateSwapChain();
+        m_context.requestSwapChainRecreation();
     }
 
     void VulkanRenderDevice::beginFrame()

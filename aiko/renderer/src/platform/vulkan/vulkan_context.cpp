@@ -583,6 +583,11 @@ namespace aiko::renderer::vulkan
     bool VulkanContext::beginFrame()
     {
 
+        if (m_framebufferResized)
+        {
+            recreateSwapChain();
+        }
+
         vkWaitForFences(m_device, 1, &m_inFlightFences[m_currentFrame], VK_TRUE, UINT64_MAX);
 
         uint32_t imageIndex = 0;
@@ -704,6 +709,9 @@ namespace aiko::renderer::vulkan
         m_currentFrame = 0;
         m_currentImageIndex = 0;
         m_activeCommandBuffer = VK_NULL_HANDLE;
+
+        m_framebufferResized = false;
+
     }
 
     void VulkanContext::cleanupSwapChain()
@@ -760,6 +768,11 @@ namespace aiko::renderer::vulkan
             vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
         }
         m_swapChain = VK_NULL_HANDLE;
+    }
+
+    void VulkanContext::requestSwapChainRecreation()
+    {
+        m_framebufferResized = true;
     }
 
     QueueFamilyIndices VulkanContext::findQueueFamilies(VkPhysicalDevice device)
