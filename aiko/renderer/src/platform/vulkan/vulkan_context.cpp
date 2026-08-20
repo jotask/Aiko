@@ -369,8 +369,26 @@ namespace aiko::renderer::vulkan
         }
 
         createInfo.preTransform = swapChainSupport.capabilties.currentTransform;
-        createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+
+        constexpr std::array<VkCompositeAlphaFlagBitsKHR, 4> compositeAlphaModes =
+        {
+            VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+            VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
+            VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
+            VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR
+        };
+
+        for (const VkCompositeAlphaFlagBitsKHR mode : compositeAlphaModes)
+        {
+            if (swapChainSupport.capabilties.supportedCompositeAlpha & mode)
+            {
+                createInfo.compositeAlpha = mode;
+                break;
+            }
+        }
+
         createInfo.presentMode = presentMode;
+
         createInfo.clipped = VK_TRUE;
 
         createInfo.oldSwapchain = VK_NULL_HANDLE;
