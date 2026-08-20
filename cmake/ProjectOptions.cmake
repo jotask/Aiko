@@ -68,7 +68,7 @@ function(aiko_apply_defaults target_name)
         target_compile_definitions(${target_name} PRIVATE AIKO_PROFILE_COPIES)
     endif()
 
-    target_compile_definitions(${target_name} PRIVATE DEBUG)
+    target_compile_definitions(${target_name} PRIVATE AIKO_DEBUG)
 
 endfunction()
 

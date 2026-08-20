@@ -122,7 +122,7 @@ namespace aiko
     #ifdef AIKO_DEBUG
     constexpr bool enableValidationLayers = true;
     #else
-    constexpr bool enableValidationLayers = true; // FIXME set to false, when AIKO_DEBUG it's added
+    constexpr bool enableValidationLayers = false;
     #endif
 
     constexpr uint32_t InvalidMemoryType = std::numeric_limits<uint32_t>::max();
