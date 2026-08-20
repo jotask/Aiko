@@ -3,8 +3,6 @@
 #include <string>
 #include <unordered_map>
 
-#include <GLFW/glfw3.h>
-
 #if defined(AIKO_BGFX)
     #include <bgfx/bgfx.h>
 
@@ -19,5 +17,7 @@
 #else
     #error Not supported!
 #endif
+
+#include <GLFW/glfw3.h>
 
 #include <magic_enum/magic_enum.hpp>
