@@ -299,10 +299,7 @@ namespace aiko::renderer::vulkan
             queueCreateInfos.push_back(queueInfo);
         }
 
-        const VkPhysicalDeviceFeatures deviceFeatures =
-        {
-            .samplerAnisotropy = VK_TRUE,
-        };
+        const VkPhysicalDeviceFeatures deviceFeatures = { };
 
         const VkDeviceCreateInfo createInfo =
         {
@@ -1214,10 +1211,7 @@ namespace aiko::renderer::vulkan
             swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
         }
 
-        VkPhysicalDeviceFeatures supportedFeatures;
-        vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
-
-        return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+        return indices.isComplete() && extensionsSupported && swapChainAdequate;
 
     }
 
