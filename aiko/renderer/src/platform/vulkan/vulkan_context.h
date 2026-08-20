@@ -1,6 +1,6 @@
 #pragma once
+
 #include "vulkan_types.h"
-#include "renderer/frame_uniforms.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -76,7 +76,7 @@ namespace aiko::renderer::vulkan
         void createSurface();
         void pickPhysicalDevice();
         void createLogicalDevice();
-        void createSwapChain();
+        void createSwapChain(VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE);
         void createImageViews();
         void createRenderPass();
         void createCommandPool();
@@ -89,6 +89,7 @@ namespace aiko::renderer::vulkan
         void submitAndPresent();
 
         void recreateSwapChain();
+        void cleanupSwapChainResources();
         void cleanupSwapChain();
 
         void requestSwapChainRecreation();

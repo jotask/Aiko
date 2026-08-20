@@ -330,7 +330,7 @@ namespace aiko::renderer::vulkan
 
     }
 
-    void VulkanContext::createSwapChain()
+    void VulkanContext::createSwapChain(VkSwapchainKHR oldSwapchain)
     {
         SwapChainSupportDetails swapChainSupport = querySwapChainSupport(m_physicalDevice, m_surface);
 
@@ -393,7 +393,7 @@ namespace aiko::renderer::vulkan
 
         createInfo.clipped = VK_TRUE;
 
-        createInfo.oldSwapchain = VK_NULL_HANDLE;
+        createInfo.oldSwapchain = oldSwapchain;
 
         VkResult swapChainResult = vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &m_swapChain);
         AIKO_ASSERT(swapChainResult == VK_SUCCESS, "Failed to crate SwapChain" );
@@ -704,10 +704,16 @@ namespace aiko::renderer::vulkan
         vkDeviceWaitIdle(m_device);
 
         const VkFormat previousFormat = m_swapChainImageFormat;
+        const VkSwapchainKHR oldSwapchain = m_swapChain;
 
-        cleanupSwapChain();
+        cleanupSwapChainResources();
+        createSwapChain(oldSwapchain);
 
-        createSwapChain();
+        if (oldSwapchain != VK_NULL_HANDLE)
+        {
+            vkDestroySwapchainKHR(m_device, oldSwapchain, nullptr);
+        }
+
         createImageViews();
 
         const bool formatChanged = previousFormat != VK_FORMAT_UNDEFINED && previousFormat != m_swapChainImageFormat;
@@ -747,8 +753,9 @@ namespace aiko::renderer::vulkan
 
     }
 
-    void VulkanContext::cleanupSwapChain()
+    void VulkanContext::cleanupSwapChainResources()
     {
+
         for (VkFramebuffer framebuffer : m_swapChainFramebuffers)
         {
             if (framebuffer != VK_NULL_HANDLE)
@@ -761,17 +768,17 @@ namespace aiko::renderer::vulkan
         if (m_swapChainDepthView != VK_NULL_HANDLE)
         {
             vkDestroyImageView(m_device, m_swapChainDepthView, nullptr);
-        };
+        }
 
         if (m_swapChainDepthImage != VK_NULL_HANDLE)
         {
             vkDestroyImage(m_device, m_swapChainDepthImage, nullptr);
-        };
+        }
 
         if (m_swapChainDepthMemory != VK_NULL_HANDLE)
         {
             vkFreeMemory(m_device, m_swapChainDepthMemory, nullptr);
-        };
+        }
 
         m_swapChainDepthView = VK_NULL_HANDLE;
         m_swapChainDepthImage = VK_NULL_HANDLE;
@@ -784,6 +791,7 @@ namespace aiko::renderer::vulkan
                 vkDestroyImageView(m_device, imageView, nullptr);
             }
         }
+
         m_swapChainImageViews.clear();
         m_swapChainImages.clear();
 
@@ -794,13 +802,19 @@ namespace aiko::renderer::vulkan
                 vkDestroySemaphore(m_device, semaphore, nullptr);
             }
         }
+
         m_renderFinishedSemaphores.clear();
 
+    }
+
+    void VulkanContext::cleanupSwapChain()
+    {
+        cleanupSwapChainResources();
         if (m_swapChain != VK_NULL_HANDLE)
         {
             vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
+            m_swapChain = VK_NULL_HANDLE;
         }
-        m_swapChain = VK_NULL_HANDLE;
     }
 
     void VulkanContext::requestSwapChainRecreation()
