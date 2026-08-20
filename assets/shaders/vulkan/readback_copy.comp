@@ -1,0 +1,27 @@
+#version 450
+
+layout(std430, set = 0, binding = 0) readonly buffer ReadbackSourceBuffer
+{
+    vec4 u_src[];
+};
+
+layout(rgba32f, set = 0, binding = 1) uniform writeonly image2D u_dst;
+
+layout(push_constant) uniform ReadbackCopyPushConstants
+{
+    vec4 u_params;
+};
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+void main()
+{
+    uint idx = gl_GlobalInvocationID.x;
+    if (idx >= uint(u_params.x))
+    {
+        return;
+    }
+
+    vec4 v = u_src[idx];
+    imageStore(u_dst, ivec2(int(idx), 0), v);
+}
