@@ -549,8 +549,18 @@ namespace aiko::renderer::vulkan
     void VulkanContext::createSwapChainDepthResources()
     {
         const VkFormat depthFormat = findDepthFormat(m_physicalDevice);
-        createImage(m_swapChainExtent.width, m_swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_swapChainDepthImage, m_swapChainDepthMemory);
-        m_swapChainDepthView = createImageView(m_swapChainDepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT );
+
+        const size_t imageCount = m_swapChainImages.size();
+
+        m_swapChainDepthImages.resize(imageCount, VK_NULL_HANDLE);
+        m_swapChainDepthMemories.resize(imageCount, VK_NULL_HANDLE);
+        m_swapChainDepthViews.resize(imageCount, VK_NULL_HANDLE);
+
+        for (size_t i = 0; i < imageCount; ++i)
+        {
+            createImage(m_swapChainExtent.width, m_swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_swapChainDepthImages[i], m_swapChainDepthMemories[i]);
+            m_swapChainDepthViews[i] = createImageView(m_swapChainDepthImages[i], depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+        }
     }
 
     void VulkanContext::createSwapChainFramebuffers()
@@ -562,7 +572,7 @@ namespace aiko::renderer::vulkan
             std::array<VkImageView, 2> attachments =
             {
                 m_swapChainImageViews[i],
-                m_swapChainDepthView
+                m_swapChainDepthViews[i]
             };
 
             const VkFramebufferCreateInfo framebufferInfo =
@@ -765,24 +775,32 @@ namespace aiko::renderer::vulkan
         }
         m_swapChainFramebuffers.clear();
 
-        if (m_swapChainDepthView != VK_NULL_HANDLE)
+        for (VkImageView view : m_swapChainDepthViews)
         {
-            vkDestroyImageView(m_device, m_swapChainDepthView, nullptr);
+            if (view != VK_NULL_HANDLE)
+            {
+                vkDestroyImageView(m_device, view, nullptr);
+            }
         }
+        m_swapChainDepthViews.clear();
 
-        if (m_swapChainDepthImage != VK_NULL_HANDLE)
+        for (VkImage image : m_swapChainDepthImages)
         {
-            vkDestroyImage(m_device, m_swapChainDepthImage, nullptr);
+            if (image != VK_NULL_HANDLE)
+            {
+                vkDestroyImage(m_device, image, nullptr);
+            }
         }
+        m_swapChainDepthImages.clear();
 
-        if (m_swapChainDepthMemory != VK_NULL_HANDLE)
+        for (VkDeviceMemory memory : m_swapChainDepthMemories)
         {
-            vkFreeMemory(m_device, m_swapChainDepthMemory, nullptr);
+            if (memory != VK_NULL_HANDLE)
+            {
+                vkFreeMemory(m_device, memory, nullptr);
+            }
         }
-
-        m_swapChainDepthView = VK_NULL_HANDLE;
-        m_swapChainDepthImage = VK_NULL_HANDLE;
-        m_swapChainDepthMemory = VK_NULL_HANDLE;
+        m_swapChainDepthMemories.clear();
 
         for (VkImageView imageView : m_swapChainImageViews)
         {

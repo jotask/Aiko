@@ -55,9 +55,9 @@ namespace aiko::renderer::vulkan
         std::vector<VkFence> m_inFlightFences;
         std::vector<VkFence> m_computeInFlightFences;
 
-        VkImage m_swapChainDepthImage = VK_NULL_HANDLE;
-        VkDeviceMemory m_swapChainDepthMemory = VK_NULL_HANDLE;
-        VkImageView m_swapChainDepthView = VK_NULL_HANDLE;
+        std::vector<VkImage> m_swapChainDepthImages;
+        std::vector<VkDeviceMemory> m_swapChainDepthMemories;
+        std::vector<VkImageView> m_swapChainDepthViews;
 
         std::vector<VkFramebuffer> m_swapChainFramebuffers;
         std::vector<VkCommandBuffer> m_commandBuffers;
