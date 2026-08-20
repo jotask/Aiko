@@ -24,7 +24,7 @@ namespace aiko::renderer::vulkan
         VulkanRenderDevice(RenderResourceManager*);
         virtual ~VulkanRenderDevice() override;
 
-        virtual bool init(const renderer::DeviceInitDesc& desc) override;
+        virtual bool init(const DeviceInitDesc& desc) override;
         virtual void shutdown() override;
         virtual void waitIdle() override;
 

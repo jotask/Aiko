@@ -1,5 +1,6 @@
 #pragma once
 #include "vulkan_types.h"
+#include "renderer/frame_uniforms.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -44,8 +45,9 @@ namespace aiko::renderer::vulkan
         VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
         std::vector<VkImage> m_swapChainImages;
         std::vector<VkImageView> m_swapChainImageViews;
-        VkFormat m_swapChainImageFormat;
-        VkExtent2D m_swapChainExtent;
+        VkFormat m_swapChainImageFormat = VK_FORMAT_UNDEFINED;
+        VkExtent2D m_swapChainExtent = {};
+        bool m_swapChainFormatChanged = false;
 
         std::vector<VkSemaphore> m_renderFinishedSemaphores;
         std::vector<VkSemaphore> m_imageAvailableSemaphores;
@@ -108,6 +110,8 @@ namespace aiko::renderer::vulkan
 
         VkCommandBuffer beginSingleTimeCommands();
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+
+        bool consumeSwapChainFormatChanged();
 
     };
 }

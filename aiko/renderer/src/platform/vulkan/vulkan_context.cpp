@@ -703,10 +703,26 @@ namespace aiko::renderer::vulkan
 
         vkDeviceWaitIdle(m_device);
 
+        const VkFormat previousFormat = m_swapChainImageFormat;
+
         cleanupSwapChain();
 
         createSwapChain();
         createImageViews();
+
+        const bool formatChanged = previousFormat != VK_FORMAT_UNDEFINED && previousFormat != m_swapChainImageFormat;
+
+        if (formatChanged == true)
+        {
+            if (m_renderPass != VK_NULL_HANDLE)
+            {
+                vkDestroyRenderPass(m_device, m_renderPass, nullptr);
+                m_renderPass = VK_NULL_HANDLE;
+            }
+            createRenderPass();
+            m_swapChainFormatChanged = true;
+        }
+
         createSwapChainDepthResources();
         createSwapChainFramebuffers();
 
@@ -1121,6 +1137,13 @@ namespace aiko::renderer::vulkan
         vkQueueWaitIdle(m_graphicsQueue);
 
         vkFreeCommandBuffers(m_device, m_commandPool, 1, &commandBuffer);
+    }
+
+    bool VulkanContext::consumeSwapChainFormatChanged()
+    {
+        const bool changed = m_swapChainFormatChanged;
+        m_swapChainFormatChanged = false;
+        return changed;
     }
 
     uint32_t VulkanContext::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)

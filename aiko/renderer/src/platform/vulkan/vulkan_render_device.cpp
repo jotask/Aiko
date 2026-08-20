@@ -79,6 +79,22 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::beginFrame()
     {
         m_frameActive = m_context.beginFrame();
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
+        if (m_context.consumeSwapChainFormatChanged() == true)
+        {
+            if (m_screenPipeline != VK_NULL_HANDLE)
+            {
+                vkDestroyPipeline(m_context.device(), m_screenPipeline, nullptr);
+                m_screenPipeline = VK_NULL_HANDLE;
+            }
+            createScreenPipeline();
+        }
+
     }
 
     void VulkanRenderDevice::endFrame()

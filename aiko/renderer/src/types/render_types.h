@@ -24,6 +24,14 @@ namespace aiko
 
     constexpr uint16_t MAX_LIGHTS = 8;
 
+    struct DeviceInitDesc
+    {
+        void* nativeWindowHandle = nullptr;
+        u32 width = 0;
+        u32 height = 0;
+        bool vsync = false;
+    };
+
     // Shader uniform data type
     enum class ShaderUniformDataType
     {

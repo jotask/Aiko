@@ -8,14 +8,6 @@
 namespace aiko::renderer
 {
 
-    struct DeviceInitDesc
-    {
-        void* nativeWindowHandle = nullptr;
-        u32 width = 0;
-        u32 height = 0;
-        bool vsync = false;
-    };
-
     struct PassDescription
     {
         u32 width;

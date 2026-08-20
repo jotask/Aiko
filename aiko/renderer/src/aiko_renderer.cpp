@@ -27,9 +27,10 @@ namespace aiko
 
         auto* window = DisplayManager::it().getNativeWindow();
         AIKO_ASSERT(window, "No window created!")
+
         const ivec2 size = DisplayManager::it().getDisplay()->getDisplaySize();
 
-        renderer::DeviceInitDesc description =
+        const DeviceInitDesc description =
         {
             .nativeWindowHandle = window,
             .width = static_cast<u32>(size.x),
@@ -236,7 +237,7 @@ namespace aiko
             return;
         }
         m_windowResizeRequest = { event.width, event.height };
-        m_renderer->resize(event.width, event.height, false); // FIX the hardcode vsync
+        m_renderer->resize(event.width, event.height, false); // TODO: remove VSync from resize API
     }
 
     renderer::FrameData AikoRenderer::buildSceneFrameData(const Camera& camera) const
