@@ -47,7 +47,7 @@ namespace aiko
     {
     }
 
-    void AikoImgui::init(const ViewId id, GLFWwindow* window)
+    void AikoImgui::init(GLFWwindow* window)
     {
 
         logger::Log::info("ImGui v.%s", IMGUI_VERSION);
@@ -55,7 +55,6 @@ namespace aiko
         AIKO_ASSERT(m_isInitialized == false, "Imgui already initialized");
         AIKO_ASSERT(window != nullptr, "Invalid GLFW window or not supported");
 
-        m_viewId = id;
         m_window = window;
 
         IMGUI_CHECKVERSION();
@@ -69,7 +68,7 @@ namespace aiko
         ImGui::StyleColorsDark();
         //ImGui::StyleColorsLight();
 
-        backend->init(id, window);
+        backend->init(m_viewId, window);
 
         m_isInitialized = true;
 
@@ -88,7 +87,7 @@ namespace aiko
         io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
         io.DeltaTime = Time::it().getDeltaTime();
 
-        backend->beginFrame(width, height);
+        backend->beginFrame(m_viewId, width, height);
 
         ImGui::NewFrame();
 
@@ -99,7 +98,19 @@ namespace aiko
         AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(m_isInitialized == true, "Calling endFrame without initialize first.");
         ImGui::Render();
-        backend->endFrame(width, height);
+        backend->endFrame(m_viewId, width, height);
+    }
+
+    void AikoImgui::dispose()
+    {
+        if (m_isInitialized == false)
+        {
+            return;
+        }
+        backend->dispose();
+        ImGui::DestroyContext();
+        m_window = nullptr;
+        m_isInitialized = false;
     }
 
 }
