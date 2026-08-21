@@ -1,3 +1,4 @@
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/render_regression")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/sandbox")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/cellular_automaton")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/nes6502")
