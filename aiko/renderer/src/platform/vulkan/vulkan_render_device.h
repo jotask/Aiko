@@ -180,7 +180,6 @@ namespace aiko::renderer::vulkan
         void destroyComputePipelineLayout();
 
         VkPipeline m_computePipeline = VK_NULL_HANDLE;
-        VkShaderModule m_computePipelineShader = VK_NULL_HANDLE;
         void createComputePipeline(VkShaderModule shaderModule);
         void destroyComputePipeline();
 

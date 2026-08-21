@@ -1485,11 +1485,6 @@ namespace aiko::renderer::vulkan
     {
         AIKO_ASSERT(shaderModule != VK_NULL_HANDLE, "Invalid compute shader module");
 
-        if (m_computePipeline != VK_NULL_HANDLE && m_computePipelineShader == shaderModule)
-        {
-            return;
-        }
-
         destroyComputePipeline();
 
         const VkPipelineShaderStageCreateInfo shaderStage =
@@ -1510,7 +1505,6 @@ namespace aiko::renderer::vulkan
         const VkResult result = vkCreateComputePipelines(m_context.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_computePipeline);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan compute pipeline");
 
-        m_computePipelineShader = shaderModule;
     }
 
     void VulkanRenderDevice::destroyComputePipeline()
@@ -1520,8 +1514,6 @@ namespace aiko::renderer::vulkan
             vkDestroyPipeline(m_context.device(), m_computePipeline, nullptr);
             m_computePipeline = VK_NULL_HANDLE;
         }
-
-        m_computePipelineShader = VK_NULL_HANDLE;
     }
 
     void VulkanRenderDevice::createComputeDescriptorPool()
