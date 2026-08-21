@@ -391,6 +391,7 @@ namespace aiko::renderer::vulkan
 
         const ComputeBufferBinding& binding = pass.buffers[0];
 
+        AIKO_ASSERT(binding.stage == 0, "Vulkan compute currently supports storage buffer binding 0 only");
         AIKO_ASSERT(binding.buffer != nullptr, "Compute buffer binding is null");
         AIKO_ASSERT(binding.buffer->isValid(),"Invalid compute buffer");
 
