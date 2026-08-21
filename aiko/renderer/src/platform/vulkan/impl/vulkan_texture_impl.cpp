@@ -60,6 +60,10 @@ namespace aiko::renderer::vulkan
         {
             case TextureType::Sampled:
                 usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+                if (desc.mipmaps)
+                {
+                    usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+                }
                 break;
 
             case TextureType::RenderTarget:
@@ -79,6 +83,15 @@ namespace aiko::renderer::vulkan
                 AIKO_ASSERT(false, "Unsupported Vulkan texture type");
         }
 
+        if (desc.mipmaps)
+        {
+            m_mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(desc.width, desc.height)))) + 1;
+        }
+        else
+        {
+            m_mipLevels = 1;
+        }
+
         ctx.createImage(
             static_cast<uint32_t>(desc.width),
             static_cast<uint32_t>(desc.height),
@@ -91,7 +104,7 @@ namespace aiko::renderer::vulkan
             m_memory
         );
 
-        m_view = ctx.createImageView(m_image, m_vkFormat, aspect);
+        m_view = ctx.createImageView(m_image, m_vkFormat, aspect, m_mipLevels);
 
         if (desc.type != TextureType::DepthStencil)
         {
