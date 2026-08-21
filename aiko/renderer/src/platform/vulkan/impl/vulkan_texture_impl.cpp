@@ -123,7 +123,7 @@ namespace aiko::renderer::vulkan
                 .compareEnable = VK_FALSE,
                 .compareOp = VK_COMPARE_OP_ALWAYS,
                 .minLod = 0.0f,
-                .maxLod = 0.0f,
+                .maxLod = static_cast<float>(m_mipLevels - 1),
                 .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
                 .unnormalizedCoordinates = VK_FALSE,
             };
@@ -246,13 +246,22 @@ namespace aiko::renderer::vulkan
 
         if (m_layout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
         {
-            ctx.transitionImageLayout(m_image, m_vkFormat, m_layout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+            ctx.transitionImageLayout(m_image, m_vkFormat, m_layout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, m_mipLevels);
             m_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         }
 
         ctx.copyBufferToImage(stagingBuffer, m_image, m_info.width, m_info.height);
 
-        ctx.transitionImageLayout(m_image, m_vkFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        if (m_mipLevels > 1)
+        {
+            ctx.generateMipmaps(m_image, m_vkFormat, m_info.width, m_info.height, m_mipLevels);
+        }
+        else
+        {
+            ctx.transitionImageLayout(m_image, m_vkFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
+
+        m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
         vkDestroyBuffer(ctx.device(), stagingBuffer, nullptr);
