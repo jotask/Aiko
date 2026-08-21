@@ -16,6 +16,11 @@ namespace aiko::renderer::vulkan
     {
     }
 
+    VulkanFrameBufferImpl::~VulkanFrameBufferImpl()
+    {
+        AIKO_ASSERT(m_framebuffer == VK_NULL_HANDLE && m_renderPass == VK_NULL_HANDLE, "VulkanFrameBufferImpl destroyed without unload()" );
+    }
+
     uint VulkanFrameBufferImpl::id() const
     {
         return static_cast<uint>(reinterpret_cast<uintptr_t>(m_framebuffer));

@@ -14,7 +14,7 @@ namespace aiko::renderer::vulkan
     public:
         VulkanFrameBufferImpl();
 
-        virtual ~VulkanFrameBufferImpl() override = default;
+        virtual ~VulkanFrameBufferImpl() override;
 
         virtual uint id() const override;
 
