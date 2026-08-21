@@ -85,57 +85,69 @@ namespace aiko::renderer::vulkan
         VulkanContext& ctx = VulkanContext::current();
         VkDevice device = ctx.device();
 
+        // ---------------------------------------------------------
+        // Vertex staging
+        // ---------------------------------------------------------
+
         const vector<VulkanVertex> vertices = buildVertices(asset);
         const VkDeviceSize vertexSize = sizeof(VulkanVertex) * vertices.size();
 
         VkBuffer stagingVertexBuffer = VK_NULL_HANDLE;
         VkDeviceMemory stagingVertexMemory = VK_NULL_HANDLE;
 
-        ctx.createBuffer(vertexSize,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            stagingVertexBuffer,
-            stagingVertexMemory);
+        ctx.createBuffer(vertexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingVertexBuffer, stagingVertexMemory);
 
         void* data = nullptr;
-        vkMapMemory(device, stagingVertexMemory, 0, vertexSize, 0, &data);
+
+        VkResult mapResult = vkMapMemory(device, stagingVertexMemory, 0, vertexSize, 0, &data);
+        AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map vertex staging memory");
+
         std::memcpy(data, vertices.data(), static_cast<size_t>(vertexSize));
+
         vkUnmapMemory(device, stagingVertexMemory);
 
-        ctx.createBuffer(vertexSize,
-            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            m_vertexBuffer,
-            m_vertexMemory);
+        ctx.createBuffer(vertexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexMemory);
 
-        ctx.copyBuffer(stagingVertexBuffer, m_vertexBuffer, vertexSize);
-
-        vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
-        vkFreeMemory(device, stagingVertexMemory, nullptr);
+        // ---------------------------------------------------------
+        // Index staging
+        // ---------------------------------------------------------
 
         m_indexCount = static_cast<u32>(asset.m_indices.size());
+
         const VkDeviceSize indexSize = sizeof(uint16_t) * asset.m_indices.size();
 
         VkBuffer stagingIndexBuffer = VK_NULL_HANDLE;
         VkDeviceMemory stagingIndexMemory = VK_NULL_HANDLE;
 
-        ctx.createBuffer(indexSize,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            stagingIndexBuffer,
-            stagingIndexMemory);
+        ctx.createBuffer( indexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingIndexBuffer, stagingIndexMemory);
 
-        vkMapMemory(device, stagingIndexMemory, 0, indexSize, 0, &data);
+        data = nullptr;
+
+        mapResult = vkMapMemory(device, stagingIndexMemory, 0, indexSize, 0, &data);
+        AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map index staging memory");
+
         std::memcpy(data, asset.m_indices.data(), static_cast<size_t>(indexSize));
+
         vkUnmapMemory(device, stagingIndexMemory);
 
-        ctx.createBuffer(indexSize,
-            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            m_indexBuffer,
-            m_indexMemory);
+        ctx.createBuffer(indexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexMemory);
 
-        ctx.copyBuffer(stagingIndexBuffer, m_indexBuffer, indexSize);
+        // ---------------------------------------------------------
+        // Record both GPU copies into one submission.
+        // ---------------------------------------------------------
+
+        VkCommandBuffer commandBuffer = ctx.beginSingleTimeCommands();
+        ctx.copyBuffer(commandBuffer, stagingVertexBuffer, m_vertexBuffer,vertexSize);
+        ctx.copyBuffer( commandBuffer, stagingIndexBuffer, m_indexBuffer, indexSize);
+        ctx.endSingleTimeCommands(commandBuffer);
+
+        // ---------------------------------------------------------
+        // Safe now: the fence wait above guarantees both copies
+        // have completed.
+        // ---------------------------------------------------------
+
+        vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+        vkFreeMemory(device, stagingVertexMemory, nullptr);
 
         vkDestroyBuffer(device, stagingIndexBuffer, nullptr);
         vkFreeMemory(device, stagingIndexMemory, nullptr);
