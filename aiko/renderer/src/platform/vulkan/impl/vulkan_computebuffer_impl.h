@@ -22,7 +22,6 @@ namespace aiko::renderer::vulkan
 
         virtual void create(ComputeBufferFormat format, uint32_t count, const void* initialData, ComputeAccess access) override;
         virtual void update(uint32_t start, uint32_t count, const void* data) override;
-        virtual void readback(uint32_t start, uint32_t count, void* dst) const override;
 
         virtual void destroy() override;
 
