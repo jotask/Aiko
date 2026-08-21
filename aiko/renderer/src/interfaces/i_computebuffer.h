@@ -18,11 +18,10 @@ namespace aiko
 
             virtual void create(ComputeBufferFormat format, uint32_t count, const void* data, ComputeAccess access) = 0;
             virtual void update(uint32_t start, uint32_t count, const void* data) = 0;
+            virtual void readback(uint32_t start, uint32_t count, void* dst) const = 0;
 
             virtual void destroy() = 0;
 
-            // Optional: CPU readback for debugging (we can add later)
-            // virtual bool readback(void* dst, uint32_t bytes) = 0;
 
         };
     }

@@ -99,8 +99,8 @@ namespace aiko::renderer::vulkan
 
         void* data = nullptr;
 
-        VkResult mapResult = vkMapMemory(device, stagingVertexMemory, 0, vertexSize, 0, &data);
-        AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map vertex staging memory");
+        const VkResult mapResult1 = vkMapMemory(device, stagingVertexMemory, 0, vertexSize, 0, &data);
+        AIKO_ASSERT(mapResult1 == VK_SUCCESS, "Failed to map vertex staging memory");
 
         std::memcpy(data, vertices.data(), static_cast<size_t>(vertexSize));
 
@@ -123,8 +123,8 @@ namespace aiko::renderer::vulkan
 
         data = nullptr;
 
-        mapResult = vkMapMemory(device, stagingIndexMemory, 0, indexSize, 0, &data);
-        AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map index staging memory");
+        const VkResult mapResult2 = vkMapMemory(device, stagingIndexMemory, 0, indexSize, 0, &data);
+        AIKO_ASSERT(mapResult2 == VK_SUCCESS, "Failed to map index staging memory");
 
         std::memcpy(data, asset.m_indices.data(), static_cast<size_t>(indexSize));
 

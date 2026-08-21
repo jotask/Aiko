@@ -174,5 +174,23 @@ namespace aiko::renderer::vulkan
 
         void drawMeshWithPipeline(ViewId viewId, const mat4& world, const Mesh& mesh, VkPipeline pipeline);
 
+        VkDescriptorSetLayout m_computeDescriptorSetLayout = VK_NULL_HANDLE;
+        VkPipelineLayout m_computePipelineLayout = VK_NULL_HANDLE;
+        void createComputePipelineLayout();
+        void destroyComputePipelineLayout();
+
+        VkPipeline m_computePipeline = VK_NULL_HANDLE;
+        VkShaderModule m_computePipelineShader = VK_NULL_HANDLE;
+        void createComputePipeline(VkShaderModule shaderModule);
+        void destroyComputePipeline();
+
+        VkDescriptorPool m_computeDescriptorPool = VK_NULL_HANDLE;
+        VkDescriptorSet m_computeDescriptorSet = VK_NULL_HANDLE;
+
+        void createComputeDescriptorPool();
+        void destroyComputeDescriptorPool();
+
+        void updateComputeDescriptor( VkBuffer buffer, VkDeviceSize size);
+
     };
 }

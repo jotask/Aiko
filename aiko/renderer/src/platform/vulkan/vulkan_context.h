@@ -25,6 +25,7 @@ namespace aiko::renderer::vulkan
         VkSwapchainKHR swapChain() const { return m_swapChain; }
         VkQueue presentQueue() const { return m_presentQueue; }
         uint32_t currentFrameIndex() const { return m_currentFrame; }
+        VkQueue computeQueue() const { return m_computeQueue; }
 
     private:
 
@@ -65,6 +66,8 @@ namespace aiko::renderer::vulkan
         uint32_t m_currentFrame = 0;
         uint32_t m_currentImageIndex = 0;
         VkCommandBuffer m_activeCommandBuffer = VK_NULL_HANDLE;
+
+        VkCommandPool m_computeCommandPool = VK_NULL_HANDLE;
 
         bool m_framebufferResized = false;
         bool m_vsync = false;
@@ -118,6 +121,10 @@ namespace aiko::renderer::vulkan
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
         bool consumeSwapChainFormatChanged();
+
+        void createComputeCommandPool();
+        VkCommandBuffer beginComputeCommands();
+        void endComputeCommands(VkCommandBuffer commandBuffer);
 
     };
 }

@@ -33,6 +33,7 @@
 
         void create(ComputeBufferFormat format, u32 count, const void* initialData, ComputeAccess access);
         void update(u32 start, u32 count, const void* data);
+        void readback(uint32_t start, uint32_t count, void* dst) const;
 
         void unload();
 

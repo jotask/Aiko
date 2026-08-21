@@ -31,6 +31,11 @@ namespace aiko
         backend->update(start, count, data);
     }
 
+    void ComputeBuffer::readback(uint32_t start, uint32_t count, void* dst) const
+    {
+        backend->readback(start, count, dst);
+    }
+
     void ComputeBuffer::unload()
     {
         backend->destroy();

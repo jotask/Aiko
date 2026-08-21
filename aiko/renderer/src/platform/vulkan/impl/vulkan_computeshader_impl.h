@@ -14,7 +14,7 @@ namespace aiko::renderer::vulkan
     public:
 
         VulkanComputeShaderImpl();
-        virtual ~VulkanComputeShaderImpl() override = default;
+        virtual ~VulkanComputeShaderImpl() override;
 
         virtual bool isValid() const override;
 
@@ -24,8 +24,11 @@ namespace aiko::renderer::vulkan
 
         virtual uint id() override;
 
+        VkShaderModule module() const { return m_module; }
+
     private:
 
+        VkShaderModule m_module = VK_NULL_HANDLE;
         string m_file;
 
     };

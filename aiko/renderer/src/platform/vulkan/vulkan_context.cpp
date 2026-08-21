@@ -44,6 +44,7 @@ namespace aiko::renderer::vulkan
         createImageViews();
         createRenderPass();
         createCommandPool();
+        createComputeCommandPool();
         createSwapChainDepthResources();
         createSwapChainFramebuffers();
         createCommandBuffers();
@@ -106,6 +107,12 @@ namespace aiko::renderer::vulkan
 
         m_commandBuffers.clear();
         m_activeCommandBuffer = VK_NULL_HANDLE;
+
+        if (m_computeCommandPool != VK_NULL_HANDLE)
+        {
+            vkDestroyCommandPool(m_device, m_computeCommandPool,  nullptr);
+            m_computeCommandPool = VK_NULL_HANDLE;
+        }
 
         if (m_renderPass != VK_NULL_HANDLE)
         {
@@ -1432,6 +1439,100 @@ namespace aiko::renderer::vulkan
 
         return indices.isComplete() && extensionsSupported && swapChainAdequate;
 
+    }
+
+    void VulkanContext::createComputeCommandPool()
+    {
+        const QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
+
+        const VkCommandPoolCreateInfo poolInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+            .queueFamilyIndex = indices.computeFamily.value(),
+        };
+
+        const VkResult result = vkCreateCommandPool(m_device, &poolInfo, nullptr, &m_computeCommandPool);
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to create compute command pool");
+
+    }
+
+    VkCommandBuffer VulkanContext::beginComputeCommands()
+    {
+        const VkCommandBufferAllocateInfo allocInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            .commandPool = m_computeCommandPool,
+            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+            .commandBufferCount = 1,
+        };
+
+        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+
+        const VkResult allocResult =
+            vkAllocateCommandBuffers(
+                m_device,
+                &allocInfo,
+                &commandBuffer
+            );
+
+        AIKO_ASSERT(
+            allocResult == VK_SUCCESS,
+            "Failed to allocate compute command buffer"
+        );
+
+        const VkCommandBufferBeginInfo beginInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+        };
+
+        const VkResult beginResult =
+            vkBeginCommandBuffer(
+                commandBuffer,
+                &beginInfo
+            );
+
+        AIKO_ASSERT(
+            beginResult == VK_SUCCESS,
+            "Failed to begin compute command buffer"
+        );
+
+        return commandBuffer;
+    }
+
+    void VulkanContext::endComputeCommands(VkCommandBuffer commandBuffer)
+    {
+
+        const VkResult endResult = vkEndCommandBuffer(commandBuffer);
+        AIKO_ASSERT(endResult == VK_SUCCESS, "Failed to end compute command buffer");
+
+        const VkSubmitInfo submitInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &commandBuffer,
+        };
+
+        const VkFenceCreateInfo fenceInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        };
+
+        VkFence fence = VK_NULL_HANDLE;
+
+        const VkResult fenceResult = vkCreateFence(m_device, &fenceInfo, nullptr, &fence);
+        AIKO_ASSERT(fenceResult == VK_SUCCESS, "Failed to create compute fence");
+
+        const VkResult submitResult = vkQueueSubmit(m_computeQueue, 1, &submitInfo, fence);
+        AIKO_ASSERT(submitResult == VK_SUCCESS, "Failed to submit compute command buffer");
+
+        const VkResult waitResult = vkWaitForFences( m_device, 1, &fence, VK_TRUE, UINT64_MAX);
+        AIKO_ASSERT(waitResult == VK_SUCCESS, "Failed waiting for compute command buffer");
+
+        vkDestroyFence(m_device, fence, nullptr);
+
+        vkFreeCommandBuffers(m_device,m_computeCommandPool,1,&commandBuffer);
     }
 
 }
