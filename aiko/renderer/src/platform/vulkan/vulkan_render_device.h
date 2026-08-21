@@ -64,6 +64,7 @@ namespace aiko::renderer::vulkan
 
         static constexpr uint32_t MaxComputeBufferBindings = 4;
         static constexpr uint32_t MaxComputeVec4Uniforms = 8;
+        static constexpr uint32_t MaxComputeImageBindings = 8;
 
         VulkanContext m_context;
 
@@ -194,6 +195,7 @@ namespace aiko::renderer::vulkan
 
         void updateComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings);
         void updateComputeUniforms(const vector<ComputeVec4Uniform>& uniforms);
+        void updateComputeImages(const vector<ComputeImageBinding>& bindings);
 
         struct PendingReadback
         {
