@@ -102,32 +102,6 @@ namespace aiko::renderer::vulkan
         );
     }
 
-    void VulkanComputeBufferImpl::readback(uint32_t start, uint32_t count, void* dst) const
-    {
-        AIKO_ASSERT(isValid(), "Invalid compute buffer");
-        AIKO_ASSERT(dst != nullptr, "Compute buffer readback destination is null");
-        AIKO_ASSERT(start + count <= m_count, "Compute buffer readback out of range");
-
-        if (count == 0)
-        {
-            return;
-        }
-
-        VulkanContext& ctx = VulkanContext::current();
-
-        const VkDeviceSize offset = static_cast<VkDeviceSize>(start) * m_elementSize;
-        const VkDeviceSize size = static_cast<VkDeviceSize>(count) * m_elementSize;
-
-        void* mapped = nullptr;
-
-        const VkResult result = vkMapMemory(ctx.device(), m_memory, offset, size, 0, &mapped);
-        AIKO_ASSERT(result == VK_SUCCESS, "Failed to map compute buffer for readback");
-
-        std::memcpy(dst, mapped, static_cast<size_t>(size));
-
-        vkUnmapMemory(ctx.device(), m_memory);
-    }
-
     void VulkanComputeBufferImpl::destroy()
     {
         if (m_buffer == VK_NULL_HANDLE &&
