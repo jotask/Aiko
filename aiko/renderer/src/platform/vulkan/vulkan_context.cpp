@@ -1108,13 +1108,18 @@ namespace aiko::renderer::vulkan
 
     void VulkanContext::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
     {
-        const VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+        copyBuffer(commandBuffer, srcBuffer, dstBuffer, size);
+        endSingleTimeCommands(commandBuffer);
+    }
+
+    void VulkanContext::copyBuffer(VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+    {
         const VkBufferCopy copyRegion =
         {
             .size = size,
         };
         vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-        endSingleTimeCommands(commandBuffer);
     }
 
     void VulkanContext::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t baseMipLevel, uint32_t levelCount)
