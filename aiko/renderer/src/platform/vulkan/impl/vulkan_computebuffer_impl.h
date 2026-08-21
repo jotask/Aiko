@@ -22,6 +22,7 @@ namespace aiko::renderer::vulkan
 
         virtual void create(ComputeBufferFormat format, uint32_t count, const void* initialData, ComputeAccess access) override;
         virtual void update(uint32_t start, uint32_t count, const void* data) override;
+        void read(void* destination, VkDeviceSize size);
 
         virtual void destroy() override;
 

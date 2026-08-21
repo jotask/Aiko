@@ -132,6 +132,23 @@ namespace aiko::renderer::vulkan
         m_count = 0;
     }
 
+    void VulkanComputeBufferImpl::read(void* destination, VkDeviceSize size)
+    {
+        AIKO_ASSERT(size <= this->size(), "Readback size exceeds buffer");
+
+        VulkanContext& ctx = VulkanContext::current();
+
+        void* mapped = nullptr;
+
+        VkResult result = vkMapMemory(ctx.device(), m_memory, 0, size, 0, &mapped);
+
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to map compute buffer readback");
+
+        std::memcpy(destination, mapped, static_cast<size_t>(size));
+
+        vkUnmapMemory(ctx.device(), m_memory);
+    }
+
     void VulkanComputeBufferImpl::buildLayout(ComputeBufferFormat format)
     {
         switch (format)

@@ -424,12 +424,36 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::requestReadback(const ComputeReadbackRequest& request)
     {
+        AIKO_ASSERT(request.buffer != nullptr, "Compute readback buffer is null");
+        AIKO_ASSERT(request.buffer->isValid(), "Compute readback buffer is invalid");
 
+        auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(request.buffer->getImpl());
+        AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan compute buffer implementation");
+
+        PendingReadback pending = {};
+        pending.id = request.id;
+        pending.data.resize(request.byteSize);
+
+        bufferImpl->read(pending.data.data(), request.byteSize);
+        m_pendingReadbacks.push_back(std::move(pending));
     }
 
     bool VulkanRenderDevice::pollReadback(ComputeReadbackResult& result)
     {
-        return false;
+        if (m_pendingReadbacks.empty() == false)
+        {
+            return false;
+        }
+
+        PendingReadback pending = std::move(m_pendingReadbacks.front());
+
+        m_pendingReadbacks.erase(m_pendingReadbacks.begin());
+
+        result.id = pending.id;
+        result.ready = true;
+        result.data = std::move(pending.data);
+
+        return true;
     }
 
     void VulkanRenderDevice::drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc)

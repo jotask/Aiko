@@ -194,5 +194,14 @@ namespace aiko::renderer::vulkan
 
         void updateComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings);
 
+        struct PendingReadback
+        {
+            ReadbackId id = InvalidReadbackId;
+            vector<uint8_t> data;
+        };
+
+        vector<PendingReadback> m_pendingReadbacks;
+        ReadbackId m_nextReadbackId = 1;
+
     };
 }
