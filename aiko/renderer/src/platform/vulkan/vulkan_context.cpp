@@ -972,13 +972,18 @@ namespace aiko::renderer::vulkan
 
     void VulkanContext::generateMipmaps(VkImage image, VkFormat format, uint32_t width, uint32_t height, uint32_t mipLevels)
     {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+        generateMipmaps(commandBuffer, image, format, width, height, mipLevels);
+        endSingleTimeCommands(commandBuffer);
+    }
+
+    void VulkanContext::generateMipmaps(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, uint32_t width, uint32_t height, uint32_t mipLevels)
+    {
 
         VkFormatProperties formatProperties;
         vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &formatProperties );
 
         AIKO_ASSERT(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT, "Texture format does not support linear blitting" );
-
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
         int32_t mipWidth = static_cast<int32_t>(width);
         int32_t mipHeight = static_cast<int32_t>(height);
@@ -1060,8 +1065,6 @@ namespace aiko::renderer::vulkan
         finalBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &finalBarrier);
-
-        endSingleTimeCommands(commandBuffer);
 
     }
 
