@@ -15,7 +15,7 @@ namespace aiko::renderer::bgfx
     {
     }
 
-    uint BgfxFrameBufferImpl::id() const
+    RenderResourceId BgfxFrameBufferImpl::id() const
     {
         return m_frameBuffer.idx;
     }

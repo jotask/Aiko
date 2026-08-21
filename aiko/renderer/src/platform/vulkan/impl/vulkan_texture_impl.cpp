@@ -23,7 +23,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(m_sampler == VK_NULL_HANDLE && m_view == VK_NULL_HANDLE && m_image == VK_NULL_HANDLE && m_memory == VK_NULL_HANDLE, "VulkanTextureImpl destroyed without unload()");
     }
 
-    uint VulkanTextureImpl::id() const
+    RenderResourceId VulkanTextureImpl::id() const
     {
         return static_cast<uint>(reinterpret_cast<uintptr_t>(m_view));
     }

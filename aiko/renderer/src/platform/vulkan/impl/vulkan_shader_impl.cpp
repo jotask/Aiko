@@ -86,7 +86,7 @@ namespace aiko::renderer::vulkan
     }
 
 
-    uint VulkanShaderImpl::id() const
+    RenderResourceId VulkanShaderImpl::id() const
     {
         return {};
     }
