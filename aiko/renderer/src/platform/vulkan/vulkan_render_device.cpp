@@ -382,28 +382,23 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::execute(ViewId viewId, const ComputePass& pass)
     {
+
+        logger::Log::info("Vulkan compute dispatch: %zu buffers, groups = (%u, %u, %u)", pass.buffers.size(), pass.dispatch.groupsX, pass.dispatch.groupsY, pass.dispatch.groupsZ);
+
         AIKO_ASSERT(viewId == COMPUTE_VIEW, "Compute pass must use COMPUTE_VIEW");
         AIKO_ASSERT(pass.shader != nullptr, "Compute pass has no shader");
         AIKO_ASSERT(pass.shader->isValid(), "Invalid compute shader");
-        AIKO_ASSERT(pass.buffers.size() == 1, "Vulkan compute currently supports exactly one buffer");
         AIKO_ASSERT(pass.images.empty(), "Vulkan compute images are not supported yet");
         AIKO_ASSERT(pass.vec4Uniforms.empty(), "Vulkan compute uniforms are not supported yet");
-
-        const ComputeBufferBinding& binding = pass.buffers[0];
-
-        AIKO_ASSERT(binding.stage == 0, "Vulkan compute currently supports storage buffer binding 0 only");
-        AIKO_ASSERT(binding.buffer != nullptr, "Compute buffer binding is null");
-        AIKO_ASSERT(binding.buffer->isValid(),"Invalid compute buffer");
+        AIKO_ASSERT(pass.buffers.empty() == false, "Vulkan compute currently requires at least one buffer");
+        AIKO_ASSERT(pass.buffers.size() <= MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
 
         auto* shaderImpl = static_cast<VulkanComputeShaderImpl*>(pass.shader->getImpl());
-        auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
-
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan compute shader implementation");
-        AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan compute buffer implementation");
 
         createComputePipeline(shaderImpl->module());
 
-        updateComputeDescriptor(bufferImpl->buffer(), bufferImpl->size() );
+        updateComputeDescriptors(pass.buffers);
 
         VkCommandBuffer commandBuffer = m_context.beginComputeCommands();
 
@@ -1430,20 +1425,25 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::createComputePipelineLayout()
     {
-        const VkDescriptorSetLayoutBinding bufferBinding =
+        std::array<VkDescriptorSetLayoutBinding, MaxComputeBufferBindings> bindings{};
+
+        for (uint32_t i = 0; i < MaxComputeBufferBindings; ++i)
         {
-            .binding = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .pImmutableSamplers = nullptr,
-        };
+            bindings[i] =
+            {
+                .binding = i,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .descriptorCount = 1,
+                .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+                .pImmutableSamplers = nullptr,
+            };
+        }
 
         const VkDescriptorSetLayoutCreateInfo descriptorLayoutInfo =
         {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .bindingCount = 1,
-            .pBindings = &bufferBinding,
+            .bindingCount = static_cast<uint32_t>(bindings.size()),
+            .pBindings = bindings.data(),
         };
 
         const VkResult descriptorResult = vkCreateDescriptorSetLayout(m_context.device(), &descriptorLayoutInfo, nullptr, &m_computeDescriptorSetLayout);
@@ -1522,7 +1522,7 @@ namespace aiko::renderer::vulkan
         const VkDescriptorPoolSize poolSize =
         {
             .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .descriptorCount = 1,
+            .descriptorCount = MaxComputeBufferBindings,
         };
 
         const VkDescriptorPoolCreateInfo poolInfo =
@@ -1558,29 +1558,50 @@ namespace aiko::renderer::vulkan
         }
     }
 
-    void VulkanRenderDevice::updateComputeDescriptor(VkBuffer buffer, VkDeviceSize size)
+    void VulkanRenderDevice::updateComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings)
     {
-        AIKO_ASSERT(buffer != VK_NULL_HANDLE, "Invalid compute storage buffer");
+        AIKO_ASSERT(bindings.size() <= MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
 
-        const VkDescriptorBufferInfo bufferInfo =
+        std::array<VkDescriptorBufferInfo, MaxComputeBufferBindings> bufferInfos{};
+        std::array<VkWriteDescriptorSet, MaxComputeBufferBindings> writes{};
+        std::array<bool, MaxComputeBufferBindings> usedBindings{};
+
+        uint32_t writeCount = 0;
+
+        for (const ComputeBufferBinding& binding : bindings)
         {
-            .buffer = buffer,
-            .offset = 0,
-            .range = size,
-        };
+            AIKO_ASSERT(binding.stage < MaxComputeBufferBindings, "Compute buffer binding exceeds Vulkan binding limit");
+            AIKO_ASSERT(usedBindings[binding.stage] == false, "Duplicate Vulkan compute buffer binding");
+            AIKO_ASSERT(binding.buffer != nullptr, "Compute buffer binding is null");
+            AIKO_ASSERT(binding.buffer->isValid(), "Invalid compute buffer");
 
-        const VkWriteDescriptorSet write =
-        {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = m_computeDescriptorSet,
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .pBufferInfo = &bufferInfo,
-        };
+            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
+            AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan compute buffer implementation");
 
-        vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
+            usedBindings[binding.stage] = true;
+
+            bufferInfos[writeCount] =
+            {
+                .buffer = bufferImpl->buffer(),
+                .offset = 0,
+                .range = bufferImpl->size(),
+            };
+
+            writes[writeCount] =
+            {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = m_computeDescriptorSet,
+                .dstBinding = binding.stage,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .pBufferInfo = &bufferInfos[writeCount],
+            };
+
+            ++writeCount;
+        }
+
+        vkUpdateDescriptorSets(m_context.device(), writeCount, writes.data(), 0, nullptr);
 
     }
 

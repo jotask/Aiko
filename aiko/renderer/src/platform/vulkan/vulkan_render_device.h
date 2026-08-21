@@ -62,6 +62,8 @@ namespace aiko::renderer::vulkan
 
     private:
 
+        static constexpr uint32_t MaxComputeBufferBindings = 4;
+
         VulkanContext m_context;
 
         bool m_frameActive = false;
@@ -189,7 +191,7 @@ namespace aiko::renderer::vulkan
         void createComputeDescriptorPool();
         void destroyComputeDescriptorPool();
 
-        void updateComputeDescriptor( VkBuffer buffer, VkDeviceSize size);
+        void updateComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings);
 
     };
 }
