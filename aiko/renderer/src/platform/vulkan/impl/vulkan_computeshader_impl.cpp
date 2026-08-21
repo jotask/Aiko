@@ -79,7 +79,7 @@ namespace aiko::renderer::vulkan
         m_file.clear();
     }
 
-    RenderResourceId VulkanComputeShaderImpl::id()
+    RenderResourceId VulkanComputeShaderImpl::id() const
     {
         return static_cast<uint>(reinterpret_cast<uintptr_t>(m_module));
     }
