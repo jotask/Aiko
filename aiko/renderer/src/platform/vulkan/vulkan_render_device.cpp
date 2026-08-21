@@ -30,6 +30,7 @@ namespace aiko::renderer::vulkan
 
     VulkanRenderDevice::~VulkanRenderDevice()
     {
+        AIKO_ASSERT(m_context.device() == VK_NULL_HANDLE, "VulkanRenderDevice destroyed without shutdown()");
     }
 
     bool VulkanRenderDevice::init(const DeviceInitDesc& desc)
