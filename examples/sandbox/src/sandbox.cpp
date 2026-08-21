@@ -20,7 +20,7 @@
 
 #include "components/compute_shader_component.h"
 
-// #define TEST_LOAD_MESHES
+#define TEST_LOAD_MESHES
 #define TEST_COMPONENTS
 #define TEST_PRIMITIVES
 #define TEST_LIGHTS
