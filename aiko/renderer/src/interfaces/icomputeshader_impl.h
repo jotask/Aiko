@@ -20,7 +20,7 @@ namespace aiko
             virtual void load(string file) = 0;
             virtual void unload() = 0;
 
-            virtual RenderResourceId id() = 0;
+            virtual RenderResourceId id() const = 0;
 
         };
     }

@@ -23,7 +23,7 @@ namespace aiko::renderer::bgfx
         virtual void load(string file) override;
         virtual void unload() override;
 
-        virtual uint id() override;
+        virtual uint id() const override;
 
         ::bgfx::ProgramHandle getProgramHandler() const { return m_programHandle; }
 

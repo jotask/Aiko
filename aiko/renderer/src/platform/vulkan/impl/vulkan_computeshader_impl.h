@@ -22,7 +22,7 @@ namespace aiko::renderer::vulkan
         virtual void load(string file) override;
         virtual void unload() override;
 
-        virtual RenderResourceId id() override;
+        virtual RenderResourceId id() const override;
 
         VkShaderModule module() const { return m_module; }
 
