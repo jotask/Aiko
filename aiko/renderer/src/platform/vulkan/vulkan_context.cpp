@@ -1262,8 +1262,23 @@ namespace aiko::renderer::vulkan
             .pCommandBuffers = &commandBuffer,
         };
 
-        vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(m_graphicsQueue);
+        const VkFenceCreateInfo fenceInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        };
+
+        VkFence fence = VK_NULL_HANDLE;
+
+        VkResult resultFence = vkCreateFence(m_device, &fenceInfo, nullptr, &fence);
+        AIKO_ASSERT(resultFence == VK_SUCCESS, "Failed to create one-time command fence");
+
+        VkResult resultSubmit = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, fence);
+        AIKO_ASSERT(resultSubmit == VK_SUCCESS, "Failed to submit one-time command buffer");
+
+        VkResult resultWait = vkWaitForFences(m_device, 1, &fence, VK_TRUE, UINT64_MAX);
+        AIKO_ASSERT(resultWait == VK_SUCCESS, "Failed waiting for one-time command buffer");
+
+        vkDestroyFence(m_device, fence, nullptr);
 
         vkFreeCommandBuffers(m_device, m_commandPool, 1, &commandBuffer);
     }
