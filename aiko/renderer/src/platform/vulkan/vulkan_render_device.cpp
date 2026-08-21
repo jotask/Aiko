@@ -405,6 +405,8 @@ namespace aiko::renderer::vulkan
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipelineLayout, 0, 1, &m_computeDescriptorSet, 0, nullptr);
 
+        updateComputeUniforms(pass.vec4Uniforms);
+
         if (pass.vec4Uniforms.empty() == false)
         {
             std::array<vec4, MaxComputeVec4Uniforms> uniforms{};
@@ -1644,6 +1646,24 @@ namespace aiko::renderer::vulkan
 
         vkUpdateDescriptorSets(m_context.device(), writeCount, writes.data(), 0, nullptr);
 
+    }
+
+    void VulkanRenderDevice::updateComputeUniforms(const vector<ComputeVec4Uniform>& uniforms)
+    {
+        if (uniforms.empty())
+        {
+            return;
+        }
+
+        std::array<vec4, MaxComputeVec4Uniforms> values{};
+
+        for (const ComputeVec4Uniform& uniform : uniforms)
+        {
+            AIKO_ASSERT(uniform.slot < MaxComputeVec4Uniforms, "Compute uniform slot out of range");
+            values[uniform.slot] = uniform.value;
+        }
+
+        vkCmdPushConstants(m_context.activeCommandBuffer(), m_computePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(values), values.data());
     }
 
     void VulkanRenderDevice::waitIdle()

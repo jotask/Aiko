@@ -193,6 +193,7 @@ namespace aiko::renderer::vulkan
         void destroyComputeDescriptorPool();
 
         void updateComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings);
+        void updateComputeUniforms(const vector<ComputeVec4Uniform>& uniforms);
 
         struct PendingReadback
         {
