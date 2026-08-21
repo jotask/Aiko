@@ -14,10 +14,10 @@
 namespace aiko
 {
     AikoRenderer::AikoRenderer(IAssetProvider& assets, IAssetRegistry* registry)
-            : m_renderer(renderer::RendererFactory::createRenderDevice(&m_resources))
-            , m_assetRegistry(registry)
-            , m_resources(assets)
-            , m_background_color(RAYWHITE)
+        : m_resources(assets)
+        , m_renderer(renderer::RendererFactory::createRenderDevice(&m_resources))
+        , m_assetRegistry(registry)
+        , m_background_color(RAYWHITE)
     {
 
     }

@@ -75,6 +75,7 @@ namespace aiko
 
         void onWindowResize(WindowResizeEvent&);
 
+        RenderResourceManager m_resources;
         AikoPtr<renderer::IRenderDevice> m_renderer;
 
     protected:
@@ -205,7 +206,6 @@ namespace aiko
 
         AikoImgui m_imgui;
         IAssetRegistry* m_assetRegistry = nullptr;
-        RenderResourceManager m_resources;
 
         std::optional<ivec2> m_windowResizeRequest = std::nullopt;
 
