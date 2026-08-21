@@ -42,6 +42,7 @@ namespace aiko::renderer::vulkan
         TextureInfo m_info = {};
         VkFormat m_vkFormat = VK_FORMAT_UNDEFINED;
         VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+        uint32_t m_mipLevels = 1;
 
         VkFormat convertToVkFormat(const TextureFormat format);
 

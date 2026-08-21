@@ -560,7 +560,7 @@ namespace aiko::renderer::vulkan
 
         for (size_t i = 0; i < imageCount; ++i)
         {
-            createImage(m_swapChainExtent.width, m_swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_swapChainDepthImages[i], m_swapChainDepthMemories[i]);
+            createImage(m_swapChainExtent.width, m_swapChainExtent.height, 1, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_swapChainDepthImages[i], m_swapChainDepthMemories[i]);
             m_swapChainDepthViews[i] = createImageView(m_swapChainDepthImages[i], depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
         }
     }
@@ -922,7 +922,7 @@ namespace aiko::renderer::vulkan
         return indices;
     }
 
-    void VulkanContext::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
+    void VulkanContext::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
     {
         const VkImageCreateInfo imageInfo =
         {
@@ -934,7 +934,7 @@ namespace aiko::renderer::vulkan
                 .height = height,
                 .depth = 1,
             },
-            .mipLevels = 1,
+            .mipLevels = mipLevels,
             .arrayLayers = 1,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .tiling = tiling,
@@ -1260,7 +1260,7 @@ namespace aiko::renderer::vulkan
         return actualExtent;
     }
 
-    VkImageView VulkanContext::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+    VkImageView VulkanContext::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
     {
         const VkImageViewCreateInfo viewInfo =
         {
@@ -1271,7 +1271,7 @@ namespace aiko::renderer::vulkan
             .subresourceRange = {
                 .aspectMask = aspectFlags,
                 .baseMipLevel = 0,
-                .levelCount = 1,
+                .levelCount = mipLevels,
                 .baseArrayLayer = 0,
                 .layerCount = 1,
             },

@@ -53,7 +53,7 @@ namespace aiko::renderer::vulkan
 
         m_vkFormat = convertToVkFormat(desc.format);
 
-        VkImageUsageFlags usage = 0;
+        VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
 
         switch (desc.type)
@@ -63,10 +63,7 @@ namespace aiko::renderer::vulkan
                 break;
 
             case TextureType::RenderTarget:
-                usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                        VK_IMAGE_USAGE_SAMPLED_BIT |
-                        VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-
+                usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
                 if (desc.computeWrite)
                 {
                     usage |= VK_IMAGE_USAGE_STORAGE_BIT;
@@ -85,6 +82,7 @@ namespace aiko::renderer::vulkan
         ctx.createImage(
             static_cast<uint32_t>(desc.width),
             static_cast<uint32_t>(desc.height),
+            m_mipLevels,
             m_vkFormat,
             VK_IMAGE_TILING_OPTIMAL,
             usage,
@@ -119,6 +117,22 @@ namespace aiko::renderer::vulkan
 
             const VkResult result = vkCreateSampler(ctx.device(), &samplerInfo, nullptr, &m_sampler);
             AIKO_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan texture sampler");
+        }
+
+        if (desc.mipmaps)
+        {
+            m_mipLevels =
+                static_cast<uint32_t>(
+                    std::floor(
+                        std::log2(
+                            std::max(desc.width, desc.height)
+                        )
+                    )
+                ) + 1;
+        }
+        else
+        {
+            m_mipLevels = 1;
         }
 
         m_info =
