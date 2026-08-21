@@ -83,7 +83,7 @@ namespace aiko::renderer::vulkan
                 AIKO_ASSERT(false, "Unsupported Vulkan texture type");
         }
 
-        if (desc.mipmaps)
+        if (desc.type == TextureType::Sampled && desc.mipmaps)
         {
             m_mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(desc.width, desc.height)))) + 1;
         }
@@ -261,7 +261,6 @@ namespace aiko::renderer::vulkan
             ctx.transitionImageLayout(m_image, m_vkFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
 
-        m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
         vkDestroyBuffer(ctx.device(), stagingBuffer, nullptr);
