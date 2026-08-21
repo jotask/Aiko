@@ -60,6 +60,7 @@ namespace aiko
     {
         const char* name = nullptr;
         vec4 value = vec4(0.0f);
+        uint8_t slot = 0;
     };
 
     struct ComputePass

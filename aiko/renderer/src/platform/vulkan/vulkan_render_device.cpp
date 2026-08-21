@@ -389,7 +389,6 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(pass.shader != nullptr, "Compute pass has no shader");
         AIKO_ASSERT(pass.shader->isValid(), "Invalid compute shader");
         AIKO_ASSERT(pass.images.empty(), "Vulkan compute images are not supported yet");
-        AIKO_ASSERT(pass.vec4Uniforms.empty(), "Vulkan compute uniforms are not supported yet");
         AIKO_ASSERT(pass.buffers.empty() == false, "Vulkan compute currently requires at least one buffer");
         AIKO_ASSERT(pass.buffers.size() <= MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
 
@@ -405,6 +404,17 @@ namespace aiko::renderer::vulkan
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipeline);
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipelineLayout, 0, 1, &m_computeDescriptorSet, 0, nullptr);
+
+        if (pass.vec4Uniforms.empty() == false)
+        {
+            std::array<vec4, MaxComputeVec4Uniforms> uniforms{};
+            for (const ComputeVec4Uniform& uniform : pass.vec4Uniforms)
+            {
+                AIKO_ASSERT(uniform.slot < MaxComputeVec4Uniforms, "Compute uniform slot exceeds Vulkan push constant limit");
+                uniforms[uniform.slot] = uniform.value;
+            }
+            vkCmdPushConstants(commandBuffer, m_computePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(vec4) * MaxComputeVec4Uniforms, uniforms.data());
+        }
 
         vkCmdDispatch(commandBuffer, pass.dispatch.groupsX, pass.dispatch.groupsY, pass.dispatch.groupsZ);
 
@@ -1450,13 +1460,20 @@ namespace aiko::renderer::vulkan
 
         AIKO_ASSERT(descriptorResult == VK_SUCCESS, "Failed to create compute descriptor set layout");
 
+        const VkPushConstantRange pushConstantRange =
+        {
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+            .offset = 0,
+            .size = sizeof(vec4) * MaxComputeVec4Uniforms,
+        };
+
         const VkPipelineLayoutCreateInfo pipelineLayoutInfo =
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .setLayoutCount = 1,
             .pSetLayouts = &m_computeDescriptorSetLayout,
-            .pushConstantRangeCount = 0,
-            .pPushConstantRanges = nullptr,
+            .pushConstantRangeCount = 1,
+            .pPushConstantRanges = &pushConstantRange,
         };
 
         const VkResult pipelineResult = vkCreatePipelineLayout(m_context.device(), &pipelineLayoutInfo, nullptr, &m_computePipelineLayout);
