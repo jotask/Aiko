@@ -25,26 +25,10 @@
 #define TEST_PRIMITIVES
 #define TEST_LIGHTS
 // #define TEST_CS
-#define TEST_MULTI_BUFFER_CS
 // #define TEST_PARTICLE_CS
 
 namespace sb
 {
-
-    #ifdef TEST_MULTI_BUFFER_CS
-
-    namespace
-    {
-        aiko::AikoPtr<aiko::ComputeShaderComponent> s_computeMultiBuffer;
-
-        aiko::ComputeBuffer s_computeInput;
-        aiko::ComputeBuffer s_computeOutput;
-
-        bool s_computeBuffersInitialized = false;
-        bool s_computeDispatched = false;
-    }
-
-    #endif
 
     void Sandbox::init()
     {
@@ -184,21 +168,7 @@ namespace sb
 
 #endif
 
-    #ifdef TEST_MULTI_BUFFER_CS
-    {
-        auto computeTest = app->Instantiate(root, "MultiBufferComputeTest");
-
-        s_computeMultiBuffer = computeTest->addComponent<aiko::ComputeShaderComponent>();
-
-        s_computeMultiBuffer->load("compute_multi_buffer");
-
-        // Important:
-        // We don't want ComputeSystem to automatically dispatch this component.
-        s_computeMultiBuffer->setExecutionMode( aiko::ComputeShaderComponent::ComputeExecutionMode::OnDemand);
-    }
-    #endif
-
-    #ifdef TEST_PARTICLE_CS
+#ifdef TEST_PARTICLE_CS
         auto ps = app->Instantiate(root, "Particle Emitter");
         ps->transform().position = { 0.0f, 0.0f, -3.5f };
         auto emitter = ps->addComponent<aiko::ParticleEmitterComponent>();
@@ -215,7 +185,7 @@ namespace sb
         emitter->setSpawnRadius(spawnSize);
         emitter->setSpawnBoxExtents({spawnSize, spawnSize, spawnSize});
         emitter->requestReset();
-    #endif
+#endif
 
     }
 
@@ -365,7 +335,6 @@ namespace sb
 
 #endif
 
-
 #ifdef TEST_LIGHTS
         {
             for (auto& light : m_lights)
@@ -374,69 +343,6 @@ namespace sb
             }
         }
 #endif
-
-    #ifdef TEST_MULTI_BUFFER_CS
-    {
-        constexpr uint32_t elementCount = 4;
-
-        if (s_computeBuffersInitialized == false)
-        {
-            const std::array<aiko::vec4, elementCount> input =
-            {
-                aiko::vec4{1.0f, 1.0f, 1.0f, 1.0f},
-                aiko::vec4{2.0f, 2.0f, 2.0f, 2.0f},
-                aiko::vec4{3.0f, 3.0f, 3.0f, 3.0f},
-                aiko::vec4{4.0f, 4.0f, 4.0f, 4.0f},
-            };
-
-            const std::array<aiko::vec4, elementCount> output = {};
-
-            s_computeInput.createVec4(
-                elementCount,
-                input.data(),
-                aiko::ComputeAccess::Read);
-
-            s_computeOutput.createVec4(
-                elementCount,
-                output.data(),
-                aiko::ComputeAccess::Write);
-
-            s_computeBuffersInitialized = true;
-        }
-
-        if (s_computeDispatched == false)
-        {
-            aiko::ComputePass pass{};
-
-            pass.buffers =
-            {
-                    {
-                        .stage = 0,
-                        .buffer = &s_computeInput,
-                        .access = aiko::ComputeAccess::Read,
-                    },
-                    {
-                        .stage = 1,
-                        .buffer = &s_computeOutput,
-                        .access = aiko::ComputeAccess::Write,
-                    },
-                };
-
-            pass.dispatch =
-            {
-                .groupsX = elementCount,
-                .groupsY = 1,
-                .groupsZ = 1,
-            };
-
-            app->getRenderSystem()->dispatch(
-                pass,
-                *s_computeMultiBuffer);
-
-            s_computeDispatched = true;
-        }
-    }
-    #endif
 
     }
 }
