@@ -13,7 +13,7 @@ namespace aiko::renderer::vulkan
     public:
 
         VulkanTextureImpl();
-        virtual ~VulkanTextureImpl() override = default;
+        virtual ~VulkanTextureImpl() override;
 
         virtual uint id() const override;
         virtual void use() override;

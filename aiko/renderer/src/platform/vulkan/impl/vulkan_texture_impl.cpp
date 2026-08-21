@@ -18,6 +18,11 @@ namespace aiko::renderer::vulkan
     {
     }
 
+    VulkanTextureImpl::~VulkanTextureImpl()
+    {
+        AIKO_ASSERT(m_sampler == VK_NULL_HANDLE && m_view == VK_NULL_HANDLE && m_image == VK_NULL_HANDLE && m_memory == VK_NULL_HANDLE, "VulkanTextureImpl destroyed without unload()");
+    }
+
     uint VulkanTextureImpl::id() const
     {
         return static_cast<uint>(reinterpret_cast<uintptr_t>(m_view));
@@ -173,6 +178,7 @@ namespace aiko::renderer::vulkan
             m_info = {};
             m_vkFormat = VK_FORMAT_UNDEFINED;
             m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+            m_mipLevels = 1;
             return;
         }
 
@@ -190,6 +196,7 @@ namespace aiko::renderer::vulkan
         m_memory = VK_NULL_HANDLE;
         m_vkFormat = VK_FORMAT_UNDEFINED;
         m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+        m_mipLevels = 1;
         m_info = {};
     }
 
