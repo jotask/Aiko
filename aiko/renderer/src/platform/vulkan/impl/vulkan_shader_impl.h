@@ -13,7 +13,7 @@ namespace aiko::renderer::vulkan
     public:
 
         VulkanShaderImpl();
-        virtual ~VulkanShaderImpl() override = default;
+        virtual ~VulkanShaderImpl() override;
 
         virtual uint id() const override;
         virtual void use() override;

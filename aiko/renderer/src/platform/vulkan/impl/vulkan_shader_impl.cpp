@@ -14,6 +14,11 @@ namespace aiko::renderer::vulkan
     {
     }
 
+    VulkanShaderImpl::~VulkanShaderImpl()
+    {
+        AIKO_ASSERT(m_vertexModule == VK_NULL_HANDLE && m_fragmentModule == VK_NULL_HANDLE, "VulkanShaderImpl destroyed without unload()");
+    }
+
     void VulkanShaderImpl::load(const char* vs, const char* fs)
     {
 
