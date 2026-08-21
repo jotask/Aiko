@@ -242,32 +242,46 @@ namespace aiko::renderer::vulkan
 
         VkBuffer stagingBuffer = VK_NULL_HANDLE;
         VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
+
         const VkDeviceSize imageSize = packed.size();
 
-        ctx.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,stagingMemory);
+        ctx.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
 
         void* data = nullptr;
-        vkMapMemory(ctx.device(), stagingMemory, 0, imageSize, 0, &data);
+
+        const VkResult mapResult = vkMapMemory(ctx.device(), stagingMemory, 0, imageSize, 0, &data);
+        AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map texture staging memory");
+
         std::memcpy(data, packed.data(), packed.size());
+
         vkUnmapMemory(ctx.device(), stagingMemory);
+
+        // ---------------------------------------------------------
+        // Record the entire texture upload in one command buffer.
+        // ---------------------------------------------------------
+
+        VkCommandBuffer commandBuffer = ctx.beginSingleTimeCommands();
 
         if (m_layout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
         {
-            ctx.transitionImageLayout(m_image, m_vkFormat, m_layout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, m_mipLevels);
-            m_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            ctx.transitionImageLayout(commandBuffer, m_image, m_vkFormat, m_layout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, m_mipLevels);
         }
 
-        ctx.copyBufferToImage(stagingBuffer, m_image, m_info.width, m_info.height);
+        ctx.copyBufferToImage(commandBuffer, stagingBuffer, m_image, m_info.width, m_info.height);
 
         if (m_mipLevels > 1)
         {
-            ctx.generateMipmaps(m_image, m_vkFormat, m_info.width, m_info.height, m_mipLevels);
+            ctx.generateMipmaps(commandBuffer, m_image, m_vkFormat, m_info.width, m_info.height, m_mipLevels);
         }
         else
         {
-            ctx.transitionImageLayout(m_image, m_vkFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            ctx.transitionImageLayout(commandBuffer, m_image, m_vkFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
 
+        ctx.endSingleTimeCommands(commandBuffer);
+
+        // The upload has completed because endSingleTimeCommands()
+        // waits for its submission fence.
         m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
         vkDestroyBuffer(ctx.device(), stagingBuffer, nullptr);
