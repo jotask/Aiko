@@ -3,7 +3,9 @@
 #include <aiko_types.h>
 #include <types/color.h>
 #include <metadata/texture_meta.h>
+
 #include "assets/types/texture_asset.h"
+#include "types/render_types.h"
 
 namespace aiko
 {
@@ -13,7 +15,7 @@ namespace aiko
         {
             virtual ~ITextureImpl() = default;
 
-            virtual uint id() const = 0;
+            virtual RenderResourceId id() const = 0;
             virtual void use() = 0;
             virtual void unuse() = 0;
             virtual bool isValid() const = 0;

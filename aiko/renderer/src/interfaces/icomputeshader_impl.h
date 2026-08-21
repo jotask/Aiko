@@ -2,6 +2,8 @@
 
 #include <aiko_types.h>
 
+#include "types/render_types.h"
+
 namespace aiko
 {
     namespace interfaces
@@ -18,7 +20,7 @@ namespace aiko
             virtual void load(string file) = 0;
             virtual void unload() = 0;
 
-            virtual uint id() = 0;
+            virtual RenderResourceId id() = 0;
 
         };
     }

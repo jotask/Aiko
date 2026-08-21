@@ -18,7 +18,7 @@ namespace aiko::renderer::bgfx
     {
     }
 
-    uint BgfxTextureImpl::id() const
+    RenderResourceId BgfxTextureImpl::id() const
     {
         return m_textureHandle.idx;
     }

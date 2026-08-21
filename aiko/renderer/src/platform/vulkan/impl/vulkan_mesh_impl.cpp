@@ -153,7 +153,7 @@ namespace aiko::renderer::vulkan
         vkFreeMemory(device, stagingIndexMemory, nullptr);
     }
 
-    uint VulkanMeshImpl::id()
+    RenderResourceId VulkanMeshImpl::id()
     {
         return static_cast<uint>(reinterpret_cast<uintptr_t>(m_vertexBuffer));
     }

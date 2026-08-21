@@ -26,7 +26,7 @@ namespace aiko
         return backend->unload();
     }
 
-    uint ComputeShader::id()
+    RenderResourceId ComputeShader::id()
     {
         return backend->id();
     }

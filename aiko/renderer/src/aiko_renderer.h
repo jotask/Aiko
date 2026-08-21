@@ -144,8 +144,8 @@ namespace aiko
         struct PreparedInstancedPacket
         {
             InstancedDrawPacket draw;
-            u64 materialId = 0;
-            u32 meshId = 0;
+            MaterialId materialId = 0;
+            RenderResourceId meshId = 0;
 
             size_t mergedDataOffset = 0;
             size_t mergedByteCount = 0;

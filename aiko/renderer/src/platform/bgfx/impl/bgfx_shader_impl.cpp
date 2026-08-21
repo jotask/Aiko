@@ -74,7 +74,7 @@ namespace aiko::renderer::bgfx
     }
 
 
-    uint BgfxShaderImpl::id() const
+    RenderResourceId BgfxShaderImpl::id() const
     {
         return m_programHandle.idx;
     }

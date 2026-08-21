@@ -19,7 +19,7 @@ namespace aiko::renderer::vulkan
         virtual bool isValid() const override;
         virtual void unload() override;
         virtual void refresh(const MeshAsset&) override;
-        virtual uint id() override;
+        virtual RenderResourceId id() override;
 
         Texture* getTexture() { return &m_texture; }
 

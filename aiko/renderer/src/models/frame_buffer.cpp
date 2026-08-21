@@ -26,7 +26,7 @@ namespace aiko
         return backend->isValid() && colorTexture.isValid() && depthTexture.isValid();
     }
 
-    uint FrameBuffer::id() const
+    RenderResourceId FrameBuffer::id() const
     {
         return backend->id();
     }

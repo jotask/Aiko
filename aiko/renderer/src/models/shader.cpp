@@ -15,7 +15,7 @@ namespace aiko
         AIKO_ASSERT(backend != nullptr, "RendererFactory::createShaderImpl returned null");
     }
 
-    uint Shader::id() const
+    RenderResourceId Shader::id() const
     {
         return backend->id();
     }

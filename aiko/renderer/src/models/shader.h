@@ -31,7 +31,7 @@ namespace aiko
 
         void* getImpl() const { return backend.get(); }
 
-        uint id() const;
+        RenderResourceId id() const;
 
         void load(const char* fileCodeName);
         void load(const char* vs, const char* fs);

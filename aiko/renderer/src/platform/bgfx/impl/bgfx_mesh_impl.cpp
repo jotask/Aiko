@@ -65,7 +65,7 @@ namespace aiko::renderer::bgfx
 
     }
 
-    uint BgfxMeshImpl::id()
+    RenderResourceId BgfxMeshImpl::id()
     {
         const auto vbIDX = getVertexBuffferHandler().idx;
         const auto ibIDX = getIndexBuffferHandler().idx;

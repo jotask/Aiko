@@ -15,7 +15,7 @@ namespace aiko::renderer::vulkan
         VulkanTextureImpl();
         virtual ~VulkanTextureImpl() override;
 
-        virtual uint id() const override;
+        virtual RenderResourceId id() const override;
         virtual void use() override;
         virtual void unuse() override;
         virtual bool isValid() const override;

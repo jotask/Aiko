@@ -35,7 +35,7 @@ namespace aiko
         void use();
         void unuse();
         bool isValid() const;
-        uint id() const;
+        RenderResourceId id() const;
         TextureInfo getInfo() const;
 
         // load

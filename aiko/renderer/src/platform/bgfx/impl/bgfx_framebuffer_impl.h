@@ -19,7 +19,7 @@ namespace aiko::renderer::bgfx
 
         virtual ~BgfxFrameBufferImpl() override = default;
 
-        virtual uint id() const override;
+        virtual RenderResourceId id() const override;
 
         virtual void use() override;
 

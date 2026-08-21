@@ -16,7 +16,7 @@ namespace aiko::renderer::vulkan
 
         virtual ~VulkanFrameBufferImpl() override;
 
-        virtual uint id() const override;
+        virtual RenderResourceId id() const override;
 
         virtual void use() override;
 

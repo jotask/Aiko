@@ -35,7 +35,7 @@
         void load(string file);
         void unload();
 
-        uint id();
+        RenderResourceId id();
 
     private:
 

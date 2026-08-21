@@ -12,6 +12,10 @@ namespace aiko
     class Material;
 
     using ViewId = uint16_t;
+    using RenderResourceId = uint64_t;
+    using MaterialId = uint64_t;
+
+    constexpr RenderResourceId InvalidRenderResourceId = 0;
 
     constexpr ViewId COMPUTE_VIEW = 0;
     constexpr ViewId COMPUTE_DRAW = 1;
