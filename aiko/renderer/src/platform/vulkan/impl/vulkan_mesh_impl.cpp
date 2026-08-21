@@ -38,6 +38,11 @@ namespace aiko::renderer::vulkan
 
     }
 
+    VulkanMeshImpl::~VulkanMeshImpl()
+    {
+        AIKO_ASSERT(m_vertexBuffer == VK_NULL_HANDLE && m_vertexMemory == VK_NULL_HANDLE && m_indexBuffer == VK_NULL_HANDLE && m_indexMemory == VK_NULL_HANDLE, "VulkanMeshImpl destroyed without unload()");
+    }
+
     bool VulkanMeshImpl::isValid() const
     {
         return m_vertexBuffer != VK_NULL_HANDLE &&
@@ -49,8 +54,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanMeshImpl::unload()
     {
-        if (m_vertexBuffer == VK_NULL_HANDLE &&
-        m_indexBuffer == VK_NULL_HANDLE)
+        if (m_vertexBuffer == VK_NULL_HANDLE && m_vertexMemory == VK_NULL_HANDLE && m_indexBuffer == VK_NULL_HANDLE && m_indexMemory == VK_NULL_HANDLE)
         {
             m_indexCount = 0;
             return;

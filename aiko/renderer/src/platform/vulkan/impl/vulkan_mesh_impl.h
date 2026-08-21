@@ -14,7 +14,7 @@ namespace aiko::renderer::vulkan
     public:
 
         explicit VulkanMeshImpl(const Mesh* mesh);
-        virtual ~VulkanMeshImpl() override = default;
+        virtual ~VulkanMeshImpl() override;
 
         virtual bool isValid() const override;
         virtual void unload() override;
