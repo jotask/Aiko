@@ -193,7 +193,7 @@ namespace aiko::renderer::vulkan
         void createComputeDescriptorPool();
         void destroyComputeDescriptorPool();
 
-        void updateComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings);
+        void updateComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images);
         void updateComputeUniforms(const vector<ComputeVec4Uniform>& uniforms);
         void updateComputeImages(const vector<ComputeImageBinding>& bindings);
         void transitionComputeImages(const vector<ComputeImageBinding>& bindings);

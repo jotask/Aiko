@@ -398,9 +398,17 @@ namespace aiko::renderer::vulkan
 
         VkCommandBuffer commandBuffer = m_context.beginComputeCommands();
 
+        for (const ComputeImageBinding& image : pass.images)
+        {
+            auto* textureImpl = static_cast<VulkanTextureImpl*>(image.texture->getImpl());
+            AIKO_ASSERT(textureImpl != nullptr, "Invalid compute texture");
+            m_context.transitionImageLayout(commandBuffer, textureImpl->image(), textureImpl->format(), textureImpl->layout(), VK_IMAGE_LAYOUT_GENERAL);
+        }
+
+        updateComputeDescriptors(pass.buffers, pass.images);
+
         transitionComputeImages(pass.images);
 
-        updateComputeDescriptors(pass.buffers);
         updateComputeImages(pass.images);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipeline);
@@ -1514,7 +1522,6 @@ namespace aiko::renderer::vulkan
         };
 
         const VkResult descriptorResult = vkCreateDescriptorSetLayout(m_context.device(), &descriptorLayoutInfo, nullptr, &m_computeDescriptorSetLayout);
-
         AIKO_ASSERT(descriptorResult == VK_SUCCESS, "Failed to create compute descriptor set layout");
 
         const VkPushConstantRange pushConstantRange =
@@ -1640,12 +1647,15 @@ namespace aiko::renderer::vulkan
         }
     }
 
-    void VulkanRenderDevice::updateComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings)
+    void VulkanRenderDevice::updateComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images)
     {
+
         AIKO_ASSERT(bindings.size() <= MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
 
         std::array<VkDescriptorBufferInfo, MaxComputeBufferBindings> bufferInfos{};
         std::array<VkWriteDescriptorSet, MaxComputeBufferBindings> writes{};
+        std::array<VkDescriptorImageInfo, MaxComputeImageBindings> imageInfos{};
+        std::array<VkWriteDescriptorSet, MaxComputeImageBindings> imageWrites{};
         std::array<bool, MaxComputeBufferBindings> usedBindings{};
 
         uint32_t writeCount = 0;
@@ -1683,7 +1693,54 @@ namespace aiko::renderer::vulkan
             ++writeCount;
         }
 
-        vkUpdateDescriptorSets(m_context.device(), writeCount, writes.data(), 0, nullptr);
+        uint32_t imageWriteCount = 0;
+
+        for (const ComputeImageBinding& binding : images)
+        {
+            AIKO_ASSERT(binding.stage < MaxComputeImageBindings, "Compute image binding exceeds Vulkan binding limit");
+            AIKO_ASSERT(binding.texture != nullptr, "Compute image texture is null");
+            AIKO_ASSERT(binding.texture->isValid(), "Invalid compute image texture");
+
+            auto* textureImpl = static_cast<VulkanTextureImpl*>(binding.texture->getImpl());
+
+            AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan compute texture");
+
+            imageInfos[imageWriteCount] =
+            {
+                .sampler = VK_NULL_HANDLE,
+                .imageView = textureImpl->imageView(),
+                .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+            };
+
+            imageWrites[imageWriteCount] =
+            {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = m_computeDescriptorSet,
+                .dstBinding = MaxComputeBufferBindings + binding.stage,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+                .pImageInfo = &imageInfos[imageWriteCount],
+            };
+
+            ++imageWriteCount;
+        }
+
+        std::vector<VkWriteDescriptorSet> allWrites;
+
+        allWrites.reserve(writeCount + imageWriteCount);
+
+        for (uint32_t i = 0; i < writeCount; ++i)
+        {
+            allWrites.push_back(writes[i]);
+        }
+
+        for (uint32_t i = 0; i < imageWriteCount; ++i)
+        {
+            allWrites.push_back(imageWrites[i]);
+        }
+
+        vkUpdateDescriptorSets(m_context.device(), static_cast<uint32_t>(allWrites.size()), allWrites.data(), 0, nullptr);
 
     }
 

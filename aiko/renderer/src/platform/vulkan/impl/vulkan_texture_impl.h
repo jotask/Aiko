@@ -33,7 +33,7 @@ namespace aiko::renderer::vulkan
 
         VkImage image() const { return m_image; }
         VkImageView imageView() const { return m_view; }
-        VkFormat vkFormat() const { return m_vkFormat; }
+        VkFormat format() const { return m_vkFormat; }
         VkSampler sampler() const { return m_sampler; }
         VkImageLayout layout() const { return m_layout; }
 

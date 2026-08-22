@@ -59,7 +59,7 @@ namespace aiko::renderer::vulkan
 
         const VkAttachmentDescription colorAttachment =
         {
-            .format = colorImpl->vkFormat(),
+            .format = colorImpl->format(),
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -71,7 +71,7 @@ namespace aiko::renderer::vulkan
 
         const VkAttachmentDescription depthAttachment =
         {
-            .format = depthImpl->vkFormat(),
+            .format = depthImpl->format(),
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
