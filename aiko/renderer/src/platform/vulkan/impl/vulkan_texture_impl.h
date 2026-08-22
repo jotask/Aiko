@@ -29,9 +29,13 @@ namespace aiko::renderer::vulkan
         virtual void update(const TextureAsset& asset) override;
         virtual void setPixels(const vector<Color>& pixels) override;
 
+        void setLayout(VkImageLayout layout) { m_layout = layout; }
+
+        VkImage image() const { return m_image; }
         VkImageView imageView() const { return m_view; }
         VkFormat vkFormat() const { return m_vkFormat; }
         VkSampler sampler() const { return m_sampler; }
+        VkImageLayout layout() const { return m_layout; }
 
     private:
 

@@ -196,6 +196,7 @@ namespace aiko::renderer::vulkan
         void updateComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings);
         void updateComputeUniforms(const vector<ComputeVec4Uniform>& uniforms);
         void updateComputeImages(const vector<ComputeImageBinding>& bindings);
+        void transitionComputeImages(const vector<ComputeImageBinding>& bindings);
 
         struct PendingReadback
         {

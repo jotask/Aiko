@@ -396,10 +396,12 @@ namespace aiko::renderer::vulkan
 
         createComputePipeline(shaderImpl->module());
 
+        VkCommandBuffer commandBuffer = m_context.beginComputeCommands();
+
+        transitionComputeImages(pass.images);
+
         updateComputeDescriptors(pass.buffers);
         updateComputeImages(pass.images);
-
-        VkCommandBuffer commandBuffer = m_context.beginComputeCommands();
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipeline);
 
@@ -1727,6 +1729,56 @@ namespace aiko::renderer::vulkan
         }
 
         vkUpdateDescriptorSets(m_context.device(), writeCount, writes.data(), 0, nullptr);
+
+    }
+
+    void VulkanRenderDevice::transitionComputeImages(const vector<ComputeImageBinding>& bindings)
+    {
+        if (bindings.empty())
+        {
+            return;
+        }
+
+        vector<VkImageMemoryBarrier> barriers;
+
+        barriers.reserve(bindings.size());
+
+        for (const ComputeImageBinding& binding : bindings)
+        {
+            auto* textureImpl = static_cast<VulkanTextureImpl*>(binding.texture->getImpl());
+
+            AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan compute texture");
+
+            VkImageMemoryBarrier barrier =
+            {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .srcAccessMask = 0,
+                .dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT,
+                .oldLayout = textureImpl->layout(),
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = textureImpl->image(),
+                .subresourceRange =
+                {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+            };
+
+            barriers.push_back(barrier);
+        }
+
+        vkCmdPipelineBarrier(m_context.activeCommandBuffer(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, static_cast<uint32_t>(barriers.size()), barriers.data());
+
+        for (const ComputeImageBinding& binding : bindings)
+        {
+            auto* textureImpl = static_cast<VulkanTextureImpl*>(binding.texture->getImpl());
+            textureImpl->setLayout(VK_IMAGE_LAYOUT_GENERAL);
+        }
 
     }
 
