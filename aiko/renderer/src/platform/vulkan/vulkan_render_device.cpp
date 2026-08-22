@@ -1463,7 +1463,8 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::createComputePipelineLayout()
     {
-        std::array<VkDescriptorSetLayoutBinding, MaxComputeBufferBindings> bindings{};
+        std::array<VkDescriptorSetLayoutBinding, MaxComputeBufferBindings> bindings = {};
+        std::array<VkDescriptorSetLayoutBinding, MaxComputeImageBindings> imageBindings = {};
 
         for (uint32_t i = 0; i < MaxComputeBufferBindings; ++i)
         {
@@ -1471,6 +1472,18 @@ namespace aiko::renderer::vulkan
             {
                 .binding = i,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .descriptorCount = 1,
+                .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+                .pImmutableSamplers = nullptr,
+            };
+        }
+
+        for (uint32_t i = 0; i < MaxComputeImageBindings; ++i)
+        {
+            imageBindings[i] =
+            {
+                .binding = MaxComputeBufferBindings + i,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
                 .descriptorCount = 1,
                 .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
                 .pImmutableSamplers = nullptr,
@@ -1489,11 +1502,15 @@ namespace aiko::renderer::vulkan
             };
         }
 
+        std::vector<VkDescriptorSetLayoutBinding> allBindings;
+        allBindings.insert(allBindings.end(), bindings.begin(), bindings.end());
+        allBindings.insert(allBindings.end(), imageBindings.begin(), imageBindings.end());
+
         const VkDescriptorSetLayoutCreateInfo descriptorLayoutInfo =
         {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .bindingCount = static_cast<uint32_t>(bindings.size()),
-            .pBindings = bindings.data(),
+            .bindingCount = static_cast<uint32_t>(allBindings.size()),
+            .pBindings = allBindings.data(),
         };
 
         const VkResult descriptorResult = vkCreateDescriptorSetLayout(m_context.device(), &descriptorLayoutInfo, nullptr, &m_computeDescriptorSetLayout);
