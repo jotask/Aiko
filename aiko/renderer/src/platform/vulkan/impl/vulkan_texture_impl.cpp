@@ -141,22 +141,6 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan texture sampler");
         }
 
-        if (desc.mipmaps)
-        {
-            m_mipLevels =
-                static_cast<uint32_t>(
-                    std::floor(
-                        std::log2(
-                            std::max(desc.width, desc.height)
-                        )
-                    )
-                ) + 1;
-        }
-        else
-        {
-            m_mipLevels = 1;
-        }
-
         m_info =
         {
             .type = desc.type,

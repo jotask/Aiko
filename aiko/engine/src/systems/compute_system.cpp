@@ -128,7 +128,7 @@ namespace aiko
                     .format = TextureFormat::RGBA8,
                     .width = static_cast<int>(width),
                     .height = static_cast<int>(height),
-                    .mipmaps = 1,
+                    .mipmaps = false,
                     .computeWrite = true,
                 };
 
