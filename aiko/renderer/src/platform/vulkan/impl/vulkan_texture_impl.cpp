@@ -65,6 +65,10 @@ namespace aiko::renderer::vulkan
         {
             case TextureType::Sampled:
                 usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+                if (desc.computeWrite)
+                {
+                    usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+                }
                 if (desc.mipmaps)
                 {
                     usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
