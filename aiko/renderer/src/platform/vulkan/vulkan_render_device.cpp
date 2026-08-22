@@ -430,6 +430,14 @@ namespace aiko::renderer::vulkan
 
         vkCmdDispatch(commandBuffer, pass.dispatch.groupsX, pass.dispatch.groupsY, pass.dispatch.groupsZ);
 
+        for (const ComputeImageBinding& image : pass.images)
+        {
+            auto* textureImpl = static_cast<VulkanTextureImpl*>(image.texture->getImpl());
+            AIKO_ASSERT(textureImpl != nullptr, "Invalid compute texture");
+            m_context.transitionImageLayout(commandBuffer, textureImpl->image(), textureImpl->format(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            textureImpl->setLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
+
         m_context.endComputeCommands(commandBuffer);
 
     }
