@@ -1136,7 +1136,7 @@ namespace aiko::renderer::vulkan
         endSingleTimeCommands(commandBuffer);
     }
 
-    void VulkanContext::transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t baseMipLevel, uint32_t levelCount)
+    void VulkanContext::transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t baseMipLevel, uint32_t levelCount, bool computeQueue)
     {
 
         VkImageMemoryBarrier barrier{};
@@ -1151,14 +1151,12 @@ namespace aiko::renderer::vulkan
 
         auto hasStencilComponent = [](VkFormat format)
         {
-            return format == VK_FORMAT_D32_SFLOAT_S8_UINT ||
-                   format == VK_FORMAT_D24_UNORM_S8_UINT;
+            return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
         };
 
         if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
         {
             barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-
             if (hasStencilComponent(format))
             {
                 barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
@@ -1170,7 +1168,16 @@ namespace aiko::renderer::vulkan
         }
 
         barrier.subresourceRange.baseMipLevel = baseMipLevel;
-        barrier.subresourceRange.levelCount = levelCount;
+
+        if (levelCount == 0)
+        {
+            barrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+        }
+        else
+        {
+            barrier.subresourceRange.levelCount = levelCount;
+        }
+
         barrier.subresourceRange.baseArrayLayer = 0;
         barrier.subresourceRange.layerCount = 1;
 
@@ -1209,9 +1216,41 @@ namespace aiko::renderer::vulkan
             sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
         }
+        else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_GENERAL)
+        {
+            barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            destinationStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+        }
+        else if (oldLayout == VK_IMAGE_LAYOUT_GENERAL && newLayout == VK_IMAGE_LAYOUT_GENERAL)
+        {
+            barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            destinationStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+        }
+        else if (oldLayout == VK_IMAGE_LAYOUT_GENERAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        {
+            barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+        else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_GENERAL)
+        {
+            barrier.srcAccessMask = 0;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            destinationStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+        }
         else
         {
-            logger::Log::error("Unsupported layout transition!");
+            logger::Log::error( "Unsupported layout transition: %d -> %d", oldLayout, newLayout );
             std::exit(-1);
         }
 
@@ -1470,16 +1509,9 @@ namespace aiko::renderer::vulkan
         VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 
         const VkResult allocResult =
-            vkAllocateCommandBuffers(
-                m_device,
-                &allocInfo,
-                &commandBuffer
-            );
+            vkAllocateCommandBuffers( m_device, &allocInfo, &commandBuffer);
 
-        AIKO_ASSERT(
-            allocResult == VK_SUCCESS,
-            "Failed to allocate compute command buffer"
-        );
+        AIKO_ASSERT(allocResult == VK_SUCCESS, "Failed to allocate compute command buffer");
 
         const VkCommandBufferBeginInfo beginInfo =
         {
@@ -1487,16 +1519,8 @@ namespace aiko::renderer::vulkan
             .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
         };
 
-        const VkResult beginResult =
-            vkBeginCommandBuffer(
-                commandBuffer,
-                &beginInfo
-            );
-
-        AIKO_ASSERT(
-            beginResult == VK_SUCCESS,
-            "Failed to begin compute command buffer"
-        );
+        const VkResult beginResult = vkBeginCommandBuffer( commandBuffer, &beginInfo);
+        AIKO_ASSERT(beginResult == VK_SUCCESS, "Failed to begin compute command buffer");
 
         return commandBuffer;
     }

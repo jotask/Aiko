@@ -388,7 +388,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(viewId == COMPUTE_VIEW, "Compute pass must use COMPUTE_VIEW");
         AIKO_ASSERT(pass.shader != nullptr, "Compute pass has no shader");
         AIKO_ASSERT(pass.shader->isValid(), "Invalid compute shader");
-        AIKO_ASSERT(pass.buffers.empty() == false, "Vulkan compute currently requires at least one buffer");
+        AIKO_ASSERT(pass.buffers.empty() == false || pass.images.empty() == false, "Vulkan compute requires at least one resource");
         AIKO_ASSERT(pass.buffers.size() <= MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
 
         auto* shaderImpl = static_cast<VulkanComputeShaderImpl*>(pass.shader->getImpl());
@@ -406,13 +406,10 @@ namespace aiko::renderer::vulkan
         }
 
         updateComputeDescriptors(pass.buffers, pass.images);
-
         transitionComputeImages(pass.images);
-
         updateComputeImages(pass.images);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipeline);
-
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipelineLayout, 0, 1, &m_computeDescriptorSet, 0, nullptr);
 
         updateComputeUniforms(pass.vec4Uniforms);
@@ -1479,54 +1476,26 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::createComputePipelineLayout()
     {
-        std::array<VkDescriptorSetLayoutBinding, MaxComputeBufferBindings> bindings = {};
-        std::array<VkDescriptorSetLayoutBinding, MaxComputeImageBindings> imageBindings = {};
 
-        for (uint32_t i = 0; i < MaxComputeBufferBindings; ++i)
+        std::array<VkDescriptorSetLayoutBinding, MaxComputeImageBindings> bindings{};
+
+        for (uint32_t i = 0; i < MaxComputeImageBindings; ++i)
         {
             bindings[i] =
             {
                 .binding = i,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                .descriptorCount = 1,
-                .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-                .pImmutableSamplers = nullptr,
-            };
-        }
-
-        for (uint32_t i = 0; i < MaxComputeImageBindings; ++i)
-        {
-            imageBindings[i] =
-            {
-                .binding = MaxComputeBufferBindings + i,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
                 .descriptorCount = 1,
                 .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
                 .pImmutableSamplers = nullptr,
             };
         }
-
-        for (uint32_t i = 0; i < MaxComputeImageBindings; ++i)
-        {
-            bindings[MaxComputeBufferBindings + i] =
-            {
-                .binding = MaxComputeBufferBindings + i,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-                .descriptorCount = 1,
-                .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-                .pImmutableSamplers = nullptr,
-            };
-        }
-
-        std::vector<VkDescriptorSetLayoutBinding> allBindings;
-        allBindings.insert(allBindings.end(), bindings.begin(), bindings.end());
-        allBindings.insert(allBindings.end(), imageBindings.begin(), imageBindings.end());
 
         const VkDescriptorSetLayoutCreateInfo descriptorLayoutInfo =
         {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .bindingCount = static_cast<uint32_t>(allBindings.size()),
-            .pBindings = allBindings.data(),
+            .bindingCount = static_cast<uint32_t>(bindings.size()),
+            .pBindings = bindings.data(),
         };
 
         const VkResult descriptorResult = vkCreateDescriptorSetLayout(m_context.device(), &descriptorLayoutInfo, nullptr, &m_computeDescriptorSetLayout);
@@ -1626,7 +1595,7 @@ namespace aiko::renderer::vulkan
         {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
             .maxSets = 1,
-            .poolSizeCount = 2,
+            .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
             .pPoolSizes = poolSizes.data(),
         };
 
@@ -1724,7 +1693,7 @@ namespace aiko::renderer::vulkan
             {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .dstSet = m_computeDescriptorSet,
-                .dstBinding = MaxComputeBufferBindings + binding.stage,
+                .dstBinding = binding.stage,
                 .dstArrayElement = 0,
                 .descriptorCount = 1,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
@@ -1800,7 +1769,7 @@ namespace aiko::renderer::vulkan
             {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .dstSet = m_computeDescriptorSet,
-                .dstBinding = MaxComputeBufferBindings + binding.stage,
+                .dstBinding = binding.stage,
                 .dstArrayElement = 0,
                 .descriptorCount = 1,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
