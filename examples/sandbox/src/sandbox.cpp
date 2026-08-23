@@ -415,14 +415,7 @@ namespace sb
 
         for (uint32_t i = 0; i < ElementCount; ++i)
         {
-            aiko::logger::Log::info(
-                "Compute[{}] = ({}, {}, {}, {})",
-                i,
-                values[i].x,
-                values[i].y,
-                values[i].z,
-                values[i].w);
-        }
+            aiko::logger::Log::info("Compute[{%zu}] = ({%.2f}, {%.2f}, {%.2f}, {%.2f})", i, values[i].x, values[i].y, values[i].z, values[i].w);}
 
         m_computeReadbackPrinted = true;
     }
