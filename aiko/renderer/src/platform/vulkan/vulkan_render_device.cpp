@@ -72,6 +72,7 @@ namespace aiko::renderer::vulkan
         destroyComputePipelines();
         destroyComputeDescriptorPools();
         destroyComputePipelineLayout();
+        destroyReadbackResources();
         m_context.shutdown();
     }
 
@@ -91,6 +92,8 @@ namespace aiko::renderer::vulkan
         {
             return;
         }
+
+        completeReadbacksForFrame(m_context.currentFrameIndex());
 
         const uint32_t frame = m_context.currentFrameIndex();
         AIKO_ASSERT(frame < FramesInFlight, "Invalid Vulkan frame index");
@@ -112,7 +115,12 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::endFrame()
     {
-
+        if (m_frameActive == false)
+        {
+            return;
+        }
+        AIKO_ASSERT(m_renderPassActive == false, "Cannot record readback while render pass is active");
+        recordReadbackCopies();
     }
 
     void VulkanRenderDevice::beginPass(uint16_t viewId, const PassDescription& pass, const FrameBuffer* frameBuffer)
@@ -441,34 +449,38 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::requestReadback(const ComputeReadbackRequest& request)
     {
+
         AIKO_ASSERT(request.buffer != nullptr, "Compute readback buffer is null");
         AIKO_ASSERT(request.buffer->isValid(), "Compute readback buffer is invalid");
+        AIKO_ASSERT(request.byteSize > 0, "Compute readback size must be greater than zero");
 
         auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(request.buffer->getImpl());
+
         AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan compute buffer implementation");
+        AIKO_ASSERT(request.byteSize <= bufferImpl->size(), "Compute readback exceeds source buffer size");
 
-        PendingReadback pending = {};
-        pending.id = request.id;
-        pending.data.resize(request.byteSize);
-
-        bufferImpl->read(pending.data.data(), request.byteSize);
-        m_pendingReadbacks.push_back(std::move(pending));
+        m_readbackRequests.push_back(
+        {
+            .id = request.id,
+            .buffer = request.buffer,
+            .byteSize = request.byteSize,
+        });
     }
 
     bool VulkanRenderDevice::pollReadback(ComputeReadbackResult& result)
     {
-        if (m_pendingReadbacks.empty() == true)
+        if (m_completedReadbacks.empty())
         {
             return false;
         }
 
-        PendingReadback pending = std::move(m_pendingReadbacks.front());
+        CompletedReadback completed = std::move(m_completedReadbacks.front());
 
-        m_pendingReadbacks.erase(m_pendingReadbacks.begin());
+        m_completedReadbacks.pop_front();
 
-        result.id = pending.id;
+        result.id = completed.id;
         result.ready = true;
-        result.data = std::move(pending.data);
+        result.data = std::move(completed.data);
 
         return true;
     }
@@ -1818,6 +1830,121 @@ namespace aiko::renderer::vulkan
             textureImpl->setLayout(VK_IMAGE_LAYOUT_GENERAL);
         }
 
+    }
+
+    void VulkanRenderDevice::recordReadbackCopies()
+    {
+        if (m_readbackRequests.empty())
+        {
+            return;
+        }
+
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+
+        AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE,"Readback requires an active frame command buffer");
+
+        const uint32_t frame = m_context.currentFrameIndex();
+
+        for (const ReadbackRequest& request : m_readbackRequests)
+        {
+            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(request.buffer->getImpl());
+
+            AIKO_ASSERT(bufferImpl != nullptr && bufferImpl->isValid(), "Invalid compute readback source buffer");
+
+            VkBuffer stagingBuffer = VK_NULL_HANDLE;
+            VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
+
+            m_context.createBuffer(request.byteSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
+
+            const VkBufferMemoryBarrier barrier =
+            {
+                .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+                .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .buffer = bufferImpl->buffer(),
+                .offset = 0,
+                .size = request.byteSize,
+            };
+
+            vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+
+            const VkBufferCopy copy =
+            {
+                .srcOffset = 0,
+                .dstOffset = 0,
+                .size = request.byteSize,
+            };
+
+            vkCmdCopyBuffer(commandBuffer, bufferImpl->buffer(), stagingBuffer, 1, &copy);
+
+            m_inFlightReadbacks.push_back(
+            {
+                .id = request.id,
+                .stagingBuffer = stagingBuffer,
+                .stagingMemory = stagingMemory,
+                .byteSize = request.byteSize,
+                .frameIndex = frame,
+            });
+        }
+
+        m_readbackRequests.clear();
+    }
+
+    void VulkanRenderDevice::completeReadbacksForFrame(uint32_t frameIndex)
+    {
+        VkDevice device = m_context.device();
+
+        auto it = m_inFlightReadbacks.begin();
+
+        while (it != m_inFlightReadbacks.end())
+        {
+            if (it->frameIndex != frameIndex)
+            {
+                ++it;
+                continue;
+            }
+
+            CompletedReadback completed{};
+            completed.id = it->id;
+            completed.data.resize(it->byteSize);
+
+            void* mapped = nullptr;
+
+            const VkResult result = vkMapMemory(device, it->stagingMemory, 0, it->byteSize, 0, &mapped);
+            AIKO_ASSERT(result == VK_SUCCESS, "Failed to map Vulkan readback staging buffer");
+
+            std::memcpy(completed.data.data(), mapped, it->byteSize);
+
+            vkUnmapMemory(device, it->stagingMemory);
+            vkDestroyBuffer(device, it->stagingBuffer, nullptr);
+            vkFreeMemory(device, it->stagingMemory, nullptr);
+
+            m_completedReadbacks.push_back(std::move(completed));
+
+            it = m_inFlightReadbacks.erase(it);
+        }
+    }
+
+    void VulkanRenderDevice::destroyReadbackResources()
+    {
+        for (InFlightReadback& readback : m_inFlightReadbacks)
+        {
+            if (readback.stagingBuffer != VK_NULL_HANDLE)
+            {
+                vkDestroyBuffer(m_context.device(), readback.stagingBuffer, nullptr);
+            }
+
+            if (readback.stagingMemory != VK_NULL_HANDLE)
+            {
+                vkFreeMemory(m_context.device(), readback.stagingMemory, nullptr);
+            }
+        }
+
+        m_inFlightReadbacks.clear();
+        m_readbackRequests.clear();
+        m_completedReadbacks.clear();
     }
 
     void VulkanRenderDevice::waitIdle()

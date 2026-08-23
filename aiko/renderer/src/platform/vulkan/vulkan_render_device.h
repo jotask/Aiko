@@ -201,15 +201,39 @@ namespace aiko::renderer::vulkan
         void updateComputeDescriptors(VkDescriptorSet descriptorSet, const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images);
         void transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings);
 
-        struct PendingReadback
+        struct ReadbackRequest
+        {
+            ReadbackId id = InvalidReadbackId;
+            const ComputeBuffer* buffer = nullptr;
+            uint32_t byteSize = 0;
+        };
+
+        struct InFlightReadback
+        {
+            ReadbackId id = InvalidReadbackId;
+
+            VkBuffer stagingBuffer = VK_NULL_HANDLE;
+            VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
+
+            uint32_t byteSize = 0;
+            uint32_t frameIndex = 0;
+        };
+
+        struct CompletedReadback
         {
             ReadbackId id = InvalidReadbackId;
             vector<uint8_t> data;
         };
 
         std::vector<const Texture*> m_computeWrittenTextures;
-        vector<PendingReadback> m_pendingReadbacks;
+        vector<ReadbackRequest> m_readbackRequests;
+        vector<InFlightReadback> m_inFlightReadbacks;
+        std::deque<CompletedReadback> m_completedReadbacks;
         ReadbackId m_nextReadbackId = 1;
+
+        void recordReadbackCopies();
+        void completeReadbacksForFrame(uint32_t frameIndex);
+        void destroyReadbackResources();
 
     };
 }
