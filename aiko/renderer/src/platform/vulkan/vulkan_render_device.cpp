@@ -116,6 +116,15 @@ namespace aiko::renderer::vulkan
             return;
         }
 
+        for (const Texture* texture : m_computeWrittenTextures)
+        {
+            auto* textureImpl = static_cast<VulkanTextureImpl*>(texture->getImpl());
+            m_context.transitionImageLayout(m_context.activeCommandBuffer(), textureImpl->image(), textureImpl->format(), textureImpl->layout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            textureImpl->setLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
+
+        m_computeWrittenTextures.clear();
+
         VkRenderPass renderPass;
         VkFramebuffer framebuffer;
         VkExtent2D extent;
@@ -406,7 +415,7 @@ namespace aiko::renderer::vulkan
         }
 
         updateComputeDescriptors(pass.buffers, pass.images);
-        transitionComputeImages(pass.images);
+        transitionComputeImages(commandBuffer, pass.images);
         updateComputeImages(pass.images);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipeline);
@@ -429,10 +438,7 @@ namespace aiko::renderer::vulkan
 
         for (const ComputeImageBinding& image : pass.images)
         {
-            auto* textureImpl = static_cast<VulkanTextureImpl*>(image.texture->getImpl());
-            AIKO_ASSERT(textureImpl != nullptr, "Invalid compute texture");
-            m_context.transitionImageLayout(commandBuffer, textureImpl->image(), textureImpl->format(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-            textureImpl->setLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            m_computeWrittenTextures.push_back(image.texture);
         }
 
         m_context.endComputeCommands(commandBuffer);
@@ -1783,7 +1789,7 @@ namespace aiko::renderer::vulkan
 
     }
 
-    void VulkanRenderDevice::transitionComputeImages(const vector<ComputeImageBinding>& bindings)
+    void VulkanRenderDevice::transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings)
     {
         if (bindings.empty())
         {
@@ -1823,7 +1829,7 @@ namespace aiko::renderer::vulkan
             barriers.push_back(barrier);
         }
 
-        vkCmdPipelineBarrier(m_context.activeCommandBuffer(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, static_cast<uint32_t>(barriers.size()), barriers.data());
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, static_cast<uint32_t>(barriers.size()), barriers.data());
 
         for (const ComputeImageBinding& binding : bindings)
         {

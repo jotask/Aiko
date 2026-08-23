@@ -661,7 +661,7 @@ namespace aiko::renderer::vulkan
         const VkResult endResult = vkEndCommandBuffer(m_activeCommandBuffer);
         AIKO_ASSERT(endResult == VK_SUCCESS, "Failed to end command buffer");
 
-        const VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[m_currentFrame] };
+        const VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[m_currentFrame], m_computeFinishedSemaphores[m_currentFrame] };
         const VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         const VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphores[m_currentImageIndex] };
 
@@ -1139,6 +1139,15 @@ namespace aiko::renderer::vulkan
     void VulkanContext::transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t baseMipLevel, uint32_t levelCount, bool computeQueue)
     {
 
+        logger::Log::info(
+            "Transition image " +
+            std::to_string(reinterpret_cast<uintptr_t>(image)) +
+            ": " +
+            std::string(magic_enum::enum_name(oldLayout)) +
+            " -> " +
+            std::string(magic_enum::enum_name(newLayout))
+        );
+
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         barrier.oldLayout = oldLayout;
@@ -1234,7 +1243,7 @@ namespace aiko::renderer::vulkan
         }
         else if (oldLayout == VK_IMAGE_LAYOUT_GENERAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
         {
-            barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+            barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
             barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
             sourceStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
@@ -1531,11 +1540,18 @@ namespace aiko::renderer::vulkan
         const VkResult endResult = vkEndCommandBuffer(commandBuffer);
         AIKO_ASSERT(endResult == VK_SUCCESS, "Failed to end compute command buffer");
 
+        const VkSemaphore signalSemaphores[] =
+        {
+            m_computeFinishedSemaphores[m_currentFrame]
+        };
+
         const VkSubmitInfo submitInfo =
         {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .commandBufferCount = 1,
             .pCommandBuffers = &commandBuffer,
+            .signalSemaphoreCount = 1,
+            .pSignalSemaphores = signalSemaphores,
         };
 
         const VkFenceCreateInfo fenceInfo =

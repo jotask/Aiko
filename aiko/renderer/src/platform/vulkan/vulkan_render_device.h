@@ -4,6 +4,7 @@
 #include <optional>
 #include <unordered_set>
 #include <unordered_map>
+#include <vector>
 
 #include "aiko_types.h"
 #include "vulkan_context.h"
@@ -196,7 +197,7 @@ namespace aiko::renderer::vulkan
         void updateComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images);
         void updateComputeUniforms(const vector<ComputeVec4Uniform>& uniforms);
         void updateComputeImages(const vector<ComputeImageBinding>& bindings);
-        void transitionComputeImages(const vector<ComputeImageBinding>& bindings);
+        void transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings);
 
         struct PendingReadback
         {
@@ -204,6 +205,7 @@ namespace aiko::renderer::vulkan
             vector<uint8_t> data;
         };
 
+        std::vector<const Texture*> m_computeWrittenTextures;
         vector<PendingReadback> m_pendingReadbacks;
         ReadbackId m_nextReadbackId = 1;
 
