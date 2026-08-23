@@ -45,7 +45,6 @@ namespace aiko::renderer::vulkan
         createImageViews();
         createRenderPass();
         createCommandPool();
-        createComputeCommandPool();
         createSwapChainDepthResources();
         createSwapChainFramebuffers();
         createCommandBuffers();
@@ -73,15 +72,6 @@ namespace aiko::renderer::vulkan
         }
         m_imageAvailableSemaphores.clear();
 
-        for (VkSemaphore semaphore : m_computeFinishedSemaphores)
-        {
-            if (semaphore != VK_NULL_HANDLE)
-            {
-                vkDestroySemaphore(m_device, semaphore, nullptr);
-            }
-        }
-        m_computeFinishedSemaphores.clear();
-
         for (VkFence fence : m_inFlightFences)
         {
             if (fence != VK_NULL_HANDLE)
@@ -91,15 +81,6 @@ namespace aiko::renderer::vulkan
         }
         m_inFlightFences.clear();
 
-        for (VkFence fence : m_computeInFlightFences)
-        {
-            if (fence != VK_NULL_HANDLE)
-            {
-                vkDestroyFence(m_device, fence, nullptr);
-            }
-        }
-        m_computeInFlightFences.clear();
-
         if (m_commandPool != VK_NULL_HANDLE)
         {
             vkDestroyCommandPool(m_device, m_commandPool, nullptr);
@@ -108,12 +89,6 @@ namespace aiko::renderer::vulkan
 
         m_commandBuffers.clear();
         m_activeCommandBuffer = VK_NULL_HANDLE;
-
-        if (m_computeCommandPool != VK_NULL_HANDLE)
-        {
-            vkDestroyCommandPool(m_device, m_computeCommandPool,  nullptr);
-            m_computeCommandPool = VK_NULL_HANDLE;
-        }
 
         if (m_renderPass != VK_NULL_HANDLE)
         {
@@ -518,8 +493,6 @@ namespace aiko::renderer::vulkan
         m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
         m_renderFinishedSemaphores.resize(m_swapChainImages.size());
-        m_computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-        m_computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
         const VkSemaphoreCreateInfo semaphoreInfo =
         {
@@ -547,9 +520,7 @@ namespace aiko::renderer::vulkan
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
         {
             if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS ||
-                vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS ||
-                vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_computeFinishedSemaphores[i]) != VK_SUCCESS ||
-                vkCreateFence(m_device, &fenceInfo, nullptr, &m_computeInFlightFences[i]) != VK_SUCCESS)
+                vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS)
             {
                 throw std::runtime_error("failed to create frame synchronization objects!");
             }
@@ -662,15 +633,8 @@ namespace aiko::renderer::vulkan
         const VkResult endResult = vkEndCommandBuffer(m_activeCommandBuffer);
         AIKO_ASSERT(endResult == VK_SUCCESS, "Failed to end command buffer");
 
-        std::vector<VkSemaphore> waitSemaphores = { m_imageAvailableSemaphores[m_currentFrame] };
-        std::vector<VkPipelineStageFlags> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-
-        if (m_computeSubmittedThisFrame == true)
-        {
-            waitSemaphores.push_back(m_computeFinishedSemaphores[m_currentFrame]);
-            waitStages.push_back(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-        }
-
+        const std::array<VkSemaphore, 1> waitSemaphores = { m_imageAvailableSemaphores[m_currentFrame] };
+        const std::array<VkPipelineStageFlags, 1> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         const std::array<VkSemaphore, 1> signalSemaphores = { m_renderFinishedSemaphores[m_currentImageIndex] };
 
         const VkSubmitInfo submitInfo =
@@ -687,8 +651,6 @@ namespace aiko::renderer::vulkan
 
         const VkResult submitResult = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[m_currentFrame]);
         AIKO_ASSERT(submitResult == VK_SUCCESS, "Failed to submit graphics command buffer");
-
-        m_computeSubmittedThisFrame = false;
 
         const std::array<VkSwapchainKHR, 1> swapChains = { m_swapChain };
 
@@ -864,11 +826,7 @@ namespace aiko::renderer::vulkan
         QueueFamilyIndices indices;
 
         uint32_t queueFamilyCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(
-            device,
-            &queueFamilyCount,
-            nullptr
-        );
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 
@@ -889,7 +847,7 @@ namespace aiko::renderer::vulkan
             // Graphics queue
             // -------------------------------------------------------------
 
-            if (!indices.graphicsFamily.has_value() && (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT))
+            if (!indices.graphicsFamily.has_value() && (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT))
             {
                 indices.graphicsFamily = i;
             }
@@ -1488,94 +1446,6 @@ namespace aiko::renderer::vulkan
 
         return indices.isComplete() && extensionsSupported && swapChainAdequate;
 
-    }
-
-    void VulkanContext::createComputeCommandPool()
-    {
-        const QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
-
-        const VkCommandPoolCreateInfo poolInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-            .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-            .queueFamilyIndex = indices.computeFamily.value(),
-        };
-
-        const VkResult result = vkCreateCommandPool(m_device, &poolInfo, nullptr, &m_computeCommandPool);
-        AIKO_ASSERT(result == VK_SUCCESS, "Failed to create compute command pool");
-
-    }
-
-    VkCommandBuffer VulkanContext::beginComputeCommands()
-    {
-        const VkCommandBufferAllocateInfo allocInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-            .commandPool = m_computeCommandPool,
-            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-            .commandBufferCount = 1,
-        };
-
-        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-
-        const VkResult allocResult =
-            vkAllocateCommandBuffers( m_device, &allocInfo, &commandBuffer);
-
-        AIKO_ASSERT(allocResult == VK_SUCCESS, "Failed to allocate compute command buffer");
-
-        const VkCommandBufferBeginInfo beginInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-            .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-        };
-
-        const VkResult beginResult = vkBeginCommandBuffer( commandBuffer, &beginInfo);
-        AIKO_ASSERT(beginResult == VK_SUCCESS, "Failed to begin compute command buffer");
-
-        return commandBuffer;
-    }
-
-    void VulkanContext::endComputeCommands(VkCommandBuffer commandBuffer)
-    {
-
-        const VkResult endResult = vkEndCommandBuffer(commandBuffer);
-        AIKO_ASSERT(endResult == VK_SUCCESS, "Failed to end compute command buffer");
-
-        const std::array<VkSemaphore, 1> signalSemaphores =
-        {
-            m_computeFinishedSemaphores[m_currentFrame]
-        };
-
-        const VkSubmitInfo submitInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .commandBufferCount = 1,
-            .pCommandBuffers = &commandBuffer,
-            .signalSemaphoreCount = signalSemaphores.size(),
-            .pSignalSemaphores = signalSemaphores.data(),
-        };
-
-        const VkFenceCreateInfo fenceInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-        };
-
-        VkFence fence = VK_NULL_HANDLE;
-
-        const VkResult fenceResult = vkCreateFence(m_device, &fenceInfo, nullptr, &fence);
-        AIKO_ASSERT(fenceResult == VK_SUCCESS, "Failed to create compute fence");
-
-        const VkResult submitResult = vkQueueSubmit(m_computeQueue, 1, &submitInfo, fence);
-        AIKO_ASSERT(submitResult == VK_SUCCESS, "Failed to submit compute command buffer");
-
-        m_computeSubmittedThisFrame = true;
-
-        const VkResult waitResult = vkWaitForFences( m_device, 1, &fence, VK_TRUE, UINT64_MAX);
-        AIKO_ASSERT(waitResult == VK_SUCCESS, "Failed waiting for compute command buffer");
-
-        vkDestroyFence(m_device, fence, nullptr);
-
-        vkFreeCommandBuffers(m_device,m_computeCommandPool,1,&commandBuffer);
     }
 
     void VulkanContext::waitIdle()

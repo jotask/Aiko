@@ -410,15 +410,14 @@ namespace aiko::renderer::vulkan
         const VkPipeline pipeline = getOrCreateComputePipeline(shaderImpl->module());
         const VkDescriptorSet descriptorSet = allocateComputeDescriptorSet();
 
-        VkCommandBuffer commandBuffer = m_context.beginComputeCommands();
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+        AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Compute dispatch requires an active frame command buffer");
 
         transitionComputeImages(commandBuffer, pass.images);
         updateComputeDescriptors(descriptorSet, pass.buffers, pass.images);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-
-        updateComputeUniforms(pass.vec4Uniforms);
 
         if (pass.vec4Uniforms.empty() == false)
         {
@@ -437,8 +436,6 @@ namespace aiko::renderer::vulkan
         {
             m_computeWrittenTextures.push_back(image.texture);
         }
-
-        m_context.endComputeCommands(commandBuffer);
 
     }
 
@@ -1771,24 +1768,6 @@ namespace aiko::renderer::vulkan
 
         vkUpdateDescriptorSets(m_context.device(), static_cast<uint32_t>(allWrites.size()), allWrites.data(), 0, nullptr);
 
-    }
-
-    void VulkanRenderDevice::updateComputeUniforms(const vector<ComputeVec4Uniform>& uniforms)
-    {
-        if (uniforms.empty())
-        {
-            return;
-        }
-
-        std::array<vec4, MaxComputeVec4Uniforms> values{};
-
-        for (const ComputeVec4Uniform& uniform : uniforms)
-        {
-            AIKO_ASSERT(uniform.slot < MaxComputeVec4Uniforms, "Compute uniform slot out of range");
-            values[uniform.slot] = uniform.value;
-        }
-
-        vkCmdPushConstants(m_context.activeCommandBuffer(), m_computePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(values), values.data());
     }
 
     void VulkanRenderDevice::transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings)

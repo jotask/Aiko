@@ -52,9 +52,7 @@ namespace aiko::renderer::vulkan
 
         std::vector<VkSemaphore> m_renderFinishedSemaphores;
         std::vector<VkSemaphore> m_imageAvailableSemaphores;
-        std::vector<VkSemaphore> m_computeFinishedSemaphores;
         std::vector<VkFence> m_inFlightFences;
-        std::vector<VkFence> m_computeInFlightFences;
 
         std::vector<VkImage> m_swapChainDepthImages;
         std::vector<VkDeviceMemory> m_swapChainDepthMemories;
@@ -67,12 +65,8 @@ namespace aiko::renderer::vulkan
         uint32_t m_currentImageIndex = 0;
         VkCommandBuffer m_activeCommandBuffer = VK_NULL_HANDLE;
 
-        VkCommandPool m_computeCommandPool = VK_NULL_HANDLE;
-
         bool m_framebufferResized = false;
         bool m_vsync = false;
-
-        bool m_computeSubmittedThisFrame = false;
 
     public:
 
@@ -123,10 +117,6 @@ namespace aiko::renderer::vulkan
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
         bool consumeSwapChainFormatChanged();
-
-        void createComputeCommandPool();
-        VkCommandBuffer beginComputeCommands();
-        void endComputeCommands(VkCommandBuffer commandBuffer);
 
         void waitIdle();
 
