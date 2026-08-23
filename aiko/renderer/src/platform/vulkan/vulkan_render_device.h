@@ -184,9 +184,10 @@ namespace aiko::renderer::vulkan
         void createComputePipelineLayout();
         void destroyComputePipelineLayout();
 
-        VkPipeline m_computePipeline = VK_NULL_HANDLE;
-        void createComputePipeline(VkShaderModule shaderModule);
-        void destroyComputePipeline();
+        std::unordered_map<VkShaderModule, VkPipeline> m_computePipelines;
+
+        VkPipeline getOrCreateComputePipeline(VkShaderModule shaderModule);
+        void destroyComputePipelines();
 
         VkDescriptorPool m_computeDescriptorPool = VK_NULL_HANDLE;
         VkDescriptorSet m_computeDescriptorSet = VK_NULL_HANDLE;
