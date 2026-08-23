@@ -8,6 +8,7 @@
 #include <platform/vulkan/vulkan_platform_helper.h>
 
 #include <array>
+#include <vector>
 #include <algorithm>
 #include <limits>
 #include <set>
@@ -661,8 +662,15 @@ namespace aiko::renderer::vulkan
         const VkResult endResult = vkEndCommandBuffer(m_activeCommandBuffer);
         AIKO_ASSERT(endResult == VK_SUCCESS, "Failed to end command buffer");
 
-        const std::array<VkSemaphore, 2> waitSemaphores = { m_imageAvailableSemaphores[m_currentFrame], m_computeFinishedSemaphores[m_currentFrame] };
-        const std::array<VkPipelineStageFlags, 2> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT };
+        std::vector<VkSemaphore> waitSemaphores = { m_imageAvailableSemaphores[m_currentFrame] };
+        std::vector<VkPipelineStageFlags> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+        if (m_computeSubmittedThisFrame == true)
+        {
+            waitSemaphores.push_back(m_computeFinishedSemaphores[m_currentFrame]);
+            waitStages.push_back(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+        }
+
         const std::array<VkSemaphore, 1> signalSemaphores = { m_renderFinishedSemaphores[m_currentImageIndex] };
 
         const VkSubmitInfo submitInfo =
@@ -673,12 +681,14 @@ namespace aiko::renderer::vulkan
             .pWaitDstStageMask = waitStages.data(),
             .commandBufferCount = 1,
             .pCommandBuffers = &m_activeCommandBuffer,
-            .signalSemaphoreCount = signalSemaphores.size(),
+            .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()),
             .pSignalSemaphores = signalSemaphores.data(),
         };
 
         const VkResult submitResult = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[m_currentFrame]);
         AIKO_ASSERT(submitResult == VK_SUCCESS, "Failed to submit graphics command buffer");
+
+        m_computeSubmittedThisFrame = false;
 
         const std::array<VkSwapchainKHR, 1> swapChains = { m_swapChain };
 
@@ -1531,7 +1541,7 @@ namespace aiko::renderer::vulkan
         const VkResult endResult = vkEndCommandBuffer(commandBuffer);
         AIKO_ASSERT(endResult == VK_SUCCESS, "Failed to end compute command buffer");
 
-        const VkSemaphore signalSemaphores[] =
+        const std::array<VkSemaphore, 1> signalSemaphores =
         {
             m_computeFinishedSemaphores[m_currentFrame]
         };
@@ -1541,8 +1551,8 @@ namespace aiko::renderer::vulkan
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .commandBufferCount = 1,
             .pCommandBuffers = &commandBuffer,
-            .signalSemaphoreCount = 1,
-            .pSignalSemaphores = signalSemaphores,
+            .signalSemaphoreCount = signalSemaphores.size(),
+            .pSignalSemaphores = signalSemaphores.data(),
         };
 
         const VkFenceCreateInfo fenceInfo =
@@ -1557,6 +1567,8 @@ namespace aiko::renderer::vulkan
 
         const VkResult submitResult = vkQueueSubmit(m_computeQueue, 1, &submitInfo, fence);
         AIKO_ASSERT(submitResult == VK_SUCCESS, "Failed to submit compute command buffer");
+
+        m_computeSubmittedThisFrame = true;
 
         const VkResult waitResult = vkWaitForFences( m_device, 1, &fence, VK_TRUE, UINT64_MAX);
         AIKO_ASSERT(waitResult == VK_SUCCESS, "Failed waiting for compute command buffer");

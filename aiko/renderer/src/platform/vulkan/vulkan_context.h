@@ -72,6 +72,8 @@ namespace aiko::renderer::vulkan
         bool m_framebufferResized = false;
         bool m_vsync = false;
 
+        bool m_computeSubmittedThisFrame = false;
+
     public:
 
         void createInstance();
