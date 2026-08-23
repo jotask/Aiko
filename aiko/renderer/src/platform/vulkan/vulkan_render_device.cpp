@@ -392,8 +392,6 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::execute(ViewId viewId, const ComputePass& pass)
     {
 
-        logger::Log::info("Vulkan compute dispatch: %zu buffers, groups = (%u, %u, %u)", pass.buffers.size(), pass.dispatch.groupsX, pass.dispatch.groupsY, pass.dispatch.groupsZ);
-
         AIKO_ASSERT(viewId == COMPUTE_VIEW, "Compute pass must use COMPUTE_VIEW");
         AIKO_ASSERT(pass.shader != nullptr, "Compute pass has no shader");
         AIKO_ASSERT(pass.shader->isValid(), "Invalid compute shader");

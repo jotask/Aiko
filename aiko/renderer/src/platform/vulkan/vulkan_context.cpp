@@ -1139,15 +1139,6 @@ namespace aiko::renderer::vulkan
     void VulkanContext::transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t baseMipLevel, uint32_t levelCount, bool computeQueue)
     {
 
-        logger::Log::info(
-            "Transition image " +
-            std::to_string(reinterpret_cast<uintptr_t>(image)) +
-            ": " +
-            std::string(magic_enum::enum_name(oldLayout)) +
-            " -> " +
-            std::string(magic_enum::enum_name(newLayout))
-        );
-
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         barrier.oldLayout = oldLayout;
