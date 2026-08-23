@@ -407,16 +407,8 @@ namespace aiko::renderer::vulkan
 
         VkCommandBuffer commandBuffer = m_context.beginComputeCommands();
 
-        for (const ComputeImageBinding& image : pass.images)
-        {
-            auto* textureImpl = static_cast<VulkanTextureImpl*>(image.texture->getImpl());
-            AIKO_ASSERT(textureImpl != nullptr, "Invalid compute texture");
-            m_context.transitionImageLayout(commandBuffer, textureImpl->image(), textureImpl->format(), textureImpl->layout(), VK_IMAGE_LAYOUT_GENERAL);
-        }
-
-        updateComputeDescriptors(pass.buffers, pass.images);
         transitionComputeImages(commandBuffer, pass.images);
-        updateComputeImages(pass.images);
+        updateComputeDescriptors(pass.buffers, pass.images);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipeline);
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipelineLayout, 0, 1, &m_computeDescriptorSet, 0, nullptr);
@@ -1841,10 +1833,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::waitIdle()
     {
-        if (m_context.device() != VK_NULL_HANDLE)
-        {
-            vkDeviceWaitIdle(m_context.device());
-        }
+        m_context.waitIdle();
     }
 
     VulkanRenderDevice::MaterialBindingKey VulkanRenderDevice::makeMaterialBindingKey(const Material& material) const

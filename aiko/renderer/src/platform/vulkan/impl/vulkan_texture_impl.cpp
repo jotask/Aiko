@@ -158,10 +158,7 @@ namespace aiko::renderer::vulkan
     void VulkanTextureImpl::unload()
     {
 
-        if (m_sampler == VK_NULL_HANDLE &&
-            m_view == VK_NULL_HANDLE &&
-            m_image == VK_NULL_HANDLE &&
-            m_memory == VK_NULL_HANDLE)
+        if (m_sampler == VK_NULL_HANDLE && m_view == VK_NULL_HANDLE && m_image == VK_NULL_HANDLE && m_memory == VK_NULL_HANDLE)
         {
             m_info = {};
             m_vkFormat = VK_FORMAT_UNDEFINED;
@@ -172,6 +169,8 @@ namespace aiko::renderer::vulkan
 
         VulkanContext& ctx = VulkanContext::current();
         VkDevice device = ctx.device();
+
+        ctx.waitIdle();
 
         if (m_sampler != VK_NULL_HANDLE) vkDestroySampler(device, m_sampler, nullptr);
         if (m_view != VK_NULL_HANDLE) vkDestroyImageView(device, m_view, nullptr);

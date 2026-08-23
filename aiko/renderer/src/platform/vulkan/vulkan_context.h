@@ -126,5 +126,7 @@ namespace aiko::renderer::vulkan
         VkCommandBuffer beginComputeCommands();
         void endComputeCommands(VkCommandBuffer commandBuffer);
 
+        void waitIdle();
+
     };
 }

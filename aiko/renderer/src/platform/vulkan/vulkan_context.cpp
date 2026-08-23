@@ -661,34 +661,34 @@ namespace aiko::renderer::vulkan
         const VkResult endResult = vkEndCommandBuffer(m_activeCommandBuffer);
         AIKO_ASSERT(endResult == VK_SUCCESS, "Failed to end command buffer");
 
-        const VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[m_currentFrame], m_computeFinishedSemaphores[m_currentFrame] };
-        const VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        const VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphores[m_currentImageIndex] };
+        const std::array<VkSemaphore, 2> waitSemaphores = { m_imageAvailableSemaphores[m_currentFrame], m_computeFinishedSemaphores[m_currentFrame] };
+        const std::array<VkPipelineStageFlags, 2> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT };
+        const std::array<VkSemaphore, 1> signalSemaphores = { m_renderFinishedSemaphores[m_currentImageIndex] };
 
         const VkSubmitInfo submitInfo =
         {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .waitSemaphoreCount = 1,
-            .pWaitSemaphores = waitSemaphores,
-            .pWaitDstStageMask = waitStages,
+            .waitSemaphoreCount = waitSemaphores.size(),
+            .pWaitSemaphores = waitSemaphores.data(),
+            .pWaitDstStageMask = waitStages.data(),
             .commandBufferCount = 1,
             .pCommandBuffers = &m_activeCommandBuffer,
-            .signalSemaphoreCount = 1,
-            .pSignalSemaphores = signalSemaphores,
+            .signalSemaphoreCount = signalSemaphores.size(),
+            .pSignalSemaphores = signalSemaphores.data(),
         };
 
         const VkResult submitResult = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[m_currentFrame]);
         AIKO_ASSERT(submitResult == VK_SUCCESS, "Failed to submit graphics command buffer");
 
-        const VkSwapchainKHR swapChains[] = { m_swapChain };
+        const std::array<VkSwapchainKHR, 1> swapChains = { m_swapChain };
 
         const VkPresentInfoKHR presentInfo =
         {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-            .waitSemaphoreCount = 1,
-            .pWaitSemaphores = signalSemaphores,
-            .swapchainCount = 1,
-            .pSwapchains = swapChains,
+            .waitSemaphoreCount = signalSemaphores.size(),
+            .pWaitSemaphores = signalSemaphores.data(),
+            .swapchainCount = swapChains.size(),
+            .pSwapchains = swapChains.data(),
             .pImageIndices = &m_currentImageIndex,
         };
 
@@ -705,7 +705,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(presentResult == VK_SUCCESS, "Failed to present swapchain image");
 
         m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-        m_activeCommandBuffer = VK_NULL_HANDLE;
+
     }
 
     void VulkanContext::recreateSwapChain()
@@ -1573,6 +1573,15 @@ namespace aiko::renderer::vulkan
         vkDestroyFence(m_device, fence, nullptr);
 
         vkFreeCommandBuffers(m_device,m_computeCommandPool,1,&commandBuffer);
+    }
+
+    void VulkanContext::waitIdle()
+    {
+        if (m_device != VK_NULL_HANDLE)
+        {
+            const VkResult result = vkDeviceWaitIdle(m_device);
+            AIKO_ASSERT(result == VK_SUCCESS, "Failed waiting for Vulkan device idle");
+        }
     }
 
 }
