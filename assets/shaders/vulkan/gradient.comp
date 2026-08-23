@@ -1,6 +1,12 @@
 #version 450
 
-layout(rgba8, set = 0, binding = 0) uniform writeonly image2D u_output;
+#include "aiko_compute.glsl"
+
+layout(
+    rgba8,
+    set = 0,
+    binding = AIKO_COMPUTE_IMAGE_BINDING(0)
+) uniform writeonly image2D u_output;
 
 layout(push_constant) uniform GradientPushConstants
 {
