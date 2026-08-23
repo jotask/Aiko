@@ -189,15 +189,17 @@ namespace aiko::renderer::vulkan
         VkPipeline getOrCreateComputePipeline(VkShaderModule shaderModule);
         void destroyComputePipelines();
 
-        VkDescriptorPool m_computeDescriptorPool = VK_NULL_HANDLE;
-        VkDescriptorSet m_computeDescriptorSet = VK_NULL_HANDLE;
+        static constexpr uint32_t MaxComputeDispatchesPerFrame = 256;
 
-        void createComputeDescriptorPool();
-        void destroyComputeDescriptorPool();
+        std::array<VkDescriptorPool, FramesInFlight> m_computeDescriptorPools{};
 
-        void updateComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images);
+        void createComputeDescriptorPools();
+        void destroyComputeDescriptorPools();
+
+        VkDescriptorSet allocateComputeDescriptorSet();
+
+        void updateComputeDescriptors(VkDescriptorSet descriptorSet, const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images);
         void updateComputeUniforms(const vector<ComputeVec4Uniform>& uniforms);
-        void updateComputeImages(const vector<ComputeImageBinding>& bindings);
         void transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings);
 
         struct PendingReadback
