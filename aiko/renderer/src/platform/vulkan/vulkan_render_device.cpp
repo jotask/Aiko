@@ -453,7 +453,7 @@ namespace aiko::renderer::vulkan
 
     bool VulkanRenderDevice::pollReadback(ComputeReadbackResult& result)
     {
-        if (m_pendingReadbacks.empty() == false)
+        if (m_pendingReadbacks.empty() == true)
         {
             return false;
         }
@@ -1473,13 +1473,26 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::createComputePipelineLayout()
     {
 
-        std::array<VkDescriptorSetLayoutBinding, MaxComputeImageBindings> bindings{};
+        std::array<VkDescriptorSetLayoutBinding, MaxComputeBufferBindings + MaxComputeImageBindings> bindings{};
 
-        for (uint32_t i = 0; i < MaxComputeImageBindings; ++i)
+        for (uint32_t i = 0; i < MaxComputeBufferBindings; ++i)
         {
             bindings[i] =
             {
                 .binding = i,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .descriptorCount = 1,
+                .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+                .pImmutableSamplers = nullptr,
+            };
+        }
+
+        for (uint32_t i = 0; i < MaxComputeImageBindings; ++i)
+        {
+            const uint32_t bindingIndex = MaxComputeBufferBindings + i;
+            bindings[bindingIndex] =
+            {
+                .binding = bindingIndex,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
                 .descriptorCount = 1,
                 .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
@@ -1689,7 +1702,7 @@ namespace aiko::renderer::vulkan
             {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .dstSet = m_computeDescriptorSet,
-                .dstBinding = binding.stage,
+                .dstBinding = MaxComputeBufferBindings + binding.stage,
                 .dstArrayElement = 0,
                 .descriptorCount = 1,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
@@ -1765,7 +1778,7 @@ namespace aiko::renderer::vulkan
             {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .dstSet = m_computeDescriptorSet,
-                .dstBinding = binding.stage,
+                .dstBinding = MaxComputeBufferBindings + binding.stage,
                 .dstArrayElement = 0,
                 .descriptorCount = 1,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
