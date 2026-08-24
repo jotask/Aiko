@@ -32,6 +32,39 @@ namespace aiko
         Mat4f,   // 4x vec4
     };
 
+    enum class ComputeBufferUsage
+    {
+        None,
+        Storage,
+        TransferSrc,
+        TransferDst,
+        Vertex,
+        Index,
+        Indirect,
+    };
+
+    inline ComputeBufferUsage operator|(ComputeBufferUsage lhs, ComputeBufferUsage rhs)
+    {
+        return static_cast<ComputeBufferUsage>(static_cast<uint32_t>(lhs) | static_cast<uint32_t>(rhs));
+    }
+
+    inline ComputeBufferUsage operator&(ComputeBufferUsage lhs, ComputeBufferUsage rhs)
+    {
+        return static_cast<ComputeBufferUsage>(static_cast<uint32_t>(lhs) &static_cast<uint32_t>(rhs));
+    }
+
+    inline bool hasFlag(ComputeBufferUsage value, ComputeBufferUsage flag)
+    {
+        return (static_cast<uint32_t>(value) & static_cast<uint32_t>(flag)) != 0;
+    }
+
+    struct ComputeBufferDesc
+    {
+        ComputeBufferFormat format = ComputeBufferFormat::Vec4f;
+        uint32_t count = 0;
+        ComputeBufferUsage usage = ComputeBufferUsage::Storage | ComputeBufferUsage::TransferSrc | ComputeBufferUsage::TransferDst;
+    };
+
     using ReadbackId = uint64_t;
     static constexpr ReadbackId InvalidReadbackId = 0;
 

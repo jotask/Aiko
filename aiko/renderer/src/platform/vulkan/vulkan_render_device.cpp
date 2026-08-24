@@ -1723,6 +1723,8 @@ namespace aiko::renderer::vulkan
             auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
             AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan compute buffer implementation");
 
+            AIKO_ASSERT(hasFlag(bufferImpl->usage(),ComputeBufferUsage::Storage), "Compute binding requires storage-buffer usage");
+
             usedBindings[binding.stage] = true;
 
             bufferInfos[writeCount] =
@@ -1986,8 +1988,9 @@ namespace aiko::renderer::vulkan
         for (const ReadbackRequest& request : m_readbackRequests)
         {
             auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(request.buffer->getImpl());
-
             AIKO_ASSERT(bufferImpl != nullptr && bufferImpl->isValid(), "Invalid compute readback source buffer");
+
+            AIKO_ASSERT(hasFlag(bufferImpl->usage(),ComputeBufferUsage::TransferSrc), "Compute readback requires transfer-source usage");
 
             VkBuffer stagingBuffer = VK_NULL_HANDLE;
             VkDeviceMemory stagingMemory = VK_NULL_HANDLE;

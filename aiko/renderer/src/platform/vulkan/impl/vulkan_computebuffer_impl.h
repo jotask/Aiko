@@ -21,9 +21,8 @@ namespace aiko::renderer::vulkan
 
         virtual bool isValid() const override;
 
-        virtual void create(ComputeBufferFormat format, uint32_t count, const void* initialData, ComputeAccess access) override;
+        virtual void create(const ComputeBufferDesc& desc, const void* initialData) override;
         virtual void update(uint32_t start, uint32_t count, const void* data) override;
-        void read(void* destination, VkDeviceSize size);
 
         virtual void destroy() override;
 
@@ -35,6 +34,8 @@ namespace aiko::renderer::vulkan
         const VulkanBufferState& state() const { return m_state; }
         void setState(const VulkanBufferState& state) { m_state = state; }
 
+        ComputeBufferUsage usage() const { return m_usage; }
+
     private:
         void buildLayout(ComputeBufferFormat format);
 
@@ -44,9 +45,11 @@ namespace aiko::renderer::vulkan
         VkDeviceSize m_elementSize = 0;
         uint32_t m_count = 0;
 
-        ComputeAccess m_access = ComputeAccess::ReadWrite;
+        ComputeBufferUsage m_usage = ComputeBufferUsage::None;
 
         VulkanBufferState m_state{};
+
+        VkBufferUsageFlags buildUsageFlags(ComputeBufferUsage usage) const;
 
     };
 }
