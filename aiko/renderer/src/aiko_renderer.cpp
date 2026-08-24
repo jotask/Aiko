@@ -11,6 +11,8 @@
 #include "imgui/aiko_imgui.h"
 #include "models/camera.h"
 
+#include <unordered_set>
+
 namespace aiko
 {
     AikoRenderer::AikoRenderer(IAssetProvider& assets, IAssetRegistry* registry)
@@ -494,6 +496,55 @@ namespace aiko
 
         const FrameBuffer& fbo = m_screenFbo.getFrameBuffer();
 
+        std::unordered_set<const Material*> preparedMaterials;
+
+        auto prepareMaterial = [&](const Material* material)
+            {
+                if (material == nullptr)
+                {
+                    return;
+                }
+
+                if (preparedMaterials.insert(material).second)
+                {
+                    m_renderer->prepareMaterial(*material);
+                }
+            };
+
+        for (const GpuInstanceDrawDesc* desc : passData.gpuInstances)
+        {
+            if (desc != nullptr)
+            {
+                prepareMaterial(desc->material);
+            }
+        }
+
+        for (const GpuBillboardDrawDesc* desc : passData.gpuBillboards)
+        {
+            if (desc != nullptr)
+            {
+                prepareMaterial(desc->material);
+            }
+        }
+
+        for (const PreparedRenderPacket& packet : passData.opaque)
+        {
+            prepareMaterial(packet.draw.material);
+        }
+
+        for (const PreparedInstancedPacket& packet : passData.instanced)
+        {
+            prepareMaterial(packet.draw.material);
+        }
+
+        for (const PreparedTransientPacket& packet : passData.transient)
+        {
+            if (packet.item != nullptr)
+            {
+                prepareMaterial(packet.item->material);
+            }
+        }
+
         m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
         m_renderer->bindFrame(SCENE_VIEW, frameData);
 
@@ -566,6 +617,18 @@ namespace aiko
             .view = mat4(1.0f),
             .projection = mat4(1.0f),
         };
+
+        if (m_debugTexture != nullptr && m_debugTexture->isValid())
+        {
+            m_renderer->prepareTextureForSampling(*m_debugTexture);
+        }
+        else
+        {
+            const Texture* screenTexture = m_screenFbo.getMaterial().m_runtimeDiffuseTexture;
+            AIKO_ASSERT(screenTexture != nullptr, "ScreenFbo has no runtime texture");
+            AIKO_ASSERT( screenTexture->isValid(), "ScreenFbo runtime texture is invalid");
+            m_renderer->prepareTextureForSampling(*screenTexture);
+        }
 
         m_renderer->beginPass(SCREEN_VIEW, presentPass, nullptr);
         m_renderer->bindFrame(SCREEN_VIEW, screenFrame);

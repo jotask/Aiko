@@ -62,6 +62,9 @@ namespace aiko::renderer::vulkan
 
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) override;
 
+        virtual void prepareTextureForSampling(const Texture& texture) override;
+        virtual void prepareMaterial(const Material& material) override;
+
     private:
 
         static constexpr uint32_t MaxComputeBufferBindings = 4;
@@ -208,6 +211,8 @@ namespace aiko::renderer::vulkan
 
         VulkanImageState computeImageState(ComputeAccess access) const;
 
+        const Texture* resolveMaterialTexture(const Material& material);
+
         struct ReadbackRequest
         {
             ReadbackId id = InvalidReadbackId;
@@ -244,7 +249,6 @@ namespace aiko::renderer::vulkan
         void destroyUploadResourcesForFrame(uint32_t frameIndex);
         void destroyUploadResources();
 
-        std::vector<const Texture*> m_computeWrittenTextures;
         vector<ReadbackRequest> m_readbackRequests;
         vector<InFlightReadback> m_inFlightReadbacks;
         std::deque<CompletedReadback> m_completedReadbacks;

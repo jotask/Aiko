@@ -73,6 +73,7 @@ namespace aiko::renderer::vulkan
         destroyComputeDescriptorPools();
         destroyComputePipelineLayout();
         destroyReadbackResources();
+        destroyUploadResources();
         m_context.shutdown();
     }
 
@@ -130,26 +131,6 @@ namespace aiko::renderer::vulkan
         {
             return;
         }
-
-        for (const Texture* texture : m_computeWrittenTextures)
-        {
-            AIKO_ASSERT(texture != nullptr, "Compute-written texture is null");
-
-            auto* textureImpl = static_cast<VulkanTextureImpl*>(texture->getImpl());
-
-            AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan compute-written texture");
-
-            const VulkanImageState imageState =
-            {
-                .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                .stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                .access = VK_ACCESS_SHADER_READ_BIT,
-            };
-
-            transitionTexture( m_context.activeCommandBuffer(), *textureImpl, imageState);
-        }
-
-        m_computeWrittenTextures.clear();
 
         VkRenderPass renderPass;
         VkFramebuffer framebuffer;
@@ -453,14 +434,6 @@ namespace aiko::renderer::vulkan
 
         vkCmdDispatch(commandBuffer, pass.dispatch.groupsX, pass.dispatch.groupsY, pass.dispatch.groupsZ);
 
-        for (const ComputeImageBinding& image : pass.images)
-        {
-            if (image.access == ComputeAccess::Write || image.access == ComputeAccess::ReadWrite)
-            {
-                m_computeWrittenTextures.push_back(image.texture);
-            }
-        }
-
     }
 
     void VulkanRenderDevice::requestReadback(const ComputeReadbackRequest& request)
@@ -553,6 +526,52 @@ namespace aiko::renderer::vulkan
         Mesh& mesh = resolveTransientMesh(*desc.geometry);
         drawMeshWithPipeline(viewId, desc.mtx, mesh, pipeline);
 
+    }
+
+    void VulkanRenderDevice::prepareTextureForSampling(const Texture& texture)
+    {
+        AIKO_ASSERT(m_frameActive, "Texture preparation requires an active frame");
+        AIKO_ASSERT(m_renderPassActive == false, "Texture preparation must happen outside a render pass");
+        AIKO_ASSERT(texture.isValid(), "Cannot prepare invalid texture");
+
+        auto* textureImpl = static_cast<VulkanTextureImpl*>(texture.getImpl());
+
+        AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan texture implementation");
+
+        const VulkanImageState sampledState =
+        {
+            .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+            .access = VK_ACCESS_SHADER_READ_BIT,
+        };
+
+        transitionTexture(m_context.activeCommandBuffer(), *textureImpl, sampledState);
+    }
+
+    void VulkanRenderDevice::prepareMaterial(const Material& material)
+    {
+        const Texture* texture = resolveMaterialTexture(material);
+        AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
+        prepareTextureForSampling(*texture);
+    }
+
+    const Texture* VulkanRenderDevice::resolveMaterialTexture(const Material& material)
+    {
+        if (material.m_runtimeDiffuseTexture != nullptr && material.m_runtimeDiffuseTexture->isValid())
+        {
+            return material.m_runtimeDiffuseTexture;
+        }
+
+        if (material.m_diffuseTextureId != InvalidAssetId)
+        {
+            Texture& texture = getResources()->getTexture(material.m_diffuseTextureId);
+            if (texture.isValid())
+            {
+                return &texture;
+            }
+        }
+
+        return &m_whiteTexture;
     }
 
     void VulkanRenderDevice::createFrameResources()
@@ -1324,28 +1343,10 @@ namespace aiko::renderer::vulkan
         VkResult result = vkAllocateDescriptorSets(m_context.device(), &allocInfo, &binding.descriptorSet);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate material descriptor set");
 
-        const Texture* texture = nullptr;
-        bool hasRealTexture = false;
+        const Texture* texture = resolveMaterialTexture(material);
+        AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
 
-        if (material.m_runtimeDiffuseTexture != nullptr && material.m_runtimeDiffuseTexture->isValid())
-        {
-            texture = material.m_runtimeDiffuseTexture;
-            hasRealTexture = true;
-        }
-        else if (material.m_diffuseTextureId != InvalidAssetId)
-        {
-            Texture& assetTexture = getResources()->getTexture(material.m_diffuseTextureId);
-            if (assetTexture.isValid())
-            {
-                texture = &assetTexture;
-                hasRealTexture = true;
-            }
-        }
-
-        if (texture == nullptr)
-        {
-            texture = &m_whiteTexture;
-        }
+        const bool hasRealTexture = texture != &m_whiteTexture;
 
         auto* textureImpl = static_cast<VulkanTextureImpl*>(texture->getImpl());
         AIKO_ASSERT(textureImpl != nullptr && textureImpl->isValid(), "Invalid Vulkan material texture");
@@ -2066,7 +2067,7 @@ namespace aiko::renderer::vulkan
         }
     }
 
-void VulkanRenderDevice::recordReadbackCopies()
+    void VulkanRenderDevice::recordReadbackCopies()
     {
         if (m_readbackRequests.empty())
         {

@@ -100,6 +100,16 @@ namespace aiko::renderer
             drawBillboards(viewId, desc);
         }
 
+        virtual void prepareTextureForSampling(const Texture& texture)
+        {
+            AIKO_UNUSED(texture);
+        }
+
+        virtual void prepareMaterial(const Material& material)
+        {
+            AIKO_UNUSED(material);
+        }
+
     protected:
 
         RenderResourceManager* getResources() const { return m_resource_manager; }
