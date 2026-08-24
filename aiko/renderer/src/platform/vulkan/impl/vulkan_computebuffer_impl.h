@@ -1,6 +1,7 @@
 #pragma once
 
 #include "interfaces/i_computebuffer.h"
+#include "platform/vulkan/vulkan_types.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -31,6 +32,9 @@ namespace aiko::renderer::vulkan
         uint32_t count() const { return m_count; }
         VkDeviceSize elementSize() const { return m_elementSize; }
 
+        const VulkanBufferState& state() const { return m_state; }
+        void setState(const VulkanBufferState& state) { m_state = state; }
+
     private:
         void buildLayout(ComputeBufferFormat format);
 
@@ -41,6 +45,8 @@ namespace aiko::renderer::vulkan
         uint32_t m_count = 0;
 
         ComputeAccess m_access = ComputeAccess::ReadWrite;
+
+        VulkanBufferState m_state{};
 
     };
 }

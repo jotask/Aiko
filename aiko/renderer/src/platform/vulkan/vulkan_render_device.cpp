@@ -432,6 +432,7 @@ namespace aiko::renderer::vulkan
         VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Compute dispatch requires an active frame command buffer");
 
+        transitionComputeBuffers(commandBuffer, pass.buffers);
         transitionComputeImages(commandBuffer, pass.images);
         updateComputeDescriptors(descriptorSet, pass.buffers, pass.images);
 
@@ -1821,7 +1822,12 @@ namespace aiko::renderer::vulkan
 
         if (sameLayout && noWriteHazard && destinationOnlyReads)
         {
-            texture.setState(destination);
+            texture.setState(
+            {
+                .layout = destination.layout,
+                .stage = source.stage | destination.stage,
+                .access = source.access | destination.access,
+            });
             return;
         }
 
@@ -1853,6 +1859,86 @@ namespace aiko::renderer::vulkan
         vkCmdPipelineBarrier( commandBuffer, source.stage, destination.stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
         texture.setState(destination);
+    }
+
+    void VulkanRenderDevice::transitionBuffer(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination)
+    {
+        const VulkanBufferState source = buffer.state();
+
+        constexpr VkAccessFlags writeAccess = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_HOST_WRITE_BIT;
+
+        const bool sourceWrites = (source.access & writeAccess) != 0;
+
+        const bool destinationWrites = (destination.access & writeAccess) != 0;
+
+        if (sourceWrites == false && destinationWrites == false)
+        {
+            buffer.setState(
+            {
+                .stage = source.stage | destination.stage,
+                .access = source.access | destination.access,
+            });
+
+            return;
+        }
+
+        const VkBufferMemoryBarrier barrier =
+        {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+            .srcAccessMask = source.access,
+            .dstAccessMask = destination.access,
+
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+
+            .buffer = buffer.buffer(),
+            .offset = 0,
+            .size = buffer.size(),
+        };
+
+        vkCmdPipelineBarrier(commandBuffer, source.stage, destination.stage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+
+        buffer.setState(destination);
+    }
+
+    void VulkanRenderDevice::transitionComputeBuffers(VkCommandBuffer commandBuffer, const vector<ComputeBufferBinding>& bindings)
+    {
+        for (const ComputeBufferBinding& binding : bindings)
+        {
+            AIKO_ASSERT(binding.buffer != nullptr, "Compute buffer binding is null");
+            AIKO_ASSERT(binding.buffer->isValid(), "Invalid compute buffer");
+
+            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
+            AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan compute buffer implementation");
+
+            transitionBuffer(commandBuffer,*bufferImpl,computeBufferState(binding.access));
+        }
+    }
+
+    VulkanBufferState VulkanRenderDevice::computeBufferState(ComputeAccess access) const
+    {
+        VkAccessFlags accessMask = 0;
+
+        switch (access)
+        {
+            case ComputeAccess::Read:
+                accessMask = VK_ACCESS_SHADER_READ_BIT;
+                break;
+
+            case ComputeAccess::Write:
+                accessMask = VK_ACCESS_SHADER_WRITE_BIT;
+                break;
+
+            case ComputeAccess::ReadWrite:
+                accessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+                break;
+        }
+
+        return
+        {
+            .stage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            .access = accessMask,
+        };
     }
 
     VulkanImageState VulkanRenderDevice::computeImageState(ComputeAccess access) const
@@ -1908,19 +1994,13 @@ namespace aiko::renderer::vulkan
 
             m_context.createBuffer(request.byteSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
 
-            const VkBufferMemoryBarrier barrier =
+            const VulkanBufferState bufferState =
             {
-                .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
-                .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
-                .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .buffer = bufferImpl->buffer(),
-                .offset = 0,
-                .size = request.byteSize,
+                .stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
+                .access = VK_ACCESS_TRANSFER_READ_BIT,
             };
 
-            vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+            transitionBuffer( commandBuffer, *bufferImpl, bufferState);
 
             const VkBufferCopy copy =
             {
@@ -1930,6 +2010,20 @@ namespace aiko::renderer::vulkan
             };
 
             vkCmdCopyBuffer(commandBuffer, bufferImpl->buffer(), stagingBuffer, 1, &copy);
+
+            const VkBufferMemoryBarrier hostBarrier =
+            {
+                .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+                .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_HOST_READ_BIT,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .buffer = stagingBuffer,
+                .offset = 0,
+                .size = request.byteSize,
+            };
+
+            vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT, 0, 0, nullptr, 1, &hostBarrier, 0, nullptr);
 
             m_inFlightReadbacks.push_back(
             {

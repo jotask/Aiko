@@ -43,6 +43,12 @@ namespace aiko::renderer::vulkan
 
         ctx.createBuffer(size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_buffer, m_memory);
 
+        m_state =
+        {
+            .stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            .access = 0,
+        };
+
         if (initialData != nullptr)
         {
             void* mapped = nullptr;
@@ -52,6 +58,13 @@ namespace aiko::renderer::vulkan
 
             std::memcpy(mapped, initialData, static_cast<size_t>(size));
             vkUnmapMemory(ctx.device(), m_memory);
+
+            m_state =
+            {
+                .stage = VK_PIPELINE_STAGE_HOST_BIT,
+                .access = VK_ACCESS_HOST_WRITE_BIT,
+            };
+
         }
     }
 
@@ -68,47 +81,35 @@ namespace aiko::renderer::vulkan
 
         VulkanContext& ctx = VulkanContext::current();
 
-        const VkDeviceSize offset =
-            static_cast<VkDeviceSize>(start) * m_elementSize;
+        const VkDeviceSize offset = static_cast<VkDeviceSize>(start) * m_elementSize;
 
-        const VkDeviceSize size =
-            static_cast<VkDeviceSize>(count) * m_elementSize;
+        const VkDeviceSize size = static_cast<VkDeviceSize>(count) * m_elementSize;
 
         void* mapped = nullptr;
 
-        const VkResult result = vkMapMemory(
-            ctx.device(),
-            m_memory,
-            offset,
-            size,
-            0,
-            &mapped
-        );
+        const VkResult result = vkMapMemory(ctx.device(), m_memory, offset, size, 0, &mapped);
 
-        AIKO_ASSERT(
-            result == VK_SUCCESS,
-            "Failed to map Vulkan compute buffer"
-        );
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to map Vulkan compute buffer");
 
-        std::memcpy(
-            mapped,
-            data,
-            static_cast<size_t>(size)
-        );
+        std::memcpy( mapped, data, static_cast<size_t>(size));
 
-        vkUnmapMemory(
-            ctx.device(),
-            m_memory
-        );
+        vkUnmapMemory(ctx.device(), m_memory);
+
+        m_state =
+        {
+            .stage = VK_PIPELINE_STAGE_HOST_BIT,
+            .access = VK_ACCESS_HOST_WRITE_BIT,
+        };
+
     }
 
     void VulkanComputeBufferImpl::destroy()
     {
-        if (m_buffer == VK_NULL_HANDLE &&
-                m_memory == VK_NULL_HANDLE)
+        if (m_buffer == VK_NULL_HANDLE && m_memory == VK_NULL_HANDLE)
         {
             m_elementSize = 0;
             m_count = 0;
+            m_state = {};
             return;
         }
 
@@ -130,6 +131,7 @@ namespace aiko::renderer::vulkan
 
         m_elementSize = 0;
         m_count = 0;
+        m_state = {};
     }
 
     void VulkanComputeBufferImpl::read(void* destination, VkDeviceSize size)

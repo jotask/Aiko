@@ -81,6 +81,12 @@ namespace aiko
         VkAccessFlags access = 0;
     };
 
+    struct VulkanBufferState
+    {
+        VkPipelineStageFlags stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        VkAccessFlags access = 0;
+    };
+
     struct QueueFamilyIndices
     {
         std::optional<uint32_t> graphicsFamily;

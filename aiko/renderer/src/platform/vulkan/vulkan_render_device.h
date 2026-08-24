@@ -10,6 +10,7 @@
 #include "vulkan_context.h"
 #include "vulkan_types.h"
 #include "core/utils.h"
+#include "impl/vulkan_computebuffer_impl.h"
 #include "renderer/Irenderdevice.h"
 
 namespace aiko::renderer::vulkan
@@ -201,6 +202,9 @@ namespace aiko::renderer::vulkan
         void updateComputeDescriptors(VkDescriptorSet descriptorSet, const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images);
         void transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings);
         void transitionTexture(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination);
+        void transitionBuffer(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination);
+        void transitionComputeBuffers(VkCommandBuffer commandBuffer, const vector<ComputeBufferBinding>& bindings);
+        VulkanBufferState computeBufferState(ComputeAccess access) const;
 
         VulkanImageState computeImageState(ComputeAccess access) const;
 
