@@ -4,6 +4,9 @@
 #include "render_types.h"
 #include "models/texture.h"
 
+#include <cstring>
+#include <type_traits>
+
 namespace aiko
 {
     class ComputeBuffer;
@@ -15,6 +18,8 @@ namespace aiko
         const Texture* texture = nullptr;
         ComputeAccess access = ComputeAccess::Write;
     };
+
+    static constexpr uint32_t MaxComputePushConstantBytes = 128;
 
     struct ComputeDispatch
     {
@@ -89,20 +94,24 @@ namespace aiko
         ComputeAccess access = ComputeAccess::ReadWrite;
     };
 
-    struct ComputeVec4Uniform
-    {
-        const char* name = nullptr;
-        vec4 value = vec4(0.0f);
-        uint8_t slot = 0;
-    };
-
     struct ComputePass
     {
         ComputeShader* shader = nullptr;
         vector<ComputeImageBinding> images;
         ComputeDispatch dispatch;
         vector<ComputeBufferBinding> buffers;
-        vector<ComputeVec4Uniform> vec4Uniforms;
+        vector<uint8_t> pushConstants;
+
+        template<typename T>
+        void setPushConstants(const T& value)
+        {
+            AIKO_ASSERT(std::is_trivially_copyable_v<T>, "Compute push constants must be trivially copyable");
+            AIKO_ASSERT(sizeof(T) <= MaxComputePushConstantBytes, "Compute push constants exceed engine limit");
+            AIKO_ASSERT(sizeof(T) % 4 == 0, "Compute push constant size must be a multiple of 4 bytes");
+            pushConstants.resize(sizeof(T));
+            std::memcpy( pushConstants.data(), &value, sizeof(T));
+        }
+
     };
 
 }

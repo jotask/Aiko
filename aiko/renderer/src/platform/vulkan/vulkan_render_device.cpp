@@ -421,15 +421,11 @@ namespace aiko::renderer::vulkan
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
-        if (pass.vec4Uniforms.empty() == false)
+        if (pass.pushConstants.empty() == false)
         {
-            std::array<vec4, MaxComputeVec4Uniforms> uniforms{};
-            for (const ComputeVec4Uniform& uniform : pass.vec4Uniforms)
-            {
-                AIKO_ASSERT(uniform.slot < MaxComputeVec4Uniforms, "Compute uniform slot exceeds Vulkan push constant limit");
-                uniforms[uniform.slot] = uniform.value;
-            }
-            vkCmdPushConstants(commandBuffer, m_computePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(vec4) * MaxComputeVec4Uniforms, uniforms.data());
+            AIKO_ASSERT(pass.pushConstants.size() <= MaxComputePushConstantBytes, "Compute push constants exceed engine limit");
+            AIKO_ASSERT(pass.pushConstants.size() % 4 == 0, "Compute push constant size must be a multiple of 4 bytes");
+            vkCmdPushConstants(commandBuffer, m_computePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, static_cast<uint32_t>( pass.pushConstants.size()), pass.pushConstants.data());
         }
 
         vkCmdDispatch(commandBuffer, pass.dispatch.groupsX, pass.dispatch.groupsY, pass.dispatch.groupsZ);
@@ -1547,7 +1543,7 @@ namespace aiko::renderer::vulkan
         {
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
             .offset = 0,
-            .size = sizeof(vec4) * MaxComputeVec4Uniforms,
+            .size = MaxComputePushConstantBytes,
         };
 
         const VkPipelineLayoutCreateInfo pipelineLayoutInfo =

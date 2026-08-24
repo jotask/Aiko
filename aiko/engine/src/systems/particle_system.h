@@ -29,6 +29,26 @@ namespace aiko
     
     private:
 
+        struct ParticleInitPushConstants
+        {
+            vec4 u_params;
+            vec4 u_emitterPos;
+        };
+
+        struct ParticleUpdatePushConstants
+        {
+            vec4 u_params;
+            vec4 u_emitterPos;
+            vec4 u_spawnWindow;
+            vec4 u_spawnShape;
+            vec4 u_spawnData;
+            vec4 u_direction;
+            vec4 u_gravity;
+            vec4 u_spawnSeed;
+        };
+
+        static_assert(sizeof(ParticleUpdatePushConstants) <= MaxComputePushConstantBytes);
+
         struct RuntimeState
         {
             bool initialized = false;

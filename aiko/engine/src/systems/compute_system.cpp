@@ -175,15 +175,20 @@ namespace aiko
         if (shouldDispatch(cmp, *state) == true)
         {
             ComputePass pass = {};
+            ComputeParams params{};
+
             if (cmp.usesOutputTexture() == true)
             {
-                const float t = Time::it().secondSinceStart();
-                pass.vec4Uniforms.push_back({ "u_params", vec4(t, 0.0f, 0.0f, 0.0f) });
+                static float sinceStart = 0.0f;
+                sinceStart += Time::it().getDeltaTime();
+                params.u_params = vec4(sinceStart, 0.0f, 0.0f, 0.0f);
             }
             else
             {
-                pass.vec4Uniforms.push_back({ "u_params", vec4(float(count), 0.0f, 0.0f, 0.0f) });
+                params.u_params = vec4( static_cast<float>(count), 0.0f, 0.0f, 0.0f);
             }
+
+            pass.setPushConstants(params);
 
             if (cmp.usesOutputTexture() == false)
             {
