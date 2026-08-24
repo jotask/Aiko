@@ -152,7 +152,13 @@ namespace aiko::renderer::vulkan
             .valid = true,
         };
 
-        m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+        m_state =
+        {
+            .layout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            .access = 0,
+        };
+
     }
 
     void VulkanTextureImpl::unload()
@@ -162,7 +168,7 @@ namespace aiko::renderer::vulkan
         {
             m_info = {};
             m_vkFormat = VK_FORMAT_UNDEFINED;
-            m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+            m_state = {};
             m_mipLevels = 1;
             return;
         }
@@ -182,7 +188,7 @@ namespace aiko::renderer::vulkan
         m_image = VK_NULL_HANDLE;
         m_memory = VK_NULL_HANDLE;
         m_vkFormat = VK_FORMAT_UNDEFINED;
-        m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+        m_state = {};
         m_mipLevels = 1;
         m_info = {};
     }
@@ -249,9 +255,9 @@ namespace aiko::renderer::vulkan
 
         VkCommandBuffer commandBuffer = ctx.beginSingleTimeCommands();
 
-        if (m_layout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+        if (m_state.layout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
         {
-            ctx.transitionImageLayout(commandBuffer, m_image, m_vkFormat, m_layout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, m_mipLevels);
+            ctx.transitionImageLayout(commandBuffer, m_image, m_vkFormat, m_state.layout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, m_mipLevels);
         }
 
         ctx.copyBufferToImage(commandBuffer, stagingBuffer, m_image, m_info.width, m_info.height);
@@ -267,9 +273,12 @@ namespace aiko::renderer::vulkan
 
         ctx.endSingleTimeCommands(commandBuffer);
 
-        // The upload has completed because endSingleTimeCommands()
-        // waits for its submission fence.
-        m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        m_state =
+        {
+            .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+            .access = VK_ACCESS_SHADER_READ_BIT,
+        };
 
         vkDestroyBuffer(ctx.device(), stagingBuffer, nullptr);
         vkFreeMemory(ctx.device(), stagingMemory, nullptr);

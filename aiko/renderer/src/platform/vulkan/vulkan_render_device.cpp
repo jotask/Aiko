@@ -132,9 +132,20 @@ namespace aiko::renderer::vulkan
 
         for (const Texture* texture : m_computeWrittenTextures)
         {
+            AIKO_ASSERT(texture != nullptr, "Compute-written texture is null");
+
             auto* textureImpl = static_cast<VulkanTextureImpl*>(texture->getImpl());
-            m_context.transitionImageLayout(m_context.activeCommandBuffer(), textureImpl->image(), textureImpl->format(), textureImpl->layout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-            textureImpl->setLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+            AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan compute-written texture");
+
+            const VulkanImageState imageState =
+            {
+                .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                .stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                .access = VK_ACCESS_SHADER_READ_BIT,
+            };
+
+            transitionTexture( m_context.activeCommandBuffer(), *textureImpl, imageState);
         }
 
         m_computeWrittenTextures.clear();
@@ -442,7 +453,10 @@ namespace aiko::renderer::vulkan
 
         for (const ComputeImageBinding& image : pass.images)
         {
-            m_computeWrittenTextures.push_back(image.texture);
+            if (image.access == ComputeAccess::Write || image.access == ComputeAccess::ReadWrite)
+            {
+                m_computeWrittenTextures.push_back(image.texture);
+            }
         }
 
     }
@@ -1784,52 +1798,90 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings)
     {
-        if (bindings.empty())
-        {
-            return;
-        }
-
-        vector<VkImageMemoryBarrier> barriers;
-
-        barriers.reserve(bindings.size());
-
         for (const ComputeImageBinding& binding : bindings)
         {
+            AIKO_ASSERT(binding.texture != nullptr, "Compute image texture is null");
             auto* textureImpl = static_cast<VulkanTextureImpl*>(binding.texture->getImpl());
 
             AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan compute texture");
-
-            VkImageMemoryBarrier barrier =
-            {
-                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                .srcAccessMask = 0,
-                .dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT,
-                .oldLayout = textureImpl->layout(),
-                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .image = textureImpl->image(),
-                .subresourceRange =
-                {
-                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                    .baseMipLevel = 0,
-                    .levelCount = 1,
-                    .baseArrayLayer = 0,
-                    .layerCount = 1,
-                },
-            };
-
-            barriers.push_back(barrier);
+            transitionTexture( commandBuffer, *textureImpl, computeImageState(binding.access));
         }
 
-        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, static_cast<uint32_t>(barriers.size()), barriers.data());
+    }
 
-        for (const ComputeImageBinding& binding : bindings)
+    void VulkanRenderDevice::transitionTexture(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination)
+    {
+        const VulkanImageState source = texture.state();
+
+        const bool sameLayout = source.layout == destination.layout;
+
+        const bool noWriteHazard = (source.access & (VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)) == 0;
+
+        const bool destinationOnlyReads = (destination.access & (VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)) == 0;
+
+        if (sameLayout && noWriteHazard && destinationOnlyReads)
         {
-            auto* textureImpl = static_cast<VulkanTextureImpl*>(binding.texture->getImpl());
-            textureImpl->setLayout(VK_IMAGE_LAYOUT_GENERAL);
+            texture.setState(destination);
+            return;
         }
 
+        const VkImageMemoryBarrier barrier =
+        {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+
+            .srcAccessMask = source.access,
+            .dstAccessMask = destination.access,
+
+            .oldLayout = source.layout,
+            .newLayout = destination.layout,
+
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+
+            .image = texture.image(),
+
+            .subresourceRange =
+            {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = VK_REMAINING_MIP_LEVELS,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+        };
+
+        vkCmdPipelineBarrier( commandBuffer, source.stage, destination.stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+        texture.setState(destination);
+    }
+
+    VulkanImageState VulkanRenderDevice::computeImageState(ComputeAccess access) const
+    {
+        VkAccessFlags accessMask = 0;
+
+        switch (access)
+        {
+            case ComputeAccess::Read:
+                accessMask = VK_ACCESS_SHADER_READ_BIT;
+                break;
+
+            case ComputeAccess::Write:
+                accessMask = VK_ACCESS_SHADER_WRITE_BIT;
+                break;
+
+            case ComputeAccess::ReadWrite:
+                accessMask =
+                    VK_ACCESS_SHADER_READ_BIT |
+                    VK_ACCESS_SHADER_WRITE_BIT;
+                break;
+        }
+
+        return
+        {
+            .layout = VK_IMAGE_LAYOUT_GENERAL,
+            .stage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            .access = accessMask,
+        };
     }
 
     void VulkanRenderDevice::recordReadbackCopies()

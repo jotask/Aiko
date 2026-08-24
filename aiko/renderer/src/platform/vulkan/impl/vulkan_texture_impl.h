@@ -5,6 +5,8 @@
 #include <types/texture_types.h>
 #include "interfaces/itexture_impl.h"
 
+#include "platform/vulkan/vulkan_types.h"
+
 namespace aiko::renderer::vulkan
 {
 
@@ -29,13 +31,14 @@ namespace aiko::renderer::vulkan
         virtual void update(const TextureAsset& asset) override;
         virtual void setPixels(const vector<Color>& pixels) override;
 
-        void setLayout(VkImageLayout layout) { m_layout = layout; }
-
         VkImage image() const { return m_image; }
         VkImageView imageView() const { return m_view; }
         VkFormat format() const { return m_vkFormat; }
         VkSampler sampler() const { return m_sampler; }
-        VkImageLayout layout() const { return m_layout; }
+
+        const VulkanImageState& state() const { return m_state; }
+        void setState(const VulkanImageState& state) { m_state = state; }
+        VkImageLayout layout() const { return m_state.layout; }
 
     private:
 
@@ -45,8 +48,9 @@ namespace aiko::renderer::vulkan
         VkSampler m_sampler = VK_NULL_HANDLE;
         TextureInfo m_info = {};
         VkFormat m_vkFormat = VK_FORMAT_UNDEFINED;
-        VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
         uint32_t m_mipLevels = 1;
+
+        VulkanImageState m_state{};
 
         VkFormat convertToVkFormat(const TextureFormat format);
 

@@ -200,6 +200,9 @@ namespace aiko::renderer::vulkan
 
         void updateComputeDescriptors(VkDescriptorSet descriptorSet, const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images);
         void transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings);
+        void transitionTexture(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination);
+
+        VulkanImageState computeImageState(ComputeAccess access) const;
 
         struct ReadbackRequest
         {
