@@ -36,7 +36,7 @@ namespace aiko
         backend->destroy();
     }
 
-    void ComputeBuffer::createVec4(uint32_t count, const void* initialData, ComputeAccess access)
+    void ComputeBuffer::createVec4(uint32_t count, const void* initialData)
     {
         const ComputeBufferDesc desc =
         {

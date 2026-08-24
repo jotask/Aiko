@@ -92,7 +92,7 @@ namespace aiko
         {
             if (cmp.usesOutputTexture() == false)
             {
-                state.buffer.createVec4(count, nullptr, ComputeAccess::ReadWrite);
+                state.buffer.createVec4(count, nullptr);
             }
 
             state.initialized = true;

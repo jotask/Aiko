@@ -37,7 +37,7 @@
         void unload();
 
         // helpers
-        void createVec4(uint32_t count, const void* initialData, ComputeAccess access);
+        void createVec4(uint32_t count, const void* initialData);
 
     private:
 

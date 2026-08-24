@@ -76,9 +76,9 @@ namespace aiko
         {
             const uint32_t count = emitter.getMaxParticles();
 
-            state.positionBuffer.createVec4(count, nullptr, ComputeAccess::ReadWrite);
-            state.velocityBuffer.createVec4(count, nullptr, ComputeAccess::ReadWrite);
-            state.lifeBuffer.createVec4(count, nullptr, ComputeAccess::ReadWrite);
+            state.positionBuffer.createVec4(count, nullptr);
+            state.velocityBuffer.createVec4(count, nullptr);
+            state.lifeBuffer.createVec4(count, nullptr);
 
             state.initialized = true;
             state.initDispatched = false;

@@ -93,10 +93,11 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        completeReadbacksForFrame(m_context.currentFrameIndex());
-
         const uint32_t frame = m_context.currentFrameIndex();
         AIKO_ASSERT(frame < FramesInFlight, "Invalid Vulkan frame index");
+
+        completeReadbacksForFrame(frame);
+        destroyUploadResourcesForFrame(frame);
 
         const VkResult resetResult = vkResetDescriptorPool(m_context.device(), m_computeDescriptorPools[frame], 0);
         AIKO_ASSERT(resetResult == VK_SUCCESS, "Failed to reset compute descriptor pool");
@@ -1913,7 +1914,9 @@ namespace aiko::renderer::vulkan
             auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
             AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan compute buffer implementation");
 
-            transitionBuffer(commandBuffer,*bufferImpl,computeBufferState(binding.access));
+            flushComputeBufferUploads(commandBuffer, *bufferImpl);
+            transitionBuffer(commandBuffer, *bufferImpl, computeBufferState(binding.access));
+
         }
     }
 
@@ -1972,7 +1975,98 @@ namespace aiko::renderer::vulkan
         };
     }
 
-    void VulkanRenderDevice::recordReadbackCopies()
+    void VulkanRenderDevice::flushComputeBufferUploads(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer)
+    {
+        if (buffer.hasPendingUploads() == false)
+        {
+            return;
+        }
+
+        AIKO_ASSERT(hasFlag(buffer.usage(), ComputeBufferUsage::TransferDst), "Compute buffer upload requires transfer-destination usage");
+
+        const uint32_t frame = m_context.currentFrameIndex();
+
+        vector<VulkanComputeBufferImpl::PendingUpload> uploads = buffer.takePendingUploads();
+
+        for (const auto& upload : uploads)
+        {
+            AIKO_ASSERT(upload.data.empty() == false, "Compute buffer upload is empty");
+
+            VkBuffer stagingBuffer = VK_NULL_HANDLE;
+            VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
+
+            const VkDeviceSize size = static_cast<VkDeviceSize>(upload.data.size());
+
+            m_context.createBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
+
+            void* mapped = nullptr;
+
+            const VkResult mapResult = vkMapMemory(m_context.device(), stagingMemory, 0, size, 0, &mapped);
+
+            AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map compute upload staging buffer");
+
+            std::memcpy(mapped, upload.data.data(), upload.data.size());
+
+            vkUnmapMemory(m_context.device(), stagingMemory);
+
+            const VkBufferCopy copy =
+            {
+                .srcOffset = 0,
+                .dstOffset = upload.offset,
+                .size = size,
+            };
+
+            vkCmdCopyBuffer(commandBuffer, stagingBuffer, buffer.buffer(), 1, &copy);
+
+            m_uploadStagingResources[frame].
+                push_back(
+                {
+                    .buffer = stagingBuffer,
+                    .memory = stagingMemory,
+                });
+        }
+
+        buffer.setState(
+        {
+            .stage =
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
+
+            .access =
+                VK_ACCESS_TRANSFER_WRITE_BIT,
+        });
+    }
+
+    void VulkanRenderDevice::destroyUploadResourcesForFrame(uint32_t frameIndex)
+    {
+        AIKO_ASSERT(frameIndex < FramesInFlight, "Invalid Vulkan frame index");
+
+        VkDevice device = m_context.device();
+
+        for (UploadStagingResource& resource : m_uploadStagingResources[frameIndex])
+        {
+            if (resource.buffer != VK_NULL_HANDLE)
+            {
+                vkDestroyBuffer(device, resource.buffer, nullptr);
+            }
+
+            if (resource.memory != VK_NULL_HANDLE)
+            {
+                vkFreeMemory(device, resource.memory, nullptr);
+            }
+        }
+
+        m_uploadStagingResources[frameIndex].clear();
+    }
+
+    void VulkanRenderDevice::destroyUploadResources()
+    {
+        for (uint32_t frame = 0; frame < FramesInFlight; ++frame)
+        {
+            destroyUploadResourcesForFrame(frame);
+        }
+    }
+
+void VulkanRenderDevice::recordReadbackCopies()
     {
         if (m_readbackRequests.empty())
         {

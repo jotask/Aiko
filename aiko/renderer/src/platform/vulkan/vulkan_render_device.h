@@ -232,6 +232,18 @@ namespace aiko::renderer::vulkan
             vector<uint8_t> data;
         };
 
+        struct UploadStagingResource
+        {
+            VkBuffer buffer = VK_NULL_HANDLE;
+            VkDeviceMemory memory = VK_NULL_HANDLE;
+        };
+
+        std::array<vector<UploadStagingResource>, FramesInFlight> m_uploadStagingResources;
+
+        void flushComputeBufferUploads(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer);
+        void destroyUploadResourcesForFrame(uint32_t frameIndex);
+        void destroyUploadResources();
+
         std::vector<const Texture*> m_computeWrittenTextures;
         vector<ReadbackRequest> m_readbackRequests;
         vector<InFlightReadback> m_inFlightReadbacks;

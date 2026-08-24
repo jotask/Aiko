@@ -36,8 +36,17 @@ namespace aiko::renderer::vulkan
 
         ComputeBufferUsage usage() const { return m_usage; }
 
+        bool hasPendingUploads() const { return m_pendingUploads.empty() == false; }
+
+        struct PendingUpload
+        {
+            VkDeviceSize offset = 0;
+            vector<uint8_t> data;
+        };
+
+        std::vector<PendingUpload> takePendingUploads();
+
     private:
-        void buildLayout(ComputeBufferFormat format);
 
         VkBuffer m_buffer = VK_NULL_HANDLE;
         VkDeviceMemory m_memory = VK_NULL_HANDLE;
@@ -49,6 +58,9 @@ namespace aiko::renderer::vulkan
 
         VulkanBufferState m_state{};
 
+        vector<PendingUpload> m_pendingUploads;
+
+        void buildLayout(ComputeBufferFormat format);
         VkBufferUsageFlags buildUsageFlags(ComputeBufferUsage usage) const;
 
     };

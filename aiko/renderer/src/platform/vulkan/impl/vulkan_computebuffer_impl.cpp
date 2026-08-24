@@ -43,7 +43,7 @@ namespace aiko::renderer::vulkan
 
         const VkBufferUsageFlags usageFlags = buildUsageFlags(desc.usage);
 
-        ctx.createBuffer( size, usageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_buffer, m_memory);
+        ctx.createBuffer(size, usageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_buffer, m_memory);
 
         m_state =
         {
@@ -53,25 +53,26 @@ namespace aiko::renderer::vulkan
 
         if (initialData != nullptr)
         {
-            void* mapped = nullptr;
+            AIKO_ASSERT( hasFlag( m_usage, ComputeBufferUsage::TransferDst), "Compute buffer initial data requires transfer-destination usage");
 
-            const VkResult result = vkMapMemory(ctx.device(), m_memory, 0, size, 0, &mapped);
-            AIKO_ASSERT( result == VK_SUCCESS,"Failed to map Vulkan compute buffer");
+            PendingUpload upload{};
+            upload.offset = 0;
+            upload.data.resize(static_cast<size_t>(size));
 
-            std::memcpy(mapped, initialData, static_cast<size_t>(size));
-            vkUnmapMemory(ctx.device(), m_memory);
+            std::memcpy( upload.data.data(), initialData, static_cast<size_t>(size));
+            m_pendingUploads.push_back(std::move(upload));
 
             m_state =
             {
-                .stage = VK_PIPELINE_STAGE_HOST_BIT,
-                .access = VK_ACCESS_HOST_WRITE_BIT,
+                .stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                .access = 0,
             };
-
         }
     }
 
     void VulkanComputeBufferImpl::update(uint32_t start, uint32_t count, const void* data)
     {
+
         AIKO_ASSERT(isValid(), "Invalid compute buffer");
         AIKO_ASSERT(data != nullptr, "Compute buffer update data is null");
         AIKO_ASSERT(start + count <= m_count, "Compute buffer update out of range");
@@ -81,27 +82,19 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        VulkanContext& ctx = VulkanContext::current();
+        AIKO_ASSERT(hasFlag(m_usage, ComputeBufferUsage::TransferDst), "Compute buffer update requires transfer-destination usage");
 
         const VkDeviceSize offset = static_cast<VkDeviceSize>(start) * m_elementSize;
 
         const VkDeviceSize size = static_cast<VkDeviceSize>(count) * m_elementSize;
 
-        void* mapped = nullptr;
+        PendingUpload upload{};
+        upload.offset = offset;
+        upload.data.resize(static_cast<size_t>(size));
 
-        const VkResult result = vkMapMemory(ctx.device(), m_memory, offset, size, 0, &mapped);
+        std::memcpy(upload.data.data(), data, static_cast<size_t>(size));
 
-        AIKO_ASSERT(result == VK_SUCCESS, "Failed to map Vulkan compute buffer");
-
-        std::memcpy( mapped, data, static_cast<size_t>(size));
-
-        vkUnmapMemory(ctx.device(), m_memory);
-
-        m_state =
-        {
-            .stage = VK_PIPELINE_STAGE_HOST_BIT,
-            .access = VK_ACCESS_HOST_WRITE_BIT,
-        };
+        m_pendingUploads.push_back(std::move(upload));
 
     }
 
@@ -112,6 +105,7 @@ namespace aiko::renderer::vulkan
             m_elementSize = 0;
             m_count = 0;
             m_state = {};
+            m_pendingUploads.clear();
             return;
         }
 
@@ -134,6 +128,14 @@ namespace aiko::renderer::vulkan
         m_elementSize = 0;
         m_count = 0;
         m_state = {};
+        m_pendingUploads.clear();
+    }
+
+    std::vector<VulkanComputeBufferImpl::PendingUpload> VulkanComputeBufferImpl::takePendingUploads()
+    {
+        std::vector<PendingUpload> uploads = std::move(m_pendingUploads);
+        m_pendingUploads.clear();
+        return uploads;
     }
 
     void VulkanComputeBufferImpl::buildLayout(ComputeBufferFormat format)
