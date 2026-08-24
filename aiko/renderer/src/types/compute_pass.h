@@ -32,15 +32,15 @@ namespace aiko
         Mat4f,   // 4x vec4
     };
 
-    enum class ComputeBufferUsage
+    enum class ComputeBufferUsage : uint32_t
     {
-        None,
-        Storage,
-        TransferSrc,
-        TransferDst,
-        Vertex,
-        Index,
-        Indirect,
+        None        = 0,
+        Storage     = 1u << 0,
+        TransferSrc = 1u << 1,
+        TransferDst = 1u << 2,
+        Vertex      = 1u << 3,
+        Index       = 1u << 4,
+        Indirect    = 1u << 5,
     };
 
     inline ComputeBufferUsage operator|(ComputeBufferUsage lhs, ComputeBufferUsage rhs)
