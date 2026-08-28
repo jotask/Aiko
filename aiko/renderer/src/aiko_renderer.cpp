@@ -7,6 +7,7 @@
 
 #include "render_factory.h"
 #include "core/transform.h"
+#include "time/time.h"
 #include "display/display_manager.h"
 #include "imgui/aiko_imgui.h"
 #include "models/camera.h"
@@ -213,6 +214,7 @@ namespace aiko
 
         const renderer::FrameData frameData = buildSceneFrameData(camera);
 
+        m_renderer->bindFrame(COMPUTE_VIEW, frameData);
         executeComputePasses();
 
         const PreparedScenePass scenePass = buildScenePass();
@@ -250,6 +252,8 @@ namespace aiko
             .view = camera.getViewMatrix(),
             .projection = camera.getProjectionMatrix(),
             .cameraPosition = camera.position,
+            .time = static_cast<float>( Time::it().secondSinceStart()),
+            .deltaTime = Time::it().getDeltaTime(),
             .ambient = m_ambientLight,
             .lights = m_lights,
         };

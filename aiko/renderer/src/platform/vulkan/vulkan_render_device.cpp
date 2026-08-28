@@ -323,7 +323,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::bindFrame(ViewId viewId, const FrameData& u)
     {
-        if (viewId != SCENE_VIEW)
+        if (viewId != SCENE_VIEW && viewId != COMPUTE_VIEW)
         {
             return;
         }
@@ -339,6 +339,9 @@ namespace aiko::renderer::vulkan
         m_sceneViewProj = ubo.u_viewProj;
 
         ubo.u_cameraPos = { u.cameraPosition.x, u.cameraPosition.y, u.cameraPosition.z, 1.0f };
+
+        ubo.u_time = { u.time, u.deltaTime, 0.0f, 0.0f };
+
         ubo.u_ambientColor = u.ambient.color.toVec4();
         ubo.u_ambientIntensity = { u.ambient.intensity, 0.0f, 0.0f, 0.0f };
 
@@ -392,7 +395,10 @@ namespace aiko::renderer::vulkan
         }
 
         std::memcpy(m_frameUniformMapped[frame], &ubo, sizeof(ubo));
-        vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, 0, 1, &m_frameDescriptorSets[frame], 0, nullptr );
+        if (viewId == SCENE_VIEW)
+        {
+            vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, 0, 1, &m_frameDescriptorSets[frame], 0, nullptr );
+        }
 
     }
 
@@ -1502,7 +1508,7 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::createComputePipelineLayout()
     {
 
-        std::array<VkDescriptorSetLayoutBinding, MaxComputeBufferBindings + MaxComputeImageBindings> bindings{};
+        std::array<VkDescriptorSetLayoutBinding, MaxComputeBufferBindings + MaxComputeImageBindings + 1> bindings{};
 
         for (uint32_t i = 0; i < MaxComputeBufferBindings; ++i)
         {
@@ -1528,6 +1534,15 @@ namespace aiko::renderer::vulkan
                 .pImmutableSamplers = nullptr,
             };
         }
+
+        bindings[ComputeFrameBinding] =
+        {
+            .binding = ComputeFrameBinding,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+            .pImmutableSamplers = nullptr,
+        };
 
         const VkDescriptorSetLayoutCreateInfo descriptorLayoutInfo =
         {
@@ -1634,7 +1649,7 @@ namespace aiko::renderer::vulkan
     {
         for (size_t frame = 0; frame < FramesInFlight; ++frame)
         {
-            const std::array<VkDescriptorPoolSize, 2> poolSizes =
+            const std::array<VkDescriptorPoolSize, 3> poolSizes =
             {
                 VkDescriptorPoolSize
                 {
@@ -1645,6 +1660,11 @@ namespace aiko::renderer::vulkan
                 {
                     .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
                     .descriptorCount = MaxComputeImageBindings * MaxComputeDispatchesPerFrame,
+                },
+                VkDescriptorPoolSize
+                {
+                    .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                    .descriptorCount = MaxComputeDispatchesPerFrame,
                 }
             };
 
@@ -1779,9 +1799,30 @@ namespace aiko::renderer::vulkan
             ++imageWriteCount;
         }
 
-        std::vector<VkWriteDescriptorSet> allWrites;
+        const uint32_t frame = m_context.currentFrameIndex();
 
-        allWrites.reserve(writeCount + imageWriteCount);
+        AIKO_ASSERT(frame < FramesInFlight, "Invalid Vulkan frame index");
+
+        const VkDescriptorBufferInfo frameInfo =
+        {
+            .buffer = m_frameUniformBuffers[frame],
+            .offset = 0,
+            .range = sizeof(VulkanFrameUbo),
+        };
+
+        const VkWriteDescriptorSet frameWrite =
+        {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSet,
+            .dstBinding = ComputeFrameBinding,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = &frameInfo,
+        };
+
+        std::vector<VkWriteDescriptorSet> allWrites;
+        allWrites.reserve(writeCount + imageWriteCount + 1);
 
         for (uint32_t i = 0; i < writeCount; ++i)
         {
@@ -1792,6 +1833,8 @@ namespace aiko::renderer::vulkan
         {
             allWrites.push_back(imageWrites[i]);
         }
+
+        allWrites.push_back(frameWrite);
 
         vkUpdateDescriptorSets(m_context.device(), static_cast<uint32_t>(allWrites.size()), allWrites.data(), 0, nullptr);
 

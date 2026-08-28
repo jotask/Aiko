@@ -23,6 +23,9 @@ namespace aiko::renderer
         mat4 projection = mat4(1.0f);
         vec3 cameraPosition = vec3(0.0f);
 
+        float time = 0.0;
+        float deltaTime = 0.0f;
+
         AmbientLight ambient;
 
         vector<LightData> lights;

@@ -69,6 +69,7 @@ namespace aiko::renderer::vulkan
 
         static constexpr uint32_t MaxComputeBufferBindings = 4;
         static constexpr uint32_t MaxComputeImageBindings = 8;
+        static constexpr uint32_t ComputeFrameBinding = MaxComputeBufferBindings + MaxComputeImageBindings;
 
         VulkanContext m_context;
 

@@ -8,11 +8,6 @@ layout(
     binding = AIKO_COMPUTE_IMAGE_BINDING(0)
 ) uniform writeonly image2D u_output;
 
-layout(push_constant) uniform GradientPushConstants
-{
-    vec4 u_params;
-};
-
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 void main()
@@ -28,7 +23,7 @@ void main()
 
     float fx = float(gid.x) / float(max(size.x - 1, 1));
     float fy = float(gid.y) / float(max(size.y - 1, 1));
-    float t = u_params.x;
+    float t = aiko_time.x;
 
     float r = 0.65 + 0.20 * sin(fx * 10.0 + t) + 0.15 * sin(fy * 6.0 + t * 0.7);
     float g = 0.65 + 0.20 * sin(fy * 12.0 + t * 1.3) + 0.15 * sin((fx + fy) * 5.0 + t * 0.4);

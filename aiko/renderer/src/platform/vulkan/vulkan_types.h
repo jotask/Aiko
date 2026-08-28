@@ -53,6 +53,7 @@ namespace aiko
         alignas(16) mat4 u_projection;
         alignas(16) mat4 u_viewProj;
         alignas(16) vec4 u_cameraPos;
+        alignas(16) vec4 u_time;
         alignas(16) vec4 u_ambientColor;
         alignas(16) vec4 u_ambientIntensity;
         alignas(16) vec4 u_lightCount;
@@ -110,11 +111,6 @@ namespace aiko
     {
         mat4 view;
         mat4 proj;
-    };
-
-    struct ComputeUniformBufferObject
-    {
-        float deltaTime;
     };
 
     struct PushConstantData

@@ -9,6 +9,7 @@ layout(set = 0, binding = 0) uniform FrameUbo
     mat4 u_projection;
     mat4 u_viewProj;
     vec4 u_cameraPos;
+    vec4 u_time;
     vec4 u_ambientColor;
     vec4 u_ambientIntensity;
     vec4 u_lightCount;
