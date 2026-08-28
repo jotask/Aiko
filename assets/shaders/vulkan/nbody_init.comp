@@ -77,7 +77,7 @@ void main()
         vel = tangent * initialSpeed;
     }
 
-    float mass = 1.0;
+    float mass = 1.0 / float(count);
 
     u_posMass[idx] = vec4(pos, mass);
     u_vel[idx] = vec4(vel, 0.0);

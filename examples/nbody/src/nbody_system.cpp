@@ -170,6 +170,12 @@ namespace nbody
 
         if (state->initDispatched == false)
         {
+
+            state->positionMassCurrent = &state->positionMassBuffer;
+            state->velocityCurrent = &state->velocityBuffer;
+            state->positionMassWrite = &state->positionMassBufferNext;
+            state->velocityWrite = &state->velocityBufferNext;
+
             aiko::ComputePass initPass{};
             initPass.buffers.push_back({ 0, &state->positionMassBuffer, aiko::ComputeAccess::ReadWrite });
             initPass.buffers.push_back({ 1, &state->velocityBuffer, aiko::ComputeAccess::ReadWrite });

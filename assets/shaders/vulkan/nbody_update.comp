@@ -52,8 +52,6 @@ void main()
 
     vec3 accel = vec3(0.0);
 
-    float G = length(u_gravity.xyz);
-
     for (uint j = 0; j < count; ++j)
     {
         if (j == idx)
@@ -68,7 +66,7 @@ void main()
         float invDist = inversesqrt(dist2);
         float invDist3 = invDist * invDist * invDist;
 
-        accel += delta * (G * otherPosMass.w * invDist3);
+        accel += delta * u_gravity.xyz * otherPosMass.w * invDist3;
     }
 
     float centralMass = u_gravity.w;
@@ -80,7 +78,7 @@ void main()
         float invDistCenter = inversesqrt(dist2Center);
         float invDistCenter3 = invDistCenter * invDistCenter * invDistCenter;
 
-        accel += deltaCenter * (G * centralMass * invDistCenter3);
+        accel += deltaCenter * u_gravity.xyz * centralMass * invDistCenter3;
     }
 
     float step = dt * timeScale;
