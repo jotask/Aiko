@@ -1,6 +1,10 @@
 #ifndef AIKO_COMPUTE_GLSL
 #define AIKO_COMPUTE_GLSL
 
+#extension GL_GOOGLE_include_directive : require
+
+#include "aiko_constants.glsl"
+
 #define AIKO_MAX_COMPUTE_BUFFER_BINDINGS 4
 #define AIKO_MAX_COMPUTE_IMAGE_BINDINGS 8
 

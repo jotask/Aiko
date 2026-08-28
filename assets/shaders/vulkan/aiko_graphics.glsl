@@ -1,6 +1,10 @@
 #ifndef AIKO_GRAPHICS_GLSL
 #define AIKO_GRAPHICS_GLSL
 
+#extension GL_GOOGLE_include_directive : require
+
+#include "aiko_constants.glsl"
+
 #define MAX_LIGHTS 8
 
 layout(set = 0, binding = 0) uniform FrameUbo

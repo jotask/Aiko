@@ -22,7 +22,7 @@ void main()
     v_worldPos = wpos.xyz;
     v_normal = (u_model * vec4(a_normal.xyz, 0.0)).xyz;
 
-    gl_PointSize = 4.0;
+    gl_PointSize = AIKO_GL_POINT_SIZE;
 
     gl_Position = aikoModelViewProj() * vec4(a_position, 1.0);
 }

@@ -1,0 +1,6 @@
+#ifndef AIKO_COMPUTE_GLSL
+#define AIKO_COMPUTE_GLSL
+
+#define AIKO_GL_POINT_SIZE 64.0
+
+#endif

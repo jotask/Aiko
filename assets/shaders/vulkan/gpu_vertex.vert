@@ -21,5 +21,5 @@ void main()
 
     gl_Position = aikoModelViewProj() * vec4(a_position.xyz, 1.0);
 
-    gl_PointSize = 1.0;
+    gl_PointSize = AIKO_GL_POINT_SIZE;
 }

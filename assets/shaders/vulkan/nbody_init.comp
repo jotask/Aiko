@@ -10,6 +10,11 @@ layout(std430, set = 0, binding = 1) buffer NBodyVelocityBuffer
     vec4 u_vel[];
 };
 
+layout(std430, set = 0, binding = 2) buffer NBodyIndexBuffer
+{
+    uint u_indices[];
+};
+
 layout(push_constant) uniform NBodyInitPushConstants
 {
     vec4 u_params;
@@ -76,4 +81,6 @@ void main()
 
     u_posMass[idx] = vec4(pos, mass);
     u_vel[idx] = vec4(vel, 0.0);
+    u_indices[idx] = idx;
+
 }
