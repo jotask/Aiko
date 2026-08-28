@@ -109,18 +109,8 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        VulkanContext& ctx = VulkanContext::current();
-        VkDevice device = ctx.device();
-
-        if (m_buffer != VK_NULL_HANDLE)
-        {
-            vkDestroyBuffer(device, m_buffer, nullptr);
-        }
-
-        if (m_memory != VK_NULL_HANDLE)
-        {
-            vkFreeMemory(device, m_memory, nullptr);
-        }
+        const VkBuffer buffer = m_buffer;
+        const VkDeviceMemory memory = m_memory;
 
         m_buffer = VK_NULL_HANDLE;
         m_memory = VK_NULL_HANDLE;
@@ -129,6 +119,8 @@ namespace aiko::renderer::vulkan
         m_count = 0;
         m_state = {};
         m_pendingUploads.clear();
+
+        VulkanContext::current().retireBuffer(buffer, memory);
     }
 
     std::vector<VulkanComputeBufferImpl::PendingUpload> VulkanComputeBufferImpl::takePendingUploads()

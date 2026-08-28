@@ -55,7 +55,13 @@ namespace aiko::renderer::vulkan
     {
         if (m_device != VK_NULL_HANDLE)
         {
-            vkDeviceWaitIdle(m_device);
+            const VkResult result = vkDeviceWaitIdle(m_device);
+            AIKO_ASSERT(result == VK_SUCCESS, "Failed waiting for Vulkan device idle");
+
+            if (result == VK_SUCCESS)
+            {
+                destroyRetiredBuffers();
+            }
         }
 
         if (m_device != VK_NULL_HANDLE)
@@ -124,6 +130,8 @@ namespace aiko::renderer::vulkan
             vkDestroyInstance(m_vk, nullptr);
             m_vk = VK_NULL_HANDLE;
         }
+
+        m_lastSubmittedFrame.reset();
 
         m_currentFrame = 0;
         m_currentImageIndex = 0;
@@ -596,8 +604,15 @@ namespace aiko::renderer::vulkan
             recreateSwapChain();
         }
 
-        vkWaitForFences(m_device, 1, &m_inFlightFences[m_currentFrame], VK_TRUE, UINT64_MAX);
+        const VkResult fenceResult = vkWaitForFences(m_device, 1, &m_inFlightFences[m_currentFrame], VK_TRUE, UINT64_MAX);
+        AIKO_ASSERT(fenceResult == VK_SUCCESS, "Failed waiting for Vulkan frame fence");
 
+        if (fenceResult != VK_SUCCESS)
+        {
+            return false;
+        }
+
+        destroyRetiredBuffersForFrame(m_currentFrame);
         uint32_t imageIndex = 0;
         VkResult acquireResult = vkAcquireNextImageKHR(m_device, m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame], VK_NULL_HANDLE, &imageIndex );
 
@@ -651,6 +666,8 @@ namespace aiko::renderer::vulkan
 
         const VkResult submitResult = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[m_currentFrame]);
         AIKO_ASSERT(submitResult == VK_SUCCESS, "Failed to submit graphics command buffer");
+
+        m_lastSubmittedFrame = m_currentFrame;
 
         const std::array<VkSwapchainKHR, 1> swapChains = { m_swapChain };
 
@@ -1043,6 +1060,34 @@ namespace aiko::renderer::vulkan
 
     }
 
+    void VulkanContext::destroyRetiredBuffersForFrame(uint32_t frameIndex)
+    {
+        AIKO_ASSERT(frameIndex < MAX_FRAMES_IN_FLIGHT, "Invalid Vulkan retirement frame index");
+
+        for (const RetiredBuffer& resource : m_retiredBuffers[frameIndex])
+        {
+            if (resource.buffer != VK_NULL_HANDLE)
+            {
+                vkDestroyBuffer(m_device, resource.buffer, nullptr);
+            }
+
+            if (resource.memory != VK_NULL_HANDLE)
+            {
+                vkFreeMemory(m_device, resource.memory, nullptr);
+            }
+        }
+
+        m_retiredBuffers[frameIndex].clear();
+    }
+
+    void VulkanContext::destroyRetiredBuffers()
+    {
+        for (uint32_t frameIndex = 0; frameIndex < MAX_FRAMES_IN_FLIGHT; ++frameIndex)
+        {
+            destroyRetiredBuffersForFrame(frameIndex);
+        }
+    }
+
     void VulkanContext::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
     {
         const VkBufferCreateInfo bufferInfo =
@@ -1079,6 +1124,31 @@ namespace aiko::renderer::vulkan
         }
 
         vkBindBufferMemory(m_device, buffer, bufferMemory, 0);
+    }
+
+    void VulkanContext::retireBuffer(VkBuffer buffer, VkDeviceMemory memory)
+    {
+        if (buffer == VK_NULL_HANDLE && memory == VK_NULL_HANDLE)
+        {
+            return;
+        }
+
+        AIKO_ASSERT(m_device != VK_NULL_HANDLE, "Cannot retire Vulkan buffer without a device");
+
+        uint32_t frameIndex = m_currentFrame;
+
+        if (m_activeCommandBuffer == VK_NULL_HANDLE && m_lastSubmittedFrame.has_value())
+        {
+            frameIndex = m_lastSubmittedFrame.value();
+        }
+
+        AIKO_ASSERT(frameIndex < MAX_FRAMES_IN_FLIGHT, "Invalid Vulkan retirement frame index");
+
+        m_retiredBuffers[frameIndex].push_back(
+        {
+            .buffer = buffer,
+            .memory = memory,
+        });
     }
 
     void VulkanContext::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)

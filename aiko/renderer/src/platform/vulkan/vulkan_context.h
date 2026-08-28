@@ -2,6 +2,9 @@
 
 #include "vulkan_types.h"
 
+#include <array>
+#include <optional>
+
 namespace aiko::renderer::vulkan
 {
     class VulkanContext
@@ -29,7 +32,19 @@ namespace aiko::renderer::vulkan
 
     private:
 
-        const size_t MAX_FRAMES_IN_FLIGHT = 2;
+        static constexpr size_t MAX_FRAMES_IN_FLIGHT = 2;
+
+        struct RetiredBuffer
+        {
+            VkBuffer buffer = VK_NULL_HANDLE;
+            VkDeviceMemory memory = VK_NULL_HANDLE;
+        };
+
+        std::array<std::vector<RetiredBuffer>, MAX_FRAMES_IN_FLIGHT> m_retiredBuffers;
+        std::optional<uint32_t> m_lastSubmittedFrame;
+
+        void destroyRetiredBuffersForFrame(uint32_t frameIndex);
+        void destroyRetiredBuffers();
 
         VkInstance m_vk = VK_NULL_HANDLE;
         VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
@@ -112,6 +127,7 @@ namespace aiko::renderer::vulkan
         void transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t baseMipLevel = 0, uint32_t levelCount = 1, bool computeQueue = false);
         void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
         void copyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+        void retireBuffer(VkBuffer buffer, VkDeviceMemory memory);
 
         VkCommandBuffer beginSingleTimeCommands();
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
