@@ -117,6 +117,14 @@ namespace nbody
             state.positionMassBufferNext.create(positionBufferDesc, nullptr);
             state.velocityBufferNext.create(velocityBufferDesc, nullptr);
 
+            const aiko::ComputeBufferDesc indexBufferDesc
+            {
+                .format = aiko::ComputeBufferFormat::Uint32,
+                .count = count,
+                .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::Index,
+            };
+            state.indexBuffer.create(indexBufferDesc, nullptr);
+
             state.positionMassCurrent = &state.positionMassBuffer;
             state.velocityCurrent = &state.velocityBuffer;
 
@@ -165,13 +173,14 @@ namespace nbody
             aiko::ComputePass initPass{};
             initPass.buffers.push_back({ 0, &state->positionMassBuffer, aiko::ComputeAccess::ReadWrite });
             initPass.buffers.push_back({ 1, &state->velocityBuffer, aiko::ComputeAccess::ReadWrite });
+            initPass.buffers.push_back({2, &state->indexBuffer, aiko::ComputeAccess::Write});
 
             const NBodyInitPushConstants initConstants
             {
                 .params = aiko::vec4(
-                    simulation.getTimeScale(),
-                    simulation.getSoftening(),
                     float(count),
+                    simulation.getInitialRadius(),
+                    simulation.getInitialSpeed(),
                     0.0f
                 ),
                 .origin = aiko::vec4(
@@ -241,11 +250,15 @@ namespace nbody
         if (state->renderInitialized)
         {
 
-            aiko::GpuVertexDrawDesc draw{};
-            draw.material = &state->bodyMaterial;
-            draw.vertexBuffer = state->positionMassCurrent;
-            draw.vertexCount = count;
-            draw.topology = aiko::TransientTopology::Points;
+            const aiko::GpuVertexDrawDesc draw =
+            {
+                .material = &state->bodyMaterial,
+                .vertexBuffer = state->positionMassCurrent,
+                .vertexCount = count,
+                .indexBuffer = &state->indexBuffer,
+                .indexCount = count,
+                .topology = aiko::TransientTopology::Points,
+            };
 
             m_renderModule->getRenderer().drawVerticesGpu(draw);
 
@@ -279,6 +292,7 @@ namespace nbody
     {
         for (auto& state : m_runtime)
         {
+            state.second->indexBuffer.unload();
             state.second->positionMassBuffer.unload();
             state.second->velocityBuffer.unload();
             state.second->positionMassBufferNext.unload();

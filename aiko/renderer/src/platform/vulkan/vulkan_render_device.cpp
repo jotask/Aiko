@@ -648,6 +648,22 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(bufferImpl->format() == ComputeBufferFormat::Vec4f, "GPU vertex draw currently requires Vec4f format");
         AIKO_ASSERT(desc.vertexCount <= bufferImpl->count(), "GPU vertex draw exceeds compute buffer element count");
 
+        VulkanComputeBufferImpl* indexBufferImpl = nullptr;
+
+        if (desc.indexBuffer != nullptr)
+        {
+            AIKO_ASSERT(desc.indexBuffer->isValid(), "GPU index buffer is invalid");
+            AIKO_ASSERT(desc.indexCount > 0, "GPU indexed draw has zero indices");
+
+            indexBufferImpl = static_cast<VulkanComputeBufferImpl*>(desc.indexBuffer->getImpl());
+
+            AIKO_ASSERT(indexBufferImpl != nullptr, "GPU index buffer has no Vulkan implementation");
+            AIKO_ASSERT(indexBufferImpl->isValid(), "Invalid Vulkan GPU index buffer");
+            AIKO_ASSERT(hasFlag(indexBufferImpl->usage(), ComputeBufferUsage::Index), "GPU index buffer requires Index usage");
+            AIKO_ASSERT(indexBufferImpl->format() == ComputeBufferFormat::Uint32, "GPU index buffer currently requires Uint32 format");
+            AIKO_ASSERT(desc.indexCount <= indexBufferImpl->count(), "GPU indexed draw exceeds compute index buffer element count");
+        }
+
         VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 
         switch (desc.topology)
@@ -711,11 +727,19 @@ namespace aiko::renderer::vulkan
         vkCmdPushConstants(commandBuffer, m_modelPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
 
         const VkBuffer vertexBuffer = bufferImpl->buffer();
-
         const VkDeviceSize offset = 0;
 
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, &offset);
-        vkCmdDraw(commandBuffer, desc.vertexCount, 1, 0, 0);
+
+        if (indexBufferImpl != nullptr)
+        {
+            vkCmdBindIndexBuffer(commandBuffer, indexBufferImpl->buffer(), 0, VK_INDEX_TYPE_UINT32);
+            vkCmdDrawIndexed(commandBuffer, desc.indexCount, 1, 0, 0, 0);
+        }
+        else
+        {
+            vkCmdDraw(commandBuffer, desc.vertexCount, 1, 0, 0);
+        }
 
     }
 
@@ -736,6 +760,31 @@ namespace aiko::renderer::vulkan
         {
             .stage = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
             .access = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+        };
+
+        transitionBuffer(commandBuffer, *impl, destination);
+    }
+
+    void VulkanRenderDevice::prepareIndexBuffer(const ComputeBuffer& buffer)
+    {
+
+        auto* impl = static_cast<VulkanComputeBufferImpl*>(buffer.getImpl());
+        AIKO_ASSERT(impl != nullptr, "Invalid Vulkan compute buffer implementation");
+        AIKO_ASSERT(impl->isValid(), "Invalid Vulkan index compute buffer");
+        AIKO_ASSERT(hasFlag(impl->usage(), ComputeBufferUsage::Index), "Compute buffer requires Index usage");
+        AIKO_ASSERT(impl->format() == ComputeBufferFormat::Uint32, "Vulkan GPU index buffer currently requires Uint32 format");
+
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+
+        AIKO_ASSERT( commandBuffer != VK_NULL_HANDLE, "Index buffer preparation requires an active frame command buffer");
+        AIKO_ASSERT(m_renderPassActive == false, "Index buffer preparation must happen outside a render pass");
+
+        flushComputeBufferUploads(commandBuffer, *impl);
+
+        const VulkanBufferState destination =
+        {
+            .stage = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+            .access = VK_ACCESS_INDEX_READ_BIT,
         };
 
         transitionBuffer(commandBuffer, *impl, destination);

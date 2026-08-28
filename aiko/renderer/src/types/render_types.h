@@ -95,6 +95,8 @@ namespace aiko
         const Material* material = nullptr;
         const ComputeBuffer* vertexBuffer = nullptr;
         uint32_t vertexCount = 0;
+        const ComputeBuffer* indexBuffer = nullptr;
+        uint32_t indexCount = 0;
         TransientTopology topology = TransientTopology::Points;
     };
 

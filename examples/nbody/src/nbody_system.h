@@ -44,6 +44,8 @@ namespace nbody
             aiko::ComputeBuffer positionMassBuffer;
             aiko::ComputeBuffer velocityBuffer;
 
+            aiko::ComputeBuffer indexBuffer;
+
             aiko::ComputeBuffer positionMassBufferNext;
             aiko::ComputeBuffer velocityBufferNext;
 

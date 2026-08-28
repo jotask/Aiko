@@ -61,6 +61,7 @@ namespace aiko::renderer::vulkan
         virtual void drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc) override;
         virtual void drawVerticesGpu(ViewId viewId, const GpuVertexDrawDesc& desc) override;
         virtual void prepareVertexBuffer(const ComputeBuffer& buffer) override;
+        virtual void prepareIndexBuffer(const ComputeBuffer& buffer) override;
 
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) override;
 

@@ -143,6 +143,10 @@ namespace aiko::renderer::vulkan
                 m_elementSize = sizeof(vec4);
                 break;
 
+            case ComputeBufferFormat::Uint32:
+                m_elementSize = sizeof(uint32_t);
+                break;
+
             default:
                 AIKO_ASSERT(false, "Unsupported Vulkan compute buffer format");
                 break;

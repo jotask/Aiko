@@ -126,6 +126,11 @@ namespace aiko::renderer
             AIKO_UNUSED(buffer);
         }
 
+        virtual void prepareIndexBuffer(const ComputeBuffer& buffer)
+        {
+            AIKO_UNUSED(buffer);
+        }
+
     protected:
 
         RenderResourceManager* getResources() const { return m_resource_manager; }

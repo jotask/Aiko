@@ -572,6 +572,11 @@ namespace aiko
             {
                 m_renderer->prepareVertexBuffer(*desc->vertexBuffer);
             }
+
+            if (desc->indexBuffer != nullptr)
+            {
+                m_renderer->prepareIndexBuffer(*desc->indexBuffer);
+            }
         }
 
         for (const PreparedRenderPacket& packet : passData.opaque)

@@ -31,6 +31,7 @@ namespace aiko
     enum class ComputeBufferFormat
     {
         Vec4f,   // float4
+        Uint32,  // uint
         // TODO:
         Vec2f,
         Vec3f,
