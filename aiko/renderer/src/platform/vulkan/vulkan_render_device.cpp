@@ -69,6 +69,7 @@ namespace aiko::renderer::vulkan
         destroyFrameResources();
         destroyGpuInstancedPipelines();
         destroyModelPipeline();
+        destroyGpuReadResources();
         destroyScreenPipeline();
         destroyTransientResources();
         destroyComputePipelines();
@@ -2365,7 +2366,21 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::destroyGpuReadResources()
     {
+        VkDevice device = m_context.device();
+        for (VkDescriptorPool& pool : m_gpuReadDescriptorPools)
+        {
+            if (pool != VK_NULL_HANDLE)
+            {
+                vkDestroyDescriptorPool(device, pool, nullptr);
+                pool = VK_NULL_HANDLE;
+            }
+        }
 
+        if (m_gpuReadDescriptorSetLayout != VK_NULL_HANDLE)
+        {
+            vkDestroyDescriptorSetLayout(device, m_gpuReadDescriptorSetLayout, nullptr);
+            m_gpuReadDescriptorSetLayout = VK_NULL_HANDLE;
+        }
     }
 
     VkDescriptorSet VulkanRenderDevice::allocateGpuReadDescriptorSet()
