@@ -517,10 +517,12 @@ namespace aiko
 
         for (const GpuInstanceDrawDesc* desc : passData.gpuInstances)
         {
-            if (desc != nullptr)
+            if (desc == nullptr)
             {
-                prepareMaterial(desc->material);
+                continue;
             }
+            prepareMaterial(desc->material);
+            m_renderer->prepareGpuReadBuffers(desc->readBuffers);
         }
 
         for (const GpuBillboardDrawDesc* desc : passData.gpuBillboards)

@@ -110,6 +110,11 @@ namespace aiko::renderer
             AIKO_UNUSED(material);
         }
 
+        virtual void prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings)
+        {
+            AIKO_UNUSED(bindings);
+        }
+
     protected:
 
         RenderResourceManager* getResources() const { return m_resource_manager; }

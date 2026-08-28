@@ -65,6 +65,8 @@ namespace aiko::renderer::vulkan
         virtual void prepareTextureForSampling(const Texture& texture) override;
         virtual void prepareMaterial(const Material& material) override;
 
+        virtual void prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings) override;
+
     private:
 
         static constexpr uint32_t MaxComputeBufferBindings = 4;
@@ -257,6 +259,45 @@ namespace aiko::renderer::vulkan
         void recordReadbackCopies();
         void completeReadbacksForFrame(uint32_t frameIndex);
         void destroyReadbackResources();
+
+        static constexpr uint32_t MaxGpuReadBindings = 16;
+        static constexpr uint32_t MaxGpuDrawsPerFrame = 256;
+
+        std::array<VkDescriptorPool, FramesInFlight> m_gpuReadDescriptorPools{};
+        VkDescriptorSetLayout m_gpuReadDescriptorSetLayout = VK_NULL_HANDLE;
+
+        void createGpuReadResources();
+        void destroyGpuReadResources();
+
+        VkDescriptorSet allocateGpuReadDescriptorSet();
+        VkDescriptorSet buildGpuReadDescriptorSet(const vector<GpuReadBufferBinding>& bindings);
+
+        struct GpuPipelineKey
+        {
+            RenderResourceId shaderId = InvalidRenderResourceId;
+            VkRenderPass renderPass = VK_NULL_HANDLE;
+
+            bool operator==(const GpuPipelineKey& other) const
+            {
+                return shaderId == other.shaderId &&renderPass == other.renderPass;
+            }
+        };
+
+        struct GpuPipelineKeyHash
+        {
+            size_t operator()(const GpuPipelineKey& key) const
+            {
+                size_t seed = 0;
+                utils::hashCombine( std::hash<RenderResourceId>{}(key.shaderId), seed);
+                utils::hashCombine(std::hash<VkRenderPass>{}(key.renderPass), seed);
+                return seed;
+            }
+        };
+
+        std::unordered_map<GpuPipelineKey, VkPipeline, GpuPipelineKeyHash> m_gpuInstancedPipelines;
+
+        VkPipeline getOrCreateGpuInstancedPipeline(const Material& material, VkRenderPass renderPass);
+        void destroyGpuInstancedPipelines();
 
     };
 }

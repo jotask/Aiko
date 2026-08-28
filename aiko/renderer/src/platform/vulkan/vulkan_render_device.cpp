@@ -50,6 +50,7 @@ namespace aiko::renderer::vulkan
         createScreenPipeline();
         createScreenDescriptorPool();
 
+        createGpuReadResources();
         createModelPipelineLayout();
         createFrameResources();
 
@@ -66,6 +67,7 @@ namespace aiko::renderer::vulkan
         destroyMaterialResources();
         m_whiteTexture.unload();
         destroyFrameResources();
+        destroyGpuInstancedPipelines();
         destroyModelPipeline();
         destroyScreenPipeline();
         destroyTransientResources();
@@ -112,6 +114,9 @@ namespace aiko::renderer::vulkan
             }
             createScreenPipeline();
         }
+
+        const VkResult gpuReadReset = vkResetDescriptorPool(m_context.device(), m_gpuReadDescriptorPools[frame], 0);
+        AIKO_ASSERT(gpuReadReset == VK_SUCCESS, "Failed to reset GPU-read descriptor pool");
 
     }
 
@@ -478,6 +483,83 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc)
     {
+        if (viewId != SCENE_VIEW || m_renderPassActive == false)
+        {
+            return;
+        }
+
+        AIKO_ASSERT(desc.mesh != nullptr, "GPU instance draw has no mesh");
+        AIKO_ASSERT(desc.material != nullptr, "GPU instance draw has no material");
+        AIKO_ASSERT(desc.instanceCount > 0, "GPU instance draw has zero instances");
+        AIKO_ASSERT(desc.readBuffers.empty() == false, "GPU instance draw has no GPU-read buffers");
+
+        auto* meshImpl = static_cast<VulkanMeshImpl*>(desc.mesh->getImpl());
+
+        AIKO_ASSERT(meshImpl != nullptr, "GPU-instanced mesh has no Vulkan implementation");
+        AIKO_ASSERT(meshImpl->isValid(), "Invalid GPU-instanced mesh");
+
+        const VkDescriptorSet gpuReadSet = buildGpuReadDescriptorSet(desc.readBuffers);
+
+        bindMaterial(*desc.material);
+
+        const VkPipeline pipeline = getOrCreateGpuInstancedPipeline(*desc.material, m_activeRenderPass);
+        AIKO_ASSERT(pipeline != VK_NULL_HANDLE, "GPU-instanced pipeline is invalid");
+
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+        AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "GPU-instanced draw requires an active command buffer");
+
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, 2, 1, &gpuReadSet, 0, nullptr);
+
+        const VkViewport viewport =
+        {
+            .x = 0.0f,
+            .y = 0.0f,
+            .width = static_cast<float>(m_activeExtent.width),
+            .height = static_cast<float>(m_activeExtent.height),
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f,
+        };
+
+        const VkRect2D scissor =
+        {
+            .offset = { 0, 0 },
+            .extent = m_activeExtent,
+        };
+
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+        struct DrawPushConstants
+        {
+            mat4 u_model;
+            mat4 u_modelViewProj;
+        };
+
+        const mat4 world = mat4(1.0f);
+
+        const DrawPushConstants push =
+        {
+            .u_model = world,
+            .u_modelViewProj = m_sceneViewProj * world,
+        };
+
+        vkCmdPushConstants(commandBuffer, m_modelPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
+
+        const VkBuffer vertexBuffers[] =
+        {
+            meshImpl->vertexBuffer(),
+        };
+
+        const VkDeviceSize offsets[] =
+        {
+            0,
+        };
+
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+        vkCmdDrawIndexed(commandBuffer, meshImpl->indexCount(), desc.instanceCount, 0, 0, 0);
 
     }
 
@@ -877,10 +959,11 @@ namespace aiko::renderer::vulkan
         const VkResult resultCreationLayout = vkCreateDescriptorSetLayout(m_context.device(), &materialLayoutInfo, nullptr, &m_materialDescriptorSetLayout);
         AIKO_ASSERT(resultCreationLayout == VK_SUCCESS, "Failed to create material descriptor set layout");
 
-        const std::array<VkDescriptorSetLayout, 2> setLayouts =
+        const std::array<VkDescriptorSetLayout, 3> setLayouts =
         {
             m_frameDescriptorSetLayout,
-            m_materialDescriptorSetLayout
+            m_materialDescriptorSetLayout,
+            m_gpuReadDescriptorSetLayout
         };
 
         const VkPushConstantRange pushConstantRange =
@@ -2228,6 +2311,335 @@ namespace aiko::renderer::vulkan
         m_inFlightReadbacks.clear();
         m_readbackRequests.clear();
         m_completedReadbacks.clear();
+    }
+
+    void VulkanRenderDevice::createGpuReadResources()
+    {
+
+        std::array<VkDescriptorSetLayoutBinding, MaxGpuReadBindings> bindings{};
+
+        for (uint32_t i = 0; i < MaxGpuReadBindings; ++i)
+        {
+            bindings[i] =
+            {
+                .binding = i,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .descriptorCount = 1,
+                .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                .pImmutableSamplers = nullptr,
+            };
+        }
+
+        const VkDescriptorSetLayoutCreateInfo layoutInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .bindingCount = static_cast<uint32_t>(bindings.size()),
+            .pBindings = bindings.data(),
+        };
+
+        const VkResult layoutResult = vkCreateDescriptorSetLayout(m_context.device(), &layoutInfo, nullptr, &m_gpuReadDescriptorSetLayout);
+
+        AIKO_ASSERT( layoutResult == VK_SUCCESS, "Failed to create GPU-read descriptor layout");
+
+        for (uint32_t frame = 0; frame < FramesInFlight; ++frame)
+        {
+            const VkDescriptorPoolSize poolSize =
+            {
+                .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .descriptorCount = MaxGpuReadBindings * MaxGpuDrawsPerFrame,
+            };
+
+            const VkDescriptorPoolCreateInfo poolInfo =
+            {
+                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+                .maxSets = MaxGpuDrawsPerFrame,
+                .poolSizeCount = 1,
+                .pPoolSizes = &poolSize,
+            };
+
+            const VkResult poolResult = vkCreateDescriptorPool(m_context.device(), &poolInfo, nullptr, &m_gpuReadDescriptorPools[frame]);
+
+            AIKO_ASSERT(poolResult == VK_SUCCESS, "Failed to create GPU-read descriptor pool");
+        }
+    }
+
+    void VulkanRenderDevice::destroyGpuReadResources()
+    {
+
+    }
+
+    VkDescriptorSet VulkanRenderDevice::allocateGpuReadDescriptorSet()
+    {
+
+        const uint32_t frame = m_context.currentFrameIndex();
+        AIKO_ASSERT(frame < FramesInFlight, "Invalid Vulkan frame index");
+
+        const VkDescriptorSetAllocateInfo info =
+        {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+            .descriptorPool = m_gpuReadDescriptorPools[frame],
+            .descriptorSetCount = 1,
+            .pSetLayouts = &m_gpuReadDescriptorSetLayout,
+        };
+
+        VkDescriptorSet set = VK_NULL_HANDLE;
+
+        const VkResult result = vkAllocateDescriptorSets(m_context.device(), &info, &set);
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate GPU-read descriptor set");
+
+        return set;
+    }
+
+    void VulkanRenderDevice::prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings)
+    {
+        VkCommandBuffer commandBuffer =
+        m_context.activeCommandBuffer();
+
+        for (const GpuReadBufferBinding& binding : bindings)
+        {
+            AIKO_ASSERT(binding.buffer != nullptr, "GPU-read buffer is null");
+            AIKO_ASSERT(binding.buffer->isValid(), "GPU-read buffer is invalid");
+
+            auto* impl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
+            AIKO_ASSERT(impl != nullptr, "Invalid Vulkan GPU-read buffer");
+
+            flushComputeBufferUploads(commandBuffer, *impl);
+
+            transitionBuffer(
+                commandBuffer,
+                *impl,
+                {
+                    .stage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+                    .access = VK_ACCESS_SHADER_READ_BIT,
+                });
+        }
+    }
+
+    VkDescriptorSet VulkanRenderDevice::buildGpuReadDescriptorSet(const vector<GpuReadBufferBinding>& bindings)
+    {
+        AIKO_ASSERT(bindings.size() <= MaxGpuReadBindings, "Too many GPU-read buffers");
+
+        VkDescriptorSet set = allocateGpuReadDescriptorSet();
+
+        std::array<VkDescriptorBufferInfo, MaxGpuReadBindings> infos{};
+        std::array<VkWriteDescriptorSet, MaxGpuReadBindings> writes{};
+
+        uint32_t writeCount = 0;
+
+        std::array<bool, MaxGpuReadBindings> used{};
+
+        for (const GpuReadBufferBinding& binding : bindings)
+        {
+            AIKO_ASSERT(binding.slot < MaxGpuReadBindings, "GPU-read binding exceeds limit");
+            AIKO_ASSERT(used[binding.slot] == false, "Duplicate GPU-read binding");
+
+            auto* impl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
+            AIKO_ASSERT(impl != nullptr, "Invalid Vulkan GPU-read buffer");
+            AIKO_ASSERT(hasFlag(impl->usage(), ComputeBufferUsage::Storage), "GPU shader read requires storage-buffer usage");
+
+            used[binding.slot] = true;
+
+            infos[writeCount] =
+            {
+                .buffer = impl->buffer(),
+                .offset = 0,
+                .range = impl->size(),
+            };
+
+            writes[writeCount] =
+            {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = set,
+                .dstBinding = binding.slot,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .pBufferInfo = &infos[writeCount],
+            };
+
+            ++writeCount;
+        }
+
+        vkUpdateDescriptorSets(m_context.device(), writeCount, writes.data(), 0, nullptr);
+
+        return set;
+    }
+
+    VkPipeline VulkanRenderDevice::getOrCreateGpuInstancedPipeline(const Material& material, VkRenderPass renderPass)
+    {
+        AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "GPU-instanced material has no shader");
+        AIKO_ASSERT(renderPass != VK_NULL_HANDLE, "GPU-instanced render pass is invalid");
+
+        Shader& shader = getResources()->getShader(material.m_shaderId);
+        AIKO_ASSERT(shader.isValid(), "GPU-instanced shader is invalid");
+
+        auto* shaderImpl = static_cast<VulkanShaderImpl*>(shader.getImpl());
+        AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan GPU-instanced shader implementation");
+
+        const GpuPipelineKey key =
+        {
+            .shaderId = shader.id(),
+            .renderPass = renderPass,
+        };
+
+        if (const auto it = m_gpuInstancedPipelines.find(key); it != m_gpuInstancedPipelines.end())
+        {
+            return it->second;
+        }
+
+        const VkPipelineShaderStageCreateInfo vertShaderStageInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = VK_SHADER_STAGE_VERTEX_BIT,
+            .module = shaderImpl->vertexModule(),
+            .pName = "main",
+        };
+
+        const VkPipelineShaderStageCreateInfo fragShaderStageInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+            .module = shaderImpl->fragmentModule(),
+            .pName = "main",
+        };
+
+        const std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages =
+        {
+            vertShaderStageInfo,
+            fragShaderStageInfo,
+        };
+
+        const VkVertexInputBindingDescription bindingDescription = VulkanVertex::bindingDescription();
+        const auto attributeDescriptions = VulkanVertex::attributeDescriptions();
+
+        const VkPipelineVertexInputStateCreateInfo vertexInputInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+
+            .vertexBindingDescriptionCount = 1,
+            .pVertexBindingDescriptions = &bindingDescription,
+            .vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size()),
+            .pVertexAttributeDescriptions = attributeDescriptions.data(),
+        };
+
+        const VkPipelineInputAssemblyStateCreateInfo inputAssembly =
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+            .primitiveRestartEnable = VK_FALSE,
+        };
+
+        const VkPipelineViewportStateCreateInfo viewportState =
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+            .viewportCount = 1,
+            .scissorCount = 1,
+        };
+
+        const VkPipelineRasterizationStateCreateInfo rasterizer =
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+            .depthClampEnable = VK_FALSE,
+            .rasterizerDiscardEnable = VK_FALSE,
+            .polygonMode = VK_POLYGON_MODE_FILL,
+            .cullMode = VK_CULL_MODE_NONE,
+            .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+            .depthBiasEnable = VK_FALSE,
+            .lineWidth = 1.0f,
+        };
+
+        const VkPipelineMultisampleStateCreateInfo multisampling =
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+            .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+            .sampleShadingEnable = VK_FALSE,
+        };
+
+        const VkPipelineDepthStencilStateCreateInfo depthStencil =
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+            .depthTestEnable = VK_TRUE,
+            .depthWriteEnable = VK_TRUE,
+            .depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
+            .depthBoundsTestEnable = VK_FALSE,
+            .stencilTestEnable = VK_FALSE,
+        };
+
+        const VkPipelineColorBlendAttachmentState colorBlendAttachment =
+        {
+            .blendEnable = VK_FALSE,
+            .colorWriteMask =
+                VK_COLOR_COMPONENT_R_BIT |
+                VK_COLOR_COMPONENT_G_BIT |
+                VK_COLOR_COMPONENT_B_BIT |
+                VK_COLOR_COMPONENT_A_BIT,
+        };
+
+        const VkPipelineColorBlendStateCreateInfo colorBlending =
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+            .logicOpEnable = VK_FALSE,
+            .attachmentCount = 1,
+            .pAttachments = &colorBlendAttachment,
+        };
+
+        const std::array<VkDynamicState, 2> dynamicStates =
+        {
+            VK_DYNAMIC_STATE_VIEWPORT,
+            VK_DYNAMIC_STATE_SCISSOR,
+        };
+
+        const VkPipelineDynamicStateCreateInfo dynamicState =
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+            .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
+            .pDynamicStates = dynamicStates.data(),
+        };
+
+        const VkGraphicsPipelineCreateInfo pipelineInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+            .stageCount = static_cast<uint32_t>(shaderStages.size()),
+            .pStages = shaderStages.data(),
+            .pVertexInputState = &vertexInputInfo,
+            .pInputAssemblyState = &inputAssembly,
+            .pViewportState = &viewportState,
+            .pRasterizationState = &rasterizer,
+            .pMultisampleState = &multisampling,
+            .pDepthStencilState = &depthStencil,
+            .pColorBlendState = &colorBlending,
+            .pDynamicState = &dynamicState,
+            .layout = m_modelPipelineLayout,
+            .renderPass = renderPass,
+            .subpass = 0,
+        };
+
+        VkPipeline pipeline = VK_NULL_HANDLE;
+
+        const VkResult result = vkCreateGraphicsPipelines(m_context.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to create GPU-instanced graphics pipeline");
+
+        m_gpuInstancedPipelines.emplace(key, pipeline);
+
+        return pipeline;
+    }
+
+    void VulkanRenderDevice::destroyGpuInstancedPipelines()
+    {
+
+        VkDevice device = m_context.device();
+
+        for (auto& [key, pipeline] : m_gpuInstancedPipelines)
+        {
+            AIKO_UNUSED(key);
+
+            if (pipeline != VK_NULL_HANDLE)
+            {
+                vkDestroyPipeline(device, pipeline, nullptr);
+            }
+        }
+
+        m_gpuInstancedPipelines.clear();
     }
 
     void VulkanRenderDevice::waitIdle()

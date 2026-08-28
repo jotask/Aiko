@@ -270,6 +270,10 @@ namespace aiko
     {
         for (auto& state : m_runtime)
         {
+            if (state.second->particleMesh.isValid())
+            {
+                state.second->particleMesh.unload();
+            }
             state.second->positionBuffer.unload();
             state.second->velocityBuffer.unload();
             state.second->lifeBuffer.unload();
