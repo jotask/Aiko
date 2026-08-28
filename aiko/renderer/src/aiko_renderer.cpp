@@ -527,10 +527,20 @@ namespace aiko
 
         for (const GpuBillboardDrawDesc* desc : passData.gpuBillboards)
         {
-            if (desc != nullptr)
+            if (desc == nullptr)
             {
-                prepareMaterial(desc->material);
+                continue;
             }
+
+            prepareMaterial(desc->material);
+
+            m_renderer->prepareGpuReadBuffers(
+                {
+                    {
+                        .slot = 7,
+                        .buffer = desc->positionBuffer,
+                    }
+                });
         }
 
         for (const PreparedRenderPacket& packet : passData.opaque)

@@ -567,6 +567,65 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc)
     {
 
+        AIKO_ASSERT(desc.material != nullptr, "GPU billboard draw has no material");
+        AIKO_ASSERT(desc.positionBuffer != nullptr, "GPU billboard draw has no position buffer");
+        AIKO_ASSERT(desc.positionBuffer->isValid(), "GPU billboard position buffer is invalid");
+        AIKO_ASSERT(desc.instanceCount > 0, "GPU billboard draw has zero instances");
+
+        static const TransientGeometry billboardGeometry =
+        {
+            .topology = TransientTopology::Triangles,
+            .vertices =
+            {
+                {
+                    .position = vec3(-0.5f, -0.5f, 0.0f),
+                    .uv = vec2(0.0f, 1.0f),
+                    .normal = vec3(0.0f, 0.0f, 1.0f),
+                    .color = WHITE,
+                },
+                {
+                    .position = vec3(0.5f, -0.5f, 0.0f),
+                    .uv = vec2(1.0f, 1.0f),
+                    .normal = vec3(0.0f, 0.0f, 1.0f),
+                    .color = WHITE,
+                },
+                {
+                    .position = vec3(0.5f, 0.5f, 0.0f),
+                    .uv = vec2(1.0f, 0.0f),
+                    .normal = vec3(0.0f, 0.0f, 1.0f),
+                    .color = WHITE,
+                },
+                {
+                    .position = vec3(-0.5f, 0.5f, 0.0f),
+                    .uv = vec2(0.0f, 0.0f),
+                    .normal = vec3(0.0f, 0.0f, 1.0f),
+                    .color = WHITE,
+                },
+            },
+            .indices =
+            {
+                0, 1, 2,
+                0, 2, 3,
+            },
+        };
+
+        Mesh& mesh = resolveTransientMesh(billboardGeometry);
+
+        const GpuInstanceDrawDesc draw =
+        {
+            .mesh = &mesh,
+            .material = desc.material,
+            .readBuffers =
+            {
+                {
+                    .slot = 7,
+                    .buffer = desc.positionBuffer,
+                }
+            },
+            .instanceCount = desc.instanceCount,
+        };
+
+        drawMeshInstancedGpu(viewId, draw);
     }
 
     void VulkanRenderDevice::drawTransient(ViewId viewId, const TransientDrawDesc& desc)

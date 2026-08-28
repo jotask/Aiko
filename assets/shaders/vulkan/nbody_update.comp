@@ -1,5 +1,7 @@
 #version 450
 
+#include "aiko_compute.glsl"
+
 layout(std430, set = 0, binding = 0) readonly buffer NBodyPositionMassBuffer
 {
     vec4 u_posMass[];
@@ -31,16 +33,16 @@ layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 void main()
 {
     uint idx = gl_GlobalInvocationID.x;
-    uint count = uint(u_params.w);
+    uint count = uint(u_params.z);
 
     if (idx >= count)
     {
         return;
     }
 
-    float dt = u_params.x;
-    float timeScale = u_params.y;
-    float softening = u_params.z;
+    float dt = aiko_time.y;
+    float timeScale = u_params.x;
+    float softening = u_params.y;
 
     vec4 selfPosMass = u_posMass[idx];
     vec3 pos = selfPosMass.xyz;
