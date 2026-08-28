@@ -131,6 +131,11 @@ namespace aiko::renderer
             AIKO_UNUSED(buffer);
         }
 
+        virtual void prepareIndirectBuffer(const ComputeBuffer& buffer)
+        {
+            AIKO_UNUSED(buffer);
+        }
+
     protected:
 
         RenderResourceManager* getResources() const { return m_resource_manager; }

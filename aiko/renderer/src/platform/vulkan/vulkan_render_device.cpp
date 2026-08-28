@@ -664,6 +664,23 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(desc.indexCount <= indexBufferImpl->count(), "GPU indexed draw exceeds compute index buffer element count");
         }
 
+        VulkanComputeBufferImpl* indirectBufferImpl = nullptr;
+
+        if (desc.indirectBuffer != nullptr)
+        {
+            AIKO_ASSERT(desc.indirectBuffer->isValid(), "GPU indirect buffer is invalid");
+
+            indirectBufferImpl = static_cast<VulkanComputeBufferImpl*>(desc.indirectBuffer->getImpl());
+            AIKO_ASSERT(indirectBufferImpl != nullptr, "GPU indirect buffer has no Vulkan implementation");
+            AIKO_ASSERT(indirectBufferImpl->isValid(), "Invalid Vulkan GPU indirect buffer");
+            AIKO_ASSERT(hasFlag(indirectBufferImpl->usage(), ComputeBufferUsage::Indirect), "GPU indirect buffer requires Indirect usage");
+            AIKO_ASSERT(indirectBufferImpl->format() == ComputeBufferFormat::Uint32, "GPU indirect buffer currently requires Uint32 format");
+
+            const uint32_t requiredWords = indexBufferImpl != nullptr ? 5u : 4u;
+            AIKO_ASSERT(indirectBufferImpl->count() >= requiredWords, "GPU indirect buffer is too small for draw command");
+
+        }
+
         VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 
         switch (desc.topology)
@@ -734,11 +751,26 @@ namespace aiko::renderer::vulkan
         if (indexBufferImpl != nullptr)
         {
             vkCmdBindIndexBuffer(commandBuffer, indexBufferImpl->buffer(), 0, VK_INDEX_TYPE_UINT32);
-            vkCmdDrawIndexed(commandBuffer, desc.indexCount, 1, 0, 0, 0);
+
+            if (indirectBufferImpl != nullptr)
+            {
+                vkCmdDrawIndexedIndirect(commandBuffer, indirectBufferImpl->buffer(), 0, 1, sizeof(VkDrawIndexedIndirectCommand));
+            }
+            else
+            {
+                vkCmdDrawIndexed(commandBuffer, desc.indexCount, 1, 0, 0, 0);
+            }
         }
         else
         {
-            vkCmdDraw(commandBuffer, desc.vertexCount, 1, 0, 0);
+            if (indirectBufferImpl != nullptr)
+            {
+                vkCmdDrawIndirect(commandBuffer, indirectBufferImpl->buffer(), 0, 1, sizeof(VkDrawIndirectCommand));
+            }
+            else
+            {
+                vkCmdDraw(commandBuffer, desc.vertexCount, 1, 0, 0);
+            }
         }
 
     }
@@ -785,6 +817,29 @@ namespace aiko::renderer::vulkan
         {
             .stage = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
             .access = VK_ACCESS_INDEX_READ_BIT,
+        };
+
+        transitionBuffer(commandBuffer, *impl, destination);
+    }
+
+    void VulkanRenderDevice::prepareIndirectBuffer(const ComputeBuffer& buffer)
+    {
+        auto* impl = static_cast<VulkanComputeBufferImpl*>(buffer.getImpl());
+        AIKO_ASSERT(impl != nullptr, "Invalid Vulkan compute buffer implementation");
+        AIKO_ASSERT(impl->isValid(), "Invalid Vulkan indirect compute buffer");
+        AIKO_ASSERT(hasFlag(impl->usage(), ComputeBufferUsage::Indirect), "Compute buffer requires Indirect usage");
+        AIKO_ASSERT(impl->format() == ComputeBufferFormat::Uint32, "Vulkan indirect buffer currently requires Uint32 format");
+
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+        AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Indirect buffer preparation requires an active frame command buffer");
+        AIKO_ASSERT(m_renderPassActive == false, "Indirect buffer preparation must happen outside a render pass");
+
+        flushComputeBufferUploads(commandBuffer, *impl);
+
+        const VulkanBufferState destination =
+        {
+            .stage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
+            .access = VK_ACCESS_INDIRECT_COMMAND_READ_BIT,
         };
 
         transitionBuffer(commandBuffer, *impl, destination);

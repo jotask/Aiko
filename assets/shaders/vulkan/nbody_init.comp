@@ -15,6 +15,11 @@ layout(std430, set = 0, binding = 2) buffer NBodyIndexBuffer
     uint u_indices[];
 };
 
+layout(std430, set = 0, binding = 3) buffer NBodyDrawIndirectBuffer
+{
+    uint u_drawCommand[];
+};
+
 layout(push_constant) uniform NBodyInitPushConstants
 {
     vec4 u_params;
@@ -33,6 +38,15 @@ void main()
     if (idx >= count)
     {
         return;
+    }
+
+    if (idx == 0u)
+    {
+        u_drawCommand[0] = count; // indexCount
+        u_drawCommand[1] = 1u;    // instanceCount
+        u_drawCommand[2] = 0u;    // firstIndex
+        u_drawCommand[3] = 0u;    // vertexOffset
+        u_drawCommand[4] = 0u;    // firstInstance
     }
 
     float initialRadius = u_params.y;

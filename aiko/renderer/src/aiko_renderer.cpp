@@ -577,6 +577,11 @@ namespace aiko
             {
                 m_renderer->prepareIndexBuffer(*desc->indexBuffer);
             }
+
+            if (desc->indirectBuffer != nullptr)
+            {
+                m_renderer->prepareIndirectBuffer(*desc->indirectBuffer);
+            }
         }
 
         for (const PreparedRenderPacket& packet : passData.opaque)

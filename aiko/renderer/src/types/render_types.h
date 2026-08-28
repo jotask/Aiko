@@ -97,6 +97,7 @@ namespace aiko
         uint32_t vertexCount = 0;
         const ComputeBuffer* indexBuffer = nullptr;
         uint32_t indexCount = 0;
+        const ComputeBuffer* indirectBuffer = nullptr;
         TransientTopology topology = TransientTopology::Points;
     };
 

@@ -111,12 +111,6 @@ namespace nbody
                 .usage = aiko::ComputeBufferUsage::Storage,
             };
 
-            state.positionMassBuffer.create(positionBufferDesc, nullptr);
-            state.velocityBuffer.create(velocityBufferDesc, nullptr);
-
-            state.positionMassBufferNext.create(positionBufferDesc, nullptr);
-            state.velocityBufferNext.create(velocityBufferDesc, nullptr);
-
             const aiko::ComputeBufferDesc indexBufferDesc
             {
                 .format = aiko::ComputeBufferFormat::Uint32,
@@ -125,11 +119,29 @@ namespace nbody
             };
             state.indexBuffer.create(indexBufferDesc, nullptr);
 
+            state.positionMassBuffer.create(positionBufferDesc, nullptr);
+            state.velocityBuffer.create(velocityBufferDesc, nullptr);
+
+            state.positionMassBufferNext.create(positionBufferDesc, nullptr);
+            state.velocityBufferNext.create(velocityBufferDesc, nullptr);
+
+
             state.positionMassCurrent = &state.positionMassBuffer;
             state.velocityCurrent = &state.velocityBuffer;
 
             state.positionMassWrite = &state.positionMassBufferNext;
             state.velocityWrite = &state.velocityBufferNext;
+
+            const aiko::ComputeBufferDesc indirectBufferDesc
+            {
+                .format = aiko::ComputeBufferFormat::Uint32,
+                .count = 5,
+                .usage =
+                    aiko::ComputeBufferUsage::Storage |
+                    aiko::ComputeBufferUsage::Indirect,
+            };
+
+            state.indirectBuffer.create(indirectBufferDesc, nullptr);
 
             state.initialized = true;
             state.initDispatched = false;
@@ -180,6 +192,7 @@ namespace nbody
             initPass.buffers.push_back({ 0, &state->positionMassBuffer, aiko::ComputeAccess::ReadWrite });
             initPass.buffers.push_back({ 1, &state->velocityBuffer, aiko::ComputeAccess::ReadWrite });
             initPass.buffers.push_back({2, &state->indexBuffer, aiko::ComputeAccess::Write});
+            initPass.buffers.push_back({3, &state->indirectBuffer, aiko::ComputeAccess::Write});
 
             const NBodyInitPushConstants initConstants
             {
@@ -263,6 +276,7 @@ namespace nbody
                 .vertexCount = count,
                 .indexBuffer = &state->indexBuffer,
                 .indexCount = count,
+                .indirectBuffer = &state->indirectBuffer,
                 .topology = aiko::TransientTopology::Points,
             };
 
@@ -303,6 +317,7 @@ namespace nbody
             state.second->velocityBuffer.unload();
             state.second->positionMassBufferNext.unload();
             state.second->velocityBufferNext.unload();
+            state.second->indirectBuffer.unload();
         }
         m_runtime.clear();
     }
