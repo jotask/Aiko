@@ -139,6 +139,7 @@ namespace aiko
 
     void Aiko::dispose()
     {
+        for (auto&& module : m_modules) module->preDispose();
         m_application->dispose();
         for (auto&& system : m_systems) system->dispose();
         for (auto&& module : m_modules) module->dispose();

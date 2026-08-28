@@ -32,7 +32,8 @@ namespace aiko
     
         virtual void beginFrame() override { };
         virtual void endFrame() override { };
-    
+
+        virtual void preDispose() override {};
         virtual void dispose() override { };
     
     };

@@ -69,6 +69,8 @@ namespace aiko
 
         RenderResourceManager& resources() { return m_resources; }
 
+        void waitIdle();
+
     protected:
 
         const Texture* m_debugTexture = nullptr;

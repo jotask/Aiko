@@ -59,6 +59,11 @@ namespace aiko
         m_instances.clear();
     }
 
+    void RenderModule::preDispose()
+    {
+        m_renderer->waitIdle();
+    }
+
     void RenderModule::dispose()
     {
         m_renderer->dispose();

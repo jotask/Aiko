@@ -103,7 +103,6 @@ namespace aiko
 
     void AikoRenderer::dispose()
     {
-        m_renderer->waitIdle();
         m_imgui.dispose();
         m_transientGeometryCache.clear();
         m_screenFbo.unload();
@@ -232,6 +231,11 @@ namespace aiko
     const FrameBuffer& AikoRenderer::getTargetTexture() const
     {
         return m_screenFbo.getFrameBuffer();
+    }
+
+    void AikoRenderer::waitIdle()
+    {
+        m_renderer->waitIdle();
     }
 
     void AikoRenderer::onWindowResize(WindowResizeEvent& event)
