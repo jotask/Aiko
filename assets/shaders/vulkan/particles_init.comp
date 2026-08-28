@@ -1,5 +1,7 @@
 #version 450
 
+#include "aiko_compute.glsl"
+
 layout(std430, set = 0, binding = 0) buffer ParticlePositionBuffer
 {
     vec4 u_pos[];

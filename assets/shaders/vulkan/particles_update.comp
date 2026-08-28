@@ -1,5 +1,7 @@
 #version 450
 
+#include "aiko_compute.glsl"
+
 layout(std430, set = 0, binding = 0) buffer ParticlePositionBuffer
 {
     vec4 u_pos[];
@@ -85,9 +87,9 @@ void main()
     vec4 vel = u_vel[idx];
     vec4 life = u_life[idx];
 
-    float dt = u_params.x;
-    float lifetime = u_params.y;
-    float startSpeed = u_params.z;
+    float dt = aiko_time.y;
+    float lifetime = u_params.x;
+    float startSpeed = u_params.y;
 
     if (life.x > 0.0)
     {

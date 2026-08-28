@@ -170,7 +170,7 @@ namespace aiko
 
         const ParticleUpdatePushConstants updateParams =
         {
-            .u_params = vec4( dt, emitter.getLifetime(), emitter.getStartSpeed(), 0.0f),
+            .u_params = vec4( emitter.getLifetime(), emitter.getStartSpeed(), 0.0f, 0.0f),
             .u_emitterPos = vec4(emitterPos.x, emitterPos.y, emitterPos.z, 0.0f),
             .u_spawnWindow = vec4(static_cast<float>(spawnStart), static_cast<float>(state->spawnThisFrame), static_cast<float>(count), 0.0f),
             .u_spawnShape = vec4(static_cast<float>(static_cast<int>(emitter.getSpawnShape())), 0.0f, 0.0f, 0.0f),

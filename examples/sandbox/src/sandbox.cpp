@@ -29,7 +29,7 @@ namespace sb
         constexpr bool s_enableComponentTests = true;
         constexpr bool s_enablePrimitivesTests = true;
         constexpr bool s_enableLightTests = true;
-        constexpr bool s_enableParticleTests = false;
+        constexpr bool s_enableParticleTests = true;
         constexpr bool s_enableComputeTests = true;
     }
 
