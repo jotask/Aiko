@@ -59,6 +59,7 @@ namespace aiko::renderer
 
         virtual void drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc) = 0;
         virtual void drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc) = 0;
+        virtual void drawVerticesGpu(ViewId viewId, const GpuVertexDrawDesc& desc) = 0;
 
         // Transient primitives
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) = 0;
@@ -95,6 +96,11 @@ namespace aiko::renderer
             drawMeshInstancedGpu(viewId, desc);
         }
 
+        void submitGpuVertices(ViewId viewId, const GpuVertexDrawDesc& desc)
+        {
+            drawVerticesGpu(viewId, desc);
+        }
+
         void submitBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc)
         {
             drawBillboards(viewId, desc);
@@ -113,6 +119,11 @@ namespace aiko::renderer
         virtual void prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings)
         {
             AIKO_UNUSED(bindings);
+        }
+
+        virtual void prepareVertexBuffer(const ComputeBuffer& buffer)
+        {
+            AIKO_UNUSED(buffer);
         }
 
     protected:

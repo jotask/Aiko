@@ -32,6 +32,7 @@ namespace aiko::renderer::vulkan
 
         AIKO_ASSERT(desc.count > 0, "Invalid compute buffer count");
 
+        m_format = desc.format;
         buildLayout(desc.format);
 
         m_count = desc.count;
@@ -104,6 +105,8 @@ namespace aiko::renderer::vulkan
         {
             m_elementSize = 0;
             m_count = 0;
+            m_format = ComputeBufferFormat::Vec4f;
+            m_usage = ComputeBufferUsage::None;
             m_state = {};
             m_pendingUploads.clear();
             return;
@@ -117,6 +120,8 @@ namespace aiko::renderer::vulkan
 
         m_elementSize = 0;
         m_count = 0;
+        m_format = ComputeBufferFormat::Vec4f;
+        m_usage = ComputeBufferUsage::None;
         m_state = {};
         m_pendingUploads.clear();
 

@@ -68,6 +68,7 @@ namespace aiko::renderer::vulkan
         m_whiteTexture.unload();
         destroyFrameResources();
         destroyGpuInstancedPipelines();
+        destroyGpuVertexPipelines();
         destroyModelPipeline();
         destroyGpuReadResources();
         destroyScreenPipeline();
@@ -626,6 +627,118 @@ namespace aiko::renderer::vulkan
         };
 
         drawMeshInstancedGpu(viewId, draw);
+    }
+
+    void VulkanRenderDevice::drawVerticesGpu(ViewId viewId, const GpuVertexDrawDesc& desc)
+    {
+        if (viewId != SCENE_VIEW || m_renderPassActive == false)
+        {
+            return;
+        }
+
+        AIKO_ASSERT(desc.material != nullptr, "GPU vertex draw has no material");
+        AIKO_ASSERT(desc.vertexBuffer != nullptr, "GPU vertex draw has no vertex buffer");
+        AIKO_ASSERT(desc.vertexBuffer->isValid(), "GPU vertex buffer is invalid");
+        AIKO_ASSERT(desc.vertexCount > 0, "GPU vertex draw has zero vertices");
+
+        auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(desc.vertexBuffer->getImpl());
+        AIKO_ASSERT(bufferImpl != nullptr, "GPU vertex buffer has no Vulkan implementation");
+        AIKO_ASSERT(bufferImpl->isValid(), "Invalid Vulkan GPU vertex buffer");
+        AIKO_ASSERT(hasFlag(bufferImpl->usage(), ComputeBufferUsage::Vertex), "GPU vertex buffer requires Vertex usage");
+        AIKO_ASSERT(bufferImpl->format() == ComputeBufferFormat::Vec4f, "GPU vertex draw currently requires Vec4f format");
+        AIKO_ASSERT(desc.vertexCount <= bufferImpl->count(), "GPU vertex draw exceeds compute buffer element count");
+
+        VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+
+        switch (desc.topology)
+        {
+            case TransientTopology::Points:
+                topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+                break;
+
+            case TransientTopology::Lines:
+                topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+                break;
+
+            case TransientTopology::Triangles:
+                topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                break;
+        }
+
+        bindMaterial(*desc.material);
+
+        const VkPipeline pipeline = getOrCreateGpuVertexPipeline(*desc.material, m_activeRenderPass, topology);
+        AIKO_ASSERT(pipeline != VK_NULL_HANDLE, "GPU vertex pipeline is invalid");
+
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+        AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "GPU vertex draw requires an active command buffer");
+
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+        const VkViewport viewport =
+        {
+            .x = 0.0f,
+            .y = 0.0f,
+            .width = static_cast<float>(m_activeExtent.width),
+            .height = static_cast<float>(m_activeExtent.height),
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f,
+        };
+
+        const VkRect2D scissor =
+        {
+            .offset = { 0, 0 },
+            .extent = m_activeExtent,
+        };
+
+        vkCmdSetViewport(commandBuffer,0,1,&viewport);
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+        struct DrawPushConstants
+        {
+            mat4 u_model;
+            mat4 u_modelViewProj;
+        };
+
+        const mat4 world = mat4(1.0f);
+
+        const DrawPushConstants push =
+        {
+            .u_model = world,
+            .u_modelViewProj = m_sceneViewProj * world,
+        };
+
+        vkCmdPushConstants(commandBuffer, m_modelPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
+
+        const VkBuffer vertexBuffer = bufferImpl->buffer();
+
+        const VkDeviceSize offset = 0;
+
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, &offset);
+        vkCmdDraw(commandBuffer, desc.vertexCount, 1, 0, 0);
+
+    }
+
+    void VulkanRenderDevice::prepareVertexBuffer(const ComputeBuffer& buffer)
+    {
+        auto* impl = static_cast<VulkanComputeBufferImpl*>(buffer.getImpl());
+        AIKO_ASSERT(impl != nullptr, "Invalid Vulkan compute buffer implementation");
+        AIKO_ASSERT(impl->isValid(), "Invalid Vulkan vertex compute buffer");
+        AIKO_ASSERT(hasFlag(impl->usage(), ComputeBufferUsage::Vertex), "Compute buffer requires Vertex usage");
+
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+        AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Vertex buffer preparation requires an active frame command buffer");
+        AIKO_ASSERT(m_renderPassActive == false, "Vertex buffer preparation must happen outside a render pass");
+
+        flushComputeBufferUploads( commandBuffer,*impl);
+
+        const VulkanBufferState destination =
+        {
+            .stage = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+            .access = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+        };
+
+        transitionBuffer(commandBuffer, *impl, destination);
     }
 
     void VulkanRenderDevice::drawTransient(ViewId viewId, const TransientDrawDesc& desc)
@@ -2714,6 +2827,193 @@ namespace aiko::renderer::vulkan
         }
 
         m_gpuInstancedPipelines.clear();
+    }
+
+    VkPipeline VulkanRenderDevice::getOrCreateGpuVertexPipeline(const Material& material, VkRenderPass renderPass, VkPrimitiveTopology topology)
+    {
+        AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "GPU vertex material has no shader");
+            AIKO_ASSERT(renderPass != VK_NULL_HANDLE, "GPU vertex render pass is invalid");
+
+            Shader& shader =getResources()->getShader(material.m_shaderId);
+            AIKO_ASSERT(shader.isValid(), "GPU vertex shader is invalid");
+
+            auto* shaderImpl = static_cast<VulkanShaderImpl*>(shader.getImpl());
+            AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan GPU vertex shader implementation");
+
+            const GpuVertexPipelineKey key =
+            {
+                .shaderId = shader.id(),
+                .renderPass = renderPass,
+                .topology = topology,
+            };
+
+            if (const auto it = m_gpuVertexPipelines.find(key); it != m_gpuVertexPipelines.end())
+            {
+                return it->second;
+            }
+
+            const VkPipelineShaderStageCreateInfo  vertShaderStageInfo =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .stage = VK_SHADER_STAGE_VERTEX_BIT,
+                .module = shaderImpl->vertexModule(),
+                .pName = "main",
+            };
+
+            const VkPipelineShaderStageCreateInfo fragShaderStageInfo =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+                .module = shaderImpl->fragmentModule(),
+                .pName = "main",
+            };
+
+            const std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages =
+            {
+                vertShaderStageInfo,
+                fragShaderStageInfo,
+            };
+
+            const VkVertexInputBindingDescription bindingDescription =
+            {
+                .binding = 0,
+                .stride = sizeof(vec4),
+                .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+            };
+
+            const VkVertexInputAttributeDescription  attributeDescription =
+            {
+                .location = 0,
+                .binding = 0,
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .offset = 0,
+            };
+
+            const VkPipelineVertexInputStateCreateInfo vertexInputInfo =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+                .vertexBindingDescriptionCount = 1,
+                .pVertexBindingDescriptions = &bindingDescription,
+                .vertexAttributeDescriptionCount = 1,
+                .pVertexAttributeDescriptions = &attributeDescription,
+            };
+
+            const VkPipelineInputAssemblyStateCreateInfo inputAssembly =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+                .topology = topology,
+                .primitiveRestartEnable = VK_FALSE,
+            };
+
+            const VkPipelineViewportStateCreateInfo viewportState =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+                .viewportCount = 1,
+                .scissorCount = 1,
+            };
+
+            const VkPipelineRasterizationStateCreateInfo rasterizer =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+                .depthClampEnable = VK_FALSE,
+                .rasterizerDiscardEnable = VK_FALSE,
+                .polygonMode = VK_POLYGON_MODE_FILL,
+                .cullMode = VK_CULL_MODE_NONE,
+                .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+                .depthBiasEnable = VK_FALSE,
+                .lineWidth = 1.0f,
+            };
+
+            const VkPipelineMultisampleStateCreateInfo multisampling =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+                .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+                .sampleShadingEnable = VK_FALSE,
+            };
+
+            const VkPipelineDepthStencilStateCreateInfo depthStencil =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+                .depthTestEnable = VK_TRUE,
+                .depthWriteEnable = VK_TRUE,
+                .depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
+                .depthBoundsTestEnable = VK_FALSE,
+                .stencilTestEnable = VK_FALSE,
+            };
+
+            const VkPipelineColorBlendAttachmentState colorBlendAttachment =
+            {
+                .blendEnable = VK_FALSE,
+                .colorWriteMask =
+                    VK_COLOR_COMPONENT_R_BIT |
+                    VK_COLOR_COMPONENT_G_BIT |
+                    VK_COLOR_COMPONENT_B_BIT |
+                    VK_COLOR_COMPONENT_A_BIT,
+            };
+
+            const VkPipelineColorBlendStateCreateInfo
+                colorBlending =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+                .logicOpEnable = VK_FALSE,
+                .attachmentCount = 1,
+                .pAttachments = &colorBlendAttachment,
+            };
+
+            const std::array<VkDynamicState, 2> dynamicStates =
+            {
+                VK_DYNAMIC_STATE_VIEWPORT,
+                VK_DYNAMIC_STATE_SCISSOR,
+            };
+
+            const VkPipelineDynamicStateCreateInfo dynamicState =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+                .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
+                .pDynamicStates = dynamicStates.data(),
+            };
+
+            const VkGraphicsPipelineCreateInfo  pipelineInfo =
+            {
+                .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+                .stageCount = static_cast<uint32_t>(shaderStages.size()),
+                .pStages = shaderStages.data(),
+                .pVertexInputState = &vertexInputInfo,
+                .pInputAssemblyState = &inputAssembly,
+                .pViewportState = &viewportState,
+                .pRasterizationState = &rasterizer,
+                .pMultisampleState = &multisampling,
+                .pDepthStencilState = &depthStencil,
+                .pColorBlendState = &colorBlending,
+                .pDynamicState = &dynamicState,
+                .layout = m_modelPipelineLayout,
+                .renderPass = renderPass,
+                .subpass = 0,
+            };
+
+            VkPipeline pipeline = VK_NULL_HANDLE;
+
+            const VkResult result = vkCreateGraphicsPipelines(m_context.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
+
+            AIKO_ASSERT(result == VK_SUCCESS, "Failed to create GPU vertex graphics pipeline");
+
+            m_gpuVertexPipelines.emplace(key, pipeline);
+
+            return pipeline;
+    }
+
+    void VulkanRenderDevice::destroyGpuVertexPipelines()
+    {
+        VkDevice device = m_context.device();
+        for (auto& [key, pipeline] : m_gpuVertexPipelines)
+        {
+            AIKO_UNUSED(key);
+            if (pipeline != VK_NULL_HANDLE)
+            {
+                vkDestroyPipeline(device, pipeline, nullptr);
+            }
+        }
+        m_gpuVertexPipelines.clear();
     }
 
     void VulkanRenderDevice::waitIdle()

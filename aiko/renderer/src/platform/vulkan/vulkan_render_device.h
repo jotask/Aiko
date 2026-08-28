@@ -59,6 +59,8 @@ namespace aiko::renderer::vulkan
 
         virtual void drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc) override;
         virtual void drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc) override;
+        virtual void drawVerticesGpu(ViewId viewId, const GpuVertexDrawDesc& desc) override;
+        virtual void prepareVertexBuffer(const ComputeBuffer& buffer) override;
 
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) override;
 
@@ -298,6 +300,38 @@ namespace aiko::renderer::vulkan
 
         VkPipeline getOrCreateGpuInstancedPipeline(const Material& material, VkRenderPass renderPass);
         void destroyGpuInstancedPipelines();
+
+        struct GpuVertexPipelineKey
+        {
+            RenderResourceId shaderId = InvalidRenderResourceId;
+            VkRenderPass renderPass = VK_NULL_HANDLE;
+            VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+
+            bool operator==(const GpuVertexPipelineKey& other) const
+            {
+                return shaderId == other.shaderId
+                    && renderPass == other.renderPass
+                    && topology == other.topology;
+            }
+        };
+
+        struct GpuVertexPipelineKeyHash
+        {
+            size_t operator()(const GpuVertexPipelineKey& key) const
+            {
+                size_t seed = 0;
+                utils::hashCombine(std::hash<RenderResourceId>{}(key.shaderId), seed);
+                utils::hashCombine(std::hash<VkRenderPass>{}(key.renderPass), seed);
+                utils::hashCombine(std::hash<uint32_t>{}( static_cast<uint32_t>(key.topology)), seed);
+                return seed;
+            }
+        };
+
+        std::unordered_map<GpuVertexPipelineKey, VkPipeline, GpuVertexPipelineKeyHash> m_gpuVertexPipelines;
+
+        VkPipeline getOrCreateGpuVertexPipeline(const Material& material, VkRenderPass renderPass, VkPrimitiveTopology topology);
+
+        void destroyGpuVertexPipelines();
 
     };
 }

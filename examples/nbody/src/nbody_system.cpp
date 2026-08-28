@@ -97,17 +97,25 @@ namespace nbody
         {
             const uint32_t count = simulation.getMaxBodies();
 
-            const aiko::ComputeBufferDesc bufferDesc
+            const aiko::ComputeBufferDesc positionBufferDesc
+            {
+                .format = aiko::ComputeBufferFormat::Vec4f,
+                .count = count,
+                .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::Vertex,
+            };
+
+            const aiko::ComputeBufferDesc velocityBufferDesc
             {
                 .format = aiko::ComputeBufferFormat::Vec4f,
                 .count = count,
                 .usage = aiko::ComputeBufferUsage::Storage,
             };
 
-            state.positionMassBuffer.create(bufferDesc, nullptr);
-            state.velocityBuffer.create(bufferDesc, nullptr);
-            state.positionMassBufferNext.create(bufferDesc, nullptr);
-            state.velocityBufferNext.create(bufferDesc, nullptr);
+            state.positionMassBuffer.create(positionBufferDesc, nullptr);
+            state.velocityBuffer.create(velocityBufferDesc, nullptr);
+
+            state.positionMassBufferNext.create(positionBufferDesc, nullptr);
+            state.velocityBufferNext.create(velocityBufferDesc, nullptr);
 
             state.positionMassCurrent = &state.positionMassBuffer;
             state.velocityCurrent = &state.velocityBuffer;
@@ -121,10 +129,10 @@ namespace nbody
 
         if (state.renderInitialized == false)
         {
-            state.bodyMaterial.m_shaderId = m_assetManagerModule->getManager()->registerShader("gpu_billboard.vs", "model.fs");
+            state.bodyMaterial.m_shaderId = m_assetManagerModule->getManager()->registerShader( "gpu_vertex.vs", "model.fs");
             state.bodyMaterial.m_baseColor = aiko::RED;
             state.bodyMaterial.m_lit = false;
-            state.bodyMaterial.m_useVertexColor = true;
+            state.bodyMaterial.m_useVertexColor = false;
 
             state.renderInitialized = true;
         }
@@ -233,19 +241,13 @@ namespace nbody
         if (state->renderInitialized)
         {
 
-            state->bodyMaterial.m_customVec4Uniforms["u_billboardParams"] = aiko::vec4(
-                simulation.getRenderScale(),
-                0.0f,
-                0.0f,
-                0.0f
-            );
-
-            aiko::GpuBillboardDrawDesc draw{};
+            aiko::GpuVertexDrawDesc draw{};
             draw.material = &state->bodyMaterial;
-            draw.positionBuffer = state->positionMassCurrent;
-            draw.instanceCount = count;
+            draw.vertexBuffer = state->positionMassCurrent;
+            draw.vertexCount = count;
+            draw.topology = aiko::TransientTopology::Points;
 
-            m_renderModule->getRenderer().drawBillboards(draw);
+            m_renderModule->getRenderer().drawVerticesGpu(draw);
 
         }
 

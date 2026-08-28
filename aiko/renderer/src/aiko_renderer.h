@@ -60,6 +60,7 @@ namespace aiko
 
         void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
         void drawBillboards(const GpuBillboardDrawDesc& desc);
+        void drawVerticesGpu(const GpuVertexDrawDesc& desc);
 
         void render(const Camera& camera);
 
@@ -95,6 +96,7 @@ namespace aiko
         std::vector<uint8_t> m_mergedInstanceDataArena;
 
         std::vector<TransientDrawDesc> m_transientQueue;
+        std::vector<GpuVertexDrawDesc> m_gpuVertexDraws;
 
         std::vector<LightData> m_lights;
         AmbientLight m_ambientLight;
@@ -163,6 +165,7 @@ namespace aiko
         {
             vector<const GpuInstanceDrawDesc*> gpuInstances;
             vector<const GpuBillboardDrawDesc*> gpuBillboards;
+            vector<const GpuVertexDrawDesc*> gpuVertices;
             vector<PreparedRenderPacket> opaque;
             vector<PreparedInstancedPacket> instanced;
             vector<PreparedTransientPacket> transient;

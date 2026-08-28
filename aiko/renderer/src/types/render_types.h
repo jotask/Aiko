@@ -90,6 +90,14 @@ namespace aiko
         Triangles
     };
 
+    struct GpuVertexDrawDesc
+    {
+        const Material* material = nullptr;
+        const ComputeBuffer* vertexBuffer = nullptr;
+        uint32_t vertexCount = 0;
+        TransientTopology topology = TransientTopology::Points;
+    };
+
     struct TransientVertex
     {
         vec3 position = vec3(0.0f);

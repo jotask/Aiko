@@ -34,6 +34,7 @@ namespace aiko::renderer::vulkan
         const VulkanBufferState& state() const { return m_state; }
         void setState(const VulkanBufferState& state) { m_state = state; }
 
+        ComputeBufferFormat format() const { return m_format; }
         ComputeBufferUsage usage() const { return m_usage; }
 
         bool hasPendingUploads() const { return m_pendingUploads.empty() == false; }
@@ -54,6 +55,7 @@ namespace aiko::renderer::vulkan
         VkDeviceSize m_elementSize = 0;
         uint32_t m_count = 0;
 
+        ComputeBufferFormat m_format = ComputeBufferFormat::Vec4f;
         ComputeBufferUsage m_usage = ComputeBufferUsage::None;
 
         VulkanBufferState m_state{};

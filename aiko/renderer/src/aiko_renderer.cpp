@@ -82,6 +82,7 @@ namespace aiko
         m_mergedInstanceDataArena.clear();
         m_computeQueue.clear();
         m_gpuInstanceDraws.clear();
+        m_gpuVertexDraws.clear();
         m_lights.clear();
         m_renderer->beginFrame();
         if (m_windowResizeRequest != std::nullopt)
@@ -206,6 +207,11 @@ namespace aiko
         m_gpuBillboardQueue.push_back(desc);
     }
 
+    void AikoRenderer::drawVerticesGpu(const GpuVertexDrawDesc& desc)
+    {
+        m_gpuVertexDraws.push_back(desc);
+    }
+
     void AikoRenderer::render(const Camera& camera)
     {
         AIKO_FUNCTION_PROFILE
@@ -298,6 +304,12 @@ namespace aiko
         for (const GpuBillboardDrawDesc& desc : m_gpuBillboardQueue)
         {
             passData.gpuBillboards.push_back(&desc);
+        }
+
+        passData.gpuVertices.reserve(m_gpuVertexDraws.size());
+        for (const GpuVertexDrawDesc& desc : m_gpuVertexDraws)
+        {
+            passData.gpuVertices.push_back(&desc);
         }
 
         passData.opaque.reserve(m_queue.size());
@@ -547,6 +559,21 @@ namespace aiko
                 });
         }
 
+        for (const GpuVertexDrawDesc* desc : passData.gpuVertices)
+        {
+            if (desc == nullptr)
+            {
+                continue;
+            }
+
+            prepareMaterial(desc->material);
+
+            if (desc->vertexBuffer != nullptr)
+            {
+                m_renderer->prepareVertexBuffer(*desc->vertexBuffer);
+            }
+        }
+
         for (const PreparedRenderPacket& packet : passData.opaque)
         {
             prepareMaterial(packet.draw.material);
@@ -567,6 +594,16 @@ namespace aiko
 
         m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
         m_renderer->bindFrame(SCENE_VIEW, frameData);
+
+        {
+            for (const GpuVertexDrawDesc* desc : passData.gpuVertices)
+            {
+                if (desc != nullptr)
+                {
+                    m_renderer->submitGpuVertices(SCENE_VIEW, *desc);
+                }
+            }
+        }
 
         {
             for (const GpuInstanceDrawDesc* desc : passData.gpuInstances)
