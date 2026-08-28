@@ -170,14 +170,19 @@ namespace aiko
 
         const ParticleUpdatePushConstants updateParams =
         {
-            .u_params = vec4( emitter.getLifetime(), emitter.getStartSpeed(), 0.0f, 0.0f),
-            .u_emitterPos = vec4(emitterPos.x, emitterPos.y, emitterPos.z, 0.0f),
-            .u_spawnWindow = vec4(static_cast<float>(spawnStart), static_cast<float>(state->spawnThisFrame), static_cast<float>(count), 0.0f),
-            .u_spawnShape = vec4(static_cast<float>(static_cast<int>(emitter.getSpawnShape())), 0.0f, 0.0f, 0.0f),
-            .u_spawnData = vec4( emitter.getSpawnRadius(), emitter.getSpawnBoxExtents().x, emitter.getSpawnBoxExtents().y, emitter.getSpawnBoxExtents().z),
-            .u_direction = vec4(emitter.getDirection().x, emitter.getDirection().y, emitter.getDirection().z, emitter.getDirectionRandomness()),
-            .u_gravity = vec4(emitter.getGravity().x, emitter.getGravity().y, emitter.getGravity().z, 0.0f),
-            .u_spawnSeed = vec4(static_cast<float>(state->spawnSeed), 0.0f, 0.0f, 0.0f),
+            .emitterPosition = emitterPos,
+            .lifetime = emitter.getLifetime(),
+            .gravity = emitter.getGravity(),
+            .startSpeed = emitter.getStartSpeed(),
+            .direction = emitter.getDirection(),
+            .directionRandomness = emitter.getDirectionRandomness(),
+            .spawnBoxExtents = emitter.getSpawnBoxExtents(),
+            .spawnRadius = emitter.getSpawnRadius(),
+            .spawnStart = spawnStart,
+            .spawnCount = state->spawnThisFrame,
+            .particleCount = count,
+            .spawnShape = static_cast<uint32_t>(emitter.getSpawnShape()),
+            .spawnSeed = state->spawnSeed,
         };
 
         updatePass.setPushConstants(updateParams);

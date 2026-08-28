@@ -37,16 +37,25 @@ namespace aiko
 
         struct ParticleUpdatePushConstants
         {
-            vec4 u_params;
-            vec4 u_emitterPos;
-            vec4 u_spawnWindow;
-            vec4 u_spawnShape;
-            vec4 u_spawnData;
-            vec4 u_direction;
-            vec4 u_gravity;
-            vec4 u_spawnSeed;
+            alignas(16) vec3 emitterPosition;
+            float lifetime;
+            alignas(16) vec3 gravity;
+            float startSpeed;
+            alignas(16) vec3 direction;
+            float directionRandomness;
+            alignas(16) vec3 spawnBoxExtents;
+            float spawnRadius;
+            alignas(16) uint32_t spawnStart;
+            uint32_t spawnCount;
+            uint32_t particleCount;
+            uint32_t spawnShape;
+            alignas(16) uint32_t spawnSeed;
+            uint32_t padding0 = 0;
+            uint32_t padding1 = 0;
+            uint32_t padding2 = 0;
         };
 
+        static_assert(sizeof(ParticleUpdatePushConstants) == 96, "Particle update push constant ABI changed");
         static_assert(sizeof(ParticleUpdatePushConstants) <= MaxComputePushConstantBytes);
 
         struct RuntimeState
