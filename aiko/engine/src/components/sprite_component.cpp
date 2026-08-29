@@ -23,7 +23,7 @@ namespace aiko
     void SpriteComponent::load(string file)
     {
         AIKO_ASSERT(file.empty() == false, "Attempting to load empty file");
-        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AssetSystem* assets = context().assets;
         AIKO_ASSERT(assets != nullptr, "Asset system not found");
         m_meshId = assets->create(mesh::factory::generateQuad());
         m_material.diffuseTextureId = assets->load<TextureAsset>(file);
@@ -34,7 +34,7 @@ namespace aiko
 
     void SpriteComponent::create(size_t width, size_t height)
     {
-        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AssetSystem* assets = context().assets;
         AIKO_ASSERT(assets != nullptr, "Asset system not found");
 
         m_meshId = assets->create(aiko::mesh::factory::generateQuad());
@@ -90,7 +90,7 @@ namespace aiko
         }
         AIKO_ASSERT(m_material.diffuseTextureId != InvalidAssetId, "SpriteComponent has no texture asset id");
 
-        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AssetSystem* assets = context().assets;
         AIKO_ASSERT(assets != nullptr, "Asset system not found");
 
         TextureAsset& textureAsset = assets->getMutableTextureAsset(m_material.diffuseTextureId);

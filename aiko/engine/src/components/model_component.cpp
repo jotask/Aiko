@@ -14,7 +14,7 @@ namespace aiko
 
     void ModelComponent::load(string path)
     {
-        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AssetSystem* assets = context().assets;
         AIKO_ASSERT(assets != nullptr, "Asset system not found");
         setModelId(assets->load<ModelAsset>(path));
     }

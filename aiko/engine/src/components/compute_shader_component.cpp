@@ -30,7 +30,7 @@ namespace aiko
     void ComputeShaderComponent::load(string path)
     {
         AIKO_ASSERT(path.empty() == false, "Attempting to load empty compute shader path");
-        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AssetSystem* assets = context().assets;
         AIKO_ASSERT(assets != nullptr, "Asset system not found");
         setShaderId(assets->load<ComputeShaderAsset>(path));
     }
