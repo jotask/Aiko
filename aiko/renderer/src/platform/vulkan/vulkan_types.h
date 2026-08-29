@@ -80,12 +80,14 @@ namespace aiko
         VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
         VkPipelineStageFlags stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         VkAccessFlags access = 0;
+        uint32_t queueFamily = VK_QUEUE_FAMILY_IGNORED;
     };
 
     struct VulkanBufferState
     {
         VkPipelineStageFlags stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         VkAccessFlags access = 0;
+        uint32_t queueFamily = VK_QUEUE_FAMILY_IGNORED;
     };
 
     struct QueueFamilyIndices

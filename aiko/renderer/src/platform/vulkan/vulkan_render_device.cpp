@@ -131,15 +131,26 @@ namespace aiko::renderer::vulkan
             return;
         }
         AIKO_ASSERT(m_renderPassActive == false, "Cannot record readback while render pass is active");
+        AIKO_ASSERT(m_computePassActive == false, "Cannot end frame while compute pass is active");
         recordReadbackCopies();
     }
 
     void VulkanRenderDevice::beginPass(uint16_t viewId, const PassDescription& pass, const FrameBuffer* frameBuffer)
     {
-        if (!m_frameActive || viewId == COMPUTE_VIEW)
+        if (m_frameActive == false)
         {
             return;
         }
+
+        if (viewId == COMPUTE_VIEW)
+        {
+            AIKO_ASSERT(m_renderPassActive == false, "Compute pass cannot begin inside a graphics render pass");
+            AIKO_ASSERT(m_computePassActive == false, "Compute pass is already active");
+            m_computePassActive = true;
+            return;
+        }
+
+        AIKO_ASSERT(m_computePassActive == false, "Graphics pass cannot begin while compute pass is active");
 
         VkRenderPass renderPass;
         VkFramebuffer framebuffer;
@@ -151,9 +162,49 @@ namespace aiko::renderer::vulkan
             renderPass = fb->renderPass();
             framebuffer = fb->framebuffer();
             extent = { fb->width(), fb->height() };
+
+            auto* colorImpl = static_cast<VulkanTextureImpl*>(frameBuffer->getColorTexture().getImpl());
+            AIKO_ASSERT(colorImpl != nullptr, "Invalid Vulkan framebuffer color texture");
+
+            const VulkanImageState colorState = colorImpl->state();
+
+            if (colorState.queueFamily == VK_QUEUE_FAMILY_IGNORED)
+            {
+                colorImpl->setState(
+                {
+                    .layout = colorState.layout,
+                    .stage = colorState.stage,
+                    .access = colorState.access,
+                    .queueFamily = m_context.graphicsQueueFamily(),
+                });
+            }
+            else if (colorState.queueFamily == m_context.computeQueueFamily() && m_context.hasDedicatedComputeQueue())
+            {
+                const VulkanImageState graphicsOwnershipState =
+                {
+                    .layout = colorState.layout,
+                    .stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                    .access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                    .queueFamily = m_context.graphicsQueueFamily(),
+                };
+
+                VkCommandBuffer computeCommandBuffer = m_context.computeCommandBuffer();
+                VkCommandBuffer graphicsCommandBuffer = m_context.activeCommandBuffer();
+
+                releaseTextureOwnership(computeCommandBuffer, *colorImpl, graphicsOwnershipState);
+                acquireTextureOwnership(graphicsCommandBuffer, *colorImpl, colorState, graphicsOwnershipState);
+            }
+            else
+            {
+                AIKO_ASSERT(colorState.queueFamily == m_context.graphicsQueueFamily(), "Framebuffer color texture has unexpected queue ownership");
+            }
+
+            m_activeColorAttachment = colorImpl;
+
         }
         else
         {
+            m_activeColorAttachment = nullptr;
             renderPass = m_context.renderPass();
             framebuffer = m_context.currentSwapChainFramebuffer();
             extent = m_context.swapChainExtent();
@@ -192,11 +243,32 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::endPass()
     {
+        if (m_computePassActive)
+        {
+            m_computePassActive = false;
+            return;
+        }
+
         if (m_renderPassActive == false)
         {
             return;
         }
+
         vkCmdEndRenderPass(m_context.activeCommandBuffer());
+
+        if (m_activeColorAttachment != nullptr)
+        {
+            m_activeColorAttachment->setState(
+            {
+                .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                .stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                .access = VK_ACCESS_SHADER_READ_BIT,
+                .queueFamily = m_context.graphicsQueueFamily(),
+            });
+
+            m_activeColorAttachment = nullptr;
+        }
+
         m_renderPassActive = false;
 
         m_activeRenderPass = VK_NULL_HANDLE;
@@ -415,6 +487,7 @@ namespace aiko::renderer::vulkan
     {
 
         AIKO_ASSERT(viewId == COMPUTE_VIEW, "Compute pass must use COMPUTE_VIEW");
+        AIKO_ASSERT(m_computePassActive, "Compute dispatch requires an active compute pass");
         AIKO_ASSERT(pass.shader != nullptr, "Compute pass has no shader");
         AIKO_ASSERT(pass.shader->isValid(), "Invalid compute shader");
         AIKO_ASSERT(pass.buffers.empty() == false || pass.images.empty() == false, "Vulkan compute requires at least one resource");
@@ -426,16 +499,24 @@ namespace aiko::renderer::vulkan
         const VkPipeline pipeline = getOrCreateComputePipeline(*shaderImpl);
         const VkDescriptorSet descriptorSet = allocateComputeDescriptorSet();
 
-        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
-        AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Compute dispatch requires an active frame command buffer");
+        const bool useDedicatedCompute = m_context.hasDedicatedComputeQueue();
 
-        transitionComputeBuffers(commandBuffer, pass.buffers);
-        transitionComputeImages(commandBuffer, pass.images);
+        VkCommandBuffer commandBuffer = useDedicatedCompute ? m_context.computeCommandBuffer() : m_context.activeCommandBuffer();
+        AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Compute dispatch requires a valid command buffer");
+
+        transitionComputeBuffers(commandBuffer, pass.buffers, useDedicatedCompute);
+        transitionComputeImages(commandBuffer, pass.images, useDedicatedCompute);
 
         VulkanComputeBufferImpl* indirectBufferImpl = nullptr;
 
         if (pass.dispatch.indirectBuffer != nullptr)
         {
+
+            for (const ComputeBufferBinding& binding : pass.buffers)
+            {
+                AIKO_ASSERT(binding.buffer != pass.dispatch.indirectBuffer, "Compute indirect dispatch buffer cannot also be a storage binding in the same dispatch");
+            }
+
             AIKO_ASSERT(pass.dispatch.indirectBuffer->isValid(), "Compute indirect dispatch buffer is invalid");
 
             indirectBufferImpl = static_cast<VulkanComputeBufferImpl*>(pass.dispatch.indirectBuffer->getImpl());
@@ -449,15 +530,56 @@ namespace aiko::renderer::vulkan
             const VkDeviceSize requiredSize = static_cast<VkDeviceSize>(pass.dispatch.indirectOffset) + sizeof(VkDispatchIndirectCommand);
             AIKO_ASSERT(requiredSize <= indirectBufferImpl->size(), "Compute indirect dispatch command exceeds buffer size");
 
-            flushComputeBufferUploads(commandBuffer, *indirectBufferImpl);
+            const uint32_t indirectQueueFamily = useDedicatedCompute ? m_context.computeQueueFamily() : m_context.graphicsQueueFamily();
 
             const VulkanBufferState destination =
             {
                 .stage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
                 .access = VK_ACCESS_INDIRECT_COMMAND_READ_BIT,
+                .queueFamily = indirectQueueFamily,
             };
 
-            transitionBuffer(commandBuffer, *indirectBufferImpl, destination);
+            if (useDedicatedCompute)
+            {
+                const VulkanBufferState source = indirectBufferImpl->state();
+                if (indirectBufferImpl->hasPendingUploads())
+                {
+                    if (source.queueFamily == m_context.graphicsQueueFamily())
+                    {
+                        VkCommandBuffer preCompute = m_context.preComputeCommandBuffer();
+                        flushComputeBufferUploads(preCompute, *indirectBufferImpl, m_context.graphicsQueueFamily());
+                    }
+                    else
+                    {
+                        AIKO_ASSERT(source.queueFamily == VK_QUEUE_FAMILY_IGNORED || source.queueFamily == m_context.computeQueueFamily(), "Compute indirect upload has unexpected queue ownership");
+                        flushComputeBufferUploads(commandBuffer, *indirectBufferImpl, m_context.computeQueueFamily());
+                    }
+                }
+
+                const VulkanBufferState current = indirectBufferImpl->state();
+
+                if (current.queueFamily == VK_QUEUE_FAMILY_IGNORED)
+                {
+                    indirectBufferImpl->setState(destination);
+                }
+                else if (current.queueFamily == m_context.computeQueueFamily())
+                {
+                    transitionBuffer(commandBuffer, *indirectBufferImpl, destination);
+                }
+                else
+                {
+                    AIKO_ASSERT(current.queueFamily == m_context.graphicsQueueFamily(), "Compute indirect buffer has unexpected queue ownership");
+                    VkCommandBuffer preCompute = m_context.preComputeCommandBuffer();
+
+                    releaseBufferOwnership(preCompute, *indirectBufferImpl, destination);
+                    acquireBufferOwnership(commandBuffer, *indirectBufferImpl, current, destination);
+                }
+            }
+            else
+            {
+                flushComputeBufferUploads(commandBuffer, *indirectBufferImpl, m_context.graphicsQueueFamily());
+                transitionBuffer(commandBuffer, *indirectBufferImpl, destination);
+            }
         }
 
         updateComputeDescriptors(descriptorSet, pass.buffers, pass.images);
@@ -824,15 +946,15 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Vertex buffer preparation requires an active frame command buffer");
         AIKO_ASSERT(m_renderPassActive == false, "Vertex buffer preparation must happen outside a render pass");
 
-        flushComputeBufferUploads( commandBuffer,*impl);
-
         const VulkanBufferState destination =
         {
             .stage = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
             .access = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+            .queueFamily = m_context.graphicsQueueFamily(),
         };
 
-        transitionBuffer(commandBuffer, *impl, destination);
+        prepareBufferForGraphics( *impl, destination);
+
     }
 
     void VulkanRenderDevice::prepareIndexBuffer(const ComputeBuffer& buffer)
@@ -849,15 +971,15 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT( commandBuffer != VK_NULL_HANDLE, "Index buffer preparation requires an active frame command buffer");
         AIKO_ASSERT(m_renderPassActive == false, "Index buffer preparation must happen outside a render pass");
 
-        flushComputeBufferUploads(commandBuffer, *impl);
-
         const VulkanBufferState destination =
         {
             .stage = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
             .access = VK_ACCESS_INDEX_READ_BIT,
+            .queueFamily = m_context.graphicsQueueFamily(),
         };
 
-        transitionBuffer(commandBuffer, *impl, destination);
+        prepareBufferForGraphics(*impl, destination);
+
     }
 
     void VulkanRenderDevice::prepareIndirectBuffer(const ComputeBuffer& buffer)
@@ -872,15 +994,15 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Indirect buffer preparation requires an active frame command buffer");
         AIKO_ASSERT(m_renderPassActive == false, "Indirect buffer preparation must happen outside a render pass");
 
-        flushComputeBufferUploads(commandBuffer, *impl);
-
         const VulkanBufferState destination =
         {
             .stage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
             .access = VK_ACCESS_INDIRECT_COMMAND_READ_BIT,
+            .queueFamily = m_context.graphicsQueueFamily(),
         };
 
-        transitionBuffer(commandBuffer, *impl, destination);
+        prepareBufferForGraphics(*impl, destination);
+
     }
 
     void VulkanRenderDevice::drawTransient(ViewId viewId, const TransientDrawDesc& desc)
@@ -942,9 +1064,34 @@ namespace aiko::renderer::vulkan
             .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             .stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
             .access = VK_ACCESS_SHADER_READ_BIT,
+            .queueFamily = m_context.graphicsQueueFamily(),
         };
 
-        transitionTexture(m_context.activeCommandBuffer(), *textureImpl, sampledState);
+        const VulkanImageState source = textureImpl->state();
+
+        VkCommandBuffer graphicsCommandBuffer = m_context.activeCommandBuffer();
+        AIKO_ASSERT(graphicsCommandBuffer != VK_NULL_HANDLE, "Texture sampling preparation requires an active graphics command buffer");
+
+        if (source.queueFamily == VK_QUEUE_FAMILY_IGNORED)
+        {
+            transitionTexture(graphicsCommandBuffer, *textureImpl, sampledState);
+            return;
+        }
+
+        if (source.queueFamily == m_context.graphicsQueueFamily())
+        {
+            transitionTexture(graphicsCommandBuffer, *textureImpl, sampledState);
+            return;
+        }
+
+        AIKO_ASSERT(m_context.hasDedicatedComputeQueue(), "Texture is compute-owned without a dedicated compute queue");
+        AIKO_ASSERT(source.queueFamily == m_context.computeQueueFamily(), "Sampled texture has unexpected queue ownership");
+
+        VkCommandBuffer computeCommandBuffer = m_context.computeCommandBuffer();
+        AIKO_ASSERT(computeCommandBuffer != VK_NULL_HANDLE, "Texture sampling preparation requires a compute command buffer");
+
+        releaseTextureOwnership(computeCommandBuffer, *textureImpl, sampledState);
+        acquireTextureOwnership(graphicsCommandBuffer, *textureImpl, source, sampledState);
     }
 
     void VulkanRenderDevice::prepareMaterial(const Material& material)
@@ -994,9 +1141,24 @@ namespace aiko::renderer::vulkan
 
         const VkDeviceSize bufferSize = sizeof(VulkanFrameUbo);
 
+        const std::array<uint32_t, 2> frameQueueFamilies =
+        {
+            m_context.graphicsQueueFamily(),
+            m_context.computeQueueFamily(),
+        };
+
         for (size_t i = 0; i < FramesInFlight; ++i)
         {
-            m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_frameUniformBuffers[i], m_frameUniformMemories[i]);
+
+            if (m_context.hasDedicatedComputeQueue())
+            {
+                m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_frameUniformBuffers[i], m_frameUniformMemories[i], VK_SHARING_MODE_CONCURRENT, frameQueueFamilies.data(), static_cast<uint32_t>(frameQueueFamilies.size()));
+            }
+            else
+            {
+                m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_frameUniformBuffers[i], m_frameUniformMemories[i]);
+            }
+
             const VkResult resultMapMemory = vkMapMemory(m_context.device(), m_frameUniformMemories[i], 0, bufferSize, 0, &m_frameUniformMapped[i]);
             AIKO_ASSERT(resultMapMemory == VK_SUCCESS, "Failed to map frame uniform buffer");
         }
@@ -2235,17 +2397,59 @@ namespace aiko::renderer::vulkan
 
     }
 
-    void VulkanRenderDevice::transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings)
+    void VulkanRenderDevice::transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings, bool useDedicatedCompute)
     {
         for (const ComputeImageBinding& binding : bindings)
         {
             AIKO_ASSERT(binding.texture != nullptr, "Compute image texture is null");
+
             auto* textureImpl = static_cast<VulkanTextureImpl*>(binding.texture->getImpl());
-
             AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan compute texture");
-            transitionTexture( commandBuffer, *textureImpl, computeImageState(binding.access));
-        }
 
+            const uint32_t queueFamily = useDedicatedCompute ? m_context.computeQueueFamily() : m_context.graphicsQueueFamily();
+
+            const VulkanImageState destination = computeImageState(binding.access, queueFamily);
+
+            if (useDedicatedCompute == false)
+            {
+                transitionTexture(commandBuffer, *textureImpl, destination);
+                continue;
+            }
+
+            const VulkanImageState source = textureImpl->state();
+
+            if (source.queueFamily == VK_QUEUE_FAMILY_IGNORED)
+            {
+
+                const VulkanImageState initialState =
+                {
+                    .layout = source.layout,
+                    .stage = source.stage,
+                    .access = source.access,
+                    .queueFamily = m_context.computeQueueFamily(),
+                };
+
+                textureImpl->setState(initialState);
+
+                transitionTexture(commandBuffer, *textureImpl, destination);
+
+                continue;
+            }
+
+            if (source.queueFamily == m_context.computeQueueFamily())
+            {
+                transitionTexture(commandBuffer, *textureImpl, destination);
+
+                continue;
+            }
+
+            AIKO_ASSERT(source.queueFamily == m_context.graphicsQueueFamily(), "Compute image has unexpected queue ownership");
+
+            VkCommandBuffer preCompute = m_context.preComputeCommandBuffer();
+
+            releaseTextureOwnership(preCompute, *textureImpl, destination);
+            acquireTextureOwnership(commandBuffer, *textureImpl, source, destination);
+        }
     }
 
     void VulkanRenderDevice::transitionTexture(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination)
@@ -2258,13 +2462,17 @@ namespace aiko::renderer::vulkan
 
         const bool destinationOnlyReads = (destination.access & (VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)) == 0;
 
-        if (sameLayout && noWriteHazard && destinationOnlyReads)
+        const bool sameQueueFamily =
+            source.queueFamily == destination.queueFamily;
+
+        if (sameLayout && noWriteHazard && destinationOnlyReads && sameQueueFamily)
         {
             texture.setState(
             {
                 .layout = destination.layout,
                 .stage = source.stage | destination.stage,
                 .access = source.access | destination.access,
+                .queueFamily = destination.queueFamily,
             });
             return;
         }
@@ -2309,12 +2517,13 @@ namespace aiko::renderer::vulkan
 
         const bool destinationWrites = (destination.access & writeAccess) != 0;
 
-        if (sourceWrites == false && destinationWrites == false)
+        if (sourceWrites == false && destinationWrites == false && source.queueFamily == destination.queueFamily)
         {
             buffer.setState(
             {
                 .stage = source.stage | destination.stage,
                 .access = source.access | destination.access,
+                .queueFamily = destination.queueFamily,
             });
 
             return;
@@ -2339,7 +2548,128 @@ namespace aiko::renderer::vulkan
         buffer.setState(destination);
     }
 
-    void VulkanRenderDevice::transitionComputeBuffers(VkCommandBuffer commandBuffer, const vector<ComputeBufferBinding>& bindings)
+    void VulkanRenderDevice::releaseBufferOwnership(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination)
+    {
+        const VulkanBufferState source = buffer.state();
+
+        AIKO_ASSERT(source.queueFamily != VK_QUEUE_FAMILY_IGNORED, "Buffer ownership release requires a source queue family");
+        AIKO_ASSERT(destination.queueFamily != VK_QUEUE_FAMILY_IGNORED, "Buffer ownership release requires a destination queue family");
+        AIKO_ASSERT(source.queueFamily != destination.queueFamily, "Buffer ownership release requires different queue families");
+
+        const VkBufferMemoryBarrier barrier =
+        {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+            .srcAccessMask = source.access,
+            .dstAccessMask = 0,
+            .srcQueueFamilyIndex = source.queueFamily,
+            .dstQueueFamilyIndex = destination.queueFamily,
+            .buffer = buffer.buffer(),
+            .offset = 0,
+            .size = buffer.size(),
+        };
+
+        vkCmdPipelineBarrier(commandBuffer, source.stage, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+    }
+
+    void VulkanRenderDevice::acquireBufferOwnership(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, const VulkanBufferState& source, const VulkanBufferState& destination)
+    {
+        AIKO_ASSERT(source.queueFamily != VK_QUEUE_FAMILY_IGNORED, "Buffer ownership acquire requires a source queue family");
+        AIKO_ASSERT(destination.queueFamily != VK_QUEUE_FAMILY_IGNORED, "Buffer ownership acquire requires a destination queue family");
+        AIKO_ASSERT(source.queueFamily != destination.queueFamily, "Buffer ownership acquire requires different queue families");
+
+        const VkBufferMemoryBarrier barrier =
+        {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+
+            .srcAccessMask = 0,
+            .dstAccessMask = destination.access,
+
+            .srcQueueFamilyIndex = source.queueFamily,
+            .dstQueueFamilyIndex = destination.queueFamily,
+
+            .buffer = buffer.buffer(),
+            .offset = 0,
+            .size = buffer.size(),
+        };
+
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, destination.stage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+
+        buffer.setState(destination);
+    }
+
+    void VulkanRenderDevice::releaseTextureOwnership(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination)
+    {
+        const VulkanImageState source = texture.state();
+
+        AIKO_ASSERT(source.queueFamily != VK_QUEUE_FAMILY_IGNORED, "Image ownership release requires a source queue family");
+        AIKO_ASSERT(destination.queueFamily != VK_QUEUE_FAMILY_IGNORED, "Image ownership release requires a destination queue family");
+        AIKO_ASSERT(source.queueFamily != destination.queueFamily, "Image ownership release requires different queue families");
+
+        const VkImageMemoryBarrier barrier =
+        {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+
+            .srcAccessMask = source.access,
+            .dstAccessMask = 0,
+
+            .oldLayout = source.layout,
+            .newLayout = destination.layout,
+
+            .srcQueueFamilyIndex = source.queueFamily,
+            .dstQueueFamilyIndex = destination.queueFamily,
+
+            .image = texture.image(),
+
+            .subresourceRange =
+            {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = VK_REMAINING_MIP_LEVELS,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+        };
+
+        vkCmdPipelineBarrier(commandBuffer, source.stage, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+    }
+
+    void VulkanRenderDevice::acquireTextureOwnership(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& source, const VulkanImageState& destination)
+    {
+        AIKO_ASSERT(source.queueFamily != VK_QUEUE_FAMILY_IGNORED, "Image ownership acquire requires a source queue family");
+        AIKO_ASSERT(destination.queueFamily != VK_QUEUE_FAMILY_IGNORED, "Image ownership acquire requires a destination queue family");
+        AIKO_ASSERT(source.queueFamily != destination.queueFamily, "Image ownership acquire requires different queue families");
+
+        const VkImageMemoryBarrier barrier =
+        {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+
+            .srcAccessMask = 0,
+            .dstAccessMask = destination.access,
+
+            .oldLayout = source.layout,
+            .newLayout = destination.layout,
+
+            .srcQueueFamilyIndex = source.queueFamily,
+            .dstQueueFamilyIndex = destination.queueFamily,
+
+            .image = texture.image(),
+
+            .subresourceRange =
+            {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = VK_REMAINING_MIP_LEVELS,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+        };
+
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, destination.stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+        texture.setState(destination);
+    }
+
+    void VulkanRenderDevice::transitionComputeBuffers(VkCommandBuffer commandBuffer, const vector<ComputeBufferBinding>& bindings, bool useDedicatedCompute)
     {
         for (const ComputeBufferBinding& binding : bindings)
         {
@@ -2347,15 +2677,62 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(binding.buffer->isValid(), "Invalid compute buffer");
 
             auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
+
             AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan compute buffer implementation");
 
-            flushComputeBufferUploads(commandBuffer, *bufferImpl);
-            transitionBuffer(commandBuffer, *bufferImpl, computeBufferState(binding.access));
+            const uint32_t queueFamily = useDedicatedCompute ? m_context.computeQueueFamily() : m_context.graphicsQueueFamily();
 
+            const VulkanBufferState destination = computeBufferState(binding.access, queueFamily);
+
+            if (useDedicatedCompute)
+            {
+                const VulkanBufferState source = bufferImpl->state();
+
+                if (bufferImpl->hasPendingUploads())
+                {
+                    if (source.queueFamily == m_context.graphicsQueueFamily())
+                    {
+                        VkCommandBuffer preCompute = m_context.preComputeCommandBuffer();
+                        flushComputeBufferUploads(preCompute, *bufferImpl, m_context.graphicsQueueFamily());
+                    }
+                    else
+                    {
+                        AIKO_ASSERT(source.queueFamily == VK_QUEUE_FAMILY_IGNORED || source.queueFamily == m_context.computeQueueFamily(), "Compute upload buffer has unexpected queue ownership");
+                        flushComputeBufferUploads(commandBuffer, *bufferImpl, m_context.computeQueueFamily());
+                    }
+                }
+
+                const VulkanBufferState current = bufferImpl->state();
+
+                if (current.queueFamily == VK_QUEUE_FAMILY_IGNORED)
+                {
+                    bufferImpl->setState(destination);
+                    continue;
+                }
+
+                if (current.queueFamily == m_context.computeQueueFamily())
+                {
+                    transitionBuffer(commandBuffer, *bufferImpl, destination);
+                    continue;
+                }
+
+                AIKO_ASSERT(current.queueFamily == m_context.graphicsQueueFamily(), "Compute buffer has unexpected queue ownership");
+
+                VkCommandBuffer preCompute = m_context.preComputeCommandBuffer();
+
+                releaseBufferOwnership(preCompute, *bufferImpl, destination);
+                acquireBufferOwnership(commandBuffer, *bufferImpl, current, destination);
+
+            }
+            else
+            {
+                flushComputeBufferUploads(commandBuffer, *bufferImpl, m_context.graphicsQueueFamily());
+                transitionBuffer(commandBuffer, *bufferImpl, destination);
+            }
         }
     }
 
-    VulkanBufferState VulkanRenderDevice::computeBufferState(ComputeAccess access) const
+    VulkanBufferState VulkanRenderDevice::computeBufferState(ComputeAccess access, uint32_t queueFamily) const
     {
         VkAccessFlags accessMask = 0;
 
@@ -2378,10 +2755,11 @@ namespace aiko::renderer::vulkan
         {
             .stage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
             .access = accessMask,
+            .queueFamily = queueFamily,
         };
     }
 
-    VulkanImageState VulkanRenderDevice::computeImageState(ComputeAccess access) const
+    VulkanImageState VulkanRenderDevice::computeImageState(ComputeAccess access, uint32_t queueFamily) const
     {
         VkAccessFlags accessMask = 0;
 
@@ -2407,17 +2785,32 @@ namespace aiko::renderer::vulkan
             .layout = VK_IMAGE_LAYOUT_GENERAL,
             .stage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
             .access = accessMask,
+            .queueFamily = queueFamily,
         };
     }
 
-    void VulkanRenderDevice::flushComputeBufferUploads(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer)
+    void VulkanRenderDevice::flushComputeBufferUploads(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, uint32_t queueFamily)
     {
+
         if (buffer.hasPendingUploads() == false)
         {
             return;
         }
 
         AIKO_ASSERT(hasFlag(buffer.usage(), ComputeBufferUsage::TransferDst), "Compute buffer upload requires transfer-destination usage");
+        AIKO_ASSERT(queueFamily == m_context.graphicsQueueFamily() || queueFamily == m_context.computeQueueFamily(), "Compute buffer upload uses unexpected queue family");
+
+        const VulkanBufferState source = buffer.state();
+        AIKO_ASSERT(source.queueFamily == VK_QUEUE_FAMILY_IGNORED || source.queueFamily == queueFamily, "Compute buffer upload must be recorded by the owning queue");
+
+        const VulkanBufferState transferState =
+        {
+            .stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
+            .access = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .queueFamily = queueFamily,
+        };
+
+        transitionBuffer(commandBuffer, buffer, transferState);
 
         const uint32_t frame = m_context.currentFrameIndex();
 
@@ -2425,14 +2818,15 @@ namespace aiko::renderer::vulkan
 
         for (const auto& upload : uploads)
         {
-
             AIKO_ASSERT(upload.data.empty() == false, "Compute buffer upload is empty");
 
             const VkDeviceSize size = static_cast<VkDeviceSize>(upload.data.size());
+
             AIKO_ASSERT(size % 4 == 0, "Compute upload size must be 4-byte aligned");
             AIKO_ASSERT(upload.offset % 4 == 0, "Compute upload destination offset must be 4-byte aligned");
 
             const UploadSlice slice = allocateUploadSlice(frame, size, 4);
+
             std::memcpy(slice.mapped, upload.data.data(), upload.data.size());
 
             const VkBufferCopy copy =
@@ -2444,12 +2838,6 @@ namespace aiko::renderer::vulkan
 
             vkCmdCopyBuffer(commandBuffer, slice.buffer, buffer.buffer(), 1, &copy);
         }
-
-        buffer.setState(
-        {
-            .stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
-            .access = VK_ACCESS_TRANSFER_WRITE_BIT,
-        });
     }
 
     VulkanRenderDevice::UploadSlice VulkanRenderDevice::allocateUploadSlice(uint32_t frameIndex, VkDeviceSize size, VkDeviceSize alignment)
@@ -2497,7 +2885,20 @@ namespace aiko::renderer::vulkan
 
         UploadArenaChunk chunk{};
 
-        m_context.createBuffer(capacity, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, chunk.buffer, chunk.memory);
+        if (m_context.hasDedicatedComputeQueue())
+        {
+            const std::array<uint32_t, 2> queueFamilies =
+            {
+                m_context.graphicsQueueFamily(),
+                m_context.computeQueueFamily(),
+            };
+
+            m_context.createBuffer(capacity, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, chunk.buffer, chunk.memory, VK_SHARING_MODE_CONCURRENT, queueFamilies.data(), static_cast<uint32_t>(queueFamilies.size()));
+        }
+        else
+        {
+            m_context.createBuffer(capacity, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, chunk.buffer, chunk.memory);
+        }
 
         const VkResult mapResult = vkMapMemory(m_context.device(), chunk.memory, 0, capacity, 0, &chunk.mapped);
         AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map Vulkan upload arena");
@@ -2583,13 +2984,14 @@ namespace aiko::renderer::vulkan
 
             m_context.createBuffer(request.byteSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
 
-            const VulkanBufferState bufferState =
+            const VulkanBufferState readbackState =
             {
                 .stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
                 .access = VK_ACCESS_TRANSFER_READ_BIT,
+                .queueFamily = m_context.graphicsQueueFamily(),
             };
 
-            transitionBuffer( commandBuffer, *bufferImpl, bufferState);
+            prepareBufferForGraphics(*bufferImpl, readbackState);
 
             const VkBufferCopy copy =
             {
@@ -2782,18 +3184,17 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(binding.buffer != nullptr, "GPU-read buffer is null");
             AIKO_ASSERT(binding.buffer->isValid(), "GPU-read buffer is invalid");
 
-            auto* impl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
-            AIKO_ASSERT(impl != nullptr, "Invalid Vulkan GPU-read buffer");
+            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
+            AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan GPU-read buffer");
 
-            flushComputeBufferUploads(commandBuffer, *impl);
+            const VulkanBufferState destination =
+            {
+                .stage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+                .access = VK_ACCESS_SHADER_READ_BIT,
+                .queueFamily = m_context.graphicsQueueFamily(),
+            };
 
-            transitionBuffer(
-                commandBuffer,
-                *impl,
-                {
-                    .stage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
-                    .access = VK_ACCESS_SHADER_READ_BIT,
-                });
+            prepareBufferForGraphics(*bufferImpl, destination);
         }
     }
 
@@ -3214,6 +3615,75 @@ namespace aiko::renderer::vulkan
             }
         }
         m_gpuVertexPipelines.clear();
+    }
+
+    void VulkanRenderDevice::prepareBufferForGraphics(VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination)
+    {
+        AIKO_ASSERT(destination.queueFamily == m_context.graphicsQueueFamily(), "Graphics buffer destination must use the graphics queue family");
+
+        VkCommandBuffer graphicsCommandBuffer = m_context.activeCommandBuffer();
+        AIKO_ASSERT(graphicsCommandBuffer != VK_NULL_HANDLE, "Graphics buffer preparation requires an active graphics command buffer");
+
+        const VulkanBufferState source = buffer.state();
+
+        if (buffer.hasPendingUploads())
+        {
+            if (m_context.hasDedicatedComputeQueue() && source.queueFamily == m_context.computeQueueFamily())
+            {
+
+                VkCommandBuffer computeCommandBuffer = m_context.computeCommandBuffer();
+
+                const VulkanBufferState transferDestination =
+                {
+                    .stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
+                    .access = VK_ACCESS_TRANSFER_WRITE_BIT,
+                    .queueFamily = m_context.graphicsQueueFamily(),
+                };
+
+                releaseBufferOwnership(computeCommandBuffer, buffer, transferDestination);
+                acquireBufferOwnership(graphicsCommandBuffer, buffer, source, transferDestination);
+            }
+            else if (source.queueFamily == VK_QUEUE_FAMILY_IGNORED)
+            {
+                buffer.setState(
+                {
+                    .stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                    .access = 0,
+                    .queueFamily = m_context.graphicsQueueFamily(),
+                });
+            }
+            else
+            {
+                AIKO_ASSERT(source.queueFamily == m_context.graphicsQueueFamily(), "Pending buffer upload requires graphics ownership");
+            }
+
+            flushComputeBufferUploads(graphicsCommandBuffer, buffer, m_context.graphicsQueueFamily());
+
+        }
+
+        const VulkanBufferState current = buffer.state();
+
+        if (current.queueFamily == VK_QUEUE_FAMILY_IGNORED)
+        {
+            buffer.setState(destination);
+            return;
+        }
+
+        if (current.queueFamily == m_context.graphicsQueueFamily())
+        {
+            transitionBuffer(graphicsCommandBuffer, buffer, destination);
+            return;
+        }
+
+        AIKO_ASSERT(m_context.hasDedicatedComputeQueue(), "Buffer is compute-owned without a dedicated compute queue");
+        AIKO_ASSERT(current.queueFamily == m_context.computeQueueFamily(), "Graphics buffer has unexpected queue ownership");
+
+        VkCommandBuffer computeCommandBuffer = m_context.computeCommandBuffer();
+        AIKO_ASSERT(computeCommandBuffer != VK_NULL_HANDLE, "Graphics buffer preparation requires a compute command buffer");
+
+        releaseBufferOwnership(computeCommandBuffer, buffer, destination);
+        acquireBufferOwnership(graphicsCommandBuffer, buffer, current, destination);
+
     }
 
     void VulkanRenderDevice::waitIdle()

@@ -278,6 +278,7 @@ namespace aiko::renderer::vulkan
             .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             .stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
             .access = VK_ACCESS_SHADER_READ_BIT,
+            .queueFamily = ctx.graphicsQueueFamily(),
         };
 
         vkDestroyBuffer(ctx.device(), stagingBuffer, nullptr);

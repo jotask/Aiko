@@ -4,6 +4,7 @@
 
 #include <array>
 #include <optional>
+#include <limits>
 
 namespace aiko::renderer::vulkan
 {
@@ -25,10 +26,15 @@ namespace aiko::renderer::vulkan
         VkExtent2D swapChainExtent() const { return m_swapChainExtent; }
         VkFramebuffer currentSwapChainFramebuffer() const { return m_swapChainFramebuffers[m_currentImageIndex]; }
         VkCommandBuffer activeCommandBuffer() const { return m_activeCommandBuffer; }
+        VkCommandBuffer preComputeCommandBuffer();
+        VkCommandBuffer computeCommandBuffer();
         VkSwapchainKHR swapChain() const { return m_swapChain; }
         VkQueue presentQueue() const { return m_presentQueue; }
         uint32_t currentFrameIndex() const { return m_currentFrame; }
         VkQueue computeQueue() const { return m_computeQueue; }
+        uint32_t graphicsQueueFamily() const { return m_graphicsQueueFamily; }
+        uint32_t computeQueueFamily() const { return m_computeQueueFamily; }
+        bool hasDedicatedComputeQueue() const { return m_computeQueue != VK_NULL_HANDLE && m_computeQueueFamily != m_graphicsQueueFamily; }
 
     private:
 
@@ -53,10 +59,15 @@ namespace aiko::renderer::vulkan
         VkDevice m_device = VK_NULL_HANDLE;
         VkRenderPass m_renderPass = VK_NULL_HANDLE;
         VkCommandPool m_commandPool = VK_NULL_HANDLE;
+        VkCommandPool m_computeCommandPool = VK_NULL_HANDLE;
 
         VkQueue m_graphicsQueue = VK_NULL_HANDLE;
         VkQueue m_computeQueue = VK_NULL_HANDLE;
         VkQueue m_presentQueue = VK_NULL_HANDLE;
+
+        uint32_t m_graphicsQueueFamily = std::numeric_limits<uint32_t>::max();
+        uint32_t m_computeQueueFamily = std::numeric_limits<uint32_t>::max();
+        uint32_t m_presentQueueFamily = std::numeric_limits<uint32_t>::max();
 
         VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
         std::vector<VkImage> m_swapChainImages;
@@ -67,6 +78,8 @@ namespace aiko::renderer::vulkan
 
         std::vector<VkSemaphore> m_renderFinishedSemaphores;
         std::vector<VkSemaphore> m_imageAvailableSemaphores;
+        std::vector<VkSemaphore> m_computeFinishedSemaphores;
+        std::vector<VkSemaphore> m_graphicsToComputeSemaphores;
         std::vector<VkFence> m_inFlightFences;
 
         std::vector<VkImage> m_swapChainDepthImages;
@@ -75,6 +88,11 @@ namespace aiko::renderer::vulkan
 
         std::vector<VkFramebuffer> m_swapChainFramebuffers;
         std::vector<VkCommandBuffer> m_commandBuffers;
+        std::vector<VkCommandBuffer> m_preComputeCommandBuffers;
+        std::vector<VkCommandBuffer> m_computeCommandBuffers;
+
+        bool m_preComputeCommandBufferUsed = false;
+        bool m_computeCommandBufferUsed = false;
 
         uint32_t m_currentFrame = 0;
         uint32_t m_currentImageIndex = 0;
@@ -98,6 +116,9 @@ namespace aiko::renderer::vulkan
         void createSwapChainDepthResources();
         void createSwapChainFramebuffers();
         void createCommandBuffers();
+        void createComputeCommandPool();
+        void createComputeCommandBuffers();
+        void createPreComputeCommandBuffers();
 
         bool beginFrame();
         void submitAndPresent();
@@ -120,7 +141,7 @@ namespace aiko::renderer::vulkan
         void generateMipmaps(VkImage image, VkFormat format, uint32_t width, uint32_t height, uint32_t mipLevel);
         void generateMipmaps(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, uint32_t width, uint32_t height, uint32_t mipLevels);
 
-        void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+        void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE, const uint32_t* queueFamilyIndices = nullptr, uint32_t queueFamilyIndexCount = 0);
         void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
         void copyBuffer(VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
         void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t baseMipLevel = 0, uint32_t levelCount = 1);

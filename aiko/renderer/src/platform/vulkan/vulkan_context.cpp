@@ -45,9 +45,12 @@ namespace aiko::renderer::vulkan
         createImageViews();
         createRenderPass();
         createCommandPool();
+        createComputeCommandPool();
         createSwapChainDepthResources();
         createSwapChainFramebuffers();
         createCommandBuffers();
+        createPreComputeCommandBuffers();
+        createComputeCommandBuffers();
         createSyncObjects();
     }
 
@@ -78,6 +81,24 @@ namespace aiko::renderer::vulkan
         }
         m_imageAvailableSemaphores.clear();
 
+        for (VkSemaphore semaphore : m_computeFinishedSemaphores)
+        {
+            if (semaphore != VK_NULL_HANDLE)
+            {
+                vkDestroySemaphore(m_device, semaphore, nullptr);
+            }
+        }
+        m_computeFinishedSemaphores.clear();
+
+        for (VkSemaphore semaphore : m_graphicsToComputeSemaphores)
+        {
+            if (semaphore != VK_NULL_HANDLE)
+            {
+                vkDestroySemaphore(m_device, semaphore, nullptr);
+            }
+        }
+        m_graphicsToComputeSemaphores.clear();
+
         for (VkFence fence : m_inFlightFences)
         {
             if (fence != VK_NULL_HANDLE)
@@ -86,6 +107,15 @@ namespace aiko::renderer::vulkan
             }
         }
         m_inFlightFences.clear();
+
+        if (m_computeCommandPool != VK_NULL_HANDLE)
+        {
+            vkDestroyCommandPool(m_device, m_computeCommandPool, nullptr);
+            m_computeCommandPool = VK_NULL_HANDLE;
+        }
+
+        m_computeCommandBuffers.clear();
+        m_preComputeCommandBuffers.clear();
 
         if (m_commandPool != VK_NULL_HANDLE)
         {
@@ -112,6 +142,10 @@ namespace aiko::renderer::vulkan
         m_presentQueue = VK_NULL_HANDLE;
         m_computeQueue = VK_NULL_HANDLE;
         m_physicalDevice = VK_NULL_HANDLE;
+
+        m_graphicsQueueFamily = std::numeric_limits<uint32_t>::max();
+        m_computeQueueFamily = std::numeric_limits<uint32_t>::max();
+        m_presentQueueFamily = std::numeric_limits<uint32_t>::max();
 
         if (m_surface != VK_NULL_HANDLE)
         {
@@ -271,10 +305,17 @@ namespace aiko::renderer::vulkan
     {
         QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
 
-        std::set<uint32_t> uniqueQueueFamilies = {
-            indices.graphicsFamily.value(),
-            indices.presentFamily.value(),
-            indices.computeFamily.value(),
+        AIKO_ASSERT(indices.isComplete(), "Vulkan queue families are incomplete");
+
+        m_graphicsQueueFamily = indices.graphicsFamily.value();
+        m_computeQueueFamily = indices.computeFamily.value();
+        m_presentQueueFamily = indices.presentFamily.value();
+
+        std::set<uint32_t> uniqueQueueFamilies =
+        {
+            m_graphicsQueueFamily,
+            m_presentQueueFamily,
+            m_computeQueueFamily,
         };
 
         float queuePriority = 1.0f;
@@ -313,10 +354,12 @@ namespace aiko::renderer::vulkan
         volkLoadDevice(m_device);
 
         // Retrieve the queues
-        vkGetDeviceQueue(m_device, indices.graphicsFamily.value(), 0, &m_graphicsQueue);
-        vkGetDeviceQueue(m_device, indices.presentFamily.value(), 0, &m_presentQueue );
-        vkGetDeviceQueue(m_device, indices.computeFamily.value(), 0, &m_computeQueue);
+        vkGetDeviceQueue(m_device, m_graphicsQueueFamily, 0, &m_graphicsQueue);
+        vkGetDeviceQueue(m_device, m_presentQueueFamily, 0, &m_presentQueue);
+        vkGetDeviceQueue(m_device, m_computeQueueFamily, 0, &m_computeQueue);
 
+        logger::Log::info("Vulkan queue families: graphics=%u compute=%u present=%u", m_graphicsQueueFamily, m_computeQueueFamily, m_presentQueueFamily);
+        logger::Log::info("Dedicated Vulkan compute queue: %s",hasDedicatedComputeQueue() ? "yes" : "no");
         logger::Log::info("Logical Device Initialized");
 
     }
@@ -481,19 +524,15 @@ namespace aiko::renderer::vulkan
 
     void VulkanContext::createCommandPool()
     {
-        QueueFamilyIndices queueFamilyIndices = findQueueFamilies(m_physicalDevice);
-
+        AIKO_ASSERT(m_graphicsQueueFamily != std::numeric_limits<uint32_t>::max(), "Graphics queue family is not initialized");
         const VkCommandPoolCreateInfo poolInfo =
         {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-            .queueFamilyIndex = queueFamilyIndices.graphicsFamily.value(),
+            .queueFamilyIndex = m_graphicsQueueFamily,
         };
-
-        if (vkCreateCommandPool(m_device, &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create command pool!");
-        }
+        const VkResult result = vkCreateCommandPool(m_device, &poolInfo, nullptr, &m_commandPool);
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to create graphics command pool");
     }
 
     void VulkanContext::createSyncObjects()
@@ -501,6 +540,8 @@ namespace aiko::renderer::vulkan
         m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
         m_renderFinishedSemaphores.resize(m_swapChainImages.size());
+        m_computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+        m_graphicsToComputeSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 
         const VkSemaphoreCreateInfo semaphoreInfo =
         {
@@ -527,11 +568,17 @@ namespace aiko::renderer::vulkan
         // one per frame in flight.
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
         {
-            if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS ||
-                vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS)
+            const VkResult imageAvailableResult = vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]);
+            AIKO_ASSERT(imageAvailableResult == VK_SUCCESS, "Failed to create image-available semaphore");
+            if (hasDedicatedComputeQueue())
             {
-                throw std::runtime_error("failed to create frame synchronization objects!");
+                const VkResult graphicsToComputeResult = vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_graphicsToComputeSemaphores[i]);
+                AIKO_ASSERT(graphicsToComputeResult == VK_SUCCESS, "Failed to create graphics-to-compute semaphore");
+                const VkResult computeFinishedResult = vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_computeFinishedSemaphores[i]);
+                AIKO_ASSERT(computeFinishedResult == VK_SUCCESS, "Failed to create compute-finished semaphore");
             }
+            const VkResult fenceResult = vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFences[i]);
+            AIKO_ASSERT(fenceResult == VK_SUCCESS, "Failed to create frame fence");
         }
     }
 
@@ -596,6 +643,74 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(resultAllocation == VK_SUCCESS, "Failed to allocate command buffer");
     }
 
+    void VulkanContext::createComputeCommandPool()
+    {
+        if (hasDedicatedComputeQueue() == false)
+        {
+            return;
+        }
+
+        AIKO_ASSERT(m_computeQueueFamily != std::numeric_limits<uint32_t>::max(), "Compute queue family is not initialized");
+
+        const VkCommandPoolCreateInfo poolInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+            .queueFamilyIndex = m_computeQueueFamily,
+        };
+
+        const VkResult result = vkCreateCommandPool(m_device, &poolInfo, nullptr, &m_computeCommandPool);
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to create compute command pool");
+    }
+
+    void VulkanContext::createComputeCommandBuffers()
+    {
+        if (hasDedicatedComputeQueue() == false)
+        {
+            return;
+        }
+
+        AIKO_ASSERT(m_computeCommandPool != VK_NULL_HANDLE, "Compute command pool is invalid");
+
+        m_computeCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
+        const VkCommandBufferAllocateInfo allocInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            .commandPool = m_computeCommandPool,
+            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+            .commandBufferCount = static_cast<uint32_t>(m_computeCommandBuffers.size()),
+        };
+
+        const VkResult result = vkAllocateCommandBuffers(m_device, &allocInfo, m_computeCommandBuffers.data());
+
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate compute command buffers");
+    }
+
+    void VulkanContext::createPreComputeCommandBuffers()
+    {
+        if (hasDedicatedComputeQueue() == false)
+        {
+            return;
+        }
+
+        AIKO_ASSERT(m_commandPool != VK_NULL_HANDLE, "Graphics command pool is invalid");
+
+        m_preComputeCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
+        const VkCommandBufferAllocateInfo allocInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            .commandPool = m_commandPool,
+            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+            .commandBufferCount = static_cast<uint32_t>(m_preComputeCommandBuffers.size()),
+        };
+
+        const VkResult result = vkAllocateCommandBuffers(m_device, &allocInfo, m_preComputeCommandBuffers.data());
+
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate pre-compute graphics command buffers");
+    }
+
     bool VulkanContext::beginFrame()
     {
 
@@ -626,6 +741,37 @@ namespace aiko::renderer::vulkan
 
         m_currentImageIndex = imageIndex;
 
+        m_preComputeCommandBufferUsed = false;
+        m_computeCommandBufferUsed = false;
+
+        if (hasDedicatedComputeQueue())
+        {
+            VkCommandBuffer preCompute = m_preComputeCommandBuffers[m_currentFrame];
+
+            VkCommandBuffer compute = m_computeCommandBuffers[m_currentFrame];
+
+            AIKO_ASSERT(preCompute != VK_NULL_HANDLE, "Invalid pre-compute command buffer");
+            AIKO_ASSERT(compute != VK_NULL_HANDLE, "Invalid compute command buffer");
+
+            const VkResult preResetResult = vkResetCommandBuffer(preCompute, 0);
+            AIKO_ASSERT(preResetResult == VK_SUCCESS, "Failed to reset pre-compute command buffer");
+
+            const VkResult computeResetResult = vkResetCommandBuffer(compute, 0);
+            AIKO_ASSERT(computeResetResult == VK_SUCCESS, "Failed to reset compute command buffer");
+
+            const VkCommandBufferBeginInfo auxiliaryBeginInfo =
+            {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+                .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+            };
+
+            const VkResult preBeginResult = vkBeginCommandBuffer(preCompute, &auxiliaryBeginInfo);
+            AIKO_ASSERT(preBeginResult == VK_SUCCESS, "Failed to begin pre-compute command buffer");
+
+            const VkResult computeBeginResult = vkBeginCommandBuffer(compute, &auxiliaryBeginInfo);
+            AIKO_ASSERT(computeBeginResult == VK_SUCCESS, "Failed to begin compute command buffer");
+        }
+
         vkResetFences(m_device, 1, &m_inFlightFences[m_currentFrame]);
 
         m_activeCommandBuffer = m_commandBuffers[m_currentFrame];
@@ -635,6 +781,7 @@ namespace aiko::renderer::vulkan
         const VkCommandBufferBeginInfo beginInfo =
         {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
         };
 
         const VkResult beginResult = vkBeginCommandBuffer(m_activeCommandBuffer, &beginInfo);
@@ -645,38 +792,142 @@ namespace aiko::renderer::vulkan
 
     void VulkanContext::submitAndPresent()
     {
+
+        if (hasDedicatedComputeQueue())
+        {
+            VkCommandBuffer preCompute = m_preComputeCommandBuffers[m_currentFrame];
+            VkCommandBuffer compute = m_computeCommandBuffers[m_currentFrame];
+
+            const VkResult preEndResult = vkEndCommandBuffer(preCompute);
+            AIKO_ASSERT(preEndResult == VK_SUCCESS, "Failed to end pre-compute command buffer");
+
+            const VkResult computeEndResult = vkEndCommandBuffer(compute);
+            AIKO_ASSERT(computeEndResult == VK_SUCCESS, "Failed to end compute command buffer");
+        }
+
         const VkResult endResult = vkEndCommandBuffer(m_activeCommandBuffer);
         AIKO_ASSERT(endResult == VK_SUCCESS, "Failed to end command buffer");
 
-        const std::array<VkSemaphore, 1> waitSemaphores = { m_imageAvailableSemaphores[m_currentFrame] };
-        const std::array<VkPipelineStageFlags, 1> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        const std::array<VkSemaphore, 1> signalSemaphores = { m_renderFinishedSemaphores[m_currentImageIndex] };
-
-        const VkSubmitInfo submitInfo =
+        if (hasDedicatedComputeQueue())
         {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .waitSemaphoreCount = waitSemaphores.size(),
-            .pWaitSemaphores = waitSemaphores.data(),
-            .pWaitDstStageMask = waitStages.data(),
-            .commandBufferCount = 1,
-            .pCommandBuffers = &m_activeCommandBuffer,
-            .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()),
-            .pSignalSemaphores = signalSemaphores.data(),
-        };
+            AIKO_ASSERT(m_preComputeCommandBufferUsed == false || m_computeCommandBufferUsed, "Pre-compute graphics work requires compute work");
 
-        const VkResult submitResult = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[m_currentFrame]);
-        AIKO_ASSERT(submitResult == VK_SUCCESS, "Failed to submit graphics command buffer");
+            const VkCommandBuffer preCompute = m_preComputeCommandBuffers[m_currentFrame];
+            const VkCommandBuffer compute = m_computeCommandBuffers[m_currentFrame];
+            const VkSemaphore graphicsToCompute = m_graphicsToComputeSemaphores[m_currentFrame];
+            const VkSemaphore computeFinished = m_computeFinishedSemaphores[m_currentFrame];
+
+            if (m_preComputeCommandBufferUsed)
+            {
+                const VkSubmitInfo preComputeSubmit =
+                {
+                    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                    .waitSemaphoreCount = 0,
+                    .pWaitSemaphores = nullptr,
+                    .pWaitDstStageMask = nullptr,
+                    .commandBufferCount = 1,
+                    .pCommandBuffers = &preCompute,
+                    .signalSemaphoreCount = 1,
+                    .pSignalSemaphores = &graphicsToCompute,
+                };
+
+                const VkResult preComputeSubmitResult = vkQueueSubmit(m_graphicsQueue, 1, &preComputeSubmit, VK_NULL_HANDLE);
+
+                AIKO_ASSERT(preComputeSubmitResult == VK_SUCCESS, "Failed to submit pre-compute graphics command buffer");
+            }
+
+            if (m_computeCommandBufferUsed)
+            {
+                const VkPipelineStageFlags computeWaitStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+
+                const VkSubmitInfo computeSubmit =
+                {
+                    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                    .waitSemaphoreCount = m_preComputeCommandBufferUsed ? 1u : 0u,
+                    .pWaitSemaphores = m_preComputeCommandBufferUsed ? &graphicsToCompute : nullptr,
+                    .pWaitDstStageMask = m_preComputeCommandBufferUsed ? &computeWaitStage : nullptr,
+                    .commandBufferCount = 1,
+                    .pCommandBuffers = &compute,
+                    .signalSemaphoreCount = 1,
+                    .pSignalSemaphores = &computeFinished,
+                };
+
+                const VkResult computeSubmitResult = vkQueueSubmit(m_computeQueue, 1, &computeSubmit, VK_NULL_HANDLE);
+                AIKO_ASSERT(computeSubmitResult == VK_SUCCESS, "Failed to submit compute command buffer");
+            }
+
+            std::array<VkSemaphore, 2> waitSemaphores =
+            {
+                m_imageAvailableSemaphores[m_currentFrame],
+                VK_NULL_HANDLE,
+            };
+
+            std::array<VkPipelineStageFlags, 2> waitStages =
+            {
+                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+            };
+
+            uint32_t waitSemaphoreCount = 1;
+
+            if (m_computeCommandBufferUsed)
+            {
+                waitSemaphores[1] = computeFinished;
+                waitSemaphoreCount = 2;
+            }
+
+            const VkSemaphore renderFinished = m_renderFinishedSemaphores[m_currentImageIndex];
+
+            const VkSubmitInfo graphicsSubmit =
+            {
+                .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                .waitSemaphoreCount = waitSemaphoreCount,
+                .pWaitSemaphores = waitSemaphores.data(),
+                .pWaitDstStageMask = waitStages.data(),
+                .commandBufferCount = 1,
+                .pCommandBuffers = &m_activeCommandBuffer,
+                .signalSemaphoreCount = 1,
+                .pSignalSemaphores = &renderFinished,
+            };
+
+            const VkResult graphicsSubmitResult = vkQueueSubmit(m_graphicsQueue, 1, &graphicsSubmit, m_inFlightFences[m_currentFrame]);
+
+            AIKO_ASSERT(graphicsSubmitResult == VK_SUCCESS, "Failed to submit graphics command buffer");
+        }
+        else
+        {
+            const std::array<VkSemaphore, 1> waitSemaphores = { m_imageAvailableSemaphores[m_currentFrame] };
+            const std::array<VkPipelineStageFlags, 1> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+            const std::array<VkSemaphore, 1> signalSemaphores = { m_renderFinishedSemaphores[m_currentImageIndex] };
+
+            const VkSubmitInfo submitInfo =
+            {
+                .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                .waitSemaphoreCount = waitSemaphores.size(),
+                .pWaitSemaphores = waitSemaphores.data(),
+                .pWaitDstStageMask = waitStages.data(),
+                .commandBufferCount = 1,
+                .pCommandBuffers = &m_activeCommandBuffer,
+                .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()),
+                .pSignalSemaphores = signalSemaphores.data(),
+            };
+
+            const VkResult submitResult = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[m_currentFrame]);
+            AIKO_ASSERT(submitResult == VK_SUCCESS, "Failed to submit graphics command buffer");
+        }
 
         m_lastSubmittedFrame = m_currentFrame;
+
+        const VkSemaphore renderFinished = m_renderFinishedSemaphores[m_currentImageIndex];
 
         const std::array<VkSwapchainKHR, 1> swapChains = { m_swapChain };
 
         const VkPresentInfoKHR presentInfo =
         {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-            .waitSemaphoreCount = signalSemaphores.size(),
-            .pWaitSemaphores = signalSemaphores.data(),
-            .swapchainCount = swapChains.size(),
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &renderFinished,
+            .swapchainCount = static_cast<uint32_t>(swapChains.size()),
             .pSwapchains = swapChains.data(),
             .pImageIndices = &m_currentImageIndex,
         };
@@ -1088,14 +1339,22 @@ namespace aiko::renderer::vulkan
         }
     }
 
-    void VulkanContext::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+    void VulkanContext::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkSharingMode sharingMode, const uint32_t* queueFamilyIndices, uint32_t queueFamilyIndexCount)
     {
+        if (sharingMode == VK_SHARING_MODE_CONCURRENT)
+        {
+            AIKO_ASSERT(queueFamilyIndices != nullptr, "Concurrent Vulkan buffer requires queue families");
+            AIKO_ASSERT(queueFamilyIndexCount >= 2, "Concurrent Vulkan buffer requires at least two queue families");
+        }
+
         const VkBufferCreateInfo bufferInfo =
         {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .size = size,
             .usage = usage,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .sharingMode = sharingMode,
+            .queueFamilyIndexCount = sharingMode == VK_SHARING_MODE_CONCURRENT ? queueFamilyIndexCount : 0,
+            .pQueueFamilyIndices = sharingMode == VK_SHARING_MODE_CONCURRENT ? queueFamilyIndices : nullptr,
         };
 
         if (vkCreateBuffer(m_device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
@@ -1106,7 +1365,6 @@ namespace aiko::renderer::vulkan
 
         VkMemoryRequirements memRequirements;
         vkGetBufferMemoryRequirements(m_device, buffer, &memRequirements);
-
 
         const uint32_t memoryType = findMemoryType(memRequirements.memoryTypeBits, properties);
         AIKO_ASSERT(memoryType != InvalidMemoryType, "Failed to find memory type.");
@@ -1516,6 +1774,20 @@ namespace aiko::renderer::vulkan
 
         return indices.isComplete() && extensionsSupported && swapChainAdequate;
 
+    }
+
+    VkCommandBuffer VulkanContext::preComputeCommandBuffer()
+    {
+        AIKO_ASSERT(m_currentFrame < m_preComputeCommandBuffers.size(), "Invalid pre-compute command buffer frame");
+        m_preComputeCommandBufferUsed = true;
+        return m_preComputeCommandBuffers[m_currentFrame];
+    }
+
+    VkCommandBuffer VulkanContext::computeCommandBuffer()
+    {
+        AIKO_ASSERT(m_currentFrame < m_computeCommandBuffers.size(), "Invalid compute command buffer frame");
+        m_computeCommandBufferUsed = true;
+        return m_computeCommandBuffers[m_currentFrame];
     }
 
     void VulkanContext::waitIdle()

@@ -79,6 +79,7 @@ namespace aiko::renderer::vulkan
 
         bool m_frameActive = false;
         bool m_renderPassActive = false;
+        bool m_computePassActive = false;
         VkDescriptorSetLayout m_screenDescriptorSetLayout = VK_NULL_HANDLE;
         VkPipelineLayout m_screenPipelineLayout = VK_NULL_HANDLE;
         VkPipeline m_screenPipeline = VK_NULL_HANDLE;
@@ -97,6 +98,7 @@ namespace aiko::renderer::vulkan
 
         VkRenderPass m_activeRenderPass = VK_NULL_HANDLE;
         VkExtent2D m_activeExtent = {};
+        VulkanTextureImpl* m_activeColorAttachment = nullptr;
 
         static constexpr size_t FramesInFlight = 2;
 
@@ -207,13 +209,18 @@ namespace aiko::renderer::vulkan
         VkDescriptorSet allocateComputeDescriptorSet();
 
         void updateComputeDescriptors(VkDescriptorSet descriptorSet, const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images);
-        void transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings);
+        void transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings, bool useDedicatedCompute);
+        VulkanImageState computeImageState(ComputeAccess access, uint32_t queueFamily) const;
         void transitionTexture(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination);
         void transitionBuffer(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination);
-        void transitionComputeBuffers(VkCommandBuffer commandBuffer, const vector<ComputeBufferBinding>& bindings);
-        VulkanBufferState computeBufferState(ComputeAccess access) const;
+        void releaseBufferOwnership(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination);
+        void acquireBufferOwnership(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, const VulkanBufferState& source, const VulkanBufferState& destination);
+        void prepareBufferForGraphics(VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination);
+        void releaseTextureOwnership(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination);
+        void acquireTextureOwnership(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& source, const VulkanImageState& destination);
 
-        VulkanImageState computeImageState(ComputeAccess access) const;
+        void transitionComputeBuffers(VkCommandBuffer commandBuffer, const vector<ComputeBufferBinding>& bindings, bool useDedicatedCompute);
+        VulkanBufferState computeBufferState(ComputeAccess access, uint32_t queueFamily) const;
 
         const Texture* resolveMaterialTexture(const Material& material);
 
@@ -262,7 +269,7 @@ namespace aiko::renderer::vulkan
         static constexpr VkDeviceSize DefaultUploadArenaChunkSize = 4 * 1024 * 1024;
         std::array<vector<UploadArenaChunk>, FramesInFlight> m_uploadArenaChunks;
 
-        void flushComputeBufferUploads(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer);
+        void flushComputeBufferUploads(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, uint32_t queueFamily);
         UploadSlice allocateUploadSlice(uint32_t frameIndex, VkDeviceSize size, VkDeviceSize alignment);
         void resetUploadArenaForFrame(uint32_t frameIndex);
         void destroyUploadArena();
