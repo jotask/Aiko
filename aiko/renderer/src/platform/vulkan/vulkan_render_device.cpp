@@ -1608,7 +1608,13 @@ namespace aiko::renderer::vulkan
 
         const VkVertexInputBindingDescription bindingDescription = VulkanVertex::bindingDescription();
 
-        const auto attributeDescriptions = VulkanVertex::attributeDescriptions();
+        const auto vertexAttributes = VulkanVertex::attributeDescriptions();
+
+        const std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions =
+        {
+            vertexAttributes[0],
+            vertexAttributes[2],
+        };
 
         const VkPipelineVertexInputStateCreateInfo vertexInputInfo =
         {
