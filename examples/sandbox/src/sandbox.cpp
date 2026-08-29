@@ -30,7 +30,7 @@ namespace sb
         constexpr bool s_enablePrimitivesTests = true;
         constexpr bool s_enableLightTests = true;
         constexpr bool s_enableParticleTests = true;
-        constexpr bool s_enableComputeTests = true;
+        constexpr bool s_enableComputeTests = false;
     }
 
     void Sandbox::init()
@@ -415,8 +415,8 @@ namespace sb
 
         for (uint32_t i = 0; i < ElementCount; ++i)
         {
-            aiko::logger::Log::info("Compute[{%zu}] = ({%.2f}, {%.2f}, {%.2f}, {%.2f})", i, values[i].x, values[i].y, values[i].z, values[i].w);}
-
+            aiko::logger::Log::info("Compute[{%zu}] = ({%.2f}, {%.2f}, {%.2f}, {%.2f})", i, values[i].x, values[i].y, values[i].z, values[i].w);
+        }
         m_computeReadbackPrinted = true;
     }
 
