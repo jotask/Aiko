@@ -19,14 +19,14 @@ namespace aiko
 
     void MeshComponent::load(string path)
     {
-        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AssetSystem* assets = context().assets;
         AIKO_ASSERT(assets != nullptr, "Asset system not found");
         setMeshId(assets->load<MeshAsset>(path));
     }
 
     void MeshComponent::loadDebugCube()
     {
-        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AssetSystem* assets = context().assets;
         AIKO_ASSERT(assets != nullptr, "Asset system not found");
         const AssetId cubeMeshId = assets->create(aiko::mesh::factory::generateCube());
         setMeshId(cubeMeshId);
@@ -35,7 +35,7 @@ namespace aiko
 
     void MeshComponent::loadMesh(const MeshAsset& asset)
     {
-        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AssetSystem* assets = context().assets;
         AIKO_ASSERT(assets != nullptr, "Asset system not found");
         const AssetId meshId = assets->create(asset);
         setMeshId(meshId);
