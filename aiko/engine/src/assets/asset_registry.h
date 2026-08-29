@@ -7,6 +7,8 @@
 namespace aiko
 {
 
+    class AssetRegistrySerializer;
+
     class AssetRegistry
     {
     public:
@@ -22,6 +24,7 @@ namespace aiko
         void clear();
 
     private:
+        friend class AssetRegistrySerializer;
 
         std::unordered_map<AssetId, AssetRecord> m_records;
         std::unordered_map<AssetType, std::unordered_map<string, AssetId>> m_sourceIndex;
