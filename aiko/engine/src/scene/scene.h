@@ -2,6 +2,8 @@
 
 #include <aiko_types.h>
 
+#include <entt/entt.hpp>
+
 namespace aiko
 {
 
@@ -25,7 +27,12 @@ namespace aiko
         void setActiveCamera(GameObject* obj);
         auto getActiveCamera() const -> GameObject* { return m_activeCamera; }
 
+        entt::registry& registry() { return m_registry; }
+        const entt::registry& registry() const { return m_registry; }
+
     private:
+        entt::registry m_registry;
+
         vector<AikoPtr<GameObject>> m_objects;
         GameObject* m_activeCamera = nullptr;
     };
