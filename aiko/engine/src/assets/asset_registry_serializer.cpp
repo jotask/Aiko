@@ -13,6 +13,8 @@ namespace aiko
     namespace
     {
 
+        using Json = nlohmann::ordered_json;
+
         constexpr u32 ASSET_REGISTRY_VERSION = 1;
 
         const char* assetTypeToString(AssetType type)
@@ -82,9 +84,9 @@ namespace aiko
 
     bool AssetRegistrySerializer::save(const AssetRegistry& registry, const std::filesystem::path& path)
     {
-        nlohmann::json root;
+        Json root;
         root["version"] = ASSET_REGISTRY_VERSION;
-        root["assets"] = nlohmann::json::array();
+        root["assets"] = Json::array();
 
         vector<const AssetRecord*> records;
         records.reserve(registry.m_records.size());
@@ -154,7 +156,7 @@ namespace aiko
 
         try
         {
-            nlohmann::json root;
+            Json root;
             file >> root;
 
             if (root.contains("version") == false || root.contains("assets") == false)
@@ -174,7 +176,7 @@ namespace aiko
 
             AssetRegistry loadedRegistry;
 
-            for (const nlohmann::json& assetJson : root["assets"])
+            for (const Json& assetJson : root["assets"])
             {
                 if (assetJson.contains("id") == false || assetJson.contains("type") == false || assetJson.contains("source") == false)
                 {
