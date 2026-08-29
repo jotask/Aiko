@@ -53,14 +53,6 @@ namespace aiko
         m_shouldStop = true;
     }
 
-    IRenderResourceInvalidator* Aiko::getResourceInvalidator()
-    {
-        auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const aiko::AikoUPtr<System>& module) {
-                return dynamic_cast<IRenderResourceInvalidator*>(module.get()) != nullptr;
-            });
-        return (it != m_systems.end()) ? dynamic_cast<IRenderResourceInvalidator*>(it->get()) : nullptr;
-    }
-
     void Aiko::run()
     {
         init();

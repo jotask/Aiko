@@ -3,7 +3,6 @@
 #include <memory>
 #include <algorithm>
 
-#include <resources/iresource_invalidator.h>
 #include "aiko_types.h"
 #include "aiko_config.h"
 #include "display/display_events.hpp"
@@ -37,9 +36,6 @@ namespace aiko
         void close();
 
         const AikoConfig getConfig() const { return cfg; }
-
-        // Temporal
-        IRenderResourceInvalidator* getResourceInvalidator();
 
         template<typename TSystem, typename... Args>
         TSystem* registerSystem(Args&& ...);

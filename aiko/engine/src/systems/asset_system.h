@@ -2,7 +2,6 @@
 
 #include "systems/base_system.h"
 
-#include "resources/iresource_invalidator.h"
 #include "assets/asset_type.h"
 #include "assets/types/shader_asset.h"
 
@@ -14,7 +13,7 @@ namespace aiko
     class RenderModule;
     class AssetsManagerModule;
 
-    class AssetSystem : public BaseSystem, public IRenderResourceInvalidator
+    class AssetSystem : public BaseSystem
     {
     public:
         AssetSystem();
@@ -31,12 +30,10 @@ namespace aiko
 
         TextureAsset& getMutableTextureAsset(const AssetId& id);
 
-        // IRenderResourceInvalidator
-
-        virtual void invalidateTexture(const AssetId& id) override;
-        virtual void invalidateMesh(const AssetId& id) override;
-        virtual void invalidateModel(const AssetId& id) override;
-        virtual void invalidateShader(const AssetId& id) override;
+        void invalidateTexture(const AssetId& id);
+        void invalidateMesh(const AssetId& id);
+        void invalidateModel(const AssetId& id);
+        void invalidateShader(const AssetId& id);
 
     protected:
 
