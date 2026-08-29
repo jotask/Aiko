@@ -30,7 +30,7 @@ namespace aiko
         physicsSystem->registerRigidBody(this);
     }
 
-    void RigidBodyComponent::destroy()
+    void RigidBodyComponent::dispose()
     {
 
         PhysicsSystem* physicsSystem = context().physics;

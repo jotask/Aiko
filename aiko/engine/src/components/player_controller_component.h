@@ -22,7 +22,7 @@ namespace aiko
         ~PlayerControllerComponent() override;
 
         void create(const PlayerControllerComponentDesc& desc);
-        void destroy();
+        void dispose() override;
 
         void setMoveInput(const vec2& move);
         void setJumpPressed(bool pressed);

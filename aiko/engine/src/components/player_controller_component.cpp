@@ -31,7 +31,7 @@ namespace aiko
         physicsSystem->registerPlayerController(this);
     }
 
-    void PlayerControllerComponent::destroy()
+    void PlayerControllerComponent::dispose()
     {
         PhysicsSystem* physicsSystem = context().physics;
         AIKO_ASSERT(physicsSystem != nullptr, "Physics system not found");
