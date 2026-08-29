@@ -13,9 +13,9 @@ namespace aiko
         {
             return it->second;
         }
-        auto pathIt = m_texturePaths.find(id);
-        AIKO_ASSERT(pathIt != m_texturePaths.end(), "Texture asset id not registered");
-        TextureAsset asset = AssetImporter::loadTexture(pathIt->second, this);
+        const AssetRecord* record = m_registry.find(id);
+        AIKO_ASSERT(record != nullptr && record->type == AssetType::Texture, "Texture asset id not registered");
+        TextureAsset asset = AssetImporter::loadTexture(record->source, this);
         auto [insertedIt, _] = m_textureAssets.emplace(id, std::move(asset));
         return insertedIt->second;
     }
@@ -28,11 +28,9 @@ namespace aiko
         {
             return it->second;
         }
-
-        auto pathIt = m_meshPaths.find(id);
-        AIKO_ASSERT(pathIt != m_meshPaths.end(), "Mesh asset id not registered");
-
-        MeshAsset asset = AssetImporter::loadMesh(pathIt->second, this);
+        const AssetRecord* record = m_registry.find(id);
+        AIKO_ASSERT(record != nullptr && record->type == AssetType::Mesh, "Mesh asset id not registered");
+        MeshAsset asset = AssetImporter::loadMesh(record->source, this);
         auto [insertedIt, _] = m_meshAssets.emplace(id, std::move(asset));
         return insertedIt->second;
     }
@@ -45,11 +43,9 @@ namespace aiko
         {
             return it->second;
         }
-
-        auto pathIt = m_modelPaths.find(id);
-        AIKO_ASSERT(pathIt != m_modelPaths.end(), "Model asset id not registered");
-
-        ModelAsset asset = AssetImporter::loadModel(pathIt->second, this);
+        const AssetRecord* record = m_registry.find(id);
+        AIKO_ASSERT(record != nullptr && record->type == AssetType::Model, "Model asset id not registered");
+        ModelAsset asset = AssetImporter::loadModel(record->source, this);
         auto [insertedIt, _] = m_modelAssets.emplace(id, std::move(asset));
         return insertedIt->second;
     }
@@ -62,28 +58,24 @@ namespace aiko
         {
             return it->second;
         }
-
-        auto pathIt = m_shaderPaths.find(id);
-        AIKO_ASSERT(pathIt != m_shaderPaths.end(), "Shader asset id not registered");
-
-        ShaderAsset asset = AssetImporter::loadShader(pathIt->second, this);
+        const AssetRecord* record = m_registry.find(id);
+        AIKO_ASSERT(record != nullptr && record->type == AssetType::Shader, "Shader asset id not registered");
+        ShaderAsset asset = AssetImporter::loadShader(record->source, this);
         auto [insertedIt, _] = m_shaderAssets.emplace(id, std::move(asset));
         return insertedIt->second;
     }
 
     const ComputeShaderAsset& AssetManager::getComputeShaderAsset(const AssetId& id)
     {
-        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get shader from invalid UUID")
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get compute shader from invalid UUID")
         auto it = m_computeShaderAssets.find(id);
         if (it != m_computeShaderAssets.end())
         {
             return it->second;
         }
-
-        auto pathIt = m_computeShaderPaths.find(id);
-        AIKO_ASSERT(pathIt != m_computeShaderPaths.end(), "Shader asset id not registered");
-
-        ComputeShaderAsset asset = AssetImporter::loadComputeShader(pathIt->second, this);
+        const AssetRecord* record = m_registry.find(id);
+        AIKO_ASSERT(record != nullptr && record->type == AssetType::ComputeShader, "Compute shader asset id not registered");
+        ComputeShaderAsset asset = AssetImporter::loadComputeShader(record->source, this);
         auto [insertedIt, _] = m_computeShaderAssets.emplace(id, std::move(asset));
         return insertedIt->second;
     }
@@ -96,26 +88,16 @@ namespace aiko
         {
             return it->second;
         }
-        auto pathIt = m_texturePaths.find(id);
-        AIKO_ASSERT(pathIt != m_texturePaths.end(), "Texture asset id not registered");
-        TextureAsset asset = AssetImporter::loadTexture(pathIt->second, this);
+        const AssetRecord* record = m_registry.find(id);
+        AIKO_ASSERT(record != nullptr && record->type == AssetType::Texture, "Texture asset id not registered");
+        TextureAsset asset = AssetImporter::loadTexture(record->source, this);
         auto [insertedIt, _] = m_textureAssets.emplace(id, std::move(asset));
         return insertedIt->second;
     }
 
     AssetId AssetManager::registerTexture(std::string_view path)
     {
-        const string p(path);
-        for (const auto& [id, existingPath] : m_texturePaths)
-        {
-            if (existingPath == p)
-            {
-                return id;
-            }
-        }
-        AssetId id;
-        m_texturePaths[id] = p;
-        return id;
+        return m_registry.registerAsset(AssetType::Texture, path);
     }
 
     AssetId AssetManager::registerTexture(const TextureAsset& asset)
@@ -127,17 +109,7 @@ namespace aiko
 
     AssetId AssetManager::registerMesh(std::string_view path)
     {
-        const string p(path);
-        for (const auto& [id, existingPath] : m_meshPaths)
-        {
-            if (existingPath == p)
-            {
-                return id;
-            }
-        }
-        AssetId id;
-        m_meshPaths[id] = p;
-        return id;
+        return m_registry.registerAsset(AssetType::Mesh, path);
     }
 
     AssetId AssetManager::registerMesh(const MeshAsset& asset)
@@ -149,17 +121,7 @@ namespace aiko
 
     AssetId AssetManager::registerModel(std::string_view path)
     {
-        const string p(path);
-        for (const auto& [id, existingPath] : m_modelPaths)
-        {
-            if (existingPath == p)
-            {
-                return id;
-            }
-        }
-        AssetId id;
-        m_modelPaths[id] = p;
-        return id;
+        return m_registry.registerAsset(AssetType::Model, path);
     }
 
     AssetId AssetManager::registerShader(std::string_view vsPath, std::string_view fsPath)
@@ -173,65 +135,68 @@ namespace aiko
     AssetId AssetManager::registerShader(std::string_view path)
     {
         const string p(path);
-
-        for (const auto& [id, existingPath] : m_shaderPaths)
-        {
-            if (existingPath == p)
-            {
-                return id;
-            }
-        }
-
         const string explicitKey = p + ".vs|" + p + ".fs";
         auto explicitIt = m_shaderExplicitKeys.find(explicitKey);
         if (explicitIt != m_shaderExplicitKeys.end())
         {
             return explicitIt->second;
         }
-
-        AssetId id;
-        m_shaderPaths[id] = p;
-        return id;
+        return m_registry.registerAsset(AssetType::Shader, path);
     }
 
     AssetId AssetManager::registerComputeShader(std::string_view path)
     {
-        const string p(path);
-        for (const auto& [id, existingPath] : m_computeShaderPaths)
-        {
-            if (existingPath == p)
-            {
-                return id;
-            }
-        }
-        AssetId id;
-        m_computeShaderPaths[id] = p;
-        return id;
+        return m_registry.registerAsset(AssetType::ComputeShader, path);
     }
 
     bool AssetManager::hasTextureAsset(const AssetId& id) const
     {
-        return m_textureAssets.find(id) != m_textureAssets.end() || m_texturePaths.find(id) != m_texturePaths.end() ;
+        if (m_textureAssets.find(id) != m_textureAssets.end())
+        {
+            return true;
+        }
+        const AssetRecord* record = m_registry.find(id);
+        return record != nullptr && record->type == AssetType::Texture;
     }
 
     bool AssetManager::hasMeshAsset(const AssetId& id) const
     {
-        return m_meshAssets.find(id) != m_meshAssets.end() || m_meshPaths.find(id) != m_meshPaths.end() ;
+        if (m_meshAssets.find(id) != m_meshAssets.end())
+        {
+            return true;
+        }
+        const AssetRecord* record = m_registry.find(id);
+        return record != nullptr && record->type == AssetType::Mesh;
     }
 
     bool AssetManager::hasModelAsset(const AssetId& id) const
     {
-        return m_modelAssets.find(id) != m_modelAssets.end() || m_modelPaths.find(id) != m_modelPaths.end() ;
+        if (m_modelAssets.find(id) != m_modelAssets.end())
+        {
+            return true;
+        }
+        const AssetRecord* record = m_registry.find(id);
+        return record != nullptr && record->type == AssetType::Model;
     }
 
     bool AssetManager::hasShaderAsset(const AssetId& id) const
     {
-        return m_shaderAssets.find(id) != m_shaderAssets.end() || m_shaderPaths.find(id) != m_shaderPaths.end() ;
+        if (m_shaderAssets.find(id) != m_shaderAssets.end())
+        {
+            return true;
+        }
+        const AssetRecord* record = m_registry.find(id);
+        return record != nullptr && record->type == AssetType::Shader;
     }
 
     bool AssetManager::hasComputeShaderAsset(const AssetId& id) const
     {
-        return m_computeShaderAssets.find(id) != m_computeShaderAssets.end() || m_computeShaderPaths.find(id) != m_computeShaderPaths.end() ;
+        if (m_computeShaderAssets.find(id) != m_computeShaderAssets.end())
+        {
+            return true;
+        }
+        const AssetRecord* record = m_registry.find(id);
+        return record != nullptr && record->type == AssetType::ComputeShader;
     }
 
     void AssetManager::clear()
@@ -241,15 +206,8 @@ namespace aiko
         m_modelAssets.clear();
         m_shaderAssets.clear();
         m_computeShaderAssets.clear();
-
-        m_texturePaths.clear();
-        m_meshPaths.clear();
-        m_modelPaths.clear();
-        m_shaderPaths.clear();
-        m_computeShaderPaths.clear();
-
+        m_registry.clear();
         m_shaderExplicitKeys.clear();
-
     }
 
     void AssetManager::unloadTexture(const AssetId& id)
@@ -281,14 +239,11 @@ namespace aiko
             m_shaderAssets.erase(it);
             return;
         }
-
-        m_shaderPaths.erase(id);
     }
 
     void AssetManager::unloadComputeShader(const AssetId& id)
     {
         m_computeShaderAssets.erase(id);
-        m_computeShaderPaths.erase(id);
     }
 
     AssetId AssetManager::registerShaderAsset(const ShaderAsset& asset)

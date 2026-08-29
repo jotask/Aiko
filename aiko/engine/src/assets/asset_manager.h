@@ -1,5 +1,6 @@
 #pragma once
 
+#include "asset_registry.h"
 #include "assets/asset_id.h"
 #include "assets/types/mesh_asset.h"
 #include "assets/types/texture_asset.h"
@@ -49,11 +50,7 @@ namespace aiko
 
         AssetId registerShaderAsset(const ShaderAsset& asset);
 
-        std::unordered_map<AssetId, string> m_texturePaths;
-        std::unordered_map<AssetId, string> m_meshPaths;
-        std::unordered_map<AssetId, string> m_modelPaths;
-        std::unordered_map<AssetId, string> m_shaderPaths;
-        std::unordered_map<AssetId, string> m_computeShaderPaths;
+        AssetRegistry m_registry;
 
         std::unordered_map<AssetId, TextureAsset> m_textureAssets;
         std::unordered_map<AssetId, MeshAsset> m_meshAssets;
