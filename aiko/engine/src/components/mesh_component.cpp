@@ -3,6 +3,7 @@
 #include "assets/asset_manager.h"
 #include "models/game_object.h"
 #include "models/mesh_factory.h"
+#include "systems/asset_system.h"
 
 namespace aiko
 {
@@ -19,24 +20,27 @@ namespace aiko
 
     void MeshComponent::load(string path)
     {
-        IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
-        setMeshId(assets->registerMesh(path));
+        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AIKO_ASSERT(assets != nullptr, "Asset system not found");
+        setMeshId(assets->load<MeshAsset>(path));
+
     }
 
     void MeshComponent::loadDebugCube()
     {
-        IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
-        const AssetId cubeMeshId = assets->registerMesh(aiko::mesh::factory::generateCube());
+        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AIKO_ASSERT(assets != nullptr, "Asset system not found");
+        const AssetId cubeMeshId = assets->create(aiko::mesh::factory::generateCube());
         setMeshId(cubeMeshId);
-        m_material.shaderId = assets->registerShader("model");
-
+        m_material.shaderId = assets->load<ShaderAsset>("model");
     }
 
     void MeshComponent::loadMesh(const MeshAsset& asset)
     {
-        IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
-        const AssetId meshId = assets->registerMesh(asset);
+        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AIKO_ASSERT(assets != nullptr, "Asset system not found");
+        const AssetId meshId = assets->create(asset);
         setMeshId(meshId);
-        m_material.shaderId = assets->registerShader("model");
+        m_material.shaderId = assets->load<ShaderAsset>("model");
     }
 }
