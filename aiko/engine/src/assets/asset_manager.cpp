@@ -200,6 +200,31 @@ namespace aiko
         return record != nullptr && record->type == AssetType::ComputeShader;
     }
 
+    bool AssetManager::isTextureAssetLoaded(const AssetId& id) const
+    {
+        return m_textureAssets.find(id) != m_textureAssets.end();
+    }
+
+    bool AssetManager::isMeshAssetLoaded(const AssetId& id) const
+    {
+        return m_meshAssets.find(id) != m_meshAssets.end();
+    }
+
+    bool AssetManager::isModelAssetLoaded(const AssetId& id) const
+    {
+        return m_modelAssets.find(id) != m_modelAssets.end();
+    }
+
+    bool AssetManager::isShaderAssetLoaded(const AssetId& id) const
+    {
+        return m_shaderAssets.find(id) != m_shaderAssets.end();
+    }
+
+    bool AssetManager::isComputeShaderAssetLoaded(const AssetId& id) const
+    {
+        return m_computeShaderAssets.find(id) != m_computeShaderAssets.end();
+    }
+
     bool AssetManager::loadRegistry(const std::filesystem::path& path)
     {
         return AssetRegistrySerializer::load(m_registry, path);

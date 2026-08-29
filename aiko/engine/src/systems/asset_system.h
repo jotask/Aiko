@@ -33,6 +33,12 @@ namespace aiko
             return get(id, std::type_identity<T>{});
         }
 
+        template<typename T>
+        bool isLoaded(const AssetId& id) const
+        {
+            return isLoaded(id, std::type_identity<T>{});
+        }
+
         AssetId create(const TextureAsset& asset);
         AssetId create(const MeshAsset& asset);
 
@@ -56,6 +62,12 @@ namespace aiko
         const ModelAsset& get(const AssetId& id, std::type_identity<ModelAsset>);
         const ShaderAsset& get(const AssetId& id, std::type_identity<ShaderAsset>);
         const ComputeShaderAsset& get(const AssetId& id, std::type_identity<ComputeShaderAsset>);
+
+        bool isLoaded(const AssetId& id, std::type_identity<TextureAsset>) const;
+        bool isLoaded(const AssetId& id, std::type_identity<MeshAsset>) const;
+        bool isLoaded(const AssetId& id, std::type_identity<ModelAsset>) const;
+        bool isLoaded(const AssetId& id, std::type_identity<ShaderAsset>) const;
+        bool isLoaded(const AssetId& id, std::type_identity<ComputeShaderAsset>) const;
 
         RenderModule* m_renderModule;
         AssetsManagerModule* m_assetModule;

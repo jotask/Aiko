@@ -41,6 +41,12 @@ namespace aiko
         bool hasShaderAsset(const AssetId& id) const;
         bool hasComputeShaderAsset(const AssetId& id) const;
 
+        bool isTextureAssetLoaded(const AssetId& id) const;
+        bool isMeshAssetLoaded(const AssetId& id) const;
+        bool isModelAssetLoaded(const AssetId& id) const;
+        bool isShaderAssetLoaded(const AssetId& id) const;
+        bool isComputeShaderAssetLoaded(const AssetId& id) const;
+
         bool loadRegistry(const std::filesystem::path& path);
         bool saveRegistry(const std::filesystem::path& path) const;
 
