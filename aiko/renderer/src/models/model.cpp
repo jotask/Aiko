@@ -12,7 +12,7 @@ namespace aiko
         {
             SubMesh runtimeSubMesh{};
             runtimeSubMesh.meshId = submesh.meshId;
-            runtimeSubMesh.material = &submesh.material;
+            runtimeSubMesh.material = submesh.material;
             m_subMeshes.push_back(runtimeSubMesh);
         }
     }

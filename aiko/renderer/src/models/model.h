@@ -15,7 +15,7 @@ namespace aiko
         struct SubMesh
         {
             AssetId meshId = InvalidAssetId;
-            const MaterialAsset* material = nullptr;
+            MaterialAsset material{};
         };
 
         // Copy

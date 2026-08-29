@@ -74,9 +74,8 @@ namespace aiko
         for (const auto& submesh : model.getSubMeshes())
         {
             AIKO_ASSERT(submesh.meshId != InvalidAssetId, "Runtime model submesh has invalid mesh id");
-            AIKO_ASSERT(submesh.material != nullptr, "Runtime model submesh has null material");
             Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(submesh.meshId);
-            m_renderModule->getRenderer().submit(trans, mesh, *submesh.material, instance);
+            m_renderModule->getRenderer().submit(trans, mesh, submesh.material, instance);
         }
     }
 
