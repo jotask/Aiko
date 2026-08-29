@@ -241,17 +241,31 @@ namespace aiko::renderer::vulkan
             vector<uint8_t> data;
         };
 
-        struct UploadStagingResource
+        struct UploadArenaChunk
         {
             VkBuffer buffer = VK_NULL_HANDLE;
             VkDeviceMemory memory = VK_NULL_HANDLE;
+
+            void* mapped = nullptr;
+
+            VkDeviceSize capacity = 0;
+            VkDeviceSize offset = 0;
         };
 
-        std::array<vector<UploadStagingResource>, FramesInFlight> m_uploadStagingResources;
+        struct UploadSlice
+        {
+            VkBuffer buffer = VK_NULL_HANDLE;
+            VkDeviceSize offset = 0;
+            void* mapped = nullptr;
+        };
+
+        static constexpr VkDeviceSize DefaultUploadArenaChunkSize = 4 * 1024 * 1024;
+        std::array<vector<UploadArenaChunk>, FramesInFlight> m_uploadArenaChunks;
 
         void flushComputeBufferUploads(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer);
-        void destroyUploadResourcesForFrame(uint32_t frameIndex);
-        void destroyUploadResources();
+        UploadSlice allocateUploadSlice(uint32_t frameIndex, VkDeviceSize size, VkDeviceSize alignment);
+        void resetUploadArenaForFrame(uint32_t frameIndex);
+        void destroyUploadArena();
 
         vector<ReadbackRequest> m_readbackRequests;
         vector<InFlightReadback> m_inFlightReadbacks;
