@@ -8,6 +8,7 @@
 #include "aiko_types.h"
 #include "component.h"
 #include "components/transform_component.h"
+#include "component_context.h"
 
 namespace aiko
 {
@@ -55,6 +56,7 @@ namespace aiko
     private:
 
         Aiko* aiko;
+        ComponentContext* m_componentContext = nullptr;
 
         uuid::Uuid m_uuid;
 
@@ -76,7 +78,8 @@ namespace aiko
         }
         m_components.emplace_back(std::make_shared<T>(args...));
         AikoPtr<Component> back = m_components.back();
-        back->setup(this);
+        AIKO_ASSERT(m_componentContext != nullptr, "GameObject component context not initialized");
+        back->setup(this, m_componentContext);
         back->init();
         return std::dynamic_pointer_cast<T>(back);
     }

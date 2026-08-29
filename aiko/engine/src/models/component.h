@@ -1,10 +1,8 @@
 #pragma once
 
-
-
 #include "aiko_types.h"
 #include "core/uuid.h"
-#include "components/component_entity.h"
+#include "component_context.h"
 
 namespace aiko
 {
@@ -24,6 +22,7 @@ namespace aiko
         Component(string name)
             : m_name(name)
             , gameobject(nullptr)
+            , m_context(nullptr)
         {
         };
     
@@ -33,10 +32,22 @@ namespace aiko
         const char* getName() const { return m_name.c_str(); };
     protected:
         GameObject* gameobject;
+        ComponentContext& context()
+        {
+            AIKO_ASSERT(m_context != nullptr, "Component context not initialized");
+            return *m_context;
+        }
+
+        const ComponentContext& context() const
+        {
+            AIKO_ASSERT(m_context != nullptr, "Component context not initialized");
+            return *m_context;
+        }
         virtual void init() { }
     private:
         const string m_name;
-        void setup(GameObject* obj);
+        ComponentContext* m_context;
+        void setup(GameObject* obj, ComponentContext* context);
     };
 
 }

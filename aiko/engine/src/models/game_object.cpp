@@ -1,5 +1,6 @@
 #include "game_object.h"
 
+#include "components/component_entity.h"
 #include "components/transform_component.h"
 
 namespace aiko

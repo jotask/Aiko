@@ -7,6 +7,7 @@
 
 #include "modules/module_connector.h"
 #include "systems/render_system.h"
+#include "systems/asset_system.h"
 #include "systems/system_connector.h"
 
 #include "scene/scene.h"
@@ -16,6 +17,8 @@ namespace aiko
 {
     SceneSystem::SceneSystem()
         : m_renderModule(nullptr)
+        , m_renderSystem(nullptr)
+        , m_assetSystem(nullptr)
     {
 
     }
@@ -23,7 +26,9 @@ namespace aiko
     void SceneSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule);
-        BIND_SYSTEM_REQUIRED(RenderSystem, systemConnector, m_renderSystem)
+        BIND_SYSTEM_REQUIRED(RenderSystem, systemConnector, m_renderSystem);
+        BIND_SYSTEM_REQUIRED(AssetSystem, systemConnector, m_assetSystem)
+        m_componentContext.assets = m_assetSystem;
     }
 
     void SceneSystem::render()
@@ -77,6 +82,7 @@ namespace aiko
 
         obj->setName(name);
         obj->aiko = aiko;
+        obj->m_componentContext = &m_componentContext;
 
         obj->addComponent<TransforComponent>();
 

@@ -7,6 +7,8 @@
 
 #include "models/game_object.h"
 #include "scene/scene.h"
+#include "../models/component_context.h"
+
 #include <models/camera.h>
 
 namespace aiko
@@ -15,6 +17,7 @@ namespace aiko
     class RenderModule;
     class RenderSystem;
     class GameObject;
+    class AssetSystem;
     
     class SceneSystem : public BaseSystem
     {
@@ -48,9 +51,11 @@ namespace aiko
 
         RenderModule* m_renderModule;
         RenderSystem* m_renderSystem;
+        AssetSystem* m_assetSystem;
+
+        ComponentContext m_componentContext;
 
         SceneViewBuilder m_sceneViewBuilder;
-
         Scene m_scene;
 
     };

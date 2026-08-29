@@ -1,5 +1,6 @@
 #pragma once
 
+#include "component_entity.h"
 #include "models/component.h"
 
 namespace aiko
