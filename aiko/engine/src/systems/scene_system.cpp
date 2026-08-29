@@ -107,7 +107,11 @@ namespace aiko
 
     void SceneSystem::destroyGameObject(const AikoPtr<GameObject>& obj)
     {
-        m_scene.remove(obj.get());
+        if (obj != nullptr)
+        {
+            obj->dispose();
+            m_scene.remove(obj.get());
+        }
     }
 
     Scene& SceneSystem::getScene()

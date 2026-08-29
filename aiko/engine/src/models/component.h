@@ -44,6 +44,7 @@ namespace aiko
             return *m_context;
         }
         virtual void init() { }
+        virtual void dispose() { }
     private:
         const string m_name;
         ComponentContext* m_context;

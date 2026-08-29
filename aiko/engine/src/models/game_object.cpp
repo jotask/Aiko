@@ -44,4 +44,16 @@ namespace aiko
         }
     }
 
+    void GameObject::dispose()
+    {
+        for (const auto& component : m_components)
+        {
+            if (component != nullptr)
+            {
+                component->dispose();
+            }
+        }
+        m_components.clear();
+    }
+
 }

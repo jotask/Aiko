@@ -57,6 +57,7 @@ namespace aiko
 
         void update();
         void render();
+        void dispose();
 
     };
 
@@ -101,6 +102,7 @@ namespace aiko
         {
             if (dynamic_cast<T*>(m_components[i].get()) != nullptr)
             {
+                m_components[i]->dispose();
                 m_components.erase(m_components.begin() + i);
                 return true;
             }
@@ -115,6 +117,7 @@ namespace aiko
         {
             if (m_components[i].get() == item)
             {
+                m_components[i]->dispose();
                 m_components.erase(m_components.begin() + i);
                 return true;
             }
