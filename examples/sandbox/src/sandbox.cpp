@@ -38,7 +38,7 @@ namespace sb
 
         auto camera = app->Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
-		camera->transform().position = { 0.0f, 1.0f, 3.0f };
+		camera->transform().position = { 0.0f, 1.0f, 2.5f };
 		cam->getCamera().position = camera->transform().position;
 
         if constexpr (s_enableMeshTests == true)
@@ -166,7 +166,7 @@ namespace sb
 
     void Sandbox::initComponents()
     {
-        constexpr float zAxis = 0.0f;
+        constexpr float zAxis = 2.5f;
 
         auto root = app->Instantiate("ComponentsTests");
 

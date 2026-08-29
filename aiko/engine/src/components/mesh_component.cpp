@@ -1,6 +1,5 @@
 #include "mesh_component.h"
 
-#include "assets/asset_manager.h"
 #include "models/game_object.h"
 #include "models/mesh_factory.h"
 #include "systems/asset_system.h"

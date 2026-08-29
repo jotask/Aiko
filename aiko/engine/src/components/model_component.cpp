@@ -1,8 +1,7 @@
 #include "model_component.h"
 
-#include "constants.h"
+#include "systems/asset_system.h"
 #include "models/game_object.h"
-#include "assets/asset_manager.h"
 
 namespace aiko
 {
@@ -15,7 +14,8 @@ namespace aiko
 
     void ModelComponent::load(string path)
     {
-        IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
-        setModelId(assets->registerModel(path));
+        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AIKO_ASSERT(assets != nullptr, "Asset system not found");
+        setModelId(assets->load<ModelAsset>(path));
     }
 }
