@@ -80,9 +80,7 @@ namespace aiko
 
     }
 
-    bool AssetRegistrySerializer::save(
-        const AssetRegistry& registry,
-        const std::filesystem::path& path)
+    bool AssetRegistrySerializer::save(const AssetRegistry& registry, const std::filesystem::path& path)
     {
         nlohmann::json root;
         root["version"] = ASSET_REGISTRY_VERSION;
@@ -141,9 +139,7 @@ namespace aiko
         return file.good();
     }
 
-    bool AssetRegistrySerializer::load(
-        AssetRegistry& registry,
-        const std::filesystem::path& path)
+    bool AssetRegistrySerializer::load(AssetRegistry& registry, const std::filesystem::path& path)
     {
         if (std::filesystem::exists(path) == false)
         {
@@ -161,8 +157,7 @@ namespace aiko
             nlohmann::json root;
             file >> root;
 
-            if (root.contains("version") == false ||
-                root.contains("assets") == false)
+            if (root.contains("version") == false || root.contains("assets") == false)
             {
                 return false;
             }
@@ -181,9 +176,7 @@ namespace aiko
 
             for (const nlohmann::json& assetJson : root["assets"])
             {
-                if (assetJson.contains("id") == false ||
-                    assetJson.contains("type") == false ||
-                    assetJson.contains("source") == false)
+                if (assetJson.contains("id") == false || assetJson.contains("type") == false || assetJson.contains("source") == false)
                 {
                     return false;
                 }
