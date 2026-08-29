@@ -249,7 +249,7 @@ namespace aiko::renderer::vulkan
 
         std::memcpy(binding.uniformMapped, &ubo, sizeof(ubo));
 
-        vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, 1, 1, &binding.descriptorSet, 0, nullptr);
+        vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, abi::GraphicsMaterialSet, 1, &binding.descriptorSet, 0, nullptr);
     }
 
     void VulkanRenderDevice::drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material)
@@ -404,7 +404,7 @@ namespace aiko::renderer::vulkan
         std::memcpy(m_frameUniformMapped[frame], &ubo, sizeof(ubo));
         if (viewId == SCENE_VIEW)
         {
-            vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, 0, 1, &m_frameDescriptorSets[frame], 0, nullptr );
+            vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, abi::GraphicsFrameSet, 1, &m_frameDescriptorSets[frame], 0, nullptr );
         }
 
     }
@@ -416,7 +416,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(pass.shader != nullptr, "Compute pass has no shader");
         AIKO_ASSERT(pass.shader->isValid(), "Invalid compute shader");
         AIKO_ASSERT(pass.buffers.empty() == false || pass.images.empty() == false, "Vulkan compute requires at least one resource");
-        AIKO_ASSERT(pass.buffers.size() <= MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
+        AIKO_ASSERT(pass.buffers.size() <= abi::MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
 
         auto* shaderImpl = static_cast<VulkanComputeShaderImpl*>(pass.shader->getImpl());
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan compute shader implementation");
@@ -994,17 +994,9 @@ namespace aiko::renderer::vulkan
 
         for (size_t i = 0; i < FramesInFlight; ++i)
         {
-            m_context.createBuffer(
-                bufferSize,
-                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                m_frameUniformBuffers[i],
-                m_frameUniformMemories[i]
-            );
-
+            m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_frameUniformBuffers[i], m_frameUniformMemories[i]);
             const VkResult resultMapMemory = vkMapMemory(m_context.device(), m_frameUniformMemories[i], 0, bufferSize, 0, &m_frameUniformMapped[i]);
             AIKO_ASSERT(resultMapMemory == VK_SUCCESS, "Failed to map frame uniform buffer");
-
         }
 
         std::array<VkDescriptorSetLayout, FramesInFlight> layouts{};
@@ -1034,7 +1026,7 @@ namespace aiko::renderer::vulkan
             {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .dstSet = m_frameDescriptorSets[i],
-                .dstBinding = 0,
+                .dstBinding = abi::GraphicsFrameBinding,
                 .descriptorCount = 1,
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                 .pBufferInfo = &bufferInfo,
@@ -1225,7 +1217,7 @@ namespace aiko::renderer::vulkan
     {
         const VkDescriptorSetLayoutBinding frameBinding =
         {
-            .binding = 0,
+            .binding = abi::GraphicsFrameBinding,
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -1246,7 +1238,7 @@ namespace aiko::renderer::vulkan
         {
             VkDescriptorSetLayoutBinding
             {
-                .binding = 0,
+                .binding = abi::MaterialUboBinding,
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                 .descriptorCount = 1,
                 .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -1254,7 +1246,7 @@ namespace aiko::renderer::vulkan
             },
             VkDescriptorSetLayoutBinding
             {
-                .binding = 1,
+                .binding = abi::MaterialTextureBinding,
                 .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                 .descriptorCount = 1,
                 .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -1272,12 +1264,10 @@ namespace aiko::renderer::vulkan
         const VkResult resultCreationLayout = vkCreateDescriptorSetLayout(m_context.device(), &materialLayoutInfo, nullptr, &m_materialDescriptorSetLayout);
         AIKO_ASSERT(resultCreationLayout == VK_SUCCESS, "Failed to create material descriptor set layout");
 
-        const std::array<VkDescriptorSetLayout, 3> setLayouts =
-        {
-            m_frameDescriptorSetLayout,
-            m_materialDescriptorSetLayout,
-            m_gpuReadDescriptorSetLayout
-        };
+        std::array<VkDescriptorSetLayout, 3> setLayouts{};
+        setLayouts[abi::GraphicsFrameSet] = m_frameDescriptorSetLayout;
+        setLayouts[abi::GraphicsMaterialSet] = m_materialDescriptorSetLayout;
+        setLayouts[abi::GraphicsGpuReadSet] = m_gpuReadDescriptorSetLayout;
 
         const VkPushConstantRange pushConstantRange =
         {
@@ -1773,7 +1763,7 @@ namespace aiko::renderer::vulkan
             {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .dstSet = binding.descriptorSet,
-                .dstBinding = 0,
+                .dstBinding = abi::MaterialUboBinding,
                 .descriptorCount = 1,
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                 .pBufferInfo = &bufferInfo,
@@ -1782,7 +1772,7 @@ namespace aiko::renderer::vulkan
             {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .dstSet = binding.descriptorSet,
-                .dstBinding = 1,
+                .dstBinding = abi::MaterialTextureBinding,
                 .descriptorCount = 1,
                 .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                 .pImageInfo = &imageInfo,
@@ -1904,9 +1894,9 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::createComputePipelineLayout()
     {
 
-        std::array<VkDescriptorSetLayoutBinding, MaxComputeBufferBindings + MaxComputeImageBindings + 1> bindings{};
+        std::array<VkDescriptorSetLayoutBinding, abi::MaxComputeBufferBindings + abi::MaxComputeImageBindings + 1> bindings{};
 
-        for (uint32_t i = 0; i < MaxComputeBufferBindings; ++i)
+        for (uint32_t i = 0; i < abi::MaxComputeBufferBindings; ++i)
         {
             bindings[i] =
             {
@@ -1918,9 +1908,9 @@ namespace aiko::renderer::vulkan
             };
         }
 
-        for (uint32_t i = 0; i < MaxComputeImageBindings; ++i)
+        for (uint32_t i = 0; i < abi::MaxComputeImageBindings; ++i)
         {
-            const uint32_t bindingIndex = MaxComputeBufferBindings + i;
+            const uint32_t bindingIndex = abi::ComputeImageBindingBase + i;
             bindings[bindingIndex] =
             {
                 .binding = bindingIndex,
@@ -1931,9 +1921,9 @@ namespace aiko::renderer::vulkan
             };
         }
 
-        bindings[ComputeFrameBinding] =
+        bindings[abi::ComputeFrameBinding] =
         {
-            .binding = ComputeFrameBinding,
+            .binding = abi::ComputeFrameBinding,
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
@@ -2050,12 +2040,12 @@ namespace aiko::renderer::vulkan
                 VkDescriptorPoolSize
                 {
                     .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                    .descriptorCount = MaxComputeBufferBindings * MaxComputeDispatchesPerFrame,
+                    .descriptorCount = abi::MaxComputeBufferBindings * MaxComputeDispatchesPerFrame,
                 },
                 VkDescriptorPoolSize
                 {
                     .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-                    .descriptorCount = MaxComputeImageBindings * MaxComputeDispatchesPerFrame,
+                    .descriptorCount = abi::MaxComputeImageBindings * MaxComputeDispatchesPerFrame,
                 },
                 VkDescriptorPoolSize
                 {
@@ -2117,19 +2107,19 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::updateComputeDescriptors(VkDescriptorSet descriptorSet, const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images)
     {
 
-        AIKO_ASSERT(bindings.size() <= MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
+        AIKO_ASSERT(bindings.size() <= abi::MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
 
-        std::array<VkDescriptorBufferInfo, MaxComputeBufferBindings> bufferInfos{};
-        std::array<VkWriteDescriptorSet, MaxComputeBufferBindings> writes{};
-        std::array<VkDescriptorImageInfo, MaxComputeImageBindings> imageInfos{};
-        std::array<VkWriteDescriptorSet, MaxComputeImageBindings> imageWrites{};
-        std::array<bool, MaxComputeBufferBindings> usedBindings{};
+        std::array<VkDescriptorBufferInfo, abi::MaxComputeBufferBindings> bufferInfos{};
+        std::array<VkWriteDescriptorSet, abi::MaxComputeBufferBindings> writes{};
+        std::array<VkDescriptorImageInfo, abi::MaxComputeImageBindings> imageInfos{};
+        std::array<VkWriteDescriptorSet, abi::MaxComputeImageBindings> imageWrites{};
+        std::array<bool, abi::MaxComputeBufferBindings> usedBindings{};
 
         uint32_t writeCount = 0;
 
         for (const ComputeBufferBinding& binding : bindings)
         {
-            AIKO_ASSERT(binding.stage < MaxComputeBufferBindings, "Compute buffer binding exceeds Vulkan binding limit");
+            AIKO_ASSERT(binding.stage < abi::MaxComputeBufferBindings, "Compute buffer binding exceeds Vulkan binding limit");
             AIKO_ASSERT(usedBindings[binding.stage] == false, "Duplicate Vulkan compute buffer binding");
             AIKO_ASSERT(binding.buffer != nullptr, "Compute buffer binding is null");
             AIKO_ASSERT(binding.buffer->isValid(), "Invalid compute buffer");
@@ -2166,7 +2156,7 @@ namespace aiko::renderer::vulkan
 
         for (const ComputeImageBinding& binding : images)
         {
-            AIKO_ASSERT(binding.stage < MaxComputeImageBindings, "Compute image binding exceeds Vulkan binding limit");
+            AIKO_ASSERT(binding.stage < abi::MaxComputeImageBindings, "Compute image binding exceeds Vulkan binding limit");
             AIKO_ASSERT(binding.texture != nullptr, "Compute image texture is null");
             AIKO_ASSERT(binding.texture->isValid(), "Invalid compute image texture");
 
@@ -2185,7 +2175,7 @@ namespace aiko::renderer::vulkan
             {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .dstSet = descriptorSet,
-                .dstBinding = MaxComputeBufferBindings + binding.stage,
+                .dstBinding = abi::ComputeImageBindingBase + binding.stage,
                 .dstArrayElement = 0,
                 .descriptorCount = 1,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
@@ -2210,7 +2200,7 @@ namespace aiko::renderer::vulkan
         {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstSet = descriptorSet,
-            .dstBinding = ComputeFrameBinding,
+            .dstBinding = abi::ComputeFrameBinding,
             .dstArrayElement = 0,
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -2629,9 +2619,9 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::createGpuReadResources()
     {
 
-        std::array<VkDescriptorSetLayoutBinding, MaxGpuReadBindings> bindings{};
+        std::array<VkDescriptorSetLayoutBinding, abi::MaxGpuReadBindings> bindings{};
 
-        for (uint32_t i = 0; i < MaxGpuReadBindings; ++i)
+        for (uint32_t i = 0; i < abi::MaxGpuReadBindings; ++i)
         {
             bindings[i] =
             {
@@ -2651,7 +2641,6 @@ namespace aiko::renderer::vulkan
         };
 
         const VkResult layoutResult = vkCreateDescriptorSetLayout(m_context.device(), &layoutInfo, nullptr, &m_gpuReadDescriptorSetLayout);
-
         AIKO_ASSERT( layoutResult == VK_SUCCESS, "Failed to create GPU-read descriptor layout");
 
         for (uint32_t frame = 0; frame < FramesInFlight; ++frame)
@@ -2659,7 +2648,7 @@ namespace aiko::renderer::vulkan
             const VkDescriptorPoolSize poolSize =
             {
                 .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                .descriptorCount = MaxGpuReadBindings * MaxGpuDrawsPerFrame,
+                .descriptorCount = abi::MaxGpuReadBindings * MaxGpuDrawsPerFrame,
             };
 
             const VkDescriptorPoolCreateInfo poolInfo =
@@ -2744,20 +2733,20 @@ namespace aiko::renderer::vulkan
 
     VkDescriptorSet VulkanRenderDevice::buildGpuReadDescriptorSet(const vector<GpuReadBufferBinding>& bindings)
     {
-        AIKO_ASSERT(bindings.size() <= MaxGpuReadBindings, "Too many GPU-read buffers");
+        AIKO_ASSERT(bindings.size() <= abi::MaxGpuReadBindings, "Too many GPU-read buffers");
 
         VkDescriptorSet set = allocateGpuReadDescriptorSet();
 
-        std::array<VkDescriptorBufferInfo, MaxGpuReadBindings> infos{};
-        std::array<VkWriteDescriptorSet, MaxGpuReadBindings> writes{};
+        std::array<VkDescriptorBufferInfo, abi::MaxGpuReadBindings> infos{};
+        std::array<VkWriteDescriptorSet, abi::MaxGpuReadBindings> writes{};
 
         uint32_t writeCount = 0;
 
-        std::array<bool, MaxGpuReadBindings> used{};
+        std::array<bool, abi::MaxGpuReadBindings> used{};
 
         for (const GpuReadBufferBinding& binding : bindings)
         {
-            AIKO_ASSERT(binding.slot < MaxGpuReadBindings, "GPU-read binding exceeds limit");
+            AIKO_ASSERT(binding.slot < abi::MaxGpuReadBindings, "GPU-read binding exceeds limit");
             AIKO_ASSERT(used[binding.slot] == false, "Duplicate GPU-read binding");
 
             auto* impl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());

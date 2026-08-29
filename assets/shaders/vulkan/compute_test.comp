@@ -2,7 +2,11 @@
 
 #include "aiko_compute.glsl"
 
-layout(std430, set = 0, binding = 0) buffer OutputBuffer
+layout(
+    std430,
+    set = AIKO_COMPUTE_SET,
+    binding = AIKO_COMPUTE_BUFFER_BINDING(0)
+) buffer OutputBuffer
 {
     vec4 u_output[];
 };

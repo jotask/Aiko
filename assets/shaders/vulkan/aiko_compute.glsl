@@ -4,23 +4,11 @@
 #extension GL_GOOGLE_include_directive : require
 
 #include "aiko_constants.glsl"
-
-#define AIKO_MAX_COMPUTE_BUFFER_BINDINGS 4
-#define AIKO_MAX_COMPUTE_IMAGE_BINDINGS 8
-
-#define AIKO_COMPUTE_BUFFER_BINDING(slot) \
-    slot
-
-#define AIKO_COMPUTE_IMAGE_BINDING(slot) \
-    (AIKO_MAX_COMPUTE_BUFFER_BINDINGS + slot)
-
-#define AIKO_COMPUTE_FRAME_BINDING \
-    (AIKO_MAX_COMPUTE_BUFFER_BINDINGS + \
-     AIKO_MAX_COMPUTE_IMAGE_BINDINGS)
+#include "aiko_descriptor_abi.glsl"
 
 layout(
     std140,
-    set = 0,
+    set = AIKO_COMPUTE_SET,
     binding = AIKO_COMPUTE_FRAME_BINDING
 ) uniform AikoComputeFrame
 {

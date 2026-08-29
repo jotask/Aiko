@@ -12,6 +12,7 @@
 #include "core/utils.h"
 #include "impl/vulkan_computebuffer_impl.h"
 #include "renderer/Irenderdevice.h"
+#include "vulkan_descriptor_abi.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -72,10 +73,6 @@ namespace aiko::renderer::vulkan
         virtual void prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings) override;
 
     private:
-
-        static constexpr uint32_t MaxComputeBufferBindings = 4;
-        static constexpr uint32_t MaxComputeImageBindings = 8;
-        static constexpr uint32_t ComputeFrameBinding = MaxComputeBufferBindings + MaxComputeImageBindings;
 
         VulkanContext m_context;
 
@@ -264,7 +261,6 @@ namespace aiko::renderer::vulkan
         void completeReadbacksForFrame(uint32_t frameIndex);
         void destroyReadbackResources();
 
-        static constexpr uint32_t MaxGpuReadBindings = 16;
         static constexpr uint32_t MaxGpuDrawsPerFrame = 256;
 
         std::array<VkDescriptorPool, FramesInFlight> m_gpuReadDescriptorPools{};

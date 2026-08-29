@@ -4,10 +4,14 @@
 #extension GL_GOOGLE_include_directive : require
 
 #include "aiko_constants.glsl"
+#include "aiko_descriptor_abi.glsl"
 
 #define MAX_LIGHTS 8
 
-layout(set = 0, binding = 0) uniform FrameUbo
+layout(
+    set = AIKO_GRAPHICS_FRAME_SET,
+    binding = AIKO_GRAPHICS_FRAME_BINDING
+) uniform FrameUbo
 {
     mat4 u_view;
     mat4 u_projection;
@@ -24,7 +28,10 @@ layout(set = 0, binding = 0) uniform FrameUbo
     vec4 u_lightSpotCos[MAX_LIGHTS];
 };
 
-layout(set = 1, binding = 0) uniform MaterialUbo
+layout(
+    set = AIKO_GRAPHICS_MATERIAL_SET,
+    binding = AIKO_MATERIAL_UBO_BINDING
+) uniform MaterialUbo
 {
     vec4 u_baseColor;
     vec4 u_flags;
@@ -35,7 +42,10 @@ layout(set = 1, binding = 0) uniform MaterialUbo
     vec4 u_nbodyRender;
 };
 
-layout(set = 1, binding = 1) uniform sampler2D u_texture;
+layout(
+    set = AIKO_GRAPHICS_MATERIAL_SET,
+    binding = AIKO_MATERIAL_TEXTURE_BINDING
+) uniform sampler2D u_texture;
 
 layout(push_constant) uniform DrawPushConstants
 {

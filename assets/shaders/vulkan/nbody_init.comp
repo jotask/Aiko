@@ -1,25 +1,44 @@
 #version 450
 
-layout(std430, set = 0, binding = 0) buffer NBodyPositionMassBuffer
+#extension GL_GOOGLE_include_directive : require
+
+#include "aiko_descriptor_abi.glsl"
+
+layout(
+    std430,
+    set = AIKO_COMPUTE_SET,
+    binding = AIKO_COMPUTE_BUFFER_BINDING(0)
+) buffer NBodyPositionMassBuffer
 {
     vec4 u_posMass[];
 };
 
-layout(std430, set = 0, binding = 1) buffer NBodyVelocityBuffer
+layout(
+    std430,
+    set = AIKO_COMPUTE_SET,
+    binding = AIKO_COMPUTE_BUFFER_BINDING(1)
+) buffer NBodyVelocityBuffer
 {
     vec4 u_vel[];
 };
 
-layout(std430, set = 0, binding = 2) buffer NBodyIndexBuffer
+layout(
+    std430,
+    set = AIKO_COMPUTE_SET,
+    binding = AIKO_COMPUTE_BUFFER_BINDING(2)
+) buffer NBodyIndexBuffer
 {
     uint u_indices[];
 };
 
-layout(std430, set = 0, binding = 3) buffer NBodyDrawIndirectBuffer
+layout(
+    std430,
+    set = AIKO_COMPUTE_SET,
+    binding = AIKO_COMPUTE_BUFFER_BINDING(3)
+) buffer NBodyDrawIndirectBuffer
 {
     uint u_drawCommand[];
 };
-
 layout(push_constant) uniform NBodyInitPushConstants
 {
     vec4 u_params;
