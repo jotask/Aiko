@@ -17,19 +17,29 @@ namespace aiko::renderer::vulkan
 
     static VkBool32 s_debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
     {
-        std::string msg = "";
+        std::string msg = "Validation layer: ";
+        msg.append(pCallbackData->pMessage);
         switch (messageSeverity)
         {
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: msg.append("[VERBOSE]"); break;
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT: msg.append("[INFO]"); break;
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: msg.append("[WARNING]"); break;
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: msg.append("[ERROR]"); break;
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT: msg.append("[INFO]"); break;
-            default: msg.append("UNKNOWN"); break;
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+                logger::Log::debug(msg.c_str());
+                break;
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+                logger::Log::info(msg.c_str());
+                break;
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+                logger::Log::warning(msg.c_str());
+                break;
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+                logger::Log::error(msg.c_str());
+                break;
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
+                logger::Log::critical(msg.c_str());
+                break;
+            default:
+                logger::Log::critical(msg.c_str());
+                break;
         }
-        msg.append("Validation layer: ");
-        msg.append(pCallbackData->pMessage);
-        logger::Log::error(msg.c_str());
         return VK_FALSE;
     }
 
