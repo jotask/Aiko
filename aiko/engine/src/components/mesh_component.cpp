@@ -22,7 +22,6 @@ namespace aiko
         AssetSystem* assets = gameobject->getSystem<AssetSystem>();
         AIKO_ASSERT(assets != nullptr, "Asset system not found");
         setMeshId(assets->load<MeshAsset>(path));
-
     }
 
     void MeshComponent::loadDebugCube()

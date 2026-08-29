@@ -4,10 +4,8 @@
 
 #include "models/mesh_factory.h"
 
-#include "assets/asset_manager.h"
+#include "systems/asset_system.h"
 #include "models/game_object.h"
-
-#include "systems/render_system.h"
 
 namespace aiko
 {
@@ -25,19 +23,23 @@ namespace aiko
     void SpriteComponent::load(string file)
     {
         AIKO_ASSERT(file.empty() == false, "Attempting to load empty file");
-        IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
-        m_meshId = assets->registerMesh(mesh::factory::generateQuad());
-        m_material.diffuseTextureId = assets->registerTexture(file);
-        m_material.shaderId = assets->registerShader("model");
+        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AIKO_ASSERT(assets != nullptr, "Asset system not found");
+        m_meshId = assets->create(mesh::factory::generateQuad());
+        m_material.diffuseTextureId = assets->load<TextureAsset>(file);
+        m_material.shaderId = assets->load<ShaderAsset>("model");
         is_dirty = false;
         pixels.clear();
     }
 
     void SpriteComponent::create(size_t width, size_t height)
     {
-        IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
-        m_meshId = assets->registerMesh(aiko::mesh::factory::generateQuad());
-        m_material.shaderId = assets->registerShader("model");
+        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AIKO_ASSERT(assets != nullptr, "Asset system not found");
+
+        m_meshId = assets->create(aiko::mesh::factory::generateQuad());
+        m_material.shaderId = assets->load<ShaderAsset>("model");
+
         m_width = width;
         m_height = height;
         is_dirty = true;
@@ -55,8 +57,7 @@ namespace aiko
         textureAsset.desc.computeWrite = false;
         textureAsset.pixels = pixels;
 
-        m_material.diffuseTextureId = assets->registerTexture(textureAsset);
-
+        m_material.diffuseTextureId = assets->create(textureAsset);
     }
 
     void SpriteComponent::setPixel(size_t x, size_t y, Color c)
@@ -89,7 +90,9 @@ namespace aiko
         }
         AIKO_ASSERT(m_material.diffuseTextureId != InvalidAssetId, "SpriteComponent has no texture asset id");
 
-        IComponentAssetAccess* assets = gameobject->getAiko()->getComponentAssetAccess();
+        AssetSystem* assets = gameobject->getSystem<AssetSystem>();
+        AIKO_ASSERT(assets != nullptr, "Asset system not found");
+
         TextureAsset& textureAsset = assets->getMutableTextureAsset(m_material.diffuseTextureId);
 
         textureAsset.pixels = pixels;
@@ -99,9 +102,7 @@ namespace aiko
         is_dirty = false;
 
         // Invalidate runtime texture cache so the renderer recreates it from updated CPU asset data.
-        IRenderResourceInvalidator* invalidator = gameobject->getAiko()->getResourceInvalidator();
-        AIKO_ASSERT(invalidator != nullptr, "No RenderSystem available");
-        invalidator->invalidateTexture(m_material.diffuseTextureId);
+        assets->invalidateTexture(m_material.diffuseTextureId);
 
     }
 
