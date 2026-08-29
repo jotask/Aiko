@@ -21,18 +21,40 @@ namespace aiko
             .source = string(source)
         };
 
-        const AssetId id = record.id;
+        return registerAsset(record);
+    }
 
-        auto [recordIt, recordInserted] = m_records.emplace(id, std::move(record));
+    AssetId AssetRegistry::registerAsset(const AssetRecord& record)
+    {
+        AIKO_ASSERT(record.id != InvalidAssetId, "Cannot register asset with invalid id");
+        AIKO_ASSERT(record.type != AssetType::Unknown, "Cannot register asset with unknown type");
+        AIKO_ASSERT(record.source.empty() == false, "Cannot register asset with empty source");
+
+        const AssetRecord* existingById = find(record.id);
+        if (existingById != nullptr)
+        {
+            AIKO_ASSERT(existingById->type == record.type, "Asset id already registered with different type");
+            AIKO_ASSERT(existingById->source == record.source, "Asset id already registered with different source");
+            return existingById->id;
+        }
+
+        const AssetRecord* existingBySource = find(record.type, record.source);
+        if (existingBySource != nullptr)
+        {
+            AIKO_ASSERT(existingBySource->id == record.id, "Asset source already registered with different id");
+            return existingBySource->id;
+        }
+
+        auto [recordIt, recordInserted] = m_records.emplace(record.id, record);
         AIKO_ASSERT(recordInserted, "Asset id already registered");
 
-        auto& typeIndex = m_sourceIndex[type];
-        auto [sourceIt, sourceInserted] = typeIndex.emplace(recordIt->second.source, id);
+        auto& typeIndex = m_sourceIndex[record.type];
+        auto [sourceIt, sourceInserted] = typeIndex.emplace(recordIt->second.source, record.id);
         AIKO_UNUSED(sourceIt);
 
         AIKO_ASSERT(sourceInserted, "Asset source already registered");
 
-        return id;
+        return record.id;
     }
 
     const AssetRecord* AssetRegistry::find(const AssetId& id) const

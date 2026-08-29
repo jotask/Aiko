@@ -12,6 +12,7 @@ namespace aiko
     public:
 
         AssetId registerAsset(AssetType type, string_view source);
+        AssetId registerAsset(const AssetRecord& record);
 
         const AssetRecord* find(const AssetId& id) const;
         const AssetRecord* find(AssetType type, string_view source) const;
