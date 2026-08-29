@@ -18,6 +18,34 @@ namespace aiko
         BIND_MODULE_REQUIRED(AssetsManagerModule, moduleConnector, m_assetModule);
     }
 
+    AssetId AssetSystem::load(AssetType type, string_view source)
+    {
+        switch (type)
+        {
+            case AssetType::Texture:        return registerTexture(source);
+            case AssetType::Mesh:           return registerMesh(source);
+            case AssetType::Model:          return registerModel(source);
+            case AssetType::Shader:         return registerShader(source);
+            case AssetType::ComputeShader:  return registerComputeShader(source);
+
+            case AssetType::Material:
+            case AssetType::Unknown:
+            default:
+                AIKO_ASSERT(false, "Unsupported asset type");
+                return InvalidAssetId;
+        }
+    }
+
+    AssetId AssetSystem::create(const TextureAsset& asset)
+    {
+        return registerTexture(asset);
+    }
+
+    AssetId AssetSystem::create(const MeshAsset& asset)
+    {
+        return registerMesh(asset);
+    }
+
     AssetId AssetSystem::registerMesh(std::string_view path)
     {
         return m_assetModule->getManager()->registerMesh(path);

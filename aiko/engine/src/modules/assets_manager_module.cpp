@@ -14,7 +14,6 @@ namespace aiko
 
     AssetsManagerModule::AssetsManagerModule(Aiko* aiko)
        : BaseModule(aiko)
-        , m_assets(m_manager)
     {
     }
 

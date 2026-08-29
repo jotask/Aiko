@@ -3,8 +3,6 @@
 #include "assets/asset_manager.h"
 #include "modules/base_module.h"
 
-#include "assets/assets.h"
-
 namespace aiko
 {
 
@@ -17,7 +15,6 @@ namespace aiko
         virtual ~AssetsManagerModule() = default;
 
         AssetManager* getManager() { return &m_manager; }
-        Assets& getAssets() { return m_assets; }
 
     protected:
 
@@ -31,7 +28,6 @@ namespace aiko
     private:
 
         AssetManager m_manager;
-        Assets m_assets;
 
     };
 
