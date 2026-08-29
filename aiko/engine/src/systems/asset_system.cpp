@@ -37,6 +37,31 @@ namespace aiko
         }
     }
 
+    const TextureAsset& AssetSystem::get(const AssetId& id, std::type_identity<TextureAsset>)
+    {
+        return m_assetModule->getManager()->getTextureAsset(id);
+    }
+
+    const MeshAsset& AssetSystem::get(const AssetId& id, std::type_identity<MeshAsset>)
+    {
+        return m_assetModule->getManager()->getMeshAsset(id);
+    }
+
+    const ModelAsset& AssetSystem::get(const AssetId& id, std::type_identity<ModelAsset>)
+    {
+        return m_assetModule->getManager()->getModelAsset(id);
+    }
+
+    const ShaderAsset& AssetSystem::get(const AssetId& id, std::type_identity<ShaderAsset>)
+    {
+        return m_assetModule->getManager()->getShaderAsset(id);
+    }
+
+    const ComputeShaderAsset& AssetSystem::get(const AssetId& id, std::type_identity<ComputeShaderAsset>)
+    {
+        return m_assetModule->getManager()->getComputeShaderAsset(id);
+    }
+
     AssetId AssetSystem::create(const TextureAsset& asset)
     {
         return m_assetModule->getManager()->registerTexture(asset);

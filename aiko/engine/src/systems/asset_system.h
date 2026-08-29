@@ -7,6 +7,8 @@
 #include "assets/types/shader_asset.h"
 #include "assets/types/texture_asset.h"
 
+#include <type_traits>
+
 namespace aiko
 {
 
@@ -23,6 +25,12 @@ namespace aiko
         AssetId load(string_view source)
         {
             return load(assetTypeOf<T>(), source);
+        }
+
+        template<typename T>
+        const T& get(const AssetId& id)
+        {
+            return get(id, std::type_identity<T>{});
         }
 
         AssetId create(const TextureAsset& asset);
@@ -42,6 +50,12 @@ namespace aiko
     private:
 
         AssetId load(AssetType type, string_view source);
+
+        const TextureAsset& get(const AssetId& id, std::type_identity<TextureAsset>);
+        const MeshAsset& get(const AssetId& id, std::type_identity<MeshAsset>);
+        const ModelAsset& get(const AssetId& id, std::type_identity<ModelAsset>);
+        const ShaderAsset& get(const AssetId& id, std::type_identity<ShaderAsset>);
+        const ComputeShaderAsset& get(const AssetId& id, std::type_identity<ComputeShaderAsset>);
 
         RenderModule* m_renderModule;
         AssetsManagerModule* m_assetModule;
