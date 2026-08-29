@@ -1,33 +1,5 @@
 include(FetchContent)
 
-# set(FETCHCONTENT_BASE_DIR ${CMAKE_BINARY_DIR}/libs CACHE PATH "Folder to cache FetchContent libraries." FORCE)
-set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libs CACHE PATH "Folder to cache FetchContent libraries." FORCE)
-Set(FETCHCONTENT_QUIET FALSE)
-set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
-
-#----------------------------------------------------------------------
-
-FetchContent_Declare(
-        glad
-        GIT_REPOSITORY https://github.com/Dav1dde/glad.git
-        GIT_TAG        v2.0.8
-        GIT_SHALLOW    TRUE
-        GIT_PROGRESS   TRUE
-        SOURCE_SUBDIR  cmake
-)
-
-FetchContent_MakeAvailable(glad)
-
-glad_add_library(
-        glad
-        STATIC
-        REPRODUCIBLE
-        API gl:core=4.6
-        EXTENSIONS GL_ARB_bindless_texture
-)
-
-set_target_properties(glad PROPERTIES FOLDER "Dependencies")
-
 #----------------------------------------------------------------------
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
@@ -78,42 +50,7 @@ if(NOT imgui_POPULATED)
 
     target_link_libraries(imgui PRIVATE glfw)
 endif ()
+
 set_target_properties(imgui PROPERTIES FOLDER "Dependencies")
 
-#----------------------------------------------------------------------
-
-set(BGFX_BUILD_TOOLS ON CACHE BOOL "" FORCE)
-set(BGFX_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-
-if (WIN32)
-    set(BX_USE_DX ON CACHE BOOL "" FORCE)
-    set(BGFX_RENDERER_DIRECT3D11 ON CACHE BOOL "" FORCE)
-else()
-    set(BX_USE_DX OFF CACHE BOOL "" FORCE)
-    set(BGFX_RENDERER_DIRECT3D11 OFF CACHE BOOL "" FORCE)
-    set(BGFX_RENDERER_VULKAN ON CACHE BOOL "" FORCE)   # SPIR-V path
-endif()
-
-FetchContent_Declare(
-  bx
-  GIT_REPOSITORY https://github.com/bkaradzic/bx.git
-  GIT_TAG master
-)
-
-FetchContent_Declare(
-  bimg
-  GIT_REPOSITORY https://github.com/bkaradzic/bimg.git
-  GIT_TAG master
-)
-
-FetchContent_Declare(
-  bgfx
-  GIT_REPOSITORY https://github.com/bkaradzic/bgfx.cmake.git
-  GIT_TAG v1.139.9155-513
-)
-
-FetchContent_MakeAvailable(bx bimg bgfx)
-set_target_properties(bx PROPERTIES FOLDER "Dependencies")
-set_target_properties(bimg PROPERTIES FOLDER "Dependencies")
-set_target_properties(bgfx PROPERTIES FOLDER "Dependencies")
 #----------------------------------------------------------------------

@@ -35,7 +35,7 @@
         void use();
         void unuse();
         bool isValid() const;
-        uint id() const;
+        RenderResourceId id() const;
 
         // load
         void create(int width, int height);

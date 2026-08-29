@@ -92,7 +92,7 @@ namespace aiko
         {
             if (cmp.usesOutputTexture() == false)
             {
-                state.buffer.createVec4(count, nullptr, ComputeAccess::ReadWrite);
+                state.buffer.createVec4(count, nullptr);
             }
 
             state.initialized = true;
@@ -128,7 +128,7 @@ namespace aiko
                     .format = TextureFormat::RGBA8,
                     .width = static_cast<int>(width),
                     .height = static_cast<int>(height),
-                    .mipmaps = 1,
+                    .mipmaps = false,
                     .computeWrite = true,
                 };
 
@@ -175,15 +175,20 @@ namespace aiko
         if (shouldDispatch(cmp, *state) == true)
         {
             ComputePass pass = {};
+            ComputeParams params{};
+
             if (cmp.usesOutputTexture() == true)
             {
-                const float t = Time::it().secondSinceStart();
-                pass.vec4Uniforms.push_back({ "u_params", vec4(t, 0.0f, 0.0f, 0.0f) });
+                static float sinceStart = 0.0f;
+                sinceStart += Time::it().getDeltaTime();
+                params.u_params = vec4(sinceStart, 0.0f, 0.0f, 0.0f);
             }
             else
             {
-                pass.vec4Uniforms.push_back({ "u_params", vec4(float(count), 0.0f, 0.0f, 0.0f) });
+                params.u_params = vec4( static_cast<float>(count), 0.0f, 0.0f, 0.0f);
             }
+
+            pass.setPushConstants(params);
 
             if (cmp.usesOutputTexture() == false)
             {

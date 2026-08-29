@@ -7,17 +7,20 @@
 
 #include "render_factory.h"
 #include "core/transform.h"
+#include "time/time.h"
 #include "display/display_manager.h"
 #include "imgui/aiko_imgui.h"
 #include "models/camera.h"
 
+#include <unordered_set>
+
 namespace aiko
 {
     AikoRenderer::AikoRenderer(IAssetProvider& assets, IAssetRegistry* registry)
-            : m_renderer(renderer::RendererFactory::createRenderDevice(&m_resources))
-            , m_assetRegistry(registry)
-            , m_resources(assets)
-            , m_background_color(RAYWHITE)
+        : m_resources(assets)
+        , m_renderer(renderer::RendererFactory::createRenderDevice(&m_resources))
+        , m_assetRegistry(registry)
+        , m_background_color(RAYWHITE)
     {
 
     }
@@ -27,9 +30,10 @@ namespace aiko
 
         auto* window = DisplayManager::it().getNativeWindow();
         AIKO_ASSERT(window, "No window created!")
+
         const ivec2 size = DisplayManager::it().getDisplay()->getDisplaySize();
 
-        renderer::DeviceInitDesc description =
+        const DeviceInitDesc description =
         {
             .nativeWindowHandle = window,
             .width = static_cast<u32>(size.x),
@@ -61,7 +65,7 @@ namespace aiko
         // bind to on window resize
         EventSystem::it().bind<WindowResizeEvent>(this, &AikoRenderer::onWindowResize);
 
-        m_imgui.init(IMGUI_VIEW, DisplayManager::it().getNativeWindow());
+        m_imgui.init(DisplayManager::it().getNativeWindow());
 
     }
 
@@ -78,9 +82,15 @@ namespace aiko
         m_mergedInstanceDataArena.clear();
         m_computeQueue.clear();
         m_gpuInstanceDraws.clear();
+        m_gpuVertexDraws.clear();
         m_lights.clear();
         m_renderer->beginFrame();
-        auto size = DisplayManager::it().getDisplay()->getDisplaySize();
+        if (m_windowResizeRequest != std::nullopt)
+        {
+            m_screenFbo.resize(m_windowResizeRequest->x, m_windowResizeRequest->y);
+            m_windowResizeRequest = std::nullopt;
+        }
+        const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
         m_imgui.beginFrame(size.x, size.y);
     }
 
@@ -88,15 +98,16 @@ namespace aiko
     {
         AIKO_FUNCTION_PROFILE;
         m_renderer->endFrame();
-        const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
-        m_imgui.endFrame(size.x, size.y);
         m_renderer->present();
         AIKO_FRAME_MARK
     }
 
     void AikoRenderer::dispose()
     {
+        m_imgui.dispose();
         m_transientGeometryCache.clear();
+        m_screenFbo.unload();
+        m_resources.clear();
         m_renderer->shutdown();
     }
 
@@ -196,6 +207,11 @@ namespace aiko
         m_gpuBillboardQueue.push_back(desc);
     }
 
+    void AikoRenderer::drawVerticesGpu(const GpuVertexDrawDesc& desc)
+    {
+        m_gpuVertexDraws.push_back(desc);
+    }
+
     void AikoRenderer::render(const Camera& camera)
     {
         AIKO_FUNCTION_PROFILE
@@ -203,6 +219,7 @@ namespace aiko
 
         const renderer::FrameData frameData = buildSceneFrameData(camera);
 
+        m_renderer->bindFrame(COMPUTE_VIEW, frameData);
         executeComputePasses();
 
         const PreparedScenePass scenePass = buildScenePass();
@@ -222,10 +239,19 @@ namespace aiko
         return m_screenFbo.getFrameBuffer();
     }
 
+    void AikoRenderer::waitIdle()
+    {
+        m_renderer->waitIdle();
+    }
+
     void AikoRenderer::onWindowResize(WindowResizeEvent& event)
     {
-        m_renderer->resize(event.width, event.height, false);
-        m_screenFbo.resize(event.width, event.height);
+        if (event.width <= 0 || event.height <= 0)
+        {
+            return;
+        }
+        m_windowResizeRequest = { event.width, event.height };
+        m_renderer->resize(event.width, event.height, false); // TODO: remove VSync from resize API
     }
 
     renderer::FrameData AikoRenderer::buildSceneFrameData(const Camera& camera) const
@@ -236,6 +262,8 @@ namespace aiko
             .view = camera.getViewMatrix(),
             .projection = camera.getProjectionMatrix(),
             .cameraPosition = camera.position,
+            .time = static_cast<float>( Time::it().secondSinceStart()),
+            .deltaTime = Time::it().getDeltaTime(),
             .ambient = m_ambientLight,
             .lights = m_lights,
         };
@@ -276,6 +304,12 @@ namespace aiko
         for (const GpuBillboardDrawDesc& desc : m_gpuBillboardQueue)
         {
             passData.gpuBillboards.push_back(&desc);
+        }
+
+        passData.gpuVertices.reserve(m_gpuVertexDraws.size());
+        for (const GpuVertexDrawDesc& desc : m_gpuVertexDraws)
+        {
+            passData.gpuVertices.push_back(&desc);
         }
 
         passData.opaque.reserve(m_queue.size());
@@ -482,8 +516,104 @@ namespace aiko
 
         const FrameBuffer& fbo = m_screenFbo.getFrameBuffer();
 
+        std::unordered_set<const Material*> preparedMaterials;
+
+        auto prepareMaterial = [&](const Material* material)
+            {
+                if (material == nullptr)
+                {
+                    return;
+                }
+
+                if (preparedMaterials.insert(material).second)
+                {
+                    m_renderer->prepareMaterial(*material);
+                }
+            };
+
+        for (const GpuInstanceDrawDesc* desc : passData.gpuInstances)
+        {
+            if (desc == nullptr)
+            {
+                continue;
+            }
+            prepareMaterial(desc->material);
+            m_renderer->prepareGpuReadBuffers(desc->readBuffers);
+        }
+
+        for (const GpuBillboardDrawDesc* desc : passData.gpuBillboards)
+        {
+            if (desc == nullptr)
+            {
+                continue;
+            }
+
+            prepareMaterial(desc->material);
+
+            m_renderer->prepareGpuReadBuffers(
+                {
+                    {
+                        .slot = 7,
+                        .buffer = desc->positionBuffer,
+                    }
+                });
+        }
+
+        for (const GpuVertexDrawDesc* desc : passData.gpuVertices)
+        {
+            if (desc == nullptr)
+            {
+                continue;
+            }
+
+            prepareMaterial(desc->material);
+
+            if (desc->vertexBuffer != nullptr)
+            {
+                m_renderer->prepareVertexBuffer(*desc->vertexBuffer);
+            }
+
+            if (desc->indexBuffer != nullptr)
+            {
+                m_renderer->prepareIndexBuffer(*desc->indexBuffer);
+            }
+
+            if (desc->indirectBuffer != nullptr)
+            {
+                m_renderer->prepareIndirectBuffer(*desc->indirectBuffer);
+            }
+        }
+
+        for (const PreparedRenderPacket& packet : passData.opaque)
+        {
+            prepareMaterial(packet.draw.material);
+        }
+
+        for (const PreparedInstancedPacket& packet : passData.instanced)
+        {
+            prepareMaterial(packet.draw.material);
+        }
+
+        for (const PreparedTransientPacket& packet : passData.transient)
+        {
+            if (packet.item != nullptr)
+            {
+                prepareMaterial(packet.item->material);
+            }
+        }
+
         m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
         m_renderer->bindFrame(SCENE_VIEW, frameData);
+
+        {
+            for (const GpuVertexDrawDesc* desc : passData.gpuVertices)
+            {
+                if (desc != nullptr)
+                {
+                    m_renderer->submitGpuVertices(SCENE_VIEW, *desc);
+                }
+            }
+        }
 
         {
             for (const GpuInstanceDrawDesc* desc : passData.gpuInstances)
@@ -555,6 +685,18 @@ namespace aiko
             .projection = mat4(1.0f),
         };
 
+        if (m_debugTexture != nullptr && m_debugTexture->isValid())
+        {
+            m_renderer->prepareTextureForSampling(*m_debugTexture);
+        }
+        else
+        {
+            const Texture* screenTexture = m_screenFbo.getMaterial().m_runtimeDiffuseTexture;
+            AIKO_ASSERT(screenTexture != nullptr, "ScreenFbo has no runtime texture");
+            AIKO_ASSERT( screenTexture->isValid(), "ScreenFbo runtime texture is invalid");
+            m_renderer->prepareTextureForSampling(*screenTexture);
+        }
+
         m_renderer->beginPass(SCREEN_VIEW, presentPass, nullptr);
         m_renderer->bindFrame(SCREEN_VIEW, screenFrame);
 
@@ -566,6 +708,8 @@ namespace aiko
         {
             m_renderer->presentFrameBufferToScreen(SCREEN_VIEW, m_screenFbo);
         }
+
+        m_imgui.endFrame(size.x, size.y);
 
         m_renderer->endPass();
     }

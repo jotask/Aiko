@@ -2,6 +2,8 @@
 
 #include <aiko_types.h>
 
+#include "types/render_types.h"
+
 namespace aiko
 {
     namespace interfaces
@@ -10,7 +12,7 @@ namespace aiko
         {
             virtual ~IShaderImpl() = default;
 
-            virtual uint id() const = 0;
+            virtual RenderResourceId id() const = 0;
             virtual void use() = 0;
             virtual void unuse() = 0;
             virtual bool isValid() const = 0;

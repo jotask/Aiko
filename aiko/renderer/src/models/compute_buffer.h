@@ -31,15 +31,13 @@
 
         void* getImpl() const { return backend.get(); }
 
-        void create(ComputeBufferFormat format, u32 count, const void* initialData, ComputeAccess access);
+        void create(const ComputeBufferDesc& desc, const void* initialData = nullptr);
         void update(u32 start, u32 count, const void* data);
 
         void unload();
 
-        uint id();
-
         // helpers
-        void createVec4(uint32_t count, const void* initialData, ComputeAccess access);
+        void createVec4(uint32_t count, const void* initialData);
 
     private:
 

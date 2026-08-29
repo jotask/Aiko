@@ -44,6 +44,8 @@ namespace nbody
             aiko::ComputeBuffer positionMassBuffer;
             aiko::ComputeBuffer velocityBuffer;
 
+            aiko::ComputeBuffer indexBuffer;
+
             aiko::ComputeBuffer positionMassBufferNext;
             aiko::ComputeBuffer velocityBufferNext;
 
@@ -52,6 +54,8 @@ namespace nbody
 
             aiko::ComputeBuffer* positionMassWrite = nullptr;
             aiko::ComputeBuffer* velocityWrite = nullptr;
+
+            aiko::ComputeBuffer indirectBuffer;
 
             bool renderInitialized = false;
             aiko::Material bodyMaterial;

@@ -3,8 +3,7 @@ include(Dependencies.cmake)
 # It is always easier to navigate in an IDE when projects are organized in folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Files
-file(GLOB_RECURSE AIKOCORE_SRC "src/*.h" "src/*.cpp" "src/*.hpp")
+aiko_collect_target_sources(AIKOCORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 add_library(AikoCore STATIC ${AIKOCORE_SRC})
 

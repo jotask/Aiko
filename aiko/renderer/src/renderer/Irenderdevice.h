@@ -28,6 +28,7 @@ namespace aiko::renderer
 
         virtual bool init(const DeviceInitDesc& desc) = 0;
         virtual void shutdown() = 0;
+        virtual void waitIdle() {};
 
         virtual void resize(u32 width, u32 height, bool vsync) = 0;
 
@@ -58,6 +59,7 @@ namespace aiko::renderer
 
         virtual void drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc) = 0;
         virtual void drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc) = 0;
+        virtual void drawVerticesGpu(ViewId viewId, const GpuVertexDrawDesc& desc) = 0;
 
         // Transient primitives
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) = 0;
@@ -94,9 +96,44 @@ namespace aiko::renderer
             drawMeshInstancedGpu(viewId, desc);
         }
 
+        void submitGpuVertices(ViewId viewId, const GpuVertexDrawDesc& desc)
+        {
+            drawVerticesGpu(viewId, desc);
+        }
+
         void submitBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc)
         {
             drawBillboards(viewId, desc);
+        }
+
+        virtual void prepareTextureForSampling(const Texture& texture)
+        {
+            AIKO_UNUSED(texture);
+        }
+
+        virtual void prepareMaterial(const Material& material)
+        {
+            AIKO_UNUSED(material);
+        }
+
+        virtual void prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings)
+        {
+            AIKO_UNUSED(bindings);
+        }
+
+        virtual void prepareVertexBuffer(const ComputeBuffer& buffer)
+        {
+            AIKO_UNUSED(buffer);
+        }
+
+        virtual void prepareIndexBuffer(const ComputeBuffer& buffer)
+        {
+            AIKO_UNUSED(buffer);
+        }
+
+        virtual void prepareIndirectBuffer(const ComputeBuffer& buffer)
+        {
+            AIKO_UNUSED(buffer);
         }
 
     protected:

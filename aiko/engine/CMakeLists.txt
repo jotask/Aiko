@@ -5,8 +5,7 @@ set(GLOBAL_PATH ${CMAKE_SOURCE_DIR}/)
 set(GLOBAL_ASSET_PATH ${CMAKE_SOURCE_DIR}/assets/)
 configure_file(constants.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/constants.h)
 
-# Files
-file(GLOB_RECURSE AIKO_SRC "src/*.h" "src/*.cpp" "src/*.hpp")
+aiko_collect_target_sources(AIKO_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 # Main Library
 add_library(Aiko STATIC ${AIKO_SRC})

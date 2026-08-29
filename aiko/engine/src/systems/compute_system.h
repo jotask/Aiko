@@ -48,6 +48,11 @@ namespace aiko
             bool dirty = false;
         };
 
+        struct ComputeParams
+        {
+            vec4 u_params = vec4(0.0f);
+        };
+
         void updateComponent(GameObject*, ComputeShaderComponent&);
         void renderComponent(GameObject*, ComputeShaderComponent&);
 

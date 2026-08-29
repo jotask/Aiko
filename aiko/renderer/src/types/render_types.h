@@ -12,6 +12,10 @@ namespace aiko
     class Material;
 
     using ViewId = uint16_t;
+    using RenderResourceId = uint64_t;
+    using MaterialId = uint64_t;
+
+    constexpr RenderResourceId InvalidRenderResourceId = 0;
 
     constexpr ViewId COMPUTE_VIEW = 0;
     constexpr ViewId COMPUTE_DRAW = 1;
@@ -23,6 +27,14 @@ namespace aiko
     constexpr ViewId READBACK_BLIT_VIEW = 251;
 
     constexpr uint16_t MAX_LIGHTS = 8;
+
+    struct DeviceInitDesc
+    {
+        void* nativeWindowHandle = nullptr;
+        u32 width = 0;
+        u32 height = 0;
+        bool vsync = false;
+    };
 
     // Shader uniform data type
     enum class ShaderUniformDataType
@@ -76,6 +88,17 @@ namespace aiko
         Points,
         Lines,
         Triangles
+    };
+
+    struct GpuVertexDrawDesc
+    {
+        const Material* material = nullptr;
+        const ComputeBuffer* vertexBuffer = nullptr;
+        uint32_t vertexCount = 0;
+        const ComputeBuffer* indexBuffer = nullptr;
+        uint32_t indexCount = 0;
+        const ComputeBuffer* indirectBuffer = nullptr;
+        TransientTopology topology = TransientTopology::Points;
     };
 
     struct TransientVertex

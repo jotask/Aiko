@@ -14,7 +14,7 @@ namespace aiko
 
     }
 
-    u64 Material::id() const
+    MaterialId Material::id() const
     {
         std::size_t seed = 0;
         utils::hashCombine(std::hash<AssetId>{}(m_shaderId), seed);
@@ -22,7 +22,7 @@ namespace aiko
         utils::hashCombine(std::hash<const Texture*>{}(m_runtimeDiffuseTexture), seed);
         utils::hashCombine(std::hash<bool>{}(m_useVertexColor), seed);
         utils::hashCombine(std::hash<bool>{}(m_lit), seed);
-        return static_cast<u64>(seed);
+        return static_cast<MaterialId>(seed);
     }
 
 }

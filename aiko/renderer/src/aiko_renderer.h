@@ -25,6 +25,7 @@
 
 #include <unordered_map>
 #include <deque>
+#include <optional>
 
 #include "core/utils.h"
 
@@ -59,6 +60,7 @@ namespace aiko
 
         void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
         void drawBillboards(const GpuBillboardDrawDesc& desc);
+        void drawVerticesGpu(const GpuVertexDrawDesc& desc);
 
         void render(const Camera& camera);
 
@@ -68,12 +70,15 @@ namespace aiko
 
         RenderResourceManager& resources() { return m_resources; }
 
+        void waitIdle();
+
     protected:
 
         const Texture* m_debugTexture = nullptr;
 
         void onWindowResize(WindowResizeEvent&);
 
+        RenderResourceManager m_resources;
         AikoPtr<renderer::IRenderDevice> m_renderer;
 
     protected:
@@ -91,6 +96,7 @@ namespace aiko
         std::vector<uint8_t> m_mergedInstanceDataArena;
 
         std::vector<TransientDrawDesc> m_transientQueue;
+        std::vector<GpuVertexDrawDesc> m_gpuVertexDraws;
 
         std::vector<LightData> m_lights;
         AmbientLight m_ambientLight;
@@ -142,8 +148,8 @@ namespace aiko
         struct PreparedInstancedPacket
         {
             InstancedDrawPacket draw;
-            u64 materialId = 0;
-            u32 meshId = 0;
+            MaterialId materialId = 0;
+            RenderResourceId meshId = 0;
 
             size_t mergedDataOffset = 0;
             size_t mergedByteCount = 0;
@@ -159,6 +165,7 @@ namespace aiko
         {
             vector<const GpuInstanceDrawDesc*> gpuInstances;
             vector<const GpuBillboardDrawDesc*> gpuBillboards;
+            vector<const GpuVertexDrawDesc*> gpuVertices;
             vector<PreparedRenderPacket> opaque;
             vector<PreparedInstancedPacket> instanced;
             vector<PreparedTransientPacket> transient;
@@ -204,7 +211,8 @@ namespace aiko
 
         AikoImgui m_imgui;
         IAssetRegistry* m_assetRegistry = nullptr;
-        RenderResourceManager m_resources;
+
+        std::optional<ivec2> m_windowResizeRequest = std::nullopt;
 
     };
 

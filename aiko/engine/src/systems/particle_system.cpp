@@ -76,9 +76,9 @@ namespace aiko
         {
             const uint32_t count = emitter.getMaxParticles();
 
-            state.positionBuffer.createVec4(count, nullptr, ComputeAccess::ReadWrite);
-            state.velocityBuffer.createVec4(count, nullptr, ComputeAccess::ReadWrite);
-            state.lifeBuffer.createVec4(count, nullptr, ComputeAccess::ReadWrite);
+            state.positionBuffer.createVec4(count, nullptr);
+            state.velocityBuffer.createVec4(count, nullptr);
+            state.lifeBuffer.createVec4(count, nullptr);
 
             state.initialized = true;
             state.initDispatched = false;
@@ -147,8 +147,13 @@ namespace aiko
             initPass.buffers.push_back({ 1, &state->velocityBuffer, ComputeAccess::ReadWrite });
             initPass.buffers.push_back({ 2, &state->lifeBuffer, ComputeAccess::ReadWrite });
 
-            initPass.vec4Uniforms.push_back({ "u_params", vec4(float(count), emitter.getLifetime(), emitter.getStartSpeed(), 0.0f)});
-            initPass.vec4Uniforms.push_back({ "u_emitterPos", vec4(emitterPos.x, emitterPos.y, emitterPos.z, 0.0f)});
+            const ParticleInitPushConstants initParams =
+            {
+                .u_params = vec4( static_cast<float>(count), emitter.getLifetime(), emitter.getStartSpeed(), 0.0f),
+                .u_emitterPos = vec4(emitterPos.x, emitterPos.y, emitterPos.z, 0.0f),
+            };
+
+            initPass.setPushConstants(initParams);
 
             initPass.dispatch.groupsX = (count + 63) / 64;
             initPass.dispatch.groupsY = 1;
@@ -163,60 +168,24 @@ namespace aiko
         updatePass.buffers.push_back({ 1, &state->velocityBuffer, ComputeAccess::ReadWrite });
         updatePass.buffers.push_back({ 2, &state->lifeBuffer, ComputeAccess::ReadWrite });
 
-        updatePass.vec4Uniforms.push_back({
-            "u_params",
-            vec4(dt, emitter.getLifetime(), emitter.getStartSpeed(), 0.0f)
-        });
+        const ParticleUpdatePushConstants updateParams =
+        {
+            .emitterPosition = emitterPos,
+            .lifetime = emitter.getLifetime(),
+            .gravity = emitter.getGravity(),
+            .startSpeed = emitter.getStartSpeed(),
+            .direction = emitter.getDirection(),
+            .directionRandomness = emitter.getDirectionRandomness(),
+            .spawnBoxExtents = emitter.getSpawnBoxExtents(),
+            .spawnRadius = emitter.getSpawnRadius(),
+            .spawnStart = spawnStart,
+            .spawnCount = state->spawnThisFrame,
+            .particleCount = count,
+            .spawnShape = static_cast<uint32_t>(emitter.getSpawnShape()),
+            .spawnSeed = state->spawnSeed,
+        };
 
-        updatePass.vec4Uniforms.push_back({
-            "u_emitterPos",
-            vec4(emitterPos.x, emitterPos.y, emitterPos.z, 0.0f)
-        });
-
-        updatePass.vec4Uniforms.push_back({
-            "u_spawnWindow",
-            vec4(float(spawnStart), float(state->spawnThisFrame), float(count), 0.0f)
-        });
-
-        updatePass.vec4Uniforms.push_back({
-            "u_spawnShape",
-            vec4(float(static_cast<int>(emitter.getSpawnShape())), 0.0f, 0.0f, 0.0f)
-        });
-
-        updatePass.vec4Uniforms.push_back({
-            "u_spawnData",
-            vec4(
-                emitter.getSpawnRadius(),
-                emitter.getSpawnBoxExtents().x,
-                emitter.getSpawnBoxExtents().y,
-                emitter.getSpawnBoxExtents().z
-            )
-        });
-
-        updatePass.vec4Uniforms.push_back({
-            "u_direction",
-            vec4(
-                emitter.getDirection().x,
-                emitter.getDirection().y,
-                emitter.getDirection().z,
-                emitter.getDirectionRandomness()
-            )
-        });
-
-        updatePass.vec4Uniforms.push_back({
-            "u_gravity",
-            vec4(
-                emitter.getGravity().x,
-                emitter.getGravity().y,
-                emitter.getGravity().z,
-                0.0f
-            )
-        });
-
-        updatePass.vec4Uniforms.push_back({
-            "u_spawnSeed",
-            vec4(float(state->spawnSeed), 0.0f, 0.0f, 0.0f)
-        });
+        updatePass.setPushConstants(updateParams);
 
         updatePass.dispatch.groupsX = (count + 63) / 64;
         updatePass.dispatch.groupsY = 1;
@@ -306,6 +275,10 @@ namespace aiko
     {
         for (auto& state : m_runtime)
         {
+            if (state.second->particleMesh.isValid())
+            {
+                state.second->particleMesh.unload();
+            }
             state.second->positionBuffer.unload();
             state.second->velocityBuffer.unload();
             state.second->lifeBuffer.unload();

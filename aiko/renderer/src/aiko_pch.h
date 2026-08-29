@@ -3,8 +3,6 @@
 #include <string>
 #include <unordered_map>
 
-#include <GLFW/glfw3.h>
-
 #if defined(AIKO_BGFX)
     #include <bgfx/bgfx.h>
 
@@ -13,8 +11,13 @@
     #include <bx/math.h>
     #include <bx/timer.h>
 #elif defined(AIKO_NATIVE)
+    #error Not Implemented!
+#elif defined(AIKO_VULKAN)
+    #include <volk.h>
 #else
     #error Not supported!
 #endif
+
+#include <GLFW/glfw3.h>
 
 #include <magic_enum/magic_enum.hpp>

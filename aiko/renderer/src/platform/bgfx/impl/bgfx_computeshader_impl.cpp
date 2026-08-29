@@ -73,7 +73,7 @@ namespace aiko::renderer::bgfx
         m_file.clear();
     }
 
-    uint BgfxComputeShaderImpl::id()
+    RenderResourceId BgfxComputeShaderImpl::id() const
     {
         return m_programHandle.idx;
     }

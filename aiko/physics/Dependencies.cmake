@@ -1,9 +1,5 @@
 include(FetchContent)
 
-set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libs CACHE PATH "Folder to cache FetchContent libraries." FORCE)
-Set(FETCHCONTENT_QUIET FALSE)
-set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
-
 #----------------------------------------------------------------------
 
 # Jolt CPU feature overrides for Intel i5-3570

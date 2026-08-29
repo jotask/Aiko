@@ -20,15 +20,18 @@
 
 #include "components/compute_shader_component.h"
 
-#define TEST_LOAD_MESHES
-#define TEST_COMPONENTS
-#define TEST_PRIMITIVES
-#define TEST_LIGHTS
-#define TEST_CS
-#define TEST_PARTICLE_CS
-
 namespace sb
 {
+
+    namespace
+    {
+        constexpr bool s_enableMeshTests = true;
+        constexpr bool s_enableComponentTests = true;
+        constexpr bool s_enablePrimitivesTests = true;
+        constexpr bool s_enableLightTests = true;
+        constexpr bool s_enableParticleTests = true;
+        constexpr bool s_enableComputeTests = true;
+    }
 
     void Sandbox::init()
     {
@@ -38,9 +41,98 @@ namespace sb
 		camera->transform().position = { 0.0f, 1.0f, 3.0f };
 		cam->getCamera().position = camera->transform().position;
 
-        auto root = app->Instantiate("Root");
+        if constexpr (s_enableMeshTests == true)
+        {
+            initMeshes();
+        }
 
-#ifdef TEST_LOAD_MESHES
+        if constexpr (s_enableComponentTests == true)
+        {
+            initComponents();
+        }
+
+        if constexpr (s_enableParticleTests == true)
+        {
+            initParticles();
+        }
+
+        if constexpr (s_enableComputeTests == true)
+        {
+            initCompute();
+        }
+
+    }
+
+    void Sandbox::update()
+    {
+        if constexpr (s_enableComponentTests == true)
+        {
+            updateComponents();
+        }
+        if constexpr (s_enableLightTests == true)
+        {
+            updateLights();
+        }
+        if constexpr (s_enableComputeTests == true)
+        {
+            updateCompute();
+        }
+    }
+
+    void Sandbox::render()
+    {
+
+        if constexpr (s_enablePrimitivesTests == true)
+        {
+            renderPrimitives();
+        }
+
+        if constexpr (s_enableLightTests == true)
+        {
+            renderLights();
+        }
+
+    }
+
+    void Sandbox::initCompute()
+    {
+
+        auto root = app->Instantiate("ComputeTests");
+
+        auto textureCompute = app->Instantiate(root, "ComputeTexture");
+
+        textureCompute->transform().position = { 0.0f, 0.0f, 3.0f };
+        textureCompute->transform().rotation = { 0.0f, 0.0f, 0.0f };
+        textureCompute->transform().scale = { 1.0f, 1.0f, 1.0f };
+
+        auto compute = textureCompute->addComponent<aiko::ComputeShaderComponent>();
+        compute->load("gradient");
+        compute->setUseOutputTexture(true);
+        compute->setOutputSize(512, 512);
+        compute->setExecutionMode(aiko::ComputeShaderComponent::ComputeExecutionMode::Continuous);
+        compute->setUpdateInterval(0.0f);
+
+        auto sprite = textureCompute->addComponent<aiko::SpriteComponent>();
+        sprite->create(512, 512);
+
+        auto& material = sprite->getMaterial();
+        material.lit = false;
+        material.useVertexColor = false;
+
+        // Compute Read back
+
+        auto readbackCompute = app->Instantiate(root, "ComputeReadback");
+        m_computeReadback = readbackCompute->addComponent<aiko::ComputeShaderComponent>();
+        m_computeReadback->load("compute_test");
+        m_computeReadback->setElementCount(64);
+        m_computeReadback->setExecutionMode(aiko::ComputeShaderComponent::ComputeExecutionMode::Once);
+
+    }
+
+    void Sandbox::initMeshes()
+    {
+
+        auto root = app->Instantiate("MeshesTests");
 
         auto go1 = app->Instantiate(root, "Church");
         go1->transform().position = { 0.0f, 0.0f, -15.0f };
@@ -70,33 +162,37 @@ namespace sb
         go4->transform().scale = { scale, scale, scale };
         auto model4 = go4->addComponent<aiko::ModelComponent>();
         model4->load("robot.glb");
+    }
 
-#endif
+    void Sandbox::initComponents()
+    {
+        constexpr float zAxis = 0.0f;
 
-#ifdef TEST_COMPONENTS
+        auto root = app->Instantiate("ComponentsTests");
+
         m_go1 = app->Instantiate(root, "Cube1");
-        m_go1->transform().position = { 1.0f, 0.0f, 5.0f };
+        m_go1->transform().position = { 1.0f, 0.0f, zAxis };
         m_go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
         mesh1->loadDebugCube();
-        
+
         m_go2 = app->Instantiate(root, "Cube2");
-        m_go2->transform().position = { -1.0f, 0.0f, 5.0f };
+        m_go2->transform().position = { -1.0f, 0.0f, zAxis };
         m_go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
         mesh2->loadDebugCube();
 
         m_texture = app->Instantiate(root, "Texture");
-        m_texture->transform().position = { 0.0f, -0.55f, 5.0f };
+        m_texture->transform().position = { 0.0f, -0.55f, zAxis };
         m_texture->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texture->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh3 = m_texture->addComponent<aiko::SpriteComponent>();
         mesh3->load("texel_checker.png");
 
         m_texturePbo = app->Instantiate(root, "PboTexture");
-        m_texturePbo->transform().position = { 0.0f, 0.55f, 5.0f };
+        m_texturePbo->transform().position = { 0.0f, 0.55f, zAxis };
         m_texturePbo->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texturePbo->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh4 = m_texturePbo->addComponent<aiko::SpriteComponent>();
@@ -107,10 +203,13 @@ namespace sb
         // material.setTextureFilter(aiko::TextureFilter::Nearest, aiko::TextureFilter::Nearest);
         // material.setTextureMipFilter(aiko::TextureMipFilter::None);
         // material.setTextureWrapMode(aiko::TextureWrapMode::Clamp, aiko::TextureWrapMode::Clamp);
+    }
 
-#endif
+    void Sandbox::initLights()
+    {
 
-#ifdef TEST_LIGHTS
+        auto root = app->Instantiate("LightTests");
+
         constexpr float radiusSpawn = 10.0f;
         for (size_t i = 0 ; i < 10; ++i )
         {
@@ -129,45 +228,16 @@ namespace sb
             };
             m_lights.push_back(ints);
         }
-#endif
+    }
 
-#ifdef TEST_CS
+    void Sandbox::initParticles()
+    {
 
-        if constexpr(true)
-        {
-            auto computer_test = app->Instantiate(root, "ComputeTest");
-            auto computeCmp = computer_test->addComponent<aiko::ComputeShaderComponent>();
-            computeCmp->load("compute_test");
-            computeCmp->setElementCount(64);
-            computeCmp->setExecutionMode(aiko::ComputeShaderComponent::ComputeExecutionMode::OnDemand);
-        }
+        auto root = app->Instantiate("ParticlesTests");
 
-        if constexpr(true)
-        {
-            auto computeGradient = app->Instantiate(root, "GradientCompute");
-
-            computeGradient->transform().position = { 0.0f, 2.5f, 0.0f };
-            computeGradient->transform().scale = { 1.0f, 1.0f, 1.0f };
-
-            auto computeCmp = computeGradient->addComponent<aiko::ComputeShaderComponent>();
-            computeCmp->load("gradient");
-            computeCmp->setUseOutputTexture(true);
-            computeCmp->setOutputSize(512, 512);
-            computeCmp->setExecutionMode(aiko::ComputeShaderComponent::ComputeExecutionMode::Continuous);
-            computeCmp->setUpdateInterval(0.0f);
-
-            auto sprite = computeGradient->addComponent<aiko::SpriteComponent>();
-            sprite->create(512, 512);
-            sprite->getMaterial().lit = false;
-            sprite->getMaterial().useVertexColor = false;
-
-        }
-
-#endif
-
-#ifdef TEST_PARTICLE_CS
         auto ps = app->Instantiate(root, "Particle Emitter");
         ps->transform().position = { 0.0f, 0.0f, -3.5f };
+
         auto emitter = ps->addComponent<aiko::ParticleEmitterComponent>();
         emitter->setMaxParticles(1024 * 1024);
         emitter->setLifetime(1.0f);
@@ -182,138 +252,124 @@ namespace sb
         emitter->setSpawnRadius(spawnSize);
         emitter->setSpawnBoxExtents({spawnSize, spawnSize, spawnSize});
         emitter->requestReset();
-#endif
-
-
     }
 
-    void Sandbox::update()
+    void Sandbox::updateComponents()
     {
-#ifdef TEST_COMPONENTS
+        static float angle = 0.0f;
+        angle += 25.0f * app->getlDeltaTime();
+        angle = fmod(angle, 360.0f);
+        m_go1->transform().rotation = {  angle, 0.0f, 0.0f };
+        m_go2->transform().rotation = { -angle, 0.0f, 0.0f };
+
+        aiko::AikoPtr<aiko::SpriteComponent> cmp = m_texturePbo->getComponent<aiko::SpriteComponent>();
+
+        static auto lastTime = std::chrono::steady_clock::now();
+        static double accumulatedTime = 0.0;
+        static const double interval = 1 / 60.0f;
+
+        auto currentTime = std::chrono::steady_clock::now();
+        std::chrono::duration<double> delta = currentTime - lastTime;
+        lastTime = currentTime;
+
+        accumulatedTime += delta.count();
+        bool should_update = false;
+
+        if (accumulatedTime >= interval)
         {
-            static float angle = 0.0f;
-            angle += 25.0f * app->getlDeltaTime();
-            angle = fmod(angle, 360.0f);
-            m_go1->transform().rotation = {  angle, 0.0f, 0.0f };
-            m_go2->transform().rotation = { -angle, 0.0f, 0.0f };
+            accumulatedTime -= interval; // Handle possible overflow
+            should_update = true;
+        }
 
+        if (should_update)
+        {
+
+            struct Particle
             {
+                aiko::ivec2 pos;
+                aiko::ivec2 dir;
+                aiko::Color col;
+            };
 
-                aiko::AikoPtr<aiko::SpriteComponent> cmp = m_texturePbo->getComponent<aiko::SpriteComponent>();
+            constexpr auto N_PARTICLES = 100;
+            constexpr bool S_CLEAR_BRACKGROUND = false;
 
-                static auto lastTime = std::chrono::steady_clock::now();
-                static double accumulatedTime = 0.0;
-                static const double interval = 1 / 60.0f;
+            static std::vector<Particle> s_particles;
 
-                auto currentTime = std::chrono::steady_clock::now();
-                std::chrono::duration<double> delta = currentTime - lastTime;
-                lastTime = currentTime;
+            const aiko::MaterialAsset material = cmp->getMaterial();
 
-                accumulatedTime += delta.count();
-                bool should_update = false;
+            // AIKO_ASSERT(material.m_diffuseTexture.isValid(), "Invalid texture?")
+            // const auto info = material.m_diffuseTexture.getInfo();
 
-                if (accumulatedTime >= interval)
+            // TEMP for compilation
+            constexpr int texWidth = 128;
+            constexpr int texHeight = 128;
+            const int w = texWidth - 1;
+            const int h = texHeight - 1;
+
+            if (s_particles.size() != N_PARTICLES)
+            {
+                s_particles.clear();
+                for (uint i = 0 ; i < N_PARTICLES; i++)
                 {
-                    accumulatedTime -= interval; // Handle possible overflow
-                    should_update = true;
+                    aiko::ivec2 pos = aiko::ivec2(aiko::utils::getRandomValue(0, w), aiko::utils::getRandomValue(0, h));
+                    aiko::ivec2 dir = aiko::ivec2(aiko::utils::getRandomValue(-1, 1), aiko::utils::getRandomValue(-1, 1));
+                    aiko::Color col = aiko::Color::getRandomColor();
+                    s_particles.push_back({pos, dir, col});
                 }
-
-                if (should_update)
+            }
+            else
+            {
+                for(auto& it : s_particles)
                 {
 
-                    struct Particle
                     {
-                        aiko::ivec2 pos;
-                        aiko::ivec2 dir;
-                        aiko::Color col;
-                    };
-
-                    constexpr auto N_PARTICLES = 100;
-                    constexpr bool S_CLEAR_BRACKGROUND = false;
-
-                    static std::vector<Particle> s_particles;
-
-                    const aiko::MaterialAsset material = cmp->getMaterial();
-
-                    // AIKO_ASSERT(material.m_diffuseTexture.isValid(), "Invalid texture?")
-                    // const auto info = material.m_diffuseTexture.getInfo();
-
-                    // TEMP for compilation
-                    constexpr int texWidth = 128;
-                    constexpr int texHeight = 128;
-                    const int w = texWidth - 1;
-                    const int h = texHeight - 1;
-
-                    if (s_particles.size() != N_PARTICLES)
-                    {
-                        s_particles.clear();
-                        for (uint i = 0 ; i < N_PARTICLES; i++)
+                        if (it.pos.x == 0 || it.pos.x == w)
                         {
-                            aiko::ivec2 pos = aiko::ivec2(aiko::utils::getRandomValue(0, w), aiko::utils::getRandomValue(0, h));
-                            aiko::ivec2 dir = aiko::ivec2(aiko::utils::getRandomValue(-1, 1), aiko::utils::getRandomValue(-1, 1));
-                            aiko::Color col = aiko::Color::getRandomColor();
-                            s_particles.push_back({pos, dir, col});
+                            it.dir.x *= -1;
                         }
-                    }
-                    else
-                    {
-                        for(auto& it : s_particles)
+                        if (it.pos.y == 0 || it.pos.y == h)
                         {
-
-                            {
-                                if (it.pos.x == 0 || it.pos.x == w)
-                                {
-                                    it.dir.x *= -1;
-                                }
-                                if (it.pos.y == 0 || it.pos.y == h)
-                                {
-                                    it.dir.y *= -1;
-                                }
-                            }
-
-                            it.pos.x += it.dir.x;
-                            it.pos.y += it.dir.y;
-
-                            it.pos.x = aiko::math::clamp(it.pos.x, 0, w);
-                            it.pos.y = aiko::math::clamp(it.pos.y, 0, h);
+                            it.dir.y *= -1;
                         }
                     }
 
-                    if (S_CLEAR_BRACKGROUND)
-                    {
-                        std::vector<aiko::Color> pixels;
-                        pixels.resize(texWidth * texHeight, aiko::RAYWHITE);
-                        cmp->setPixels(std::move(pixels));
-                    }
-                    for (auto it : s_particles)
-                    {
-                        cmp->setPixel(it.pos.x, it.pos.y, it.col);
-                    }
-                    cmp->refresh();
+                    it.pos.x += it.dir.x;
+                    it.pos.y += it.dir.y;
 
+                    it.pos.x = aiko::math::clamp(it.pos.x, 0, w);
+                    it.pos.y = aiko::math::clamp(it.pos.y, 0, h);
                 }
-
             }
 
-        }
-#endif
-#ifdef TEST_LIGHTS
-        {
-            for (auto& light : m_lights)
+            if (S_CLEAR_BRACKGROUND)
             {
-                light.angle += 1.0f * app->getlDeltaTime();
-                aiko::vec3 pos = {std::sin(light.angle), 0.0f, std::cos(light.angle)};
-                light.obj->transform().position = pos;
+                std::vector<aiko::Color> pixels;
+                pixels.resize(texWidth * texHeight, aiko::RAYWHITE);
+                cmp->setPixels(std::move(pixels));
             }
+            for (auto it : s_particles)
+            {
+                cmp->setPixel(it.pos.x, it.pos.y, it.col);
+            }
+            cmp->refresh();
+
         }
-#endif
+
     }
 
-    void Sandbox::render()
+    void Sandbox::updateLights()
     {
+        for (auto& light : m_lights)
+        {
+            light.angle += 1.0f * app->getlDeltaTime();
+            aiko::vec3 pos = {std::sin(light.angle), 0.0f, std::cos(light.angle)};
+            light.obj->transform().position = pos;
+        }
+    }
 
-#ifdef TEST_PRIMITIVES
-
+    void Sandbox::renderPrimitives()
+    {
         constexpr const float SIZE = 1.0f;
 
         app->getRenderSystem()->renderPoint({ 1.0f, 1.0f, 0.0f });
@@ -331,18 +387,38 @@ namespace sb
         app->getRenderSystem()->renderKnot({ 3.0f, 0.0f, 0.0f }, SIZE);
         app->getRenderSystem()->renderGrid({ 0.0f, -2.0f, 0.0f }, SIZE, {10, 10});
 
-#endif
-
-
-#ifdef TEST_LIGHTS
-        {
-            for (auto& light : m_lights)
-            {
-                app->getRenderSystem()->renderSphere(light.obj->transform().position, 0.1f, 25 /*, light.cmp->color*/ );
-            }
-        }
-#endif
-
     }
+
+    void Sandbox::renderLights()
+    {
+        for (auto& light : m_lights)
+        {
+            app->getRenderSystem()->renderSphere(light.obj->transform().position, 0.1f, 25 /*, light.cmp->color*/ );
+        }
+    }
+
+    void Sandbox::updateCompute()
+    {
+        if (m_computeReadback == nullptr || m_computeReadbackPrinted == true || m_computeReadback->hasReadback() == false)
+        {
+            return;
+        }
+
+        const auto& result = m_computeReadback->getLastReadback();
+
+        constexpr uint32_t ElementCount = 64;
+        const size_t expectedSize = ElementCount * sizeof(aiko::vec4);
+
+        AIKO_ASSERT(result.data.size() == expectedSize, "Invalid compute readback size");
+
+        const auto* values = reinterpret_cast<const aiko::vec4*>(result.data.data());
+
+        for (uint32_t i = 0; i < ElementCount; ++i)
+        {
+            aiko::logger::Log::info("Compute[{%zu}] = ({%.2f}, {%.2f}, {%.2f}, {%.2f})", i, values[i].x, values[i].y, values[i].z, values[i].w);}
+
+        m_computeReadbackPrinted = true;
+    }
+
 }
 

@@ -4,7 +4,7 @@
 #include <string>
 #include <cassert>
 #include <vector>
-#include <stdexcept>
+#include <cstdint>
 
 namespace aiko
 {

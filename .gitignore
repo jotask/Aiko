@@ -1,4 +1,4 @@
 .*/
-build
+/build/
 *.ini
-deps_cache
+/deps_cache/

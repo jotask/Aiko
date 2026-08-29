@@ -26,7 +26,7 @@ namespace aiko
         return backend->isValid();
     }
 
-    uint Texture::id() const
+    RenderResourceId Texture::id() const
     {
         return backend->id();
     }

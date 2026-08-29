@@ -36,7 +36,7 @@
         virtual bool isValid() const;
         virtual void unload();
         virtual void refresh();
-        virtual uint id() const;
+        virtual RenderResourceId id() const;
 
         void upload(const MeshAsset& asset);
 

@@ -8,14 +8,6 @@
 namespace aiko::renderer
 {
 
-    struct DeviceInitDesc
-    {
-        void* nativeWindowHandle = nullptr;
-        u32 width = 0;
-        u32 height = 0;
-        bool vsync = false;
-    };
-
     struct PassDescription
     {
         u32 width;
@@ -30,6 +22,9 @@ namespace aiko::renderer
         mat4 view = mat4(1.0f);
         mat4 projection = mat4(1.0f);
         vec3 cameraPosition = vec3(0.0f);
+
+        float time = 0.0;
+        float deltaTime = 0.0f;
 
         AmbientLight ambient;
 

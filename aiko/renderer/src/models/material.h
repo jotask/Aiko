@@ -26,7 +26,7 @@
         Material();
         ~Material() = default;
 
-        u64 id() const;
+        MaterialId id() const;
 
     public:
 

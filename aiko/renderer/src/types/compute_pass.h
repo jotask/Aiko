@@ -4,6 +4,9 @@
 #include "render_types.h"
 #include "models/texture.h"
 
+#include <cstring>
+#include <type_traits>
+
 namespace aiko
 {
     class ComputeBuffer;
@@ -16,20 +19,59 @@ namespace aiko
         ComputeAccess access = ComputeAccess::Write;
     };
 
+    static constexpr uint32_t MaxComputePushConstantBytes = 128;
+
     struct ComputeDispatch
     {
         u32 groupsX = 1;
         u32 groupsY = 1;
         u32 groupsZ = 1;
+
+        const ComputeBuffer* indirectBuffer = nullptr;
+        uint32_t indirectOffset = 0;
     };
 
     enum class ComputeBufferFormat
     {
         Vec4f,   // float4
+        Uint32,  // uint
         // TODO:
         Vec2f,
         Vec3f,
         Mat4f,   // 4x vec4
+    };
+
+    enum class ComputeBufferUsage : uint32_t
+    {
+        None        = 0,
+        Storage     = 1u << 0,
+        TransferSrc = 1u << 1,
+        TransferDst = 1u << 2,
+        Vertex      = 1u << 3,
+        Index       = 1u << 4,
+        Indirect    = 1u << 5,
+    };
+
+    inline ComputeBufferUsage operator|(ComputeBufferUsage lhs, ComputeBufferUsage rhs)
+    {
+        return static_cast<ComputeBufferUsage>(static_cast<uint32_t>(lhs) | static_cast<uint32_t>(rhs));
+    }
+
+    inline ComputeBufferUsage operator&(ComputeBufferUsage lhs, ComputeBufferUsage rhs)
+    {
+        return static_cast<ComputeBufferUsage>(static_cast<uint32_t>(lhs) &static_cast<uint32_t>(rhs));
+    }
+
+    inline bool hasFlag(ComputeBufferUsage value, ComputeBufferUsage flag)
+    {
+        return (static_cast<uint32_t>(value) & static_cast<uint32_t>(flag)) != 0;
+    }
+
+    struct ComputeBufferDesc
+    {
+        ComputeBufferFormat format = ComputeBufferFormat::Vec4f;
+        uint32_t count = 0;
+        ComputeBufferUsage usage = ComputeBufferUsage::Storage | ComputeBufferUsage::TransferSrc | ComputeBufferUsage::TransferDst;
     };
 
     using ReadbackId = uint64_t;
@@ -56,19 +98,24 @@ namespace aiko
         ComputeAccess access = ComputeAccess::ReadWrite;
     };
 
-    struct ComputeVec4Uniform
-    {
-        const char* name = nullptr;
-        vec4 value = vec4(0.0f);
-    };
-
     struct ComputePass
     {
         ComputeShader* shader = nullptr;
         vector<ComputeImageBinding> images;
         ComputeDispatch dispatch;
         vector<ComputeBufferBinding> buffers;
-        vector<ComputeVec4Uniform> vec4Uniforms;
+        vector<uint8_t> pushConstants;
+
+        template<typename T>
+        void setPushConstants(const T& value)
+        {
+            AIKO_ASSERT(std::is_trivially_copyable_v<T>, "Compute push constants must be trivially copyable");
+            AIKO_ASSERT(sizeof(T) <= MaxComputePushConstantBytes, "Compute push constants exceed engine limit");
+            AIKO_ASSERT(sizeof(T) % 4 == 0, "Compute push constant size must be a multiple of 4 bytes");
+            pushConstants.resize(sizeof(T));
+            std::memcpy( pushConstants.data(), &value, sizeof(T));
+        }
+
     };
 
 }

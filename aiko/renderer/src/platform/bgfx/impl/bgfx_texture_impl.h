@@ -16,7 +16,7 @@ namespace aiko::renderer::bgfx
         BgfxTextureImpl();
         virtual ~BgfxTextureImpl() override = default;
 
-        virtual uint id() const override;
+        virtual RenderResourceId id() const override;
         virtual void use() override;
         virtual void unuse() override;
         virtual bool isValid() const override;

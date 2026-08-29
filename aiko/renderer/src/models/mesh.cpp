@@ -22,7 +22,7 @@ namespace aiko
 
     }
 
-    uint Mesh::id() const
+    RenderResourceId Mesh::id() const
     {
         return backend->id();
     }

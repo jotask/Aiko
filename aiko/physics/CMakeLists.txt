@@ -1,7 +1,6 @@
 include(Dependencies.cmake)
 
-# Files
-file(GLOB_RECURSE AIKOPHYSICS_SRC "src/*.h" "src/*.cpp" "src/*.hpp")
+aiko_collect_target_sources(AIKOPHYSICS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 # Main Library
 add_library(AikoPhysics STATIC ${AIKOPHYSICS_SRC})

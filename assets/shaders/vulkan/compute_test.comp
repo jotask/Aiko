@@ -1,0 +1,30 @@
+#version 450
+
+#include "aiko_compute.glsl"
+
+layout(
+    std430,
+    set = AIKO_COMPUTE_SET,
+    binding = AIKO_COMPUTE_BUFFER_BINDING(0)
+) buffer OutputBuffer
+{
+    vec4 u_output[];
+};
+
+layout(push_constant) uniform ComputeTestPushConstants
+{
+    vec4 u_params;
+};
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+void main()
+{
+    uint idx = gl_GlobalInvocationID.x;
+    if (idx >= uint(u_params.x))
+    {
+        return;
+    }
+
+    u_output[idx] = vec4(float(idx), 42.0, 0.0, 1.0);
+}

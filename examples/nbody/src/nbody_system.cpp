@@ -1,19 +1,38 @@
 #include "nbody_system.h"
 
-#include <time/time.h>
-
 #include "nbody_component.h"
 
 #include <modules/render_module.h>
 #include <modules/assets_manager_module.h>
 #include <systems/scene_system.h>
 #include <systems/render_system.h>
-#include <models/mesh_factory.h>
 #include <modules/module_connector.h>
 #include <systems/system_connector.h>
 
 namespace nbody
 {
+
+    namespace
+    {
+
+        struct NBodyInitPushConstants
+        {
+            alignas(16) aiko::vec4 params;
+            alignas(16) aiko::vec4 origin;
+            alignas(16) aiko::vec4 initMode;
+            alignas(16) aiko::vec4 gravity;
+        };
+
+        struct NBodyUpdatePushConstants
+        {
+            alignas(16) aiko::vec4 params;
+            alignas(16) aiko::vec4 gravity;
+        };
+
+        static_assert(sizeof(NBodyInitPushConstants) == 64);
+        static_assert(sizeof(NBodyUpdatePushConstants) == 32);
+
+    }
 
     void NBodySystem::connect(aiko::ModuleConnector* moduleConnector, aiko::SystemConnector* systemConnector)
     {
@@ -78,11 +97,34 @@ namespace nbody
         {
             const uint32_t count = simulation.getMaxBodies();
 
-            state.positionMassBuffer.createVec4(count, nullptr, aiko::ComputeAccess::ReadWrite);
-            state.velocityBuffer.createVec4(count, nullptr, aiko::ComputeAccess::ReadWrite);
+            const aiko::ComputeBufferDesc positionBufferDesc
+            {
+                .format = aiko::ComputeBufferFormat::Vec4f,
+                .count = count,
+                .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::Vertex,
+            };
 
-            state.positionMassBufferNext.createVec4(count, nullptr, aiko::ComputeAccess::ReadWrite);
-            state.velocityBufferNext.createVec4(count, nullptr, aiko::ComputeAccess::ReadWrite);
+            const aiko::ComputeBufferDesc velocityBufferDesc
+            {
+                .format = aiko::ComputeBufferFormat::Vec4f,
+                .count = count,
+                .usage = aiko::ComputeBufferUsage::Storage,
+            };
+
+            const aiko::ComputeBufferDesc indexBufferDesc
+            {
+                .format = aiko::ComputeBufferFormat::Uint32,
+                .count = count,
+                .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::Index,
+            };
+            state.indexBuffer.create(indexBufferDesc, nullptr);
+
+            state.positionMassBuffer.create(positionBufferDesc, nullptr);
+            state.velocityBuffer.create(velocityBufferDesc, nullptr);
+
+            state.positionMassBufferNext.create(positionBufferDesc, nullptr);
+            state.velocityBufferNext.create(velocityBufferDesc, nullptr);
+
 
             state.positionMassCurrent = &state.positionMassBuffer;
             state.velocityCurrent = &state.velocityBuffer;
@@ -90,16 +132,27 @@ namespace nbody
             state.positionMassWrite = &state.positionMassBufferNext;
             state.velocityWrite = &state.velocityBufferNext;
 
+            const aiko::ComputeBufferDesc indirectBufferDesc
+            {
+                .format = aiko::ComputeBufferFormat::Uint32,
+                .count = 8,
+                .usage =
+                    aiko::ComputeBufferUsage::Storage |
+                    aiko::ComputeBufferUsage::Indirect,
+            };
+
+            state.indirectBuffer.create(indirectBufferDesc, nullptr);
+
             state.initialized = true;
             state.initDispatched = false;
         }
 
         if (state.renderInitialized == false)
         {
-            state.bodyMaterial.m_shaderId = m_assetManagerModule->getManager()->registerShader("gpu_billboard.vs", "model.fs");
+            state.bodyMaterial.m_shaderId = m_assetManagerModule->getManager()->registerShader( "gpu_vertex.vs", "model.fs");
             state.bodyMaterial.m_baseColor = aiko::RED;
             state.bodyMaterial.m_lit = false;
-            state.bodyMaterial.m_useVertexColor = true;
+            state.bodyMaterial.m_useVertexColor = false;
 
             state.renderInitialized = true;
         }
@@ -112,7 +165,6 @@ namespace nbody
 
     void NBodySystem::renderSimulation(aiko::GameObject* obj, NBodyComponent& simulation)
     {
-        AIKO_UNUSED(obj);
 
         RuntimeState* state = tryGetState(&simulation);
         if (state == nullptr || simulation.isPlaying() == false)
@@ -128,43 +180,49 @@ namespace nbody
             return;
         }
 
-        const float dt = aiko::Time::it().getDeltaTime();
-
         if (state->initDispatched == false)
         {
+
+            state->positionMassCurrent = &state->positionMassBuffer;
+            state->velocityCurrent = &state->velocityBuffer;
+            state->positionMassWrite = &state->positionMassBufferNext;
+            state->velocityWrite = &state->velocityBufferNext;
+
             aiko::ComputePass initPass{};
             initPass.buffers.push_back({ 0, &state->positionMassBuffer, aiko::ComputeAccess::ReadWrite });
             initPass.buffers.push_back({ 1, &state->velocityBuffer, aiko::ComputeAccess::ReadWrite });
+            initPass.buffers.push_back({2, &state->indexBuffer, aiko::ComputeAccess::Write});
+            initPass.buffers.push_back({3, &state->indirectBuffer, aiko::ComputeAccess::Write});
 
-            initPass.vec4Uniforms.push_back({
-                "u_params",
-                aiko::vec4(
+            const NBodyInitPushConstants initConstants
+            {
+                .params = aiko::vec4(
                     float(count),
                     simulation.getInitialRadius(),
                     simulation.getInitialSpeed(),
-                    simulation.getSoftening()
-                )
-            });
-
-            initPass.vec4Uniforms.push_back({
-                "u_origin",
-                aiko::vec4(emitterPos.x, emitterPos.y, emitterPos.z, 0.0f)
-            });
-
-            initPass.vec4Uniforms.push_back({
-                "u_initMode",
-                aiko::vec4(float(static_cast<int>(simulation.getInitMode())), 0.0f, 0.0f, 0.0f)
-            });
-
-            initPass.vec4Uniforms.push_back({
-                "u_gravity",
-                aiko::vec4(
+                    0.0f
+                ),
+                .origin = aiko::vec4(
+                    emitterPos.x,
+                    emitterPos.y,
+                    emitterPos.z,
+                    0.0f
+                ),
+                .initMode = aiko::vec4(
+                    float(static_cast<int>(simulation.getInitMode())),
+                    0.0f,
+                    0.0f,
+                    0.0f
+                ),
+                .gravity = aiko::vec4(
                     simulation.getGravitationalConstant().x,
                     simulation.getGravitationalConstant().y,
                     simulation.getGravitationalConstant().z,
                     simulation.getCentralMass()
                 )
-            });
+            };
+
+            initPass.setPushConstants(initConstants);
 
             initPass.dispatch.groupsX = (count + 63) / 64;
             initPass.dispatch.groupsY = 1;
@@ -181,29 +239,26 @@ namespace nbody
         updatePass.buffers.push_back({ 2, state->positionMassWrite, aiko::ComputeAccess::Write });
         updatePass.buffers.push_back({ 3, state->velocityWrite, aiko::ComputeAccess::Write });
 
-        updatePass.vec4Uniforms.push_back({
-            "u_params",
-            aiko::vec4(
-                dt,
+        const NBodyUpdatePushConstants updateConstants
+        {
+            .params = aiko::vec4(
                 simulation.getTimeScale(),
                 simulation.getSoftening(),
-                float(count)
-            )
-        });
-
-        updatePass.vec4Uniforms.push_back({
-            "u_gravity",
-            aiko::vec4(
+                float(count),
+                0.0f
+            ),
+            .gravity = aiko::vec4(
                 simulation.getGravitationalConstant().x,
                 simulation.getGravitationalConstant().y,
                 simulation.getGravitationalConstant().z,
                 simulation.getCentralMass()
             )
-        });
+        };
 
-        updatePass.dispatch.groupsX = (count + 63) / 64;
-        updatePass.dispatch.groupsY = 1;
-        updatePass.dispatch.groupsZ = 1;
+        updatePass.setPushConstants(updateConstants);
+
+        updatePass.dispatch.indirectBuffer = &state->indirectBuffer;
+        updatePass.dispatch.indirectOffset = 5 * sizeof(uint32_t);
 
         m_renderSystem->dispatch(updatePass, m_updateShaderId);
 
@@ -213,19 +268,18 @@ namespace nbody
         if (state->renderInitialized)
         {
 
-            state->bodyMaterial.m_customVec4Uniforms["u_billboardParams"] = aiko::vec4(
-                simulation.getRenderScale(),
-                0.0f,
-                0.0f,
-                0.0f
-            );
+            const aiko::GpuVertexDrawDesc draw =
+            {
+                .material = &state->bodyMaterial,
+                .vertexBuffer = state->positionMassCurrent,
+                .vertexCount = count,
+                .indexBuffer = &state->indexBuffer,
+                .indexCount = count,
+                .indirectBuffer = &state->indirectBuffer,
+                .topology = aiko::TransientTopology::Points,
+            };
 
-            aiko::GpuBillboardDrawDesc draw{};
-            draw.material = &state->bodyMaterial;
-            draw.positionBuffer = state->positionMassCurrent;
-            draw.instanceCount = count;
-
-            m_renderModule->getRenderer().drawBillboards(draw);
+            m_renderModule->getRenderer().drawVerticesGpu(draw);
 
         }
 
@@ -257,10 +311,12 @@ namespace nbody
     {
         for (auto& state : m_runtime)
         {
+            state.second->indexBuffer.unload();
             state.second->positionMassBuffer.unload();
             state.second->velocityBuffer.unload();
             state.second->positionMassBufferNext.unload();
             state.second->velocityBufferNext.unload();
+            state.second->indirectBuffer.unload();
         }
         m_runtime.clear();
     }
