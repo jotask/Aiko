@@ -9,6 +9,8 @@
 #include "systems/render_system.h"
 #include "systems/asset_system.h"
 #include "systems/system_connector.h"
+#include "systems/input_system.h"
+#include "systems/physics_system.h"
 
 #include "scene/scene.h"
 #include "models/game_object.h"
@@ -19,6 +21,8 @@ namespace aiko
         : m_renderModule(nullptr)
         , m_renderSystem(nullptr)
         , m_assetSystem(nullptr)
+        , m_inputSystem(nullptr)
+        , m_physicsSystem(nullptr)
     {
 
     }
@@ -29,6 +33,10 @@ namespace aiko
         BIND_SYSTEM_REQUIRED(RenderSystem, systemConnector, m_renderSystem);
         BIND_SYSTEM_REQUIRED(AssetSystem, systemConnector, m_assetSystem)
         m_componentContext.assets = m_assetSystem;
+        BIND_SYSTEM_REQUIRED(InputSystem, systemConnector, m_inputSystem)
+        m_componentContext.input = m_inputSystem;
+        BIND_SYSTEM_REQUIRED(PhysicsSystem, systemConnector, m_physicsSystem)
+        m_componentContext.physics = m_physicsSystem;
     }
 
     void SceneSystem::render()
@@ -81,7 +89,6 @@ namespace aiko
         auto obj = std::make_shared<GameObject>();
 
         obj->setName(name);
-        obj->aiko = aiko;
         obj->m_componentContext = &m_componentContext;
 
         obj->addComponent<TransforComponent>();

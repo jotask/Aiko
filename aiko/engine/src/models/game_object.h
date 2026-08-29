@@ -3,7 +3,6 @@
 #include <functional>
 #include <algorithm>
 
-#include "aiko.h"
 #include "core/uuid.h"
 #include "aiko_types.h"
 #include "component.h"
@@ -13,7 +12,6 @@
 namespace aiko
 {
 
-    class Aiko;
     class SceneSystem;
 
     class GameObject
@@ -44,18 +42,12 @@ namespace aiko
 
         Transform& transform();
 
-        // FIXME: For now, so we can easily get components
-        template<class T>
-        auto getSystem();
-        Aiko* getAiko() const { return aiko; }
-
         vector<Component*> getComponents();
 
         const uuid::Uuid& uuid() const { return m_uuid; }
 
     private:
 
-        Aiko* aiko;
         ComponentContext* m_componentContext = nullptr;
 
         uuid::Uuid m_uuid;
@@ -128,12 +120,6 @@ namespace aiko
             }
         }
         return false;
-    }
-
-    template<class T>
-    inline auto GameObject::getSystem()
-    {
-        return aiko->getSystem<T>();
     }
 
 }

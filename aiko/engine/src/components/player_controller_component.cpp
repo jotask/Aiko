@@ -26,13 +26,15 @@ namespace aiko
 
         gameobject->transform().position = desc.physics.position;
 
-        PhysicsSystem* physicsSystem = gameobject->getAiko()->getSystem<PhysicsSystem>();
+        PhysicsSystem* physicsSystem = context().physics;
+        AIKO_ASSERT(physicsSystem != nullptr, "Physics system not found");
         physicsSystem->registerPlayerController(this);
     }
 
     void PlayerControllerComponent::destroy()
     {
-        PhysicsSystem* physicsSystem = gameobject->getAiko()->getSystem<PhysicsSystem>();
+        PhysicsSystem* physicsSystem = context().physics;
+        AIKO_ASSERT(physicsSystem != nullptr, "Physics system not found");
         physicsSystem->unregisterPlayerController(this);
         physicsShutdown();
     }

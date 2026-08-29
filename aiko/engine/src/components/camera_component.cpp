@@ -206,7 +206,8 @@ namespace aiko
     
     void CameraComponent::init()
     {
-        m_inputSystem = gameobject->getSystem<InputSystem>();
+        m_inputSystem = context().input;
+        AIKO_ASSERT(m_inputSystem != nullptr, "Input system not found");
         m_camera.setCameraType(m_type);
     }
 
