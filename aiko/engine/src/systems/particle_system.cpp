@@ -9,6 +9,7 @@
 #include "models/mesh_factory.h"
 #include "modules/module_connector.h"
 #include "systems/system_connector.h"
+#include "systems/asset_system.h"
 
 namespace aiko
 {
@@ -19,12 +20,13 @@ namespace aiko
         BIND_MODULE_REQUIRED(AssetsManagerModule, moduleConnector, m_assetManagerModule);
         BIND_SYSTEM_REQUIRED(RenderSystem, systemConnector, m_renderSystem);
         BIND_SYSTEM_REQUIRED(SceneSystem, systemConnector, m_sceneSystem);
+        BIND_SYSTEM_REQUIRED(AssetSystem, systemConnector, m_assetSystem);
     }
 
     void ParticleSystem::init()
     {
-        m_initShaderId = aiko->getComponentAssetAccess()->registerComputeShader("particles_init");
-        m_updateShaderId = aiko->getComponentAssetAccess()->registerComputeShader("particles_update");
+        m_initShaderId = m_assetSystem->load<ComputeShaderAsset>("particles_init");
+        m_updateShaderId = m_assetSystem->load<ComputeShaderAsset>("particles_update");
     }
 
     void ParticleSystem::update()

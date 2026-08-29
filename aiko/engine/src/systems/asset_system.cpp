@@ -20,13 +20,14 @@ namespace aiko
 
     AssetId AssetSystem::load(AssetType type, string_view source)
     {
+        AssetManager* manager = m_assetModule->getManager();
         switch (type)
         {
-            case AssetType::Texture:        return registerTexture(source);
-            case AssetType::Mesh:           return registerMesh(source);
-            case AssetType::Model:          return registerModel(source);
-            case AssetType::Shader:         return registerShader(source);
-            case AssetType::ComputeShader:  return registerComputeShader(source);
+            case AssetType::Texture:        return manager->registerTexture(source);
+            case AssetType::Mesh:           return manager->registerMesh(source);
+            case AssetType::Model:          return manager->registerModel(source);
+            case AssetType::Shader:         return manager->registerShader(source);
+            case AssetType::ComputeShader:  return manager->registerComputeShader(source);
 
             case AssetType::Material:
             case AssetType::Unknown:
@@ -38,52 +39,12 @@ namespace aiko
 
     AssetId AssetSystem::create(const TextureAsset& asset)
     {
-        return registerTexture(asset);
+        return m_assetModule->getManager()->registerTexture(asset);
     }
 
     AssetId AssetSystem::create(const MeshAsset& asset)
     {
-        return registerMesh(asset);
-    }
-
-    AssetId AssetSystem::registerMesh(std::string_view path)
-    {
-        return m_assetModule->getManager()->registerMesh(path);
-    }
-
-    AssetId AssetSystem::registerMesh(const MeshAsset& asset)
-    {
         return m_assetModule->getManager()->registerMesh(asset);
-    }
-
-    AssetId AssetSystem::registerModel(std::string_view path)
-    {
-        return m_assetModule->getManager()->registerModel(path);
-    }
-
-    AssetId AssetSystem::registerTexture(std::string_view path)
-    {
-        return m_assetModule->getManager()->registerTexture(path);
-    }
-
-    AssetId AssetSystem::registerTexture(const TextureAsset& asset)
-    {
-        return m_assetModule->getManager()->registerTexture(asset);
-    }
-
-    AssetId AssetSystem::registerComputeShader(std::string_view path)
-    {
-        return m_assetModule->getManager()->registerComputeShader(path);
-    }
-
-    AssetId AssetSystem::registerShader(std::string_view path)
-    {
-        return m_assetModule->getManager()->registerShader(path);
-    }
-
-    AssetId AssetSystem::registerShader(std::string_view vs, std::string_view fs)
-    {
-        return m_assetModule->getManager()->registerShader(vs, fs);
     }
 
     TextureAsset& AssetSystem::getMutableTextureAsset(const AssetId& id)

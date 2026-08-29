@@ -13,6 +13,7 @@ namespace aiko
     class SceneSystem;
     class RenderSystem;
     class ParticleEmitterComponent;
+    class AssetSystem;
     class GameObject;
 
     class ParticleSystem : public BaseSystem
@@ -94,6 +95,7 @@ namespace aiko
         AssetsManagerModule* m_assetManagerModule;
         RenderSystem* m_renderSystem;
         SceneSystem* m_sceneSystem;
+        AssetSystem* m_assetSystem;
 
         AssetId m_initShaderId = InvalidAssetId;
         AssetId m_updateShaderId = InvalidAssetId;

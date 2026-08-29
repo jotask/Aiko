@@ -53,14 +53,6 @@ namespace aiko
         m_shouldStop = true;
     }
 
-    IComponentAssetAccess* Aiko::getComponentAssetAccess()
-    {
-        auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const aiko::AikoUPtr<System>& module) {
-                return dynamic_cast<IComponentAssetAccess*>(module.get()) != nullptr;
-            });
-        return (it != m_systems.end()) ? dynamic_cast<IComponentAssetAccess*>(it->get()) : nullptr;
-    }
-
     IRenderResourceInvalidator* Aiko::getResourceInvalidator()
     {
         auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const aiko::AikoUPtr<System>& module) {

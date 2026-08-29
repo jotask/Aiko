@@ -4,6 +4,7 @@
 #include "system_connector.h"
 #include "models/mesh_factory.h"
 #include "time/time.h"
+#include "asset_system.h"
 
 namespace aiko
 {
@@ -12,13 +13,14 @@ namespace aiko
     void PhysicsSystem::connect(ModuleConnector*, SystemConnector* systemConnector)
     {
         BIND_SYSTEM_REQUIRED(RenderSystem, systemConnector, m_renderSystem);
+        BIND_SYSTEM_REQUIRED(AssetSystem, systemConnector, m_assetSystem);
     }
 
     void PhysicsSystem::init()
     {
         m_physics.init();
 
-        m_debugMaterial.m_shaderId = aiko->getComponentAssetAccess()->registerShader("model");
+        m_debugMaterial.m_shaderId = m_assetSystem->load<ShaderAsset>("model");
         m_debugMaterial.m_baseColor = MAGENTA;
         m_debugMaterial.m_useVertexColor = true;
         m_debugMaterial.m_lit = false;

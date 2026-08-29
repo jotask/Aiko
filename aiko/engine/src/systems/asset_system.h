@@ -2,7 +2,6 @@
 
 #include "systems/base_system.h"
 
-#include "assets/icomponent_assetaccess.h"
 #include "resources/iresource_invalidator.h"
 #include "assets/asset_type.h"
 #include "assets/types/shader_asset.h"
@@ -15,7 +14,7 @@ namespace aiko
     class RenderModule;
     class AssetsManagerModule;
 
-    class AssetSystem : public BaseSystem, public IComponentAssetAccess, public IRenderResourceInvalidator
+    class AssetSystem : public BaseSystem, public IRenderResourceInvalidator
     {
     public:
         AssetSystem();
@@ -30,18 +29,7 @@ namespace aiko
         AssetId create(const TextureAsset& asset);
         AssetId create(const MeshAsset& asset);
 
-        // IComponentAssetAccess
-
-        virtual AssetId registerMesh(std::string_view path) override;
-        virtual AssetId registerMesh(const MeshAsset& asset) override;
-        virtual AssetId registerModel(std::string_view path) override;
-        virtual AssetId registerTexture(std::string_view path) override;
-        virtual AssetId registerTexture(const TextureAsset& asset) override;
-        virtual AssetId registerComputeShader(std::string_view path) override;
-        virtual AssetId registerShader(std::string_view path) override;
-        virtual AssetId registerShader(std::string_view vs, std::string_view fs) override;
-
-        virtual TextureAsset& getMutableTextureAsset(const AssetId& id) override;
+        TextureAsset& getMutableTextureAsset(const AssetId& id);
 
         // IRenderResourceInvalidator
 

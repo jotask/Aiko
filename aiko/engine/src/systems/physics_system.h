@@ -9,6 +9,7 @@
 namespace aiko
 {
     class RenderSystem;
+    class AssetSystem;
 
     class PhysicsSystem : public BaseSystem
     {
@@ -39,6 +40,8 @@ namespace aiko
 
     private:
         RenderSystem* m_renderSystem = nullptr;
+        AssetSystem* m_assetSystem = nullptr;
+
         physics::AikoPhysics m_physics;
 
         vector<RigidBodyComponent*> m_rigidBodies;

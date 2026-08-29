@@ -6,7 +6,6 @@
 #include <resources/iresource_invalidator.h>
 #include "aiko_types.h"
 #include "aiko_config.h"
-#include "assets/icomponent_assetaccess.h"
 #include "display/display_events.hpp"
 #include "modules/module.h"
 #include "systems/sytem.h"
@@ -40,7 +39,6 @@ namespace aiko
         const AikoConfig getConfig() const { return cfg; }
 
         // Temporal
-        IComponentAssetAccess* getComponentAssetAccess();
         IRenderResourceInvalidator* getResourceInvalidator();
 
         template<typename TSystem, typename... Args>
