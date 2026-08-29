@@ -2,22 +2,38 @@
 
 #include "aiko_compute.glsl"
 
-layout(std430, set = 0, binding = 0) readonly buffer NBodyPositionMassBuffer
+layout(
+    std430,
+    set = AIKO_COMPUTE_SET,
+    binding = AIKO_COMPUTE_BUFFER_BINDING(0)
+) readonly buffer NBodyPositionMassBuffer
 {
     vec4 u_posMass[];
 };
 
-layout(std430, set = 0, binding = 1) readonly buffer NBodyVelocityBuffer
+layout(
+    std430,
+    set = AIKO_COMPUTE_SET,
+    binding = AIKO_COMPUTE_BUFFER_BINDING(1)
+) readonly buffer NBodyVelocityBuffer
 {
     vec4 u_vel[];
 };
 
-layout(std430, set = 0, binding = 2) writeonly buffer NBodyPositionMassNextBuffer
+layout(
+    std430,
+    set = AIKO_COMPUTE_SET,
+    binding = AIKO_COMPUTE_BUFFER_BINDING(2)
+) writeonly buffer NBodyPositionMassNextBuffer
 {
     vec4 u_posMassNext[];
 };
 
-layout(std430, set = 0, binding = 3) writeonly buffer NBodyVelocityNextBuffer
+layout(
+    std430,
+    set = AIKO_COMPUTE_SET,
+    binding = AIKO_COMPUTE_BUFFER_BINDING(3)
+) writeonly buffer NBodyVelocityNextBuffer
 {
     vec4 u_velNext[];
 };

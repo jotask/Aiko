@@ -8,7 +8,7 @@ layout(location = 1) in vec3 a_normal;
 layout(location = 2) in vec2 a_texcoord0;
 layout(location = 3) in vec4 a_color0;
 
-layout(std430, set = 2, binding = 7) readonly buffer NBodyPositionMassBuffer
+layout(std430, set = AIKO_GRAPHICS_GPU_READ_SET, binding = 7) readonly buffer NBodyPositionMassBuffer
 {
     vec4 u_posMass[];
 };
