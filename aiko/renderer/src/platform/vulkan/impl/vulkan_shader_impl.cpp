@@ -6,6 +6,7 @@
 
 #include "platform/vulkan/vulkan_platform_helper.h"
 #include "platform/vulkan/vulkan_types.h"
+#include "platform/vulkan/vulkan_shader_reflector.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -46,6 +47,11 @@ namespace aiko::renderer::vulkan
         auto vertShaderCode = files::readFileBytes(vshaderPath.c_str());
         auto fragShaderCode = files::readFileBytes(fshaderPath.c_str());
 
+        m_reflection.clear();
+
+        reflectShaderSpirv(vertShaderCode, VK_SHADER_STAGE_VERTEX_BIT, m_reflection);
+        reflectShaderSpirv(fragShaderCode, VK_SHADER_STAGE_FRAGMENT_BIT, m_reflection);
+
         const VulkanContext& ctx = VulkanContext::current();
 
         m_vertexModule = createShaderModule(ctx.device(), vertShaderCode);
@@ -63,6 +69,9 @@ namespace aiko::renderer::vulkan
     {
         if (m_vertexModule == VK_NULL_HANDLE && m_fragmentModule == VK_NULL_HANDLE)
         {
+            vertex_file.clear();
+            fragment_file.clear();
+            m_reflection.clear();
             return;
         }
 
@@ -83,6 +92,7 @@ namespace aiko::renderer::vulkan
         m_fragmentModule = VK_NULL_HANDLE;
         vertex_file.clear();
         fragment_file.clear();
+        m_reflection.clear();
     }
 
 

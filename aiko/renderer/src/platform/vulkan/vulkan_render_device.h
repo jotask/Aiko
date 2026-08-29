@@ -13,6 +13,7 @@
 #include "impl/vulkan_computebuffer_impl.h"
 #include "renderer/Irenderdevice.h"
 #include "vulkan_descriptor_abi.h"
+#include "impl/vulkan_computeshader_impl.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -193,7 +194,7 @@ namespace aiko::renderer::vulkan
 
         std::unordered_map<VkShaderModule, VkPipeline> m_computePipelines;
 
-        VkPipeline getOrCreateComputePipeline(VkShaderModule shaderModule);
+        VkPipeline getOrCreateComputePipeline(const VulkanComputeShaderImpl& shader);
         void destroyComputePipelines();
 
         static constexpr uint32_t MaxComputeDispatchesPerFrame = 256;

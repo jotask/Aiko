@@ -5,6 +5,7 @@
 #include <intrumentor/profiler.h>
 
 #include "vulkan_platform_helper.h"
+#include "vulkan_shader_reflector.h"
 #include "display/display_manager.h"
 #include "impl/vulkan_computebuffer_impl.h"
 #include "impl/vulkan_computeshader_impl.h"
@@ -421,7 +422,7 @@ namespace aiko::renderer::vulkan
         auto* shaderImpl = static_cast<VulkanComputeShaderImpl*>(pass.shader->getImpl());
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan compute shader implementation");
 
-        const VkPipeline pipeline = getOrCreateComputePipeline(shaderImpl->module());
+        const VkPipeline pipeline = getOrCreateComputePipeline(*shaderImpl);
         const VkDescriptorSet descriptorSet = allocateComputeDescriptorSet();
 
         VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
@@ -1078,6 +1079,8 @@ namespace aiko::renderer::vulkan
 
         VulkanShaderImpl shader;
         shader.load("model.vs", "model.fs");
+        validateModelShaderAbi(shader.reflection());
+        validateModelPushConstants(shader.reflection());
 
         const VkPipelineShaderStageCreateInfo vertShaderStageInfo =
         {
@@ -1415,6 +1418,8 @@ namespace aiko::renderer::vulkan
 
         VulkanShaderImpl shader;
         shader.load("passthrough.vs", "passthrough.fs");
+        validateScreenShaderAbi(shader.reflection());
+        validateScreenPushConstants(shader.reflection());
 
         const VkPipelineShaderStageCreateInfo vertShaderStageInfo =
         {
@@ -1979,8 +1984,9 @@ namespace aiko::renderer::vulkan
         }
     }
 
-    VkPipeline VulkanRenderDevice::getOrCreateComputePipeline(VkShaderModule shaderModule)
+    VkPipeline VulkanRenderDevice::getOrCreateComputePipeline(const VulkanComputeShaderImpl& shader)
     {
+        const VkShaderModule shaderModule = shader.module();
         AIKO_ASSERT(shaderModule != VK_NULL_HANDLE, "Invalid compute shader module");
 
         const auto it = m_computePipelines.find(shaderModule);
@@ -1989,6 +1995,8 @@ namespace aiko::renderer::vulkan
         {
             return it->second;
         }
+
+        validateComputePushConstants(shader.reflection(), MaxComputePushConstantBytes);
 
         const VkPipelineShaderStageCreateInfo shaderStage =
         {
@@ -2803,6 +2811,9 @@ namespace aiko::renderer::vulkan
             return it->second;
         }
 
+        validateModelShaderAbi(shaderImpl->reflection());
+        validateModelPushConstants(shaderImpl->reflection());
+
         const VkPipelineShaderStageCreateInfo vertShaderStageInfo =
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -2980,6 +2991,9 @@ namespace aiko::renderer::vulkan
         {
             return it->second;
         }
+
+        validateModelShaderAbi(shaderImpl->reflection());
+        validateModelPushConstants(shaderImpl->reflection());
 
         const VkPipelineShaderStageCreateInfo  vertShaderStageInfo =
         {

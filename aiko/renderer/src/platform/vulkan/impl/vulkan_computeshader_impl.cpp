@@ -9,6 +9,7 @@
 
 #include "platform/vulkan/vulkan_platform_helper.h"
 #include "platform/vulkan/vulkan_types.h"
+#include "platform/vulkan/vulkan_shader_reflector.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -44,9 +45,13 @@ namespace aiko::renderer::vulkan
         const stdpath computeShaderPath = base / (replacePrefix(file.c_str(), ".comp") + std::string(".spv"));
 
         const auto code = files::readFileBytes(computeShaderPath.c_str());
-
         AIKO_ASSERT(code.empty() == false, "Failed to read compute shader file");
         AIKO_ASSERT(code.size() % sizeof(uint32_t) == 0, "Invalid SPIR-V byte size");
+
+        m_reflection.clear();
+
+        reflectShaderSpirv(code, VK_SHADER_STAGE_COMPUTE_BIT, m_reflection);
+        validateComputeShaderAbi(m_reflection);
 
         const VkShaderModuleCreateInfo createInfo =
         {
@@ -56,7 +61,6 @@ namespace aiko::renderer::vulkan
         };
 
         const VkResult result = vkCreateShaderModule(ctx.device(), &createInfo, nullptr, &m_module);
-
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan compute shader module");
 
         m_file = file;
@@ -68,6 +72,7 @@ namespace aiko::renderer::vulkan
         if (m_module == VK_NULL_HANDLE)
         {
             m_file.clear();
+            m_reflection.clear();
             return;
         }
 
@@ -77,6 +82,7 @@ namespace aiko::renderer::vulkan
 
         m_module = VK_NULL_HANDLE;
         m_file.clear();
+        m_reflection.clear();
     }
 
     RenderResourceId VulkanComputeShaderImpl::id() const
