@@ -26,6 +26,9 @@ namespace aiko
         u32 groupsX = 1;
         u32 groupsY = 1;
         u32 groupsZ = 1;
+
+        const ComputeBuffer* indirectBuffer = nullptr;
+        uint32_t indirectOffset = 0;
     };
 
     enum class ComputeBufferFormat

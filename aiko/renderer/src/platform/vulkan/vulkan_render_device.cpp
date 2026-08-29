@@ -429,6 +429,35 @@ namespace aiko::renderer::vulkan
 
         transitionComputeBuffers(commandBuffer, pass.buffers);
         transitionComputeImages(commandBuffer, pass.images);
+
+        VulkanComputeBufferImpl* indirectBufferImpl = nullptr;
+
+        if (pass.dispatch.indirectBuffer != nullptr)
+        {
+            AIKO_ASSERT(pass.dispatch.indirectBuffer->isValid(), "Compute indirect dispatch buffer is invalid");
+
+            indirectBufferImpl = static_cast<VulkanComputeBufferImpl*>(pass.dispatch.indirectBuffer->getImpl());
+
+            AIKO_ASSERT(indirectBufferImpl != nullptr, "Compute indirect dispatch buffer has no Vulkan implementation");
+            AIKO_ASSERT(indirectBufferImpl->isValid(), "Invalid Vulkan compute indirect dispatch buffer");
+            AIKO_ASSERT(hasFlag(indirectBufferImpl->usage(), ComputeBufferUsage::Indirect), "Compute indirect dispatch buffer requires Indirect usage");
+            AIKO_ASSERT(indirectBufferImpl->format() == ComputeBufferFormat::Uint32, "Compute indirect dispatch buffer currently requires Uint32 format");
+            AIKO_ASSERT(pass.dispatch.indirectOffset % 4 == 0, "Compute indirect dispatch offset must be 4-byte aligned");
+
+            const VkDeviceSize requiredSize = static_cast<VkDeviceSize>(pass.dispatch.indirectOffset) + sizeof(VkDispatchIndirectCommand);
+            AIKO_ASSERT(requiredSize <= indirectBufferImpl->size(), "Compute indirect dispatch command exceeds buffer size");
+
+            flushComputeBufferUploads(commandBuffer, *indirectBufferImpl);
+
+            const VulkanBufferState destination =
+            {
+                .stage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
+                .access = VK_ACCESS_INDIRECT_COMMAND_READ_BIT,
+            };
+
+            transitionBuffer(commandBuffer, *indirectBufferImpl, destination);
+        }
+
         updateComputeDescriptors(descriptorSet, pass.buffers, pass.images);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
@@ -441,7 +470,14 @@ namespace aiko::renderer::vulkan
             vkCmdPushConstants(commandBuffer, m_computePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, static_cast<uint32_t>( pass.pushConstants.size()), pass.pushConstants.data());
         }
 
-        vkCmdDispatch(commandBuffer, pass.dispatch.groupsX, pass.dispatch.groupsY, pass.dispatch.groupsZ);
+        if (indirectBufferImpl != nullptr)
+        {
+            vkCmdDispatchIndirect(commandBuffer, indirectBufferImpl->buffer(), pass.dispatch.indirectOffset);
+        }
+        else
+        {
+            vkCmdDispatch(commandBuffer, pass.dispatch.groupsX, pass.dispatch.groupsY, pass.dispatch.groupsZ);
+        }
 
     }
 

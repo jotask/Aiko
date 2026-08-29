@@ -135,7 +135,7 @@ namespace nbody
             const aiko::ComputeBufferDesc indirectBufferDesc
             {
                 .format = aiko::ComputeBufferFormat::Uint32,
-                .count = 5,
+                .count = 8,
                 .usage =
                     aiko::ComputeBufferUsage::Storage |
                     aiko::ComputeBufferUsage::Indirect,
@@ -257,9 +257,8 @@ namespace nbody
 
         updatePass.setPushConstants(updateConstants);
 
-        updatePass.dispatch.groupsX = (count + 63) / 64;
-        updatePass.dispatch.groupsY = 1;
-        updatePass.dispatch.groupsZ = 1;
+        updatePass.dispatch.indirectBuffer = &state->indirectBuffer;
+        updatePass.dispatch.indirectOffset = 5 * sizeof(uint32_t);
 
         m_renderSystem->dispatch(updatePass, m_updateShaderId);
 

@@ -42,11 +42,17 @@ void main()
 
     if (idx == 0u)
     {
-        u_drawCommand[0] = count; // indexCount
-        u_drawCommand[1] = 1u;    // instanceCount
-        u_drawCommand[2] = 0u;    // firstIndex
-        u_drawCommand[3] = 0u;    // vertexOffset
-        u_drawCommand[4] = 0u;    // firstInstance
+        // VkDrawIndexedIndirectCommand
+        u_drawCommand[0] = count;
+        u_drawCommand[1] = 1u;
+        u_drawCommand[2] = 0u;
+        u_drawCommand[3] = 0u;
+        u_drawCommand[4] = 0u;
+
+        // VkDispatchIndirectCommand
+        u_drawCommand[5] = (count + 63u) / 64u;
+        u_drawCommand[6] = 1u;
+        u_drawCommand[7] = 1u;
     }
 
     float initialRadius = u_params.y;
