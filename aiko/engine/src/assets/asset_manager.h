@@ -9,6 +9,8 @@
 #include <aiko_types.h>
 #include <assets/iasset_provider.h>
 
+#include <filesystem>
+
 namespace aiko
 {
 
@@ -38,6 +40,9 @@ namespace aiko
         bool hasModelAsset(const AssetId& id) const;
         bool hasShaderAsset(const AssetId& id) const;
         bool hasComputeShaderAsset(const AssetId& id) const;
+
+        bool loadRegistry(const std::filesystem::path& path);
+        bool saveRegistry(const std::filesystem::path& path) const;
 
         void clear();
         void unloadTexture(const AssetId& id);

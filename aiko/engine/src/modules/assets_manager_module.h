@@ -18,6 +18,7 @@ namespace aiko
 
     protected:
 
+        virtual void preInit() override;
         virtual void init() override;
         virtual void update() override;
         virtual void beginFrame() override;

@@ -1,6 +1,7 @@
 #include "asset_manager.h"
 
 #include "asset_importer.h"
+#include "asset_registry_serializer.h"
 
 namespace aiko
 {
@@ -197,6 +198,16 @@ namespace aiko
         }
         const AssetRecord* record = m_registry.find(id);
         return record != nullptr && record->type == AssetType::ComputeShader;
+    }
+
+    bool AssetManager::loadRegistry(const std::filesystem::path& path)
+    {
+        return AssetRegistrySerializer::load(m_registry, path);
+    }
+
+    bool AssetManager::saveRegistry(const std::filesystem::path& path) const
+    {
+        return AssetRegistrySerializer::save(m_registry, path);
     }
 
     void AssetManager::clear()
