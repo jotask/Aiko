@@ -8,6 +8,7 @@
 #include "component.h"
 #include "components/transform_component.h"
 #include "component_context.h"
+#include "models/entity_id.h"
 
 namespace aiko
 {
@@ -50,6 +51,7 @@ namespace aiko
 
         ComponentContext* m_componentContext = nullptr;
 
+        EntityId m_entity;
         uuid::Uuid m_uuid;
 
         string name;

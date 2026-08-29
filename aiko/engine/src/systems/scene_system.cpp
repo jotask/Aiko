@@ -87,6 +87,7 @@ namespace aiko
     AikoPtr<GameObject> SceneSystem::createGameObject(string name)
     {
         auto obj = std::make_shared<GameObject>();
+        obj->m_entity = m_scene.registry().create();
 
         obj->setName(name);
         obj->m_componentContext = &m_componentContext;
@@ -110,6 +111,11 @@ namespace aiko
         if (obj != nullptr)
         {
             obj->dispose();
+            if (m_scene.registry().valid(obj->m_entity))
+            {
+                m_scene.registry().destroy(obj->m_entity);
+            }
+            obj->m_entity = {};
             m_scene.remove(obj.get());
         }
     }
