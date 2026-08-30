@@ -4,11 +4,12 @@
 #include "models/component.h"
 #include "assets/asset_reference.h"
 #include "assets/types/shader_asset.h"
+#include "assets/asset_binding.h"
 
 namespace aiko
 {
 
-    class ComputeShaderComponent : public Component , public IUpdate
+    class ComputeShaderComponent : public Component , public IUpdate, public IAssetBinding
     {
     public:
 
@@ -64,6 +65,8 @@ namespace aiko
         bool consumeDispatchRequest();
 
     private:
+
+        void resolveAssetBinding(AssetBindingContext& context) override;
 
         AssetReference<ComputeShaderAsset> m_shader;
         uint32_t m_elementCount = 64;

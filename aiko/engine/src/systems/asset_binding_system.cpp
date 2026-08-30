@@ -65,13 +65,6 @@ namespace aiko
             }
         }
 
-        for (ComputeShaderComponent* component : scene.components<ComputeShaderComponent>())
-        {
-            if (component != nullptr)
-            {
-                resolveComputeShader(*component);
-            }
-        }
     }
 
     void AssetBindingSystem::resolveMesh(MeshComponent& component)
@@ -178,20 +171,4 @@ namespace aiko
         }
     }
 
-    void AssetBindingSystem::resolveComputeShader(ComputeShaderComponent& component)
-    {
-        AssetReference<ComputeShaderAsset>& reference = component.shaderReference();
-        if (reference.isRequested() == false)
-        {
-            return;
-        }
-        reference.markLoading();
-        const AssetId id = m_assetSystem->load<ComputeShaderAsset>(reference.source());
-        if (id == InvalidAssetId)
-        {
-            reference.fail();
-            return;
-        }
-        reference.resolve(id);
-    }
 }

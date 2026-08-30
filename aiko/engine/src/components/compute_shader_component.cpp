@@ -13,6 +13,7 @@ namespace aiko
     void ComputeShaderComponent::load(string path)
     {
         m_shader.request(std::move(path));
+        markAssetBindingDirty();
     }
 
     void ComputeShaderComponent::update()
@@ -59,5 +60,25 @@ namespace aiko
         const bool value = m_dispatchRequested;
         m_dispatchRequested = false;
         return value;
+    }
+
+    void ComputeShaderComponent::resolveAssetBinding(AssetBindingContext& context)
+    {
+        if (m_shader.isRequested() == false)
+        {
+            return;
+        }
+
+        m_shader.markLoading();
+
+        const AssetId id = context.load<ComputeShaderAsset>(m_shader.source());
+
+        if (id == InvalidAssetId)
+        {
+            m_shader.fail();
+            return;
+        }
+
+        m_shader.resolve(id);
     }
 }
