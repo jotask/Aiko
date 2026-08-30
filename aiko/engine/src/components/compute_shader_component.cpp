@@ -2,13 +2,17 @@
 
 #include "models/mesh_factory.h"
 #include "models/game_object.h"
-#include "systems/asset_system.h"
 
 namespace aiko
 {
     ComputeShaderComponent::ComputeShaderComponent()
         : Component("ComputeShaderComponent")
     {
+    }
+
+    void ComputeShaderComponent::load(string path)
+    {
+        m_shader.request(std::move(path));
     }
 
     void ComputeShaderComponent::update()
@@ -25,14 +29,6 @@ namespace aiko
             clearReadback();
         }
         */
-    }
-
-    void ComputeShaderComponent::load(string path)
-    {
-        AIKO_ASSERT(path.empty() == false, "Attempting to load empty compute shader path");
-        AssetSystem* assets = context().assets;
-        AIKO_ASSERT(assets != nullptr, "Asset system not found");
-        setShaderId(assets->load<ComputeShaderAsset>(path));
     }
 
     void ComputeShaderComponent::requestReadback()

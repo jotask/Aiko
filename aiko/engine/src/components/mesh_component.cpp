@@ -1,9 +1,5 @@
 #include "mesh_component.h"
 
-#include "models/game_object.h"
-#include "models/mesh_factory.h"
-#include "systems/asset_system.h"
-
 namespace aiko
 {
 
@@ -19,26 +15,13 @@ namespace aiko
 
     void MeshComponent::load(string path)
     {
-        AssetSystem* assets = context().assets;
-        AIKO_ASSERT(assets != nullptr, "Asset system not found");
-        setMeshId(assets->load<MeshAsset>(path));
+        m_mesh.request(std::move(path));
+        m_primitiveRequest = PrimitiveRequest::None;
     }
 
     void MeshComponent::loadDebugCube()
     {
-        AssetSystem* assets = context().assets;
-        AIKO_ASSERT(assets != nullptr, "Asset system not found");
-        const AssetId cubeMeshId = assets->create(aiko::mesh::factory::generateCube());
-        setMeshId(cubeMeshId);
-        m_material.shaderId = assets->load<ShaderAsset>("model");
+        m_primitiveRequest = PrimitiveRequest::Cube;
     }
 
-    void MeshComponent::loadMesh(const MeshAsset& asset)
-    {
-        AssetSystem* assets = context().assets;
-        AIKO_ASSERT(assets != nullptr, "Asset system not found");
-        const AssetId meshId = assets->create(asset);
-        setMeshId(meshId);
-        m_material.shaderId = assets->load<ShaderAsset>("model");
-    }
 }

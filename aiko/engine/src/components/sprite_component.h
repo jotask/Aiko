@@ -4,7 +4,8 @@
 #include "assets/asset_id.h"
 #include "assets/types/mesh_asset.h"
 #include "metadata/material_instance.h"
-
+#include "assets/asset_reference.h"
+#include "assets/types/texture_asset.h"
 #include "models/component.h"
 
 namespace aiko
@@ -12,11 +13,6 @@ namespace aiko
 
     class SpriteComponent : public Component
     {
-
-        // Scene/reference sprite component.
-        // Stores CPU-side sprite data and material references.
-        // Does not own runtime GPU resources directly.
-
     public:
 
         SpriteComponent();
@@ -24,13 +20,42 @@ namespace aiko
 
         virtual void init() override;
 
-        void load(string);
+        void load(string path);
         void create(size_t width, size_t height);
+        void refresh();
 
         // TODO TMP for now
         void setPixel(size_t x, size_t y, Color c);
         void setPixels(const vector<Color>& pixels);
-        void refresh();
+
+        bool isDirty() const { return is_dirty; }
+        const vector<Color>& getPixels() const { return pixels; }
+
+        void clearDirty()
+        {
+            is_dirty = false;
+        }
+
+        void setSize(size_t width, size_t height)
+        {
+            m_width = width;
+            m_height = height;
+            pixels.clear();
+            pixels.resize(width * height, RAYWHITE);
+            is_dirty = true;
+        }
+
+        void setMeshId(const AssetId& id)
+        {
+            m_meshId = id;
+        }
+
+        AssetReference<TextureAsset>& textureReference() { return m_texture; }
+        const AssetReference<TextureAsset>& textureReference() const { return m_texture; }
+        bool hasCreateRequest() const { return m_createRequested; }
+        void clearCreateRequest() { m_createRequested = false; }
+        bool hasRefreshRequest() const { return m_refreshRequested; }
+        void clearRefreshRequest() { m_refreshRequested = false; }
 
         MaterialAsset& getMaterial() { return m_material; }
         const MaterialAsset& getMaterial() const { return m_material; }
@@ -38,14 +63,28 @@ namespace aiko
         MaterialInstance& getMaterialInstance() { return m_materialInstance; }
         const MaterialInstance& getMaterialInstance() const { return m_materialInstance; }
 
-        void setTextureId(const AssetId& id) { m_material.diffuseTextureId = id; }
-        const AssetId& getTextureId() const { return m_material.diffuseTextureId; }
+        void setTextureId(const AssetId& id)
+        {
+            m_texture.set(id);
+            m_material.diffuseTextureId = id;
+        }
+
+        const AssetId& getTextureId() const
+        {
+            return m_texture.id();
+        }
 
         const AssetId& getMeshId() const { return m_meshId; }
         size_t getWidth() const { return m_width; }
         size_t getHeight() const { return m_height; }
 
     private:
+
+        AssetReference<TextureAsset> m_texture;
+
+        bool m_createRequested = false;
+        bool m_refreshRequested = false;
+
         AssetId             m_meshId = InvalidAssetId;
         MaterialAsset       m_material;
         MaterialInstance m_materialInstance;

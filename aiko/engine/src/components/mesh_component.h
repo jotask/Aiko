@@ -1,9 +1,10 @@
 #pragma once
 
 #include "models/component.h"
-#include "assets/types/mesh_asset.h"
 #include "assets/asset_id.h"
 #include "metadata/material_instance.h"
+#include "assets/asset_reference.h"
+#include "assets/types/mesh_asset.h"
 
 namespace aiko
 {
@@ -20,10 +21,15 @@ namespace aiko
         void load(string path);
         void loadDebugCube();
 
-        void loadMesh(const MeshAsset& asset);
+        void setMeshId(const AssetId& id){ m_mesh.set(id); }
+        const AssetId& getMeshId() const { return m_mesh.id(); }
 
-        void setMeshId(const AssetId& id) { m_meshId = id; }
-        const AssetId& getMeshId() const { return m_meshId; };
+        AssetReference<MeshAsset>& meshReference() { return m_mesh; }
+        const AssetReference<MeshAsset>& meshReference() const { return m_mesh; }
+
+        bool hasCubeRequest() const { return m_primitiveRequest == PrimitiveRequest::Cube; }
+        void clearPrimitiveRequest() { m_primitiveRequest = PrimitiveRequest::None; }
+
         MaterialAsset& getMaterial() { return m_material; }
         const MaterialAsset& getMaterial() const { return m_material; }
 
@@ -32,7 +38,15 @@ namespace aiko
 
     private:
 
-        AssetId         m_meshId = InvalidAssetId;
+        enum class PrimitiveRequest
+        {
+            None,
+            Cube
+        };
+
+        AssetReference<MeshAsset> m_mesh;
+        PrimitiveRequest m_primitiveRequest = PrimitiveRequest::None;
+
         MaterialAsset   m_material;
         MaterialInstance m_materialInstance;
 

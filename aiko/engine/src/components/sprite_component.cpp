@@ -2,11 +2,6 @@
 
 #include <algorithm>
 
-#include "models/mesh_factory.h"
-
-#include "systems/asset_system.h"
-#include "models/game_object.h"
-
 namespace aiko
 {
 
@@ -20,44 +15,42 @@ namespace aiko
     {
     }
 
-    void SpriteComponent::load(string file)
+    void SpriteComponent::load(string path)
     {
-        AIKO_ASSERT(file.empty() == false, "Attempting to load empty file");
-        AssetSystem* assets = context().assets;
-        AIKO_ASSERT(assets != nullptr, "Asset system not found");
-        m_meshId = assets->create(mesh::factory::generateQuad());
-        m_material.diffuseTextureId = assets->load<TextureAsset>(file);
-        m_material.shaderId = assets->load<ShaderAsset>("model");
-        is_dirty = false;
+        m_texture.request(std::move(path));
+
+        m_createRequested = false;
+        m_refreshRequested = false;
+
+        m_width = 0;
+        m_height = 0;
         pixels.clear();
+        is_dirty = false;
     }
 
     void SpriteComponent::create(size_t width, size_t height)
     {
-        AssetSystem* assets = context().assets;
-        AIKO_ASSERT(assets != nullptr, "Asset system not found");
-
-        m_meshId = assets->create(aiko::mesh::factory::generateQuad());
-        m_material.shaderId = assets->load<ShaderAsset>("model");
+        AIKO_ASSERT(width > 0 && height > 0, "Sprite size must be greater than zero");
 
         m_width = width;
         m_height = height;
-        is_dirty = true;
 
-        const size_t pixel_size = width * height;
         pixels.clear();
-        pixels.resize(pixel_size, RAYWHITE);
+        pixels.resize(width * height, RAYWHITE);
 
-        TextureAsset textureAsset{};
-        textureAsset.desc.type = TextureType::Sampled;
-        textureAsset.desc.format = TextureFormat::RGBA8;
-        textureAsset.desc.width = static_cast<uint>(width);
-        textureAsset.desc.height = static_cast<uint>(height);
-        textureAsset.desc.mipmaps = 1;
-        textureAsset.desc.computeWrite = false;
-        textureAsset.pixels = pixels;
+        m_createRequested = true;
+        m_refreshRequested = false;
+        is_dirty = true;
+    }
 
-        m_material.diffuseTextureId = assets->create(textureAsset);
+    void SpriteComponent::refresh()
+    {
+        if (is_dirty == false)
+        {
+            return;
+        }
+
+        m_refreshRequested = true;
     }
 
     void SpriteComponent::setPixel(size_t x, size_t y, Color c)
@@ -80,30 +73,6 @@ namespace aiko
         AIKO_ASSERT(pixels.size() == ps.size(), "New pixels don't match texture size");
         std::ranges::copy(ps, pixels.begin());
         is_dirty = true;
-    }
-
-    void SpriteComponent::refresh()
-    {
-        if (is_dirty == false)
-        {
-            return;
-        }
-        AIKO_ASSERT(m_material.diffuseTextureId != InvalidAssetId, "SpriteComponent has no texture asset id");
-
-        AssetSystem* assets = context().assets;
-        AIKO_ASSERT(assets != nullptr, "Asset system not found");
-
-        TextureAsset& textureAsset = assets->getMutableTextureAsset(m_material.diffuseTextureId);
-
-        textureAsset.pixels = pixels;
-        textureAsset.desc.width = static_cast<uint>(m_width);
-        textureAsset.desc.height = static_cast<uint>(m_height);
-
-        is_dirty = false;
-
-        // Invalidate runtime texture cache so the renderer recreates it from updated CPU asset data.
-        assets->invalidateTexture(m_material.diffuseTextureId);
-
     }
 
 }

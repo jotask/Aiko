@@ -3,6 +3,8 @@
 #include "aiko_types.h"
 #include "models/component.h"
 #include "metadata/material_instance.h"
+#include "assets/asset_reference.h"
+#include "assets/types/mesh_asset.h"
 
 namespace aiko
 {
@@ -14,17 +16,34 @@ namespace aiko
         ModelComponent();
         virtual ~ModelComponent() = default;
 
-        void setModelId(const AssetId& id) { m_modelId = id; }
-        const AssetId& getModelId() const { return m_modelId; }
+        void load(string path);
 
-        void load(string);
+        void setModelId(const AssetId& id)
+        {
+            m_model.set(id);
+        }
+
+        const AssetId& getModelId() const
+        {
+            return m_model.id();
+        }
+
+        AssetReference<ModelAsset>& modelReference()
+        {
+            return m_model;
+        }
+
+        const AssetReference<ModelAsset>& modelReference() const
+        {
+            return m_model;
+        }
 
         MaterialInstance& getMaterialInstance() { return m_materialInstance; }
         const MaterialInstance& getMaterialInstance() const { return m_materialInstance; }
 
     private:
 
-        AssetId m_modelId = InvalidAssetId;
+        AssetReference<ModelAsset> m_model;
         MaterialInstance m_materialInstance;
 
     };

@@ -14,8 +14,7 @@ namespace aiko
 
     void ModelComponent::load(string path)
     {
-        AssetSystem* assets = context().assets;
-        AIKO_ASSERT(assets != nullptr, "Asset system not found");
-        setModelId(assets->load<ModelAsset>(path));
+        m_model.request(std::move(path));
     }
+
 }

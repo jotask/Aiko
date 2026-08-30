@@ -2,6 +2,8 @@
 
 #include "component_entity.h"
 #include "models/component.h"
+#include "assets/asset_reference.h"
+#include "assets/types/shader_asset.h"
 
 namespace aiko
 {
@@ -20,12 +22,15 @@ namespace aiko
         ComputeShaderComponent();
         virtual ~ComputeShaderComponent() = default;
 
-        virtual void update() override;
-
         void load(string path);
 
-        void setShaderId(const AssetId& id) { m_shaderId = id; }
-        const AssetId& getShaderId() const { return m_shaderId; }
+        virtual void update() override;
+
+        void setShaderId(const AssetId& id) { m_shader.set(id); }
+        const AssetId& getShaderId() const { return m_shader.id(); }
+
+        AssetReference<ComputeShaderAsset>& shaderReference() { return m_shader; }
+        const AssetReference<ComputeShaderAsset>& shaderReference() const { return m_shader; }
 
         void setElementCount(uint32_t count) { m_elementCount = count; }
         uint32_t getElementCount() const { return m_elementCount; }
@@ -60,7 +65,7 @@ namespace aiko
 
     private:
 
-        AssetId m_shaderId = InvalidAssetId;
+        AssetReference<ComputeShaderAsset> m_shader;
         uint32_t m_elementCount = 64;
         bool m_enabled = true;
         bool m_requestReadback = true;
