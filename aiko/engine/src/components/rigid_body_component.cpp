@@ -77,6 +77,7 @@ namespace aiko
         }
         world.destroyBody(m_bodyId);
         m_bodyId = physics::InvalidBodyId;
+        m_world = nullptr;
         m_initialized = false;
         m_debug.built = false;
     }
