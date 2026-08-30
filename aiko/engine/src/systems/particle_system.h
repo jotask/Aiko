@@ -84,12 +84,14 @@ namespace aiko
             Material particleMaterial;
         };
 
-        void updateEmitter(GameObject*, ParticleEmitterComponent&);
+        void updateEmitter(ParticleEmitterComponent&);
         void renderEmitter(GameObject*, ParticleEmitterComponent&);
 
         RuntimeState* tryGetState(const ParticleEmitterComponent* cmp);
         RuntimeState& getOrCreateState(const ParticleEmitterComponent* cmp);
         void destroyStates();
+        void removeStaleStates(const vector<ParticleEmitterComponent*>& emitters);
+        void destroyState(RuntimeState& state);
 
         RenderModule* m_renderModule;
         AssetsManagerModule* m_assetManagerModule;

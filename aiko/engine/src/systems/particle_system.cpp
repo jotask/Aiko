@@ -11,6 +11,8 @@
 #include "systems/system_connector.h"
 #include "systems/asset_system.h"
 
+#include <algorithm>
+
 namespace aiko
 {
 
@@ -31,18 +33,16 @@ namespace aiko
 
     void ParticleSystem::update()
     {
-        const auto& objects = m_sceneSystem->getScene().getObjects();
-        for (const auto& object : objects)
+        vector<ParticleEmitterComponent*> emitters = m_sceneSystem->getScene().components<ParticleEmitterComponent>();
+        removeStaleStates(emitters);
+        for (ParticleEmitterComponent* emitter : emitters)
         {
-            if (object == nullptr)
+            if (emitter == nullptr)
             {
                 continue;
             }
 
-            if (auto emitter = object->getComponent<ParticleEmitterComponent>())
-            {
-                updateEmitter(object, *emitter);
-            }
+            updateEmitter(*emitter);
         }
     }
 
@@ -68,9 +68,8 @@ namespace aiko
         destroyStates();
     }
 
-    void ParticleSystem::updateEmitter(GameObject* obj, ParticleEmitterComponent& emitter)
+    void ParticleSystem::updateEmitter(ParticleEmitterComponent& emitter)
     {
-        AIKO_UNUSED(obj);
 
         RuntimeState& state = getOrCreateState(&emitter);
 
@@ -275,17 +274,51 @@ namespace aiko
 
     void ParticleSystem::destroyStates()
     {
-        for (auto& state : m_runtime)
+        for (auto& [component, state] : m_runtime)
         {
-            if (state.second->particleMesh.isValid())
+            AIKO_UNUSED(component);
+
+            if (state != nullptr)
             {
-                state.second->particleMesh.unload();
+                destroyState(*state);
             }
-            state.second->positionBuffer.unload();
-            state.second->velocityBuffer.unload();
-            state.second->lifeBuffer.unload();
         }
+
         m_runtime.clear();
+    }
+
+    void ParticleSystem::removeStaleStates(const vector<ParticleEmitterComponent*>& emitters)
+    {
+        for (auto it = m_runtime.begin(); it != m_runtime.end();)
+        {
+            const bool alive = std::find(emitters.begin(), emitters.end(), it->first) != emitters.end();
+
+            if (alive == false)
+            {
+                if (it->second != nullptr)
+                {
+                    destroyState(*it->second);
+                }
+
+                it = m_runtime.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
+
+    void ParticleSystem::destroyState(RuntimeState& state)
+    {
+        if (state.particleMesh.isValid())
+        {
+            state.particleMesh.unload();
+        }
+
+        state.positionBuffer.unload();
+        state.velocityBuffer.unload();
+        state.lifeBuffer.unload();
     }
 
 }
