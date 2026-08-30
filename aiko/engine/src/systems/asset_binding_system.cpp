@@ -15,6 +15,7 @@
 #include "models/mesh_factory.h"
 #include "components/sprite_component.h"
 #include "assets/types/texture_asset.h"
+#include "assets/asset_binding.h"
 
 namespace aiko
 {
@@ -27,6 +28,8 @@ namespace aiko
     void AssetBindingSystem::update()
     {
         BaseSystem::update();
+
+        AssetBindingContext context(*m_assetSystem);
 
         Scene& scene = m_sceneSystem->getScene();
 
@@ -45,9 +48,12 @@ namespace aiko
                 continue;
             }
 
-            if (auto component = object->getComponent<ModelComponent>())
+            for (Component* component : object->getComponents())
             {
-                resolveModel(*component);
+                if (auto* binding = dynamic_cast<IAssetBinding*>(component))
+                {
+                    binding->resolveAssetBinding(context);
+                }
             }
         }
 
@@ -92,23 +98,6 @@ namespace aiko
             component.getMaterial().shaderId = m_assetSystem->load<ShaderAsset>("model");
             component.clearPrimitiveRequest();
         }
-    }
-
-    void AssetBindingSystem::resolveModel(ModelComponent& component)
-    {
-        AssetReference<ModelAsset>& reference = component.modelReference();
-        if (reference.isRequested() == false)
-        {
-            return;
-        }
-        reference.markLoading();
-        const AssetId id = m_assetSystem->load<ModelAsset>(reference.source());
-        if (id == InvalidAssetId)
-        {
-            reference.fail();
-            return;
-        }
-        reference.resolve(id);
     }
 
     void AssetBindingSystem::resolveSprite(SpriteComponent& component)

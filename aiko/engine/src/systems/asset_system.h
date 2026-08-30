@@ -14,9 +14,11 @@ namespace aiko
 
     class RenderModule;
     class AssetsManagerModule;
+    class AssetBindingContext;
 
     class AssetSystem : public BaseSystem
     {
+        friend class AssetBindingContext;
     public:
         AssetSystem();
         virtual ~AssetSystem() = default;

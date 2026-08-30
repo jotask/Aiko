@@ -23,7 +23,6 @@ namespace aiko
 
     private:
         void resolveMesh(MeshComponent& component);
-        void resolveModel(ModelComponent& component);
         void resolveSprite(SpriteComponent& component);
         void resolveComputeShader(ComputeShaderComponent& component);
 
