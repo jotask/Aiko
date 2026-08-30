@@ -19,6 +19,7 @@ namespace aiko
     {
         friend class SceneSystem;
         friend class Scene;
+        friend class Component;
     public:
 
         GameObject() = default;
@@ -60,6 +61,8 @@ namespace aiko
         void update();
         void render();
         void dispose();
+
+        void markAssetBindingDirty();
 
     };
 

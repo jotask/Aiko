@@ -2,6 +2,7 @@
 
 #include "components/component_entity.h"
 #include "components/transform_component.h"
+#include "scene/scene.h"
 
 namespace aiko
 {
@@ -54,6 +55,14 @@ namespace aiko
             }
         }
         m_components.clear();
+    }
+
+    void GameObject::markAssetBindingDirty()
+    {
+        if (m_scene != nullptr)
+        {
+            m_scene->markAssetBindingDirty(*this);
+        }
     }
 
 }

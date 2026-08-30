@@ -8,8 +8,12 @@
 namespace aiko
 {
 
+    class AssetBindingSystem;
+
     class Scene
     {
+        friend class GameObject;
+        friend class AssetBindingSystem;
     public:
         Scene() = default;
         ~Scene() = default;
@@ -36,7 +40,11 @@ namespace aiko
         EntityRegistry m_registry;
 
         vector<AikoPtr<GameObject>> m_objects;
+        vector<GameObject*> m_assetBindingDirtyObjects;
         GameObject* m_activeCamera = nullptr;
+
+        void markAssetBindingDirty(GameObject& object);
+        vector<GameObject*> consumeAssetBindingDirtyObjects();
 
         void destroyObject(GameObject& object);
 

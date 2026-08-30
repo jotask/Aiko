@@ -38,9 +38,14 @@ namespace aiko
             }
         }
 
-        for (ModelComponent* component : scene.components<ModelComponent>())
+        for (GameObject* object : scene.consumeAssetBindingDirtyObjects())
         {
-            if (component != nullptr)
+            if (object == nullptr)
+            {
+                continue;
+            }
+
+            if (auto component = object->getComponent<ModelComponent>())
             {
                 resolveModel(*component);
             }

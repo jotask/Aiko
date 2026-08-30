@@ -31,6 +31,8 @@ namespace aiko
     protected:
         GameObject* gameobject;
 
+        void markAssetBindingDirty();
+
         virtual void init() { }
         virtual void dispose() { }
     private:
