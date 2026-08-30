@@ -95,12 +95,6 @@ namespace aiko
     {
         if (obj != nullptr)
         {
-            obj->dispose();
-            if (m_scene.registry().valid(obj->m_entity))
-            {
-                m_scene.registry().destroy(obj->m_entity);
-            }
-            obj->m_entity = {};
             m_scene.remove(obj.get());
         }
     }
