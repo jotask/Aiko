@@ -33,6 +33,6 @@ namespace aiko
 
     AssetId AssetBindingContext::load(AssetType type, string_view source)
     {
-        return m_assetSystem->load(type, source);
+        return m_assetSystem->registerAsset(type, source);
     }
 }

@@ -24,9 +24,9 @@ namespace aiko
         virtual ~AssetSystem() = default;
 
         template<typename T>
-        AssetId load(string_view source)
+        AssetId registerAsset(string_view source)
         {
-            return load(assetTypeOf<T>(), source);
+            return registerAsset(assetTypeOf<T>(), source);
         }
 
         template<typename T>
@@ -57,7 +57,7 @@ namespace aiko
 
     private:
 
-        AssetId load(AssetType type, string_view source);
+        AssetId registerAsset(AssetType type, string_view source);
 
         const TextureAsset& get(const AssetId& id, std::type_identity<TextureAsset>);
         const MeshAsset& get(const AssetId& id, std::type_identity<MeshAsset>);

@@ -18,7 +18,7 @@ namespace aiko
         BIND_MODULE_REQUIRED(AssetsManagerModule, moduleConnector, m_assetModule);
     }
 
-    AssetId AssetSystem::load(AssetType type, string_view source)
+    AssetId AssetSystem::registerAsset(AssetType type, string_view source)
     {
         AssetManager* manager = m_assetModule->getManager();
         switch (type)

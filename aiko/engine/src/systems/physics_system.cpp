@@ -22,7 +22,7 @@ namespace aiko
     {
         m_physics.init();
 
-        m_debugMaterial.m_shaderId = m_assetSystem->load<ShaderAsset>("model");
+        m_debugMaterial.m_shaderId = m_assetSystem->registerAsset<ShaderAsset>("model");
         m_debugMaterial.m_baseColor = MAGENTA;
         m_debugMaterial.m_useVertexColor = true;
         m_debugMaterial.m_lit = false;
