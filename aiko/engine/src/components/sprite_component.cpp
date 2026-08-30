@@ -85,6 +85,11 @@ namespace aiko
         is_dirty = true;
     }
 
+    const AssetId& SpriteComponent::getTextureId() const
+    {
+        return m_texture.isReady() ? m_texture.id() : InvalidAssetId;
+    }
+
     bool SpriteComponent::resolveAssetBinding(AssetBindingContext& context)
     {
         if (m_texture.isRequested())
@@ -94,13 +99,26 @@ namespace aiko
             if (textureId == InvalidAssetId)
             {
                 m_texture.fail();
+                return false;
             }
-            else
+
+            m_texture.markLoading(textureId);
+            context.loadAsset<TextureAsset>(textureId);
+
+            return true;
+        }
+
+        if (m_texture.isLoading())
+        {
+            const AssetId& textureId = m_texture.id();
+
+            if (context.isLoaded<TextureAsset>(textureId) == false)
             {
-                m_texture.markLoading(textureId);
-                m_texture.resolve(textureId);
-                m_material.diffuseTextureId = textureId;
+                return true;
             }
+
+            m_texture.resolve(textureId);
+            m_material.diffuseTextureId = textureId;
 
             if (m_meshId == InvalidAssetId)
             {

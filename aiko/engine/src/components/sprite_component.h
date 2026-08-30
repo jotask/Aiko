@@ -40,7 +40,7 @@ namespace aiko
         MaterialInstance& getMaterialInstance() { return m_materialInstance; }
         const MaterialInstance& getMaterialInstance() const { return m_materialInstance; }
 
-        const AssetId& getTextureId() const { return m_texture.id(); }
+        const AssetId& getTextureId() const;
 
         const AssetId& getMeshId() const { return m_meshId; }
         size_t getWidth() const { return m_width; }
