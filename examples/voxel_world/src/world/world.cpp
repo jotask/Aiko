@@ -2,6 +2,7 @@
 
 #include <format>
 #include <systems/render_system.h>
+#include <application/application.h>
 
 #include "generator/chunk_data_generator.h"
 #include "models/game_object.h"

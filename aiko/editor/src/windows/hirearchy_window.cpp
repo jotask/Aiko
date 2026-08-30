@@ -44,7 +44,7 @@ namespace aiko
                             continue;
                         }
 
-                        if (child->transform().parent == nullptr)
+                        if (child->transform().getParent() == nullptr)
                         {
                             renderGameObject(scene, child);
                         }
@@ -106,7 +106,7 @@ namespace aiko
                 flags |= ImGuiTreeNodeFlags_Selected;
             }
 
-            if (obj->transform().childs.empty() == true)
+            if (obj->transform().getChildren().empty() == true)
             {
                 flags |= ImGuiTreeNodeFlags_Leaf;
             }
@@ -232,7 +232,7 @@ namespace aiko
 
             if (opened == true)
             {
-                for (Transform* childTransform : obj->transform().childs)
+                for (Transform* childTransform : obj->transform().getChildren())
                 {
                     if (childTransform == nullptr)
                     {
@@ -280,19 +280,19 @@ namespace aiko
             Transform& parentTransform = parent->transform();
             Transform& childTransform = child->transform();
 
-            if (childTransform.parent == &parentTransform)
+            if (childTransform.getParent() == &parentTransform)
             {
                 return;
             }
 
-            if (childTransform.parent != nullptr)
+            if (childTransform.getParent() != nullptr)
             {
-                auto& siblings = childTransform.parent->childs;
-                siblings.erase(std::remove(siblings.begin(), siblings.end(), &childTransform), siblings.end());
+                // FIXME
+                // auto& siblings = childTransform.getParent()->getChildren();
+                // siblings.erase(std::remove(siblings.begin(), siblings.end(), &childTransform), siblings.end());
             }
 
-            childTransform.parent = &parentTransform;
-            parentTransform.childs.push_back(&childTransform);
+            childTransform.setParent(&parentTransform);
         }
 
         bool HirearchyWindow::canAttachChild(GameObject* parent, GameObject* child) const
@@ -314,7 +314,7 @@ namespace aiko
                 {
                     return false;
                 }
-                current = current->parent;
+                current = current->getParent();
             }
             return true;
         }
@@ -328,11 +328,12 @@ namespace aiko
 
             Transform& childTransform = child->transform();
 
-            if (childTransform.parent != nullptr)
+            if (childTransform.getParent() != nullptr)
             {
-                auto& siblings = childTransform.parent->childs;
-                siblings.erase(std::remove(siblings.begin(), siblings.end(), &childTransform), siblings.end());
-                childTransform.parent = nullptr;
+                // FIXME
+                // auto& siblings = childTransform.getParent()->getChildren();
+                // siblings.erase(std::remove(siblings.begin(), siblings.end(), &childTransform), siblings.end());
+                childTransform.setParent(nullptr);
             }
         }
     }

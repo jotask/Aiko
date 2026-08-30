@@ -14,6 +14,7 @@ namespace aiko
     class AssetsManagerModule;
     class SceneSystem;
     class RenderSystem;
+    class AssetSystem;
     class GameObject;
 }
 
@@ -72,6 +73,7 @@ namespace nbody
         aiko::AssetsManagerModule* m_assetManagerModule;
         aiko::RenderSystem* m_renderSystem;
         aiko::SceneSystem* m_sceneSystem;
+        aiko::AssetSystem* m_assetSystem;
 
         aiko::AssetId m_initShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_updateShaderId = aiko::InvalidAssetId;

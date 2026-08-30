@@ -1,6 +1,6 @@
 #pragma once
 
-#include "application/application.h"
+#include "assets/types/mesh_asset.h"
 #include "world/types/chunk_types.h"
 
 namespace vw

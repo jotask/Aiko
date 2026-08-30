@@ -8,6 +8,7 @@
 #include <systems/render_system.h>
 #include <modules/module_connector.h>
 #include <systems/system_connector.h>
+#include <systems/asset_system.h>
 
 namespace nbody
 {
@@ -40,12 +41,13 @@ namespace nbody
         BIND_MODULE_REQUIRED(aiko::AssetsManagerModule, moduleConnector, m_assetManagerModule);
         BIND_SYSTEM_REQUIRED(aiko::RenderSystem, systemConnector, m_renderSystem);
         BIND_SYSTEM_REQUIRED(aiko::SceneSystem, systemConnector, m_sceneSystem);
+        BIND_SYSTEM_REQUIRED(aiko::AssetSystem, systemConnector, m_assetSystem);
     }
 
     void NBodySystem::init()
     {
-        m_initShaderId = aiko->getComponentAssetAccess()->registerComputeShader("nbody_init");
-        m_updateShaderId = aiko->getComponentAssetAccess()->registerComputeShader("nbody_update");
+        m_initShaderId = m_assetSystem->registerAndLoadAsset<aiko::ComputeShaderAsset>("nbody_init");
+        m_updateShaderId = m_assetSystem->registerAndLoadAsset<aiko::ComputeShaderAsset>("nbody_update");
     }
 
     void NBodySystem::update()

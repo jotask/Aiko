@@ -1,13 +1,14 @@
 #include "life_particle.h"
 
-#include <models/game_object.h>
+#include "systems/asset_system.h"
+
 #include <components/camera_component.h>
+#include <core/random.h>
+#include <magic_enum/magic_enum.hpp>
 #include <models/camera.h>
+#include <models/game_object.h>
 
 #include <aiko_includes.h>
-#include <core/random.h>
-
-#include <magic_enum/magic_enum.hpp>
 
 namespace lp
 {
@@ -22,7 +23,10 @@ namespace lp
         aiko::MeshAsset asset = aiko::mesh::factory::generateMeshSphere( 7, 7);
         m_mesh.upload(asset);
 
-        m_material.m_shaderId = app->m_aiko->getComponentAssetAccess()->registerShader("model");
+        aiko::AssetSystem* assetSystem = app->m_aiko->getSystem<aiko::AssetSystem>();
+        AIKO_ASSERT(assetSystem != nullptr, "Couldn't find asset system")
+
+        m_material.m_shaderId = assetSystem->registerAndLoadAsset<aiko::ShaderAsset>("model");
         m_material.m_lit = false;
         m_material.m_useVertexColor = false;
         m_material.m_baseColor = aiko::RED;

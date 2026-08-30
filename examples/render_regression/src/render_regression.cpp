@@ -1,7 +1,8 @@
 #include "render_regression.h"
 
-#include <application/application.h>
+#include "models/mesh_factory.h"
 
+#include <application/application.h>
 #include <components/camera_component.h>
 #include <components/mesh_component.h>
 
@@ -16,17 +17,19 @@ namespace regression
         camera->transform().position = { 0.0f, 1.0f, 3.0f };
         cam->getCamera().position = camera->transform().position;
 
+        const aiko::MeshAsset defaultCube = aiko::mesh::factory::generateCube();
+
         auto cubeA = app->Instantiate("CubeA");
         cubeA->transform().position = { -0.35f, 0.0f, 0.0f };
         cubeA->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto meshA = cubeA->addComponent<aiko::MeshComponent>();
-        meshA->loadDebugCube();
+        meshA->load(defaultCube);
 
         auto cubeB = app->Instantiate("CubeB");
         cubeB->transform().position = { 0.35f, 0.0f, -0.75f };
         cubeB->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto meshB = cubeB->addComponent<aiko::MeshComponent>();
-        meshB->loadDebugCube();
+        meshB->load(defaultCube);
 
         meshA->getMaterial().baseColor = aiko::RED;
         meshB->getMaterial().baseColor = aiko::BLUE;
