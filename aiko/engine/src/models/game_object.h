@@ -29,10 +29,13 @@ namespace aiko
         T* addComponent(Args...);
 
         template<class T>
-        bool hasComponent();
+        bool hasComponent() const;
 
         template<class T>
         T* getComponent();
+
+        template<class T>
+        const T* getComponent() const;
 
         template<class T>
         bool removeComponent();
@@ -44,6 +47,7 @@ namespace aiko
         void setName( string newName ) { name = newName; }
 
         Transform& transform();
+        const Transform& transform() const;
 
         vector<Component*> getComponents();
 
@@ -84,7 +88,7 @@ namespace aiko
     }
 
     template<class T>
-    bool GameObject::hasComponent()
+    bool GameObject::hasComponent() const
     {
         auto it = std::find_if(m_components.begin(), m_components.end(), [](const AikoUPtr<Component>& component) {
             return dynamic_cast<T*>(component.get()) != nullptr;
@@ -99,6 +103,15 @@ namespace aiko
             return dynamic_cast<T*>(component.get()) != nullptr;
         });
         return (it != m_components.end()) ? dynamic_cast<T*>(it->get()) : nullptr;
+    }
+
+    template<class T>
+    const T* GameObject::getComponent() const
+    {
+        auto it = std::find_if(m_components.begin(), m_components.end(), [](const AikoUPtr<Component>& component) {
+            return dynamic_cast<const T*>(component.get()) != nullptr;
+        });
+        return (it != m_components.end()) ? dynamic_cast<const T*>(it->get()) : nullptr;
     }
 
     template<class T>

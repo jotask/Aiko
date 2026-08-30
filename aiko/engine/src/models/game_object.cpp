@@ -12,6 +12,11 @@ namespace aiko
         return getComponent<TransforComponent>()->transform;
     }
 
+    const Transform& GameObject::transform() const
+    {
+        return getComponent<TransforComponent>()->transform;
+    }
+
     void GameObject::update()
     {
         for (auto& go : m_components)
