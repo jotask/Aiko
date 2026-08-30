@@ -3,12 +3,13 @@
 #include "assets/asset_binding.h"
 #include "assets/asset_id.h"
 #include "assets/asset_reference.h"
-#include "assets/types/mesh_asset.h"
 #include "assets/types/texture_asset.h"
 #include "metadata/material_instance.h"
 #include "models/component.h"
 
 #include <aiko_types.h>
+
+#include <optional>
 
 namespace aiko
 {
@@ -23,7 +24,7 @@ namespace aiko
         virtual void init() override;
 
         void load(string path);
-        void create(size_t width, size_t height);
+        void load(TextureAsset texture);
         void refresh();
 
         // TODO TMP for now
@@ -32,15 +33,6 @@ namespace aiko
 
         bool isDirty() const { return is_dirty; }
         const vector<Color>& getPixels() const { return pixels; }
-
-        void setSize(size_t width, size_t height)
-        {
-            m_width = width;
-            m_height = height;
-            pixels.clear();
-            pixels.resize(width * height, RAYWHITE);
-            is_dirty = true;
-        }
 
         MaterialAsset& getMaterial() { return m_material; }
         const MaterialAsset& getMaterial() const { return m_material; }
@@ -60,7 +52,7 @@ namespace aiko
 
         AssetReference<TextureAsset> m_texture;
 
-        bool m_createRequested = false;
+        std::optional<TextureAsset> m_pendingTexture;
         bool m_refreshRequested = false;
 
         AssetId             m_meshId = InvalidAssetId;
