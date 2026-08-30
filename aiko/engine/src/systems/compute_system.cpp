@@ -1,9 +1,12 @@
 #include "compute_system.h"
 
 #include "systems/system_connector.h"
+#include "components/sprite_component.h"
 #include "systems/scene_system.h"
 #include "systems/render_system.h"
 #include "time/time.h"
+
+#include <algorithm>
 
 namespace aiko
 {
@@ -30,18 +33,25 @@ namespace aiko
 
     void ComputeSystem::update()
     {
+        vector<ComputeShaderComponent*> liveComponents;
+
         const auto& objects = m_sceneSystem->getScene().getObjects();
-        for (const auto& object : objects)
+
+        for (GameObject* object : objects)
         {
             if (object == nullptr)
             {
                 continue;
             }
+
             if (auto cmp = object->getComponent<ComputeShaderComponent>())
             {
+                liveComponents.push_back(cmp.get());
                 updateComponent(object, *cmp);
             }
         }
+
+        removeStaleStates(liveComponents);
     }
 
     void ComputeSystem::render()
@@ -285,11 +295,16 @@ namespace aiko
 
     void ComputeSystem::destroyStates()
     {
-        for (auto& state : m_runtime)
+        for (auto& [component, state] : m_runtime)
         {
-            state.second->buffer.unload();
-            state.second->output.unload();
+            AIKO_UNUSED(component);
+
+            if (state != nullptr)
+            {
+                destroyState(*state);
+            }
         }
+
         m_runtime.clear();
     }
 
@@ -330,5 +345,66 @@ namespace aiko
         }
 
         return false;
+    }
+
+    void ComputeSystem::removeStaleStates(const vector<ComputeShaderComponent*>& components)
+    {
+        for (auto it = m_runtime.begin(); it != m_runtime.end();)
+        {
+            const bool alive = std::find(components.begin(), components.end(), it->first) != components.end();
+
+            if (alive == false)
+            {
+                if (it->second != nullptr)
+                {
+                    clearOutputReferences(*it->second);
+                    destroyState(*it->second);
+                }
+
+                it = m_runtime.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
+
+    void ComputeSystem::destroyState(RuntimeState& state)
+    {
+        state.buffer.unload();
+
+        if (state.output.isValid())
+        {
+            state.output.unload();
+        }
+    }
+
+    void ComputeSystem::clearOutputReferences(const RuntimeState& state)
+    {
+        if (state.output.isValid() == false)
+        {
+            return;
+        }
+
+        const auto& objects = m_sceneSystem->getScene().getObjects();
+
+        for (GameObject* object : objects)
+        {
+            if (object == nullptr)
+            {
+                continue;
+            }
+
+            if (auto sprite = object->getComponent<SpriteComponent>())
+            {
+                MaterialInstance& materialInstance = sprite->getMaterialInstance();
+
+                if (materialInstance.runtimeDiffuseTexture == &state.output)
+                {
+                    materialInstance.runtimeDiffuseTexture = nullptr;
+                }
+            }
+        }
     }
 }

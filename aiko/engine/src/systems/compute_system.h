@@ -64,6 +64,10 @@ namespace aiko
 
         bool shouldDispatch(ComputeShaderComponent& cmp, RuntimeState& state);
 
+        void removeStaleStates(const vector<ComputeShaderComponent*>& components);
+        void destroyState(RuntimeState& state);
+        void clearOutputReferences(const RuntimeState& state);
+
         std::unordered_map<const ComputeShaderComponent*, AikoUPtr<RuntimeState>> m_runtime;
         ReadbackId m_nextReadbackId = InvalidReadbackId + 1;
 
