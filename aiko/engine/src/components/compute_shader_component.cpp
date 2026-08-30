@@ -55,8 +55,6 @@ namespace aiko
             return false;
         }
 
-        m_shader.markLoading();
-
         const AssetId id = context.load<ComputeShaderAsset>(m_shader.source());
 
         if (id == InvalidAssetId)
@@ -65,7 +63,9 @@ namespace aiko
             return false;
         }
 
+        m_shader.markLoading(id);
         m_shader.resolve(id);
+
         return false;
     }
 }

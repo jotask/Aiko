@@ -22,8 +22,6 @@ namespace aiko
             return false;
         }
 
-        m_model.markLoading();
-
         const AssetId id = context.load<ModelAsset>(m_model.source());
 
         if (id == InvalidAssetId)
@@ -32,7 +30,9 @@ namespace aiko
             return false;
         }
 
+        m_model.markLoading(id);
         m_model.resolve(id);
+
         return false;
     }
 

@@ -89,8 +89,6 @@ namespace aiko
     {
         if (m_texture.isRequested())
         {
-            m_texture.markLoading();
-
             const AssetId textureId = context.load<TextureAsset>(m_texture.source());
 
             if (textureId == InvalidAssetId)
@@ -99,6 +97,7 @@ namespace aiko
             }
             else
             {
+                m_texture.markLoading(textureId);
                 m_texture.resolve(textureId);
                 m_material.diffuseTextureId = textureId;
             }

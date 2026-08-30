@@ -74,9 +74,11 @@ namespace aiko
             return m_state == AssetReferenceState::Failed;
         }
 
-        void markLoading()
+        void markLoading(const AssetId& id)
         {
             AIKO_ASSERT(m_state == AssetReferenceState::Requested, "Asset reference must be requested before loading");
+            AIKO_ASSERT(id != InvalidAssetId, "Cannot load invalid asset id");
+            m_id = id;
             m_state = AssetReferenceState::Loading;
         }
 

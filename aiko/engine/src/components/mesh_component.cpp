@@ -33,16 +33,14 @@ namespace aiko
     {
         if (m_mesh.isRequested())
         {
-            m_mesh.markLoading();
-
             const AssetId id = context.load<MeshAsset>(m_mesh.source());
-
             if (id == InvalidAssetId)
             {
                 m_mesh.fail();
             }
             else
             {
+                m_mesh.markLoading(id);
                 m_mesh.resolve(id);
             }
         }
