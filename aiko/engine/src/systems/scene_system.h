@@ -19,7 +19,6 @@ namespace aiko
     class GameObject;
     class AssetSystem;
     class InputSystem;
-    class PhysicsSystem;
     
     class SceneSystem : public BaseSystem
     {
@@ -55,7 +54,6 @@ namespace aiko
         RenderSystem* m_renderSystem;
         AssetSystem* m_assetSystem;
         InputSystem* m_inputSystem;
-        PhysicsSystem* m_physicsSystem;
 
         ComponentContext m_componentContext;
 

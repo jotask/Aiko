@@ -10,18 +10,13 @@ namespace aiko
 {
     class RenderSystem;
     class AssetSystem;
+    class SceneSystem;
 
     class PhysicsSystem : public BaseSystem
     {
     public:
         PhysicsSystem();
         ~PhysicsSystem() override = default;
-
-        void registerRigidBody(RigidBodyComponent* component);
-        void unregisterRigidBody(RigidBodyComponent* component);
-
-        void registerPlayerController(PlayerControllerComponent* component);
-        void unregisterPlayerController(PlayerControllerComponent* component);
 
         physics::AikoPhysics& getPhysics() { return m_physics; }
 
@@ -44,8 +39,7 @@ namespace aiko
 
         physics::AikoPhysics m_physics;
 
-        vector<RigidBodyComponent*> m_rigidBodies;
-        vector<PlayerControllerComponent*> m_playerControllers;
+        SceneSystem* m_sceneSystem = nullptr;
 
         float m_physicsAccumulator = 0.0f;
         Material m_debugMaterial;

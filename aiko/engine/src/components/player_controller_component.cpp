@@ -1,7 +1,9 @@
 #include "player_controller_component.h"
 
 #include "models/game_object.h"
-#include "systems/physics_system.h"
+#include "internal/entity_registry_access.h"
+#include "internal/physics_runtime_components.h"
+#include "scene/entity_registry.h"
 
 namespace aiko
 {
@@ -26,17 +28,27 @@ namespace aiko
 
         gameobject->transform().position = desc.physics.position;
 
-        PhysicsSystem* physicsSystem = context().physics;
-        AIKO_ASSERT(physicsSystem != nullptr, "Physics system not found");
-        physicsSystem->registerPlayerController(this);
+        entt::registry& registry = EntityRegistryAccess::get(entityRegistry());
+        const entt::entity enttEntity = EntityRegistryAccess::toEntity(entity());
+
+        if (!registry.all_of<PhysicsPlayerControllerRuntime>(enttEntity))
+        {
+            registry.emplace<PhysicsPlayerControllerRuntime>(
+                enttEntity,
+                this
+            );
+        }
     }
 
     void PlayerControllerComponent::dispose()
     {
-        PhysicsSystem* physicsSystem = context().physics;
-        AIKO_ASSERT(physicsSystem != nullptr, "Physics system not found");
-        physicsSystem->unregisterPlayerController(this);
         physicsShutdown();
+        entt::registry& registry = EntityRegistryAccess::get(entityRegistry());
+        const entt::entity enttEntity = EntityRegistryAccess::toEntity(entity());
+        if (registry.all_of<PhysicsPlayerControllerRuntime>(enttEntity))
+        {
+            registry.remove<PhysicsPlayerControllerRuntime>(enttEntity);
+        }
     }
 
     void PlayerControllerComponent::setMoveInput(const vec2& move)

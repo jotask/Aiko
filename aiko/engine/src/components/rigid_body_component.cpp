@@ -1,7 +1,10 @@
 #include "rigid_body_component.h"
 
 #include "models/game_object.h"
-#include "systems/physics_system.h"
+
+#include "internal/entity_registry_access.h"
+#include "internal/physics_runtime_components.h"
+#include "scene/entity_registry.h"
 
 namespace aiko
 {
@@ -25,17 +28,37 @@ namespace aiko
 
         gameobject->transform().position = desc.transform.position;
 
-        PhysicsSystem* physicsSystem = context().physics;
-        AIKO_ASSERT(physicsSystem != nullptr, "Physics system not found");
-        physicsSystem->registerRigidBody(this);
+        entt::registry& registry = EntityRegistryAccess::get(entityRegistry());
+        const entt::entity enttEntity = EntityRegistryAccess::toEntity(entity());
+
+        if (!registry.all_of<PhysicsRigidBodyRuntime>(enttEntity))
+        {
+            registry.emplace<PhysicsRigidBodyRuntime>(
+                enttEntity,
+                this,
+                nullptr
+            );
+        }
     }
 
     void RigidBodyComponent::dispose()
     {
 
-        PhysicsSystem* physicsSystem = context().physics;
-        AIKO_ASSERT(physicsSystem != nullptr, "Physics system not found");
-        physicsSystem->unregisterRigidBody(this);
+        entt::registry& registry = EntityRegistryAccess::get(entityRegistry());
+        const entt::entity enttEntity = EntityRegistryAccess::toEntity(entity());
+
+        if (!registry.all_of<PhysicsRigidBodyRuntime>(enttEntity))
+        {
+            return;
+        }
+
+        PhysicsRigidBodyRuntime& runtime = registry.get<PhysicsRigidBodyRuntime>(enttEntity);
+        if (runtime.world != nullptr)
+        {
+            physicsShutdown(*runtime.world);
+        }
+
+        registry.remove<PhysicsRigidBodyRuntime>(enttEntity);
     }
 
     const Transform& RigidBodyComponent::getWorldTransform() const

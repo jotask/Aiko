@@ -5,6 +5,10 @@
 #include "models/mesh_factory.h"
 #include "time/time.h"
 #include "asset_system.h"
+#include "scene_system.h"
+
+#include "internal/entity_registry_access.h"
+#include "internal/physics_runtime_components.h"
 
 namespace aiko
 {
@@ -14,6 +18,7 @@ namespace aiko
     {
         BIND_SYSTEM_REQUIRED(RenderSystem, systemConnector, m_renderSystem);
         BIND_SYSTEM_REQUIRED(AssetSystem, systemConnector, m_assetSystem);
+        BIND_SYSTEM_REQUIRED(SceneSystem, systemConnector, m_sceneSystem);
     }
 
     void PhysicsSystem::init()
@@ -30,30 +35,42 @@ namespace aiko
     {
         BaseSystem::update();
 
+        entt::registry& registry = EntityRegistryAccess::get(m_sceneSystem->getScene().registry());
+
+        auto rigidBodies = registry.view<PhysicsRigidBodyRuntime>();
+        auto playerControllers = registry.view<PhysicsPlayerControllerRuntime>();
+
         m_physicsAccumulator += Time::it().getDeltaTime();
         constexpr int kMaxSubSteps = 4;
 
         int subSteps = 0;
         while (m_physicsAccumulator >= physics::kPhysicsDeltaTime && subSteps < kMaxSubSteps)
         {
-            for (RigidBodyComponent* body : m_rigidBodies)
+            for (auto entity : rigidBodies)
             {
+                PhysicsRigidBodyRuntime& runtime = rigidBodies.get<PhysicsRigidBodyRuntime>(entity);
+                RigidBodyComponent* body = runtime.component;
                 if (body != nullptr)
                 {
+                    runtime.world = &m_physics;
                     body->ensurePhysicsInitialized(m_physics);
                 }
             }
 
-            for (PlayerControllerComponent* controller : m_playerControllers)
+            for (auto entity : playerControllers)
             {
+                PlayerControllerComponent* controller = playerControllers.get<PhysicsPlayerControllerRuntime>(entity).component;
+
                 if (controller != nullptr)
                 {
                     controller->ensurePhysicsInitialized(m_physics);
                 }
             }
 
-            for (PlayerControllerComponent* controller : m_playerControllers)
+            for (auto entity : playerControllers)
             {
+                PlayerControllerComponent* controller = playerControllers.get<PhysicsPlayerControllerRuntime>(entity).component;
+
                 if (controller != nullptr)
                 {
                     controller->fixedUpdate(physics::kPhysicsDeltaTime);
@@ -68,8 +85,9 @@ namespace aiko
 
             m_physics.step(stepDesc);
 
-            for (RigidBodyComponent* body : m_rigidBodies)
+            for (auto entity : rigidBodies)
             {
+                RigidBodyComponent* body = rigidBodies.get<PhysicsRigidBodyRuntime>(entity).component;
                 if (body != nullptr)
                 {
                     body->syncFromPhysics(m_physics);
@@ -80,13 +98,15 @@ namespace aiko
             ++subSteps;
         }
 
-        for (RigidBodyComponent* body : m_rigidBodies)
+        for (auto entity : rigidBodies)
         {
+            RigidBodyComponent* body = rigidBodies.get<PhysicsRigidBodyRuntime>(entity).component;
             ensureDebugMesh(body);
         }
 
-        for (PlayerControllerComponent* controller : m_playerControllers)
+        for (auto entity : playerControllers)
         {
+            PlayerControllerComponent* controller = playerControllers.get<PhysicsPlayerControllerRuntime>(entity).component;
             ensureDebugMesh(controller);
         }
 
@@ -115,8 +135,14 @@ namespace aiko
     {
         BaseSystem::render();
 
-        for (RigidBodyComponent* body : m_rigidBodies)
+        entt::registry& registry = EntityRegistryAccess::get(m_sceneSystem->getScene().registry());
+
+        auto rigidBodies = registry.view<PhysicsRigidBodyRuntime>();
+        auto playerControllers = registry.view<PhysicsPlayerControllerRuntime>();
+
+        for (auto entity : rigidBodies)
         {
+            RigidBodyComponent* body = rigidBodies.get<PhysicsRigidBodyRuntime>(entity).component;
             if (body != nullptr && body->debug().enabled && body->debug().built)
             {
                 Transform debugTransform = body->getWorldTransform();
@@ -125,8 +151,9 @@ namespace aiko
             }
         }
 
-        for (PlayerControllerComponent* controller : m_playerControllers)
+        for (auto entity : playerControllers)
         {
+            PlayerControllerComponent* controller = playerControllers.get<PhysicsPlayerControllerRuntime>(entity).component;
             if (controller != nullptr && controller->debug().enabled && controller->debug().built)
             {
                 Transform debugTransform = controller->getWorldTransform();
@@ -138,24 +165,30 @@ namespace aiko
 
     void PhysicsSystem::dispose()
     {
-        for (RigidBodyComponent* body : m_rigidBodies)
+        entt::registry& registry = EntityRegistryAccess::get(m_sceneSystem->getScene().registry());
+
+        auto rigidBodies = registry.view<PhysicsRigidBodyRuntime>();
+
+        for (auto entity : rigidBodies)
         {
-            if (body != nullptr)
+            PhysicsRigidBodyRuntime& runtime = rigidBodies.get<PhysicsRigidBodyRuntime>(entity);
+            if (runtime.component != nullptr)
             {
-                body->physicsShutdown(m_physics);
+                runtime.component->physicsShutdown(m_physics);
             }
+            runtime.world = nullptr;
         }
 
-        for (PlayerControllerComponent* controller : m_playerControllers)
+        auto playerControllers = registry.view<PhysicsPlayerControllerRuntime>();
+
+        for (auto entity : playerControllers)
         {
+            PlayerControllerComponent* controller = playerControllers.get<PhysicsPlayerControllerRuntime>(entity).component;
             if (controller != nullptr)
             {
                 controller->physicsShutdown();
             }
         }
-
-        m_rigidBodies.clear();
-        m_playerControllers.clear();
 
         m_physics.shutdown();
         BaseSystem::dispose();
@@ -245,39 +278,4 @@ namespace aiko
         component->debug().built = true;
     }
 
-    void PhysicsSystem::registerRigidBody(RigidBodyComponent* component)
-    {
-        if (component == nullptr)
-        {
-            return;
-        }
-
-        if (std::find(m_rigidBodies.begin(), m_rigidBodies.end(), component) == m_rigidBodies.end())
-        {
-            m_rigidBodies.push_back(component);
-        }
-    }
-
-    void PhysicsSystem::unregisterRigidBody(RigidBodyComponent* component)
-    {
-        std::erase(m_rigidBodies, component);
-    }
-
-    void PhysicsSystem::registerPlayerController(PlayerControllerComponent* component)
-    {
-        if (component == nullptr)
-        {
-            return;
-        }
-
-        if (std::find(m_playerControllers.begin(), m_playerControllers.end(), component) == m_playerControllers.end())
-        {
-            m_playerControllers.push_back(component);
-        }
-    }
-
-    void PhysicsSystem::unregisterPlayerController(PlayerControllerComponent* component)
-    {
-        std::erase(m_playerControllers, component);
-    }
 }
