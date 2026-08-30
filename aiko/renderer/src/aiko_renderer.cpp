@@ -130,7 +130,7 @@ namespace aiko
         {
             .mesh = &mesh,
             .material = &material,
-            .transform = transform.getMatrix()
+            .transform = transform.getWorldMatrix()
         };
         m_queue.push_back(item);
     }
@@ -175,7 +175,7 @@ namespace aiko
     {
         AIKO_FUNCTION_PROFILE
         TransientDrawDesc data = {};
-        data.mtx = transform.getMatrix();
+        data.mtx = transform.getWorldMatrix();
         data.material = &material;
         data.topology = topology;
         data.geometry = &resolveTransientGeometry(meshAsset, topology);
