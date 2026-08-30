@@ -83,7 +83,10 @@ namespace aiko
     {
         AIKO_FUNCTION_PROFILE
         const AssetId& meshId = meshComponent.getMeshId();
-        AIKO_ASSERT(meshId != InvalidAssetId, "MeshComponent has no mesh id assigned");
+        if (meshId == InvalidAssetId)
+        {
+            return;
+        }
         Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
         m_renderModule->getRenderer().submit(trans, mesh, meshComponent.getMaterial(), meshComponent.getMaterialInstance());
     }
@@ -92,18 +95,22 @@ namespace aiko
     {
         AIKO_FUNCTION_PROFILE
         const AssetId& modelId = modelComponent.getModelId();
-        AIKO_ASSERT(modelId != InvalidAssetId, "ModelComponent has no model id assigned");
-
+        if (modelId == InvalidAssetId)
+        {
+            return;
+        }
         Model& runtimeModel = m_renderModule->getRenderer().resources().getModel(modelId);
         render(trans, runtimeModel, modelComponent.getMaterialInstance());
-
     }
 
     void RenderSystem::render(const Transform& trans, const SpriteComponent& spriteComponent)
     {
         AIKO_FUNCTION_PROFILE
         const AssetId& meshId = spriteComponent.getMeshId();
-        AIKO_ASSERT(meshId != InvalidAssetId, "SpriteComponent has no mesh id assigned");
+        if (meshId == InvalidAssetId)
+        {
+            return;
+        }
         Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
         m_renderModule->getRenderer().submit(trans, mesh, spriteComponent.getMaterial(), spriteComponent.getMaterialInstance());
     }
