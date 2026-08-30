@@ -1,5 +1,8 @@
 #include "sprite_component.h"
 
+#include "models/mesh_factory.h"
+#include "assets/types/shader_asset.h"
+
 #include <algorithm>
 
 namespace aiko
@@ -26,6 +29,8 @@ namespace aiko
         m_height = 0;
         pixels.clear();
         is_dirty = false;
+
+        markAssetBindingDirty();
     }
 
     void SpriteComponent::create(size_t width, size_t height)
@@ -41,6 +46,7 @@ namespace aiko
         m_createRequested = true;
         m_refreshRequested = false;
         is_dirty = true;
+        markAssetBindingDirty();
     }
 
     void SpriteComponent::refresh()
@@ -51,6 +57,8 @@ namespace aiko
         }
 
         m_refreshRequested = true;
+        markAssetBindingDirty();
+
     }
 
     void SpriteComponent::setPixel(size_t x, size_t y, Color c)
@@ -73,6 +81,81 @@ namespace aiko
         AIKO_ASSERT(pixels.size() == ps.size(), "New pixels don't match texture size");
         std::ranges::copy(ps, pixels.begin());
         is_dirty = true;
+    }
+
+    void SpriteComponent::resolveAssetBinding(AssetBindingContext& context)
+    {
+        if (m_texture.isRequested())
+        {
+            m_texture.markLoading();
+
+            const AssetId textureId = context.load<TextureAsset>(m_texture.source());
+
+            if (textureId == InvalidAssetId)
+            {
+                m_texture.fail();
+            }
+            else
+            {
+                m_texture.resolve(textureId);
+                m_material.diffuseTextureId = textureId;
+            }
+
+            if (m_meshId == InvalidAssetId)
+            {
+                m_meshId = context.create(mesh::factory::generateQuad());
+            }
+
+            m_material.shaderId = context.load<ShaderAsset>("model");
+        }
+
+        if (m_createRequested)
+        {
+            if (m_meshId == InvalidAssetId)
+            {
+                m_meshId = context.create(mesh::factory::generateQuad());
+            }
+
+            m_material.shaderId = context.load<ShaderAsset>("model");
+
+            TextureAsset textureAsset{};
+            textureAsset.desc.type = TextureType::Sampled;
+            textureAsset.desc.format = TextureFormat::RGBA8;
+            textureAsset.desc.width = static_cast<uint>(m_width);
+            textureAsset.desc.height = static_cast<uint>(m_height);
+            textureAsset.desc.mipmaps = 1;
+            textureAsset.desc.computeWrite = false;
+            textureAsset.pixels = pixels;
+
+            const AssetId textureId = context.create(textureAsset);
+
+            setTextureId(textureId);
+
+            m_createRequested = false;
+            is_dirty = false;
+        }
+
+        if (m_refreshRequested)
+        {
+            const AssetId& textureId = m_texture.id();
+
+            if (textureId == InvalidAssetId)
+            {
+                m_refreshRequested = false;
+                return;
+            }
+
+            TextureAsset& textureAsset = context.getMutableTexture(textureId);
+
+            textureAsset.pixels = pixels;
+            textureAsset.desc.width = static_cast<uint>(m_width);
+            textureAsset.desc.height = static_cast<uint>(m_height);
+
+            context.invalidateTexture(textureId);
+
+            is_dirty = false;
+            m_refreshRequested = false;
+        }
     }
 
 }

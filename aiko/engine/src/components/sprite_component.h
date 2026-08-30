@@ -1,17 +1,19 @@
 #pragma once
 
-#include <aiko_types.h>
+#include "assets/asset_binding.h"
 #include "assets/asset_id.h"
-#include "assets/types/mesh_asset.h"
-#include "metadata/material_instance.h"
 #include "assets/asset_reference.h"
+#include "assets/types/mesh_asset.h"
 #include "assets/types/texture_asset.h"
+#include "metadata/material_instance.h"
 #include "models/component.h"
+
+#include <aiko_types.h>
 
 namespace aiko
 {
 
-    class SpriteComponent : public Component
+    class SpriteComponent : public Component, public IAssetBinding
     {
     public:
 
@@ -79,6 +81,8 @@ namespace aiko
         size_t getHeight() const { return m_height; }
 
     private:
+
+        void resolveAssetBinding(AssetBindingContext& context) override;
 
         AssetReference<TextureAsset> m_texture;
 

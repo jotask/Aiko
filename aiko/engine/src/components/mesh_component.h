@@ -5,11 +5,12 @@
 #include "metadata/material_instance.h"
 #include "assets/asset_reference.h"
 #include "assets/types/mesh_asset.h"
+#include "assets/asset_binding.h"
 
 namespace aiko
 {
 
-    class MeshComponent : public Component
+    class MeshComponent : public Component, public IAssetBinding
     {
     public:
 
@@ -43,6 +44,8 @@ namespace aiko
             None,
             Cube
         };
+
+        void resolveAssetBinding(AssetBindingContext& context) override;
 
         AssetReference<MeshAsset> m_mesh;
         PrimitiveRequest m_primitiveRequest = PrimitiveRequest::None;

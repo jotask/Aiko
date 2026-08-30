@@ -22,8 +22,6 @@ namespace aiko
         virtual void update() override;
 
     private:
-        void resolveMesh(MeshComponent& component);
-        void resolveSprite(SpriteComponent& component);
 
         AssetSystem* m_assetSystem = nullptr;
         SceneSystem* m_sceneSystem = nullptr;

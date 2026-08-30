@@ -10,6 +10,9 @@ namespace aiko
     class AssetBindingSystem;
     class AssetSystem;
 
+    struct TextureAsset;
+    struct MeshAsset;
+
     class AssetBindingContext
     {
         friend class AssetBindingSystem;
@@ -20,6 +23,11 @@ namespace aiko
         {
             return load(assetTypeOf<T>(), source);
         }
+
+        AssetId create(const MeshAsset& asset);
+        AssetId create(const TextureAsset& asset);
+        TextureAsset& getMutableTexture(const AssetId& id);
+        void invalidateTexture(const AssetId& id);
 
     private:
         explicit AssetBindingContext(AssetSystem& assetSystem);
