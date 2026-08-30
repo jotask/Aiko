@@ -6,8 +6,12 @@
 
 namespace aiko
 {
+
+    class EntityRegistryAccess;
+
     class EntityRegistry
     {
+        friend class EntityRegistryAccess;
     public:
         EntityRegistry();
         ~EntityRegistry();
