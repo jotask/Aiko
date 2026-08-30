@@ -4,7 +4,6 @@
 #include "systems/asset_system.h"
 #include "systems/scene_system.h"
 #include "systems/system_connector.h"
-#include "components/compute_shader_component.h"
 #include "assets/asset_binding.h"
 
 namespace aiko

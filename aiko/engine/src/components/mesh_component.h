@@ -22,14 +22,7 @@ namespace aiko
         void load(string path);
         void loadDebugCube();
 
-        void setMeshId(const AssetId& id){ m_mesh.set(id); }
         const AssetId& getMeshId() const { return m_mesh.id(); }
-
-        AssetReference<MeshAsset>& meshReference() { return m_mesh; }
-        const AssetReference<MeshAsset>& meshReference() const { return m_mesh; }
-
-        bool hasCubeRequest() const { return m_primitiveRequest == PrimitiveRequest::Cube; }
-        void clearPrimitiveRequest() { m_primitiveRequest = PrimitiveRequest::None; }
 
         MaterialAsset& getMaterial() { return m_material; }
         const MaterialAsset& getMaterial() const { return m_material; }

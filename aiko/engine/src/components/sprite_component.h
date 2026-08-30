@@ -33,11 +33,6 @@ namespace aiko
         bool isDirty() const { return is_dirty; }
         const vector<Color>& getPixels() const { return pixels; }
 
-        void clearDirty()
-        {
-            is_dirty = false;
-        }
-
         void setSize(size_t width, size_t height)
         {
             m_width = width;
@@ -47,34 +42,13 @@ namespace aiko
             is_dirty = true;
         }
 
-        void setMeshId(const AssetId& id)
-        {
-            m_meshId = id;
-        }
-
-        AssetReference<TextureAsset>& textureReference() { return m_texture; }
-        const AssetReference<TextureAsset>& textureReference() const { return m_texture; }
-        bool hasCreateRequest() const { return m_createRequested; }
-        void clearCreateRequest() { m_createRequested = false; }
-        bool hasRefreshRequest() const { return m_refreshRequested; }
-        void clearRefreshRequest() { m_refreshRequested = false; }
-
         MaterialAsset& getMaterial() { return m_material; }
         const MaterialAsset& getMaterial() const { return m_material; }
 
         MaterialInstance& getMaterialInstance() { return m_materialInstance; }
         const MaterialInstance& getMaterialInstance() const { return m_materialInstance; }
 
-        void setTextureId(const AssetId& id)
-        {
-            m_texture.set(id);
-            m_material.diffuseTextureId = id;
-        }
-
-        const AssetId& getTextureId() const
-        {
-            return m_texture.id();
-        }
+        const AssetId& getTextureId() const { return m_texture.id(); }
 
         const AssetId& getMeshId() const { return m_meshId; }
         size_t getWidth() const { return m_width; }

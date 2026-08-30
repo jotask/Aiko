@@ -1,8 +1,5 @@
 #include "model_component.h"
 
-#include "systems/asset_system.h"
-#include "models/game_object.h"
-
 namespace aiko
 {
 

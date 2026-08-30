@@ -129,7 +129,8 @@ namespace aiko
 
             const AssetId textureId = context.create(textureAsset);
 
-            setTextureId(textureId);
+            m_texture.set(textureId);
+            m_material.diffuseTextureId = textureId;
 
             m_createRequested = false;
             is_dirty = false;

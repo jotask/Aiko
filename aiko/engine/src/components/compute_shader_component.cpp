@@ -1,8 +1,5 @@
 #include "compute_shader_component.h"
 
-#include "models/mesh_factory.h"
-#include "models/game_object.h"
-
 namespace aiko
 {
     ComputeShaderComponent::ComputeShaderComponent()
@@ -18,18 +15,7 @@ namespace aiko
 
     void ComputeShaderComponent::update()
     {
-        /*
-        if (hasReadback() == true)
-        {
-            const auto& readback = getLastReadback();
-            const vec4* values = reinterpret_cast<const vec4*>(readback.data.data());
-            logger::Log::info("compute[0] = (%f, %f, %f, %f)", values[0].x, values[0].y, values[0].z, values[0].w);
-            logger::Log::info("compute[1] = (%f, %f, %f, %f)", values[1].x, values[1].y, values[1].z, values[1].w);
-            logger::Log::info("compute[2] = (%f, %f, %f, %f)", values[2].x, values[2].y, values[2].z, values[2].w);
-            logger::Log::info("compute[3] = (%f, %f, %f, %f)", values[3].x, values[3].y, values[3].z, values[3].w);
-            clearReadback();
-        }
-        */
+
     }
 
     void ComputeShaderComponent::requestReadback()

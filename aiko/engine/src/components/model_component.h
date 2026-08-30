@@ -19,25 +19,7 @@ namespace aiko
 
         void load(string path);
 
-        void setModelId(const AssetId& id)
-        {
-            m_model.set(id);
-        }
-
-        const AssetId& getModelId() const
-        {
-            return m_model.id();
-        }
-
-        AssetReference<ModelAsset>& modelReference()
-        {
-            return m_model;
-        }
-
-        const AssetReference<ModelAsset>& modelReference() const
-        {
-            return m_model;
-        }
+        const AssetId& getModelId() const { return m_model.id(); }
 
         MaterialInstance& getMaterialInstance() { return m_materialInstance; }
         const MaterialInstance& getMaterialInstance() const { return m_materialInstance; }

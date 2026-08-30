@@ -51,7 +51,7 @@ namespace aiko
         {
             const AssetId meshId = context.create(mesh::factory::generateCube());
 
-            setMeshId(meshId);
+            m_mesh.set(meshId);
             m_material.shaderId = context.load<ShaderAsset>("model");
 
             m_primitiveRequest = PrimitiveRequest::None;
