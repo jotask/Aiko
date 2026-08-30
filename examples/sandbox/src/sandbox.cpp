@@ -10,6 +10,7 @@
 #include "models/camera.h"
 #include "models/game_object.h"
 #include "models/mesh_factory.h"
+#include "models/texture_factory.h"
 #include "types/color.h"
 
 #include <application/application.h>
@@ -112,7 +113,7 @@ namespace sb
         compute->setUpdateInterval(0.0f);
 
         auto sprite = textureCompute->addComponent<aiko::SpriteComponent>();
-        sprite->create(512, 512);
+        sprite->load(aiko::texture::factory::generateBlank(512, 512));
 
         auto& material = sprite->getMaterial();
         material.lit = false;
@@ -198,7 +199,7 @@ namespace sb
         m_texturePbo->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texturePbo->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh4 = m_texturePbo->addComponent<aiko::SpriteComponent>();
-        mesh4->create(128, 128);
+        mesh4->load(aiko::texture::factory::generateBlank(128, 128));
 
         aiko::MaterialAsset& material = mesh4->getMaterial();
         material.lit = false;

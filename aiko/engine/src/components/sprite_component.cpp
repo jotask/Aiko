@@ -20,9 +20,9 @@ namespace aiko
 
     void SpriteComponent::load(string path)
     {
-        m_texture.request(std::move(path));
+        m_pendingTexture.reset();
 
-        m_createRequested = false;
+        m_texture.request(std::move(path));
         m_refreshRequested = false;
 
         m_width = 0;
@@ -33,19 +33,21 @@ namespace aiko
         markAssetBindingDirty();
     }
 
-    void SpriteComponent::create(size_t width, size_t height)
+    void SpriteComponent::load(TextureAsset texture)
     {
-        AIKO_ASSERT(width > 0 && height > 0, "Sprite size must be greater than zero");
+        AIKO_ASSERT(texture.desc.width > 0 && texture.desc.height > 0, "Sprite texture size must be greater than zero");
+        AIKO_ASSERT(texture.pixels.size() == static_cast<size_t>(texture.desc.width) * static_cast<size_t>(texture.desc.height), "Sprite texture pixel count does not match texture size");
 
-        m_width = width;
-        m_height = height;
-
-        pixels.clear();
-        pixels.resize(width * height, RAYWHITE);
-
-        m_createRequested = true;
+        m_texture.reset();
         m_refreshRequested = false;
-        is_dirty = true;
+
+        m_width = texture.desc.width;
+        m_height = texture.desc.height;
+        pixels = texture.pixels;
+
+        m_pendingTexture = std::move(texture);
+        is_dirty = false;
+
         markAssetBindingDirty();
     }
 
@@ -109,7 +111,7 @@ namespace aiko
             m_material.shaderId = context.load<ShaderAsset>("model");
         }
 
-        if (m_createRequested)
+        if (m_pendingTexture.has_value())
         {
             if (m_meshId == InvalidAssetId)
             {
@@ -118,22 +120,14 @@ namespace aiko
 
             m_material.shaderId = context.load<ShaderAsset>("model");
 
-            TextureAsset textureAsset{};
-            textureAsset.desc.type = TextureType::Sampled;
-            textureAsset.desc.format = TextureFormat::RGBA8;
-            textureAsset.desc.width = static_cast<uint>(m_width);
-            textureAsset.desc.height = static_cast<uint>(m_height);
-            textureAsset.desc.mipmaps = 1;
-            textureAsset.desc.computeWrite = false;
-            textureAsset.pixels = pixels;
+            m_pendingTexture->pixels = pixels;
 
-            const AssetId textureId = context.create(textureAsset);
+            const AssetId textureId = context.create(*m_pendingTexture);
 
             m_texture.set(textureId);
             m_material.diffuseTextureId = textureId;
 
-            m_createRequested = false;
-            is_dirty = false;
+            m_pendingTexture.reset();
         }
 
         if (m_refreshRequested)
