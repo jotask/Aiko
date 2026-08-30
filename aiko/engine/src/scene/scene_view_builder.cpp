@@ -25,7 +25,7 @@ namespace aiko
         {
             if (active->hasComponent<CameraComponent>())
             {
-                AikoPtr<CameraComponent> cmp = active->getComponent<CameraComponent>();
+                CameraComponent* cmp = active->getComponent<CameraComponent>();
                 return &cmp->getCamera();
             }
         }
@@ -41,7 +41,7 @@ namespace aiko
             {
                 continue;
             }
-            AikoPtr<CameraComponent> cmp = obj->getComponent<CameraComponent>();
+            CameraComponent* cmp = obj->getComponent<CameraComponent>();
             if (cmp->isMain() == true)
             {
                 return &cmp->getCamera();
@@ -59,7 +59,7 @@ namespace aiko
             {
                 continue;
             }
-            AikoPtr<CameraComponent> cmp = obj->getComponent<CameraComponent>();
+            CameraComponent* cmp = obj->getComponent<CameraComponent>();
             return &cmp->getCamera();
         }
 
@@ -80,7 +80,7 @@ namespace aiko
                 continue;
             }
 
-            AikoPtr<LightComponent> cmp = obj->getComponent<LightComponent>();
+            const LightComponent* cmp = obj->getComponent<LightComponent>();
 
             const LightData ld =
             {

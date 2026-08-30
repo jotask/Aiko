@@ -27,7 +27,7 @@ namespace sb
         };
         std::vector<LightInst> m_lights;
 
-        aiko::AikoPtr<aiko::ComputeShaderComponent> m_computeReadback;
+        aiko::ComputeShaderComponent* m_computeReadback = nullptr;
         bool m_computeReadbackPrinted = false;
 
         void initCompute();

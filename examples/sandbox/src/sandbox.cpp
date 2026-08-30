@@ -265,7 +265,7 @@ namespace sb
         m_go1->transform().rotation = {  angle, 0.0f, 0.0f };
         m_go2->transform().rotation = { -angle, 0.0f, 0.0f };
 
-        aiko::AikoPtr<aiko::SpriteComponent> cmp = m_texturePbo->getComponent<aiko::SpriteComponent>();
+        aiko::SpriteComponent* cmp = m_texturePbo->getComponent<aiko::SpriteComponent>();
 
         static auto lastTime = std::chrono::steady_clock::now();
         static double accumulatedTime = 0.0;

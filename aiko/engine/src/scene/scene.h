@@ -62,10 +62,10 @@ namespace aiko
                 continue;
             }
 
-            AikoPtr<T> component = object->getComponent<T>();
+            T* component = object->getComponent<T>();
             if (component != nullptr)
             {
-                result.push_back(component.get());
+                result.push_back(component);
             }
         }
 

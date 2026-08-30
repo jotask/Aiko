@@ -44,9 +44,9 @@ namespace aiko
                 continue;
             }
 
-            if (auto cmp = object->getComponent<ComputeShaderComponent>())
+            if (ComputeShaderComponent* cmp = object->getComponent<ComputeShaderComponent>())
             {
-                liveComponents.push_back(cmp.get());
+                liveComponents.push_back(cmp);
                 updateComponent(object, *cmp);
             }
         }
@@ -63,7 +63,7 @@ namespace aiko
             {
                 continue;
             }
-            if (auto cmp = object->getComponent<ComputeShaderComponent>())
+            if (ComputeShaderComponent* cmp = object->getComponent<ComputeShaderComponent>())
             {
                 renderComponent(object, *cmp);
             }

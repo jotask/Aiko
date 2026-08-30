@@ -19,8 +19,6 @@ namespace aiko
         MeshComponent();
         virtual ~MeshComponent() = default;
 
-        virtual void init() override;
-
         void load(string path);
         void load(MeshAsset mesh);
 
@@ -31,7 +29,8 @@ namespace aiko
 
         MaterialInstance& getMaterialInstance() { return m_materialInstance; }
         const MaterialInstance& getMaterialInstance() const { return m_materialInstance; }
-
+    protected:
+        virtual void init() override;
     private:
 
         bool resolveAssetBinding(AssetBindingContext& context) override;

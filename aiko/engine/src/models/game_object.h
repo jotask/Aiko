@@ -26,13 +26,13 @@ namespace aiko
         ~GameObject() = default;
 
         template<class T, typename... Args>
-        AikoPtr<T> addComponent(Args...);
+        T* addComponent(Args...);
 
         template<class T>
         bool hasComponent();
 
         template<class T>
-        AikoPtr<T> getComponent();
+        T* getComponent();
 
         template<class T>
         bool removeComponent();
@@ -56,7 +56,7 @@ namespace aiko
         uuid::Uuid m_uuid;
 
         string name;
-        vector<AikoPtr<Component>> m_components;
+        vector<AikoUPtr<Component>> m_components;
 
         void update();
         void render();
@@ -67,36 +67,38 @@ namespace aiko
     };
 
     template<class T, typename... Args>
-    AikoPtr<T> GameObject::addComponent(Args... args)
+    T* GameObject::addComponent(Args... args)
     {
         if (hasComponent<T>() == true)
         {
             logger::Log::error("Couldn't add Component");
             return  nullptr;
         }
-        m_components.emplace_back(std::make_shared<T>(args...));
-        AikoPtr<Component> back = m_components.back();
-        back->setup(this);
-        back->init();
-        return std::dynamic_pointer_cast<T>(back);
+        auto component = std::make_unique<T>(args...);
+        T* result = component.get();
+        Component* baseComponent = component.get();
+        m_components.emplace_back(std::move(component));
+        baseComponent->setup(this);
+        baseComponent->init();
+        return result;
     }
 
     template<class T>
     bool GameObject::hasComponent()
     {
-        auto it = std::find_if(m_components.begin(), m_components.end(), [](const aiko::AikoPtr<Component>& component) {
+        auto it = std::find_if(m_components.begin(), m_components.end(), [](const AikoUPtr<Component>& component) {
             return dynamic_cast<T*>(component.get()) != nullptr;
         });
         return it != m_components.end();
     }
 
     template<class T>
-    AikoPtr<T> GameObject::getComponent()
+    T* GameObject::getComponent()
     {
-        auto it = std::find_if(m_components.begin(), m_components.end(), [](const std::shared_ptr<Component>& component) {
+        auto it = std::find_if(m_components.begin(), m_components.end(), [](const AikoUPtr<Component>& component) {
             return dynamic_cast<T*>(component.get()) != nullptr;
         });
-        return (it != m_components.end()) ? std::dynamic_pointer_cast<T>(*it) : nullptr;
+        return (it != m_components.end()) ? dynamic_cast<T*>(it->get()) : nullptr;
     }
 
     template<class T>
