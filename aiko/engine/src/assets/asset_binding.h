@@ -24,6 +24,18 @@ namespace aiko
             return load(assetTypeOf<T>(), source);
         }
 
+        template<typename T>
+        void loadAsset(const AssetId& id)
+        {
+            loadAsset(assetTypeOf<T>(), id);
+        }
+
+        template<typename T>
+        bool isLoaded(const AssetId& id) const
+        {
+            return isLoaded(assetTypeOf<T>(), id);
+        }
+
         AssetId create(const MeshAsset& asset);
         AssetId create(const TextureAsset& asset);
         TextureAsset& getMutableTexture(const AssetId& id);
@@ -33,6 +45,8 @@ namespace aiko
         explicit AssetBindingContext(AssetSystem& assetSystem);
 
         AssetId load(AssetType type, string_view source);
+        void loadAsset(AssetType type, const AssetId& id);
+        bool isLoaded(AssetType type, const AssetId& id) const;
 
         AssetSystem* m_assetSystem = nullptr;
     };
