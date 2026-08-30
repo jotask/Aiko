@@ -127,6 +127,21 @@ namespace aiko
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Model, "Model asset id not registered");
 
         ModelAsset asset = AssetImporter::loadModel(record->source, this);
+
+        for (const ModelAsset::SubMesh& submesh : asset.submeshes)
+        {
+            AIKO_ASSERT(submesh.meshId != InvalidAssetId, "Model submesh has invalid mesh asset id");
+            loadMeshAsset(submesh.meshId);
+
+            AIKO_ASSERT(submesh.material.shaderId != InvalidAssetId, "Model submesh has invalid shader asset id");
+            loadShaderAsset(submesh.material.shaderId);
+
+            if (submesh.material.diffuseTextureId != InvalidAssetId)
+            {
+                loadTextureAsset(submesh.material.diffuseTextureId);
+            }
+        }
+
         m_modelAssets.emplace(id, std::move(asset));
     }
 
