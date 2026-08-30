@@ -66,6 +66,12 @@ namespace aiko
         void render();
         void dispose();
 
+        template<class T>
+        T* findComponent();
+
+        template<class T>
+        const T* findComponent() const;
+
         void markAssetBindingDirty();
 
     };
@@ -90,28 +96,19 @@ namespace aiko
     template<class T>
     bool GameObject::hasComponent() const
     {
-        auto it = std::find_if(m_components.begin(), m_components.end(), [](const AikoUPtr<Component>& component) {
-            return dynamic_cast<T*>(component.get()) != nullptr;
-        });
-        return it != m_components.end();
+        return findComponent<T>() != nullptr;
     }
 
     template<class T>
     T* GameObject::getComponent()
     {
-        auto it = std::find_if(m_components.begin(), m_components.end(), [](const AikoUPtr<Component>& component) {
-            return dynamic_cast<T*>(component.get()) != nullptr;
-        });
-        return (it != m_components.end()) ? dynamic_cast<T*>(it->get()) : nullptr;
+        return findComponent<T>();
     }
 
     template<class T>
     const T* GameObject::getComponent() const
     {
-        auto it = std::find_if(m_components.begin(), m_components.end(), [](const AikoUPtr<Component>& component) {
-            return dynamic_cast<const T*>(component.get()) != nullptr;
-        });
-        return (it != m_components.end()) ? dynamic_cast<const T*>(it->get()) : nullptr;
+        return findComponent<T>();
     }
 
     template<class T>
@@ -142,6 +139,27 @@ namespace aiko
             }
         }
         return false;
+    }
+
+    template<class T>
+    T* GameObject::findComponent()
+    {
+        auto it = std::find_if(m_components.begin(), m_components.end(),
+        [](const AikoUPtr<Component>& component)
+        {
+            return dynamic_cast<T*>(component.get()) != nullptr;
+        });
+        return (it != m_components.end()) ? dynamic_cast<T*>(it->get()) : nullptr;
+    }
+
+    template<class T>
+    const T* GameObject::findComponent() const
+    {
+        auto it = std::find_if(m_components.begin(), m_components.end(), [](const AikoUPtr<Component>& component)
+        {
+            return dynamic_cast<const T*>(component.get()) != nullptr;
+        });
+        return (it != m_components.end()) ? dynamic_cast<const T*>(it->get()) : nullptr;
     }
 
 }
