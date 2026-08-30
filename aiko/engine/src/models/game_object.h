@@ -13,7 +13,6 @@ namespace aiko
 {
 
     class SceneSystem;
-    class EntityRegistry;
     class Scene;
 
     class GameObject
@@ -50,8 +49,6 @@ namespace aiko
         const uuid::Uuid& uuid() const { return m_uuid; }
 
     private:
-
-        EntityRegistry* m_entityRegistry = nullptr;
 
         EntityId m_entity;
         uuid::Uuid m_uuid;

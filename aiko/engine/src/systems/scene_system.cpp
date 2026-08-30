@@ -75,7 +75,6 @@ namespace aiko
     AikoPtr<GameObject> SceneSystem::createGameObject(string name)
     {
         auto obj = std::make_shared<GameObject>();
-        obj->m_entityRegistry = &m_scene.registry();
         obj->m_entity = m_scene.registry().create();
         obj->setName(name);
         obj->addComponent<TransforComponent>();
