@@ -16,14 +16,9 @@ namespace aiko
             return false;
         }
 
-        if (m_activeCamera == obj)
+        auto it = std::find_if(m_objects.begin(), m_objects.end(), [obj](const AikoPtr<GameObject>& go)
         {
-            m_activeCamera = nullptr;
-        }
-
-        auto it = std::find_if( m_objects.begin(), m_objects.end() , [obj](const AikoPtr<GameObject>& go)
-        {
-            return go != nullptr && ( go.get() == obj);
+            return go != nullptr && go.get() == obj;
         });
 
         if (it == m_objects.end())
@@ -38,14 +33,7 @@ namespace aiko
             m_activeCamera = nullptr;
         }
 
-        object->dispose();
-
-        if (m_registry.valid(object->m_entity))
-        {
-            m_registry.destroy(object->m_entity);
-        }
-
-        object->m_entity = {};
+        destroyObject(*object);
 
         m_objects.erase(it);
 
@@ -54,21 +42,12 @@ namespace aiko
 
     void Scene::clear()
     {
-        for (const auto& object: m_objects)
+        for (const auto& object : m_objects)
         {
-            if (object == nullptr)
+            if (object != nullptr)
             {
-                continue;
+                destroyObject(*object);
             }
-
-            object->dispose();
-
-            if (m_registry.valid(object->m_entity))
-            {
-                m_registry.destroy(object->m_entity);
-            }
-
-            object->m_entity = {};
         }
 
         m_objects.clear();
@@ -102,5 +81,17 @@ namespace aiko
         {
             m_activeCamera = obj;
         }
+    }
+
+    void Scene::destroyObject(GameObject& object)
+    {
+        object.dispose();
+
+        if (m_registry.valid(object.m_entity))
+        {
+            m_registry.destroy(object.m_entity);
+        }
+
+        object.m_entity = {};
     }
 }

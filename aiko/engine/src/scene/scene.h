@@ -37,6 +37,9 @@ namespace aiko
 
         vector<AikoPtr<GameObject>> m_objects;
         GameObject* m_activeCamera = nullptr;
+
+        void destroyObject(GameObject& object);
+
     };
 
     template<class T>
