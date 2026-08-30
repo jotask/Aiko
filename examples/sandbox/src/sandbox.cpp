@@ -1,24 +1,23 @@
 #include "sandbox.h"
 
-#include <cmath>
-#include <chrono>
-
-#include <application/application.h>
-
-#include "models/game_object.h"
 #include "components/camera_component.h"
-#include "components/mesh_component.h"
+#include "components/compute_shader_component.h"
 #include "components/light_component.h"
-#include "components/sprite_component.h"
+#include "components/mesh_component.h"
 #include "components/model_component.h"
 #include "components/particle_emitter_component.h"
+#include "components/sprite_component.h"
 #include "models/camera.h"
+#include "models/game_object.h"
+#include "models/mesh_factory.h"
 #include "types/color.h"
 
-#include <aiko_includes.h>
+#include <application/application.h>
 #include <core/random.h>
 
-#include "components/compute_shader_component.h"
+#include <aiko_includes.h>
+#include <chrono>
+#include <cmath>
 
 namespace sb
 {
@@ -166,6 +165,9 @@ namespace sb
 
     void Sandbox::initComponents()
     {
+
+        const aiko::MeshAsset defaultCube = aiko::mesh::factory::generateCube();
+
         constexpr float zAxis = 2.5f;
 
         auto root = app->Instantiate("ComponentsTests");
@@ -175,14 +177,14 @@ namespace sb
         m_go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
-        mesh1->loadDebugCube();
+        mesh1->load(defaultCube);
 
         m_go2 = app->Instantiate(root, "Cube2");
         m_go2->transform().position = { -1.0f, 0.0f, zAxis };
         m_go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
-        mesh2->loadDebugCube();
+        mesh2->load(defaultCube);
 
         m_texture = app->Instantiate(root, "Texture");
         m_texture->transform().position = { 0.0f, -0.55f, zAxis };

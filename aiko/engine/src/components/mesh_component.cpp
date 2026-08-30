@@ -1,6 +1,5 @@
 #include "mesh_component.h"
 
-#include "models/mesh_factory.h"
 #include "assets/types/shader_asset.h"
 
 namespace aiko
@@ -18,14 +17,15 @@ namespace aiko
 
     void MeshComponent::load(string path)
     {
+        m_pendingMesh.reset();
         m_mesh.request(std::move(path));
-        m_primitiveRequest = PrimitiveRequest::None;
         markAssetBindingDirty();
     }
 
-    void MeshComponent::loadDebugCube()
+    void MeshComponent::load(MeshAsset mesh)
     {
-        m_primitiveRequest = PrimitiveRequest::Cube;
+        m_mesh.reset();
+        m_pendingMesh = std::move(mesh);
         markAssetBindingDirty();
     }
 
@@ -47,14 +47,14 @@ namespace aiko
             }
         }
 
-        if (m_primitiveRequest == PrimitiveRequest::Cube)
+        if (m_pendingMesh.has_value())
         {
-            const AssetId meshId = context.create(mesh::factory::generateCube());
+            const AssetId id = context.create(*m_pendingMesh);
 
-            m_mesh.set(meshId);
+            m_mesh.set(id);
             m_material.shaderId = context.load<ShaderAsset>("model");
 
-            m_primitiveRequest = PrimitiveRequest::None;
+            m_pendingMesh.reset();
         }
     }
 

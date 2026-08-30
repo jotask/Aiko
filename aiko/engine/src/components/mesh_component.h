@@ -7,6 +7,8 @@
 #include "assets/types/mesh_asset.h"
 #include "assets/asset_binding.h"
 
+#include <optional>
+
 namespace aiko
 {
 
@@ -20,7 +22,7 @@ namespace aiko
         virtual void init() override;
 
         void load(string path);
-        void loadDebugCube();
+        void load(MeshAsset mesh);
 
         const AssetId& getMeshId() const { return m_mesh.id(); }
 
@@ -32,19 +34,12 @@ namespace aiko
 
     private:
 
-        enum class PrimitiveRequest
-        {
-            None,
-            Cube
-        };
-
         void resolveAssetBinding(AssetBindingContext& context) override;
 
         AssetReference<MeshAsset> m_mesh;
-        PrimitiveRequest m_primitiveRequest = PrimitiveRequest::None;
-
         MaterialAsset   m_material;
         MaterialInstance m_materialInstance;
+        std::optional<MeshAsset> m_pendingMesh;
 
     };
 

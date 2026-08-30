@@ -91,6 +91,13 @@ namespace aiko
             m_state = AssetReferenceState::Failed;
         }
 
+        void reset()
+        {
+            m_source.clear();
+            m_id = InvalidAssetId;
+            m_state = AssetReferenceState::Empty;
+        }
+
     private:
 
         string m_source;
