@@ -36,8 +36,8 @@ namespace sb
     void Sandbox::init()
     {
 
-        auto camera = app->Instantiate("Camera");
-        auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
+        auto* camera = app->Instantiate("Camera");
+        auto* cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
 		camera->transform().position = { 0.0f, 1.0f, 2.5f };
 		cam->getCamera().position = camera->transform().position;
 

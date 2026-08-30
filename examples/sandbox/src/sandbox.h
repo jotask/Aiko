@@ -14,16 +14,16 @@ namespace sb
         virtual void render() override;
     private:
 
-        aiko::GameObject* m_go1;
-        aiko::GameObject* m_go2;
-        aiko::GameObject* m_texture;
-        aiko::GameObject* m_texturePbo;
+        aiko::GameObject* m_go1 = nullptr;
+        aiko::GameObject* m_go2 = nullptr;
+        aiko::GameObject* m_texture = nullptr;
+        aiko::GameObject* m_texturePbo = nullptr;
 
         struct LightInst
         {
-            aiko::GameObject* obj;
-            aiko::AikoPtr<aiko::LightComponent> cmp;
-            float angle;
+            aiko::GameObject* obj = nullptr;
+            aiko::LightComponent* cmp = nullptr;
+            float angle = 0.0f;
         };
         std::vector<LightInst> m_lights;
 
@@ -43,7 +43,6 @@ namespace sb
         void renderLights();
 
         void updateCompute();
-        bool validateComputeBuffer( const aiko::ComputeShaderComponent& component, uint32_t elementCount) const;
 
     };
 
