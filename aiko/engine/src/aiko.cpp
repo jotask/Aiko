@@ -18,6 +18,7 @@
 // Systems
 #include "modules/assets_manager_module.h"
 #include "systems/asset_system.h"
+#include "systems/camera_system.h"
 #include "systems/compute_system.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
@@ -88,6 +89,7 @@ namespace aiko
         registerSystem<AssetSystem>();
         registerSystem<ComputeSystem>();
         registerSystem<InputSystem>();
+        registerSystem<CameraSystem>();
         registerSystem<PhysicsSystem>();
         registerSystem<ParticleSystem>();
 

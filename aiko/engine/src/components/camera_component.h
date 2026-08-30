@@ -12,9 +12,8 @@ namespace aiko
 {
     
     class Camera;
-    class InputSystem;
     
-    class CameraComponent : public Component, public IUpdate
+    class CameraComponent : public Component
     {
     public:
         CameraComponent();
@@ -26,8 +25,6 @@ namespace aiko
     
         camera::CameraController getCameraController() const;
         void setCameraController(camera::CameraController);
-
-        virtual void update() override;
 
         float& radius() { return m_radius; }
         float& speed() { return m_speed; }
@@ -42,7 +39,6 @@ namespace aiko
     
     private:
 
-        InputSystem* m_inputSystem;
         Camera::CameraType m_type;
 
         bool isMainCamera = true;
