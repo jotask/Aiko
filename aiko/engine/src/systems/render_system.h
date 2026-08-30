@@ -20,7 +20,7 @@ namespace aiko
 
     class SceneSystem;
     class RenderModule;
-    class AssetsManagerModule;
+    class AssetSystem;
 
     class RenderSystem : public BaseSystem
     {
@@ -64,9 +64,9 @@ namespace aiko
 
     private:
 
-        AssetsManagerModule* m_assetManagerModule;
         RenderModule* m_renderModule;
         SceneSystem* m_sceneSystem;
+        AssetSystem* m_assetSystem;
 
     // ---------------------------------------------------
     //                   PRIMITIVES

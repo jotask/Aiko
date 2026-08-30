@@ -3,7 +3,7 @@
 #include <aiko_types.h>
 
 #include "modules/module_connector.h"
-#include "modules/assets_manager_module.h"
+#include "systems/asset_system.h"
 #include "modules/render_module.h"
 #include "systems/system_connector.h"
 #include "systems/scene_system.h"
@@ -21,7 +21,8 @@ namespace aiko
 
     void RenderSystem::init()
     {
-        m_materialPrimitives.m_shaderId = m_assetManagerModule->getManager()->registerShader("model");
+        m_materialPrimitives.m_shaderId = m_assetSystem->registerAsset<ShaderAsset>("model");
+        m_assetSystem->loadAsset<ShaderAsset>(m_materialPrimitives.m_shaderId);
         m_materialPrimitives.m_lit = false;
         m_materialPrimitives.m_useVertexColor = false;
         m_materialPrimitives.m_baseColor = MAGENTA;
@@ -46,7 +47,7 @@ namespace aiko
     void RenderSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule)
-        BIND_MODULE_REQUIRED(AssetsManagerModule, moduleConnector, m_assetManagerModule)
+        BIND_SYSTEM_REQUIRED(AssetSystem, systemConnector, m_assetSystem)
         BIND_SYSTEM_REQUIRED(SceneSystem, systemConnector, m_sceneSystem)
     }
 
