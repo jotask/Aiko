@@ -6,10 +6,6 @@ namespace aiko
 {
     class AssetSystem;
     class SceneSystem;
-    class MeshComponent;
-    class ModelComponent;
-    class ComputeShaderComponent;
-    class SpriteComponent;
 
     class AssetBindingSystem : public BaseSystem
     {

@@ -1,20 +1,10 @@
 #include "asset_binding_system.h"
 
-#include "assets/types/mesh_asset.h"
-
-#include "components/model_component.h"
-
 #include "scene/scene.h"
-
 #include "systems/asset_system.h"
 #include "systems/scene_system.h"
 #include "systems/system_connector.h"
 #include "components/compute_shader_component.h"
-#include "assets/types/shader_asset.h"
-#include "components/mesh_component.h"
-#include "models/mesh_factory.h"
-#include "components/sprite_component.h"
-#include "assets/types/texture_asset.h"
 #include "assets/asset_binding.h"
 
 namespace aiko
