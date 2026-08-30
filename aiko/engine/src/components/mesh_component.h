@@ -34,7 +34,7 @@ namespace aiko
 
     private:
 
-        void resolveAssetBinding(AssetBindingContext& context) override;
+        bool resolveAssetBinding(AssetBindingContext& context) override;
 
         AssetReference<MeshAsset> m_mesh;
         MaterialAsset   m_material;

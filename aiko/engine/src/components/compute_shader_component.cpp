@@ -48,11 +48,11 @@ namespace aiko
         return value;
     }
 
-    void ComputeShaderComponent::resolveAssetBinding(AssetBindingContext& context)
+    bool ComputeShaderComponent::resolveAssetBinding(AssetBindingContext& context)
     {
         if (m_shader.isRequested() == false)
         {
-            return;
+            return false;
         }
 
         m_shader.markLoading();
@@ -62,9 +62,10 @@ namespace aiko
         if (id == InvalidAssetId)
         {
             m_shader.fail();
-            return;
+            return false;
         }
 
         m_shader.resolve(id);
+        return false;
     }
 }

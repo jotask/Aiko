@@ -15,11 +15,11 @@ namespace aiko
         markAssetBindingDirty();
     }
 
-    void ModelComponent::resolveAssetBinding(AssetBindingContext& context)
+    bool ModelComponent::resolveAssetBinding(AssetBindingContext& context)
     {
         if (m_model.isRequested() == false)
         {
-            return;
+            return false;
         }
 
         m_model.markLoading();
@@ -29,10 +29,11 @@ namespace aiko
         if (id == InvalidAssetId)
         {
             m_model.fail();
-            return;
+            return false;
         }
 
         m_model.resolve(id);
+        return false;
     }
 
 }

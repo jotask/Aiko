@@ -85,7 +85,7 @@ namespace aiko
         is_dirty = true;
     }
 
-    void SpriteComponent::resolveAssetBinding(AssetBindingContext& context)
+    bool SpriteComponent::resolveAssetBinding(AssetBindingContext& context)
     {
         if (m_texture.isRequested())
         {
@@ -137,7 +137,7 @@ namespace aiko
             if (textureId == InvalidAssetId)
             {
                 m_refreshRequested = false;
-                return;
+                return false;
             }
 
             TextureAsset& textureAsset = context.getMutableTexture(textureId);
@@ -150,7 +150,9 @@ namespace aiko
 
             is_dirty = false;
             m_refreshRequested = false;
+
         }
+        return false;
     }
 
 }

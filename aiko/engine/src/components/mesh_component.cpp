@@ -29,7 +29,7 @@ namespace aiko
         markAssetBindingDirty();
     }
 
-    void MeshComponent::resolveAssetBinding(AssetBindingContext& context)
+    bool MeshComponent::resolveAssetBinding(AssetBindingContext& context)
     {
         if (m_mesh.isRequested())
         {
@@ -56,6 +56,7 @@ namespace aiko
 
             m_pendingMesh.reset();
         }
+        return false;
     }
 
 }

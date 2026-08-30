@@ -45,6 +45,6 @@ namespace aiko
         virtual ~IAssetBinding() = default;
 
     private:
-        virtual void resolveAssetBinding(AssetBindingContext& context) = 0;
+        virtual bool resolveAssetBinding(AssetBindingContext& context) = 0;
     };
 }

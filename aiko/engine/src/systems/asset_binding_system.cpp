@@ -33,7 +33,10 @@ namespace aiko
             {
                 if (auto* binding = dynamic_cast<IAssetBinding*>(component))
                 {
-                    binding->resolveAssetBinding(context);
+                    if (binding->resolveAssetBinding(context))
+                    {
+                        scene.markAssetBindingDirty(*object);
+                    }
                 }
             }
         }
