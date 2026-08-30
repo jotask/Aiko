@@ -27,7 +27,7 @@ namespace aiko
 
         virtual void update() override;
 
-        const AssetId& getShaderId() const { return m_shader.id(); }
+        const AssetId& getShaderId() const;
 
         void setElementCount(uint32_t count) { m_elementCount = count; }
         uint32_t getElementCount() const { return m_elementCount; }

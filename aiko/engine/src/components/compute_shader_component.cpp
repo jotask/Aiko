@@ -18,6 +18,11 @@ namespace aiko
 
     }
 
+    const AssetId& ComputeShaderComponent::getShaderId() const
+    {
+        return m_shader.isReady() ? m_shader.id() : InvalidAssetId;
+    }
+
     void ComputeShaderComponent::requestReadback()
     {
         m_requestReadback = true;
@@ -50,21 +55,33 @@ namespace aiko
 
     bool ComputeShaderComponent::resolveAssetBinding(AssetBindingContext& context)
     {
-        if (m_shader.isRequested() == false)
+        if (m_shader.isRequested())
         {
-            return false;
+            const AssetId id = context.load<ComputeShaderAsset>(m_shader.source());
+
+            if (id == InvalidAssetId)
+            {
+                m_shader.fail();
+                return false;
+            }
+
+            m_shader.markLoading(id);
+            context.loadAsset<ComputeShaderAsset>(id);
+
+            return true;
         }
 
-        const AssetId id = context.load<ComputeShaderAsset>(m_shader.source());
-
-        if (id == InvalidAssetId)
+        if (m_shader.isLoading())
         {
-            m_shader.fail();
-            return false;
-        }
+            const AssetId& id = m_shader.id();
 
-        m_shader.markLoading(id);
-        m_shader.resolve(id);
+            if (context.isLoaded<ComputeShaderAsset>(id) == false)
+            {
+                return true;
+            }
+
+            m_shader.resolve(id);
+        }
 
         return false;
     }
