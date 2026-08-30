@@ -3,10 +3,9 @@
 namespace aiko
 {
     
-    void Component::setup(GameObject* obj, ComponentContext* context)
+    void Component::setup(GameObject* obj)
     {
         gameobject = obj;
-        m_context = context;
     }
 
 }

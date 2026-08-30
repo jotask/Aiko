@@ -7,7 +7,6 @@
 #include "aiko_types.h"
 #include "component.h"
 #include "components/transform_component.h"
-#include "component_context.h"
 #include "models/entity_id.h"
 
 namespace aiko
@@ -50,7 +49,6 @@ namespace aiko
 
     private:
 
-        ComponentContext* m_componentContext = nullptr;
         EntityRegistry* m_entityRegistry = nullptr;
 
         EntityId m_entity;
@@ -75,9 +73,7 @@ namespace aiko
         }
         m_components.emplace_back(std::make_shared<T>(args...));
         AikoPtr<Component> back = m_components.back();
-        AIKO_ASSERT(m_componentContext != nullptr, "GameObject component context not initialized");
-
-        back->setup(this, m_componentContext);
+        back->setup(this);
         back->init();
         return std::dynamic_pointer_cast<T>(back);
     }

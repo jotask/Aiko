@@ -1,13 +1,11 @@
 #pragma once
 
 #include "systems/base_system.h"
-#include "types/scene_types.h"
 
 #include "scene/scene_view_builder.h"
 
 #include "models/game_object.h"
 #include "scene/scene.h"
-#include "../models/component_context.h"
 
 #include <models/camera.h>
 
@@ -17,8 +15,6 @@ namespace aiko
     class RenderModule;
     class RenderSystem;
     class GameObject;
-    class AssetSystem;
-    class InputSystem;
     
     class SceneSystem : public BaseSystem
     {
@@ -52,10 +48,6 @@ namespace aiko
 
         RenderModule* m_renderModule;
         RenderSystem* m_renderSystem;
-        AssetSystem* m_assetSystem;
-        InputSystem* m_inputSystem;
-
-        ComponentContext m_componentContext;
 
         SceneViewBuilder m_sceneViewBuilder;
         Scene m_scene;
