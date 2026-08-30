@@ -10,7 +10,9 @@ namespace aiko
         {
             return;
         }
+        AIKO_ASSERT(obj->m_scene == nullptr, "GameObject is already attached to a scene");
         AIKO_ASSERT(obj->m_entity.valid() == false, "GameObject is already attached to a scene");
+        obj->m_scene = this;
         obj->m_entity = m_registry.create();
         m_objects.push_back(obj);
     }
@@ -92,12 +94,11 @@ namespace aiko
     void Scene::destroyObject(GameObject& object)
     {
         object.dispose();
-
         if (m_registry.valid(object.m_entity))
         {
             m_registry.destroy(object.m_entity);
         }
-
         object.m_entity = {};
+        object.m_scene = nullptr;
     }
 }

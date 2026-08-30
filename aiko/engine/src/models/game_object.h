@@ -50,6 +50,7 @@ namespace aiko
 
     private:
 
+        Scene* m_scene = nullptr;
         EntityId m_entity;
         uuid::Uuid m_uuid;
 
