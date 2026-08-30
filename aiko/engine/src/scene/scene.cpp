@@ -113,6 +113,9 @@ namespace aiko
     void Scene::destroyObject(GameObject& object)
     {
         std::erase(m_assetBindingDirtyObjects, &object);
+        Transform& transform = object.transform();
+        transform.clearChildren();
+        transform.clearParent();
         object.dispose();
         if (m_registry.valid(object.m_entity))
         {

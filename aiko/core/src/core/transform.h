@@ -41,6 +41,14 @@ namespace aiko
             setParent(nullptr);
         }
 
+        void clearChildren()
+        {
+            while (childs.empty() == false)
+            {
+                childs.back()->clearParent();
+            }
+        }
+
         mat4 getLocalMatrix() const
         {
             const mat4 translationMatrix = math::translate(mat4(1.0f), position);
