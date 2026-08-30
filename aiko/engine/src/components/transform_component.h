@@ -13,10 +13,6 @@ namespace aiko
     public:
         TransforComponent();
         virtual ~TransforComponent() = default;
-
-        TransforComponent* parent;
-        vector<TransforComponent*> childs;
-
         Transform transform;
 
     };

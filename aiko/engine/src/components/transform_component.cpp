@@ -5,7 +5,6 @@ namespace aiko
     
     TransforComponent::TransforComponent()
         : Component("Transform")
-        , parent(nullptr)
     {
     
     }
