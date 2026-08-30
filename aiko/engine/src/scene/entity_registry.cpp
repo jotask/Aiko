@@ -1,7 +1,5 @@
 #include "entity_registry.h"
 
-#include "internal/entity_registry_access.h"
-
 #include <entt/entt.hpp>
 
 namespace aiko
@@ -46,16 +44,6 @@ namespace aiko
         }
 
         return m_impl->registry.valid(static_cast<entt::entity>(entity.value));
-    }
-
-    entt::registry& EntityRegistryAccess::get(EntityRegistry& registry)
-    {
-        return registry.m_impl->registry;
-    }
-
-    const entt::registry& EntityRegistryAccess::get(const EntityRegistry& registry)
-    {
-        return registry.m_impl->registry;
     }
 
 }
