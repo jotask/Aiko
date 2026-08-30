@@ -3,11 +3,10 @@
 #include <aiko_types.h>
 
 #include "scene/entity_registry.h"
+#include "models/game_object.h"
 
 namespace aiko
 {
-
-    class GameObject;
 
     class Scene
     {
@@ -30,11 +29,36 @@ namespace aiko
         EntityRegistry& registry() { return m_registry; }
         const EntityRegistry& registry() const { return m_registry; }
 
+        template<class T>
+        vector<T*> components();
+
     private:
         EntityRegistry m_registry;
 
         vector<AikoPtr<GameObject>> m_objects;
         GameObject* m_activeCamera = nullptr;
     };
+
+    template<class T>
+    vector<T*> Scene::components()
+    {
+        vector<T*> result;
+
+        for (const auto& object : m_objects)
+        {
+            if (object == nullptr)
+            {
+                continue;
+            }
+
+            AikoPtr<T> component = object->getComponent<T>();
+            if (component != nullptr)
+            {
+                result.push_back(component.get());
+            }
+        }
+
+        return result;
+    }
 
 }
