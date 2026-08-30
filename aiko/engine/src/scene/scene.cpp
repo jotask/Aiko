@@ -6,6 +6,12 @@ namespace aiko
 {
     void Scene::add(const AikoPtr<GameObject>& obj)
     {
+        if (obj == nullptr)
+        {
+            return;
+        }
+        AIKO_ASSERT(obj->m_entity.valid() == false, "GameObject is already attached to a scene");
+        obj->m_entity = m_registry.create();
         m_objects.push_back(obj);
     }
 
