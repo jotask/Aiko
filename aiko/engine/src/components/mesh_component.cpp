@@ -29,20 +29,39 @@ namespace aiko
         markAssetBindingDirty();
     }
 
+    const AssetId& MeshComponent::getMeshId() const
+    {
+        return m_mesh.isReady() ? m_mesh.id() : InvalidAssetId;
+    }
+
     bool MeshComponent::resolveAssetBinding(AssetBindingContext& context)
     {
         if (m_mesh.isRequested())
         {
             const AssetId id = context.load<MeshAsset>(m_mesh.source());
+
             if (id == InvalidAssetId)
             {
                 m_mesh.fail();
+                return false;
             }
-            else
+
+            m_mesh.markLoading(id);
+            context.loadAsset<MeshAsset>(id);
+
+            return true;
+        }
+
+        if (m_mesh.isLoading())
+        {
+            const AssetId& id = m_mesh.id();
+
+            if (context.isLoaded<MeshAsset>(id) == false)
             {
-                m_mesh.markLoading(id);
-                m_mesh.resolve(id);
+                return true;
             }
+
+            m_mesh.resolve(id);
         }
 
         if (m_pendingMesh.has_value())
