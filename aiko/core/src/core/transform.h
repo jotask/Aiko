@@ -1,5 +1,6 @@
 #pragma once
 
+#include "aiko_types.h"
 #include "math/math.h"
 
 #include <algorithm>
@@ -17,9 +18,16 @@ namespace aiko
 
         void setParent(Transform* newParent)
         {
+            AIKO_ASSERT(newParent != this, "Transform cannot be parented to itself");
+
             if (newParent == parent)
             {
                 return;
+            }
+
+            for (Transform* ancestor = newParent; ancestor != nullptr; ancestor = ancestor->parent)
+            {
+                AIKO_ASSERT(ancestor != this, "Transform hierarchy cannot contain cycles");
             }
 
             if (parent != nullptr)
