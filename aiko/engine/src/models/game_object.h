@@ -1,6 +1,8 @@
 #pragma once
 
 #include <functional>
+#include <utility>
+#include <type_traits>
 #include <algorithm>
 
 #include "core/uuid.h"
@@ -26,7 +28,7 @@ namespace aiko
         ~GameObject() = default;
 
         template<class T, typename... Args>
-        T* addComponent(Args...);
+        T* addComponent(Args&&...);
 
         template<class T>
         bool hasComponent() const;
@@ -77,14 +79,15 @@ namespace aiko
     };
 
     template<class T, typename... Args>
-    T* GameObject::addComponent(Args... args)
+    T* GameObject::addComponent(Args&&... args)
     {
+        static_assert(std::is_base_of_v<Component, T>, "GameObject::addComponent requires a Component type");
         if (hasComponent<T>() == true)
         {
             logger::Log::error("Couldn't add Component");
             return  nullptr;
         }
-        auto component = std::make_unique<T>(args...);
+        auto component = std::make_unique<T>(std::forward<Args>(args)...);
         T* result = component.get();
         Component* baseComponent = component.get();
         m_components.emplace_back(std::move(component));
@@ -144,8 +147,7 @@ namespace aiko
     template<class T>
     T* GameObject::findComponent()
     {
-        auto it = std::find_if(m_components.begin(), m_components.end(),
-        [](const AikoUPtr<Component>& component)
+        auto it = std::find_if(m_components.begin(), m_components.end(), [](const AikoUPtr<Component>& component)
         {
             return dynamic_cast<T*>(component.get()) != nullptr;
         });
