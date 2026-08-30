@@ -9,9 +9,7 @@ namespace aiko
 {
     struct Transform
     {
-        Transform* parent = nullptr;
-        vector<Transform*> childs;
-
+    public:
         vec3 position = {0.0f};
         vec3 rotation = {0.0f};
         vec3 scale = {1.0f};
@@ -20,27 +18,27 @@ namespace aiko
         {
             AIKO_ASSERT(newParent != this, "Transform cannot be parented to itself");
 
-            if (newParent == parent)
+            if (newParent == m_parent)
             {
                 return;
             }
 
-            for (Transform* ancestor = newParent; ancestor != nullptr; ancestor = ancestor->parent)
+            for (Transform* ancestor = newParent; ancestor != nullptr; ancestor = ancestor->m_parent)
             {
                 AIKO_ASSERT(ancestor != this, "Transform hierarchy cannot contain cycles");
             }
 
-            if (parent != nullptr)
+            if (m_parent != nullptr)
             {
-                auto& siblings = parent->childs;
+                auto& siblings = m_parent->m_children;
                 siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
             }
 
-            parent = newParent;
+            m_parent = newParent;
 
-            if (parent != nullptr)
+            if (m_parent != nullptr)
             {
-                parent->childs.push_back(this);
+                m_parent->m_children.push_back(this);
             }
         }
 
@@ -51,10 +49,20 @@ namespace aiko
 
         void clearChildren()
         {
-            while (childs.empty() == false)
+            while (m_children.empty() == false)
             {
-                childs.back()->clearParent();
+                m_children.back()->clearParent();
             }
+        }
+
+        Transform* getParent() const
+        {
+            return m_parent;
+        }
+
+        const vector<Transform*>& getChildren() const
+        {
+            return m_children;
         }
 
         mat4 getLocalMatrix() const
@@ -71,12 +79,16 @@ namespace aiko
         mat4 getWorldMatrix() const
         {
             const mat4 localMatrix = getLocalMatrix();
-            if (parent != nullptr)
+            if (m_parent != nullptr)
             {
-                return parent->getWorldMatrix() * localMatrix;
+                return m_parent->getWorldMatrix() * localMatrix;
             }
             return localMatrix;
         }
+
+    private:
+        Transform* m_parent = nullptr;
+        vector<Transform*> m_children;
 
     };
 }
