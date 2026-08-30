@@ -14,6 +14,7 @@ namespace aiko
 {
 
     class SceneSystem;
+    class EntityRegistry;
 
     class GameObject
     {
@@ -50,6 +51,7 @@ namespace aiko
     private:
 
         ComponentContext* m_componentContext = nullptr;
+        EntityRegistry* m_entityRegistry = nullptr;
 
         EntityId m_entity;
         uuid::Uuid m_uuid;
