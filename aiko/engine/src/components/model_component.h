@@ -19,7 +19,7 @@ namespace aiko
 
         void load(string path);
 
-        const AssetId& getModelId() const { return m_model.id(); }
+        const AssetId& getModelId() const;
 
         MaterialInstance& getMaterialInstance() { return m_materialInstance; }
         const MaterialInstance& getMaterialInstance() const { return m_materialInstance; }

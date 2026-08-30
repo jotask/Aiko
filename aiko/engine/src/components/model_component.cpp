@@ -15,23 +15,40 @@ namespace aiko
         markAssetBindingDirty();
     }
 
+    const AssetId& ModelComponent::getModelId() const
+    {
+        return m_model.isReady() ? m_model.id() : InvalidAssetId;
+    }
+
     bool ModelComponent::resolveAssetBinding(AssetBindingContext& context)
     {
-        if (m_model.isRequested() == false)
+        if (m_model.isRequested())
         {
-            return false;
+            const AssetId id = context.load<ModelAsset>(m_model.source());
+
+            if (id == InvalidAssetId)
+            {
+                m_model.fail();
+                return false;
+            }
+
+            m_model.markLoading(id);
+            context.loadAsset<ModelAsset>(id);
+
+            return true;
         }
 
-        const AssetId id = context.load<ModelAsset>(m_model.source());
-
-        if (id == InvalidAssetId)
+        if (m_model.isLoading())
         {
-            m_model.fail();
-            return false;
-        }
+            const AssetId& id = m_model.id();
 
-        m_model.markLoading(id);
-        m_model.resolve(id);
+            if (context.isLoaded<ModelAsset>(id) == false)
+            {
+                return true;
+            }
+
+            m_model.resolve(id);
+        }
 
         return false;
     }
