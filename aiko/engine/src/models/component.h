@@ -3,11 +3,13 @@
 #include "aiko_types.h"
 #include "core/uuid.h"
 #include "component_context.h"
+#include "models/entity_id.h"
 
 namespace aiko
 {
     
     class GameObject;
+    class EntityRegistry;
     
     class Component
     {
@@ -43,12 +45,30 @@ namespace aiko
             AIKO_ASSERT(m_context != nullptr, "Component context not initialized");
             return *m_context;
         }
+        EntityRegistry& entityRegistry()
+        {
+            AIKO_ASSERT(m_entityRegistry != nullptr, "Component entity registry not initialized");
+            return *m_entityRegistry;
+        }
+
+        const EntityRegistry& entityRegistry() const
+        {
+            AIKO_ASSERT(m_entityRegistry != nullptr, "Component entity registry not initialized");
+            return *m_entityRegistry;
+        }
+
+        EntityId entity() const
+        {
+            return m_entity;
+        }
         virtual void init() { }
         virtual void dispose() { }
     private:
         const string m_name;
+        EntityRegistry* m_entityRegistry = nullptr;
+        EntityId m_entity;
         ComponentContext* m_context;
-        void setup(GameObject* obj, ComponentContext* context);
+        void setup(GameObject* obj, ComponentContext* context, EntityRegistry* entityRegistry, EntityId entity);
     };
 
 }

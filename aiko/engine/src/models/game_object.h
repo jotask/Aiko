@@ -76,7 +76,10 @@ namespace aiko
         m_components.emplace_back(std::make_shared<T>(args...));
         AikoPtr<Component> back = m_components.back();
         AIKO_ASSERT(m_componentContext != nullptr, "GameObject component context not initialized");
-        back->setup(this, m_componentContext);
+        AIKO_ASSERT(m_entityRegistry != nullptr, "GameObject entity registry not initialized");
+        AIKO_ASSERT(m_entity.valid(), "GameObject entity not initialized");
+
+        back->setup(this, m_componentContext, m_entityRegistry, m_entity);
         back->init();
         return std::dynamic_pointer_cast<T>(back);
     }
