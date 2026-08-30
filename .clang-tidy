@@ -1,19 +1,23 @@
 Checks: >
   clang-analyzer-*,
-  cppcoreguidelines-*,
-  -cppcoreguidelines-explicit-virtual-functions,
-  modernize-*,
-  -modernize-use-override,
-  -modernize-use-trailing-return-type,
-  performance-*,
-  readability-*,
-  -readability-redundant-virtual,
-  -readability-uppercase-literal-suffix,
   bugprone-*,
+  performance-*,
   portability-*,
-  -portability-avoid-pragma-once,
-  misc-*,
-  readability-braces-around-statements
+
+  modernize-use-nullptr,
+  modernize-use-override,
+
+  readability-braces-around-statements,
+  readability-container-size-empty,
+  readability-duplicate-include,
+  readability-misleading-indentation,
+  readability-redundant-control-flow,
+  readability-redundant-declaration,
+  readability-redundant-string-cstr,
+
+  -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
+  -bugprone-unchecked-optional-access
 
 CheckOptions:
   - key: readability-braces-around-statements.ShortStatementLines

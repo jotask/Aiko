@@ -1,18 +1,28 @@
 ---
 Language: Cpp
 BasedOnStyle: LLVM
+
+# ----------------------------------------------------------------------
+# Indentation
+# ----------------------------------------------------------------------
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+ContinuationIndentWidth: 8
 AccessModifierOffset: -4
-AlignConsecutiveAssignments: true
-AlignConsecutiveDeclarations: false
-AlignOperands: true
-AlignTrailingComments: true
-AllowAllConstructorInitializersOnNextLine: false
-AllowShortBlocksOnASingleLine: false
-AllowShortCaseLabelsOnASingleLine: true
-AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: false
-AlwaysBreakAfterDefinitionReturnType: false
-AlwaysBreakTemplateDeclarations: Yes
+
+NamespaceIndentation: All
+IndentCaseLabels: true
+IndentPPDirectives: BeforeHash
+
+# ----------------------------------------------------------------------
+# Braces
+# ----------------------------------------------------------------------
+
+BreakBeforeBraces: Custom
+
 BraceWrapping:
   AfterCaseLabel: true
   AfterClass: true
@@ -31,60 +41,77 @@ BraceWrapping:
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
-BreakBeforeBraces: Custom
-BreakConstructorInitializers: AfterColon
-BreakConstructorInitializersBeforeComma: false
-ColumnLimit: 120
-ConstructorInitializerAllOnOneLineOrOnePerLine: false
-ContinuationIndentWidth: 8
-FixNamespaceComments: false
+
+# ----------------------------------------------------------------------
+# Line wrapping
+# ----------------------------------------------------------------------
+
+ColumnLimit: 99999
+
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+
+AlwaysBreakTemplateDeclarations: Yes
+
+BreakConstructorInitializers: BeforeComma
+PackConstructorInitializers: Never
+
+# ----------------------------------------------------------------------
+# Alignment
+# ----------------------------------------------------------------------
+
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: false
+AlignOperands: Align
+
+PointerAlignment: Left
+ReferenceAlignment: Pointer
+
+# ----------------------------------------------------------------------
+# Spaces
+# ----------------------------------------------------------------------
+
+SpaceAfterCStyleCast: true
+SpaceAfterTemplateKeyword: false
+
+SpaceBeforeRangeBasedForLoopColon: false
+
+SpacesInAngles: false
+SpacesInParentheses: false
+SpacesInCStyleCastParentheses: false
+
+# ----------------------------------------------------------------------
+# Includes
+# ----------------------------------------------------------------------
 
 IncludeBlocks: Regroup
 
 IncludeCategories:
-  # 1) internal/private project headers
-  - Regex: '^"(.*(/internal/|/detail/|/src/).*)"'
+  # Current file's matching header is handled automatically by clang-format.
+
+  # Aiko project headers
+  - Regex: '^".*"$'
     Priority: 1
 
-  # 2) other project headers
-  - Regex: '^".*"'
+  # Third-party headers containing a path
+  - Regex: '^<[^>]+/[^>]+>$'
     Priority: 2
 
-  # 3) external / third-party headers (heuristic: angle includes with a path)
-  - Regex: '^<[^>]+/[^>]+>$'
-    Priority: 3
-
-  # 4) standard library / system headers
+  # Standard/system headers
   - Regex: '^<[^>]+>$'
-    Priority: 4
-
-  # fallback
-  - Regex: '.*'
-    Priority: 5
-
-IncludeIsMainRegex: '([-_](test|unittest))?$'
-IndentCaseLabels: true
-IndentPPDirectives: BeforeHash
-IndentWidth: 4
-InsertNewlineAtEOF: true
-MacroBlockBegin: ''
-MacroBlockEnd: ''
-NamespaceIndentation: All
-PointerAlignment: Left
+    Priority: 3
 
 SortIncludes:
   Enabled: true
   IgnoreCase: false
   IgnoreExtension: false
 
-SpaceAfterCStyleCast: true
-SpaceAfterTemplateKeyword: false
-SpaceBeforeRangeBasedForLoopColon: false
-SpaceInEmptyParentheses: false
-SpacesInAngles: false
-SpacesInConditionalStatement: false
-SpacesInCStyleCastParentheses: false
-SpacesInParentheses: false
-Standard: c++17
-TabWidth: 4
-...
+# ----------------------------------------------------------------------
+# Misc
+# ----------------------------------------------------------------------
+
+FixNamespaceComments: false
+InsertNewlineAtEOF: true
+Standard: c++20
