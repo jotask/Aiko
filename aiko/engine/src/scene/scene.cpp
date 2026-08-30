@@ -36,9 +36,25 @@ namespace aiko
 
     void Scene::clear()
     {
+        for (const auto& object : m_objects)
+        {
+            if (object == nullptr)
+            {
+                continue;
+            }
+
+            object->dispose();
+
+            if (m_registry.valid(object->m_entity))
+            {
+                m_registry.destroy(object->m_entity);
+            }
+
+            object->m_entity = {};
+        }
+
         m_objects.clear();
         m_activeCamera = nullptr;
-        // TODO Clear render system cache?
     }
 
     vector<GameObject*> Scene::getObjects() const

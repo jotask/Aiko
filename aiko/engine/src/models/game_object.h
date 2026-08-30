@@ -14,10 +14,12 @@ namespace aiko
 
     class SceneSystem;
     class EntityRegistry;
+    class Scene;
 
     class GameObject
     {
         friend class SceneSystem;
+        friend class Scene;
     public:
 
         GameObject() = default;
