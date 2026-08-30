@@ -1,9 +1,6 @@
 #include "player_controller_component.h"
 
 #include "models/game_object.h"
-#include "internal/entity_registry_access.h"
-#include "internal/physics_runtime_components.h"
-#include "scene/entity_registry.h"
 
 namespace aiko
 {
@@ -28,27 +25,11 @@ namespace aiko
 
         gameobject->transform().position = desc.physics.position;
 
-        entt::registry& registry = EntityRegistryAccess::get(entityRegistry());
-        const entt::entity enttEntity = EntityRegistryAccess::toEntity(entity());
-
-        if (!registry.all_of<PhysicsPlayerControllerRuntime>(enttEntity))
-        {
-            registry.emplace<PhysicsPlayerControllerRuntime>(
-                enttEntity,
-                this
-            );
-        }
     }
 
     void PlayerControllerComponent::dispose()
     {
         physicsShutdown();
-        entt::registry& registry = EntityRegistryAccess::get(entityRegistry());
-        const entt::entity enttEntity = EntityRegistryAccess::toEntity(entity());
-        if (registry.all_of<PhysicsPlayerControllerRuntime>(enttEntity))
-        {
-            registry.remove<PhysicsPlayerControllerRuntime>(enttEntity);
-        }
     }
 
     void PlayerControllerComponent::setMoveInput(const vec2& move)

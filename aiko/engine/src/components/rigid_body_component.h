@@ -35,6 +35,7 @@ namespace aiko
     private:
         physics::BodyDesc m_desc{};
         physics::BodyId m_bodyId = physics::InvalidBodyId;
+        physics::AikoPhysics* m_world = nullptr;
         bool m_initialized = false;
 
         PhysicsDebugProxy m_debug{};
