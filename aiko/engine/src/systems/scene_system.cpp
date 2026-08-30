@@ -84,8 +84,7 @@ namespace aiko
     AikoPtr<GameObject> SceneSystem::createGameObject(GameObject* parent, string name)
     {
         AikoPtr<GameObject> obj = createGameObject(name);
-        parent->transform().childs.push_back(&obj->transform());
-        obj->transform().parent = &parent->transform();
+        obj->transform().setParent(&parent->transform());
         return obj;
     }
 

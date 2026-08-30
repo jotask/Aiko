@@ -2,6 +2,8 @@
 
 #include "math/math.h"
 
+#include <algorithm>
+
 namespace aiko
 {
     struct Transform
@@ -12,6 +14,32 @@ namespace aiko
         vec3 position = {0.0f};
         vec3 rotation = {0.0f};
         vec3 scale = {1.0f};
+
+        void setParent(Transform* newParent)
+        {
+            if (newParent == parent)
+            {
+                return;
+            }
+
+            if (parent != nullptr)
+            {
+                auto& siblings = parent->childs;
+                siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
+            }
+
+            parent = newParent;
+
+            if (parent != nullptr)
+            {
+                parent->childs.push_back(this);
+            }
+        }
+
+        void clearParent()
+        {
+            setParent(nullptr);
+        }
 
         mat4 getLocalMatrix() const
         {
