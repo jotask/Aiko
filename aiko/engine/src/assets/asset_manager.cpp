@@ -10,14 +10,9 @@ namespace aiko
     {
         AIKO_ASSERT(id != InvalidAssetId, "Attempting to get texture from invalid UUID");
 
-        auto it = m_textureAssets.find(id);
-        if (it == m_textureAssets.end())
-        {
-            loadTextureAsset(id);
-            it = m_textureAssets.find(id);
-        }
+        const auto it = m_textureAssets.find(id);
 
-        AIKO_ASSERT(it != m_textureAssets.end(), "Texture asset failed to load");
+        AIKO_ASSERT(it != m_textureAssets.end(), "Texture asset requested before loading");
         return it->second;
 
     }
@@ -26,14 +21,9 @@ namespace aiko
     {
         AIKO_ASSERT(id != InvalidAssetId, "Attempting to get mesh from invalid UUID");
 
-        auto it = m_meshAssets.find(id);
-        if (it == m_meshAssets.end())
-        {
-            loadMeshAsset(id);
-            it = m_meshAssets.find(id);
-        }
+        const auto it = m_meshAssets.find(id);
 
-        AIKO_ASSERT(it != m_meshAssets.end(), "Mesh asset failed to load");
+        AIKO_ASSERT(it != m_meshAssets.end(), "Mesh asset requested before loading");
         return it->second;
     }
 
@@ -41,14 +31,9 @@ namespace aiko
     {
         AIKO_ASSERT(id != InvalidAssetId, "Attempting to get model from invalid UUID");
 
-        auto it = m_modelAssets.find(id);
-        if (it == m_modelAssets.end())
-        {
-            loadModelAsset(id);
-            it = m_modelAssets.find(id);
-        }
+        const auto it = m_modelAssets.find(id);
 
-        AIKO_ASSERT(it != m_modelAssets.end(), "Model asset failed to load");
+        AIKO_ASSERT(it != m_modelAssets.end(), "Model asset requested before loading");
         return it->second;
     }
 
@@ -56,14 +41,9 @@ namespace aiko
     {
         AIKO_ASSERT(id != InvalidAssetId, "Attempting to get shader from invalid UUID");
 
-        auto it = m_shaderAssets.find(id);
-        if (it == m_shaderAssets.end())
-        {
-            loadShaderAsset(id);
-            it = m_shaderAssets.find(id);
-        }
+        const auto it = m_shaderAssets.find(id);
 
-        AIKO_ASSERT(it != m_shaderAssets.end(), "Shader asset failed to load");
+        AIKO_ASSERT(it != m_shaderAssets.end(), "Shader asset requested before loading");
         return it->second;
     }
 
@@ -71,14 +51,9 @@ namespace aiko
     {
         AIKO_ASSERT(id != InvalidAssetId, "Attempting to get compute shader from invalid UUID");
 
-        auto it = m_computeShaderAssets.find(id);
-        if (it == m_computeShaderAssets.end())
-        {
-            loadComputeShaderAsset(id);
-            it = m_computeShaderAssets.find(id);
-        }
+        const auto it = m_computeShaderAssets.find(id);
 
-        AIKO_ASSERT(it != m_computeShaderAssets.end(), "Compute shader asset failed to load");
+        AIKO_ASSERT(it != m_computeShaderAssets.end(), "Compute shader asset requested before loading");
         return it->second;
     }
 
@@ -181,14 +156,9 @@ namespace aiko
     {
         AIKO_ASSERT(id != InvalidAssetId, "Attempting to get texture from invalid UUID");
 
-        auto it = m_textureAssets.find(id);
-        if (it == m_textureAssets.end())
-        {
-            loadTextureAsset(id);
-            it = m_textureAssets.find(id);
-        }
+        const auto it = m_textureAssets.find(id);
 
-        AIKO_ASSERT(it != m_textureAssets.end(), "Texture asset failed to load");
+        AIKO_ASSERT(it != m_textureAssets.end(), "Mutable texture asset requested before loading");
         return it->second;
     }
 

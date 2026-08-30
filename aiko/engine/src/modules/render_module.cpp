@@ -36,7 +36,12 @@ namespace aiko
 
     void RenderModule::init()
     {
-        m_renderer = std::make_unique<AikoRenderer>(*m_assetManager->getManager(), m_assetManager->getManager());
+        AssetManager* assetManager = m_assetManager->getManager();
+
+        const AssetId passthroughShaderId = assetManager->registerShader("passthrough");
+        assetManager->loadShaderAsset(passthroughShaderId);
+
+        m_renderer = std::make_unique<AikoRenderer>(*assetManager, passthroughShaderId);
         m_renderer->init();
     }
 

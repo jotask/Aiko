@@ -27,8 +27,8 @@ namespace aiko
 
     void ParticleSystem::init()
     {
-        m_initShaderId = m_assetSystem->registerAsset<ComputeShaderAsset>("particles_init");
-        m_updateShaderId = m_assetSystem->registerAsset<ComputeShaderAsset>("particles_update");
+        m_initShaderId = m_assetSystem->registerAndLoadAsset<ComputeShaderAsset>("particles_init");
+        m_updateShaderId = m_assetSystem->registerAndLoadAsset<ComputeShaderAsset>("particles_update");
     }
 
     void ParticleSystem::update()

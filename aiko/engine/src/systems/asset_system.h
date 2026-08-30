@@ -36,6 +36,14 @@ namespace aiko
         }
 
         template<typename T>
+        AssetId registerAndLoadAsset(const string& path)
+        {
+            const AssetId assetId = registerAsset<T>(path);
+            loadAsset<T>(assetId);
+            return assetId;
+        }
+
+        template<typename T>
         const T& get(const AssetId& id)
         {
             return get(id, std::type_identity<T>{});

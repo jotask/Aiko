@@ -37,7 +37,7 @@ namespace aiko
     
     public:
 
-        AikoRenderer(IAssetProvider& assets, IAssetRegistry* registry);
+        AikoRenderer(IAssetProvider& assets, const AssetId& passthroughShaderId);
         ~AikoRenderer() = default;
 
         void init();
@@ -210,7 +210,7 @@ namespace aiko
         std::unordered_map<TransientCacheKey, TransientGeometry, TransientCacheKeyHash> m_transientGeometryCache;
 
         AikoImgui m_imgui;
-        IAssetRegistry* m_assetRegistry = nullptr;
+        AssetId m_passthroughShaderId = InvalidAssetId;
 
         std::optional<ivec2> m_windowResizeRequest = std::nullopt;
 
