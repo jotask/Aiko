@@ -17,25 +17,11 @@ namespace aiko
     void AssetBindingSystem::update()
     {
         BaseSystem::update();
-
         AssetBindingContext context(*m_assetSystem);
-
         Scene& scene = m_sceneSystem->getScene();
-
-        for (GameObject* object : scene.consumeAssetBindingDirtyObjects())
+        for (IAssetBinding* binding : scene.components<IAssetBinding>())
         {
-            if (object == nullptr)
-            {
-                continue;
-            }
-
-            for (IAssetBinding* binding : object->getComponents<IAssetBinding>())
-            {
-                if (binding->resolveAssetBinding(context))
-                {
-                    scene.markAssetBindingDirty(*object);
-                }
-            }
+            binding->resolveAssetBinding(context);
         }
     }
 
