@@ -104,7 +104,6 @@ namespace aiko
     {
         static_assert(std::is_base_of_v<System, TSystem>, "System must derive from System");
         auto instance = std::make_unique<TSystem>(std::forward<Args>(args)...);
-        instance->aiko = this;
         TSystem* raw = instance.get();
         m_systems.emplace_back(std::move(instance));
         return raw;
