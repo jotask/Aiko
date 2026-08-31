@@ -32,6 +32,9 @@ namespace aiko
 
         template<class T>
         T* getSystem();
+
+        template<class T>
+        const T* getSystem() const;
     
         void close();
 
@@ -65,21 +68,35 @@ namespace aiko
     template<class T>
     inline T* Aiko::getSystem()
     {
-        // Check first if system exist
-        {
-            auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const aiko::AikoUPtr<System>& system) {
-                return dynamic_cast<T*>(system.get()) != nullptr;
-                });
-            bool hasSystem = it != m_systems.end();
-            if (hasSystem == false)
+        static_assert(std::is_base_of_v<System, T>, "Aiko::getSystem requires a System type");
+        auto found = std::find_if( m_systems.begin(), m_systems.end(),
+            [](const AikoUPtr<System>& system)
             {
-                throw std::exception();
-            }
-        }
-        auto found = std::find_if(m_systems.begin(), m_systems.end(), [](const aiko::AikoUPtr<System>& system) {
-            return dynamic_cast<T*>(system.get()) != nullptr;
+                return dynamic_cast<T*>(system.get()) != nullptr;
             });
-        return (found != m_systems.end()) ? dynamic_cast<T*>(found->get()) : nullptr;
+        if (found == m_systems.end())
+        {
+            AIKO_ASSERT(false, "System not found");
+            return nullptr;
+        }
+        return dynamic_cast<T*>(found->get());
+    }
+
+    template<class T>
+    inline const T* Aiko::getSystem() const
+    {
+        static_assert(std::is_base_of_v<System, T>, "Aiko::getSystem requires a System type");
+        auto found = std::find_if( m_systems.begin(), m_systems.end(),
+            [](const AikoUPtr<System>& system)
+            {
+                return dynamic_cast<const T*>(system.get()) != nullptr;
+            });
+        if (found == m_systems.end())
+        {
+            AIKO_ASSERT(false, "System not found");
+            return nullptr;
+        }
+        return dynamic_cast<const T*>(found->get());
     }
 
     template <typename TSystem, typename ... Args>
