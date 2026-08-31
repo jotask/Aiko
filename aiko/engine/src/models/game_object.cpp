@@ -34,6 +34,31 @@ namespace aiko
         }
     }
 
+    bool GameObject::removeComponent(Component* item)
+    {
+        if (item == nullptr)
+        {
+            return false;
+        }
+
+        if (dynamic_cast<TransforComponent*>(item) != nullptr)
+        {
+            return false;
+        }
+        auto it = std::find_if(m_components.begin(), m_components.end(), [item](const AikoUPtr<Component>& component)
+            {
+                return component.get() == item;
+            });
+
+        if (it == m_components.end())
+        {
+            return false;
+        }
+        (*it)->dispose();
+        m_components.erase(it);
+        return true;
+    }
+
     vector<Component*> GameObject::getComponents()
     {
         vector<Component*> components;

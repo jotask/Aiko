@@ -40,10 +40,15 @@ namespace aiko
         const T* getComponent() const;
 
         template<class T>
-        bool removeComponent();
+        vector<T*> getComponents();
 
         template<class T>
-        bool removeComponent(T*);
+        vector<const T*> getComponents() const;
+
+        template<class T>
+        size_t removeComponents();
+
+        bool removeComponent(Component*);
 
         string getName() const { return name; }
         void setName( string newName ) { name = newName; }
@@ -82,10 +87,13 @@ namespace aiko
     T* GameObject::addComponent(Args&&... args)
     {
         static_assert(std::is_base_of_v<Component, T>, "GameObject::addComponent requires a Component type");
-        if (hasComponent<T>() == true)
+        if constexpr (std::is_same_v<T, TransforComponent>)
         {
-            logger::Log::error("Couldn't add Component");
-            return  nullptr;
+            if (hasComponent<TransforComponent>())
+            {
+                logger::Log::error("Couldn't add another TransformComponent");
+                return nullptr;
+            }
         }
         auto component = std::make_unique<T>(std::forward<Args>(args)...);
         T* result = component.get();
@@ -115,41 +123,57 @@ namespace aiko
     }
 
     template<class T>
-    bool GameObject::removeComponent()
+    vector<T*> GameObject::getComponents()
     {
-        if constexpr (std::is_same_v<T, TransforComponent>)
-        {
-            return false;
-        }
+        vector<T*> components;
         for (size_t i = 0; i < m_components.size(); ++i)
         {
-            if (dynamic_cast<T*>(m_components[i].get()) != nullptr)
+            if (auto* component = dynamic_cast<T*>(m_components[i].get()))
             {
-                m_components[i]->dispose();
-                m_components.erase(m_components.begin() + i);
-                return true;
+                components.push_back(component);
             }
         }
-        return false;
+        return components;
     }
 
     template<class T>
-    bool GameObject::removeComponent(T* item)
+    vector<const T*> GameObject::getComponents() const
     {
-        if (dynamic_cast<TransforComponent*>(item) != nullptr)
-        {
-            return false;
-        }
+        vector<const T*> components;
         for (size_t i = 0; i < m_components.size(); ++i)
         {
-            if (m_components[i].get() == item)
+            if (auto* component = dynamic_cast<const T*>(m_components[i].get()))
             {
-                m_components[i]->dispose();
-                m_components.erase(m_components.begin() + i);
-                return true;
+                components.push_back(component);
             }
         }
-        return false;
+        return components;
+    }
+
+    template<class T>
+    size_t GameObject::removeComponents()
+    {
+        if constexpr (std::is_same_v<T, TransforComponent>)
+        {
+            return 0;
+        }
+        size_t removedCount = 0;
+
+        for (auto it = m_components.begin(); it != m_components.end();)
+        {
+            if (dynamic_cast<T*>(it->get()) != nullptr)
+            {
+                (*it)->dispose();
+                it = m_components.erase(it);
+                ++removedCount;
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        return removedCount;
     }
 
     template<class T>

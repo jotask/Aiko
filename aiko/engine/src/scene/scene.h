@@ -62,8 +62,7 @@ namespace aiko
                 continue;
             }
 
-            T* component = object->getComponent<T>();
-            if (component != nullptr)
+            for (T* component : object->getComponents<T>())
             {
                 result.push_back(component);
             }
