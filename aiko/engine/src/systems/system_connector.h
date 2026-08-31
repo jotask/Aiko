@@ -11,9 +11,7 @@ namespace aiko
 
 #define BIND_SYSTEM_REQUIRED(SystemType, Connector, VariableName) \
     VariableName = Connector->find<SystemType>(); \
-    if (VariableName == nullptr) { \
-        throw std::runtime_error("Required system " #SystemType " not found"); \
-    }
+    AIKO_ASSERT(VariableName != nullptr, "Required system " #SystemType " not found");
 
 #define BIND_SYSTEM_OPTIONAL(SystemType, Connector, VariableName) \
     VariableName = Connector->find<SystemType>(); \

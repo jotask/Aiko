@@ -12,9 +12,7 @@ namespace aiko
 
 #define BIND_MODULE_REQUIRED(ModuleType, Connector, VariableName) \
     VariableName = Connector->find<ModuleType>(); \
-    if (VariableName == nullptr) { \
-        throw std::runtime_error("Required module " #ModuleType " not found"); \
-    }
+    AIKO_ASSERT(VariableName != nullptr, "Required module " #ModuleType " not found");
 
 #define BIND_MODULE_OPTIONAL(ModuleType, Connector, VariableName) \
     VariableName = Connector->find<ModuleType>(); \
