@@ -8,11 +8,11 @@
 namespace aiko
 {
 
-    class TransforComponent : public Component
+    class TransformComponent : public Component
     {
     public:
-        TransforComponent();
-        virtual ~TransforComponent() = default;
+        TransformComponent();
+        virtual ~TransformComponent() = default;
         Transform transform;
 
     };

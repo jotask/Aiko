@@ -87,9 +87,9 @@ namespace aiko
     T* GameObject::addComponent(Args&&... args)
     {
         static_assert(std::is_base_of_v<Component, T>, "GameObject::addComponent requires a Component type");
-        if constexpr (std::is_same_v<T, TransforComponent>)
+        if constexpr (std::is_same_v<T, TransformComponent>)
         {
-            if (hasComponent<TransforComponent>())
+            if (hasComponent<TransformComponent>())
             {
                 logger::Log::error("Couldn't add another TransformComponent");
                 return nullptr;
@@ -153,7 +153,7 @@ namespace aiko
     template<class T>
     size_t GameObject::removeComponents()
     {
-        if constexpr (std::is_same_v<T, TransforComponent>)
+        if constexpr (std::is_same_v<T, TransformComponent>)
         {
             return 0;
         }

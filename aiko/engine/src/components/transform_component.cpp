@@ -3,7 +3,7 @@
 namespace aiko
 {
     
-    TransforComponent::TransforComponent()
+    TransformComponent::TransformComponent()
         : Component("Transform")
     {
     

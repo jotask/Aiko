@@ -9,17 +9,17 @@ namespace aiko
 
     GameObject::GameObject()
     {
-        addComponent<TransforComponent>();
+        addComponent<TransformComponent>();
     }
 
     Transform& GameObject::transform()
     {
-        return getComponent<TransforComponent>()->transform;
+        return getComponent<TransformComponent>()->transform;
     }
 
     const Transform& GameObject::transform() const
     {
-        return getComponent<TransforComponent>()->transform;
+        return getComponent<TransformComponent>()->transform;
     }
 
     void GameObject::update()
@@ -41,7 +41,7 @@ namespace aiko
             return false;
         }
 
-        if (dynamic_cast<TransforComponent*>(item) != nullptr)
+        if (dynamic_cast<TransformComponent*>(item) != nullptr)
         {
             return false;
         }

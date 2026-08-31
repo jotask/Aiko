@@ -39,9 +39,9 @@ namespace aiko
         for (const auto& go : m_scene.objects())
         {
             if (go == nullptr) continue;
-            if (!go->hasComponent<TransforComponent>()) continue;
+            if (!go->hasComponent<TransformComponent>()) continue;
 
-            const auto transform = go->getComponent<TransforComponent>();
+            const auto transform = go->getComponent<TransformComponent>();
 
             if (auto cmp = go->getComponent<MeshComponent>())
             {
