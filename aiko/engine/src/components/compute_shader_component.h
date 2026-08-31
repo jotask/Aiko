@@ -1,6 +1,5 @@
 #pragma once
 
-#include "component_entity.h"
 #include "models/component.h"
 #include "assets/asset_reference.h"
 #include "assets/types/shader_asset.h"
@@ -9,7 +8,7 @@
 namespace aiko
 {
 
-    class ComputeShaderComponent : public Component , public IUpdate, public IAssetBinding
+    class ComputeShaderComponent : public Component, public IAssetBinding
     {
     public:
 
@@ -24,8 +23,6 @@ namespace aiko
         virtual ~ComputeShaderComponent() = default;
 
         void load(string path);
-
-        virtual void update() override;
 
         const AssetId& getShaderId() const;
 

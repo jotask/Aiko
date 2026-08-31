@@ -60,18 +60,6 @@ namespace aiko
         }
     }
 
-    void SceneSystem::update()
-    {
-        AIKO_FUNCTION_PROFILE
-        for (const auto& go : m_scene.objects())
-        {
-            if (go != nullptr)
-            {
-                go->update();
-            }
-        }
-    }
-
     AikoPtr<GameObject> SceneSystem::createGameObject(string name)
     {
         auto obj = std::make_shared<GameObject>();

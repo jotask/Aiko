@@ -69,8 +69,6 @@ namespace aiko
         string name;
         vector<AikoUPtr<Component>> m_components;
 
-        void update();
-        void render();
         void dispose();
 
         template<class T>

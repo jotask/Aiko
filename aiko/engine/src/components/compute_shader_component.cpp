@@ -13,11 +13,6 @@ namespace aiko
         markAssetBindingDirty();
     }
 
-    void ComputeShaderComponent::update()
-    {
-
-    }
-
     const AssetId& ComputeShaderComponent::getShaderId() const
     {
         return m_shader.isReady() ? m_shader.id() : InvalidAssetId;

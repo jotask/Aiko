@@ -1,8 +1,5 @@
 #pragma once
 
-#include "component_entity.h"
-
-
 #include <models/camera.h>
 
 #include "models/component.h"

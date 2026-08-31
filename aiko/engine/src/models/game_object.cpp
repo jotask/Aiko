@@ -1,6 +1,5 @@
 #include "game_object.h"
 
-#include "components/component_entity.h"
 #include "components/transform_component.h"
 #include "scene/scene.h"
 
@@ -20,18 +19,6 @@ namespace aiko
     const Transform& GameObject::transform() const
     {
         return getComponent<TransformComponent>()->transform;
-    }
-
-    void GameObject::update()
-    {
-        for (auto& go : m_components)
-        {
-            Component* c = go.get();
-            if (IUpdate* updateComponent = dynamic_cast<IUpdate*>(c))
-            {
-                updateComponent->update();
-            }
-        }
     }
 
     bool GameObject::removeComponent(Component* item)
@@ -67,17 +54,6 @@ namespace aiko
             components.push_back(go.get());
         }
         return components;
-    }
-
-    void GameObject::render()
-    {
-        for (auto& go : m_components)
-        {
-            if (IRender* renderComponent = dynamic_cast<IRender*>(go.get()))
-            {
-                renderComponent->render();
-            }
-        }
     }
 
     void GameObject::dispose()
