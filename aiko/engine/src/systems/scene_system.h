@@ -18,7 +18,6 @@ namespace aiko
     
     class SceneSystem : public BaseSystem
     {
-        friend class GameObject;
     public:
         SceneSystem();
         virtual ~SceneSystem() = default;
