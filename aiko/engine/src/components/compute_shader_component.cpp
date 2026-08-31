@@ -47,7 +47,7 @@ namespace aiko
         return value;
     }
 
-    bool ComputeShaderComponent::resolveAssetBinding(AssetBindingContext& context)
+    void ComputeShaderComponent::resolveAssetBinding(AssetBindingContext& context)
     {
         if (m_shader.isRequested())
         {
@@ -56,13 +56,13 @@ namespace aiko
             if (id == InvalidAssetId)
             {
                 m_shader.fail();
-                return false;
+                return;
             }
 
             m_shader.markLoading(id);
             context.loadAsset<ComputeShaderAsset>(id);
 
-            return true;
+            return;
         }
 
         if (m_shader.isLoading())
@@ -71,12 +71,11 @@ namespace aiko
 
             if (context.isLoaded<ComputeShaderAsset>(id) == false)
             {
-                return true;
+                return;
             }
 
             m_shader.resolve(id);
         }
 
-        return false;
     }
 }

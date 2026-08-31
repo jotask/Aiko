@@ -32,7 +32,7 @@ namespace aiko
         return m_mesh.isReady() ? m_mesh.id() : InvalidAssetId;
     }
 
-    bool MeshComponent::resolveAssetBinding(AssetBindingContext& context)
+    void MeshComponent::resolveAssetBinding(AssetBindingContext& context)
     {
         if (m_mesh.isRequested())
         {
@@ -41,13 +41,13 @@ namespace aiko
             if (id == InvalidAssetId)
             {
                 m_mesh.fail();
-                return false;
+                return;
             }
 
             m_mesh.markLoading(id);
             context.loadAsset<MeshAsset>(id);
 
-            return true;
+            return;
         }
 
         if (m_mesh.isLoading())
@@ -56,7 +56,7 @@ namespace aiko
 
             if (context.isLoaded<MeshAsset>(id) == false)
             {
-                return true;
+                return;
             }
 
             m_mesh.resolve(id);
@@ -71,7 +71,7 @@ namespace aiko
 
             m_pendingMesh.reset();
         }
-        return false;
+
     }
 
 }

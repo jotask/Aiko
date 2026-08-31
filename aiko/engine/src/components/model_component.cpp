@@ -19,7 +19,7 @@ namespace aiko
         return m_model.isReady() ? m_model.id() : InvalidAssetId;
     }
 
-    bool ModelComponent::resolveAssetBinding(AssetBindingContext& context)
+    void ModelComponent::resolveAssetBinding(AssetBindingContext& context)
     {
         if (m_model.isRequested())
         {
@@ -28,13 +28,13 @@ namespace aiko
             if (id == InvalidAssetId)
             {
                 m_model.fail();
-                return false;
+                return;
             }
 
             m_model.markLoading(id);
             context.loadAsset<ModelAsset>(id);
 
-            return true;
+            return;
         }
 
         if (m_model.isLoading())
@@ -43,13 +43,12 @@ namespace aiko
 
             if (context.isLoaded<ModelAsset>(id) == false)
             {
-                return true;
+                return;
             }
 
             m_model.resolve(id);
         }
 
-        return false;
     }
 
 }

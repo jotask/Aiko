@@ -49,7 +49,7 @@ namespace aiko
 
     private:
 
-        bool resolveAssetBinding(AssetBindingContext& context) override;
+        void resolveAssetBinding(AssetBindingContext& context) override;
 
         AssetReference<TextureAsset> m_texture;
 

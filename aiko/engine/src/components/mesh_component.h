@@ -33,7 +33,7 @@ namespace aiko
         virtual void init() override;
     private:
 
-        bool resolveAssetBinding(AssetBindingContext& context) override;
+        void resolveAssetBinding(AssetBindingContext& context) override;
 
         AssetReference<MeshAsset> m_mesh;
         MaterialAsset   m_material;

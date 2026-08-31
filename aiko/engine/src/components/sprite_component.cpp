@@ -87,7 +87,7 @@ namespace aiko
         return m_texture.isReady() ? m_texture.id() : InvalidAssetId;
     }
 
-    bool SpriteComponent::resolveAssetBinding(AssetBindingContext& context)
+    void SpriteComponent::resolveAssetBinding(AssetBindingContext& context)
     {
         if (m_texture.isRequested())
         {
@@ -96,13 +96,13 @@ namespace aiko
             if (textureId == InvalidAssetId)
             {
                 m_texture.fail();
-                return false;
+                return;
             }
 
             m_texture.markLoading(textureId);
             context.loadAsset<TextureAsset>(textureId);
 
-            return true;
+            return;
         }
 
         if (m_texture.isLoading())
@@ -111,7 +111,7 @@ namespace aiko
 
             if (context.isLoaded<TextureAsset>(textureId) == false)
             {
-                return true;
+                return;
             }
 
             m_texture.resolve(textureId);
@@ -151,7 +151,7 @@ namespace aiko
             if (textureId == InvalidAssetId)
             {
                 m_refreshRequested = false;
-                return false;
+                return;
             }
 
             TextureAsset& textureAsset = context.getMutableTexture(textureId);
@@ -166,7 +166,7 @@ namespace aiko
             m_refreshRequested = false;
 
         }
-        return false;
+
     }
 
 }
