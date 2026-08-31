@@ -30,9 +30,6 @@ namespace aiko
         void setActiveCamera(GameObject* obj);
         auto getActiveCamera() const -> GameObject* { return m_activeCamera; }
 
-        EntityRegistry& registry() { return m_registry; }
-        const EntityRegistry& registry() const { return m_registry; }
-
         template<class T>
         vector<T*> components();
 
