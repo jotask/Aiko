@@ -15,10 +15,7 @@ namespace aiko
         RigidBodyComponent();
         ~RigidBodyComponent() override = default;
 
-        void init() override;
-
         void create(const physics::BodyDesc& desc);
-        void dispose() override;
 
         bool isPhysicsInitialized() const { return m_initialized; }
         physics::BodyId getBodyId() const { return m_bodyId; }
@@ -31,6 +28,10 @@ namespace aiko
         void ensurePhysicsInitialized(physics::AikoPhysics& world);
         void syncFromPhysics(physics::AikoPhysics& world);
         void physicsShutdown(physics::AikoPhysics& world);
+
+    protected:
+        void init() override;
+        void dispose() override;
 
     private:
         physics::BodyDesc m_desc{};

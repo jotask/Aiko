@@ -21,8 +21,6 @@ namespace aiko
         SpriteComponent();
         virtual ~SpriteComponent() = default;
 
-        virtual void init() override;
-
         void load(string path);
         void load(TextureAsset texture);
         void refresh();
@@ -45,6 +43,9 @@ namespace aiko
         const AssetId& getMeshId() const { return m_meshId; }
         size_t getWidth() const { return m_width; }
         size_t getHeight() const { return m_height; }
+
+    protected:
+        virtual void init() override;
 
     private:
 

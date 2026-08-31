@@ -22,7 +22,6 @@ namespace aiko
         ~PlayerControllerComponent() override;
 
         void create(const PlayerControllerComponentDesc& desc);
-        void dispose() override;
 
         void setMoveInput(const vec2& move);
         void setJumpPressed(bool pressed);
@@ -50,6 +49,9 @@ namespace aiko
 
         vec3 getCameraPosition() const;
         vec3 getCameraForward() const;
+
+    protected:
+        void dispose() override;
 
     private:
         PlayerControllerComponentDesc m_desc{};
