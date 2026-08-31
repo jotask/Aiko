@@ -25,8 +25,6 @@ namespace aiko
 
         vector<GameObject*> getObjects() const;
 
-        const vector<AikoPtr<GameObject>>& objects() const { return m_objects; }
-
         void setActiveCamera(GameObject* obj);
         auto getActiveCamera() const -> GameObject* { return m_activeCamera; }
 

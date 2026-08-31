@@ -36,7 +36,7 @@ namespace aiko
             m_renderModule->getRenderer().submit(view.ambientLight, view.lights);
             m_renderModule->setMainCamera(view.camera);
         }
-        for (const auto& go : m_scene.objects())
+        for (const auto& go : m_scene.getObjects())
         {
             if (go == nullptr) continue;
             if (!go->hasComponent<TransformComponent>()) continue;
@@ -95,7 +95,7 @@ namespace aiko
 
     Camera* SceneSystem::getMainCamera()
     {
-        for (const auto& obj : m_scene.objects())
+        for (const auto& obj : m_scene.getObjects())
         {
             if (obj == nullptr) continue;
             if (auto cam = obj->getComponent<CameraComponent>())
@@ -108,7 +108,7 @@ namespace aiko
 
     const Camera* SceneSystem::getMainCamera() const
     {
-        for (const auto& obj : m_scene.objects())
+        for (const auto& obj : m_scene.getObjects())
         {
             if (obj == nullptr) continue;
             if (auto cam = obj->getComponent<CameraComponent>())
