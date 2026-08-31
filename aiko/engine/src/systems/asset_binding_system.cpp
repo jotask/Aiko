@@ -29,14 +29,11 @@ namespace aiko
                 continue;
             }
 
-            for (Component* component : object->getComponents())
+            for (IAssetBinding* binding : object->getComponents<IAssetBinding>())
             {
-                if (auto* binding = dynamic_cast<IAssetBinding*>(component))
+                if (binding->resolveAssetBinding(context))
                 {
-                    if (binding->resolveAssetBinding(context))
-                    {
-                        scene.markAssetBindingDirty(*object);
-                    }
+                    scene.markAssetBindingDirty(*object);
                 }
             }
         }
