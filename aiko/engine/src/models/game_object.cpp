@@ -7,6 +7,11 @@
 namespace aiko
 {
 
+    GameObject::GameObject()
+    {
+        addComponent<TransforComponent>();
+    }
+
     Transform& GameObject::transform()
     {
         return getComponent<TransforComponent>()->transform;

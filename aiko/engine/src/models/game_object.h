@@ -24,7 +24,7 @@ namespace aiko
         friend class Component;
     public:
 
-        GameObject() = default;
+        GameObject();
         ~GameObject() = default;
 
         template<class T, typename... Args>
@@ -117,6 +117,10 @@ namespace aiko
     template<class T>
     bool GameObject::removeComponent()
     {
+        if constexpr (std::is_same_v<T, TransforComponent>)
+        {
+            return false;
+        }
         for (size_t i = 0; i < m_components.size(); ++i)
         {
             if (dynamic_cast<T*>(m_components[i].get()) != nullptr)
@@ -132,6 +136,10 @@ namespace aiko
     template<class T>
     bool GameObject::removeComponent(T* item)
     {
+        if (dynamic_cast<TransforComponent*>(item) != nullptr)
+        {
+            return false;
+        }
         for (size_t i = 0; i < m_components.size(); ++i)
         {
             if (m_components[i].get() == item)

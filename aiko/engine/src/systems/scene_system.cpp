@@ -76,7 +76,6 @@ namespace aiko
     {
         auto obj = std::make_shared<GameObject>();
         obj->setName(name);
-        obj->addComponent<TransforComponent>();
         m_scene.add(obj);
         return obj;
     }
