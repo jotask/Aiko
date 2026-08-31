@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <algorithm>
+#include <type_traits>
 
 #include "aiko_types.h"
 #include "systems/sytem.h"
@@ -11,9 +12,7 @@ namespace aiko
 
 #define BIND_SYSTEM_REQUIRED(SystemType, Connector, VariableName) \
     VariableName = Connector->find<SystemType>(); \
-    if (VariableName == nullptr) { \
-        throw std::runtime_error("Required system " #SystemType " not found"); \
-    }
+    AIKO_ASSERT(VariableName != nullptr, "Required system " #SystemType " not found");
 
 #define BIND_SYSTEM_OPTIONAL(SystemType, Connector, VariableName) \
     VariableName = Connector->find<SystemType>(); \
@@ -33,6 +32,7 @@ namespace aiko
         template<class T>
         T* find()
         {
+            static_assert(std::is_base_of_v<System, T>, "SystemConnector::find requires a System type");
             auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const aiko::AikoUPtr<System>& system) {
                 return dynamic_cast<T*>(system.get()) != nullptr;
             });

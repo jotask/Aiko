@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <algorithm>
+#include <type_traits>
 
 #include <aiko_types.h>
 
@@ -12,9 +13,7 @@ namespace aiko
 
 #define BIND_MODULE_REQUIRED(ModuleType, Connector, VariableName) \
     VariableName = Connector->find<ModuleType>(); \
-    if (VariableName == nullptr) { \
-        throw std::runtime_error("Required module " #ModuleType " not found"); \
-    }
+    AIKO_ASSERT(VariableName != nullptr, "Required module " #ModuleType " not found");
 
 #define BIND_MODULE_OPTIONAL(ModuleType, Connector, VariableName) \
     VariableName = Connector->find<ModuleType>(); \
@@ -34,6 +33,7 @@ namespace aiko
         template<class T>
         T* find()
         {
+            static_assert(std::is_base_of_v<Module, T>, "ModuleConnector::find requires a Module type");
             auto it = std::find_if(m_modules.begin(), m_modules.end(), [](const aiko::AikoUPtr<Module>& module) {
                 return dynamic_cast<T*>(module.get()) != nullptr;
             });
