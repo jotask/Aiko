@@ -65,9 +65,20 @@ namespace aiko
         m_activeCamera = nullptr;
     }
 
-    vector<GameObject*> Scene::getObjects() const
+    vector<GameObject*> Scene::getObjects()
     {
         vector<GameObject*> objs;
+        objs.reserve(m_objects.size());
+        for (const auto& obj: m_objects)
+        {
+            objs.push_back(obj.get());
+        }
+        return objs;
+    }
+
+    vector<const GameObject*> Scene::getObjects() const
+    {
+        vector<const GameObject*> objs;
         objs.reserve(m_objects.size());
         for (const auto& obj: m_objects)
         {

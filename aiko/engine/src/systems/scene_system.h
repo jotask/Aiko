@@ -31,7 +31,8 @@ namespace aiko
         const Camera* getMainCamera() const;
 
         void setActiveCamera(GameObject* obj);
-        GameObject* getActiveCamera() const { return m_scene.getActiveCamera(); }
+        GameObject* getActiveCamera() { return m_scene.getActiveCamera(); }
+        const GameObject* getActiveCamera() const { return m_scene.getActiveCamera(); }
 
         Scene& getScene();
         const Scene& getScene() const;

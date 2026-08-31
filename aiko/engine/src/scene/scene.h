@@ -23,10 +23,12 @@ namespace aiko
 
         void clear();
 
-        vector<GameObject*> getObjects() const;
+        vector<GameObject*> getObjects();
+        vector<const GameObject*> getObjects() const;
 
         void setActiveCamera(GameObject* obj);
-        auto getActiveCamera() const -> GameObject* { return m_activeCamera; }
+        GameObject* getActiveCamera() { return m_activeCamera; }
+        const GameObject* getActiveCamera() const { return m_activeCamera; }
 
         template<class T>
         vector<T*> components();
