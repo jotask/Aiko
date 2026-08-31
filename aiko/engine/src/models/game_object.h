@@ -14,12 +14,10 @@
 namespace aiko
 {
 
-    class SceneSystem;
     class Scene;
 
     class GameObject
     {
-        friend class SceneSystem;
         friend class Scene;
         friend class Component;
     public:
