@@ -54,8 +54,6 @@ namespace aiko
         Transform& transform();
         const Transform& transform() const;
 
-        vector<Component*> getComponents();
-
         const uuid::Uuid& uuid() const { return m_uuid; }
 
     private:

@@ -46,16 +46,6 @@ namespace aiko
         return true;
     }
 
-    vector<Component*> GameObject::getComponents()
-    {
-        vector<Component*> components;
-        for (auto& go : m_components)
-        {
-            components.push_back(go.get());
-        }
-        return components;
-    }
-
     void GameObject::dispose()
     {
         for (const auto& component : m_components)
