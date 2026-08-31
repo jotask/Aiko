@@ -28,9 +28,6 @@ namespace aiko
         const char* getName() const { return m_name.c_str(); };
     protected:
         GameObject* gameobject;
-
-        void markAssetBindingDirty();
-
         virtual void init() { }
         virtual void dispose() { }
     private:

@@ -30,7 +30,6 @@ namespace aiko
         pixels.clear();
         is_dirty = false;
 
-        markAssetBindingDirty();
     }
 
     void SpriteComponent::load(TextureAsset texture)
@@ -48,7 +47,6 @@ namespace aiko
         m_pendingTexture = std::move(texture);
         is_dirty = false;
 
-        markAssetBindingDirty();
     }
 
     void SpriteComponent::refresh()
@@ -59,7 +57,6 @@ namespace aiko
         }
 
         m_refreshRequested = true;
-        markAssetBindingDirty();
 
     }
 

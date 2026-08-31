@@ -10,7 +10,6 @@ namespace aiko
     void ComputeShaderComponent::load(string path)
     {
         m_shader.request(std::move(path));
-        markAssetBindingDirty();
     }
 
     const AssetId& ComputeShaderComponent::getShaderId() const

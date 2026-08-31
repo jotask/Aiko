@@ -12,7 +12,6 @@ namespace aiko
     void ModelComponent::load(string path)
     {
         m_model.request(std::move(path));
-        markAssetBindingDirty();
     }
 
     const AssetId& ModelComponent::getModelId() const

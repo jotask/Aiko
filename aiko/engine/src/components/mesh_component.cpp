@@ -19,14 +19,12 @@ namespace aiko
     {
         m_pendingMesh.reset();
         m_mesh.request(std::move(path));
-        markAssetBindingDirty();
     }
 
     void MeshComponent::load(MeshAsset mesh)
     {
         m_mesh.reset();
         m_pendingMesh = std::move(mesh);
-        markAssetBindingDirty();
     }
 
     const AssetId& MeshComponent::getMeshId() const

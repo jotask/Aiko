@@ -19,7 +19,6 @@ namespace aiko
     class GameObject
     {
         friend class Scene;
-        friend class Component;
     public:
 
         GameObject();
@@ -72,8 +71,6 @@ namespace aiko
 
         template<class T>
         const T* findComponent() const;
-
-        void markAssetBindingDirty();
 
     };
 

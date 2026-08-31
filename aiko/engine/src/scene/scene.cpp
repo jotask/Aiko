@@ -17,7 +17,6 @@ namespace aiko
         obj->m_scene = this;
         obj->m_entity = m_registry.create();
         m_objects.push_back(obj);
-        markAssetBindingDirty(*obj);
     }
 
     bool Scene::remove(const GameObject* obj)
@@ -105,25 +104,8 @@ namespace aiko
         }
     }
 
-    void Scene::markAssetBindingDirty(GameObject& object)
-    {
-        if (std::find(m_assetBindingDirtyObjects.begin(), m_assetBindingDirtyObjects.end(), &object) != m_assetBindingDirtyObjects.end())
-        {
-            return;
-        }
-        m_assetBindingDirtyObjects.push_back(&object);
-    }
-
-    vector<GameObject*> Scene::consumeAssetBindingDirtyObjects()
-    {
-        vector<GameObject*> dirtyObjects;
-        dirtyObjects.swap(m_assetBindingDirtyObjects);
-        return dirtyObjects;
-    }
-
     void Scene::destroyObject(GameObject& object)
     {
-        std::erase(m_assetBindingDirtyObjects, &object);
         Transform& transform = object.transform();
         transform.clearChildren();
         transform.clearParent();
