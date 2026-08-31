@@ -11,8 +11,6 @@ namespace aiko
     class Component
     {
         friend class GameObject;
-        friend class EntityComponentSystem;
-        friend class ComponentRenderer;
     public:
 
         Component(const Component&) = delete;
