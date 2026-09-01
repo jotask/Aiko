@@ -1,9 +1,7 @@
 #include "automaton_renderer.h"
 
-#include <assert.h>
-#include <chrono>
-
 #include <aiko_includes.h>
+#include <layers/layer_context.h>
 
 #include "chunk_cellular_automaton.h"
 #include "world_cellular_automaton.h"
@@ -13,14 +11,13 @@ namespace aiko::ca
     namespace cellautomaton
     {
         AutomatonRender::AutomatonRender()
-            : m_renderSystem(nullptr)
         {
 
         }
 
-        void AutomatonRender::init(RenderSystem* renderSystem)
+        void AutomatonRender::init(aiko::LayerContext& context)
         {
-            m_renderSystem = renderSystem;
+            m_context = &context;
         }
 
         void AutomatonRender::render(WorldCellularAutomaton* world)
@@ -34,13 +31,28 @@ namespace aiko::ca
         void AutomatonRender::drawChunk(ChunkCellularAutomaton* chunk)
         {
 
-            auto cam = m_renderSystem->getMainCamera();
             ivec2 chunkPosition = chunk->getPosition();
             if (s_render_cells == false)
             {
                 Color randomColor = Color::getRandomColor();
                 randomColor.a = 1.0f;
-                m_renderSystem->drawRectangle(chunkPosition, cellautomaton::SIZE_CHUNK , randomColor );
+
+                const vec3 position =
+                {
+                    static_cast<float>(chunkPosition.x),
+                    static_cast<float>(chunkPosition.y),
+                    0.0f
+                };
+
+                const vec3 size =
+                {
+                    static_cast<float>(cellautomaton::SIZE_CHUNK.x),
+                    static_cast<float>(cellautomaton::SIZE_CHUNK.y),
+                    1.0f
+                };
+
+                m_context->drawRectangle(position, size);
+
                 return;
             }
 
@@ -60,8 +72,16 @@ namespace aiko::ca
                         continue;
                     }
                     const ivec2 cellPosition = { x, y };
-                    const Color color = getColorFromCell(cellState);
-                    m_renderSystem->drawRectangle(chunkPosition + cellPosition, { 1 , 1 }, color);
+                    const ivec2 position2D = chunkPosition + cellPosition;
+
+                    const vec3 position =
+                    {
+                        static_cast<float>(position2D.x),
+                        static_cast<float>(position2D.y),
+                        0.0f
+                    };
+
+                    m_context->drawRectangle(position, { 1.0f, 1.0f, 1.0f });
                 }
             }
         }
