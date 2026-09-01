@@ -38,16 +38,6 @@ namespace aiko
         return target.x / target.x;
     }
 
-    InputSystem* Application::getInputSystem() const
-    {
-        return m_aiko->getSystem<InputSystem>();
-    }
-
-    RenderSystem* Application::getRenderSystem() const
-    {
-        return m_aiko->getSystem<RenderSystem>();
-    }
-
     Camera* Application::getMainCamera()
     {
         auto cs = m_aiko->getSystem<SceneSystem>();
@@ -66,25 +56,25 @@ namespace aiko
 
     bool Application::isKeyPressed(Key key) const
     {
-        InputSystem* inputSystem = getInputSystem();
+        const InputSystem* inputSystem = m_aiko->getSystem<InputSystem>();
         return inputSystem->isKeyPressed(key);
     }
 
     bool Application::isKeyJustPressed(Key key) const
     {
-        InputSystem* inputSystem = getInputSystem();
+        const InputSystem* inputSystem = m_aiko->getSystem<InputSystem>();
         return inputSystem->isKeyJustPressed(key);
     }
 
     vec2 Application::getMousePosition() const
     {
-        InputSystem* inputSystem = getInputSystem();
+        const InputSystem* inputSystem = m_aiko->getSystem<InputSystem>();
         return inputSystem->getMousePosition();
     }
 
     bool Application::isMouseButtonPressed(MouseButton button) const
     {
-        InputSystem* inputSystem = getInputSystem();
+        const InputSystem* inputSystem = m_aiko->getSystem<InputSystem>();
         return inputSystem->isMouseButtonPressed(button);
     }
 

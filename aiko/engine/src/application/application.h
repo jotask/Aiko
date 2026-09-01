@@ -14,9 +14,6 @@ namespace aiko
 
     class Shader;
     class Camera;
-    class RenderSystem;
-    class InputSystem;
-    class AssetSystem;
     class SystemConnector;
 
     class Application
@@ -45,9 +42,6 @@ namespace aiko
         virtual void update();
         virtual void render();
         virtual void dispose();
-
-        InputSystem* getInputSystem() const;
-        RenderSystem* getRenderSystem() const;
 
         Camera* getMainCamera();
         vec2 getViewportSize() const;

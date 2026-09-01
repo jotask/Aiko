@@ -12,7 +12,10 @@ namespace sb
         virtual void init() override;
         virtual void update() override;
         virtual void render() override;
+        virtual void connect(aiko::SystemConnector*) override;
     private:
+
+        aiko::RenderSystem* m_renderSystem = nullptr;
 
         aiko::GameObject* m_go1 = nullptr;
         aiko::GameObject* m_go2 = nullptr;

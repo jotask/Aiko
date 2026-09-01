@@ -11,6 +11,7 @@
 #include "models/game_object.h"
 #include "models/mesh_factory.h"
 #include "models/texture_factory.h"
+#include "systems/system_connector.h"
 #include "types/color.h"
 
 #include <application/application.h>
@@ -92,6 +93,10 @@ namespace sb
             renderLights();
         }
 
+    }
+    void Sandbox::connect(aiko::SystemConnector* systemConnector)
+    {
+        BIND_SYSTEM_REQUIRED(aiko::RenderSystem, systemConnector, m_renderSystem);
     }
 
     void Sandbox::initCompute()
@@ -375,20 +380,20 @@ namespace sb
     {
         constexpr const float SIZE = 1.0f;
 
-        app->getRenderSystem()->renderPoint({ 1.0f, 1.0f, 0.0f });
-        app->getRenderSystem()->renderLine({ -2.0f, -1.0f, 0.0f }, { 2.0f, -1.0f, 0.0f });
-        app->getRenderSystem()->renderRectangle({ 0.0f, 1.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->renderCircle({ 2.0f, 1.0f, 0.0f }, SIZE, 32);
-        app->getRenderSystem()->renderTriangle({ -1.0f, 1.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->renderNgon({ -2.0f, 1.0f, 0.0f }, SIZE, 6);
-        app->getRenderSystem()->renderCube({ 1.0f, 0.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->renderPyramid({ 0.0f, 0.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->renderSphere({ -1.0f, 0.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->renderCylinder({ -2.0f, 0.0f, 0.0f }, SIZE, 6);
-        app->getRenderSystem()->renderPolygon({ -3.0f, 0.0f, 0.0f }, SIZE, 6, 6);
-        app->getRenderSystem()->renderTorus({ 2.0f, 0.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->renderKnot({ 3.0f, 0.0f, 0.0f }, SIZE);
-        app->getRenderSystem()->renderGrid({ 0.0f, -2.0f, 0.0f }, SIZE, {10, 10});
+        m_renderSystem->renderPoint({ 1.0f, 1.0f, 0.0f });
+        m_renderSystem->renderLine({ -2.0f, -1.0f, 0.0f }, { 2.0f, -1.0f, 0.0f });
+        m_renderSystem->renderRectangle({ 0.0f, 1.0f, 0.0f }, SIZE);
+        m_renderSystem->renderCircle({ 2.0f, 1.0f, 0.0f }, SIZE, 32);
+        m_renderSystem->renderTriangle({ -1.0f, 1.0f, 0.0f }, SIZE);
+        m_renderSystem->renderNgon({ -2.0f, 1.0f, 0.0f }, SIZE, 6);
+        m_renderSystem->renderCube({ 1.0f, 0.0f, 0.0f }, SIZE);
+        m_renderSystem->renderPyramid({ 0.0f, 0.0f, 0.0f }, SIZE);
+        m_renderSystem->renderSphere({ -1.0f, 0.0f, 0.0f }, SIZE);
+        m_renderSystem->renderCylinder({ -2.0f, 0.0f, 0.0f }, SIZE, 6);
+        m_renderSystem->renderPolygon({ -3.0f, 0.0f, 0.0f }, SIZE, 6, 6);
+        m_renderSystem->renderTorus({ 2.0f, 0.0f, 0.0f }, SIZE);
+        m_renderSystem->renderKnot({ 3.0f, 0.0f, 0.0f }, SIZE);
+        m_renderSystem->renderGrid({ 0.0f, -2.0f, 0.0f }, SIZE, {10, 10});
 
     }
 
@@ -396,7 +401,7 @@ namespace sb
     {
         for (auto& light : m_lights)
         {
-            app->getRenderSystem()->renderSphere(light.obj->transform().position, 0.1f, 25 /*, light.cmp->color*/ );
+            m_renderSystem->renderSphere(light.obj->transform().position, 0.1f, 25 /*, light.cmp->color*/ );
         }
     }
 
