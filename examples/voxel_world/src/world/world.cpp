@@ -7,26 +7,22 @@
 #include "generator/chunk_data_generator.h"
 #include "models/game_object.h"
 #include "world/generator/chunk_mesh_generator.h"
+#include "layers/layer_context.h"
 
 #include <imgui.h>
 
 #include "voxel_world_constants.h"
 #include "bridge/mesh_asset_to_shape.h"
-#include "generator/chunk_generation_type.h"
 #include "systems/physics_system.h"
-#include "threads/queue_thread.h"
 
 namespace vw
 {
 
-    void World::setup(aiko::Application* app)
+    void World::setup(aiko::LayerContext& context)
     {
-        m_app = app;
-        AIKO_ASSERT(m_app != nullptr, "Nullptr Application")
-
-        m_worldRoot = m_app->Instantiate("World");
+        m_context = &context;
+        m_worldRoot = m_context->Instantiate("World");
         AIKO_ASSERT(m_worldRoot != nullptr, "Couldn't create World Root GameObject")
-
     }
 
     void World::generate()
@@ -103,57 +99,45 @@ namespace vw
     void World::generateChunk(int x, int z)
     {
 
-        const ChunkDataGenerationRequest req
-        {
-            .coord = { x, z }
-        };
+        const ChunkCoord coord = { x, z };
 
-        aiko::QueueThread::Job worker = [&] (const ChunkDataGenerationRequest& req ) -> ChunkDataGenerationResponse
-        {
-            ChunkData data = {};
-            ChunkDataGenerator::clearChunkData(data);
-            ChunkDataGenerator::generateChunkData(generationConfig, req.coord, data);
-            const aiko::MeshAsset asset = ChunkMeshGenerator::generateMeshAsset(data);
-            const aiko::physics::TriangleMeshShapeDesc shape = aiko::physics::makeTriangleMeshShapeDesc(asset);
+        ChunkData data = {};
+        ChunkDataGenerator::clearChunkData(data);
+        ChunkDataGenerator::generateChunkData(generationConfig, coord, data);
 
-            const ChunkDataGenerationResponse req =
-            {
-                .data = std::move(data),
-                .asset = std::move(asset),
-                .shape = std::move(shape),
-            };
+        aiko::MeshAsset asset = ChunkMeshGenerator::generateMeshAsset(data);
 
-            return std::move(req);
-
-        };
+        aiko::physics::TriangleMeshShapeDesc shape = aiko::physics::makeTriangleMeshShapeDesc(asset);
 
         Chunk chunk = {};
 
-
         const std::string chunk_name = std::format("Chunk({}, {})", x, z);
-        aiko::GameObject* chunkGO = m_app->Instantiate(m_worldRoot, chunk_name.c_str());
+        aiko::GameObject* chunkGO = m_context->Instantiate(m_worldRoot, chunk_name.c_str());
 
         auto meshCMP = chunkGO->addComponent<aiko::MeshComponent>();
         auto bodyCMP = chunkGO->addComponent<aiko::RigidBodyComponent>();
 
-        meshCMP->loadMesh(asset);
+        meshCMP->load(asset);
 
-        const aiko::Transform transform =
+        aiko::Transform transform;
+        transform.position =
         {
-            .position = {req.coord.x * static_cast<float>(CHUNK_SIZE.x), 0.0f, req.coord.y * static_cast<float>(CHUNK_SIZE.z) },
-            .rotation =  {0.0f, 0.0f, 0.0f},
-            .scale = {1.0f, 1.0f, 1.0f}
+            coord.x * static_cast<float>(CHUNK_SIZE.x),
+            0.0f,
+            coord.y * static_cast<float>(CHUNK_SIZE.z)
         };
+        transform.rotation = { 0.0f, 0.0f, 0.0f };
+        transform.scale = { 1.0f, 1.0f, 1.0f };
 
         aiko::physics::BodyDesc desc = {};
         desc.motionType = aiko::physics::MotionType::Static;
         desc.transform = transform;
         desc.shape.type = aiko::physics::ShapeType::TriangleMesh;
-        desc.shape.triangleMesh = aiko::physics::makeTriangleMeshShapeDesc(asset);
+        desc.shape.triangleMesh = std::move(shape);
         bodyCMP->create(desc);
 
         const ChunkKey key = { .coord = { x, z} };
-        const ChunkObj data =
+        const ChunkObj chunkObj =
         {
             .chunk =  {},
             .m_object = chunkGO,
@@ -161,7 +145,7 @@ namespace vw
             .m_body = bodyCMP,
         };
 
-        m_chunks.emplace(key, data);
+        m_chunks.emplace(key, chunkObj);
 
     }
 

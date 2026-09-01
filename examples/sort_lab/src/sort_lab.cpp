@@ -8,7 +8,6 @@
 
 #include "models/game_object.h"
 #include "components/camera_component.h"
-#include "../../../aiko/renderer/src/models/camera.h"
 
 #include "algorithm/bubble_sort.h"
 #include "algorithm/insertion_sort.h"
@@ -18,7 +17,7 @@ namespace sb
 {
     void SortLab::init()
     {
-        auto camera = app->Instantiate("Camera");
+        auto camera = Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
         cam->setCameraType(aiko::Camera::CameraType::Orthographic);
 		camera->transform().position = { 0.0f, 0.0f, 25.0f };
@@ -33,18 +32,18 @@ namespace sb
 
     void SortLab::update()
     {
-        if (app->isKeyJustPressed(aiko::Key::KEY_SPACE))
+        if (isKeyJustPressed(aiko::Key::KEY_SPACE))
         {
             clear();
             shuffle();
             m_sorters[m_currentSorterIdx]->init();
         }
 
-        if (app->isKeyJustPressed(aiko::Key::KEY_RIGHT))
+        if (isKeyJustPressed(aiko::Key::KEY_RIGHT))
         {
             nextSorter(+1);
         }
-        if (app->isKeyJustPressed(aiko::Key::KEY_LEFT))
+        if (isKeyJustPressed(aiko::Key::KEY_LEFT))
         {
             nextSorter(-1);
         }
@@ -55,7 +54,7 @@ namespace sb
             return;
         }
 
-        m_timer += ::aiko::Time::it().getDeltaTime();
+        m_timer += getDeltaTime();
         if (m_timer >= UPDATE_STEP_TIME)
         {
             m_sorters[m_currentSorterIdx]->step(m_numbers);
@@ -76,7 +75,7 @@ namespace sb
             const float h = aiko::math::map<float>(number, 0, m_numbers.size(), 1.0f, 10.0f);
             const aiko::vec3 size = {w, h, 0.0f};
             const aiko::vec3 pos = {initial_position_x + ( i * w), 0.0f, 0.0f};
-            app->getRenderSystem()->renderRectangle(pos, size);
+            drawRectangle(pos, size);
         }
 
     }

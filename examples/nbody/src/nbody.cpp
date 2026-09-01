@@ -20,12 +20,12 @@ namespace nbody
 
     void NBody::init()
     {
-        auto camera = app->Instantiate("Camera");
+        auto camera = Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
         camera->transform().position = { 0.0f, 1.0f, 3.0f };
         cam->getCamera().position = camera->transform().position;
 
-        aiko::GameObject* go = app->Instantiate("Simulation");
+        aiko::GameObject* go = Instantiate("Simulation");
         go->transform().position = { .0f, 0.0f, 0.0f };
         go->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go->transform().scale = { 1.0f, 1.0f, 1.0f };

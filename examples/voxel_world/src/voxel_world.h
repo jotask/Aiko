@@ -24,9 +24,9 @@ namespace vw
 
         World m_world;
 
-        aiko::AikoPtr<aiko::CameraComponent> m_playerCamera;
-        aiko::AikoPtr<aiko::PlayerControllerComponent> m_playerComponent;
-        aiko::AikoPtr<aiko::LightComponent> m_lightComponent;
+        aiko::CameraComponent* m_playerCamera;
+        aiko::PlayerControllerComponent* m_playerComponent;
+        aiko::LightComponent* m_lightComponent;
 
 
     };

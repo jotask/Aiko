@@ -37,7 +37,7 @@ namespace sb
     void Sandbox::init()
     {
 
-        auto* camera = app->Instantiate("Camera");
+        auto* camera = Instantiate("Camera");
         auto* cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
 		camera->transform().position = { 0.0f, 1.0f, 2.5f };
 		cam->getCamera().position = camera->transform().position;
@@ -102,9 +102,9 @@ namespace sb
     void Sandbox::initCompute()
     {
 
-        auto root = app->Instantiate("ComputeTests");
+        auto root = Instantiate("ComputeTests");
 
-        auto textureCompute = app->Instantiate(root, "ComputeTexture");
+        auto textureCompute = Instantiate(root, "ComputeTexture");
 
         textureCompute->transform().position = { 0.0f, 0.0f, 3.0f };
         textureCompute->transform().rotation = { 0.0f, 0.0f, 0.0f };
@@ -126,7 +126,7 @@ namespace sb
 
         // Compute Read back
 
-        auto readbackCompute = app->Instantiate(root, "ComputeReadback");
+        auto readbackCompute = Instantiate(root, "ComputeReadback");
         m_computeReadback = readbackCompute->addComponent<aiko::ComputeShaderComponent>();
         m_computeReadback->load("compute_test");
         m_computeReadback->setElementCount(64);
@@ -137,30 +137,30 @@ namespace sb
     void Sandbox::initMeshes()
     {
 
-        auto root = app->Instantiate("MeshesTests");
+        auto root = Instantiate("MeshesTests");
 
-        auto go1 = app->Instantiate(root, "Church");
+        auto go1 = Instantiate(root, "Church");
         go1->transform().position = { 0.0f, 0.0f, -15.0f };
         go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model1 = go1->addComponent<aiko::ModelComponent>();
         model1->load("church.obj");
 
-        auto go2 = app->Instantiate(root, "Barracks");
+        auto go2 = Instantiate(root, "Barracks");
         go2->transform().position = { -50.0f, 0.0f, -15.0f };
         go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model2 = go2->addComponent<aiko::ModelComponent>();
         model2->load("barracks.obj");
 
-        auto go3 = app->Instantiate(root, "Watermill");
+        auto go3 = Instantiate(root, "Watermill");
         go3->transform().position = { 50.0f, 0.0f, -15.0f };
         go3->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go3->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model3 = go3->addComponent<aiko::ModelComponent>();
         model3->load("watermill.obj");
 
-        auto go4 = app->Instantiate(root, "Robot");
+        auto go4 = Instantiate(root, "Robot");
         go4->transform().position = { 0.0f, 0.0f, 5.0f };
         go4->transform().rotation = { 0.0f, 0.0f, 0.0f };
         const float scale = 0.25f;
@@ -176,30 +176,30 @@ namespace sb
 
         constexpr float zAxis = 2.5f;
 
-        auto root = app->Instantiate("ComponentsTests");
+        auto root = Instantiate("ComponentsTests");
 
-        m_go1 = app->Instantiate(root, "Cube1");
+        m_go1 = Instantiate(root, "Cube1");
         m_go1->transform().position = { 1.0f, 0.0f, zAxis };
         m_go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
         mesh1->load(defaultCube);
 
-        m_go2 = app->Instantiate(root, "Cube2");
+        m_go2 = Instantiate(root, "Cube2");
         m_go2->transform().position = { -1.0f, 0.0f, zAxis };
         m_go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
         mesh2->load(defaultCube);
 
-        m_texture = app->Instantiate(root, "Texture");
+        m_texture = Instantiate(root, "Texture");
         m_texture->transform().position = { 0.0f, -0.55f, zAxis };
         m_texture->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texture->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh3 = m_texture->addComponent<aiko::SpriteComponent>();
         mesh3->load("texel_checker.png");
 
-        m_texturePbo = app->Instantiate(root, "PboTexture");
+        m_texturePbo = Instantiate(root, "PboTexture");
         m_texturePbo->transform().position = { 0.0f, 0.55f, zAxis };
         m_texturePbo->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_texturePbo->transform().scale = { 1.0f, 1.0f, 1.0f };
@@ -216,12 +216,12 @@ namespace sb
     void Sandbox::initLights()
     {
 
-        auto root = app->Instantiate("LightTests");
+        auto root = Instantiate("LightTests");
 
         constexpr float radiusSpawn = 10.0f;
         for (size_t i = 0 ; i < 10; ++i )
         {
-            auto* obj = app->Instantiate(root, "Light");
+            auto* obj = Instantiate(root, "Light");
             obj->transform().position = {
                 aiko::utils::getRandomValue(-radiusSpawn, radiusSpawn),
                 aiko::utils::getRandomValue(-radiusSpawn, radiusSpawn),
@@ -241,9 +241,9 @@ namespace sb
     void Sandbox::initParticles()
     {
 
-        auto root = app->Instantiate("ParticlesTests");
+        auto root = Instantiate("ParticlesTests");
 
-        auto ps = app->Instantiate(root, "Particle Emitter");
+        auto ps = Instantiate(root, "Particle Emitter");
         ps->transform().position = { 0.0f, 0.0f, -3.5f };
 
         auto emitter = ps->addComponent<aiko::ParticleEmitterComponent>();
@@ -265,7 +265,7 @@ namespace sb
     void Sandbox::updateComponents()
     {
         static float angle = 0.0f;
-        angle += 25.0f * app->getlDeltaTime();
+        angle += 25.0f * getDeltaTime();
         angle = fmod(angle, 360.0f);
         m_go1->transform().rotation = {  angle, 0.0f, 0.0f };
         m_go2->transform().rotation = { -angle, 0.0f, 0.0f };
@@ -370,7 +370,7 @@ namespace sb
     {
         for (auto& light : m_lights)
         {
-            light.angle += 1.0f * app->getlDeltaTime();
+            light.angle += 1.0f * getDeltaTime();
             aiko::vec3 pos = {std::sin(light.angle), 0.0f, std::cos(light.angle)};
             light.obj->transform().position = pos;
         }
