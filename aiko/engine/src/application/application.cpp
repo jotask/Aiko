@@ -161,6 +161,14 @@ namespace aiko
         m_layers.pushOverlay(std::move(layer));
     }
 
+    void Application::connect(SystemConnector* connector)
+    {
+        for (auto& layer : m_layers)
+        {
+            layer->connect(connector);
+        }
+    }
+
     void Application::onEvent(Event& e)
     {
         for (auto it = m_layers.rbegin(); it != m_layers.rend(); ++it)

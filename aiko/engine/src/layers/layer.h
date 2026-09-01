@@ -6,6 +6,7 @@ namespace aiko
 {
 
     class Application;
+    class SystemConnector;
 
     class Layer
     {
@@ -17,6 +18,7 @@ namespace aiko
         virtual void onDetach() {}
 
         virtual void registerSystems() {}
+        virtual void connect(SystemConnector*) {}
 
         virtual void init() {}
         virtual void dispose() {}
@@ -27,7 +29,6 @@ namespace aiko
 
     protected:
 
-        // Temporal for now
         friend class Application;
         Application* app;
 

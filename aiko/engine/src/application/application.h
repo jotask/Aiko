@@ -17,6 +17,7 @@ namespace aiko
     class RenderSystem;
     class InputSystem;
     class AssetSystem;
+    class SystemConnector;
 
     class Application
     {
@@ -27,6 +28,8 @@ namespace aiko
 
         void pushLayer(AikoUPtr<Layer>);
         void pushOverlay(AikoUPtr<Layer>);
+
+        void connect(SystemConnector*);
 
         void run();
 

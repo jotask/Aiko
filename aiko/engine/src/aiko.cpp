@@ -101,6 +101,7 @@ namespace aiko
         for (auto&& system : m_systems) system->connect(&moduleConnector, &systemConnector);
         for (auto&& system : m_systems) system->init();
 
+        m_application->connect(&systemConnector);
         m_application->init();
 
     }
