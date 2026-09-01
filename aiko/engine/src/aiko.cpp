@@ -9,6 +9,7 @@
 #include "systems/system_connector.h"
 
 #include "application/application.h"
+#include "layers/layer_context.h"
 
 // Modules
 #include "modules/display_module.h"
@@ -104,7 +105,9 @@ namespace aiko
         for (auto&& system : m_systems) system->connect(&moduleConnector, &systemConnector);
         for (auto&& system : m_systems) system->init();
 
-        m_application->connect(&systemConnector);
+        m_layerContext = std::make_unique<LayerContext>(systemConnector);
+
+        m_application->connect(&systemConnector, m_layerContext.get());
         m_application->init();
 
     }

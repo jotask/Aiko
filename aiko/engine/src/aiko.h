@@ -8,10 +8,11 @@
 
 namespace aiko
 {
-    class AssetManager;
 
+    class AssetManager;
     class Application;
     class GameObject;
+    class LayerContext;
 
     class Aiko
     {
@@ -47,6 +48,8 @@ namespace aiko
 
          Modules m_modules;
          Systems m_systems;
+
+        AikoUPtr<LayerContext> m_layerContext;
 
         const AikoConfig cfg;
 

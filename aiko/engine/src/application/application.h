@@ -10,6 +10,7 @@ namespace aiko
 
     class SystemConnector;
     class SystemRegistry;
+    class LayerContext;
 
     class Application
     {
@@ -21,7 +22,7 @@ namespace aiko
         void pushLayer(AikoUPtr<Layer>);
         void pushOverlay(AikoUPtr<Layer>);
 
-        void connect(SystemConnector*);
+        void connect(SystemConnector*, LayerContext*);
         void registerSystems(SystemRegistry&);
 
         void run();
