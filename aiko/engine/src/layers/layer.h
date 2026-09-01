@@ -34,6 +34,10 @@ namespace aiko
         virtual void onEvent(Event& e) {}
 
     protected:
+
+        LayerContext& context();
+        const LayerContext& context() const;
+
         GameObject* Instantiate(string name);
         GameObject* Instantiate(GameObject* parent, string name);
 
@@ -42,8 +46,12 @@ namespace aiko
 
         vec2 getMousePosition() const;
         bool isMouseButtonPressed(MouseButton button) const;
+        vec2 getMouseDelta() const;
+        void setIsMouseCentred(bool centred) const;
 
         float getDeltaTime() const;
+
+        void drawRectangle(const vec3& position, const vec3& size);
 
     private:
         friend class Application;

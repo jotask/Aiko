@@ -6,6 +6,19 @@
 
 namespace aiko
 {
+
+    LayerContext& Layer::context()
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return *m_context;
+    }
+
+    const LayerContext& Layer::context() const
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return *m_context;
+    }
+
     GameObject* Layer::Instantiate(string name)
     {
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
@@ -41,10 +54,27 @@ namespace aiko
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
         return m_context->isMouseButtonPressed(button);
     }
+    vec2 Layer::getMouseDelta() const
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->getMouseDelta();
+    }
+
+    void Layer::setIsMouseCentred(bool centred) const
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        m_context->setIsMouseCentred(centred);
+    }
 
     float Layer::getDeltaTime() const
     {
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
         return m_context->getDeltaTime();
+    }
+
+    void Layer::drawRectangle(const vec3& position, const vec3& size)
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        m_context->drawRectangle(position, size);
     }
 }

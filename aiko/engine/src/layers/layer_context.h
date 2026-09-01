@@ -9,6 +9,7 @@ namespace aiko
     class GameObject;
     class InputSystem;
     class SceneSystem;
+    class RenderSystem;
     class SystemConnector;
 
     class LayerContext
@@ -24,11 +25,17 @@ namespace aiko
 
         vec2 getMousePosition() const;
         bool isMouseButtonPressed(MouseButton button) const;
+        vec2 getMouseDelta() const;
+        void setIsMouseCentred(bool centred) const;
 
         float getDeltaTime() const;
+
+        // Draw
+        void drawRectangle(const vec3& position, const vec3& size);
 
     private:
         InputSystem* m_inputSystem = nullptr;
         SceneSystem* m_sceneSystem = nullptr;
+        RenderSystem* m_renderSystem = nullptr;
     };
 }
