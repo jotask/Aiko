@@ -30,8 +30,6 @@ namespace aiko
 
         void run();
 
-    protected:
-
         float getlDeltaTime() const;
         bool isKeyPressed(Key) const;
         bool isKeyJustPressed(Key) const;
