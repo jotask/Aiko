@@ -14,7 +14,7 @@ namespace nbody
 
     void NBody::registerSystems()
     {
-        app->m_aiko->registerSystem<NBodySystem>();
+        app->registerSystem<NBodySystem>();
     }
 
     void NBody::init()
