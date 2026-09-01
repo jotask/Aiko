@@ -1,13 +1,10 @@
 #pragma once
 
 #include <aiko_types.h>
-#include <math/math.h>
 #include <layers/layer_stack.h>
 #include <input/inputs_types.h>
 
 #include "aiko.h"
-
-#include <utility>
 
 namespace aiko
 {
@@ -15,6 +12,7 @@ namespace aiko
     class Shader;
     class Camera;
     class SystemConnector;
+    class SystemRegistry;
 
     class Application
     {
@@ -47,7 +45,7 @@ namespace aiko
         vec2 getViewportSize() const;
         float getAspectRatio() const;
 
-        void registerSystems();
+        void registerSystems(SystemRegistry&);
 
         GameObject* Instantiate(string name);
         GameObject* Instantiate(GameObject* , string name);
@@ -55,12 +53,6 @@ namespace aiko
         void setActiveCamera(GameObject* obj);
 
         void onEvent(Event& e);
-
-        template<typename TSystem, typename... Args>
-        TSystem* registerSystem(Args&&... args)
-        {
-            return m_aiko->registerSystem<TSystem>(std::forward<Args>(args)...);
-        }
 
     private:
 

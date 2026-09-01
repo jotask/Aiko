@@ -9,7 +9,7 @@ namespace nbody
     {
     protected:
 
-        virtual void registerSystems() override;
+        virtual void registerSystems(aiko::SystemRegistry&) override;
         virtual void init() override;
     private:
     

@@ -21,11 +21,12 @@
 #include "systems/asset_system.h"
 #include "systems/camera_system.h"
 #include "systems/compute_system.h"
-#include "systems/render_system.h"
 #include "systems/input_system.h"
-#include "systems/scene_system.h"
 #include "systems/particle_system.h"
 #include "systems/physics_system.h"
+#include "systems/render_system.h"
+#include "systems/scene_system.h"
+#include "systems/system_registry.h"
 
 namespace aiko
 {
@@ -85,17 +86,19 @@ namespace aiko
         for (auto&& module : m_modules) module->postInit();
 
         // Systems
-        registerSystem<SceneSystem>();
-        registerSystem<RenderSystem>();
-        registerSystem<AssetSystem>();
-        registerSystem<ComputeSystem>();
-        registerSystem<InputSystem>();
-        registerSystem<CameraSystem>();
-        registerSystem<AssetBindingSystem>();
-        registerSystem<PhysicsSystem>();
-        registerSystem<ParticleSystem>();
+        SystemRegistry systemRegistry(m_systems);
 
-        m_application->registerSystems();
+        systemRegistry.add<SceneSystem>();
+        systemRegistry.add<RenderSystem>();
+        systemRegistry.add<AssetSystem>();
+        systemRegistry.add<ComputeSystem>();
+        systemRegistry.add<InputSystem>();
+        systemRegistry.add<CameraSystem>();
+        systemRegistry.add<AssetBindingSystem>();
+        systemRegistry.add<PhysicsSystem>();
+        systemRegistry.add<ParticleSystem>();
+
+        m_application->registerSystems(systemRegistry);
 
         SystemConnector systemConnector(m_systems);
         for (auto&& system : m_systems) system->connect(&moduleConnector, &systemConnector);

@@ -78,11 +78,11 @@ namespace aiko
         return inputSystem->isMouseButtonPressed(button);
     }
 
-    void Application::registerSystems()
+    void Application::registerSystems(SystemRegistry& registry)
     {
         for (auto& layer : m_layers)
         {
-            layer->registerSystems();
+            layer->registerSystems(registry);
         }
     }
 

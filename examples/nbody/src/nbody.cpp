@@ -2,6 +2,7 @@
 
 #include <models/game_object.h>
 #include <components/camera_component.h>
+#include <systems/system_registry.h>
 #include <models/camera.h>
 
 #include <aiko_includes.h>
@@ -12,9 +13,9 @@
 namespace nbody
 {
 
-    void NBody::registerSystems()
+    void NBody::registerSystems(aiko::SystemRegistry& registry)
     {
-        app->registerSystem<NBodySystem>();
+        registry.add<NBodySystem>();
     }
 
     void NBody::init()

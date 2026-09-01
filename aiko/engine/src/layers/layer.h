@@ -7,6 +7,7 @@ namespace aiko
 
     class Application;
     class SystemConnector;
+    class SystemRegistry;
 
     class Layer
     {
@@ -17,7 +18,7 @@ namespace aiko
         virtual void onAttach() {}
         virtual void onDetach() {}
 
-        virtual void registerSystems() {}
+        virtual void registerSystems(SystemRegistry&) {}
         virtual void connect(SystemConnector*) {}
 
         virtual void init() {}

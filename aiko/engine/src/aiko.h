@@ -40,9 +40,6 @@ namespace aiko
 
         const AikoConfig getConfig() const { return cfg; }
 
-        template<typename TSystem, typename... Args>
-        TSystem* registerSystem(Args&& ...);
-
     private:
 
         Application* m_application;
@@ -99,13 +96,4 @@ namespace aiko
         return dynamic_cast<const T*>(found->get());
     }
 
-    template <typename TSystem, typename ... Args>
-    TSystem* Aiko::registerSystem(Args&&... args)
-    {
-        static_assert(std::is_base_of_v<System, TSystem>, "System must derive from System");
-        auto instance = std::make_unique<TSystem>(std::forward<Args>(args)...);
-        TSystem* raw = instance.get();
-        m_systems.emplace_back(std::move(instance));
-        return raw;
-    }
 }
