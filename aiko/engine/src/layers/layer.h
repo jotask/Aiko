@@ -5,7 +5,6 @@
 namespace aiko
 {
 
-    class Application;
     class SystemConnector;
     class SystemRegistry;
 
@@ -27,11 +26,6 @@ namespace aiko
         virtual void update() {}
         virtual void render() {}
         virtual void onEvent(Event& e) {}
-
-    protected:
-
-        friend class Application;
-        Application* app;
 
     };
 }

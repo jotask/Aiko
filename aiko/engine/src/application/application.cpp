@@ -1,14 +1,6 @@
 #include "application/application.h"
 
 #include "aiko.h"
-#include "systems/input_system.h"
-#include "systems/scene_system.h"
-#include "systems/system_connector.h"
-
-#include <input/inputs_types.h>
-#include <time/time.h>
-
-#include <aiko_renderer.h>
 
 namespace aiko
 {
@@ -28,31 +20,6 @@ namespace aiko
     void Application::run()
     {
         m_aiko->run();
-    }
-
-    float Application::getlDeltaTime() const
-    {
-        return Time::it().getDeltaTime();
-    }
-
-    bool Application::isKeyPressed(Key key) const
-    {
-        return m_inputSystem->isKeyPressed(key);
-    }
-
-    bool Application::isKeyJustPressed(Key key) const
-    {
-        return m_inputSystem->isKeyJustPressed(key);
-    }
-
-    vec2 Application::getMousePosition() const
-    {
-        return m_inputSystem->getMousePosition();
-    }
-
-    bool Application::isMouseButtonPressed(MouseButton button) const
-    {
-        return m_inputSystem->isMouseButtonPressed(button);
     }
 
     void Application::registerSystems(SystemRegistry& registry)
@@ -95,39 +62,18 @@ namespace aiko
         }
     }
 
-    GameObject* Application::Instantiate(string name)
-    {
-        GameObject* obj = m_sceneSystem->createGameObject(name).get();
-        return obj;
-    }
-
-    GameObject* Application::Instantiate(GameObject* parent, string name)
-    {
-        GameObject* obj = m_sceneSystem->createGameObject(parent, name).get();
-        return obj;
-    }
-
-    void Application::setActiveCamera(GameObject* obj)
-    {
-        m_sceneSystem->setActiveCamera(obj);
-    }
-
     void Application::pushLayer(AikoUPtr<Layer> layer)
     {
-        layer->app = this;
         m_layers.pushLayer(std::move(layer));
     }
 
     void Application::pushOverlay(AikoUPtr<Layer> layer)
     {
-        layer->app = this;
         m_layers.pushOverlay(std::move(layer));
     }
 
     void Application::connect(SystemConnector* connector)
     {
-        BIND_SYSTEM_REQUIRED(InputSystem, connector, m_inputSystem);
-        BIND_SYSTEM_REQUIRED(SceneSystem, connector, m_sceneSystem);
         for (auto& layer : m_layers)
         {
             layer->connect(connector);
