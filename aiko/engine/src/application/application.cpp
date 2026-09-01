@@ -25,25 +25,6 @@ namespace aiko
 
     }
 
-    vec2 Application::getViewportSize() const
-    {
-        AIKO_NOT_IMPLEMENTED;
-        // auto screen = AikoRenderer::it().getScreenFbo();
-        //return screen->getViewportSize();
-        return {};
-    }
-
-    float Application::getAspectRatio() const
-    {
-        auto target = getViewportSize();
-        return target.x / target.x;
-    }
-
-    Camera* Application::getMainCamera()
-    {
-        return m_sceneSystem->getMainCamera();
-    }
-
     void Application::run()
     {
         m_aiko->run();

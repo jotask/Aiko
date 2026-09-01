@@ -10,8 +10,6 @@
 namespace aiko
 {
 
-    class Shader;
-    class Camera;
     class InputSystem;
     class SceneSystem;
     class SystemConnector;
@@ -26,10 +24,13 @@ namespace aiko
 
         void pushLayer(AikoUPtr<Layer>);
         void pushOverlay(AikoUPtr<Layer>);
+
         void connect(SystemConnector*);
+        void registerSystems(SystemRegistry&);
+
         void run();
 
-    public:
+    protected:
 
         float getlDeltaTime() const;
         bool isKeyPressed(Key) const;
@@ -41,12 +42,6 @@ namespace aiko
         virtual void update();
         virtual void render();
         virtual void dispose();
-
-        Camera* getMainCamera();
-        vec2 getViewportSize() const;
-        float getAspectRatio() const;
-
-        void registerSystems(SystemRegistry&);
 
         GameObject* Instantiate(string name);
         GameObject* Instantiate(GameObject* , string name);
