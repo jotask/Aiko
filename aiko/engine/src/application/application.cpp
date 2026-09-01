@@ -40,14 +40,12 @@ namespace aiko
 
     InputSystem* Application::getInputSystem() const
     {
-        static auto* is = m_aiko->getSystem<InputSystem>();
-        return is;
+        return m_aiko->getSystem<InputSystem>();
     }
 
     RenderSystem* Application::getRenderSystem() const
     {
-        static auto* rs = m_aiko->getSystem<RenderSystem>();
-        return rs;
+        return m_aiko->getSystem<RenderSystem>();
     }
 
     Camera* Application::getMainCamera()

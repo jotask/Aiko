@@ -21,9 +21,6 @@ namespace aiko
     class Application
     {
     public:
-
-        friend class Aiko;
-
         Application();
         Application(AikoConfig cfg);
         virtual ~Application() = default;
@@ -53,8 +50,6 @@ namespace aiko
         vec2 getViewportSize() const;
         float getAspectRatio() const;
 
-        AikoUPtr<Aiko> m_aiko;
-
         void registerSystems();
 
         GameObject* Instantiate(string name);
@@ -72,6 +67,7 @@ namespace aiko
 
     private:
 
+        AikoUPtr<Aiko> m_aiko;
         LayerStack m_layers;
 
     };
