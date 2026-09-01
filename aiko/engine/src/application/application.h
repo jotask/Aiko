@@ -1,6 +1,7 @@
 #pragma once
 
 #include <aiko_types.h>
+#include <math/math.h>
 #include <layers/layer_stack.h>
 #include <input/inputs_types.h>
 
@@ -11,6 +12,8 @@ namespace aiko
 
     class Shader;
     class Camera;
+    class InputSystem;
+    class SceneSystem;
     class SystemConnector;
     class SystemRegistry;
 
@@ -23,9 +26,7 @@ namespace aiko
 
         void pushLayer(AikoUPtr<Layer>);
         void pushOverlay(AikoUPtr<Layer>);
-
         void connect(SystemConnector*);
-
         void run();
 
     public:
@@ -58,6 +59,9 @@ namespace aiko
 
         AikoUPtr<Aiko> m_aiko;
         LayerStack m_layers;
+
+        InputSystem* m_inputSystem = nullptr;
+        SceneSystem* m_sceneSystem = nullptr;
 
     };
 

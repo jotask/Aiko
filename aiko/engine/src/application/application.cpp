@@ -1,13 +1,14 @@
 #include "application/application.h"
 
-#include <time/time.h>
-#include <aiko_renderer.h>
-#include <input/inputs_types.h>
-
 #include "aiko.h"
-#include "systems/render_system.h"
 #include "systems/input_system.h"
 #include "systems/scene_system.h"
+#include "systems/system_connector.h"
+
+#include <input/inputs_types.h>
+#include <time/time.h>
+
+#include <aiko_renderer.h>
 
 namespace aiko
 {
@@ -40,8 +41,7 @@ namespace aiko
 
     Camera* Application::getMainCamera()
     {
-        auto cs = m_aiko->getSystem<SceneSystem>();
-        return cs->getMainCamera();
+        return m_sceneSystem->getMainCamera();
     }
 
     void Application::run()
@@ -56,26 +56,22 @@ namespace aiko
 
     bool Application::isKeyPressed(Key key) const
     {
-        const InputSystem* inputSystem = m_aiko->getSystem<InputSystem>();
-        return inputSystem->isKeyPressed(key);
+        return m_inputSystem->isKeyPressed(key);
     }
 
     bool Application::isKeyJustPressed(Key key) const
     {
-        const InputSystem* inputSystem = m_aiko->getSystem<InputSystem>();
-        return inputSystem->isKeyJustPressed(key);
+        return m_inputSystem->isKeyJustPressed(key);
     }
 
     vec2 Application::getMousePosition() const
     {
-        const InputSystem* inputSystem = m_aiko->getSystem<InputSystem>();
-        return inputSystem->getMousePosition();
+        return m_inputSystem->getMousePosition();
     }
 
     bool Application::isMouseButtonPressed(MouseButton button) const
     {
-        const InputSystem* inputSystem = m_aiko->getSystem<InputSystem>();
-        return inputSystem->isMouseButtonPressed(button);
+        return m_inputSystem->isMouseButtonPressed(button);
     }
 
     void Application::registerSystems(SystemRegistry& registry)
@@ -120,23 +116,19 @@ namespace aiko
 
     GameObject* Application::Instantiate(string name)
     {
-        SceneSystem* ecs = m_aiko->getSystem<SceneSystem>();
-        GameObject* obj = ecs->createGameObject(name).get();
+        GameObject* obj = m_sceneSystem->createGameObject(name).get();
         return obj;
     }
 
     GameObject* Application::Instantiate(GameObject* parent, string name)
     {
-        SceneSystem* ecs = m_aiko->getSystem<SceneSystem>();
-        GameObject* obj = ecs->createGameObject(parent, name).get();
+        GameObject* obj = m_sceneSystem->createGameObject(parent, name).get();
         return obj;
     }
 
     void Application::setActiveCamera(GameObject* obj)
     {
-        SceneSystem* ss = m_aiko->getSystem<SceneSystem>();
-        AIKO_ASSERT(ss != nullptr, "Scene system not found");
-        ss->setActiveCamera(obj);
+        m_sceneSystem->setActiveCamera(obj);
     }
 
     void Application::pushLayer(AikoUPtr<Layer> layer)
@@ -153,6 +145,8 @@ namespace aiko
 
     void Application::connect(SystemConnector* connector)
     {
+        BIND_SYSTEM_REQUIRED(InputSystem, connector, m_inputSystem);
+        BIND_SYSTEM_REQUIRED(SceneSystem, connector, m_sceneSystem);
         for (auto& layer : m_layers)
         {
             layer->connect(connector);
