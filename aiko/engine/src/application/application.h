@@ -2,12 +2,12 @@
 
 #include <aiko_types.h>
 #include <math/math.h>
-
 #include <layers/layer_stack.h>
-
 #include <input/inputs_types.h>
 
 #include "aiko.h"
+
+#include <utility>
 
 namespace aiko
 {
@@ -63,6 +63,12 @@ namespace aiko
         void setActiveCamera(GameObject* obj);
 
         void onEvent(Event& e);
+
+        template<typename TSystem, typename... Args>
+        TSystem* registerSystem(Args&&... args)
+        {
+            return m_aiko->registerSystem<TSystem>(std::forward<Args>(args)...);
+        }
 
     private:
 
