@@ -51,7 +51,7 @@ namespace aiko::ca
                     1.0f
                 };
 
-                m_context->drawRectangle(position, size);
+                m_context->render().drawRectangle(position, size);
 
                 return;
             }
@@ -81,7 +81,7 @@ namespace aiko::ca
                         0.0f
                     };
 
-                    m_context->drawRectangle(position, { 1.0f, 1.0f, 1.0f });
+                    m_context->render().drawRectangle(position, { 1.0f, 1.0f, 1.0f });
                 }
             }
         }

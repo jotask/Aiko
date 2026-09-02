@@ -2,6 +2,7 @@
 
 #include "application/application.h"
 #include "cell_automaton_component/cellular_automaton/automaton_renderer.h"
+#include "layers/layer.h"
 
 namespace aiko::ca
 {

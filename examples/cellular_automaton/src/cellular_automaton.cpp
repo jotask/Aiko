@@ -1,8 +1,9 @@
 #include "cellular_automaton.h"
 
-#include <aiko_includes.h>
-
 #include "cell_automaton_component/cellular_automaton_component.h"
+#include "layers/layer_context.h"
+
+#include <aiko_includes.h>
 
 namespace aiko::ca
 {
@@ -30,7 +31,7 @@ namespace aiko::ca
     {
         if (cellautomaton::WORLD_FPS_TIMER_LOCK == false)
         {
-            if (isKeyJustPressed(KEY_SPACE))
+            if (context().input().isKeyJustPressed(KEY_SPACE))
             {
                 m_automaton->getWorld().update();
             }
