@@ -11,7 +11,7 @@ namespace regression
 
     void RenderRegression::init()
     {
-        auto camera = app->Instantiate("Camera");
+        auto camera = Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
 
         camera->transform().position = { 0.0f, 1.0f, 3.0f };
@@ -19,13 +19,13 @@ namespace regression
 
         const aiko::MeshAsset defaultCube = aiko::mesh::factory::generateCube();
 
-        auto cubeA = app->Instantiate("CubeA");
+        auto cubeA = Instantiate("CubeA");
         cubeA->transform().position = { -0.35f, 0.0f, 0.0f };
         cubeA->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto meshA = cubeA->addComponent<aiko::MeshComponent>();
         meshA->load(defaultCube);
 
-        auto cubeB = app->Instantiate("CubeB");
+        auto cubeB = Instantiate("CubeB");
         cubeB->transform().position = { 0.35f, 0.0f, -0.75f };
         cubeB->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto meshB = cubeB->addComponent<aiko::MeshComponent>();
