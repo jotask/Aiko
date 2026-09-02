@@ -27,7 +27,7 @@ namespace aiko
         virtual void onDetach() {}
 
         virtual void registerSystems(SystemRegistry&) {}
-        virtual void connect(SystemConnector*) {}
+        virtual void connect(SystemConnector&) {}
 
         virtual void init() {}
         virtual void dispose() {}

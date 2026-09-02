@@ -72,11 +72,11 @@ namespace aiko
         m_layers.pushOverlay(std::move(layer));
     }
 
-    void Application::connect(SystemConnector* connector, LayerContext* context)
+    void Application::connect(SystemConnector& connector, LayerContext& context)
     {
         for (auto& layer : m_layers)
         {
-            layer->m_context = context;
+            layer->m_context = &context;
             layer->connect(connector);
         }
     }

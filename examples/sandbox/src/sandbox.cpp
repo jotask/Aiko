@@ -94,9 +94,9 @@ namespace sb
         }
 
     }
-    void Sandbox::connect(aiko::SystemConnector* systemConnector)
+    void Sandbox::connect(aiko::SystemConnector& systemConnector)
     {
-        BIND_SYSTEM_REQUIRED(aiko::RenderSystem, systemConnector, m_renderSystem);
+        BIND_SYSTEM_REQUIRED_REF(aiko::RenderSystem, systemConnector, m_renderSystem);
     }
 
     void Sandbox::initCompute()

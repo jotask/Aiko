@@ -10,12 +10,19 @@
 namespace aiko
 {
 
-#define BIND_SYSTEM_REQUIRED(SystemType, Connector, VariableName) \
+    #define BIND_SYSTEM_REQUIRED(SystemType, Connector, VariableName) \
     VariableName = Connector->find<SystemType>(); \
     AIKO_ASSERT(VariableName != nullptr, "Required system " #SystemType " not found");
 
-#define BIND_SYSTEM_OPTIONAL(SystemType, Connector, VariableName) \
+    #define BIND_SYSTEM_OPTIONAL(SystemType, Connector, VariableName) \
     VariableName = Connector->find<SystemType>(); \
+
+    #define BIND_SYSTEM_REQUIRED_REF(SystemType, Connector, VariableName) \
+    VariableName = Connector.find<SystemType>(); \
+    AIKO_ASSERT(VariableName != nullptr, "Required system " #SystemType " not found")
+
+    #define BIND_SYSTEM_OPTIONAL_REF(SystemType, Connector, VariableName) \
+    VariableName = Connector.find<SystemType>()
 
     class SystemConnector
     {

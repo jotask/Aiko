@@ -107,7 +107,7 @@ namespace aiko
 
         m_layerContext = std::make_unique<LayerContext>(systemConnector);
 
-        m_application->connect(&systemConnector, m_layerContext.get());
+        m_application->connect(systemConnector, *m_layerContext);
         m_application->init();
 
     }

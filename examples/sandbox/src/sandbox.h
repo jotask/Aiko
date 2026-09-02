@@ -12,7 +12,7 @@ namespace sb
         virtual void init() override;
         virtual void update() override;
         virtual void render() override;
-        virtual void connect(aiko::SystemConnector*) override;
+        virtual void connect(aiko::SystemConnector&) override;
     private:
 
         aiko::RenderSystem* m_renderSystem = nullptr;

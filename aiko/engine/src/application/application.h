@@ -27,7 +27,7 @@ namespace aiko
     private:
         friend class Aiko;
 
-        void connect(SystemConnector*, LayerContext*);
+        void connect(SystemConnector&, LayerContext&);
         void registerSystems(SystemRegistry&);
 
         virtual void init();
