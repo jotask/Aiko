@@ -1,10 +1,10 @@
 #pragma once
 
-#include "aiko_types.h"
 #include "aiko_config.h"
+#include "aiko_types.h"
 #include "display/display_events.hpp"
 #include "modules/module.h"
-#include "systems/sytem.h"
+#include "systems/system.h"
 
 namespace aiko
 {

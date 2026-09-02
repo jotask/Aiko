@@ -1,11 +1,11 @@
 #pragma once
 
-#include <memory>
-#include <algorithm>
-#include <type_traits>
-
 #include "aiko_types.h"
-#include "systems/sytem.h"
+#include "systems/system.h"
+
+#include <algorithm>
+#include <memory>
+#include <type_traits>
 
 namespace aiko
 {

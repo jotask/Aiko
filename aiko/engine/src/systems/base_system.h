@@ -1,6 +1,6 @@
 #pragma once
 
-#include "systems/sytem.h"
+#include "systems/system.h"
 
 namespace aiko
 {

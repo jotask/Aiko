@@ -1,10 +1,10 @@
 #pragma once
 
+#include "aiko_types.h"
+#include "systems/system.h"
+
 #include <type_traits>
 #include <utility>
-
-#include "aiko_types.h"
-#include "systems/sytem.h"
 
 namespace aiko
 {
