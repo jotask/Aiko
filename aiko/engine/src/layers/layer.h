@@ -5,15 +5,13 @@
 
 namespace aiko
 {
+    class RenderContext;
 
     class Application;
     class GameObject;
     class LayerContext;
     class SystemConnector;
     class SystemRegistry;
-    class Mesh;
-    class Material;
-    struct Transform;
 
     class InputContext;
 
@@ -51,6 +49,9 @@ namespace aiko
 
         InputContext& input();
         const InputContext& input() const;
+
+        RenderContext& renderer();
+        const RenderContext& renderer() const;
 
     private:
         friend class Application;

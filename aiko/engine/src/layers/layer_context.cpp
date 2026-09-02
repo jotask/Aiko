@@ -14,13 +14,11 @@ namespace aiko
 {
     LayerContext::LayerContext(SystemConnector& connector)
         : m_input(connector)
+        , m_render(connector)
     {
 
         m_sceneSystem = connector.find<SceneSystem>();
         AIKO_ASSERT(m_sceneSystem != nullptr, "Required system SceneSystem not found");
-
-        m_renderSystem = connector.find<RenderSystem>();
-        AIKO_ASSERT(m_renderSystem != nullptr, "Required system RenderSystem not found");
 
         m_assetSystem = connector.find<AssetSystem>();
         AIKO_ASSERT(m_assetSystem != nullptr, "Required system AssetSystem not found");
@@ -40,16 +38,6 @@ namespace aiko
     float LayerContext::getDeltaTime() const
     {
         return Time::it().getDeltaTime();
-    }
-
-    void LayerContext::drawRectangle(const vec3& position, const vec3& size)
-    {
-        m_renderSystem->renderRectangle(position, size);
-    }
-
-    void LayerContext::drawMesh(const Transform& transform, const Mesh& mesh, const Material& material)
-    {
-        m_renderSystem->render(transform, mesh, material);
     }
 
     AssetId LayerContext::loadShader(string_view source)

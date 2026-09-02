@@ -37,17 +37,6 @@ namespace aiko
         return m_context->getDeltaTime();
     }
 
-    void Layer::drawRectangle(const vec3& position, const vec3& size)
-    {
-        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
-        m_context->drawRectangle(position, size);
-    }
-
-    void Layer::drawMesh(const Transform& transform, const Mesh& mesh, const Material& material)
-    {
-        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
-        m_context->drawMesh(transform, mesh, material);
-    }
     InputContext& Layer::input()
     {
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
@@ -59,6 +48,17 @@ namespace aiko
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
         return m_context->input();
 
+    }
+    RenderContext& Layer::renderer()
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->render();
+    }
+
+    const RenderContext& Layer::renderer() const
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->render();
     }
 
 }
