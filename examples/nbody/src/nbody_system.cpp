@@ -52,35 +52,33 @@ namespace nbody
 
     void NBodySystem::update()
     {
-        const auto& objects = m_sceneSystem->getScene().getObjects();
-        for (const auto& object : objects)
+        for (NBodyComponent* simulation : m_sceneSystem->getScene().components<NBodyComponent>())
         {
-            if (object == nullptr)
+            if (simulation == nullptr)
             {
                 continue;
             }
 
-            if (auto simulation = object->getComponent<NBodyComponent>())
-            {
-                updateSimulation(object, *simulation);
-            }
+            aiko::GameObject* object = simulation->getGameObject();
+            AIKO_ASSERT(object != nullptr, "NBodyComponent is not attached to a GameObject");
+
+            updateSimulation(object, *simulation);
         }
     }
 
     void NBodySystem::render()
     {
-        const auto& objects = m_sceneSystem->getScene().getObjects();
-        for (const auto& object : objects)
+        for (NBodyComponent* simulation : m_sceneSystem->getScene().components<NBodyComponent>())
         {
-            if (object == nullptr)
+            if (simulation == nullptr)
             {
                 continue;
             }
 
-            if (auto simulation = object->getComponent<NBodyComponent>())
-            {
-                renderSimulation(object, *simulation);
-            }
+            aiko::GameObject* object = simulation->getGameObject();
+            AIKO_ASSERT(object != nullptr, "NBodyComponent is not attached to a GameObject");
+
+            renderSimulation(object, *simulation);
         }
     }
 

@@ -33,22 +33,19 @@ namespace aiko
 
     void ComputeSystem::update()
     {
-        vector<ComputeShaderComponent*> liveComponents;
+        vector<ComputeShaderComponent*> liveComponents = m_sceneSystem->getScene().components<ComputeShaderComponent>();
 
-        const auto& objects = m_sceneSystem->getScene().getObjects();
-
-        for (GameObject* object : objects)
+        for (ComputeShaderComponent* component : liveComponents)
         {
-            if (object == nullptr)
+            if (component == nullptr)
             {
                 continue;
             }
 
-            if (ComputeShaderComponent* cmp = object->getComponent<ComputeShaderComponent>())
-            {
-                liveComponents.push_back(cmp);
-                updateComponent(object, *cmp);
-            }
+            GameObject* object = component->getGameObject();
+            AIKO_ASSERT(object != nullptr, "ComputeShaderComponent is not attached to a GameObject");
+
+            updateComponent(object, *component);
         }
 
         removeStaleStates(liveComponents);
@@ -56,17 +53,17 @@ namespace aiko
 
     void ComputeSystem::render()
     {
-        const auto& objects = m_sceneSystem->getScene().getObjects();
-        for (const auto& object : objects)
+        for (ComputeShaderComponent* component : m_sceneSystem->getScene().components<ComputeShaderComponent>())
         {
-            if (object == nullptr)
+            if (component == nullptr)
             {
                 continue;
             }
-            if (ComputeShaderComponent* cmp = object->getComponent<ComputeShaderComponent>())
-            {
-                renderComponent(object, *cmp);
-            }
+
+            GameObject* object = component->getGameObject();
+            AIKO_ASSERT(object != nullptr, "ComputeShaderComponent is not attached to a GameObject");
+
+            renderComponent(object, *component);
         }
     }
 
@@ -387,23 +384,18 @@ namespace aiko
             return;
         }
 
-        const auto& objects = m_sceneSystem->getScene().getObjects();
-
-        for (GameObject* object : objects)
+        for (SpriteComponent* sprite : m_sceneSystem->getScene().components<SpriteComponent>())
         {
-            if (object == nullptr)
+            if (sprite == nullptr)
             {
                 continue;
             }
 
-            if (auto sprite = object->getComponent<SpriteComponent>())
-            {
-                MaterialInstance& materialInstance = sprite->getMaterialInstance();
+            MaterialInstance& materialInstance = sprite->getMaterialInstance();
 
-                if (materialInstance.runtimeDiffuseTexture == &state.output)
-                {
-                    materialInstance.runtimeDiffuseTexture = nullptr;
-                }
+            if (materialInstance.runtimeDiffuseTexture == &state.output)
+            {
+                materialInstance.runtimeDiffuseTexture = nullptr;
             }
         }
     }

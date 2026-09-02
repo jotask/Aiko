@@ -26,6 +26,10 @@ namespace aiko
     
         virtual ~Component() = default;
         const char* getName() const { return m_name.c_str(); };
+
+        GameObject* getGameObject() { return gameobject; }
+        const GameObject* getGameObject() const { return gameobject; }
+
     protected:
         GameObject* gameobject;
         virtual void init() { }

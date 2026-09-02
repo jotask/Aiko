@@ -48,18 +48,17 @@ namespace aiko
 
     void ParticleSystem::render()
     {
-        const auto& objects = m_sceneSystem->getScene().getObjects();
-        for (const auto& object : objects)
+        for (ParticleEmitterComponent* emitter : m_sceneSystem->getScene().components<ParticleEmitterComponent>())
         {
-            if (object == nullptr)
+            if (emitter == nullptr)
             {
                 continue;
             }
 
-            if (auto emitter = object->getComponent<ParticleEmitterComponent>())
-            {
-                renderEmitter(object, *emitter);
-            }
+            GameObject* object = emitter->getGameObject();
+            AIKO_ASSERT(object != nullptr, "ParticleEmitterComponent is not attached to a GameObject");
+
+            renderEmitter(object, *emitter);
         }
     }
 

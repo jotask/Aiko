@@ -36,27 +36,29 @@ namespace aiko
             m_renderModule->getRenderer().submit(view.ambientLight, view.lights);
             m_renderModule->setMainCamera(view.camera);
         }
-        for (const auto& go : m_scene.getObjects())
+
+        for (MeshComponent* component : m_scene.components<MeshComponent>())
         {
-            if (go == nullptr) continue;
-            if (!go->hasComponent<TransformComponent>()) continue;
+            GameObject* gameObject = component->getGameObject();
+            AIKO_ASSERT(gameObject != nullptr, "MeshComponent is not attached to a GameObject");
 
-            const auto transform = go->getComponent<TransformComponent>();
+            m_renderSystem->render(gameObject->transform(), *component);
+        }
 
-            if (auto cmp = go->getComponent<MeshComponent>())
-            {
-                m_renderSystem->render(transform->transform, *cmp);
-            }
+        for (ModelComponent* component : m_scene.components<ModelComponent>())
+        {
+            GameObject* gameObject = component->getGameObject();
+            AIKO_ASSERT(gameObject != nullptr, "ModelComponent is not attached to a GameObject");
 
-            if (auto cmp = go->getComponent<ModelComponent>())
-            {
-                m_renderSystem->render(transform->transform, *cmp);
-            }
+            m_renderSystem->render(gameObject->transform(), *component);
+        }
 
-            if (auto cmp = go->getComponent<SpriteComponent>())
-            {
-                m_renderSystem->render(transform->transform, *cmp);
-            }
+        for (SpriteComponent* component : m_scene.components<SpriteComponent>())
+        {
+            GameObject* gameObject = component->getGameObject();
+            AIKO_ASSERT(gameObject != nullptr, "SpriteComponent is not attached to a GameObject");
+
+            m_renderSystem->render(gameObject->transform(), *component);
         }
     }
 
@@ -100,28 +102,22 @@ namespace aiko
 
     Camera* SceneSystem::getMainCamera()
     {
-        for (const auto& obj : m_scene.getObjects())
+        const auto cameras = m_scene.components<CameraComponent>();
+        if (cameras.empty())
         {
-            if (obj == nullptr) continue;
-            if (auto cam = obj->getComponent<CameraComponent>())
-            {
-                return &cam->getCamera();
-            }
+            return nullptr;
         }
-        return nullptr;
+        return &cameras.front()->getCamera();
     }
 
     const Camera* SceneSystem::getMainCamera() const
     {
-        for (const auto& obj : m_scene.getObjects())
+        const auto cameras = m_scene.components<CameraComponent>();
+        if (cameras.empty())
         {
-            if (obj == nullptr) continue;
-            if (auto cam = obj->getComponent<CameraComponent>())
-            {
-                return &cam->getCamera();
-            }
+            return nullptr;
         }
-        return nullptr;
+        return &cameras.front()->getCamera();
     }
 
     void SceneSystem::setActiveCamera(GameObject* obj)
