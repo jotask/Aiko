@@ -13,9 +13,8 @@
 namespace aiko
 {
     LayerContext::LayerContext(SystemConnector& connector)
+        : m_input(connector)
     {
-        m_inputSystem = connector.find<InputSystem>();
-        AIKO_ASSERT(m_inputSystem != nullptr, "Required system InputSystem not found");
 
         m_sceneSystem = connector.find<SceneSystem>();
         AIKO_ASSERT(m_sceneSystem != nullptr, "Required system SceneSystem not found");
@@ -36,36 +35,6 @@ namespace aiko
     GameObject* LayerContext::Instantiate(GameObject* parent, string name)
     {
         return m_sceneSystem->createGameObject(parent, std::move(name)).get();
-    }
-
-    bool LayerContext::isKeyPressed(Key key) const
-    {
-        return m_inputSystem->isKeyPressed(key);
-    }
-
-    bool LayerContext::isKeyJustPressed(Key key) const
-    {
-        return m_inputSystem->isKeyJustPressed(key);
-    }
-
-    vec2 LayerContext::getMousePosition() const
-    {
-        return m_inputSystem->getMousePosition();
-    }
-
-    bool LayerContext::isMouseButtonPressed(MouseButton button) const
-    {
-        return m_inputSystem->isMouseButtonPressed(button);
-    }
-
-    vec2 LayerContext::getMouseDelta() const
-    {
-        return m_inputSystem->getMouseDelta();
-    }
-
-    void LayerContext::setIsMouseCentred(bool centred) const
-    {
-        m_inputSystem->setIsMouseCentred(centred);
     }
 
     float LayerContext::getDeltaTime() const

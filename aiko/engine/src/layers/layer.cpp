@@ -31,41 +31,6 @@ namespace aiko
         return m_context->Instantiate(parent, std::move(name));
     }
 
-    bool Layer::isKeyPressed(Key key) const
-    {
-        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
-        return m_context->isKeyPressed(key);
-    }
-
-    bool Layer::isKeyJustPressed(Key key) const
-    {
-        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
-        return m_context->isKeyJustPressed(key);
-    }
-
-    vec2 Layer::getMousePosition() const
-    {
-        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
-        return m_context->getMousePosition();
-    }
-
-    bool Layer::isMouseButtonPressed(MouseButton button) const
-    {
-        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
-        return m_context->isMouseButtonPressed(button);
-    }
-    vec2 Layer::getMouseDelta() const
-    {
-        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
-        return m_context->getMouseDelta();
-    }
-
-    void Layer::setIsMouseCentred(bool centred) const
-    {
-        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
-        m_context->setIsMouseCentred(centred);
-    }
-
     float Layer::getDeltaTime() const
     {
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
@@ -82,6 +47,18 @@ namespace aiko
     {
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
         m_context->drawMesh(transform, mesh, material);
+    }
+    InputContext& Layer::input()
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->input();
+    }
+
+    const InputContext& Layer::input() const
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->input();
+
     }
 
 }

@@ -1,9 +1,6 @@
 #pragma once
 
 #include <aiko_types.h>
-#include <math/math.h>
-#include <assets/asset_id.h>
-#include <input/inputs_types.h>
 #include <events/event.hpp>
 
 namespace aiko
@@ -17,6 +14,8 @@ namespace aiko
     class Mesh;
     class Material;
     struct Transform;
+
+    class InputContext;
 
     class Layer
     {
@@ -45,18 +44,13 @@ namespace aiko
         GameObject* Instantiate(string name);
         GameObject* Instantiate(GameObject* parent, string name);
 
-        bool isKeyPressed(Key key) const;
-        bool isKeyJustPressed(Key key) const;
-
-        vec2 getMousePosition() const;
-        bool isMouseButtonPressed(MouseButton button) const;
-        vec2 getMouseDelta() const;
-        void setIsMouseCentred(bool centred) const;
-
         float getDeltaTime() const;
 
         void drawRectangle(const vec3& position, const vec3& size);
         void drawMesh(const Transform& transform, const Mesh& mesh, const Material& material);
+
+        InputContext& input();
+        const InputContext& input() const;
 
     private:
         friend class Application;

@@ -4,10 +4,11 @@
 #include <math/math.h>
 #include <input/inputs_types.h>
 
+#include "layers/contexts/input_context.h"
+
 namespace aiko
 {
     class GameObject;
-    class InputSystem;
     class SceneSystem;
     class RenderSystem;
     class AssetSystem;
@@ -23,14 +24,6 @@ namespace aiko
         GameObject* Instantiate(string name);
         GameObject* Instantiate(GameObject* parent, string name);
 
-        bool isKeyPressed(Key key) const;
-        bool isKeyJustPressed(Key key) const;
-
-        vec2 getMousePosition() const;
-        bool isMouseButtonPressed(MouseButton button) const;
-        vec2 getMouseDelta() const;
-        void setIsMouseCentred(bool centred) const;
-
         float getDeltaTime() const;
 
         // Draw
@@ -39,10 +32,15 @@ namespace aiko
 
         AssetId loadShader(string_view source);
 
+        InputContext& input() { return m_input; }
+        const InputContext& input() const { return m_input; }
+
     private:
-        InputSystem* m_inputSystem = nullptr;
         SceneSystem* m_sceneSystem = nullptr;
         RenderSystem* m_renderSystem = nullptr;
         AssetSystem* m_assetSystem = nullptr;
+
+        InputContext m_input;
+
     };
 }
