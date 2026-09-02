@@ -40,6 +40,7 @@ namespace aiko
 
         virtual void connect(ModuleConnector*, SystemConnector*) override;
         virtual void render() override;
+        virtual void dispose() override;
 
         constexpr static const char* DEFAULT_OBJECT_NAME = "Game Object";
 

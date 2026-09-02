@@ -60,6 +60,11 @@ namespace aiko
         }
     }
 
+    void SceneSystem::dispose()
+    {
+        m_scene.clear();
+    }
+
     AikoPtr<GameObject> SceneSystem::createGameObject(string name)
     {
         auto obj = std::make_shared<GameObject>();
