@@ -2,18 +2,19 @@
 
 #include <aiko_types.h>
 
-#include "scene/entity_registry.h"
 #include "models/game_object.h"
 
 namespace aiko
 {
 
+    class EntityRegistry;
+
     class Scene
     {
         friend class GameObject;
     public:
-        Scene() = default;
-        ~Scene() = default;
+        Scene();
+        ~Scene();
 
         void add(const AikoPtr<GameObject>& obj);
         bool remove(const GameObject* obj);
@@ -31,7 +32,7 @@ namespace aiko
         vector<T*> components();
 
     private:
-        EntityRegistry m_registry;
+        AikoUPtr<EntityRegistry> m_registry;
 
         vector<AikoPtr<GameObject>> m_objects;
         GameObject* m_activeCamera = nullptr;
