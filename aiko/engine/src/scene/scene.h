@@ -1,6 +1,8 @@
 #pragma once
 
 #include <aiko_types.h>
+#include <typeindex>
+#include <unordered_map>
 
 #include "models/game_object.h"
 
@@ -11,6 +13,7 @@ namespace aiko
 
     class Scene
     {
+        friend class GameObject;
     public:
         Scene();
         ~Scene();
@@ -36,10 +39,18 @@ namespace aiko
     private:
         AikoUPtr<EntityRegistry> m_registry;
 
+        using ComponentBucket = vector<Component*>;
+        std::unordered_map<std::type_index, ComponentBucket> m_componentIndex;
+
         vector<AikoPtr<GameObject>> m_objects;
         GameObject* m_activeCamera = nullptr;
 
         void destroyObject(GameObject& object);
+
+        void registerComponent(Component* component, std::type_index type);
+        void unregisterComponent(Component* component, std::type_index type);
+        void registerObjectComponents(GameObject& object);
+        void unregisterObjectComponents(GameObject& object);
 
     };
 
@@ -47,15 +58,31 @@ namespace aiko
     vector<T*> Scene::components()
     {
         vector<T*> result;
-        for (const auto& object : m_objects)
+        if constexpr (std::is_base_of_v<Component, T>)
         {
-            if (object == nullptr)
+            auto it = m_componentIndex.find(std::type_index(typeid(T)));
+            if (it == m_componentIndex.end())
             {
-                continue;
+                return result;
             }
-            for (T* component : object->getComponents<T>())
+            result.reserve(it->second.size());
+            for (Component* component : it->second)
             {
-                result.push_back(component);
+                result.push_back(static_cast<T*>(component));
+            }
+        }
+        else
+        {
+            for (const auto& object : m_objects)
+            {
+                if (object == nullptr)
+                {
+                    continue;
+                }
+                for (T* component : object->getComponents<T>())
+                {
+                    result.push_back(component);
+                }
             }
         }
         return result;
@@ -65,16 +92,31 @@ namespace aiko
     vector<const T*> Scene::components() const
     {
         vector<const T*> result;
-        for (const auto& object : m_objects)
+        if constexpr (std::is_base_of_v<Component, T>)
         {
-            if (object == nullptr)
+            auto it = m_componentIndex.find(std::type_index(typeid(T)));
+            if (it == m_componentIndex.end())
             {
-                continue;
+                return result;
             }
-            const GameObject* gameObject = object.get();
-            for (const T* component : gameObject->getComponents<T>())
+            result.reserve(it->second.size());
+            for (const Component* component : it->second)
             {
-                result.push_back(component);
+                result.push_back(static_cast<const T*>(component));
+            }
+        }
+        else
+        {
+            for (const auto& object : m_objects)
+            {
+                if (object == nullptr)
+                {
+                    continue;
+                }
+                for (const T* component : object->getComponents<T>())
+                {
+                    result.push_back(component);
+                }
             }
         }
         return result;

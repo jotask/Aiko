@@ -25,6 +25,7 @@ namespace aiko
         AIKO_ASSERT(obj->m_entity.valid() == false, "GameObject is already attached to a scene");
         obj->m_scene = this;
         obj->m_entity = m_registry->create();
+        registerObjectComponents(*obj);
         m_objects.push_back(obj);
     }
 
@@ -70,6 +71,7 @@ namespace aiko
         }
 
         m_objects.clear();
+        m_componentIndex.clear();
         m_activeCamera = nullptr;
     }
 
@@ -97,16 +99,12 @@ namespace aiko
 
     void Scene::setActiveCamera(GameObject* obj)
     {
-        // Allow nullptr to clear active camera
         if (obj == nullptr)
         {
             m_activeCamera = nullptr;
             return;
         }
-
-        // Only accept objects that exist in this scene
         bool exists = std::any_of(m_objects.begin(), m_objects.end(), [obj](const AikoPtr<GameObject>& go) { return go != nullptr && go.get() == obj; });
-
         if (exists)
         {
             m_activeCamera = obj;
@@ -118,12 +116,72 @@ namespace aiko
         Transform& transform = object.transform();
         transform.clearChildren();
         transform.clearParent();
+
+        unregisterObjectComponents(object);
+
         object.dispose();
+
         if (m_registry->valid(object.m_entity))
         {
             m_registry->destroy(object.m_entity);
         }
+
         object.m_entity = {};
         object.m_scene = nullptr;
     }
+
+    void Scene::registerComponent(Component* component, std::type_index type)
+    {
+        if (component == nullptr)
+        {
+            return;
+        }
+
+        m_componentIndex[type].push_back(component);
+    }
+
+    void Scene::unregisterComponent(Component* component, std::type_index type)
+    {
+        if (component == nullptr)
+        {
+            return;
+        }
+
+        auto it = m_componentIndex.find(type);
+        if (it == m_componentIndex.end())
+        {
+            return;
+        }
+
+        auto& bucket = it->second;
+        std::erase(bucket, component);
+
+        if (bucket.empty())
+        {
+            m_componentIndex.erase(it);
+        }
+    }
+
+    void Scene::registerObjectComponents(GameObject& object)
+    {
+        for (const auto& [type, components] : object.m_componentIndex)
+        {
+            for (Component* component : components)
+            {
+                registerComponent(component, type);
+            }
+        }
+    }
+
+    void Scene::unregisterObjectComponents(GameObject& object)
+    {
+        for (const auto& [type, components] : object.m_componentIndex)
+        {
+            for (Component* component : components)
+            {
+                unregisterComponent(component, type);
+            }
+        }
+    }
+
 }

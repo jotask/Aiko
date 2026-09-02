@@ -1,6 +1,7 @@
 #include "game_object.h"
 
 #include "components/transform_component.h"
+#include "scene/scene.h"
 
 namespace aiko
 {
@@ -43,6 +44,8 @@ namespace aiko
 
         const std::type_index type = std::type_index(typeid(*item));
 
+        notifyComponentRemoving(item, type);
+
         auto bucketIt = m_componentIndex.find(type);
         if (bucketIt != m_componentIndex.end())
         {
@@ -73,6 +76,22 @@ namespace aiko
         }
         m_components.clear();
         m_componentIndex.clear();
+    }
+
+    void GameObject::notifyComponentAdded(Component* component, std::type_index type)
+    {
+        if (m_scene != nullptr)
+        {
+            m_scene->registerComponent(component, type);
+        }
+    }
+
+    void GameObject::notifyComponentRemoving(Component* component, std::type_index type)
+    {
+        if (m_scene != nullptr)
+        {
+            m_scene->unregisterComponent(component, type);
+        }
     }
 
 }

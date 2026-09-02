@@ -78,6 +78,9 @@ namespace aiko
         template<class T>
         const T* findComponent() const;
 
+        void notifyComponentAdded(Component*, std::type_index);
+        void notifyComponentRemoving(Component*, std::type_index);
+
     };
 
     template<class T, typename... Args>
@@ -99,6 +102,7 @@ namespace aiko
         m_componentIndex[std::type_index(typeid(T))].push_back(baseComponent);
         baseComponent->setup(this);
         baseComponent->init();
+        notifyComponentAdded(baseComponent, std::type_index(typeid(T)));
         return result;
     }
 
@@ -199,6 +203,7 @@ namespace aiko
         {
             if (typeid(*(*it)) == typeid(T))
             {
+                notifyComponentRemoving(it->get(), type);
                 (*it)->dispose();
                 it = m_components.erase(it);
             }
