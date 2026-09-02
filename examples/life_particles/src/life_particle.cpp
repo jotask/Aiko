@@ -1,6 +1,6 @@
 #include "life_particle.h"
 
-#include "systems/asset_system.h"
+#include "layers/layer_context.h"
 
 #include <components/camera_component.h>
 #include <core/random.h>
@@ -15,7 +15,7 @@ namespace lp
 
     void LifeParticles::init()
     {
-        auto camera = app->Instantiate("Camera");
+        auto camera = Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
         camera->transform().position = { 0.0f, 1.0f, 3.0f };
         cam->getCamera().position = camera->transform().position;
@@ -23,10 +23,7 @@ namespace lp
         aiko::MeshAsset asset = aiko::mesh::factory::generateMeshSphere( 7, 7);
         m_mesh.upload(asset);
 
-        aiko::AssetSystem* assetSystem = app->m_aiko->getSystem<aiko::AssetSystem>();
-        AIKO_ASSERT(assetSystem != nullptr, "Couldn't find asset system")
-
-        m_material.m_shaderId = assetSystem->registerAndLoadAsset<aiko::ShaderAsset>("model");
+        m_material.m_shaderId = context().loadShader("model");
         m_material.m_lit = false;
         m_material.m_useVertexColor = false;
         m_material.m_baseColor = aiko::RED;
@@ -62,13 +59,17 @@ namespace lp
 
     void LifeParticles::render()
     {
-        aiko::RenderSystem* renderSystem = app->getRenderSystem();
         for (Particle& lp : m_particles)
         {
             aiko::Transform trans;
             trans.position = lp.position;
-            renderSystem->render(trans, m_mesh, m_material);
+            drawMesh(trans, m_mesh, m_material);
         }
+    }
+
+    void LifeParticles::dispose()
+    {
+        m_mesh.unload();
     }
 }
 

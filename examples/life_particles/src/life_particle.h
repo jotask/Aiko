@@ -19,6 +19,7 @@ namespace lp
         virtual void init() override;
         virtual void update() override;
         virtual void render() override;
+        virtual void dispose() override;
     private:
 
         std::array<Particle, c_particles_amount> m_particles;
