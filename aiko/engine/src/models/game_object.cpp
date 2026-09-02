@@ -40,8 +40,25 @@ namespace aiko
         {
             return false;
         }
+
+        const std::type_index type = std::type_index(typeid(*item));
+
+        auto bucketIt = m_componentIndex.find(type);
+        if (bucketIt != m_componentIndex.end())
+        {
+            auto& bucket = bucketIt->second;
+
+            std::erase(bucket, item);
+
+            if (bucket.empty())
+            {
+                m_componentIndex.erase(bucketIt);
+            }
+        }
+
         (*it)->dispose();
         m_components.erase(it);
+
         return true;
     }
 
@@ -55,6 +72,7 @@ namespace aiko
             }
         }
         m_components.clear();
+        m_componentIndex.clear();
     }
 
 }

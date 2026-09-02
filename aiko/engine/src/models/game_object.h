@@ -4,6 +4,8 @@
 #include <utility>
 #include <type_traits>
 #include <algorithm>
+#include <typeindex>
+#include <unordered_map>
 
 #include "core/uuid.h"
 #include "aiko_types.h"
@@ -62,7 +64,11 @@ namespace aiko
         uuid::Uuid m_uuid;
 
         string name;
+
+        using ComponentBucket = vector<Component*>;
+
         vector<AikoUPtr<Component>> m_components;
+        std::unordered_map<std::type_index, ComponentBucket> m_componentIndex;
 
         void dispose();
 
@@ -90,6 +96,7 @@ namespace aiko
         T* result = component.get();
         Component* baseComponent = component.get();
         m_components.emplace_back(std::move(component));
+        m_componentIndex[std::type_index(typeid(T))].push_back(baseComponent);
         baseComponent->setup(this);
         baseComponent->init();
         return result;
@@ -117,11 +124,27 @@ namespace aiko
     vector<T*> GameObject::getComponents()
     {
         vector<T*> components;
-        for (size_t i = 0; i < m_components.size(); ++i)
+        if constexpr (std::is_base_of_v<Component, T>)
         {
-            if (auto* component = dynamic_cast<T*>(m_components[i].get()))
+            auto it = m_componentIndex.find(std::type_index(typeid(T)));
+            if (it == m_componentIndex.end())
             {
-                components.push_back(component);
+                return components;
+            }
+            components.reserve(it->second.size());
+            for (Component* component : it->second)
+            {
+                components.push_back(static_cast<T*>(component));
+            }
+        }
+        else
+        {
+            for (const auto& component : m_components)
+            {
+                if (auto* result = dynamic_cast<T*>(component.get()))
+                {
+                    components.push_back(result);
+                }
             }
         }
         return components;
@@ -131,11 +154,27 @@ namespace aiko
     vector<const T*> GameObject::getComponents() const
     {
         vector<const T*> components;
-        for (size_t i = 0; i < m_components.size(); ++i)
+        if constexpr (std::is_base_of_v<Component, T>)
         {
-            if (auto* component = dynamic_cast<const T*>(m_components[i].get()))
+            auto it = m_componentIndex.find(std::type_index(typeid(T)));
+            if (it == m_componentIndex.end())
             {
-                components.push_back(component);
+                return components;
+            }
+            components.reserve(it->second.size());
+            for (const Component* component : it->second)
+            {
+                components.push_back(static_cast<const T*>(component));
+            }
+        }
+        else
+        {
+            for (const auto& component : m_components)
+            {
+                if (auto* result = dynamic_cast<const T*>(component.get()))
+                {
+                    components.push_back(result);
+                }
             }
         }
         return components;
@@ -144,47 +183,56 @@ namespace aiko
     template<class T>
     size_t GameObject::removeComponents()
     {
+        static_assert(std::is_base_of_v<Component, T>, "GameObject::removeComponents requires a Component type");
         if constexpr (std::is_same_v<T, TransformComponent>)
         {
             return 0;
         }
-        size_t removedCount = 0;
-
+        const std::type_index type = std::type_index(typeid(T));
+        auto bucket = m_componentIndex.find(type);
+        if (bucket == m_componentIndex.end())
+        {
+            return 0;
+        }
+        const size_t removedCount = bucket->second.size();
         for (auto it = m_components.begin(); it != m_components.end();)
         {
-            if (dynamic_cast<T*>(it->get()) != nullptr)
+            if (typeid(*(*it)) == typeid(T))
             {
                 (*it)->dispose();
                 it = m_components.erase(it);
-                ++removedCount;
             }
             else
             {
                 ++it;
             }
         }
-
+        m_componentIndex.erase(bucket);
         return removedCount;
     }
 
     template<class T>
     T* GameObject::findComponent()
     {
-        auto it = std::find_if(m_components.begin(), m_components.end(), [](const AikoUPtr<Component>& component)
+        static_assert(std::is_base_of_v<Component, T>, "GameObject::findComponent requires a Component type");
+        auto it = m_componentIndex.find(std::type_index(typeid(T)));
+        if (it == m_componentIndex.end() || it->second.empty())
         {
-            return dynamic_cast<T*>(component.get()) != nullptr;
-        });
-        return (it != m_components.end()) ? dynamic_cast<T*>(it->get()) : nullptr;
+            return nullptr;
+        }
+        return static_cast<T*>(it->second.front());
     }
 
     template<class T>
     const T* GameObject::findComponent() const
     {
-        auto it = std::find_if(m_components.begin(), m_components.end(), [](const AikoUPtr<Component>& component)
+        static_assert(std::is_base_of_v<Component, T>, "GameObject::findComponent requires a Component type");
+        auto it = m_componentIndex.find(std::type_index(typeid(T)));
+        if (it == m_componentIndex.end() || it->second.empty())
         {
-            return dynamic_cast<const T*>(component.get()) != nullptr;
-        });
-        return (it != m_components.end()) ? dynamic_cast<const T*>(it->get()) : nullptr;
+            return nullptr;
+        }
+        return static_cast<const T*>(it->second.front());
     }
 
 }
