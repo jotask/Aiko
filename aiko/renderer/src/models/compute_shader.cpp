@@ -11,6 +11,11 @@ namespace aiko
 
     }
 
+    ComputeShader::~ComputeShader()
+    {
+        unload();
+    }
+
     bool ComputeShader::isValid() const
     {
         return backend->isValid();

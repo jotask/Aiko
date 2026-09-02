@@ -28,7 +28,7 @@
         FrameBuffer& operator=(FrameBuffer&&) noexcept = default;
 
         FrameBuffer();
-        virtual ~FrameBuffer() = default;
+        virtual ~FrameBuffer();
 
         void* getImpl() const { return backend.get(); }
 

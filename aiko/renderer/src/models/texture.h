@@ -28,7 +28,7 @@ namespace aiko
         Texture& operator=(Texture&&) noexcept = default;
 
         Texture();
-        virtual ~Texture() = default;
+        virtual ~Texture();
 
         void* getImpl() const { return backend.get(); }
 

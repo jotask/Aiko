@@ -25,7 +25,7 @@
         ComputeShader& operator=(ComputeShader&&) noexcept = default;
 
         ComputeShader();
-        ~ComputeShader() = default;
+        ~ComputeShader();
 
         void* getImpl() const { return backend.get(); }
 

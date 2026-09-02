@@ -11,6 +11,11 @@ namespace aiko
 
     }
 
+    FrameBuffer::~FrameBuffer()
+    {
+        unload();
+    }
+
     void FrameBuffer::use()
     {
         backend->use();

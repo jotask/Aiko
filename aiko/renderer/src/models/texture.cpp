@@ -11,6 +11,11 @@ namespace aiko
 
     }
 
+    Texture::~Texture()
+    {
+        unload();
+    }
+
     void Texture::use()
     {
         backend->use();
