@@ -10,7 +10,10 @@ namespace aiko
     class InputSystem;
     class SceneSystem;
     class RenderSystem;
+    class AssetSystem;
     class SystemConnector;
+    class Mesh;
+    class Material;
 
     class LayerContext
     {
@@ -32,10 +35,14 @@ namespace aiko
 
         // Draw
         void drawRectangle(const vec3& position, const vec3& size);
+        void drawMesh(const Transform& transform, const Mesh& mesh, const Material& material);
+
+        AssetId loadShader(string_view source);
 
     private:
         InputSystem* m_inputSystem = nullptr;
         SceneSystem* m_sceneSystem = nullptr;
         RenderSystem* m_renderSystem = nullptr;
+        AssetSystem* m_assetSystem = nullptr;
     };
 }

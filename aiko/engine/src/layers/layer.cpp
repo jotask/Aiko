@@ -77,4 +77,11 @@ namespace aiko
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
         m_context->drawRectangle(position, size);
     }
+
+    void Layer::drawMesh(const Transform& transform, const Mesh& mesh, const Material& material)
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        m_context->drawMesh(transform, mesh, material);
+    }
+
 }

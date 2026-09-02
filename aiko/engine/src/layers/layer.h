@@ -2,6 +2,7 @@
 
 #include <aiko_types.h>
 #include <math/math.h>
+#include <assets/asset_id.h>
 #include <input/inputs_types.h>
 #include <events/event.hpp>
 
@@ -13,6 +14,9 @@ namespace aiko
     class LayerContext;
     class SystemConnector;
     class SystemRegistry;
+    class Mesh;
+    class Material;
+    struct Transform;
 
     class Layer
     {
@@ -52,6 +56,7 @@ namespace aiko
         float getDeltaTime() const;
 
         void drawRectangle(const vec3& position, const vec3& size);
+        void drawMesh(const Transform& transform, const Mesh& mesh, const Material& material);
 
     private:
         friend class Application;
