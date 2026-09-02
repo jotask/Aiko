@@ -22,13 +22,13 @@ namespace aiko
     GameObject* Layer::Instantiate(string name)
     {
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
-        return m_context->Instantiate(std::move(name));
+        return m_context->scene().Instantiate(std::move(name));
     }
 
     GameObject* Layer::Instantiate(GameObject* parent, string name)
     {
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
-        return m_context->Instantiate(parent, std::move(name));
+        return m_context->scene().Instantiate(parent, std::move(name));
     }
 
     float Layer::getDeltaTime() const
@@ -49,6 +49,7 @@ namespace aiko
         return m_context->input();
 
     }
+
     RenderContext& Layer::renderer()
     {
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
@@ -59,6 +60,30 @@ namespace aiko
     {
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
         return m_context->render();
+    }
+
+    SceneContext& Layer::scene()
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->scene();
+    }
+
+    const SceneContext& Layer::scene() const
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->scene();
+    }
+
+    AssetContext& Layer::assets()
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->assets();
+    }
+
+    const AssetContext& Layer::assets() const
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->assets();
     }
 
 }

@@ -5,7 +5,6 @@
 
 namespace aiko
 {
-    class RenderContext;
 
     class Application;
     class GameObject;
@@ -13,7 +12,10 @@ namespace aiko
     class SystemConnector;
     class SystemRegistry;
 
+    class RenderContext;
     class InputContext;
+    class SceneContext;
+    class AssetContext;
 
     class Layer
     {
@@ -44,14 +46,17 @@ namespace aiko
 
         float getDeltaTime() const;
 
-        void drawRectangle(const vec3& position, const vec3& size);
-        void drawMesh(const Transform& transform, const Mesh& mesh, const Material& material);
-
         InputContext& input();
         const InputContext& input() const;
 
         RenderContext& renderer();
         const RenderContext& renderer() const;
+
+        SceneContext& scene();
+        const SceneContext& scene() const;
+
+        AssetContext& assets();
+        const AssetContext& assets() const;
 
     private:
         friend class Application;
