@@ -12,11 +12,7 @@ namespace aiko
 
     LayerStack::~LayerStack()
     {
-        for (const auto& layer : m_layers)
-        {
-            layer->dispose();
-            layer->onDetach();
-        }
+        clear();
     }
 
     Layer* LayerStack::pushLayer(AikoUPtr<Layer> layer)
@@ -71,4 +67,16 @@ namespace aiko
             m_layers.erase(found);
         }
     }
+
+    void LayerStack::clear()
+    {
+        for (const auto& layer : m_layers)
+        {
+            layer->dispose();
+            layer->onDetach();
+        }
+        m_layers.clear();
+        m_insertIndex = 0;
+    }
+
 }

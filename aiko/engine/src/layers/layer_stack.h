@@ -18,6 +18,7 @@ namespace aiko
         Layer* pushOverlay(AikoUPtr<Layer> layer);
         void popLayer(Layer*);
         void popOverlay(Layer*);
+        void clear();
 
         auto begin() { return m_layers.begin(); }
         auto end(){ return m_layers.end(); }

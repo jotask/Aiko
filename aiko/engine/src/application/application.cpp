@@ -61,10 +61,7 @@ namespace aiko
 
     void Application::dispose()
     {
-        for (auto& layer : *m_layers)
-        {
-            layer->dispose();
-        }
+        m_layers->clear();
     }
 
     void Application::pushLayer(AikoUPtr<Layer> layer)

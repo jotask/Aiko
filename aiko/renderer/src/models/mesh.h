@@ -29,7 +29,7 @@
 
         Mesh(const MeshAsset& data);
         Mesh();
-        ~Mesh() = default;
+        ~Mesh();
 
         void* getImpl() const { return backend.get(); }
 

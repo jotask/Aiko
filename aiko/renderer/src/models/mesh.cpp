@@ -17,6 +17,14 @@ namespace aiko
         backend = renderer::RendererFactory::createMeshImpl(this);
     }
 
+    Mesh::~Mesh()
+    {
+        if (backend != nullptr)
+        {
+            backend->unload();
+        }
+    }
+
     void Mesh::refresh()
     {
 

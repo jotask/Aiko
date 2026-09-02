@@ -23,7 +23,7 @@ namespace lp
         aiko::MeshAsset asset = aiko::mesh::factory::generateMeshSphere( 7, 7);
         m_mesh.upload(asset);
 
-        m_material.m_shaderId = context().loadShader("model");
+        m_material.m_shaderId = context().assets().loadShader("model");
         m_material.m_lit = false;
         m_material.m_useVertexColor = false;
         m_material.m_baseColor = aiko::RED;
@@ -63,13 +63,9 @@ namespace lp
         {
             aiko::Transform trans;
             trans.position = lp.position;
-            drawMesh(trans, m_mesh, m_material);
+            context().render().drawMesh(trans, m_mesh, m_material);
         }
     }
 
-    void LifeParticles::dispose()
-    {
-        m_mesh.unload();
-    }
 }
 
