@@ -9,8 +9,6 @@
 namespace aiko
 {
 
-    class EntityRegistry;
-
     class Scene
     {
         friend class GameObject;
@@ -37,8 +35,6 @@ namespace aiko
         vector<const T*> components() const;
 
     private:
-        AikoUPtr<EntityRegistry> m_registry;
-
         using ComponentBucket = vector<Component*>;
         std::unordered_map<std::type_index, ComponentBucket> m_componentIndex;
 

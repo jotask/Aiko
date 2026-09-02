@@ -11,7 +11,6 @@
 #include "aiko_types.h"
 #include "component.h"
 #include "components/transform_component.h"
-#include "models/entity_id.h"
 
 namespace aiko
 {
@@ -60,7 +59,6 @@ namespace aiko
     private:
 
         Scene* m_scene = nullptr;
-        EntityId m_entity;
         uuid::Uuid m_uuid;
 
         string name;

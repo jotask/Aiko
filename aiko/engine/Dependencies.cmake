@@ -41,21 +41,6 @@ endif()
 
 #----------------------------------------------------------------------
 
-
-FetchContent_Declare(
-    EnTT
-    GIT_REPOSITORY  https://github.com/skypjack/entt.git
-    GIT_TAG         v3.16.0
-    GIT_SHALLOW     TRUE
-    GIT_PROGRESS    TRUE
-)
-message("Fetching EnTT")
-FetchContent_MakeAvailable(EnTT)
-target_compile_definitions(EnTT INTERFACE ENTT_FORCE_SILENT_WARNINGS)
-set_target_properties(EnTT PROPERTIES FOLDER "Dependencies")
-
-#----------------------------------------------------------------------
-
 FetchContent_Declare(
         stb
         GIT_REPOSITORY  https://github.com/nothings/stb.git

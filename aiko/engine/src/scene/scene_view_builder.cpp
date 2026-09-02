@@ -20,81 +20,57 @@ namespace aiko
 
     const Camera* SceneViewBuilder::findMainCamera(Scene& scene)
     {
-        // 1) Prefer explicit active camera, if set and valid
         if (GameObject* active = scene.getActiveCamera())
         {
-            if (active->hasComponent<CameraComponent>())
+            if (CameraComponent* component = active->getComponent<CameraComponent>())
             {
-                CameraComponent* cmp = active->getComponent<CameraComponent>();
-                return &cmp->getCamera();
+                return &component->getCamera();
             }
         }
 
-        // 2) If no explicit active camera, prefer first camera marked as main
-        for (GameObject* obj : scene.getObjects())
+        const auto cameras = scene.components<CameraComponent>();
+
+        for (CameraComponent* component : cameras)
         {
-            if (obj == nullptr)
+            if (component != nullptr && component->isMain())
             {
-                continue;
-            }
-            if (obj->hasComponent<CameraComponent>() == false)
-            {
-                continue;
-            }
-            CameraComponent* cmp = obj->getComponent<CameraComponent>();
-            if (cmp->isMain() == true)
-            {
-                return &cmp->getCamera();
+                return &component->getCamera();
             }
         }
 
-        // 3) Final fallback: first camera found in scene
-        for (GameObject* obj : scene.getObjects())
+        if (cameras.empty())
         {
-            if (obj == nullptr)
-            {
-                continue;
-            }
-            if (obj->hasComponent<CameraComponent>() == false)
-            {
-                continue;
-            }
-            CameraComponent* cmp = obj->getComponent<CameraComponent>();
-            return &cmp->getCamera();
+            return nullptr;
         }
 
-        return nullptr;
+        return &cameras.front()->getCamera();
     }
 
     void SceneViewBuilder::gatherLights(Scene& scene, SceneView& out)
     {
-        for (GameObject* obj : scene.getObjects())
+        for (LightComponent* component : scene.components<LightComponent>())
         {
-            if (obj == nullptr)
+            if (component == nullptr)
             {
                 continue;
             }
 
-            if (obj->hasComponent<LightComponent>() == false)
-            {
-                continue;
-            }
+            GameObject* object = component->getGameObject();
+            AIKO_ASSERT(object != nullptr, "LightComponent is not attached to a GameObject");
 
-            const LightComponent* cmp = obj->getComponent<LightComponent>();
-
-            const LightData ld =
+            const LightData light =
             {
-                .type = cmp->type,
-                .position = obj->transform().position,
-                .direction = cmp->direction,
-                .color = cmp->color,
-                .intensity = cmp->intensity,
-                .range = cmp->range,
-                .innerCos = cmp->innerCos,
-                .outerCos = cmp->outerCos,
+                .type = component->type,
+                .position = object->transform().position,
+                .direction = component->direction,
+                .color = component->color,
+                .intensity = component->intensity,
+                .range = component->range,
+                .innerCos = component->innerCos,
+                .outerCos = component->outerCos,
             };
-            out.lights.push_back(ld);
 
+            out.lights.push_back(light);
         }
     }
 

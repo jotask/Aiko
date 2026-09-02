@@ -1,18 +1,13 @@
 #include "scene.h"
 
 #include "models/game_object.h"
-#include "scene/entity_registry.h"
 
 #include <algorithm>
 
 namespace aiko
 {
-    Scene::Scene()
-        : m_registry(std::make_unique<EntityRegistry>())
-    {
 
-    }
-
+    Scene::Scene() = default;
     Scene::~Scene() = default;
 
     void Scene::add(const AikoPtr<GameObject>& obj)
@@ -22,9 +17,7 @@ namespace aiko
             return;
         }
         AIKO_ASSERT(obj->m_scene == nullptr, "GameObject is already attached to a scene");
-        AIKO_ASSERT(obj->m_entity.valid() == false, "GameObject is already attached to a scene");
         obj->m_scene = this;
-        obj->m_entity = m_registry->create();
         registerObjectComponents(*obj);
         m_objects.push_back(obj);
     }
@@ -69,7 +62,6 @@ namespace aiko
                 destroyObject(*object);
             }
         }
-
         m_objects.clear();
         m_componentIndex.clear();
         m_activeCamera = nullptr;
@@ -116,17 +108,8 @@ namespace aiko
         Transform& transform = object.transform();
         transform.clearChildren();
         transform.clearParent();
-
         unregisterObjectComponents(object);
-
         object.dispose();
-
-        if (m_registry->valid(object.m_entity))
-        {
-            m_registry->destroy(object.m_entity);
-        }
-
-        object.m_entity = {};
         object.m_scene = nullptr;
     }
 
