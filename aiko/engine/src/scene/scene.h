@@ -11,7 +11,6 @@ namespace aiko
 
     class Scene
     {
-        friend class GameObject;
     public:
         Scene();
         ~Scene();
