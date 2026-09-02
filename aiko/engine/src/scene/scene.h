@@ -16,7 +16,9 @@ namespace aiko
         Scene();
         ~Scene();
 
-        void add(const AikoPtr<GameObject>& obj);
+        GameObject* create(string name);
+        GameObject* create(GameObject* parent, string name);
+
         bool remove(const GameObject* obj);
 
         void clear();
@@ -38,7 +40,7 @@ namespace aiko
         using ComponentBucket = vector<Component*>;
         std::unordered_map<std::type_index, ComponentBucket> m_componentIndex;
 
-        vector<AikoPtr<GameObject>> m_objects;
+        vector<AikoUPtr<GameObject>> m_objects;
         GameObject* m_activeCamera = nullptr;
 
         void destroyObject(GameObject& object);

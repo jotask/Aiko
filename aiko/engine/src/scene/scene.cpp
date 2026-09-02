@@ -10,16 +10,29 @@ namespace aiko
     Scene::Scene() = default;
     Scene::~Scene() = default;
 
-    void Scene::add(const AikoPtr<GameObject>& obj)
+    GameObject* Scene::create(string name)
     {
-        if (obj == nullptr)
+        auto object = std::make_unique<GameObject>();
+        object->setName(name);
+        GameObject* result = object.get();
+        result->m_scene = this;
+        registerObjectComponents(*result);
+        m_objects.emplace_back(std::move(object));
+        return result;
+    }
+
+    GameObject* Scene::create(GameObject* parent, string name)
+    {
+        GameObject* object = create(name);
+        if (parent != nullptr)
         {
-            return;
+            AIKO_ASSERT(parent->m_scene == this, "Parent GameObject belongs to another Scene");
+            if (parent->m_scene == this)
+            {
+                object->transform().setParent(&parent->transform());
+            }
         }
-        AIKO_ASSERT(obj->m_scene == nullptr, "GameObject is already attached to a scene");
-        obj->m_scene = this;
-        registerObjectComponents(*obj);
-        m_objects.push_back(obj);
+        return object;
     }
 
     bool Scene::remove(const GameObject* obj)
@@ -29,7 +42,7 @@ namespace aiko
             return false;
         }
 
-        auto it = std::find_if(m_objects.begin(), m_objects.end(), [obj](const AikoPtr<GameObject>& go)
+        auto it = std::find_if(m_objects.begin(), m_objects.end(), [obj](const AikoUPtr<GameObject>& go)
         {
             return go != nullptr && go.get() == obj;
         });
@@ -39,7 +52,7 @@ namespace aiko
             return false;
         }
 
-        AikoPtr<GameObject>& object = *it;
+        AikoUPtr<GameObject>& object = *it;
 
         if (m_activeCamera == object.get())
         {
@@ -96,7 +109,7 @@ namespace aiko
             m_activeCamera = nullptr;
             return;
         }
-        bool exists = std::any_of(m_objects.begin(), m_objects.end(), [obj](const AikoPtr<GameObject>& go) { return go != nullptr && go.get() == obj; });
+        bool exists = std::any_of(m_objects.begin(), m_objects.end(), [obj](const AikoUPtr<GameObject>& go) { return go != nullptr && go.get() == obj; });
         if (exists)
         {
             m_activeCamera = obj;

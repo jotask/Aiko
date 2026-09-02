@@ -22,9 +22,9 @@ namespace aiko
         SceneSystem();
         virtual ~SceneSystem() = default;
 
-        AikoPtr<GameObject> createGameObject(string name = DEFAULT_OBJECT_NAME);
-        AikoPtr<GameObject> createGameObject(GameObject* parent, string name = DEFAULT_OBJECT_NAME);
-        void destroyGameObject(const AikoPtr<GameObject>& obj);
+        GameObject* createGameObject(string name = DEFAULT_OBJECT_NAME);
+        GameObject* createGameObject(GameObject* parent, string name = DEFAULT_OBJECT_NAME);
+        void destroyGameObject(const GameObject* obj);
 
         Camera* getMainCamera();
         const Camera* getMainCamera() const;

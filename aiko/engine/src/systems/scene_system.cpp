@@ -67,27 +67,19 @@ namespace aiko
         m_scene.clear();
     }
 
-    AikoPtr<GameObject> SceneSystem::createGameObject(string name)
+    GameObject* SceneSystem::createGameObject(string name)
     {
-        auto obj = std::make_shared<GameObject>();
-        obj->setName(name);
-        m_scene.add(obj);
-        return obj;
+        return m_scene.create(name);
     }
 
-    AikoPtr<GameObject> SceneSystem::createGameObject(GameObject* parent, string name)
+    GameObject* SceneSystem::createGameObject(GameObject* parent, string name)
     {
-        AikoPtr<GameObject> obj = createGameObject(name);
-        obj->transform().setParent(&parent->transform());
-        return obj;
+        return m_scene.create(parent, name);
     }
 
-    void SceneSystem::destroyGameObject(const AikoPtr<GameObject>& obj)
+    void SceneSystem::destroyGameObject(const GameObject* obj)
     {
-        if (obj != nullptr)
-        {
-            m_scene.remove(obj.get());
-        }
+        m_scene.remove(obj);
     }
 
     Scene& SceneSystem::getScene()

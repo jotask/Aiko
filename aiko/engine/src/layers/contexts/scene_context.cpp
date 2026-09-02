@@ -14,12 +14,12 @@ namespace aiko
 
     GameObject* SceneContext::Instantiate(string name)
     {
-        return m_sceneSystem->createGameObject(std::move(name)).get();
+        return m_sceneSystem->createGameObject(std::move(name));
     }
 
     GameObject* SceneContext::Instantiate(GameObject* parent, string name)
     {
-        return m_sceneSystem->createGameObject(parent, std::move(name)).get();
+        return m_sceneSystem->createGameObject(parent, std::move(name));
     }
 
 }
