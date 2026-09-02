@@ -8,12 +8,12 @@
 namespace aiko
 {
 
+    class Aiko;
     class SystemConnector;
 
     class LayerContext
     {
     public:
-        explicit LayerContext(SystemConnector&);
 
         float getDeltaTime() const;
 
@@ -24,12 +24,16 @@ namespace aiko
         const RenderContext& render() const { return m_render; }
 
         SceneContext& scene() { return m_scene; }
-        const SceneContext& scene() const{ return m_scene; }
+        const SceneContext& scene() const { return m_scene; }
 
-        AssetContext& assets(){ return m_assets; }
-        const AssetContext& assets() const{ return m_assets; }
+        AssetContext& assets() { return m_assets; }
+        const AssetContext& assets() const { return m_assets; }
 
     private:
+
+        friend class Aiko;
+
+        explicit LayerContext(SystemConnector&);
 
         InputContext m_input;
         RenderContext m_render;

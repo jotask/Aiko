@@ -27,8 +27,5 @@
 #include "types/texture_types.h"
 #include "types/color.h"
 
-#include "systems/render_system.h"
-#include "systems/input_system.h"
-
 #include "core/singleton.h"
 #include "math/math.h"

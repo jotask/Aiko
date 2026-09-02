@@ -30,6 +30,9 @@ namespace aiko
         template<class T>
         vector<T*> components();
 
+        template<class T>
+        vector<const T*> components() const;
+
     private:
         AikoUPtr<EntityRegistry> m_registry;
 
@@ -44,20 +47,36 @@ namespace aiko
     vector<T*> Scene::components()
     {
         vector<T*> result;
-
         for (const auto& object : m_objects)
         {
             if (object == nullptr)
             {
                 continue;
             }
-
             for (T* component : object->getComponents<T>())
             {
                 result.push_back(component);
             }
         }
+        return result;
+    }
 
+    template<class T>
+    vector<const T*> Scene::components() const
+    {
+        vector<const T*> result;
+        for (const auto& object : m_objects)
+        {
+            if (object == nullptr)
+            {
+                continue;
+            }
+            const GameObject* gameObject = object.get();
+            for (const T* component : gameObject->getComponents<T>())
+            {
+                result.push_back(component);
+            }
+        }
         return result;
     }
 

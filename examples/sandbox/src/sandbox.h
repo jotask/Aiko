@@ -2,6 +2,8 @@
 
 #include "aiko_includes.h"
 #include "application/application.h"
+#include "layers/layer.h"
+#include "systems/render_system.h"
 
 namespace sb
 {
