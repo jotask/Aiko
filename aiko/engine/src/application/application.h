@@ -22,10 +22,13 @@ namespace aiko
         void pushLayer(AikoUPtr<Layer>);
         void pushOverlay(AikoUPtr<Layer>);
 
+        void run();
+
+    private:
+        friend class Aiko;
+
         void connect(SystemConnector*, LayerContext*);
         void registerSystems(SystemRegistry&);
-
-        void run();
 
         virtual void init();
         virtual void update();
