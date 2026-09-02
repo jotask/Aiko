@@ -5,11 +5,9 @@
 #include "layers/contexts/scene_context.h"
 #include "layers/contexts/asset_context.h"
 
-#include <aiko_types.h>
-
 namespace aiko
 {
-    class GameObject;
+
     class SystemConnector;
 
     class LayerContext
