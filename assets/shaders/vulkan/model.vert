@@ -20,7 +20,7 @@ void main()
 
     vec4 wpos = u_model * vec4(a_position, 1.0);
     v_worldPos = wpos.xyz;
-    v_normal = (u_model * vec4(a_normal.xyz, 0.0)).xyz;
+    v_normal = normalize(transpose(inverse(mat3(u_model))) * a_normal);
 
     gl_PointSize = AIKO_GL_POINT_SIZE;
 
