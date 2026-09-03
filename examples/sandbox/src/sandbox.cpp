@@ -13,6 +13,8 @@
 #include "models/texture_factory.h"
 #include "systems/system_connector.h"
 #include "types/color.h"
+#include "layers/contexts/render_context.h"
+#include "layers/contexts/asset_context.h"
 
 #include <application/application.h>
 #include <core/random.h>
@@ -29,6 +31,7 @@ namespace sb
         constexpr bool s_enableMeshTests = true;
         constexpr bool s_enableComponentTests = true;
         constexpr bool s_enablePrimitivesTests = true;
+        constexpr bool s_enableInstancingTests = true;
         constexpr bool s_enableLightTests = true;
         constexpr bool s_enableParticleTests = true;
         constexpr bool s_enableComputeTests = false;
@@ -50,6 +53,11 @@ namespace sb
         if constexpr (s_enableComponentTests == true)
         {
             initComponents();
+        }
+
+        if constexpr (s_enableInstancingTests == true)
+        {
+            initInstancing();
         }
 
         if constexpr (s_enableParticleTests == true)
@@ -86,6 +94,11 @@ namespace sb
         if constexpr (s_enablePrimitivesTests == true)
         {
             renderPrimitives();
+        }
+
+        if constexpr (s_enableInstancingTests == true)
+        {
+            renderInstancing();
         }
 
         if constexpr (s_enableLightTests == true)
@@ -262,6 +275,16 @@ namespace sb
         emitter->requestReset();
     }
 
+    void Sandbox::initInstancing()
+    {
+        const aiko::MeshAsset cube = aiko::mesh::factory::generateCube();
+        m_instancingMesh.upload(cube);
+        m_instancingMaterial.m_shaderId = assets().loadShader("model");
+        m_instancingMaterial.m_useVertexColor = true;
+        m_instancingMaterial.m_lit = false;
+        m_instancingMaterial.m_baseColor = aiko::WHITE;
+    }
+
     void Sandbox::updateComponents()
     {
         static float angle = 0.0f;
@@ -403,6 +426,32 @@ namespace sb
         {
             m_renderSystem->renderSphere(light.obj->transform().position, 0.1f, 25 /*, light.cmp->color*/ );
         }
+    }
+
+    void Sandbox::renderInstancing()
+    {
+        const aiko::InstanceData instances[] =
+        {
+            {
+                .position = {-2.0f, 0.0f, -2.0f},
+                .rotation = {0.0f, 0.0f, 0.0f},
+                .scale = {1.0f, 1.0f, 1.0f},
+                .color = aiko::RED,
+            },
+            {
+                .position = {0.0f, 0.0f, -2.0f},
+                .rotation = {0.0f, 45.0f, 0.0f},
+                .scale = {2.0f, 0.5f, 1.0f},
+                .color = aiko::GREEN,
+            },
+            {
+                .position = {2.0f, 0.0f, -2.0f},
+                .rotation = {30.0f, 30.0f, 45.0f},
+                .scale = {0.5f, 2.0f, 0.5f},
+                .color = aiko::BLUE,
+            }
+        };
+        renderer().drawMeshInstanced(m_instancingMesh, m_instancingMaterial, instances, 3);
     }
 
     void Sandbox::updateCompute()

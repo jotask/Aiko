@@ -47,6 +47,20 @@ namespace aiko
 
     };
 
+    struct VulkanInstanceData
+    {
+        vec4 position;
+        vec4 rotation;
+        vec4 scale;
+        vec4 color;
+    };
+
+    static_assert(sizeof(VulkanInstanceData) == sizeof(vec4) * 4);
+    static_assert(offsetof(VulkanInstanceData, position) == 0);
+    static_assert(offsetof(VulkanInstanceData, rotation) == 16);
+    static_assert(offsetof(VulkanInstanceData, scale) == 32);
+    static_assert(offsetof(VulkanInstanceData, color) == 48);
+
     struct VulkanFrameUbo
     {
         alignas(16) mat4 u_view;

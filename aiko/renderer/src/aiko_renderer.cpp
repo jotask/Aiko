@@ -138,10 +138,10 @@ namespace aiko
     void AikoRenderer::submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride)
     {
         AIKO_FUNCTION_PROFILE
-    if (data == nullptr || instanceCount == 0 || stride == 0)
-    {
-        return;
-    }
+        if (data == nullptr || instanceCount == 0 || stride == 0)
+        {
+            return;
+        }
 
         const size_t byteCount = size_t(instanceCount) * size_t(stride);
         if (byteCount == 0)

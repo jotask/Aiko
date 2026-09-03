@@ -116,6 +116,13 @@ namespace aiko
         m_renderModule->getRenderer().submit(trans, mesh, spriteComponent.getMaterial(), spriteComponent.getMaterialInstance());
     }
 
+    void RenderSystem::renderInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount)
+    {
+        AIKO_ASSERT(instances != nullptr, "Instanced render has no instance data");
+        AIKO_ASSERT(instanceCount > 0, "Instanced render has zero instances");
+        m_renderModule->getRenderer().submit(mesh, material, instances, instanceCount, sizeof(InstanceData));
+    }
+
     void RenderSystem::dispatch(const ComputePass& pass, const AssetId& shaderId)
     {
         AIKO_FUNCTION_PROFILE

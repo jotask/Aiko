@@ -95,6 +95,7 @@ namespace aiko::renderer::vulkan
         VkPipeline m_modelPipelineTriangles = VK_NULL_HANDLE;
         VkPipeline m_transientPointPipeline = VK_NULL_HANDLE;
         VkPipeline m_transientLinePipeline = VK_NULL_HANDLE;
+        VkPipeline m_modelInstancedPipeline = VK_NULL_HANDLE;
 
         VkRenderPass m_activeRenderPass = VK_NULL_HANDLE;
         VkExtent2D m_activeExtent = {};
@@ -111,6 +112,7 @@ namespace aiko::renderer::vulkan
         void createFrameResources();
         void destroyFrameResources();
         void createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, VkPipeline& pipeline);
+        void createModelInstancedPipeline(VkRenderPass renderPass);
         void createModelPipelineLayout();
         void destroyModelPipeline();
         void createScreenPipelineLayout();

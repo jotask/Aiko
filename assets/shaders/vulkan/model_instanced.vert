@@ -20,16 +20,58 @@ layout(location = 3) out vec3 v_worldPos;
 void main()
 {
     vec3 position = i_data0.xyz;
-    vec3 rotation = i_data1.xyz;
+    vec3 rotation = radians(i_data1.xyz);
     vec3 scale = i_data2.xyz;
     vec4 instColor = i_data3;
 
-    vec3 worldPos = a_position * scale + position;
+    float cx = cos(rotation.x);
+    float sx = sin(rotation.x);
+    float cy = cos(rotation.y);
+    float sy = sin(rotation.y);
+    float cz = cos(rotation.z);
+    float sz = sin(rotation.z);
+
+    mat3 rotationX = mat3(
+        1.0, 0.0, 0.0,
+        0.0, cx,  sx,
+        0.0, -sx, cx
+    );
+
+    mat3 rotationY = mat3(
+        cy,  0.0, -sy,
+        0.0, 1.0, 0.0,
+        sy,  0.0, cy
+    );
+
+    mat3 rotationZ = mat3(
+        cz,  sz,  0.0,
+        -sz, cz,  0.0,
+        0.0, 0.0, 1.0
+    );
+
+    mat3 instanceRotation = rotationX * rotationY * rotationZ;
+
+    vec3 localPosition = a_position * scale;
+    vec3 worldPos = instanceRotation * localPosition + position;
+
+    mat3 instanceTransform =
+        instanceRotation *
+        mat3(
+            scale.x, 0.0, 0.0,
+            0.0, scale.y, 0.0,
+            0.0, 0.0, scale.z
+        );
 
     v_texcoord0 = a_texcoord0;
     v_color0 = instColor;
     v_worldPos = worldPos;
-    v_normal = a_normal.xyz;
+    v_normal =
+        normalize(
+            transpose(inverse(instanceTransform)) *
+            a_normal
+        );
 
-    gl_Position = aikoModelViewProj() * vec4(worldPos, 1.0);
+    gl_Position =
+        aikoViewProj() *
+        vec4(worldPos, 1.0);
 }

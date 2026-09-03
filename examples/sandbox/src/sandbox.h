@@ -35,17 +35,22 @@ namespace sb
         aiko::ComputeShaderComponent* m_computeReadback = nullptr;
         bool m_computeReadbackPrinted = false;
 
+        aiko::Mesh m_instancingMesh;
+        aiko::Material m_instancingMaterial;
+
         void initCompute();
         void initMeshes();
         void initComponents();
         void initLights();
         void initParticles();
+        void initInstancing();
 
         void updateComponents();
         void updateLights();
 
         void renderPrimitives();
         void renderLights();
+        void renderInstancing();
 
         void updateCompute();
 

@@ -46,6 +46,8 @@ namespace aiko
         void render(const Transform& trans, const ModelComponent& modelComponent);
         void render(const Transform& trans, const SpriteComponent& meshComponent);
 
+        void renderInstanced( const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
+
         void dispatch(const ComputePass& pass, const AssetId& shaderId);
         void dispatch(const ComputePass& pass, const ComputeShaderComponent& component);
 
