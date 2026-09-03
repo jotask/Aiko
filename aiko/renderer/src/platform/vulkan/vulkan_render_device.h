@@ -92,10 +92,6 @@ namespace aiko::renderer::vulkan
         VkDescriptorSetLayout m_frameDescriptorSetLayout = VK_NULL_HANDLE;
         VkDescriptorSetLayout m_materialDescriptorSetLayout = VK_NULL_HANDLE;
         VkPipelineLayout m_modelPipelineLayout = VK_NULL_HANDLE;
-        VkPipeline m_modelPipelineTriangles = VK_NULL_HANDLE;
-        VkPipeline m_transientPointPipeline = VK_NULL_HANDLE;
-        VkPipeline m_transientLinePipeline = VK_NULL_HANDLE;
-        VkPipeline m_modelInstancedPipeline = VK_NULL_HANDLE;
 
         VkRenderPass m_activeRenderPass = VK_NULL_HANDLE;
         VkExtent2D m_activeExtent = {};
@@ -111,8 +107,8 @@ namespace aiko::renderer::vulkan
 
         void createFrameResources();
         void destroyFrameResources();
-        void createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, VkPipeline& pipeline);
-        void createModelInstancedPipeline(VkRenderPass renderPass);
+        void createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, const RenderState& renderState, VkPipeline& pipeline);
+        void createModelInstancedPipeline(VkRenderPass renderPass, const RenderState& renderState, VkPipeline& pipeline);
         void createModelPipelineLayout();
         void destroyModelPipeline();
         void createScreenPipelineLayout();
@@ -174,6 +170,56 @@ namespace aiko::renderer::vulkan
                 return seed;
             }
         };
+
+        struct ModelPipelineKey
+        {
+            VkRenderPass renderPass = VK_NULL_HANDLE;
+            VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+            CullMode cullMode = CullMode::None;
+
+            bool depthTest = true;
+            bool depthWrite = true;
+            DepthCompare depthCompare = DepthCompare::LessEqual;
+
+            bool blend = false;
+
+            bool instanced = false;
+
+            bool operator==(const ModelPipelineKey& other) const
+            {
+                return
+                    renderPass == other.renderPass &&
+                    topology == other.topology &&
+                    cullMode == other.cullMode &&
+                    depthTest == other.depthTest &&
+                    depthWrite == other.depthWrite &&
+                    depthCompare == other.depthCompare &&
+                    blend == other.blend &&
+                    instanced == other.instanced;
+            }
+        };
+
+        struct ModelPipelineKeyHash
+        {
+            size_t operator()(const ModelPipelineKey& key) const
+            {
+                size_t seed = 0;
+                utils::hashCombine(std::hash<VkRenderPass>{}(key.renderPass), seed);
+                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.topology)), seed);
+                utils::hashCombine(std::hash<uint32_t>{}( static_cast<uint32_t>(key.cullMode)), seed);
+                utils::hashCombine(std::hash<bool>{}(key.depthTest), seed);
+                utils::hashCombine(std::hash<bool>{}(key.depthWrite), seed);
+                utils::hashCombine(std::hash<uint32_t>{}( static_cast<uint32_t>(key.depthCompare)), seed);
+                utils::hashCombine(std::hash<bool>{}(key.blend), seed);
+                utils::hashCombine(std::hash<bool>{}(key.instanced), seed);
+                return seed;
+            }
+        };
+
+        std::unordered_map<ModelPipelineKey, VkPipeline, ModelPipelineKeyHash> m_modelPipelines;
+
+        VkPipeline getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, const RenderState& renderState, bool instanced);
 
         std::unordered_map<MaterialBindingKey, CachedMaterialBinding, MaterialBindingKeyHash> m_materialBindingCache;
         MaterialBindingKey makeMaterialBindingKey(const Material& material) const;

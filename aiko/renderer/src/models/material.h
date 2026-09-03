@@ -3,6 +3,7 @@
 #include "models/shader.h"
 #include "models/texture.h"
 #include "types/color.h"
+#include "types/render_types.h"
 
 #include <unordered_map>
 
@@ -34,6 +35,7 @@
 
         const ComputeBuffer* m_gpuInstanceBuffer = nullptr;
 
+        RenderState m_renderState;
         bool m_useVertexColor;
         bool m_lit;
 

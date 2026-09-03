@@ -63,6 +63,34 @@ namespace aiko
         BLEND_CUSTOM_SEPARATE           // Blend textures using custom rgb/alpha separate src/dst factors (use rlSetBlendFactorsSeparate())
     };
 
+    enum class CullMode
+    {
+        None,
+        Front,
+        Back
+    };
+
+    enum class DepthCompare
+    {
+        Less,
+        LessEqual,
+        Equal,
+        Greater,
+        GreaterEqual,
+        Always
+    };
+
+    struct RenderState
+    {
+        CullMode cullMode = CullMode::None;
+
+        bool depthTest = true;
+        bool depthWrite = true;
+        DepthCompare depthCompare = DepthCompare::LessEqual;
+
+        bool blend = false;
+    };
+
     enum class RenderMode
     {
         WireframeShaded,

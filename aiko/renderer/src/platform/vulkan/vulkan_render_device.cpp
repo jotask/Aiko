@@ -24,6 +24,36 @@
 namespace aiko::renderer::vulkan
 {
 
+    namespace
+    {
+        VkCullModeFlags toVulkanCullMode(CullMode mode)
+        {
+            switch (mode)
+            {
+                case CullMode::None: return VK_CULL_MODE_NONE;
+                case CullMode::Front: return VK_CULL_MODE_FRONT_BIT;
+                case CullMode::Back: return VK_CULL_MODE_BACK_BIT;
+            }
+            AIKO_ASSERT(false, "Unsupported CullMode");
+            return VK_CULL_MODE_NONE;
+        }
+
+        VkCompareOp toVulkanDepthCompare(DepthCompare compare)
+        {
+            switch (compare)
+            {
+                case DepthCompare::Less: return VK_COMPARE_OP_LESS;
+                case DepthCompare::LessEqual: return VK_COMPARE_OP_LESS_OR_EQUAL;
+                case DepthCompare::Equal: return VK_COMPARE_OP_EQUAL;
+                case DepthCompare::Greater: return VK_COMPARE_OP_GREATER;
+                case DepthCompare::GreaterEqual: return VK_COMPARE_OP_GREATER_OR_EQUAL;
+                case DepthCompare::Always: return VK_COMPARE_OP_ALWAYS;
+            }
+            AIKO_ASSERT(false, "Unsupported DepthCompare");
+            return VK_COMPARE_OP_LESS_OR_EQUAL;
+        }
+    }
+
     VulkanRenderDevice::VulkanRenderDevice(RenderResourceManager* resources)
         : IRenderDevice(resources)
     {
@@ -217,11 +247,6 @@ namespace aiko::renderer::vulkan
         m_activeRenderPass = renderPass;
         m_activeExtent = extent;
 
-        if (viewId == SCENE_VIEW && m_modelPipelineTriangles == VK_NULL_HANDLE)
-        {
-            createModelPipeline(renderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, m_modelPipelineTriangles);
-        }
-
         const VkRenderPassBeginInfo renderPassInfo =
         {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -328,7 +353,8 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material)
     {
-        drawMeshWithPipeline(viewId, world, mesh, m_modelPipelineTriangles);
+        const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, material.m_renderState, false);
+        drawMeshWithPipeline(viewId, world, mesh, pipeline);
     }
 
     void VulkanRenderDevice::presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& screen)
@@ -413,10 +439,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(meshImpl != nullptr, "Instanced mesh has no Vulkan implementation");
         AIKO_ASSERT(meshImpl->isValid(), "Invalid Vulkan instanced mesh");
 
-        if (m_modelInstancedPipeline == VK_NULL_HANDLE)
-        {
-            createModelInstancedPipeline(m_activeRenderPass);
-        }
+        const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, material.m_renderState, true);
 
         const VkDeviceSize instanceBytes = sizeof(VulkanInstanceData) * static_cast<VkDeviceSize>(instanceCount);
 
@@ -462,7 +485,7 @@ namespace aiko::renderer::vulkan
         VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Instanced draw requires an active command buffer");
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelInstancedPipeline);
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
         const VkViewport viewport =
         {
@@ -1133,30 +1156,22 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        VkPipeline pipeline = VK_NULL_HANDLE;
+        VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
         switch (desc.topology)
         {
             case TransientTopology::Triangles:
-                pipeline = m_modelPipelineTriangles;
+                topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
                 break;
-
             case TransientTopology::Lines:
-                if (m_transientLinePipeline == VK_NULL_HANDLE)
-                {
-                    createModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_LINE_LIST, m_transientLinePipeline);
-                }
-                pipeline = m_transientLinePipeline;
+                topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
                 break;
-
             case TransientTopology::Points:
-                if (m_transientPointPipeline == VK_NULL_HANDLE)
-                {
-                    createModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_POINT_LIST, m_transientPointPipeline);
-                }
-                pipeline = m_transientPointPipeline;
+                topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
                 break;
         }
+
+        const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, topology, desc.material->m_renderState, false);
 
         Mesh& mesh = resolveTransientMesh(*desc.geometry);
         drawMeshWithPipeline(viewId, desc.mtx, mesh, pipeline);
@@ -1349,7 +1364,7 @@ namespace aiko::renderer::vulkan
         m_frameDescriptorPool = VK_NULL_HANDLE;
     }
 
-    void VulkanRenderDevice::createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, VkPipeline& pipeline)
+    void VulkanRenderDevice::createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, const RenderState& renderState, VkPipeline& pipeline)
     {
         AIKO_ASSERT(renderPass != VK_NULL_HANDLE, "Model render pass is invalid");
         AIKO_ASSERT(m_modelPipelineLayout != VK_NULL_HANDLE, "Model pipeline layout is invalid");
@@ -1414,7 +1429,7 @@ namespace aiko::renderer::vulkan
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
             .polygonMode = VK_POLYGON_MODE_FILL,
-            .cullMode = VK_CULL_MODE_NONE,
+            .cullMode = toVulkanCullMode(renderState.cullMode),
             .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
             .lineWidth = 1.0f,
@@ -1430,16 +1445,22 @@ namespace aiko::renderer::vulkan
         const VkPipelineDepthStencilStateCreateInfo depthStencil =
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-            .depthTestEnable = VK_TRUE,
-            .depthWriteEnable = VK_TRUE,
-            .depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
+            .depthTestEnable = renderState.depthTest ? VK_TRUE : VK_FALSE,
+            .depthWriteEnable = renderState.depthWrite ? VK_TRUE : VK_FALSE,
+            .depthCompareOp = toVulkanDepthCompare(renderState.depthCompare),
             .depthBoundsTestEnable = VK_FALSE,
             .stencilTestEnable = VK_FALSE,
         };
 
         const VkPipelineColorBlendAttachmentState colorBlendAttachment =
         {
-            .blendEnable = VK_FALSE,
+            .blendEnable = renderState.blend ? VK_TRUE : VK_FALSE,
+            .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+            .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+            .colorBlendOp = VK_BLEND_OP_ADD,
+            .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+            .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+            .alphaBlendOp = VK_BLEND_OP_ADD,
             .colorWriteMask =
                 VK_COLOR_COMPONENT_R_BIT |
                 VK_COLOR_COMPONENT_G_BIT |
@@ -1493,7 +1514,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to create model graphics pipeline");
     }
 
-    void VulkanRenderDevice::createModelInstancedPipeline(VkRenderPass renderPass)
+    void VulkanRenderDevice::createModelInstancedPipeline(VkRenderPass renderPass, const RenderState& renderState, VkPipeline& pipeline)
     {
         AIKO_ASSERT(renderPass != VK_NULL_HANDLE, "Model instanced render pass is invalid");
         AIKO_ASSERT(m_modelPipelineLayout != VK_NULL_HANDLE, "Model pipeline layout is invalid");
@@ -1526,8 +1547,7 @@ namespace aiko::renderer::vulkan
             fragShaderStageInfo
         };
 
-        const VkVertexInputBindingDescription meshBinding =
-            VulkanVertex::bindingDescription();
+        const VkVertexInputBindingDescription meshBinding = VulkanVertex::bindingDescription();
 
         const VkVertexInputBindingDescription instanceBinding =
         {
@@ -1612,7 +1632,7 @@ namespace aiko::renderer::vulkan
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
             .polygonMode = VK_POLYGON_MODE_FILL,
-            .cullMode = VK_CULL_MODE_NONE,
+            .cullMode = toVulkanCullMode(renderState.cullMode),
             .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
             .lineWidth = 1.0f,
@@ -1628,16 +1648,22 @@ namespace aiko::renderer::vulkan
         const VkPipelineDepthStencilStateCreateInfo depthStencil =
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-            .depthTestEnable = VK_TRUE,
-            .depthWriteEnable = VK_TRUE,
-            .depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
+            .depthTestEnable = renderState.depthTest ? VK_TRUE : VK_FALSE,
+            .depthWriteEnable = renderState.depthWrite ? VK_TRUE : VK_FALSE,
+            .depthCompareOp = toVulkanDepthCompare(renderState.depthCompare),
             .depthBoundsTestEnable = VK_FALSE,
             .stencilTestEnable = VK_FALSE,
         };
 
         const VkPipelineColorBlendAttachmentState colorBlendAttachment =
         {
-            .blendEnable = VK_FALSE,
+            .blendEnable = renderState.blend ? VK_TRUE : VK_FALSE,
+            .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+            .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+            .colorBlendOp = VK_BLEND_OP_ADD,
+            .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+            .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+            .alphaBlendOp = VK_BLEND_OP_ADD,
             .colorWriteMask =
                 VK_COLOR_COMPONENT_R_BIT |
                 VK_COLOR_COMPONENT_G_BIT |
@@ -1690,7 +1716,7 @@ namespace aiko::renderer::vulkan
             1,
             &pipelineInfo,
             nullptr,
-            &m_modelInstancedPipeline
+            &pipeline
         );
 
         shader.unload();
@@ -1779,29 +1805,16 @@ namespace aiko::renderer::vulkan
     {
         VkDevice device = m_context.device();
 
-        if (m_modelPipelineTriangles != VK_NULL_HANDLE)
+        for (auto& [key, pipeline] : m_modelPipelines)
         {
-            vkDestroyPipeline(device, m_modelPipelineTriangles, nullptr);
-            m_modelPipelineTriangles = VK_NULL_HANDLE;
+            AIKO_UNUSED(key);
+            if (pipeline != VK_NULL_HANDLE)
+            {
+                vkDestroyPipeline( device, pipeline, nullptr);
+            }
         }
 
-        if (m_transientPointPipeline != VK_NULL_HANDLE)
-        {
-            vkDestroyPipeline(device, m_transientPointPipeline, nullptr);
-            m_transientPointPipeline = VK_NULL_HANDLE;
-        }
-
-        if (m_transientLinePipeline != VK_NULL_HANDLE)
-        {
-            vkDestroyPipeline(device, m_transientLinePipeline, nullptr);
-            m_transientLinePipeline = VK_NULL_HANDLE;
-        }
-
-        if (m_modelInstancedPipeline != VK_NULL_HANDLE)
-        {
-            vkDestroyPipeline(device, m_modelInstancedPipeline, nullptr);
-            m_modelInstancedPipeline = VK_NULL_HANDLE;
-        }
+        m_modelPipelines.clear();
 
         if (m_modelPipelineLayout != VK_NULL_HANDLE)
         {
@@ -4023,6 +4036,44 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::waitIdle()
     {
         m_context.waitIdle();
+    }
+
+    VkPipeline VulkanRenderDevice::getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, const RenderState& renderState, bool instanced)
+    {
+        const ModelPipelineKey key =
+        {
+            .renderPass = renderPass,
+            .topology = topology,
+            .cullMode = renderState.cullMode,
+            .depthTest = renderState.depthTest,
+            .depthWrite = renderState.depthWrite,
+            .depthCompare = renderState.depthCompare,
+            .blend = renderState.blend,
+            .instanced = instanced,
+        };
+
+        if (const auto it = m_modelPipelines.find(key);
+            it != m_modelPipelines.end())
+        {
+            return it->second;
+        }
+
+        VkPipeline pipeline = VK_NULL_HANDLE;
+
+        if (instanced)
+        {
+            createModelInstancedPipeline(renderPass, renderState, pipeline);
+        }
+        else
+        {
+            createModelPipeline(renderPass, topology, renderState, pipeline);
+        }
+
+        AIKO_ASSERT( pipeline != VK_NULL_HANDLE, "Failed to create Vulkan model pipeline");
+
+        m_modelPipelines.emplace(key, pipeline);
+
+        return pipeline;
     }
 
     VulkanRenderDevice::MaterialBindingKey VulkanRenderDevice::makeMaterialBindingKey(const Material& material) const
