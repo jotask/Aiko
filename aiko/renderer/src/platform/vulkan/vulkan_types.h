@@ -78,17 +78,6 @@ namespace aiko
         alignas(16) std::array<vec4, MAX_LIGHTS> u_lightSpotCos;
     };
 
-    struct VulkanMaterialUbo
-    {
-        alignas(16) vec4 u_baseColor;
-        alignas(16) vec4 u_flags;
-        alignas(16) vec4 u_particleSizeLife;
-        alignas(16) vec4 u_particleStartColor;
-        alignas(16) vec4 u_particleEndColor;
-        alignas(16) vec4 u_billboardParams;
-        alignas(16) vec4 u_nbodyRender;
-    };
-
     struct VulkanImageState
     {
         VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;

@@ -123,6 +123,7 @@ namespace aiko::renderer::vulkan
             VkBuffer uniformBuffer = VK_NULL_HANDLE;
             VkDeviceMemory uniformMemory = VK_NULL_HANDLE;
             void* uniformMapped = nullptr;
+            VkDeviceSize uniformSize = 0;
 
             VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 
@@ -141,21 +142,14 @@ namespace aiko::renderer::vulkan
             AssetId diffuseTextureId = InvalidAssetId;
             const Texture* runtimeDiffuseTexture = nullptr;
 
-            bool useVertexColor = false;
-            bool lit = false;
-            u32 baseColor = 0;
-
-            std::array<float, 20> customValues{};
+            std::vector<uint8_t> uniformData{};
 
             bool operator==(const MaterialBindingKey& other) const
             {
                 return shaderId == other.shaderId
                     && diffuseTextureId == other.diffuseTextureId
                     && runtimeDiffuseTexture == other.runtimeDiffuseTexture
-                    && useVertexColor == other.useVertexColor
-                    && lit == other.lit
-                    && baseColor == other.baseColor
-                    && customValues == other.customValues;
+                    && uniformData == other.uniformData;
             }
         };
 
@@ -167,12 +161,9 @@ namespace aiko::renderer::vulkan
                 utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
                 utils::hashCombine(std::hash<AssetId>{}(key.diffuseTextureId), seed);
                 utils::hashCombine(std::hash<const Texture*>{}(key.runtimeDiffuseTexture), seed);
-                utils::hashCombine(std::hash<bool>{}(key.useVertexColor), seed);
-                utils::hashCombine(std::hash<bool>{}(key.lit), seed);
-                utils::hashCombine(std::hash<u32>{}(key.baseColor), seed);
-                for (const float value : key.customValues)
+                for (const uint8_t value : key.uniformData)
                 {
-                    utils::hashCombine(std::hash<float>{}(value), seed);
+                    utils::hashCombine(std::hash<uint8_t>{}(value), seed);
                 }
                 return seed;
             }
@@ -262,7 +253,7 @@ namespace aiko::renderer::vulkan
         VkPipeline getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced);
 
         std::array<std::unordered_map<MaterialBindingKey, CachedMaterialBinding, MaterialBindingKeyHash>, FramesInFlight> m_materialBindingCaches;
-        MaterialBindingKey makeMaterialBindingKey(const Material& material) const;
+        MaterialBindingKey makeMaterialBindingKey(const Material& material, std::vector<uint8_t> uniformData) const;
 
         void createMaterialResources();
         void destroyMaterialResources();

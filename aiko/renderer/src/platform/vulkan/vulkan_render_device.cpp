@@ -53,7 +53,7 @@ namespace aiko::renderer::vulkan
             return VK_COMPARE_OP_LESS_OR_EQUAL;
         }
 
-        static VkPolygonMode toVulkanPolygonMode(FillMode mode)
+        VkPolygonMode toVulkanPolygonMode(FillMode mode)
         {
             switch (mode)
             {
@@ -65,17 +65,322 @@ namespace aiko::renderer::vulkan
             return VK_POLYGON_MODE_FILL;
         }
 
-        vec4 materialVec4Uniform(const Material& material, const char* name)
+        template<typename T>
+        void writeUniformBytes(std::vector<uint8_t>& destination, const VulkanShaderUniformMember& member, const T& value)
         {
-            const UniformMap& uniforms = material.uniforms();
-            const auto it = uniforms.find(name);
-            if (it == uniforms.end())
+            AIKO_ASSERT(sizeof(T) <= member.size, "Uniform value exceeds reflected member size");
+            AIKO_ASSERT(static_cast<size_t>(member.offset) + sizeof(T) <= destination.size(), "Uniform write exceeds reflected material UBO");
+            std::memcpy(destination.data() + member.offset, &value, sizeof(T));
+        }
+
+        void writeBoolUniform(std::vector<uint8_t>& destination, const VulkanShaderUniformMember& member, uint32_t relativeOffset, bool value)
+        {
+            AIKO_ASSERT(relativeOffset + sizeof(uint32_t) <= member.size, "Boolean uniform write exceeds reflected member size");
+            const size_t byteOffset = static_cast<size_t>(member.offset) + relativeOffset;
+            AIKO_ASSERT(byteOffset + sizeof(uint32_t) <= destination.size(), "Boolean uniform write exceeds reflected material UBO");
+            const uint32_t encoded = value ? 1u : 0u;
+            std::memcpy(destination.data() + byteOffset, &encoded, sizeof(encoded));
+        }
+
+        void writeBoolVector(std::vector<uint8_t>& destination, const VulkanShaderUniformMember& member, const bool* values, uint32_t count)
+        {
+            const uint32_t requiredSize = count * sizeof(uint32_t);
+            AIKO_ASSERT(requiredSize <= member.size, "Boolean vector exceeds reflected member size");
+            for (uint32_t i = 0; i < count; ++i)
             {
-                return vec4{0.0f};
+                writeBoolUniform(destination, member, i * sizeof(uint32_t), values[i]);
             }
-            const vec4* value = std::get_if<vec4>(&it->second);
-            AIKO_ASSERT(value != nullptr, "Material uniform type does not match current Vulkan material ABI");
-            return value != nullptr ? *value : vec4{0.0f};
+        }
+
+        void packUniformValue(std::vector<uint8_t>& destination, const VulkanShaderUniformMember& member, const UniformValue& value)
+        {
+            switch (member.type)
+            {
+                case UniformType::Bool:
+                {
+                    const bool* typed = std::get_if<bool>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeBoolUniform(destination, member, 0, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::Int:
+                {
+                    const int* typed = std::get_if<int>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeUniformBytes(destination, member, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::UInt:
+                {
+                    const u32* typed = std::get_if<u32>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeUniformBytes(destination, member, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::Float:
+                {
+                    const float* typed = std::get_if<float>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeUniformBytes(destination, member, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::IVec2:
+                {
+                    const ivec2* typed = std::get_if<ivec2>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeUniformBytes(destination, member, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::IVec3:
+                {
+                    const ivec3* typed = std::get_if<ivec3>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeUniformBytes(destination, member, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::IVec4:
+                {
+                    const ivec4* typed = std::get_if<ivec4>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeUniformBytes(destination, member, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::UVec2:
+                {
+                    const uvec2* typed = std::get_if<uvec2>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeUniformBytes(destination, member, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::UVec3:
+                {
+                    const uvec3* typed = std::get_if<uvec3>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeUniformBytes(destination, member, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::UVec4:
+                {
+                    const uvec4* typed = std::get_if<uvec4>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeUniformBytes(destination, member, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::Vec2:
+                {
+                    const vec2* typed = std::get_if<vec2>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeUniformBytes(destination, member, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::Vec3:
+                {
+                    const vec3* typed = std::get_if<vec3>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeUniformBytes(destination, member, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::Vec4:
+                {
+                    const vec4* typed = std::get_if<vec4>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        writeUniformBytes(destination, member, *typed);
+                    }
+                    return;
+                }
+
+                case UniformType::BVec2:
+                {
+                    const bvec2* typed = std::get_if<bvec2>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        const bool values[] =
+                        {
+                            typed->x,
+                            typed->y
+                        };
+                        writeBoolVector(destination, member, values, 2);
+                    }
+                    return;
+                }
+
+                case UniformType::BVec3:
+                {
+                    const bvec3* typed = std::get_if<bvec3>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+                    if (typed != nullptr)
+                    {
+                        const bool values[] =
+                        {
+                            typed->x,
+                            typed->y,
+                            typed->z
+                        };
+                        writeBoolVector(destination, member, values, 3);
+                    }
+                    return;
+                }
+
+                case UniformType::BVec4:
+                {
+                    const bvec4* typed = std::get_if<bvec4>(&value);
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+
+                    if (typed != nullptr)
+                    {
+                        const bool values[] =
+                        {
+                            typed->x,
+                            typed->y,
+                            typed->z,
+                            typed->w
+                        };
+                        writeBoolVector(destination, member, values, 4);
+                    }
+                    return;
+                }
+
+                case UniformType::Mat4:
+                {
+                    const mat4* typed = std::get_if<mat4>(&value);
+
+                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
+
+                    if (typed == nullptr)
+                    {
+                        return;
+                    }
+
+                    AIKO_ASSERT(member.matrixStride >= sizeof(float) * 4, "Invalid reflected mat4 stride");
+
+                    const uint32_t matrixSize = 3 * member.matrixStride + 4 * sizeof(float);
+
+                    AIKO_ASSERT(matrixSize <= member.size, "mat4 exceeds reflected member size");
+
+                    for (uint32_t major = 0; major < 4; ++major)
+                    {
+                        for (uint32_t minor = 0; minor < 4; ++minor)
+                        {
+                            const float component = member.rowMajor ? (*typed)(major, minor) : (*typed)(minor, major);
+                            const size_t byteOffset = static_cast<size_t>(member.offset) + major * member.matrixStride + minor * sizeof(float);
+                            AIKO_ASSERT(byteOffset + sizeof(float) <= destination.size(), "Matrix write exceeds reflected material UBO");
+                            std::memcpy(destination.data() + byteOffset, &component, sizeof(component));
+                        }
+                    }
+
+                    return;
+                }
+
+                case UniformType::Unknown:
+                    break;
+            }
+
+            AIKO_ASSERT(false, "Unsupported material uniform type");
+        }
+
+        std::vector<uint8_t> buildMaterialUniformData(const VulkanShaderUniformBlock& block, const Shader& shader, const Material& material, bool hasTexture)
+        {
+            std::vector<uint8_t> data(block.size, 0);
+
+            for (const VulkanShaderUniformMember& member : block.members)
+            {
+                UniformValue builtInValue;
+                const UniformValue* value = nullptr;
+
+                if (member.name == "u_baseColor")
+                {
+                    builtInValue = material.m_baseColor.toVec4();
+                    value = &builtInValue;
+                }
+                else if (member.name == "u_flags")
+                {
+                    builtInValue = vec4
+                    {
+                        hasTexture ? 1.0f : 0.0f,
+                        material.m_useVertexColor ? 1.0f : 0.0f,
+                        material.m_lit ? 1.0f : 0.0f,
+                        0.0f
+                    };
+
+                    value = &builtInValue;
+                }
+                else
+                {
+                    const UniformMap& materialUniforms = material.uniforms();
+                    const auto materialIt = materialUniforms.find(member.name);
+                    if (materialIt != materialUniforms.end())
+                    {
+                        value = &materialIt->second;
+                    }
+                    else
+                    {
+                        const UniformMap& shaderUniforms = shader.uniforms();
+                        const auto shaderIt = shaderUniforms.find(member.name);
+                        if (shaderIt != shaderUniforms.end())
+                        {
+                            value = &shaderIt->second;
+                        }
+                    }
+                }
+                if (value == nullptr)
+                {
+                    continue;
+                }
+                packUniformValue(data, member, *value);
+            }
+
+            return data;
         }
 
     }
@@ -389,25 +694,6 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::bindMaterial(const Material& material)
     {
         CachedMaterialBinding& binding = resolveMaterialBinding(material);
-
-        VulkanMaterialUbo ubo{};
-        ubo.u_baseColor = material.m_baseColor.toVec4();
-        ubo.u_flags =
-        {
-            binding.hasTexture ? 1.0f : 0.0f,
-            material.m_useVertexColor ? 1.0f : 0.0f,
-            material.m_lit ? 1.0f : 0.0f,
-            0.0f
-        };
-
-        ubo.u_particleSizeLife = materialVec4Uniform(material, "u_particleSizeLife");
-        ubo.u_particleStartColor = materialVec4Uniform(material, "u_particleStartColor");
-        ubo.u_particleEndColor = materialVec4Uniform(material, "u_particleEndColor");
-        ubo.u_billboardParams = materialVec4Uniform(material, "u_billboardParams");
-        ubo.u_nbodyRender = materialVec4Uniform(material, "u_nbodyRender");
-
-        std::memcpy(binding.uniformMapped, &ubo, sizeof(ubo));
-
         vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, abi::GraphicsMaterialSet, 1, &binding.descriptorSet, 0, nullptr);
     }
 
@@ -2302,10 +2588,29 @@ namespace aiko::renderer::vulkan
     VulkanRenderDevice::CachedMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
     {
 
-        const MaterialBindingKey key = makeMaterialBindingKey(material);
+        AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "Material binding requires a shader");
+
+        Shader& shader = getResources()->getShader(material.m_shaderId);
+        AIKO_ASSERT(shader.isValid(), "Material shader is invalid");
+
+        auto* shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
+        AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan material shader");
+
+        const VulkanShaderReflection& reflection = shaderImpl->reflection();
+        AIKO_ASSERT(reflection.materialUniformBlock.has_value(), "Material shader has no reflected material UBO");
+
+        const VulkanShaderUniformBlock& uniformBlock = *reflection.materialUniformBlock;
+
+        const Texture* texture = resolveMaterialTexture(material);
+        AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
+
+        const bool hasTexture = texture != &m_whiteTexture;
+
+        std::vector<uint8_t> uniformData = buildMaterialUniformData(uniformBlock, shader, material, hasTexture);
+
+        const MaterialBindingKey key = makeMaterialBindingKey(material, std::move(uniformData));
 
         const u32 frame = m_context.currentFrameIndex();
-
         AIKO_ASSERT(frame < FramesInFlight, "Invalid material binding frame");
 
         auto& cache = m_materialBindingCaches[frame];
@@ -2319,9 +2624,13 @@ namespace aiko::renderer::vulkan
 
         CachedMaterialBinding binding{};
 
-        m_context.createBuffer( sizeof(VulkanMaterialUbo), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory);
+        binding.uniformSize = static_cast<VkDeviceSize>(key.uniformData.size());
+        AIKO_ASSERT(binding.uniformSize > 0, "Material uniform buffer has zero size");
 
-        vkMapMemory(m_context.device(), binding.uniformMemory, 0, sizeof(VulkanMaterialUbo), 0, &binding.uniformMapped);
+        m_context.createBuffer(binding.uniformSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory);
+        vkMapMemory(m_context.device(), binding.uniformMemory, 0, binding.uniformSize, 0, &binding.uniformMapped);
+
+        std::memcpy(binding.uniformMapped, key.uniformData.data(), key.uniformData.size());
 
         const VkDescriptorSetAllocateInfo allocInfo =
         {
@@ -2338,7 +2647,7 @@ namespace aiko::renderer::vulkan
         {
             .buffer = binding.uniformBuffer,
             .offset = 0,
-            .range = sizeof(VulkanMaterialUbo),
+            .range = binding.uniformSize,
         };
 
         const VkWriteDescriptorSet bufferWrite =
@@ -4215,38 +4524,15 @@ namespace aiko::renderer::vulkan
         return pipeline;
     }
 
-    VulkanRenderDevice::MaterialBindingKey VulkanRenderDevice::makeMaterialBindingKey(const Material& material) const
+    VulkanRenderDevice::MaterialBindingKey VulkanRenderDevice::makeMaterialBindingKey(const Material& material, std::vector<uint8_t> uniformData) const
     {
-        MaterialBindingKey key =
+        return
         {
             .shaderId = material.m_shaderId,
             .diffuseTextureId = material.m_diffuseTextureId,
             .runtimeDiffuseTexture = material.m_runtimeDiffuseTexture,
-            .useVertexColor = material.m_useVertexColor,
-            .lit = material.m_lit,
-            .baseColor = material.m_baseColor.rgba(),
+            .uniformData = std::move(uniformData),
         };
-
-        size_t offset = 0;
-
-        auto appendCustom = [&](const char* name)
-        {
-            const vec4 value = materialVec4Uniform(material, name);
-            key.customValues[offset++] = value.x;
-            key.customValues[offset++] = value.y;
-            key.customValues[offset++] = value.z;
-            key.customValues[offset++] = value.w;
-        };
-
-        appendCustom("u_particleSizeLife");
-        appendCustom("u_particleStartColor");
-        appendCustom("u_particleEndColor");
-        appendCustom("u_billboardParams");
-        appendCustom("u_nbodyRender");
-
-        AIKO_ASSERT(offset == key.customValues.size(), "Material binding key custom uniform size mismatch");
-
-        return key;
     }
 
 }

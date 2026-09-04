@@ -1,12 +1,13 @@
 #include "vulkan_shader_reflector.h"
 
-#include "vulkan_descriptor_abi.h"
+#include <utility>
 
 #include <spirv_reflect.h>
 
 #include <core/utils.h>
 #include <math/math.h>
 
+#include "vulkan_descriptor_abi.h"
 #include "vulkan_shader_reflection.h"
 
 namespace aiko::renderer::vulkan
@@ -65,6 +66,120 @@ namespace aiko::renderer::vulkan
 
             reflection.pushConstantRanges.push_back(incoming);
         }
+
+        UniformType reflectUniformType(const SpvReflectBlockVariable& member)
+        {
+            AIKO_ASSERT(member.type_description != nullptr, "Reflected uniform has no type description");
+
+            const SpvReflectTypeFlags flags = member.type_description->type_flags;
+
+            const bool isBool = (flags & SPV_REFLECT_TYPE_FLAG_BOOL) != 0;
+            const bool isInt = (flags & SPV_REFLECT_TYPE_FLAG_INT) != 0;
+            const bool isFloat = (flags & SPV_REFLECT_TYPE_FLAG_FLOAT) != 0;
+            const bool isVector = (flags & SPV_REFLECT_TYPE_FLAG_VECTOR) != 0;
+            const bool isMatrix = (flags & SPV_REFLECT_TYPE_FLAG_MATRIX) != 0;
+
+            if (isMatrix)
+            {
+                AIKO_ASSERT(isFloat, "Only floating-point matrices are supported");
+                AIKO_ASSERT(member.numeric.scalar.width == 32, "Only 32-bit uniform matrices are supported");
+                AIKO_ASSERT(member.numeric.matrix.column_count == 4 && member.numeric.matrix.row_count == 4, "Only mat4 uniforms are currently supported");
+                return UniformType::Mat4;
+            }
+
+            const uint32_t componentCount = isVector ? member.numeric.vector.component_count : 1;
+
+            if (isBool)
+            {
+                switch (componentCount)
+                {
+                    case 1: return UniformType::Bool;
+                    case 2: return UniformType::BVec2;
+                    case 3: return UniformType::BVec3;
+                    case 4: return UniformType::BVec4;
+                }
+            }
+
+            if (isInt)
+            {
+                AIKO_ASSERT(member.numeric.scalar.width == 32, "Only 32-bit integer uniforms are supported");
+
+                const bool isSigned = member.numeric.scalar.signedness != 0;
+
+                if (isSigned)
+                {
+                    switch (componentCount)
+                    {
+                        case 1: return UniformType::Int;
+                        case 2: return UniformType::IVec2;
+                        case 3: return UniformType::IVec3;
+                        case 4: return UniformType::IVec4;
+                    }
+                }
+                else
+                {
+                    switch (componentCount)
+                    {
+                        case 1: return UniformType::UInt;
+                        case 2: return UniformType::UVec2;
+                        case 3: return UniformType::UVec3;
+                        case 4: return UniformType::UVec4;
+                    }
+                }
+            }
+
+            if (isFloat)
+            {
+                AIKO_ASSERT(member.numeric.scalar.width == 32, "Only 32-bit floating-point uniforms are supported");
+
+                switch (componentCount)
+                {
+                    case 1: return UniformType::Float;
+                    case 2: return UniformType::Vec2;
+                    case 3: return UniformType::Vec3;
+                    case 4: return UniformType::Vec4;
+                }
+            }
+
+            AIKO_ASSERT(false, "Unsupported reflected uniform type");
+
+            return UniformType::Unknown;
+        }
+
+        void appendMaterialUniformBlock(VulkanShaderReflection& reflection, VulkanShaderUniformBlock incoming)
+        {
+            if (reflection.materialUniformBlock.has_value() == false)
+            {
+                reflection.materialUniformBlock = std::move(incoming);
+                return;
+            }
+
+            VulkanShaderUniformBlock& existing = *reflection.materialUniformBlock;
+
+            AIKO_ASSERT(existing.set == incoming.set && existing.binding == incoming.binding, "Shader stages disagree on material UBO binding");
+            AIKO_ASSERT(existing.size == incoming.size, "Shader stages disagree on material UBO size");
+            AIKO_ASSERT(existing.members.size() == incoming.members.size(), "Shader stages disagree on material UBO members");
+
+            for (size_t i = 0; i < existing.members.size(); ++i)
+            {
+                const VulkanShaderUniformMember& a = existing.members[i];
+
+                const VulkanShaderUniformMember& b = incoming.members[i];
+
+                AIKO_ASSERT(
+                    a.name == b.name &&
+                    a.type == b.type &&
+                    a.offset == b.offset &&
+                    a.size == b.size &&
+                    a.matrixStride == b.matrixStride &&
+                    a.rowMajor == b.rowMajor,
+                    "Shader stages disagree on material uniform layout"
+                );
+            }
+
+            existing.stageFlags |= incoming.stageFlags;
+        }
+
     }
 
     void reflectShaderSpirv(const std::vector<uint8_t>& code, VkShaderStageFlagBits stage, VulkanShaderReflection& reflection)
@@ -104,6 +219,47 @@ namespace aiko::renderer::vulkan
                     .descriptorCount = binding->count,
                     .stageFlags = stage,
                 });
+
+            const bool isMaterialUbo = binding->set == abi::GraphicsMaterialSet && binding->binding == abi::MaterialUboBinding && binding->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+
+            if (isMaterialUbo)
+            {
+                VulkanShaderUniformBlock block =
+                {
+                    .set = binding->set,
+                    .binding = binding->binding,
+                    .size = binding->block.size,
+                    .stageFlags = stage,
+                };
+
+                block.members.reserve(binding->block.member_count);
+
+                for (uint32_t i = 0; i < binding->block.member_count; ++i)
+                {
+                    const SpvReflectBlockVariable& member = binding->block.members[i];
+
+                    AIKO_ASSERT(member.name != nullptr && member.name[0] != '\0', "Material uniform has no reflected name");
+                    AIKO_ASSERT(member.member_count == 0, "Nested material uniform structs are not supported yet");
+                    AIKO_ASSERT(member.array.dims_count == 0, "Material uniform arrays are not supported yet");
+
+                    const UniformType type = reflectUniformType(member);
+
+                    AIKO_ASSERT(type != UniformType::Unknown, "Unsupported material uniform type");
+                    AIKO_ASSERT(member.offset + member.size <= binding->block.size, "Material uniform exceeds reflected UBO size");
+
+                    block.members.push_back(
+                    {
+                        .name = member.name,
+                        .type = type,
+                        .offset = member.offset,
+                        .size = member.size,
+                        .matrixStride = member.numeric.matrix.stride,
+                        .rowMajor = (member.decoration_flags & SPV_REFLECT_DECORATION_ROW_MAJOR) != 0,
+                    });
+                }
+
+                appendMaterialUniformBlock(reflection, std::move(block));
+            }
         }
 
         uint32_t pushConstantCount = 0;
@@ -186,6 +342,7 @@ namespace aiko::renderer::vulkan
                 if (descriptor.binding == abi::MaterialUboBinding)
                 {
                     AIKO_ASSERT(descriptor.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, "Material UBO binding has invalid descriptor type");
+                    AIKO_ASSERT(reflection.materialUniformBlock.has_value(), "Material UBO descriptor has no reflected block metadata");
                     continue;
                 }
 
@@ -208,6 +365,14 @@ namespace aiko::renderer::vulkan
             }
 
             AIKO_ASSERT(false, "Graphics shader uses descriptor set outside model ABI");
+        }
+
+        if (reflection.materialUniformBlock.has_value())
+        {
+            const VulkanShaderUniformBlock& block = *reflection.materialUniformBlock;
+            AIKO_ASSERT(block.set == abi::GraphicsMaterialSet, "Material uniform block uses invalid descriptor set");
+            AIKO_ASSERT(block.binding == abi::MaterialUboBinding, "Material uniform block uses invalid binding");
+            AIKO_ASSERT(block.size > 0, "Material uniform block has zero size");
         }
     }
 
