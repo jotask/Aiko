@@ -11,6 +11,15 @@
 {
     class ComputeBuffer;
 
+     struct TextureBinding
+     {
+         AssetId textureId = InvalidAssetId;
+         const Texture* runtimeTexture = nullptr;
+         SamplerState sampler{};
+
+         bool operator==(const TextureBinding& other) const = default;
+     };
+
     class Material
     {
     public:
@@ -30,6 +39,19 @@
         MaterialId id() const;
 
         void setUniform(const string& name, UniformValue value);
+
+        void setTexture(const string& name, AssetId textureId, const SamplerState& sampler = {});
+
+        void setTexture(const string& name, const Texture* texture, const SamplerState& sampler = {});
+
+        void clearTexture(const string& name);
+
+        const TextureBinding* textureBinding(const string& name) const;
+
+        const std::unordered_map<string, TextureBinding>& textureBindings() const
+        {
+            return m_textureBindings;
+        }
 
         void setBool(const string& name, bool value);
         void setInt(const string& name, int value);
@@ -74,6 +96,7 @@
     private:
 
         UniformMap m_uniforms;
+        std::unordered_map<string, TextureBinding> m_textureBindings;
 
     };
 

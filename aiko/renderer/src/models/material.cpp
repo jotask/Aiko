@@ -88,4 +88,48 @@ namespace aiko
         setUniform(name, value);
     }
 
+    void Material::setTexture(const string& name, AssetId textureId, const SamplerState& sampler)
+    {
+        AIKO_ASSERT(name.empty() == false, "Texture binding name cannot be empty");
+        m_textureBindings.insert_or_assign(
+            name,
+            TextureBinding
+            {
+                .textureId = textureId,
+                .runtimeTexture = nullptr,
+                .sampler = sampler,
+            }
+        );
+    }
+
+    void Material::setTexture(const string& name, const Texture* texture, const SamplerState& sampler)
+    {
+        AIKO_ASSERT(name.empty() == false, "Texture binding name cannot be empty");
+
+        m_textureBindings.insert_or_assign(
+            name,
+            TextureBinding
+            {
+                .textureId = InvalidAssetId,
+                .runtimeTexture = texture,
+                .sampler = sampler,
+            }
+        );
+    }
+
+    void Material::clearTexture(const string& name)
+    {
+        m_textureBindings.erase(name);
+    }
+
+    const TextureBinding* Material::textureBinding(const string& name) const
+    {
+        const auto it = m_textureBindings.find(name);
+        if (it == m_textureBindings.end())
+        {
+            return nullptr;
+        }
+        return &it->second;
+    }
+
 }
