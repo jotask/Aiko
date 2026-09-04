@@ -257,11 +257,13 @@ namespace aiko::renderer::vulkan
             }
 
             m_activeColorAttachment = colorImpl;
+            m_activeDepthAttachment = depthImpl;
 
         }
         else
         {
             m_activeColorAttachment = nullptr;
+            m_activeDepthAttachment = nullptr;
 
             renderPass = m_context.renderPass();
             framebuffer = m_context.currentSwapChainFramebuffer();
@@ -327,6 +329,23 @@ namespace aiko::renderer::vulkan
             });
 
             m_activeColorAttachment = nullptr;
+        }
+
+        if (m_activeDepthAttachment != nullptr)
+        {
+            m_activeDepthAttachment->setState(
+            {
+                .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                .stage =
+                    VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                    VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+                .access =
+                    VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                    VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                .queueFamily = m_context.graphicsQueueFamily(),
+            });
+
+            m_activeDepthAttachment = nullptr;
         }
 
         m_renderPassActive = false;
@@ -1219,6 +1238,10 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(m_frameActive, "Texture preparation requires an active frame");
         AIKO_ASSERT(m_renderPassActive == false, "Texture preparation must happen outside a render pass");
         AIKO_ASSERT(texture.isValid(), "Cannot prepare invalid texture");
+
+        const TextureInfo info = texture.getInfo();
+
+        AIKO_ASSERT(info.type != TextureType::DepthStencil, "Depth texture sampling is not supported yet");
 
         auto* textureImpl = static_cast<VulkanTextureImpl*>(texture.getImpl());
 

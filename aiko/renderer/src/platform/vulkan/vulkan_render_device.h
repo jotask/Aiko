@@ -96,6 +96,7 @@ namespace aiko::renderer::vulkan
         VkRenderPass m_activeRenderPass = VK_NULL_HANDLE;
         VkExtent2D m_activeExtent = {};
         VulkanTextureImpl* m_activeColorAttachment = nullptr;
+        VulkanTextureImpl* m_activeDepthAttachment = nullptr;
 
         static constexpr size_t FramesInFlight = 2;
 
