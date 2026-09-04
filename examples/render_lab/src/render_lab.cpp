@@ -181,10 +181,10 @@ namespace aiko::lab
     {
         GameObject* root = Instantiate("Models");
 
-        const float off = 30.0f;
+        const float modelOffset = 30.0f;
 
         GameObject* church = Instantiate(root, "Church");
-        church->transform().position = {off, 0.0f, -28.0f};
+        church->transform().position = {-modelOffset, 0.0f, -28.0f};
 
         ModelComponent* churchModel =
             church->addComponent<ModelComponent>();
@@ -202,7 +202,7 @@ namespace aiko::lab
 
 
         GameObject* watermill = Instantiate(root, "Watermill");
-        watermill->transform().position = {off, 0.0f, -28.0f};
+        watermill->transform().position = {modelOffset, 0.0f, -28.0f};
 
         ModelComponent* watermillModel =
             watermill->addComponent<ModelComponent>();
