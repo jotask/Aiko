@@ -35,7 +35,6 @@ namespace aiko
 
         void load(const char* fileCodeName);
         void load(const char* vs, const char* fs);
-        void loadFromSource(const char* vs, const char* fs);
         void unload();
 
         // Type Helpers

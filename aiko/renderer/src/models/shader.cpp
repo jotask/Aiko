@@ -45,6 +45,7 @@ namespace aiko
         {
             backend->unload();
         }
+        m_uniforms.clear();
     }
 
     void Shader::setUniform(const string& name, UniformValue value)
@@ -108,7 +109,7 @@ namespace aiko
         setUniform(name, value);
     }
 
-    bool Shader::isValid () const
+    bool Shader::isValid() const
     {
         return backend->isValid();
     }
