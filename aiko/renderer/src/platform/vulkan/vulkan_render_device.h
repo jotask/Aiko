@@ -118,6 +118,16 @@ namespace aiko::renderer::vulkan
 
         static constexpr uint32_t MaxMaterialBindings = 1024;
 
+        struct CachedTextureBinding
+        {
+            uint32_t binding = 0;
+            VkImageView imageView = VK_NULL_HANDLE;
+            VkSampler sampler = VK_NULL_HANDLE;
+            bool hasTexture = false;
+
+            bool operator==(const CachedTextureBinding& other) const = default;
+        };
+
         struct CachedMaterialBinding
         {
             VkBuffer uniformBuffer = VK_NULL_HANDLE;
@@ -127,10 +137,17 @@ namespace aiko::renderer::vulkan
 
             VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 
-            VkImageView imageView = VK_NULL_HANDLE;
-            VkSampler sampler = VK_NULL_HANDLE;
+            std::vector<CachedTextureBinding> textures;
+        };
 
-            bool hasTexture = false;
+        struct MaterialTextureBindingKey
+        {
+            uint32_t binding = 0;
+            AssetId textureId = InvalidAssetId;
+            const Texture* runtimeTexture = nullptr;
+            SamplerState sampler{};
+
+            bool operator==(const MaterialTextureBindingKey& other) const = default;
         };
 
         Texture m_whiteTexture;
@@ -153,19 +170,15 @@ namespace aiko::renderer::vulkan
         struct MaterialBindingKey
         {
             AssetId shaderId = InvalidAssetId;
-            AssetId textureId = InvalidAssetId;
-            const Texture* runtimeTexture = nullptr;
-            SamplerState samplerState{};
 
+            std::vector<MaterialTextureBindingKey> textures;
             std::vector<uint8_t> uniformData{};
 
             bool operator==(const MaterialBindingKey& other) const
             {
                 return shaderId == other.shaderId
-                    && textureId == other.textureId
-                    && runtimeTexture == other.runtimeTexture
-                    && uniformData == other.uniformData
-                    && samplerState == other.samplerState;
+                    && textures == other.textures
+                    && uniformData == other.uniformData;
             }
         };
 
@@ -174,14 +187,22 @@ namespace aiko::renderer::vulkan
             size_t operator()(const MaterialBindingKey& key) const
             {
                 size_t seed = 0;
+
                 utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
-                utils::hashCombine(std::hash<AssetId>{}(key.textureId), seed);
-                utils::hashCombine(std::hash<const Texture*>{}(key.runtimeTexture), seed);
-                utils::hashCombine(SamplerStateHash{}(key.samplerState), seed);
+
+                for (const MaterialTextureBindingKey& texture : key.textures)
+                {
+                    utils::hashCombine(std::hash<uint32_t>{}(texture.binding), seed);
+                    utils::hashCombine(std::hash<AssetId>{}(texture.textureId), seed);
+                    utils::hashCombine(std::hash<const Texture*>{}(texture.runtimeTexture), seed);
+                    utils::hashCombine(SamplerStateHash{}(texture.sampler), seed);
+                }
+
                 for (const uint8_t value : key.uniformData)
                 {
                     utils::hashCombine(std::hash<uint8_t>{}(value), seed);
                 }
+
                 return seed;
             }
         };
@@ -270,7 +291,7 @@ namespace aiko::renderer::vulkan
         VkPipeline getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced);
 
         std::array<std::unordered_map<MaterialBindingKey, CachedMaterialBinding, MaterialBindingKeyHash>, FramesInFlight> m_materialBindingCaches;
-        MaterialBindingKey makeMaterialBindingKey(const Material& material, std::vector<uint8_t> uniformData) const;
+        MaterialBindingKey makeMaterialBindingKey(const Material& material, std::vector<MaterialTextureBindingKey> textures, std::vector<uint8_t> uniformData) const;
 
         void createMaterialResources();
         void destroyMaterialResources();
@@ -454,11 +475,8 @@ namespace aiko::renderer::vulkan
 
         VkSampler getOrCreateSampler(const SamplerState& state);
         void destroySamplerCache();
-
-        TextureBinding resolveMaterialTextureBinding(const Material& material, const string& name) const;
         const Texture* resolveTextureBinding(const TextureBinding& binding);
-        MaterialBindingKey makeMaterialBindingKey(const Material& material, const TextureBinding& textureBinding, std::vector<uint8_t> uniformData) const;
-        void refreshMaterialTextureBinding(CachedMaterialBinding& binding, const TextureBinding& textureBinding);
+        void refreshMaterialTextureBindings(CachedMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings);
 
     };
 }
