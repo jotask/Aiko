@@ -14,11 +14,13 @@
 #include "renderer/Irenderdevice.h"
 #include "vulkan_descriptor_abi.h"
 #include "impl/vulkan_computeshader_impl.h"
+#include "vulkan_pipeline_types.h"
+#include "vulkan_render_types.h"
+#include "vulkan_transfer_types.h"
 
 namespace aiko::renderer::vulkan
 {
     class VulkanTextureImpl;
-
     class VulkanShaderImpl;
 
     class VulkanRenderDevice final : public IRenderDevice
@@ -119,172 +121,8 @@ namespace aiko::renderer::vulkan
 
         static constexpr uint32_t MaxMaterialBindings = 1024;
 
-        struct CachedTextureBinding
-        {
-            uint32_t binding = 0;
-            VkImageView imageView = VK_NULL_HANDLE;
-            VkSampler sampler = VK_NULL_HANDLE;
-            bool hasTexture = false;
-
-            bool operator==(const CachedTextureBinding& other) const = default;
-        };
-
-        struct CachedMaterialBinding
-        {
-            VkBuffer uniformBuffer = VK_NULL_HANDLE;
-            VkDeviceMemory uniformMemory = VK_NULL_HANDLE;
-            void* uniformMapped = nullptr;
-            VkDeviceSize uniformSize = 0;
-
-            VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
-
-            std::vector<CachedTextureBinding> textures;
-        };
-
-        struct MaterialTextureBindingKey
-        {
-            uint32_t binding = 0;
-            AssetId textureId = InvalidAssetId;
-            const Texture* runtimeTexture = nullptr;
-            SamplerState sampler{};
-
-            bool operator==(const MaterialTextureBindingKey& other) const = default;
-        };
-
         Texture m_whiteTexture;
         std::array<VkDescriptorPool, FramesInFlight> m_materialDescriptorPools{};
-
-        struct SamplerStateHash
-        {
-            size_t operator()(const SamplerState& state) const
-            {
-                size_t seed = 0;
-                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(state.minFilter)), seed);
-                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(state.magFilter)), seed);
-                utils::hashCombine(std::hash<uint32_t>{}( static_cast<uint32_t>(state.mipFilter)), seed);
-                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(state.wrapU)), seed);
-                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(state.wrapV)), seed);
-                return seed;
-            }
-        };
-
-        struct MaterialBindingKey
-        {
-            AssetId shaderId = InvalidAssetId;
-
-            std::vector<MaterialTextureBindingKey> textures;
-            std::vector<uint8_t> uniformData{};
-
-            bool operator==(const MaterialBindingKey& other) const
-            {
-                return shaderId == other.shaderId
-                    && textures == other.textures
-                    && uniformData == other.uniformData;
-            }
-        };
-
-        struct MaterialBindingKeyHash
-        {
-            size_t operator()(const MaterialBindingKey& key) const
-            {
-                size_t seed = 0;
-
-                utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
-
-                for (const MaterialTextureBindingKey& texture : key.textures)
-                {
-                    utils::hashCombine(std::hash<uint32_t>{}(texture.binding), seed);
-                    utils::hashCombine(std::hash<AssetId>{}(texture.textureId), seed);
-                    utils::hashCombine(std::hash<const Texture*>{}(texture.runtimeTexture), seed);
-                    utils::hashCombine(SamplerStateHash{}(texture.sampler), seed);
-                }
-
-                for (const uint8_t value : key.uniformData)
-                {
-                    utils::hashCombine(std::hash<uint8_t>{}(value), seed);
-                }
-
-                return seed;
-            }
-        };
-
-        struct RenderPassCompatibilityKey
-        {
-            VkFormat colorFormat = VK_FORMAT_UNDEFINED;
-            VkFormat depthFormat = VK_FORMAT_UNDEFINED;
-            VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
-
-            bool operator==(const RenderPassCompatibilityKey& other) const
-            {
-                return colorFormat == other.colorFormat
-                    && depthFormat == other.depthFormat
-                    && samples == other.samples;
-            }
-        };
-
-        struct RenderPassCompatibilityKeyHash
-        {
-            size_t operator()(const RenderPassCompatibilityKey& key) const
-            {
-                size_t seed = 0;
-                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.colorFormat)), seed);
-                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.depthFormat)), seed);
-                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.samples)), seed);
-                return seed;
-            }
-        };
-
-        struct ModelPipelineKey
-        {
-            RenderPassCompatibilityKey renderPass{};
-            VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-            AssetId shaderId = InvalidAssetId;
-            FillMode fillMode = FillMode::Solid;
-
-            CullMode cullMode = CullMode::None;
-
-            bool depthTest = true;
-            bool depthWrite = true;
-            DepthCompare depthCompare = DepthCompare::LessEqual;
-
-            bool blend = false;
-
-            bool instanced = false;
-
-            bool operator==(const ModelPipelineKey& other) const
-            {
-                return
-                    renderPass == other.renderPass &&
-                    topology == other.topology &&
-                    shaderId == other.shaderId &&
-                    fillMode == other.fillMode &&
-                    cullMode == other.cullMode &&
-                    depthTest == other.depthTest &&
-                    depthWrite == other.depthWrite &&
-                    depthCompare == other.depthCompare &&
-                    blend == other.blend &&
-                    instanced == other.instanced;
-            }
-        };
-
-        struct ModelPipelineKeyHash
-        {
-            size_t operator()(const ModelPipelineKey& key) const
-            {
-                size_t seed = 0;
-                utils::hashCombine(RenderPassCompatibilityKeyHash{}(key.renderPass), seed);
-                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.topology)), seed);
-                utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
-                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.fillMode)), seed);
-                utils::hashCombine(std::hash<uint32_t>{}( static_cast<uint32_t>(key.cullMode)), seed);
-                utils::hashCombine(std::hash<bool>{}(key.depthTest), seed);
-                utils::hashCombine(std::hash<bool>{}(key.depthWrite), seed);
-                utils::hashCombine(std::hash<uint32_t>{}( static_cast<uint32_t>(key.depthCompare)), seed);
-                utils::hashCombine(std::hash<bool>{}(key.blend), seed);
-                utils::hashCombine(std::hash<bool>{}(key.instanced), seed);
-                return seed;
-            }
-        };
 
         RenderPassCompatibilityKey m_activeRenderPassCompatibility{};
         std::unordered_map<ModelPipelineKey, VkPipeline, ModelPipelineKeyHash> m_modelPipelines;
@@ -341,48 +179,6 @@ namespace aiko::renderer::vulkan
         void transitionComputeBuffers(VkCommandBuffer commandBuffer, const vector<ComputeBufferBinding>& bindings, bool useDedicatedCompute);
         VulkanBufferState computeBufferState(ComputeAccess access, uint32_t queueFamily) const;
 
-        struct ReadbackRequest
-        {
-            ReadbackId id = InvalidReadbackId;
-            AikoPtr<interfaces::IComputeBufferImpl> source;
-            uint32_t byteSize = 0;
-        };
-
-        struct InFlightReadback
-        {
-            ReadbackId id = InvalidReadbackId;
-
-            VkBuffer stagingBuffer = VK_NULL_HANDLE;
-            VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
-
-            uint32_t byteSize = 0;
-            uint32_t frameIndex = 0;
-        };
-
-        struct CompletedReadback
-        {
-            ReadbackId id = InvalidReadbackId;
-            vector<uint8_t> data;
-        };
-
-        struct UploadArenaChunk
-        {
-            VkBuffer buffer = VK_NULL_HANDLE;
-            VkDeviceMemory memory = VK_NULL_HANDLE;
-
-            void* mapped = nullptr;
-
-            VkDeviceSize capacity = 0;
-            VkDeviceSize offset = 0;
-        };
-
-        struct UploadSlice
-        {
-            VkBuffer buffer = VK_NULL_HANDLE;
-            VkDeviceSize offset = 0;
-            void* mapped = nullptr;
-        };
-
         static constexpr VkDeviceSize DefaultUploadArenaChunkSize = 4 * 1024 * 1024;
         std::array<vector<UploadArenaChunk>, FramesInFlight> m_uploadArenaChunks;
 
@@ -411,58 +207,10 @@ namespace aiko::renderer::vulkan
         VkDescriptorSet allocateGpuReadDescriptorSet();
         VkDescriptorSet buildGpuReadDescriptorSet(const vector<GpuReadBufferBinding>& bindings);
 
-        struct GpuPipelineKey
-        {
-            RenderResourceId shaderId = InvalidRenderResourceId;
-            RenderPassCompatibilityKey renderPass{};
-
-            bool operator==(const GpuPipelineKey& other) const
-            {
-                return shaderId == other.shaderId &&renderPass == other.renderPass;
-            }
-        };
-
-        struct GpuPipelineKeyHash
-        {
-            size_t operator()(const GpuPipelineKey& key) const
-            {
-                size_t seed = 0;
-                utils::hashCombine(std::hash<RenderResourceId>{}(key.shaderId), seed);
-                utils::hashCombine(RenderPassCompatibilityKeyHash{}(key.renderPass), seed);
-                return seed;
-            }
-        };
-
         std::unordered_map<GpuPipelineKey, VkPipeline, GpuPipelineKeyHash> m_gpuInstancedPipelines;
 
         VkPipeline getOrCreateGpuInstancedPipeline(const Material& material, VkRenderPass renderPass);
         void destroyGpuInstancedPipelines();
-
-        struct GpuVertexPipelineKey
-        {
-            RenderResourceId shaderId = InvalidRenderResourceId;
-            RenderPassCompatibilityKey renderPass{};
-            VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-
-            bool operator==(const GpuVertexPipelineKey& other) const
-            {
-                return shaderId == other.shaderId
-                    && renderPass == other.renderPass
-                    && topology == other.topology;
-            }
-        };
-
-        struct GpuVertexPipelineKeyHash
-        {
-            size_t operator()(const GpuVertexPipelineKey& key) const
-            {
-                size_t seed = 0;
-                utils::hashCombine(std::hash<RenderResourceId>{}(key.shaderId), seed);
-                utils::hashCombine(RenderPassCompatibilityKeyHash{}(key.renderPass), seed);
-                utils::hashCombine(std::hash<uint32_t>{}( static_cast<uint32_t>(key.topology)), seed);
-                return seed;
-            }
-        };
 
         std::unordered_map<GpuVertexPipelineKey, VkPipeline, GpuVertexPipelineKeyHash> m_gpuVertexPipelines;
 

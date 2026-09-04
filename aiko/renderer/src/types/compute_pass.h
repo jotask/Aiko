@@ -12,6 +12,13 @@ namespace aiko
     class ComputeBuffer;
     class ComputeShader;
 
+    enum class ComputeAccess
+    {
+        Read,
+        Write,
+        ReadWrite
+    };
+
     struct ComputeImageBinding
     {
         uint8_t stage = 0;

@@ -22,6 +22,8 @@
 
 #include "imgui/aiko_imgui.h"
 #include "resources/render_resource_manager.h"
+#include "types/draw_types.h"
+#include "types/transient_types.h"
 
 #include <unordered_map>
 #include <deque>

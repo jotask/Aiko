@@ -2641,7 +2641,7 @@ namespace aiko::renderer::vulkan
         cache.clear();
     }
 
-    VulkanRenderDevice::CachedMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
+    CachedMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
     {
 
         AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "Material binding requires a shader");
@@ -3648,7 +3648,7 @@ namespace aiko::renderer::vulkan
         }
     }
 
-    VulkanRenderDevice::UploadSlice VulkanRenderDevice::allocateUploadSlice(uint32_t frameIndex, VkDeviceSize size, VkDeviceSize alignment)
+    UploadSlice VulkanRenderDevice::allocateUploadSlice(uint32_t frameIndex, VkDeviceSize size, VkDeviceSize alignment)
     {
         AIKO_ASSERT(frameIndex < FramesInFlight, "Invalid Vulkan frame index");
         AIKO_ASSERT(size > 0, "Cannot allocate empty Vulkan upload slice");
@@ -4526,7 +4526,7 @@ namespace aiko::renderer::vulkan
         return &m_whiteTexture;
     }
 
-    VulkanRenderDevice::MaterialBindingKey VulkanRenderDevice::makeMaterialBindingKey(const Material& material, std::vector<MaterialTextureBindingKey> textures, std::vector<uint8_t> uniformData) const
+    MaterialBindingKey VulkanRenderDevice::makeMaterialBindingKey(const Material& material, std::vector<MaterialTextureBindingKey> textures, std::vector<uint8_t> uniformData) const
     {
         return
         {

@@ -13,6 +13,8 @@
 #include "types/render_types.h"
 #include "renderer/frame_uniforms.h"
 #include "types/compute_pass.h"
+#include "types/draw_types.h"
+#include "types/transient_types.h"
 
 namespace aiko
 {

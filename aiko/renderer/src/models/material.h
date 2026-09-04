@@ -6,6 +6,7 @@
 #include "types/render_types.h"
 #include "types/uniform_value.h"
 #include <metadata/texture_meta.h>
+#include "types/render_state.h"
 
  namespace aiko
 {
