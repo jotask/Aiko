@@ -44,7 +44,16 @@ namespace aiko::renderer::vulkan
                 {
                     continue;
                 }
-                AIKO_ASSERT(existing.name == incoming.name, "Shader stages disagree on descriptor name");
+
+                if (existing.name.empty())
+                {
+                    existing.name = incoming.name;
+                }
+                else if (incoming.name.empty() == false)
+                {
+                    AIKO_ASSERT(existing.name == incoming.name, "Shader stages disagree on descriptor name");
+                }
+
                 AIKO_ASSERT(existing.descriptorType == incoming.descriptorType, "Shader stages disagree on descriptor type");
                 AIKO_ASSERT(existing.descriptorCount == incoming.descriptorCount, "Shader stages disagree on descriptor count");
                 existing.stageFlags |= incoming.stageFlags;
@@ -229,12 +238,11 @@ namespace aiko::renderer::vulkan
         for (const SpvReflectDescriptorBinding* binding : descriptors)
         {
             AIKO_ASSERT(binding != nullptr, "Invalid reflected descriptor binding");
-            AIKO_ASSERT(binding->name != nullptr && binding->name[0] != '\0', "Shader descriptor has no reflected name");
 
             appendDescriptor(
                 reflection,
                 {
-                    .name = binding->name,
+                    .name = binding->name != nullptr ? binding->name : "",
                     .set = binding->set,
                     .binding = binding->binding,
                     .descriptorType = toVkDescriptorType(binding->descriptor_type),

@@ -153,8 +153,8 @@ namespace aiko::renderer::vulkan
         struct MaterialBindingKey
         {
             AssetId shaderId = InvalidAssetId;
-            AssetId diffuseTextureId = InvalidAssetId;
-            const Texture* runtimeDiffuseTexture = nullptr;
+            AssetId textureId = InvalidAssetId;
+            const Texture* runtimeTexture = nullptr;
             SamplerState samplerState{};
 
             std::vector<uint8_t> uniformData{};
@@ -162,8 +162,8 @@ namespace aiko::renderer::vulkan
             bool operator==(const MaterialBindingKey& other) const
             {
                 return shaderId == other.shaderId
-                    && diffuseTextureId == other.diffuseTextureId
-                    && runtimeDiffuseTexture == other.runtimeDiffuseTexture
+                    && textureId == other.textureId
+                    && runtimeTexture == other.runtimeTexture
                     && uniformData == other.uniformData
                     && samplerState == other.samplerState;
             }
@@ -175,8 +175,8 @@ namespace aiko::renderer::vulkan
             {
                 size_t seed = 0;
                 utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
-                utils::hashCombine(std::hash<AssetId>{}(key.diffuseTextureId), seed);
-                utils::hashCombine(std::hash<const Texture*>{}(key.runtimeDiffuseTexture), seed);
+                utils::hashCombine(std::hash<AssetId>{}(key.textureId), seed);
+                utils::hashCombine(std::hash<const Texture*>{}(key.runtimeTexture), seed);
                 utils::hashCombine(SamplerStateHash{}(key.samplerState), seed);
                 for (const uint8_t value : key.uniformData)
                 {
@@ -276,7 +276,6 @@ namespace aiko::renderer::vulkan
         void destroyMaterialResources();
         void clearMaterialBindings(u32 frame);
         CachedMaterialBinding& resolveMaterialBinding(const Material& material);
-        void refreshMaterialTextureBinding(CachedMaterialBinding& binding, const Material& material);
 
         mat4 m_sceneViewProj = mat4(1.0f);
 
@@ -455,6 +454,11 @@ namespace aiko::renderer::vulkan
 
         VkSampler getOrCreateSampler(const SamplerState& state);
         void destroySamplerCache();
+
+        TextureBinding resolveMaterialTextureBinding(const Material& material, const string& name) const;
+        const Texture* resolveTextureBinding(const TextureBinding& binding);
+        MaterialBindingKey makeMaterialBindingKey(const Material& material, const TextureBinding& textureBinding, std::vector<uint8_t> uniformData) const;
+        void refreshMaterialTextureBinding(CachedMaterialBinding& binding, const TextureBinding& textureBinding);
 
     };
 }
