@@ -333,7 +333,12 @@ namespace aiko::renderer::vulkan
             queueCreateInfos.push_back(queueInfo);
         }
 
-        const VkPhysicalDeviceFeatures deviceFeatures = { };
+        VkPhysicalDeviceFeatures supportedFeatures{};
+        vkGetPhysicalDeviceFeatures(m_physicalDevice, &supportedFeatures);
+        AIKO_ASSERT(supportedFeatures.fillModeNonSolid == VK_TRUE, "Vulkan device does not support non-solid fill modes");
+
+        VkPhysicalDeviceFeatures deviceFeatures{};
+        deviceFeatures.fillModeNonSolid = VK_TRUE;
 
         const VkDeviceCreateInfo createInfo =
         {

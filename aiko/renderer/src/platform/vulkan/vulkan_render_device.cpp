@@ -52,6 +52,18 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(false, "Unsupported DepthCompare");
             return VK_COMPARE_OP_LESS_OR_EQUAL;
         }
+
+        static VkPolygonMode toVulkanPolygonMode(FillMode mode)
+        {
+            switch (mode)
+            {
+                case FillMode::Solid: return VK_POLYGON_MODE_FILL;
+                case FillMode::Wireframe: return VK_POLYGON_MODE_LINE;
+                case FillMode::Point: return VK_POLYGON_MODE_POINT;
+            }
+            AIKO_ASSERT(false, "Unsupported fill mode");
+            return VK_POLYGON_MODE_FILL;
+        }
     }
 
     VulkanRenderDevice::VulkanRenderDevice(RenderResourceManager* resources)
@@ -1437,7 +1449,7 @@ namespace aiko::renderer::vulkan
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
-            .polygonMode = VK_POLYGON_MODE_FILL,
+            .polygonMode = toVulkanPolygonMode(renderState.fillMode),
             .cullMode = toVulkanCullMode(renderState.cullMode),
             .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
@@ -1637,7 +1649,7 @@ namespace aiko::renderer::vulkan
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
-            .polygonMode = VK_POLYGON_MODE_FILL,
+            .polygonMode = toVulkanPolygonMode(renderState.fillMode),
             .cullMode = toVulkanCullMode(renderState.cullMode),
             .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
@@ -4087,6 +4099,7 @@ namespace aiko::renderer::vulkan
             .renderPass = renderPass,
             .topology = topology,
             .shaderId = instanced ? InvalidAssetId : shaderId,
+            .fillMode = renderState.fillMode,
             .cullMode = renderState.cullMode,
             .depthTest = renderState.depthTest,
             .depthWrite = renderState.depthWrite,

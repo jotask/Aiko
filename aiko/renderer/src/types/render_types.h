@@ -80,9 +80,17 @@ namespace aiko
         Always
     };
 
+    enum class FillMode
+    {
+        Solid,
+        Wireframe,
+        Point
+    };
+
     struct RenderState
     {
         CullMode cullMode = CullMode::None;
+        FillMode fillMode = FillMode::Solid;
 
         bool depthTest = true;
         bool depthWrite = true;

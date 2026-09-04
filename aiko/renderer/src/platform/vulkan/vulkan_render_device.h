@@ -184,6 +184,7 @@ namespace aiko::renderer::vulkan
             VkRenderPass renderPass = VK_NULL_HANDLE;
             VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
             AssetId shaderId = InvalidAssetId;
+            FillMode fillMode = FillMode::Solid;
 
             CullMode cullMode = CullMode::None;
 
@@ -201,6 +202,7 @@ namespace aiko::renderer::vulkan
                     renderPass == other.renderPass &&
                     topology == other.topology &&
                     shaderId == other.shaderId &&
+                    fillMode == other.fillMode &&
                     cullMode == other.cullMode &&
                     depthTest == other.depthTest &&
                     depthWrite == other.depthWrite &&
@@ -218,6 +220,7 @@ namespace aiko::renderer::vulkan
                 utils::hashCombine(std::hash<VkRenderPass>{}(key.renderPass), seed);
                 utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.topology)), seed);
                 utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
+                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.fillMode)), seed);
                 utils::hashCombine(std::hash<uint32_t>{}( static_cast<uint32_t>(key.cullMode)), seed);
                 utils::hashCombine(std::hash<bool>{}(key.depthTest), seed);
                 utils::hashCombine(std::hash<bool>{}(key.depthWrite), seed);
