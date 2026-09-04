@@ -340,8 +340,6 @@ namespace aiko::renderer::vulkan
         void transitionComputeBuffers(VkCommandBuffer commandBuffer, const vector<ComputeBufferBinding>& bindings, bool useDedicatedCompute);
         VulkanBufferState computeBufferState(ComputeAccess access, uint32_t queueFamily) const;
 
-        const Texture* resolveMaterialTexture(const Material& material);
-
         struct ReadbackRequest
         {
             ReadbackId id = InvalidReadbackId;

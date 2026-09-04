@@ -770,8 +770,9 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& screen)
     {
-        const Texture* texture = screen.getMaterial().m_runtimeDiffuseTexture;
-
+        const TextureBinding* textureBinding = screen.getMaterial().textureBinding("u_texture");
+        AIKO_ASSERT(textureBinding != nullptr, "ScreenFbo has no texture binding");
+        const Texture* texture = textureBinding->runtimeTexture;
         AIKO_ASSERT(texture != nullptr, "ScreenFbo has no runtime texture");
         AIKO_ASSERT(texture->isValid(), "ScreenFbo runtime texture is invalid");
 
@@ -1641,29 +1642,15 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::prepareMaterial(const Material& material)
     {
-        const Texture* texture = resolveMaterialTexture(material);
-        AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
-        prepareTextureForSampling(*texture);
+        for (const auto& [name, textureBinding] : material.textureBindings())
+        {
+            AIKO_UNUSED(name);
+            const Texture* texture = resolveTextureBinding(textureBinding);
+            AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
+            prepareTextureForSampling(*texture);
+        }
+
         resolveMaterialBinding(material);
-    }
-
-    const Texture* VulkanRenderDevice::resolveMaterialTexture(const Material& material)
-    {
-        if (material.m_runtimeDiffuseTexture != nullptr && material.m_runtimeDiffuseTexture->isValid())
-        {
-            return material.m_runtimeDiffuseTexture;
-        }
-
-        if (material.m_diffuseTextureId != InvalidAssetId)
-        {
-            Texture& texture = getResources()->getTexture(material.m_diffuseTextureId);
-            if (texture.isValid())
-            {
-                return &texture;
-            }
-        }
-
-        return &m_whiteTexture;
     }
 
     void VulkanRenderDevice::createFrameResources()
@@ -2693,19 +2680,9 @@ namespace aiko::renderer::vulkan
 
             TextureBinding textureBinding{};
 
-            if (const TextureBinding* named =
-                    material.textureBinding(descriptor->name))
+            if (const TextureBinding* named = material.textureBinding(descriptor->name))
             {
                 textureBinding = *named;
-            }
-            else if (descriptor->binding == abi::MaterialTextureBindingBase)
-            {
-                textureBinding =
-                {
-                    .textureId = material.m_diffuseTextureId,
-                    .runtimeTexture = material.m_runtimeDiffuseTexture,
-                    .sampler = material.m_samplerState,
-                };
             }
 
             const Texture* texture = resolveTextureBinding(textureBinding);

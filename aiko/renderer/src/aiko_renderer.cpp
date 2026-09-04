@@ -691,7 +691,9 @@ namespace aiko
         }
         else
         {
-            const Texture* screenTexture = m_screenFbo.getMaterial().m_runtimeDiffuseTexture;
+            const TextureBinding* screenBinding = m_screenFbo.getMaterial().textureBinding("u_texture");
+            AIKO_ASSERT(screenBinding != nullptr, "ScreenFbo has no texture binding");
+            const Texture* screenTexture = screenBinding->runtimeTexture;
             AIKO_ASSERT(screenTexture != nullptr, "ScreenFbo has no runtime texture");
             AIKO_ASSERT( screenTexture->isValid(), "ScreenFbo runtime texture is invalid");
             m_renderer->prepareTextureForSampling(*screenTexture);
@@ -745,18 +747,13 @@ namespace aiko
         material.m_lit = key.lit;
         material.m_baseColor = key.baseColor;
 
-        material.m_diffuseTextureId = key.diffuseTextureId;
-        material.m_runtimeDiffuseTexture = key.runtimeDiffuseTexture;
-
-        // Resolve asset texture once for this staged material.
-        // Keep m_diffuseTextureId intact so identity/grouping stays stable.
-        if (material.m_runtimeDiffuseTexture == nullptr && material.m_diffuseTextureId != InvalidAssetId)
+        if (key.runtimeDiffuseTexture != nullptr)
         {
-            Texture& texture = m_resources.getTexture(material.m_diffuseTextureId);
-            if (texture.isValid())
-            {
-                material.m_runtimeDiffuseTexture = &texture;
-            }
+            material.setTexture("u_texture", key.runtimeDiffuseTexture);
+        }
+        else if (key.diffuseTextureId != InvalidAssetId)
+        {
+            material.setTexture("u_texture", key.diffuseTextureId);
         }
 
         // Optional prewarm. Not a major perf win, but ensures shader exists before draw.

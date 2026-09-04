@@ -74,9 +74,6 @@
             return m_uniforms;
         }
 
-        void setSamplerState(const SamplerState& state) { m_samplerState = state; }
-        const SamplerState& samplerState() const { return m_samplerState; }
-
     public:
 
         AssetId m_shaderId = InvalidAssetId;
@@ -87,11 +84,7 @@
         bool m_useVertexColor;
         bool m_lit;
 
-		Color m_baseColor;
-        AssetId m_diffuseTextureId = InvalidAssetId;
-        const Texture* m_runtimeDiffuseTexture = nullptr;
-
-        SamplerState m_samplerState{};
+        Color m_baseColor;
 
     private:
 
