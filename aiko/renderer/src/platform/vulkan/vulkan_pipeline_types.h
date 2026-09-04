@@ -17,9 +17,7 @@ namespace aiko::renderer::vulkan
 
         bool operator==(const RenderPassCompatibilityKey& other) const
         {
-            return colorFormat == other.colorFormat
-                && depthFormat == other.depthFormat
-                && samples == other.samples;
+            return colorFormat == other.colorFormat && depthFormat == other.depthFormat && samples == other.samples;
         }
     };
 
@@ -28,22 +26,9 @@ namespace aiko::renderer::vulkan
         size_t operator()(const RenderPassCompatibilityKey& key) const
         {
             size_t seed = 0;
-
-            utils::hashCombine(
-                std::hash<uint32_t>{}(static_cast<uint32_t>(key.colorFormat)),
-                seed
-            );
-
-            utils::hashCombine(
-                std::hash<uint32_t>{}(static_cast<uint32_t>(key.depthFormat)),
-                seed
-            );
-
-            utils::hashCombine(
-                std::hash<uint32_t>{}(static_cast<uint32_t>(key.samples)),
-                seed
-            );
-
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.colorFormat)), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.depthFormat)), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.samples)), seed);
             return seed;
         }
     };
@@ -87,57 +72,16 @@ namespace aiko::renderer::vulkan
         size_t operator()(const ModelPipelineKey& key) const
         {
             size_t seed = 0;
-
-            utils::hashCombine(
-                RenderPassCompatibilityKeyHash{}(key.renderPass),
-                seed
-            );
-
-            utils::hashCombine(
-                std::hash<uint32_t>{}(static_cast<uint32_t>(key.topology)),
-                seed
-            );
-
-            utils::hashCombine(
-                std::hash<AssetId>{}(key.shaderId),
-                seed
-            );
-
-            utils::hashCombine(
-                std::hash<uint32_t>{}(static_cast<uint32_t>(key.fillMode)),
-                seed
-            );
-
-            utils::hashCombine(
-                std::hash<uint32_t>{}(static_cast<uint32_t>(key.cullMode)),
-                seed
-            );
-
-            utils::hashCombine(
-                std::hash<bool>{}(key.depthTest),
-                seed
-            );
-
-            utils::hashCombine(
-                std::hash<bool>{}(key.depthWrite),
-                seed
-            );
-
-            utils::hashCombine(
-                std::hash<uint32_t>{}(static_cast<uint32_t>(key.depthCompare)),
-                seed
-            );
-
-            utils::hashCombine(
-                std::hash<bool>{}(key.blend),
-                seed
-            );
-
-            utils::hashCombine(
-                std::hash<bool>{}(key.instanced),
-                seed
-            );
-
+            utils::hashCombine(RenderPassCompatibilityKeyHash{}(key.renderPass), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.topology)), seed);
+            utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.fillMode)), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.cullMode)), seed);
+            utils::hashCombine(std::hash<bool>{}(key.depthTest), seed);
+            utils::hashCombine(std::hash<bool>{}(key.depthWrite), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.depthCompare)), seed);
+            utils::hashCombine(std::hash<bool>{}(key.blend), seed);
+            utils::hashCombine(std::hash<bool>{}(key.instanced), seed);
             return seed;
         }
     };
@@ -149,8 +93,7 @@ namespace aiko::renderer::vulkan
 
         bool operator==(const GpuPipelineKey& other) const
         {
-            return shaderId == other.shaderId
-                && renderPass == other.renderPass;
+            return shaderId == other.shaderId && renderPass == other.renderPass;
         }
     };
 
@@ -159,17 +102,8 @@ namespace aiko::renderer::vulkan
         size_t operator()(const GpuPipelineKey& key) const
         {
             size_t seed = 0;
-
-            utils::hashCombine(
-                std::hash<RenderResourceId>{}(key.shaderId),
-                seed
-            );
-
-            utils::hashCombine(
-                RenderPassCompatibilityKeyHash{}(key.renderPass),
-                seed
-            );
-
+            utils::hashCombine(std::hash<RenderResourceId>{}(key.shaderId), seed);
+            utils::hashCombine(RenderPassCompatibilityKeyHash{}(key.renderPass), seed);
             return seed;
         }
     };
@@ -193,22 +127,9 @@ namespace aiko::renderer::vulkan
         size_t operator()(const GpuVertexPipelineKey& key) const
         {
             size_t seed = 0;
-
-            utils::hashCombine(
-                std::hash<RenderResourceId>{}(key.shaderId),
-                seed
-            );
-
-            utils::hashCombine(
-                RenderPassCompatibilityKeyHash{}(key.renderPass),
-                seed
-            );
-
-            utils::hashCombine(
-                std::hash<uint32_t>{}(static_cast<uint32_t>(key.topology)),
-                seed
-            );
-
+            utils::hashCombine(std::hash<RenderResourceId>{}(key.shaderId), seed);
+            utils::hashCombine(RenderPassCompatibilityKeyHash{}(key.renderPass), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.topology)), seed);
             return seed;
         }
     };

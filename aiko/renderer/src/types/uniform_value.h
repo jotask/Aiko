@@ -62,7 +62,6 @@ namespace aiko
         mat4
     >;
 
-    using UniformMap =
-        std::unordered_map<string, UniformValue>;
+    using UniformMap = std::unordered_map<string, UniformValue>;
 
 }
