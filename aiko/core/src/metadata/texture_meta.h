@@ -29,13 +29,17 @@ namespace aiko
         bool valid = false;
     };
 
-    struct SamplerDesc
+    struct SamplerState
     {
         TextureFilter minFilter = TextureFilter::Linear;
         TextureFilter magFilter = TextureFilter::Linear;
-        TextureMipFilter mipFilter = TextureMipFilter::None;
+
+        TextureMipFilter mipFilter = TextureMipFilter::Linear;
+
         TextureWrapMode wrapU = TextureWrapMode::Repeat;
         TextureWrapMode wrapV = TextureWrapMode::Repeat;
+
+        bool operator==(const SamplerState& other) const = default;
     };
 
 }

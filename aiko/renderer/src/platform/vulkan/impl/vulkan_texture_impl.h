@@ -32,7 +32,6 @@ namespace aiko::renderer::vulkan
         VkImage image() const { return m_image; }
         VkImageView imageView() const { return m_view; }
         VkFormat format() const { return m_vkFormat; }
-        VkSampler sampler() const { return m_sampler; }
 
         const VulkanImageState& state() const { return m_state; }
         void setState(const VulkanImageState& state) { m_state = state; }
@@ -43,7 +42,6 @@ namespace aiko::renderer::vulkan
         VkImage m_image = VK_NULL_HANDLE;
         VkDeviceMemory m_memory = VK_NULL_HANDLE;
         VkImageView m_view = VK_NULL_HANDLE;
-        VkSampler m_sampler = VK_NULL_HANDLE;
         TextureInfo m_info = {};
         VkFormat m_vkFormat = VK_FORMAT_UNDEFINED;
         uint32_t m_mipLevels = 1;

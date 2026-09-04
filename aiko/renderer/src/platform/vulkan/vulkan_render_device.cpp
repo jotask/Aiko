@@ -383,6 +383,43 @@ namespace aiko::renderer::vulkan
             return data;
         }
 
+        VkFilter toVulkanFilter(TextureFilter filter)
+        {
+            switch (filter)
+            {
+                case TextureFilter::Nearest: return VK_FILTER_NEAREST;
+                case TextureFilter::Linear: return VK_FILTER_LINEAR;
+            }
+            AIKO_ASSERT(false, "Unsupported texture filter");
+            return VK_FILTER_LINEAR;
+        }
+
+        VkSamplerMipmapMode toVulkanMipFilter(TextureMipFilter filter)
+        {
+            switch (filter)
+            {
+                case TextureMipFilter::None:
+                case TextureMipFilter::Nearest:
+                    return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+                case TextureMipFilter::Linear:
+                    return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+            }
+            AIKO_ASSERT(false, "Unsupported texture mip filter");
+            return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        }
+
+        VkSamplerAddressMode toVulkanWrapMode(TextureWrapMode mode)
+        {
+            switch (mode)
+            {
+                case TextureWrapMode::Repeat: return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                case TextureWrapMode::Clamp: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+                case TextureWrapMode::Mirror: return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+            }
+            AIKO_ASSERT(false, "Unsupported texture wrap mode");
+            return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        }
+
     }
 
     VulkanRenderDevice::VulkanRenderDevice(RenderResourceManager* resources)
@@ -441,6 +478,7 @@ namespace aiko::renderer::vulkan
         destroyComputePipelineLayout();
         destroyReadbackResources();
         destroyUploadArena();
+        destroySamplerCache();
         m_context.shutdown();
     }
 
@@ -2472,7 +2510,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(textureImpl->isValid(), "Invalid screen texture");
 
         const VkImageView imageView = textureImpl->imageView();
-        const VkSampler sampler = textureImpl->sampler();
+        const VkSampler sampler = getOrCreateSampler(SamplerState{});
 
         AIKO_ASSERT(imageView != VK_NULL_HANDLE, "Screen texture image view is invalid");
         AIKO_ASSERT(sampler != VK_NULL_HANDLE, "Screen texture sampler is invalid");
@@ -2679,7 +2717,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(textureImpl != nullptr && textureImpl->isValid(), "Invalid Vulkan material texture");
 
         const VkImageView imageView = textureImpl->imageView();
-        const VkSampler sampler = textureImpl->sampler();
+        const VkSampler sampler = getOrCreateSampler(material.m_samplerState);
 
         const bool hasTexture = texture != &m_whiteTexture;
 
@@ -4408,6 +4446,59 @@ namespace aiko::renderer::vulkan
         m_gpuVertexPipelines.clear();
     }
 
+    VkSampler VulkanRenderDevice::getOrCreateSampler(const SamplerState& state)
+    {
+        const auto it = m_samplerCache.find(state);
+
+        if (it != m_samplerCache.end())
+        {
+            return it->second;
+        }
+
+        const VkSamplerCreateInfo info =
+        {
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .magFilter = toVulkanFilter(state.magFilter),
+            .minFilter = toVulkanFilter(state.minFilter),
+            .mipmapMode = toVulkanMipFilter(state.mipFilter),
+            .addressModeU = toVulkanWrapMode(state.wrapU),
+            .addressModeV = toVulkanWrapMode(state.wrapV),
+            .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .mipLodBias = 0.0f,
+            .anisotropyEnable = VK_FALSE,
+            .maxAnisotropy = 1.0f,
+            .compareEnable = VK_FALSE,
+            .compareOp = VK_COMPARE_OP_ALWAYS,
+            .minLod = 0.0f,
+            .maxLod = state.mipFilter == TextureMipFilter::None ? 0.0f : VK_LOD_CLAMP_NONE,
+            .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+            .unnormalizedCoordinates = VK_FALSE,
+        };
+
+        VkSampler sampler = VK_NULL_HANDLE;
+
+        const VkResult result = vkCreateSampler(m_context.device(), &info, nullptr, &sampler);
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan sampler");
+
+        m_samplerCache.emplace(state, sampler);
+
+        return sampler;
+    }
+
+    void VulkanRenderDevice::destroySamplerCache()
+    {
+        for (const auto& [state, sampler] : m_samplerCache)
+        {
+            AIKO_UNUSED(state);
+            if (sampler != VK_NULL_HANDLE)
+            {
+                vkDestroySampler(m_context.device(), sampler, nullptr);
+            }
+        }
+
+        m_samplerCache.clear();
+    }
+
     void VulkanRenderDevice::prepareBufferForGraphics(VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination)
     {
         AIKO_ASSERT(destination.queueFamily == m_context.graphicsQueueFamily(), "Graphics buffer destination must use the graphics queue family");
@@ -4531,6 +4622,7 @@ namespace aiko::renderer::vulkan
             .shaderId = material.m_shaderId,
             .diffuseTextureId = material.m_diffuseTextureId,
             .runtimeDiffuseTexture = material.m_runtimeDiffuseTexture,
+            .samplerState = material.m_samplerState,
             .uniformData = std::move(uniformData),
         };
     }

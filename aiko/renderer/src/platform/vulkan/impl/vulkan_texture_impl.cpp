@@ -20,7 +20,7 @@ namespace aiko::renderer::vulkan
 
     VulkanTextureImpl::~VulkanTextureImpl()
     {
-        AIKO_ASSERT(m_sampler == VK_NULL_HANDLE && m_view == VK_NULL_HANDLE && m_image == VK_NULL_HANDLE && m_memory == VK_NULL_HANDLE, "VulkanTextureImpl destroyed without unload()");
+        AIKO_ASSERT(m_view == VK_NULL_HANDLE && m_image == VK_NULL_HANDLE && m_memory == VK_NULL_HANDLE, "VulkanTextureImpl destroyed without unload()");
     }
 
     RenderResourceId VulkanTextureImpl::id() const
@@ -105,32 +105,6 @@ namespace aiko::renderer::vulkan
 
         m_view = ctx.createImageView(m_image, m_vkFormat, aspect, m_mipLevels);
 
-        if (desc.type != TextureType::DepthStencil)
-        {
-            const VkSamplerCreateInfo samplerInfo =
-            {
-                .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                .magFilter = VK_FILTER_LINEAR,
-                .minFilter = VK_FILTER_LINEAR,
-                .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-                .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                .mipLodBias = 0.0f,
-                .anisotropyEnable = VK_FALSE,
-                .maxAnisotropy = 1.0f,
-                .compareEnable = VK_FALSE,
-                .compareOp = VK_COMPARE_OP_ALWAYS,
-                .minLod = 0.0f,
-                .maxLod = static_cast<float>(m_mipLevels - 1),
-                .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-                .unnormalizedCoordinates = VK_FALSE,
-            };
-
-            const VkResult result = vkCreateSampler(ctx.device(), &samplerInfo, nullptr, &m_sampler);
-            AIKO_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan texture sampler");
-        }
-
         m_info =
         {
             .type = desc.type,
@@ -154,7 +128,7 @@ namespace aiko::renderer::vulkan
     void VulkanTextureImpl::unload()
     {
 
-        if (m_sampler == VK_NULL_HANDLE && m_view == VK_NULL_HANDLE && m_image == VK_NULL_HANDLE && m_memory == VK_NULL_HANDLE)
+        if (m_view == VK_NULL_HANDLE && m_image == VK_NULL_HANDLE && m_memory == VK_NULL_HANDLE)
         {
             m_info = {};
             m_vkFormat = VK_FORMAT_UNDEFINED;
@@ -163,12 +137,10 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        const VkSampler sampler = m_sampler;
         const VkImageView view = m_view;
         const VkImage image = m_image;
         const VkDeviceMemory memory = m_memory;
 
-        m_sampler = VK_NULL_HANDLE;
         m_view = VK_NULL_HANDLE;
         m_image = VK_NULL_HANDLE;
         m_memory = VK_NULL_HANDLE;
@@ -177,7 +149,7 @@ namespace aiko::renderer::vulkan
         m_mipLevels = 1;
         m_info = {};
 
-        VulkanContext::current().retireImage(sampler, view, image, memory);
+        VulkanContext::current().retireImage(VK_NULL_HANDLE, view, image, memory);
 
     }
 

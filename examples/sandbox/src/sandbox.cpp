@@ -218,12 +218,13 @@ namespace sb
         m_texturePbo->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh4 = m_texturePbo->addComponent<aiko::SpriteComponent>();
         mesh4->load(aiko::texture::factory::generateBlank(128, 128));
+        auto& pboMaterial = mesh4->getMaterial();
 
-        aiko::Material& material = mesh4->getMaterial();
-        material.m_lit = false;
-        // material.setTextureFilter(aiko::TextureFilter::Nearest, aiko::TextureFilter::Nearest);
-        // material.setTextureMipFilter(aiko::TextureMipFilter::None);
-        // material.setTextureWrapMode(aiko::TextureWrapMode::Clamp, aiko::TextureWrapMode::Clamp);
+        pboMaterial.m_lit = false;
+        pboMaterial.m_samplerState.mipFilter = aiko::TextureMipFilter::None;
+        pboMaterial.m_samplerState.minFilter = aiko::TextureFilter::Nearest;
+        pboMaterial.m_samplerState.magFilter = aiko::TextureFilter::Nearest;
+
     }
 
     void Sandbox::initLights()

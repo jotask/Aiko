@@ -136,11 +136,26 @@ namespace aiko::renderer::vulkan
         Texture m_whiteTexture;
         std::array<VkDescriptorPool, FramesInFlight> m_materialDescriptorPools{};
 
+        struct SamplerStateHash
+        {
+            size_t operator()(const SamplerState& state) const
+            {
+                size_t seed = 0;
+                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(state.minFilter)), seed);
+                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(state.magFilter)), seed);
+                utils::hashCombine(std::hash<uint32_t>{}( static_cast<uint32_t>(state.mipFilter)), seed);
+                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(state.wrapU)), seed);
+                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(state.wrapV)), seed);
+                return seed;
+            }
+        };
+
         struct MaterialBindingKey
         {
             AssetId shaderId = InvalidAssetId;
             AssetId diffuseTextureId = InvalidAssetId;
             const Texture* runtimeDiffuseTexture = nullptr;
+            SamplerState samplerState{};
 
             std::vector<uint8_t> uniformData{};
 
@@ -149,7 +164,8 @@ namespace aiko::renderer::vulkan
                 return shaderId == other.shaderId
                     && diffuseTextureId == other.diffuseTextureId
                     && runtimeDiffuseTexture == other.runtimeDiffuseTexture
-                    && uniformData == other.uniformData;
+                    && uniformData == other.uniformData
+                    && samplerState == other.samplerState;
             }
         };
 
@@ -161,6 +177,7 @@ namespace aiko::renderer::vulkan
                 utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
                 utils::hashCombine(std::hash<AssetId>{}(key.diffuseTextureId), seed);
                 utils::hashCombine(std::hash<const Texture*>{}(key.runtimeDiffuseTexture), seed);
+                utils::hashCombine(SamplerStateHash{}(key.samplerState), seed);
                 for (const uint8_t value : key.uniformData)
                 {
                     utils::hashCombine(std::hash<uint8_t>{}(value), seed);
@@ -433,6 +450,11 @@ namespace aiko::renderer::vulkan
         VkPipeline getOrCreateGpuVertexPipeline(const Material& material, VkRenderPass renderPass, VkPrimitiveTopology topology);
 
         void destroyGpuVertexPipelines();
+
+        std::unordered_map<SamplerState, VkSampler, SamplerStateHash> m_samplerCache;
+
+        VkSampler getOrCreateSampler(const SamplerState& state);
+        void destroySamplerCache();
 
     };
 }
