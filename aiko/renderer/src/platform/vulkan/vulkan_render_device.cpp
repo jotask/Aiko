@@ -426,7 +426,7 @@ namespace aiko::renderer::vulkan
             {
                 if (
                     descriptor.set == abi::GraphicsMaterialSet &&
-                    descriptor.binding == abi::MaterialTextureBinding &&
+                    descriptor.binding == abi::MaterialTextureBindingBase &&
                     descriptor.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
                 )
                 {
@@ -2152,25 +2152,35 @@ namespace aiko::renderer::vulkan
         const VkResult resultDescriptionCreation = vkCreateDescriptorSetLayout(m_context.device(), &frameLayoutInfo, nullptr, &m_frameDescriptorSetLayout);
         AIKO_ASSERT(resultDescriptionCreation == VK_SUCCESS, "Failed to create frame descriptor set layout");
 
-        const std::array<VkDescriptorSetLayoutBinding, 2> materialBindings =
+        std::array<
+            VkDescriptorSetLayoutBinding,
+            1 + abi::MaxMaterialTextureBindings
+        > materialBindings{};
+
+        materialBindings[0] =
         {
-            VkDescriptorSetLayoutBinding
+            .binding = abi::MaterialUboBinding,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags =
+                VK_SHADER_STAGE_VERTEX_BIT |
+                VK_SHADER_STAGE_FRAGMENT_BIT,
+            .pImmutableSamplers = nullptr,
+        };
+
+        for (uint32_t i = 0; i < abi::MaxMaterialTextureBindings; ++i)
+        {
+            materialBindings[i + 1] =
             {
-                .binding = abi::MaterialUboBinding,
-                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .descriptorCount = 1,
-                .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                .pImmutableSamplers = nullptr,
-            },
-            VkDescriptorSetLayoutBinding
-            {
-                .binding = abi::MaterialTextureBinding,
+                .binding = abi::MaterialTextureBindingBase + i,
                 .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                 .descriptorCount = 1,
-                .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+                .stageFlags =
+                    VK_SHADER_STAGE_VERTEX_BIT |
+                    VK_SHADER_STAGE_FRAGMENT_BIT,
                 .pImmutableSamplers = nullptr,
-            }
-        };
+            };
+        }
 
         const VkDescriptorSetLayoutCreateInfo materialLayoutInfo =
         {
@@ -2573,7 +2583,7 @@ namespace aiko::renderer::vulkan
             VkDescriptorPoolSize
             {
                 .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .descriptorCount = MaxMaterialBindings,
+                .descriptorCount = MaxMaterialBindings * abi::MaxMaterialTextureBindings,
             },
         };
 
@@ -4557,7 +4567,7 @@ namespace aiko::renderer::vulkan
         {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstSet = binding.descriptorSet,
-            .dstBinding = abi::MaterialTextureBinding,
+            .dstBinding = abi::MaterialTextureBindingBase,
             .dstArrayElement = 0,
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,

@@ -377,9 +377,10 @@ namespace aiko::renderer::vulkan
                     continue;
                 }
 
-                if (descriptor.binding == abi::MaterialTextureBinding)
+                if (descriptor.binding >= abi::MaterialTextureBindingBase && descriptor.binding < abi::MaterialTextureBindingBase + abi::MaxMaterialTextureBindings)
                 {
                     AIKO_ASSERT(descriptor.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, "Material texture binding has invalid descriptor type");
+                    AIKO_ASSERT(descriptor.name.empty() == false, "Material texture descriptor has no reflected name");
                     continue;
                 }
 
