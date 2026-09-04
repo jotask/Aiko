@@ -197,6 +197,7 @@ namespace sb
         m_go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<aiko::MeshComponent>();
         mesh1->load(defaultCube);
+        mesh1->getMaterial().m_baseColor = aiko::YELLOW;
 
         m_go2 = Instantiate(root, "Cube2");
         m_go2->transform().position = { -1.0f, 0.0f, zAxis };
@@ -204,6 +205,7 @@ namespace sb
         m_go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh2 = m_go2->addComponent<aiko::MeshComponent>();
         mesh2->load(defaultCube);
+        mesh2->getMaterial().m_baseColor = aiko::BLUE;
 
         m_texture = Instantiate(root, "Texture");
         m_texture->transform().position = { 0.0f, -0.55f, zAxis };
