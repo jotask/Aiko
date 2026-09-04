@@ -42,15 +42,16 @@ namespace aiko::renderer
 
         virtual void present() = 0;
 
-        virtual void renderMesh(ViewId viewId, const mat4 world, const Mesh& mesh, const Material& material) = 0;
-
+    protected:
         virtual void bindMaterial(const Material& material) = 0;
         virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) = 0;
+        virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) = 0;
+        virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) = 0;
+
+    public:
 
         virtual void presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& fb) = 0;
         virtual void presentTextureToScreen(ViewId viewId, const ScreenFbo& screen, const Texture& texture) = 0;
-
-        virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) = 0;
 
         virtual void bindFrame(ViewId viewId, const FrameData& u) = 0;
 
@@ -62,9 +63,6 @@ namespace aiko::renderer
         virtual void drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc) = 0;
         virtual void drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc) = 0;
         virtual void drawVerticesGpu(ViewId viewId, const GpuVertexDrawDesc& desc) = 0;
-
-        // Transient primitives
-        virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) = 0;
 
         void submitMesh(ViewId viewId, const MeshDrawPacket& packet)
         {

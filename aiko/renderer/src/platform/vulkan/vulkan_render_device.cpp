@@ -750,12 +750,6 @@ namespace aiko::renderer::vulkan
         m_frameActive = false;
     }
 
-    void VulkanRenderDevice::renderMesh(ViewId viewId, const mat4 world, const Mesh& mesh, const Material& material)
-    {
-        bindMaterial(material);
-        drawMesh(viewId, world, mesh, material);
-    }
-
     void VulkanRenderDevice::bindMaterial(const Material& material)
     {
         CachedMaterialBinding& binding = resolveMaterialBinding(material);

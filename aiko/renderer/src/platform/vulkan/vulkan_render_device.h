@@ -42,15 +42,18 @@ namespace aiko::renderer::vulkan
 
         virtual void present() override;
 
-        virtual void renderMesh(ViewId viewId, const mat4 world, const Mesh& mesh, const Material& material) override;
+    protected:
 
         virtual void bindMaterial(const Material& material) override;
         virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) override;
+        virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) override;
+        virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) override;
+
+    public:
 
         virtual void presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& fb) override;
         virtual void presentTextureToScreen(ViewId viewId, const ScreenFbo& screen, const Texture& texture) override;
 
-        virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) override;
 
         virtual void bindFrame(ViewId viewId, const FrameData& u) override;
 
@@ -65,8 +68,6 @@ namespace aiko::renderer::vulkan
         virtual void prepareVertexBuffer(const ComputeBuffer& buffer) override;
         virtual void prepareIndexBuffer(const ComputeBuffer& buffer) override;
         virtual void prepareIndirectBuffer(const ComputeBuffer& buffer) override;
-
-        virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) override;
 
         virtual void prepareTextureForSampling(const Texture& texture) override;
         virtual void prepareMaterial(const Material& material) override;
