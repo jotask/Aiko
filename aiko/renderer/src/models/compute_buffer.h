@@ -8,10 +8,12 @@
     namespace renderer
     {
         class RendererFactory;
+        class IRenderDevice;
     }
 
     class ComputeBuffer
     {
+        friend class renderer::IRenderDevice;
     public:
 
         friend class renderer::RendererFactory;
@@ -21,8 +23,8 @@
         ComputeBuffer& operator=(const ComputeBuffer&) = delete;
 
         // Move
-        ComputeBuffer(ComputeBuffer&&) noexcept = default;
-        ComputeBuffer& operator=(ComputeBuffer&&) noexcept = default;
+        ComputeBuffer(ComputeBuffer&&) noexcept = delete;
+        ComputeBuffer& operator=(ComputeBuffer&&) noexcept = delete;
 
         ComputeBuffer();
         ~ComputeBuffer();

@@ -24,8 +24,8 @@ namespace aiko
         Texture& operator=(const Texture&) = delete;
 
         // Move
-        Texture(Texture&&) noexcept = default;
-        Texture& operator=(Texture&&) noexcept = default;
+        Texture(Texture&&) noexcept = delete;
+        Texture& operator=(Texture&&) noexcept = delete;
 
         Texture();
         virtual ~Texture();

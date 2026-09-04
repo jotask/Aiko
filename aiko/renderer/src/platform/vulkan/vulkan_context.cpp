@@ -63,7 +63,7 @@ namespace aiko::renderer::vulkan
 
             if (result == VK_SUCCESS)
             {
-                destroyRetiredBuffers();
+                destroyRetiredResources();
             }
         }
 
@@ -732,7 +732,7 @@ namespace aiko::renderer::vulkan
             return false;
         }
 
-        destroyRetiredBuffersForFrame(m_currentFrame);
+        destroyRetiredResourcesForFrame(m_currentFrame);
         uint32_t imageIndex = 0;
         VkResult acquireResult = vkAcquireNextImageKHR(m_device, m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame], VK_NULL_HANDLE, &imageIndex );
 
@@ -1316,34 +1316,6 @@ namespace aiko::renderer::vulkan
 
     }
 
-    void VulkanContext::destroyRetiredBuffersForFrame(uint32_t frameIndex)
-    {
-        AIKO_ASSERT(frameIndex < MAX_FRAMES_IN_FLIGHT, "Invalid Vulkan retirement frame index");
-
-        for (const RetiredBuffer& resource : m_retiredBuffers[frameIndex])
-        {
-            if (resource.buffer != VK_NULL_HANDLE)
-            {
-                vkDestroyBuffer(m_device, resource.buffer, nullptr);
-            }
-
-            if (resource.memory != VK_NULL_HANDLE)
-            {
-                vkFreeMemory(m_device, resource.memory, nullptr);
-            }
-        }
-
-        m_retiredBuffers[frameIndex].clear();
-    }
-
-    void VulkanContext::destroyRetiredBuffers()
-    {
-        for (uint32_t frameIndex = 0; frameIndex < MAX_FRAMES_IN_FLIGHT; ++frameIndex)
-        {
-            destroyRetiredBuffersForFrame(frameIndex);
-        }
-    }
-
     void VulkanContext::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkSharingMode sharingMode, const uint32_t* queueFamilyIndices, uint32_t queueFamilyIndexCount)
     {
         if (sharingMode == VK_SHARING_MODE_CONCURRENT)
@@ -1398,19 +1370,40 @@ namespace aiko::renderer::vulkan
 
         AIKO_ASSERT(m_device != VK_NULL_HANDLE, "Cannot retire Vulkan buffer without a device");
 
-        uint32_t frameIndex = m_currentFrame;
-
-        if (m_activeCommandBuffer == VK_NULL_HANDLE && m_lastSubmittedFrame.has_value())
-        {
-            frameIndex = m_lastSubmittedFrame.value();
-        }
-
-        AIKO_ASSERT(frameIndex < MAX_FRAMES_IN_FLIGHT, "Invalid Vulkan retirement frame index");
-
-        m_retiredBuffers[frameIndex].push_back(
+        m_retiredResources[retirementFrameIndex()].buffers.push_back(
         {
             .buffer = buffer,
             .memory = memory,
+        });
+    }
+
+    void VulkanContext::retireImage(VkSampler sampler, VkImageView view, VkImage image, VkDeviceMemory memory)
+    {
+        if (sampler == VK_NULL_HANDLE && view == VK_NULL_HANDLE && image == VK_NULL_HANDLE && memory == VK_NULL_HANDLE)
+        {
+            return;
+        }
+        AIKO_ASSERT(m_device != VK_NULL_HANDLE, "Cannot retire Vulkan image without a device");
+        m_retiredResources[retirementFrameIndex()].images.push_back(
+        {
+            .sampler = sampler,
+            .view = view,
+            .image = image,
+            .memory = memory,
+        });
+    }
+
+    void VulkanContext::retireFrameBuffer(VkFramebuffer framebuffer, VkRenderPass renderPass)
+    {
+        if (framebuffer == VK_NULL_HANDLE && renderPass == VK_NULL_HANDLE)
+        {
+            return;
+        }
+        AIKO_ASSERT(m_device != VK_NULL_HANDLE, "Cannot retire Vulkan framebuffer without a device");
+        m_retiredResources[retirementFrameIndex()].frameBuffers.push_back(
+        {
+            .framebuffer = framebuffer,
+            .renderPass = renderPass,
         });
     }
 
@@ -1805,6 +1798,89 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(m_currentFrame < m_computeCommandBuffers.size(), "Invalid compute command buffer frame");
         m_computeCommandBufferUsed = true;
         return m_computeCommandBuffers[m_currentFrame];
+    }
+
+    uint32_t VulkanContext::retirementFrameIndex() const
+    {
+        uint32_t frameIndex = m_currentFrame;
+        if (m_activeCommandBuffer == VK_NULL_HANDLE && m_lastSubmittedFrame.has_value())
+        {
+            frameIndex = m_lastSubmittedFrame.value();
+        }
+        AIKO_ASSERT(frameIndex < MAX_FRAMES_IN_FLIGHT, "Invalid Vulkan retirement frame index");
+        return frameIndex;
+    }
+
+    void VulkanContext::destroyRetiredResourcesForFrame(uint32_t frameIndex)
+    {
+        AIKO_ASSERT(frameIndex < MAX_FRAMES_IN_FLIGHT, "Invalid Vulkan retirement frame index");
+
+        RetiredResources& resources = m_retiredResources[frameIndex];
+
+        // Framebuffers must stop referring to attachment views first.
+        for (const RetiredFrameBuffer& resource : resources.frameBuffers)
+        {
+            if (resource.framebuffer != VK_NULL_HANDLE)
+            {
+                vkDestroyFramebuffer(m_device, resource.framebuffer, nullptr);
+            }
+
+            if (resource.renderPass != VK_NULL_HANDLE)
+            {
+                vkDestroyRenderPass(m_device, resource.renderPass, nullptr);
+            }
+        }
+
+        resources.frameBuffers.clear();
+
+        // Destroy image-dependent objects before the image/memory.
+        for (const RetiredImage& resource : resources.images)
+        {
+            if (resource.sampler != VK_NULL_HANDLE)
+            {
+                vkDestroySampler(m_device, resource.sampler, nullptr);
+            }
+
+            if (resource.view != VK_NULL_HANDLE)
+            {
+                vkDestroyImageView(m_device, resource.view, nullptr);
+            }
+
+            if (resource.image != VK_NULL_HANDLE)
+            {
+                vkDestroyImage(m_device, resource.image, nullptr);
+            }
+
+            if (resource.memory != VK_NULL_HANDLE)
+            {
+                vkFreeMemory(m_device, resource.memory, nullptr);
+            }
+        }
+
+        resources.images.clear();
+
+        for (const RetiredBuffer& resource : resources.buffers)
+        {
+            if (resource.buffer != VK_NULL_HANDLE)
+            {
+                vkDestroyBuffer(m_device, resource.buffer, nullptr);
+            }
+
+            if (resource.memory != VK_NULL_HANDLE)
+            {
+                vkFreeMemory(m_device, resource.memory, nullptr);
+            }
+        }
+
+        resources.buffers.clear();
+    }
+
+    void VulkanContext::destroyRetiredResources()
+    {
+        for (uint32_t frameIndex = 0; frameIndex < MAX_FRAMES_IN_FLIGHT; ++frameIndex)
+        {
+            destroyRetiredResourcesForFrame(frameIndex);
+        }
     }
 
     void VulkanContext::waitIdle()

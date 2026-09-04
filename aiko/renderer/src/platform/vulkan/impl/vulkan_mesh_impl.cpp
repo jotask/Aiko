@@ -60,19 +60,21 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        VulkanContext& ctx = VulkanContext::current();
-        VkDevice device = ctx.device();
-
-        if (m_vertexBuffer != VK_NULL_HANDLE) vkDestroyBuffer(device, m_vertexBuffer, nullptr);
-        if (m_vertexMemory != VK_NULL_HANDLE) vkFreeMemory(device, m_vertexMemory, nullptr);
-        if (m_indexBuffer != VK_NULL_HANDLE) vkDestroyBuffer(device, m_indexBuffer, nullptr);
-        if (m_indexMemory != VK_NULL_HANDLE) vkFreeMemory(device, m_indexMemory, nullptr);
+        const VkBuffer vertexBuffer = m_vertexBuffer;
+        const VkDeviceMemory vertexMemory = m_vertexMemory;
+        const VkBuffer indexBuffer = m_indexBuffer;
+        const VkDeviceMemory indexMemory = m_indexMemory;
 
         m_vertexBuffer = VK_NULL_HANDLE;
         m_vertexMemory = VK_NULL_HANDLE;
         m_indexBuffer = VK_NULL_HANDLE;
         m_indexMemory = VK_NULL_HANDLE;
         m_indexCount = 0;
+
+        VulkanContext& ctx = VulkanContext::current();
+
+        ctx.retireBuffer(vertexBuffer, vertexMemory);
+        ctx.retireBuffer(indexBuffer, indexMemory);
     }
 
     void VulkanMeshImpl::refresh(const MeshAsset& asset)

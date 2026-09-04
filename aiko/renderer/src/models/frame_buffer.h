@@ -24,8 +24,8 @@
         FrameBuffer& operator=(const FrameBuffer&) = delete;
 
         // Move
-        FrameBuffer(FrameBuffer&&) noexcept = default;
-        FrameBuffer& operator=(FrameBuffer&&) noexcept = default;
+        FrameBuffer(FrameBuffer&&) noexcept = delete;
+        FrameBuffer& operator=(FrameBuffer&&) noexcept = delete;
 
         FrameBuffer();
         virtual ~FrameBuffer();

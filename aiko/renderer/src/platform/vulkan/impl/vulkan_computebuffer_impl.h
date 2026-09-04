@@ -47,6 +47,14 @@ namespace aiko::renderer::vulkan
 
         std::vector<PendingUpload> takePendingUploads();
 
+        void retainReadback();
+        void releaseReadback();
+
+        bool hasRetainedReadback() const
+        {
+            return m_readbackRetainCount > 0;
+        }
+
     private:
 
         VkBuffer m_buffer = VK_NULL_HANDLE;
@@ -61,6 +69,11 @@ namespace aiko::renderer::vulkan
         VulkanBufferState m_state{};
 
         vector<PendingUpload> m_pendingUploads;
+
+        uint32_t m_readbackRetainCount = 0;
+        bool m_destroyPending = false;
+
+        void destroyNow();
 
         void buildLayout(ComputeBufferFormat format);
         VkBufferUsageFlags buildUsageFlags(ComputeBufferUsage usage) const;

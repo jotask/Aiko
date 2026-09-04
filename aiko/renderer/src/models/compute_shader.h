@@ -21,8 +21,8 @@
         ComputeShader& operator=(const ComputeShader&) = delete;
 
         // Move
-        ComputeShader(ComputeShader&&) noexcept = default;
-        ComputeShader& operator=(ComputeShader&&) noexcept = default;
+        ComputeShader(ComputeShader&&) noexcept = delete;
+        ComputeShader& operator=(ComputeShader&&) noexcept = delete;
 
         ComputeShader();
         ~ComputeShader();

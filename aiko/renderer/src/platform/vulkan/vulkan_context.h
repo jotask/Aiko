@@ -48,11 +48,33 @@ namespace aiko::renderer::vulkan
             VkDeviceMemory memory = VK_NULL_HANDLE;
         };
 
-        std::array<std::vector<RetiredBuffer>, MAX_FRAMES_IN_FLIGHT> m_retiredBuffers;
+        struct RetiredImage
+        {
+            VkSampler sampler = VK_NULL_HANDLE;
+            VkImageView view = VK_NULL_HANDLE;
+            VkImage image = VK_NULL_HANDLE;
+            VkDeviceMemory memory = VK_NULL_HANDLE;
+        };
+
+        struct RetiredFrameBuffer
+        {
+            VkFramebuffer framebuffer = VK_NULL_HANDLE;
+            VkRenderPass renderPass = VK_NULL_HANDLE;
+        };
+
+        struct RetiredResources
+        {
+            std::vector<RetiredBuffer> buffers;
+            std::vector<RetiredImage> images;
+            std::vector<RetiredFrameBuffer> frameBuffers;
+        };
+
+        std::array<RetiredResources, MAX_FRAMES_IN_FLIGHT> m_retiredResources;
         std::optional<uint32_t> m_lastSubmittedFrame;
 
-        void destroyRetiredBuffersForFrame(uint32_t frameIndex);
-        void destroyRetiredBuffers();
+        uint32_t retirementFrameIndex() const;
+        void destroyRetiredResourcesForFrame(uint32_t frameIndex);
+        void destroyRetiredResources();
 
         VkInstance m_vk = VK_NULL_HANDLE;
         VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
@@ -151,6 +173,8 @@ namespace aiko::renderer::vulkan
         void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
         void copyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
         void retireBuffer(VkBuffer buffer, VkDeviceMemory memory);
+        void retireImage(VkSampler sampler, VkImageView view, VkImage image, VkDeviceMemory memory);
+        void retireFrameBuffer(VkFramebuffer framebuffer, VkRenderPass renderPass);
 
         VkCommandBuffer beginSingleTimeCommands();
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);

@@ -809,10 +809,14 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan compute buffer implementation");
         AIKO_ASSERT(request.byteSize <= bufferImpl->size(), "Compute readback exceeds source buffer size");
 
+        AikoPtr<interfaces::IComputeBufferImpl> source = getComputeBufferBackend(*request.buffer);
+
+        bufferImpl->retainReadback();
+
         m_readbackRequests.push_back(
         {
             .id = request.id,
-            .buffer = request.buffer,
+            .source = std::move(source),
             .byteSize = request.byteSize,
         });
     }
@@ -1965,9 +1969,7 @@ namespace aiko::renderer::vulkan
         m_screenDescriptorSetLayout = VK_NULL_HANDLE;
 
         m_screenDescriptorPool = VK_NULL_HANDLE;
-        m_screenDescriptorSet = VK_NULL_HANDLE;
-        m_screenDescriptorImageView = VK_NULL_HANDLE;
-        m_screenDescriptorSampler = VK_NULL_HANDLE;
+        m_screenDescriptorSets.fill(VK_NULL_HANDLE);
 
     }
 
@@ -2133,19 +2135,39 @@ namespace aiko::renderer::vulkan
         const VkDescriptorPoolSize poolSize =
         {
             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
+            .descriptorCount = static_cast<uint32_t>(FramesInFlight),
         };
 
         const VkDescriptorPoolCreateInfo poolInfo =
         {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .maxSets = 1,
+            .maxSets = static_cast<uint32_t>(FramesInFlight),
             .poolSizeCount = 1,
             .pPoolSizes = &poolSize,
         };
 
         const VkResult result = vkCreateDescriptorPool(m_context.device(), &poolInfo, nullptr, &m_screenDescriptorPool);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to create screen descriptor pool");
+
+        std::array<VkDescriptorSetLayout, FramesInFlight> layouts{};
+        layouts.fill(m_screenDescriptorSetLayout);
+
+        const VkDescriptorSetAllocateInfo allocInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+            .descriptorPool = m_screenDescriptorPool,
+            .descriptorSetCount = static_cast<uint32_t>(FramesInFlight),
+            .pSetLayouts = layouts.data(),
+        };
+
+        const VkResult allocResult =
+            vkAllocateDescriptorSets(
+                m_context.device(),
+                &allocInfo,
+                m_screenDescriptorSets.data()
+            );
+
+        AIKO_ASSERT(allocResult == VK_SUCCESS, "Failed to allocate screen descriptor sets");
 
     }
 
@@ -2165,47 +2187,33 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(imageView != VK_NULL_HANDLE, "Screen texture image view is invalid");
         AIKO_ASSERT(sampler != VK_NULL_HANDLE, "Screen texture sampler is invalid");
 
-        if (m_screenDescriptorSet == VK_NULL_HANDLE)
+        const uint32_t frame = m_context.currentFrameIndex();
+        AIKO_ASSERT(frame < FramesInFlight, "Invalid Vulkan frame index");
+
+        const VkDescriptorSet descriptorSet = m_screenDescriptorSets[frame];
+        AIKO_ASSERT(descriptorSet != VK_NULL_HANDLE, "Screen descriptor set is invalid");
+
+        const VkDescriptorImageInfo imageInfo =
         {
-            const VkDescriptorSetAllocateInfo allocInfo =
-            {
-                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-                .descriptorPool = m_screenDescriptorPool,
-                .descriptorSetCount = 1,
-                .pSetLayouts = &m_screenDescriptorSetLayout,
-            };
+            .sampler = sampler,
+            .imageView = imageView,
+            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        };
 
-            const VkResult result = vkAllocateDescriptorSets(m_context.device(), &allocInfo, &m_screenDescriptorSet);
-            AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate screen descriptor set");
-        }
-
-        if (m_screenDescriptorImageView != imageView || m_screenDescriptorSampler != sampler)
+        const VkWriteDescriptorSet write =
         {
-            const VkDescriptorImageInfo imageInfo =
-            {
-                .sampler = sampler,
-                .imageView = imageView,
-                .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            };
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSet,
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = &imageInfo,
+        };
 
-            const VkWriteDescriptorSet write =
-            {
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = m_screenDescriptorSet,
-                .dstBinding = 0,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .pImageInfo = &imageInfo,
-            };
+        vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
 
-            vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
-
-            m_screenDescriptorImageView = imageView;
-            m_screenDescriptorSampler = sampler;
-        }
-
-        return m_screenDescriptorSet;
+        return descriptorSet;
     }
 
     void VulkanRenderDevice::createMaterialResources()
@@ -3415,9 +3423,9 @@ namespace aiko::renderer::vulkan
 
         for (const ReadbackRequest& request : m_readbackRequests)
         {
-            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(request.buffer->getImpl());
-            AIKO_ASSERT(bufferImpl != nullptr && bufferImpl->isValid(), "Invalid compute readback source buffer");
-
+            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(request.source.get());
+            AIKO_ASSERT(bufferImpl != nullptr, "Invalid retained compute readback source");
+            AIKO_ASSERT(bufferImpl->hasRetainedReadback(), "Compute readback source is not retained");
             AIKO_ASSERT(hasFlag(bufferImpl->usage(),ComputeBufferUsage::TransferSrc), "Compute readback requires transfer-source usage");
 
             VkBuffer stagingBuffer = VK_NULL_HANDLE;
@@ -3465,6 +3473,19 @@ namespace aiko::renderer::vulkan
                 .byteSize = request.byteSize,
                 .frameIndex = frame,
             });
+        }
+
+        for (ReadbackRequest& request : m_readbackRequests)
+        {
+            if (request.source == nullptr)
+            {
+                continue;
+            }
+
+            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(request.source.get());
+            AIKO_ASSERT( bufferImpl != nullptr, "Invalid retained compute readback source");
+
+            bufferImpl->releaseReadback();
         }
 
         m_readbackRequests.clear();
@@ -3518,6 +3539,17 @@ namespace aiko::renderer::vulkan
             {
                 vkFreeMemory(m_context.device(), readback.stagingMemory, nullptr);
             }
+        }
+
+        for (ReadbackRequest& request : m_readbackRequests)
+        {
+            if (request.source == nullptr)
+            {
+                continue;
+            }
+            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(request.source.get());
+            AIKO_ASSERT(bufferImpl != nullptr, "Invalid retained compute readback source");
+            bufferImpl->releaseReadback();
         }
 
         m_inFlightReadbacks.clear();

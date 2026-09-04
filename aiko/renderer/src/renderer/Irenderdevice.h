@@ -139,6 +139,10 @@ namespace aiko::renderer
     protected:
 
         RenderResourceManager* getResources() const { return m_resource_manager; }
+        AikoPtr<interfaces::IComputeBufferImpl> getComputeBufferBackend(const ComputeBuffer& buffer) const
+        {
+            return buffer.backend;
+        }
 
     private:
 

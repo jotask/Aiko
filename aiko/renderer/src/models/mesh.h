@@ -24,8 +24,8 @@
          Mesh& operator=(const Mesh&) = delete;
 
          // Move
-         Mesh(Mesh&&) noexcept = default;
-         Mesh& operator=(Mesh&&) noexcept = default;
+         Mesh(Mesh&&) noexcept = delete;
+         Mesh& operator=(Mesh&&) noexcept = delete;
 
         Mesh(const MeshAsset& data);
         Mesh();

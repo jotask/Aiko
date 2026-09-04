@@ -173,15 +173,10 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        VulkanContext& ctx = VulkanContext::current();
-        VkDevice device = ctx.device();
-
-        ctx.waitIdle();
-
-        if (m_sampler != VK_NULL_HANDLE) vkDestroySampler(device, m_sampler, nullptr);
-        if (m_view != VK_NULL_HANDLE) vkDestroyImageView(device, m_view, nullptr);
-        if (m_image != VK_NULL_HANDLE) vkDestroyImage(device, m_image, nullptr);
-        if (m_memory != VK_NULL_HANDLE) vkFreeMemory(device, m_memory, nullptr);
+        const VkSampler sampler = m_sampler;
+        const VkImageView view = m_view;
+        const VkImage image = m_image;
+        const VkDeviceMemory memory = m_memory;
 
         m_sampler = VK_NULL_HANDLE;
         m_view = VK_NULL_HANDLE;
@@ -191,6 +186,9 @@ namespace aiko::renderer::vulkan
         m_state = {};
         m_mipLevels = 1;
         m_info = {};
+
+        VulkanContext::current().retireImage(sampler, view, image, memory);
+
     }
 
     void VulkanTextureImpl::update(const TextureAsset& asset)

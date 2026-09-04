@@ -75,6 +75,8 @@ namespace aiko::renderer::vulkan
 
     private:
 
+        static constexpr size_t FramesInFlight = 2;
+
         VulkanContext m_context;
 
         bool m_frameActive = false;
@@ -85,9 +87,7 @@ namespace aiko::renderer::vulkan
         VkPipeline m_screenPipeline = VK_NULL_HANDLE;
 
         VkDescriptorPool m_screenDescriptorPool = VK_NULL_HANDLE;
-        VkDescriptorSet m_screenDescriptorSet = VK_NULL_HANDLE;
-        VkImageView m_screenDescriptorImageView = VK_NULL_HANDLE;
-        VkSampler m_screenDescriptorSampler = VK_NULL_HANDLE;
+        std::array<VkDescriptorSet, FramesInFlight> m_screenDescriptorSets{};
 
         VkDescriptorSetLayout m_frameDescriptorSetLayout = VK_NULL_HANDLE;
         VkDescriptorSetLayout m_materialDescriptorSetLayout = VK_NULL_HANDLE;
@@ -97,8 +97,6 @@ namespace aiko::renderer::vulkan
         VkExtent2D m_activeExtent = {};
         VulkanTextureImpl* m_activeColorAttachment = nullptr;
         VulkanTextureImpl* m_activeDepthAttachment = nullptr;
-
-        static constexpr size_t FramesInFlight = 2;
 
         VkDescriptorPool m_frameDescriptorPool = VK_NULL_HANDLE;
         std::array<VkBuffer, FramesInFlight> m_frameUniformBuffers{};
@@ -319,7 +317,7 @@ namespace aiko::renderer::vulkan
         struct ReadbackRequest
         {
             ReadbackId id = InvalidReadbackId;
-            const ComputeBuffer* buffer = nullptr;
+            AikoPtr<interfaces::IComputeBufferImpl> source;
             uint32_t byteSize = 0;
         };
 

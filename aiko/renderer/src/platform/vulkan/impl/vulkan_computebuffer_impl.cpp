@@ -18,16 +18,19 @@ namespace aiko::renderer::vulkan
 
     VulkanComputeBufferImpl::~VulkanComputeBufferImpl()
     {
+        AIKO_ASSERT(m_readbackRetainCount == 0, "VulkanComputeBufferImpl destroyed with retained readback");
         AIKO_ASSERT(m_buffer == VK_NULL_HANDLE && m_memory == VK_NULL_HANDLE, "VulkanComputeBufferImpl destroyed without destroy()");
     }
 
     bool VulkanComputeBufferImpl::isValid() const
     {
-        return m_buffer != VK_NULL_HANDLE && m_memory != VK_NULL_HANDLE && m_elementSize > 0 && m_count > 0;
+        return m_destroyPending == false && m_buffer != VK_NULL_HANDLE && m_memory != VK_NULL_HANDLE && m_elementSize > 0 && m_count > 0;
     }
 
     void VulkanComputeBufferImpl::create(const ComputeBufferDesc& desc, const void* initialData)
     {
+        AIKO_ASSERT(m_readbackRetainCount == 0, "Cannot recreate compute buffer while readback is pending");
+
         destroy();
 
         AIKO_ASSERT(desc.count > 0, "Invalid compute buffer count");
@@ -101,6 +104,43 @@ namespace aiko::renderer::vulkan
 
     void VulkanComputeBufferImpl::destroy()
     {
+        if (m_readbackRetainCount > 0)
+        {
+            m_destroyPending = true;
+            return;
+        }
+        destroyNow();
+    }
+
+    std::vector<VulkanComputeBufferImpl::PendingUpload> VulkanComputeBufferImpl::takePendingUploads()
+    {
+        std::vector<PendingUpload> uploads = std::move(m_pendingUploads);
+        m_pendingUploads.clear();
+        return uploads;
+    }
+
+    void VulkanComputeBufferImpl::retainReadback()
+    {
+        AIKO_ASSERT(m_destroyPending == false, "Cannot retain compute buffer pending destruction");
+        AIKO_ASSERT(m_buffer != VK_NULL_HANDLE && m_memory != VK_NULL_HANDLE, "Cannot retain invalid compute buffer");
+        ++m_readbackRetainCount;
+    }
+
+    void VulkanComputeBufferImpl::releaseReadback()
+    {
+        AIKO_ASSERT(m_readbackRetainCount > 0, "Compute buffer readback retain underflow");
+        --m_readbackRetainCount;
+        if (m_readbackRetainCount == 0 && m_destroyPending)
+        {
+            destroyNow();
+        }
+    }
+
+    void VulkanComputeBufferImpl::destroyNow()
+    {
+
+        AIKO_ASSERT(m_readbackRetainCount == 0, "Cannot destroy compute buffer while readback is retained");
+
         if (m_buffer == VK_NULL_HANDLE && m_memory == VK_NULL_HANDLE)
         {
             m_elementSize = 0;
@@ -109,6 +149,7 @@ namespace aiko::renderer::vulkan
             m_usage = ComputeBufferUsage::None;
             m_state = {};
             m_pendingUploads.clear();
+            m_destroyPending = false;
             return;
         }
 
@@ -124,15 +165,9 @@ namespace aiko::renderer::vulkan
         m_usage = ComputeBufferUsage::None;
         m_state = {};
         m_pendingUploads.clear();
+        m_destroyPending = false;
 
         VulkanContext::current().retireBuffer(buffer, memory);
-    }
-
-    std::vector<VulkanComputeBufferImpl::PendingUpload> VulkanComputeBufferImpl::takePendingUploads()
-    {
-        std::vector<PendingUpload> uploads = std::move(m_pendingUploads);
-        m_pendingUploads.clear();
-        return uploads;
     }
 
     void VulkanComputeBufferImpl::buildLayout(ComputeBufferFormat format)
