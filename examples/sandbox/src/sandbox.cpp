@@ -134,8 +134,8 @@ namespace sb
         sprite->load(aiko::texture::factory::generateBlank(512, 512));
 
         auto& material = sprite->getMaterial();
-        material.lit = false;
-        material.useVertexColor = false;
+        material.m_lit = false;
+        material.m_useVertexColor = false;
 
         // Compute Read back
 
@@ -219,8 +219,8 @@ namespace sb
         auto mesh4 = m_texturePbo->addComponent<aiko::SpriteComponent>();
         mesh4->load(aiko::texture::factory::generateBlank(128, 128));
 
-        aiko::MaterialAsset& material = mesh4->getMaterial();
-        material.lit = false;
+        aiko::Material& material = mesh4->getMaterial();
+        material.m_lit = false;
         // material.setTextureFilter(aiko::TextureFilter::Nearest, aiko::TextureFilter::Nearest);
         // material.setTextureMipFilter(aiko::TextureMipFilter::None);
         // material.setTextureWrapMode(aiko::TextureWrapMode::Clamp, aiko::TextureWrapMode::Clamp);
@@ -327,7 +327,7 @@ namespace sb
 
             static std::vector<Particle> s_particles;
 
-            const aiko::MaterialAsset material = cmp->getMaterial();
+            const aiko::Material& material = cmp->getMaterial();
 
             // AIKO_ASSERT(material.m_diffuseTexture.isValid(), "Invalid texture?")
             // const auto info = material.m_diffuseTexture.getInfo();

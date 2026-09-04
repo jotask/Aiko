@@ -154,7 +154,9 @@ namespace aiko
             {
                 if (state.output.isValid() == true)
                 {
-                    spriteCmp->getMaterialInstance().runtimeDiffuseTexture = &state.output;
+                    Material& material = spriteCmp->getMaterial();
+                    material.m_runtimeDiffuseTexture = &state.output;
+                    material.m_diffuseTextureId = InvalidAssetId;
                 }
             }
         }
@@ -391,11 +393,11 @@ namespace aiko
                 continue;
             }
 
-            MaterialInstance& materialInstance = sprite->getMaterialInstance();
+            Material& material = sprite->getMaterial();
 
-            if (materialInstance.runtimeDiffuseTexture == &state.output)
+            if (material.m_runtimeDiffuseTexture == &state.output)
             {
-                materialInstance.runtimeDiffuseTexture = nullptr;
+                material.m_runtimeDiffuseTexture = nullptr;
             }
         }
     }

@@ -115,14 +115,14 @@ namespace aiko
             }
 
             m_texture.resolve(textureId);
-            m_material.diffuseTextureId = textureId;
+            m_material.m_diffuseTextureId = textureId;
 
             if (m_meshId == InvalidAssetId)
             {
                 m_meshId = context.create(mesh::factory::generateQuad());
             }
 
-            m_material.shaderId = context.load<ShaderAsset>("model");
+            m_material.m_shaderId = context.load<ShaderAsset>("model");
         }
 
         if (m_pendingTexture.has_value())
@@ -132,14 +132,14 @@ namespace aiko
                 m_meshId = context.create(mesh::factory::generateQuad());
             }
 
-            m_material.shaderId = context.load<ShaderAsset>("model");
+            m_material.m_shaderId = context.load<ShaderAsset>("model");
 
             m_pendingTexture->pixels = pixels;
 
             const AssetId textureId = context.create(*m_pendingTexture);
 
             m_texture.set(textureId);
-            m_material.diffuseTextureId = textureId;
+            m_material.m_diffuseTextureId = textureId;
 
             m_pendingTexture.reset();
         }

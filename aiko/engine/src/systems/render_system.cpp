@@ -89,7 +89,7 @@ namespace aiko
             return;
         }
         Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
-        m_renderModule->getRenderer().submit(trans, mesh, meshComponent.getMaterial(), meshComponent.getMaterialInstance());
+        m_renderModule->getRenderer().submit(trans, mesh, meshComponent.getMaterial());
     }
 
     void RenderSystem::render(const Transform& trans, const ModelComponent& modelComponent)
@@ -113,7 +113,7 @@ namespace aiko
             return;
         }
         Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
-        m_renderModule->getRenderer().submit(trans, mesh, spriteComponent.getMaterial(), spriteComponent.getMaterialInstance());
+        m_renderModule->getRenderer().submit(trans, mesh, spriteComponent.getMaterial());
     }
 
     void RenderSystem::renderInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount)
