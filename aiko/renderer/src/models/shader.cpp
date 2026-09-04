@@ -1,6 +1,7 @@
 #include "shader.h"
 
 #include <algorithm>
+#include <utility>
 
 #include <core/file.h>
 
@@ -46,54 +47,65 @@ namespace aiko
         }
     }
 
+    void Shader::setUniform(const string& name, UniformValue value)
+    {
+        AIKO_ASSERT(name.empty() == false, "Uniform name cannot be empty");
+        m_uniforms.insert_or_assign(name, std::move(value));
+    }
+
     void Shader::setBool(const string& name, bool value)
     {
-        backend->setBool(name, value);
+        setUniform(name, value);
     }
 
     void Shader::setInt(const string& name, int value)
     {
-        backend->setInt(name, value);
+        setUniform(name, value);
     }
 
     void Shader::setFloat(const string& name, float value)
     {
-        backend->setFloat(name, value);
+        setUniform(name, value);
     }
 
     void Shader::setVec2(const string& name, const vec2& value)
     {
-        backend->setVec2(name, value);
+        setUniform(name, value);
     }
 
     void Shader::setVec2(const string& name, float x, float y)
     {
-        backend->setVec2(name, {x, y});
+        setUniform(name, vec2{x, y});
     }
 
     void Shader::setVec3(const string& name, const vec3& value)
     {
-        backend->setVec3(name, value);
+        setUniform(name, value);
     }
 
     void Shader::setVec3(const string& name, float x, float y, float z)
     {
-        backend->setVec3(name, {x, y, z});
+        setUniform(name, vec3{x, y, z});
     }
 
     void Shader::setVec4(const string& name, const vec4& value)
     {
-        backend->setVec4(name, value);
+        setUniform(name, value);
     }
 
     void Shader::setVec4(const string& name, float x, float y, float z, float w)
     {
-        backend->setVec4(name, {x, y, z, w});
+        setUniform(name, vec4{x, y, z, w});
     }
 
     void Shader::setMat4(const string& name, const mat4& mat)
     {
-        backend->setMat4(name, mat);
+        setUniform(name, mat);
+    }
+
+    void Shader::setUInt(const string& name, u32 value)
+    {
+        setUniform(name, value);
     }
 
     bool Shader::isValid () const

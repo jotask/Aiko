@@ -1,8 +1,9 @@
 #pragma once
 
-#include <iomanip> // For std::setw
-#include <cstring> // For std::memcpy
-#include <cmath> // For std::memcpy
+#include <iomanip>
+#include <cstring>
+#include <cmath>
+#include <cstdint>
 
 #include "logger/logger.h"
 
@@ -30,7 +31,9 @@ namespace aiko
         vec2def operator-(const vec2def& other) const { return { x - other.x, y - other.y }; }
     };
 
+    using bvec2 = vec2def<bool>;
     using ivec2 = vec2def<int>;
+    using uvec2 = vec2def<uint32_t>;
     using vec2 = vec2def<float>;
 
     template <typename T>
@@ -113,7 +116,9 @@ namespace aiko
 
     };
 
+    using bvec3 = vec3def<bool>;
     using ivec3 = vec3def<int>;
+    using uvec3 = vec3def<uint32_t>;
     using vec3 = vec3def<float>;
 
     template<typename T>
@@ -130,6 +135,9 @@ namespace aiko
         T w;
     };
 
+    using bvec4 = vec4def<bool>;
+    using ivec4 = vec4def<int>;
+    using uvec4 = vec4def<uint32_t>;
     using vec4 = vec4def<float>;
 
     class mat4

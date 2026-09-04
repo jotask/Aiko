@@ -233,9 +233,9 @@ namespace aiko
         if (state->renderInitialized)
         {
 
-            state->particleMaterial.m_customVec4Uniforms["u_particleSizeLife"] = vec4(emitter.getStartLifeScale(), emitter.getEndLifeScale(), 0.0f, 0.0f);
-            state->particleMaterial.m_customVec4Uniforms["u_particleStartColor"] = emitter.getStartLifeColor().toVec4();
-            state->particleMaterial.m_customVec4Uniforms["u_particleEndColor"]   = emitter.getEndLifeColor().toVec4();
+            state->particleMaterial.setVec4("u_particleSizeLife", vec4(emitter.getStartLifeScale(), emitter.getEndLifeScale(), 0.0f, 0.0f));
+            state->particleMaterial.setVec4("u_particleStartColor", emitter.getStartLifeColor().toVec4());
+            state->particleMaterial.setVec4("u_particleEndColor", emitter.getEndLifeColor().toVec4());
 
             GpuInstanceDrawDesc draw{};
             draw.mesh = &state->particleMesh;

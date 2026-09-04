@@ -64,6 +64,20 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(false, "Unsupported fill mode");
             return VK_POLYGON_MODE_FILL;
         }
+
+        vec4 materialVec4Uniform(const Material& material, const char* name)
+        {
+            const UniformMap& uniforms = material.uniforms();
+            const auto it = uniforms.find(name);
+            if (it == uniforms.end())
+            {
+                return vec4{0.0f};
+            }
+            const vec4* value = std::get_if<vec4>(&it->second);
+            AIKO_ASSERT(value != nullptr, "Material uniform type does not match current Vulkan material ABI");
+            return value != nullptr ? *value : vec4{0.0f};
+        }
+
     }
 
     VulkanRenderDevice::VulkanRenderDevice(RenderResourceManager* resources)
@@ -386,20 +400,11 @@ namespace aiko::renderer::vulkan
             0.0f
         };
 
-        auto setCustom = [&](const char* name, vec4& dst)
-        {
-            auto it = material.m_customVec4Uniforms.find(name);
-            if (it != material.m_customVec4Uniforms.end())
-            {
-                dst = it->second;
-            }
-        };
-
-        setCustom("u_particleSizeLife", ubo.u_particleSizeLife);
-        setCustom("u_particleStartColor", ubo.u_particleStartColor);
-        setCustom("u_particleEndColor", ubo.u_particleEndColor);
-        setCustom("u_billboardParams", ubo.u_billboardParams);
-        setCustom("u_nbodyRender", ubo.u_nbodyRender);
+        ubo.u_particleSizeLife = materialVec4Uniform(material, "u_particleSizeLife");
+        ubo.u_particleStartColor = materialVec4Uniform(material, "u_particleStartColor");
+        ubo.u_particleEndColor = materialVec4Uniform(material, "u_particleEndColor");
+        ubo.u_billboardParams = materialVec4Uniform(material, "u_billboardParams");
+        ubo.u_nbodyRender = materialVec4Uniform(material, "u_nbodyRender");
 
         std::memcpy(binding.uniformMapped, &ubo, sizeof(ubo));
 
@@ -4226,13 +4231,7 @@ namespace aiko::renderer::vulkan
 
         auto appendCustom = [&](const char* name)
         {
-            vec4 value{0.0f};
-
-            if (const auto it = material.m_customVec4Uniforms.find(name); it != material.m_customVec4Uniforms.end())
-            {
-                value = it->second;
-            }
-
+            const vec4 value = materialVec4Uniform(material, name);
             key.customValues[offset++] = value.x;
             key.customValues[offset++] = value.y;
             key.customValues[offset++] = value.z;

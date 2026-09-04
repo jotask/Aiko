@@ -2,6 +2,7 @@
 
 #include <aiko_types.h>
 #include <math/math.h>
+#include "types/uniform_value.h"
 
 #include "interfaces/ishader_impl.h"
 
@@ -38,7 +39,7 @@ namespace aiko
         void unload();
 
         // Type Helpers
-
+        void setUniform(const string& name, UniformValue value);
         void setBool(const string& name, bool value);
         void setInt(const string& name, int value);
         void setFloat(const string& name, float value);
@@ -49,12 +50,20 @@ namespace aiko
         void setVec4(const string& name, const vec4& value);
         void setVec4(const string& name, float x, float y, float z, float w);
         void setMat4(const string& name, const mat4& mat);
+        void setUInt(const string& name, u32 value);
+
+        const UniformMap& uniforms() const
+        {
+            return m_uniforms;
+        }
 
         bool isValid() const;
 
     private:
 
         AikoPtr<interfaces::IShaderImpl> backend;
+
+        UniformMap m_uniforms;
 
     };
 }

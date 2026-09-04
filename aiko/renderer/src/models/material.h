@@ -4,8 +4,7 @@
 #include "models/texture.h"
 #include "types/color.h"
 #include "types/render_types.h"
-
-#include <unordered_map>
+#include "types/uniform_value.h"
 
  namespace aiko
 {
@@ -29,6 +28,29 @@
 
         MaterialId id() const;
 
+        void setUniform(const string& name, UniformValue value);
+
+        void setBool(const string& name, bool value);
+        void setInt(const string& name, int value);
+        void setUInt(const string& name, u32 value);
+        void setFloat(const string& name, float value);
+
+        void setVec2(const string& name, const vec2& value);
+        void setVec2(const string& name, float x, float y);
+
+        void setVec3(const string& name, const vec3& value);
+        void setVec3(const string& name, float x, float y, float z);
+
+        void setVec4(const string& name, const vec4& value);
+        void setVec4(const string& name, float x, float y, float z, float w);
+
+        void setMat4(const string& name, const mat4& value);
+
+        const UniformMap& uniforms() const
+        {
+            return m_uniforms;
+        }
+
     public:
 
         AssetId m_shaderId = InvalidAssetId;
@@ -43,7 +65,9 @@
         AssetId m_diffuseTextureId = InvalidAssetId;
         const Texture* m_runtimeDiffuseTexture = nullptr;
 
-        std::unordered_map<std::string, vec4> m_customVec4Uniforms;
+    private:
+
+        UniformMap m_uniforms;
 
     };
 

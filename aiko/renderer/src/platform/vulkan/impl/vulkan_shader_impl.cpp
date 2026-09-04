@@ -95,7 +95,6 @@ namespace aiko::renderer::vulkan
         m_reflection.clear();
     }
 
-
     RenderResourceId VulkanShaderImpl::id() const
     {
         return {};
@@ -104,46 +103,6 @@ namespace aiko::renderer::vulkan
     bool VulkanShaderImpl::isValid() const
     {
         return m_vertexModule != VK_NULL_HANDLE && m_fragmentModule != VK_NULL_HANDLE;
-    }
-
-    void VulkanShaderImpl::setBool(const string& name, bool value)
-    {
-
-    }
-
-    void VulkanShaderImpl::setInt(const string& name, int value)
-    {
-
-    }
-
-    void VulkanShaderImpl::setFloat(const string& name, float value)
-    {
-
-    }
-
-    void VulkanShaderImpl::setVec2(const string& name, const vec2& value)
-    {
-
-    }
-
-    void VulkanShaderImpl::setVec3(const string& name, const vec3& value)
-    {
-
-    }
-
-    void VulkanShaderImpl::setVec4(const string& name, const vec4& value)
-    {
-
-    }
-
-    void VulkanShaderImpl::setMat4(const string& name, const mat4& mat)
-    {
-
-    }
-
-    void VulkanShaderImpl::setVec4Array(const string& name, const vec4* values, uint32_t count)
-    {
-
     }
 
     bool VulkanShaderImpl::hasUniform(const string& name) const

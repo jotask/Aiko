@@ -22,15 +22,6 @@ namespace aiko::renderer::vulkan
         virtual void load(const char*, const char*) override;
         virtual void unload() override;
 
-        virtual void setBool(const string& name, bool value) override;
-        virtual void setInt(const string& name, int value) override;
-        virtual void setFloat(const string& name, float value) override;
-        virtual void setVec2(const string& name, const vec2& value) override;
-        virtual void setVec3(const string& name, const vec3& value) override;
-        virtual void setVec4(const string& name, const vec4& value) override;
-        virtual void setMat4(const string& name, const mat4& mat) override;
-        virtual void setVec4Array(const string& name, const vec4* values, uint32_t count) override;
-
         bool hasUniform(const string& name) const;
 
         VkShaderModule vertexModule() const { return m_vertexModule; }

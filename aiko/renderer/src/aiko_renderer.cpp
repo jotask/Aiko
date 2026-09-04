@@ -748,8 +748,6 @@ namespace aiko
         material.m_diffuseTextureId = key.diffuseTextureId;
         material.m_runtimeDiffuseTexture = key.runtimeDiffuseTexture;
 
-        material.m_customVec4Uniforms.clear();
-
         // Resolve asset texture once for this staged material.
         // Keep m_diffuseTextureId intact so identity/grouping stays stable.
         if (material.m_runtimeDiffuseTexture == nullptr && material.m_diffuseTextureId != InvalidAssetId)
