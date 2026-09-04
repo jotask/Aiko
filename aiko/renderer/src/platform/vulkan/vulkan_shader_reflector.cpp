@@ -1,6 +1,7 @@
 #include "vulkan_shader_reflector.h"
 
 #include <utility>
+#include <algorithm>
 
 #include <spirv_reflect.h>
 
@@ -157,26 +158,46 @@ namespace aiko::renderer::vulkan
             VulkanShaderUniformBlock& existing = *reflection.materialUniformBlock;
 
             AIKO_ASSERT(existing.set == incoming.set && existing.binding == incoming.binding, "Shader stages disagree on material UBO binding");
-            AIKO_ASSERT(existing.size == incoming.size, "Shader stages disagree on material UBO size");
-            AIKO_ASSERT(existing.members.size() == incoming.members.size(), "Shader stages disagree on material UBO members");
 
-            for (size_t i = 0; i < existing.members.size(); ++i)
+            for (const VulkanShaderUniformMember& incomingMember : incoming.members)
             {
-                const VulkanShaderUniformMember& a = existing.members[i];
+                const auto existingIt =
+                    std::find_if( existing.members.begin(), existing.members.end(),
+                        [&](const VulkanShaderUniformMember& member)
+                        {
+                            return member.name == incomingMember.name;
+                        }
+                    );
 
-                const VulkanShaderUniformMember& b = incoming.members[i];
+                if (existingIt != existing.members.end())
+                {
+                    AIKO_ASSERT(
+                        existingIt->type == incomingMember.type &&
+                        existingIt->offset == incomingMember.offset &&
+                        existingIt->size == incomingMember.size &&
+                        existingIt->matrixStride == incomingMember.matrixStride &&
+                        existingIt->rowMajor == incomingMember.rowMajor,
+                        "Shader stages disagree on material uniform layout"
+                    );
 
-                AIKO_ASSERT(
-                    a.name == b.name &&
-                    a.type == b.type &&
-                    a.offset == b.offset &&
-                    a.size == b.size &&
-                    a.matrixStride == b.matrixStride &&
-                    a.rowMajor == b.rowMajor,
-                    "Shader stages disagree on material uniform layout"
-                );
+                    continue;
+                }
+
+                for (const VulkanShaderUniformMember& existingMember : existing.members)
+                {
+                    const uint32_t incomingBegin = incomingMember.offset;
+                    const uint32_t incomingEnd = incomingMember.offset + incomingMember.size;
+                    const uint32_t existingBegin = existingMember.offset;
+                    const uint32_t existingEnd = existingMember.offset + existingMember.size;
+                    const bool overlaps = incomingBegin < existingEnd && existingBegin < incomingEnd;
+
+                    AIKO_ASSERT(overlaps == false, "Shader stages use overlapping material uniforms");
+                }
+
+                existing.members.push_back(incomingMember);
             }
 
+            existing.size = std::max(existing.size, incoming.size);
             existing.stageFlags |= incoming.stageFlags;
         }
 

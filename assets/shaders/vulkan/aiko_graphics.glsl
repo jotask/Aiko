@@ -28,6 +28,8 @@ layout(
     vec4 u_lightSpotCos[MAX_LIGHTS];
 };
 
+#ifndef AIKO_CUSTOM_MATERIAL_UBO
+
 layout(
     set = AIKO_GRAPHICS_MATERIAL_SET,
     binding = AIKO_MATERIAL_UBO_BINDING
@@ -35,12 +37,9 @@ layout(
 {
     vec4 u_baseColor;
     vec4 u_flags;
-    vec4 u_particleSizeLife;
-    vec4 u_particleStartColor;
-    vec4 u_particleEndColor;
-    vec4 u_billboardParams;
-    vec4 u_nbodyRender;
 };
+
+#endif
 
 layout(
     set = AIKO_GRAPHICS_MATERIAL_SET,

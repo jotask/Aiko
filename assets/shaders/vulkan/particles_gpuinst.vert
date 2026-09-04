@@ -1,7 +1,21 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
 
+#define AIKO_CUSTOM_MATERIAL_UBO
 #include "aiko_graphics.glsl"
+
+layout(
+    set = AIKO_GRAPHICS_MATERIAL_SET,
+    binding = AIKO_MATERIAL_UBO_BINDING
+) uniform MaterialUbo
+{
+    vec4 u_baseColor;
+    vec4 u_flags;
+
+    vec4 u_particleSizeLife;
+    vec4 u_particleStartColor;
+    vec4 u_particleEndColor;
+};
 
 layout(location = 0) in vec3 a_position;
 layout(location = 1) in vec3 a_normal;
