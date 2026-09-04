@@ -11,13 +11,14 @@
     namespace renderer
     {
         class RendererFactory;
+        class IRenderDevice;
     }
 
     class FrameBuffer
     {
-    public:
-
+        friend class renderer::IRenderDevice;
         friend class renderer::RendererFactory;
+    public:
 
         // Copy
         FrameBuffer(const FrameBuffer&) = delete;
@@ -30,10 +31,6 @@
         FrameBuffer();
         virtual ~FrameBuffer();
 
-        void* getImpl() const { return backend.get(); }
-
-        void use();
-        void unuse();
         bool isValid() const;
         RenderResourceId id() const;
 

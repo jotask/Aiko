@@ -10,13 +10,14 @@ namespace aiko
     namespace renderer
     {
         class RendererFactory;
+        class IRenderDevice;
     }
 
     class Shader
     {
-    public:
-
+        friend class renderer::IRenderDevice;
         friend class renderer::RendererFactory;
+    public:
 
         // Copy
         Shader(const Shader&) = delete;
@@ -28,8 +29,6 @@ namespace aiko
 
         Shader();
         ~Shader() = default;
-
-        void* getImpl() const { return backend.get(); }
 
         RenderResourceId id() const;
 
@@ -50,9 +49,6 @@ namespace aiko
         void setVec4(const string& name, const vec4& value);
         void setVec4(const string& name, float x, float y, float z, float w);
         void setMat4(const string& name, const mat4& mat);
-
-        void use();
-        void unuse();
 
         bool isValid() const;
 

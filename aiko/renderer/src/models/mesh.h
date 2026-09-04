@@ -11,13 +11,14 @@
      namespace renderer
      {
          class RendererFactory;
+         class IRenderDevice;
      }
 
     class Mesh
     {
-    public:
-
         friend class renderer::RendererFactory;
+        friend class renderer::IRenderDevice;
+    public:
 
          // Copy
          Mesh(const Mesh&) = delete;
@@ -30,8 +31,6 @@
         Mesh(const MeshAsset& data);
         Mesh();
         ~Mesh();
-
-        void* getImpl() const { return backend.get(); }
 
         virtual bool isValid() const;
         virtual void unload();

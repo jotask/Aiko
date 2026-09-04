@@ -96,16 +96,6 @@ namespace aiko
         backend->setMat4(name, mat);
     }
 
-    void Shader::use()
-    {
-        backend->use();
-    }
-
-    void Shader::unuse()
-    {
-        backend->unuse();
-    }
-
     bool Shader::isValid () const
     {
         return backend->isValid();

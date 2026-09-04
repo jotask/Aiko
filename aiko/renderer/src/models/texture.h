@@ -8,16 +8,19 @@
 
 namespace aiko
 {
+    class FrameBuffer;
     namespace renderer
     {
         class RendererFactory;
+        class IRenderDevice;
     }
 
     class Texture
     {
-    public:
-
+        friend class FrameBuffer;
+        friend class renderer::IRenderDevice;
         friend class renderer::RendererFactory;
+    public:
 
         // Copy
         Texture(const Texture&) = delete;
@@ -30,10 +33,6 @@ namespace aiko
         Texture();
         virtual ~Texture();
 
-        void* getImpl() const { return backend.get(); }
-
-        void use();
-        void unuse();
         bool isValid() const;
         RenderResourceId id() const;
         TextureInfo getInfo() const;

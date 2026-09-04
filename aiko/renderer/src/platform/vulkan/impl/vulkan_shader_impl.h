@@ -17,8 +17,6 @@ namespace aiko::renderer::vulkan
         virtual ~VulkanShaderImpl() override;
 
         virtual RenderResourceId id() const override;
-        virtual void use() override;
-        virtual void unuse() override;
         virtual bool isValid() const override;
 
         virtual void load(const char*, const char*) override;

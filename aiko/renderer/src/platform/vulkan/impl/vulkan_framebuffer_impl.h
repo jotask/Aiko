@@ -3,7 +3,6 @@
 #include <aiko_types.h>
 
 #include "interfaces/iframebuffer_impl.h"
-#include "models/texture.h"
 #include "platform/vulkan/vulkan_types.h"
 
 namespace aiko::renderer::vulkan
@@ -18,14 +17,10 @@ namespace aiko::renderer::vulkan
 
         virtual RenderResourceId id() const override;
 
-        virtual void use() override;
-
-        virtual void unuse() override;
-
         virtual bool isValid() const override;
 
         // load
-        virtual void create(Texture& color, Texture& depth) override;
+        virtual void create(interfaces::ITextureImpl& color, interfaces::ITextureImpl& depth) override;
 
         virtual void unload() override;
 

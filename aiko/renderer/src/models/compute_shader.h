@@ -8,13 +8,14 @@
     namespace renderer
     {
         class RendererFactory;
+        class IRenderDevice;
     }
 
     class ComputeShader
     {
-    public:
-
         friend class renderer::RendererFactory;
+        friend class renderer::IRenderDevice;
+    public:
 
         // Copy
         ComputeShader(const ComputeShader&) = delete;
@@ -26,8 +27,6 @@
 
         ComputeShader();
         ~ComputeShader();
-
-        void* getImpl() const { return backend.get(); }
 
         bool isValid() const;
 

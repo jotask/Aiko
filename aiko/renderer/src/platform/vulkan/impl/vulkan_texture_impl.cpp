@@ -28,16 +28,6 @@ namespace aiko::renderer::vulkan
         return static_cast<uint>(reinterpret_cast<uintptr_t>(m_view));
     }
 
-    void VulkanTextureImpl::use()
-    {
-
-    }
-
-    void VulkanTextureImpl::unuse()
-    {
-
-    }
-
     bool VulkanTextureImpl::isValid() const
     {
         return m_image != VK_NULL_HANDLE && m_memory != VK_NULL_HANDLE && m_view != VK_NULL_HANDLE && m_info.valid;

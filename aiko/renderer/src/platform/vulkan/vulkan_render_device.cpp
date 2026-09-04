@@ -205,15 +205,15 @@ namespace aiko::renderer::vulkan
 
         if (frameBuffer != nullptr)
         {
-            auto* fb = static_cast<VulkanFrameBufferImpl*>(frameBuffer->getImpl());
+            auto* fb = static_cast<VulkanFrameBufferImpl*>(getFrameBufferBackend(*frameBuffer));
             renderPass = fb->renderPass();
             framebuffer = fb->framebuffer();
             extent = { fb->width(), fb->height() };
 
-            auto* colorImpl = static_cast<VulkanTextureImpl*>(frameBuffer->getColorTexture().getImpl());
+            auto* colorImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(frameBuffer->getColorTexture()));
             AIKO_ASSERT(colorImpl != nullptr, "Invalid Vulkan framebuffer color texture");
 
-            auto* depthImpl = static_cast<VulkanTextureImpl*>(frameBuffer->getDepthTexture().getImpl());
+            auto* depthImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(frameBuffer->getDepthTexture()));
             AIKO_ASSERT(depthImpl != nullptr, "Invalid Vulkan framebuffer depth texture");
 
             m_activeRenderPassCompatibility =
@@ -433,7 +433,7 @@ namespace aiko::renderer::vulkan
         VkDescriptorSet descriptorSet = getScreenDescriptorSet(texture);
 
         const Mesh& mesh = screen.getMesh();
-        auto* meshImpl = static_cast<VulkanMeshImpl*>(mesh.getImpl());
+        auto* meshImpl = static_cast<VulkanMeshImpl*>(getMeshBackend(mesh));
 
         AIKO_ASSERT(meshImpl != nullptr, "Invalid screen mesh impl");
         AIKO_ASSERT(meshImpl->isValid(), "Invalid screen mesh");
@@ -489,7 +489,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(instanceCount > 0, "Instanced draw has zero instances");
         AIKO_ASSERT(instanceStrideBytes >= sizeof(InstanceData), "Instanced draw stride is smaller than InstanceData");
 
-        auto* meshImpl = static_cast<VulkanMeshImpl*>(mesh.getImpl());
+        auto* meshImpl = static_cast<VulkanMeshImpl*>(getMeshBackend(mesh));
 
         AIKO_ASSERT(meshImpl != nullptr, "Instanced mesh has no Vulkan implementation");
         AIKO_ASSERT(meshImpl->isValid(), "Invalid Vulkan instanced mesh");
@@ -685,7 +685,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(pass.buffers.empty() == false || pass.images.empty() == false, "Vulkan compute requires at least one resource");
         AIKO_ASSERT(pass.buffers.size() <= abi::MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
 
-        auto* shaderImpl = static_cast<VulkanComputeShaderImpl*>(pass.shader->getImpl());
+        auto* shaderImpl = static_cast<VulkanComputeShaderImpl*>(getComputeShaderBackend(*pass.shader));
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan compute shader implementation");
 
         const VkPipeline pipeline = getOrCreateComputePipeline(*shaderImpl);
@@ -711,7 +711,7 @@ namespace aiko::renderer::vulkan
 
             AIKO_ASSERT(pass.dispatch.indirectBuffer->isValid(), "Compute indirect dispatch buffer is invalid");
 
-            indirectBufferImpl = static_cast<VulkanComputeBufferImpl*>(pass.dispatch.indirectBuffer->getImpl());
+            indirectBufferImpl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(*pass.dispatch.indirectBuffer));
 
             AIKO_ASSERT(indirectBufferImpl != nullptr, "Compute indirect dispatch buffer has no Vulkan implementation");
             AIKO_ASSERT(indirectBufferImpl->isValid(), "Invalid Vulkan compute indirect dispatch buffer");
@@ -804,12 +804,12 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(request.buffer->isValid(), "Compute readback buffer is invalid");
         AIKO_ASSERT(request.byteSize > 0, "Compute readback size must be greater than zero");
 
-        auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(request.buffer->getImpl());
+        auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(*request.buffer));
 
         AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan compute buffer implementation");
         AIKO_ASSERT(request.byteSize <= bufferImpl->size(), "Compute readback exceeds source buffer size");
 
-        AikoPtr<interfaces::IComputeBufferImpl> source = getComputeBufferBackend(*request.buffer);
+        AikoPtr<interfaces::IComputeBufferImpl> source = retainComputeBufferBackend(*request.buffer);
 
         bufferImpl->retainReadback();
 
@@ -851,7 +851,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(desc.instanceCount > 0, "GPU instance draw has zero instances");
         AIKO_ASSERT(desc.readBuffers.empty() == false, "GPU instance draw has no GPU-read buffers");
 
-        auto* meshImpl = static_cast<VulkanMeshImpl*>(desc.mesh->getImpl());
+        auto* meshImpl = static_cast<VulkanMeshImpl*>(getMeshBackend(*desc.mesh));
 
         AIKO_ASSERT(meshImpl != nullptr, "GPU-instanced mesh has no Vulkan implementation");
         AIKO_ASSERT(meshImpl->isValid(), "Invalid GPU-instanced mesh");
@@ -997,7 +997,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(desc.vertexBuffer->isValid(), "GPU vertex buffer is invalid");
         AIKO_ASSERT(desc.vertexCount > 0, "GPU vertex draw has zero vertices");
 
-        auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(desc.vertexBuffer->getImpl());
+        auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(*desc.vertexBuffer));
         AIKO_ASSERT(bufferImpl != nullptr, "GPU vertex buffer has no Vulkan implementation");
         AIKO_ASSERT(bufferImpl->isValid(), "Invalid Vulkan GPU vertex buffer");
         AIKO_ASSERT(hasFlag(bufferImpl->usage(), ComputeBufferUsage::Vertex), "GPU vertex buffer requires Vertex usage");
@@ -1011,8 +1011,7 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(desc.indexBuffer->isValid(), "GPU index buffer is invalid");
             AIKO_ASSERT(desc.indexCount > 0, "GPU indexed draw has zero indices");
 
-            indexBufferImpl = static_cast<VulkanComputeBufferImpl*>(desc.indexBuffer->getImpl());
-
+            indexBufferImpl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(*desc.indexBuffer));
             AIKO_ASSERT(indexBufferImpl != nullptr, "GPU index buffer has no Vulkan implementation");
             AIKO_ASSERT(indexBufferImpl->isValid(), "Invalid Vulkan GPU index buffer");
             AIKO_ASSERT(hasFlag(indexBufferImpl->usage(), ComputeBufferUsage::Index), "GPU index buffer requires Index usage");
@@ -1026,7 +1025,7 @@ namespace aiko::renderer::vulkan
         {
             AIKO_ASSERT(desc.indirectBuffer->isValid(), "GPU indirect buffer is invalid");
 
-            indirectBufferImpl = static_cast<VulkanComputeBufferImpl*>(desc.indirectBuffer->getImpl());
+            indirectBufferImpl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(*desc.indirectBuffer));
             AIKO_ASSERT(indirectBufferImpl != nullptr, "GPU indirect buffer has no Vulkan implementation");
             AIKO_ASSERT(indirectBufferImpl->isValid(), "Invalid Vulkan GPU indirect buffer");
             AIKO_ASSERT(hasFlag(indirectBufferImpl->usage(), ComputeBufferUsage::Indirect), "GPU indirect buffer requires Indirect usage");
@@ -1133,7 +1132,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::prepareVertexBuffer(const ComputeBuffer& buffer)
     {
-        auto* impl = static_cast<VulkanComputeBufferImpl*>(buffer.getImpl());
+        auto* impl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(buffer));
         AIKO_ASSERT(impl != nullptr, "Invalid Vulkan compute buffer implementation");
         AIKO_ASSERT(impl->isValid(), "Invalid Vulkan vertex compute buffer");
         AIKO_ASSERT(hasFlag(impl->usage(), ComputeBufferUsage::Vertex), "Compute buffer requires Vertex usage");
@@ -1156,7 +1155,7 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::prepareIndexBuffer(const ComputeBuffer& buffer)
     {
 
-        auto* impl = static_cast<VulkanComputeBufferImpl*>(buffer.getImpl());
+        auto* impl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(buffer));
         AIKO_ASSERT(impl != nullptr, "Invalid Vulkan compute buffer implementation");
         AIKO_ASSERT(impl->isValid(), "Invalid Vulkan index compute buffer");
         AIKO_ASSERT(hasFlag(impl->usage(), ComputeBufferUsage::Index), "Compute buffer requires Index usage");
@@ -1180,7 +1179,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::prepareIndirectBuffer(const ComputeBuffer& buffer)
     {
-        auto* impl = static_cast<VulkanComputeBufferImpl*>(buffer.getImpl());
+        auto* impl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(buffer));
         AIKO_ASSERT(impl != nullptr, "Invalid Vulkan compute buffer implementation");
         AIKO_ASSERT(impl->isValid(), "Invalid Vulkan indirect compute buffer");
         AIKO_ASSERT(hasFlag(impl->usage(), ComputeBufferUsage::Indirect), "Compute buffer requires Indirect usage");
@@ -1246,7 +1245,7 @@ namespace aiko::renderer::vulkan
         const TextureInfo info = texture.getInfo();
         AIKO_ASSERT(info.type != TextureType::DepthStencil, "Depth texture sampling is not supported yet");
 
-        auto* textureImpl = static_cast<VulkanTextureImpl*>(texture.getImpl());
+        auto* textureImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(texture));
         AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan texture implementation");
 
         const VulkanImageState sampledState =
@@ -1433,7 +1432,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(shaderId != InvalidAssetId, "Model material has invalid shader id");
 
         Shader& shader = getResources()->getShader(shaderId);
-        auto* shaderImpl = static_cast<VulkanShaderImpl*>(shader.getImpl());
+        auto* shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
         AIKO_ASSERT(shaderImpl != nullptr && shaderImpl->isValid(), "Invalid Vulkan material shader");
 
         validateModelShaderAbi(shaderImpl->reflection());
@@ -2176,7 +2175,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(m_screenDescriptorPool != VK_NULL_HANDLE, "Screen descriptor pool is invalid");
         AIKO_ASSERT(m_screenDescriptorSetLayout != VK_NULL_HANDLE, "Screen descriptor set layout is invalid");
 
-        auto* textureImpl = static_cast<VulkanTextureImpl*>(texture.getImpl());
+        auto* textureImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(texture));
 
         AIKO_ASSERT(textureImpl != nullptr, "Invalid screen texture impl");
         AIKO_ASSERT(textureImpl->isValid(), "Invalid screen texture");
@@ -2362,7 +2361,7 @@ namespace aiko::renderer::vulkan
         const Texture* texture = resolveMaterialTexture(material);
         AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
 
-        auto* textureImpl = static_cast<VulkanTextureImpl*>(texture->getImpl());
+        auto* textureImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(*texture));
         AIKO_ASSERT(textureImpl != nullptr && textureImpl->isValid(), "Invalid Vulkan material texture");
 
         const VkImageView imageView = textureImpl->imageView();
@@ -2455,7 +2454,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(pipeline != VK_NULL_HANDLE, "Model pipeline is invalid");
         AIKO_ASSERT(m_modelPipelineLayout != VK_NULL_HANDLE, "Model pipeline layout is invalid");
 
-        auto* meshImpl = static_cast<VulkanMeshImpl*>(mesh.getImpl());
+        auto* meshImpl = static_cast<VulkanMeshImpl*>(getMeshBackend(mesh));
         AIKO_ASSERT(meshImpl != nullptr, "Mesh has no Vulkan impl");
         AIKO_ASSERT(meshImpl->isValid(), "Invalid Vulkan mesh");
 
@@ -2741,7 +2740,7 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(binding.buffer != nullptr, "Compute buffer binding is null");
             AIKO_ASSERT(binding.buffer->isValid(), "Invalid compute buffer");
 
-            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
+            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(*binding.buffer));
             AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan compute buffer implementation");
 
             AIKO_ASSERT(hasFlag(bufferImpl->usage(),ComputeBufferUsage::Storage), "Compute binding requires storage-buffer usage");
@@ -2777,8 +2776,7 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(binding.texture != nullptr, "Compute image texture is null");
             AIKO_ASSERT(binding.texture->isValid(), "Invalid compute image texture");
 
-            auto* textureImpl = static_cast<VulkanTextureImpl*>(binding.texture->getImpl());
-
+            auto* textureImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(*binding.texture));
             AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan compute texture");
 
             imageInfos[imageWriteCount] =
@@ -2849,7 +2847,7 @@ namespace aiko::renderer::vulkan
         {
             AIKO_ASSERT(binding.texture != nullptr, "Compute image texture is null");
 
-            auto* textureImpl = static_cast<VulkanTextureImpl*>(binding.texture->getImpl());
+            auto* textureImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(*binding.texture));
             AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan compute texture");
 
             const uint32_t queueFamily = useDedicatedCompute ? m_context.computeQueueFamily() : m_context.graphicsQueueFamily();
@@ -3122,7 +3120,7 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(binding.buffer != nullptr, "Compute buffer binding is null");
             AIKO_ASSERT(binding.buffer->isValid(), "Invalid compute buffer");
 
-            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
+            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(*binding.buffer));
 
             AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan compute buffer implementation");
 
@@ -3657,7 +3655,7 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(binding.buffer != nullptr, "GPU-read buffer is null");
             AIKO_ASSERT(binding.buffer->isValid(), "GPU-read buffer is invalid");
 
-            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
+            auto* bufferImpl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(*binding.buffer));
             AIKO_ASSERT(bufferImpl != nullptr, "Invalid Vulkan GPU-read buffer");
 
             const VulkanBufferState destination =
@@ -3689,7 +3687,7 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(binding.slot < abi::MaxGpuReadBindings, "GPU-read binding exceeds limit");
             AIKO_ASSERT(used[binding.slot] == false, "Duplicate GPU-read binding");
 
-            auto* impl = static_cast<VulkanComputeBufferImpl*>(binding.buffer->getImpl());
+            auto* impl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(*binding.buffer));
             AIKO_ASSERT(impl != nullptr, "Invalid Vulkan GPU-read buffer");
             AIKO_ASSERT(hasFlag(impl->usage(), ComputeBufferUsage::Storage), "GPU shader read requires storage-buffer usage");
 
@@ -3732,7 +3730,7 @@ namespace aiko::renderer::vulkan
         Shader& shader = getResources()->getShader(material.m_shaderId);
         AIKO_ASSERT(shader.isValid(), "GPU-instanced shader is invalid");
 
-        auto* shaderImpl = static_cast<VulkanShaderImpl*>(shader.getImpl());
+        auto* shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan GPU-instanced shader implementation");
 
         const GpuPipelineKey key =
@@ -3915,7 +3913,7 @@ namespace aiko::renderer::vulkan
         Shader& shader =getResources()->getShader(material.m_shaderId);
         AIKO_ASSERT(shader.isValid(), "GPU vertex shader is invalid");
 
-        auto* shaderImpl = static_cast<VulkanShaderImpl*>(shader.getImpl());
+        auto* shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan GPU vertex shader implementation");
 
         const GpuVertexPipelineKey key =

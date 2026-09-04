@@ -8,6 +8,8 @@
 #include "models/mesh.h"
 #include "models/texture.h"
 #include "models/screen_fbo.h"
+#include "models/shader.h"
+#include "models/frame_buffer.h"
 #include "types/render_types.h"
 #include "renderer/frame_uniforms.h"
 #include "types/compute_pass.h"
@@ -139,7 +141,38 @@ namespace aiko::renderer
     protected:
 
         RenderResourceManager* getResources() const { return m_resource_manager; }
-        AikoPtr<interfaces::IComputeBufferImpl> getComputeBufferBackend(const ComputeBuffer& buffer) const
+
+        interfaces::ITextureImpl* getTextureBackend(const Texture& texture) const
+        {
+            return texture.backend.get();
+        }
+
+        interfaces::IFrameBufferImpl* getFrameBufferBackend(const FrameBuffer& frameBuffer) const
+        {
+            return frameBuffer.backend.get();
+        }
+
+        interfaces::IMeshImpl* getMeshBackend(const Mesh& mesh) const
+        {
+            return mesh.backend.get();
+        }
+
+        interfaces::IShaderImpl* getShaderBackend(const Shader& shader) const
+        {
+            return shader.backend.get();
+        }
+
+        interfaces::IComputeShaderImpl* getComputeShaderBackend(const ComputeShader& shader) const
+        {
+            return shader.backend.get();
+        }
+
+        interfaces::IComputeBufferImpl* getComputeBufferBackend(const ComputeBuffer& buffer) const
+        {
+            return buffer.backend.get();
+        }
+
+        AikoPtr<interfaces::IComputeBufferImpl> retainComputeBufferBackend(const ComputeBuffer& buffer) const
         {
             return buffer.backend;
         }

@@ -101,16 +101,6 @@ namespace aiko::renderer::vulkan
         return {};
     }
 
-    void VulkanShaderImpl::use()
-    {
-
-    }
-
-    void VulkanShaderImpl::unuse()
-    {
-
-    }
-
     bool VulkanShaderImpl::isValid() const
     {
         return m_vertexModule != VK_NULL_HANDLE && m_fragmentModule != VK_NULL_HANDLE;

@@ -10,14 +10,6 @@ namespace aiko
 
     }
 
-    void ScreenFbo::use()
-    {
-    }
-
-    void ScreenFbo::unuse()
-    {
-    }
-
     bool ScreenFbo::isValid()
     {
         return m_mesh.isValid() == true && m_material.m_shaderId != InvalidAssetId;

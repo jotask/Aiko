@@ -13,8 +13,6 @@ namespace aiko
             virtual ~IShaderImpl() = default;
 
             virtual RenderResourceId id() const = 0;
-            virtual void use() = 0;
-            virtual void unuse() = 0;
             virtual bool isValid() const = 0;
 
             // load

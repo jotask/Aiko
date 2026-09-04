@@ -14,9 +14,8 @@
     class ComputeBuffer
     {
         friend class renderer::IRenderDevice;
-    public:
-
         friend class renderer::RendererFactory;
+    public:
 
         // Copy
         ComputeBuffer(const ComputeBuffer&) = delete;
@@ -30,8 +29,6 @@
         ~ComputeBuffer();
 
         bool isValid() const;
-
-        void* getImpl() const { return backend.get(); }
 
         void create(const ComputeBufferDesc& desc, const void* initialData = nullptr);
         void update(u32 start, u32 count, const void* data);

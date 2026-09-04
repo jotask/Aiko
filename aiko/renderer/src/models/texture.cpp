@@ -16,16 +16,6 @@ namespace aiko
         unload();
     }
 
-    void Texture::use()
-    {
-        backend->use();
-    }
-
-    void Texture::unuse()
-    {
-        backend->unuse();
-    }
-
     bool Texture::isValid() const
     {
         return backend->isValid();

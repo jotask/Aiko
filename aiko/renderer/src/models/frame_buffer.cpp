@@ -16,16 +16,6 @@ namespace aiko
         unload();
     }
 
-    void FrameBuffer::use()
-    {
-        backend->use();
-    }
-
-    void FrameBuffer::unuse()
-    {
-        backend->unuse();
-    }
-
     bool FrameBuffer::isValid() const
     {
         return backend->isValid() && colorTexture.isValid() && depthTexture.isValid();
@@ -59,7 +49,7 @@ namespace aiko
                 .height = height,
                 .mipmaps = false,
             });
-        backend->create(colorTexture, depthTexture);
+        backend->create(*colorTexture.backend, *depthTexture.backend);
     }
 
     void FrameBuffer::unload()

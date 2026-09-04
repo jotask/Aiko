@@ -26,30 +26,20 @@ namespace aiko::renderer::vulkan
         return static_cast<uint>(reinterpret_cast<uintptr_t>(m_framebuffer));
     }
 
-    void VulkanFrameBufferImpl::use()
-    {
-
-    }
-
-    void VulkanFrameBufferImpl::unuse()
-    {
-
-    }
-
     bool VulkanFrameBufferImpl::isValid() const
     {
         return m_framebuffer != VK_NULL_HANDLE && m_renderPass != VK_NULL_HANDLE;
     }
 
-    void VulkanFrameBufferImpl::create(Texture& color, Texture& depth)
+    void VulkanFrameBufferImpl::create(interfaces::ITextureImpl& color, interfaces::ITextureImpl& depth)
     {
         unload();
 
-        auto* colorImpl = static_cast<VulkanTextureImpl*>(color.getImpl());
-        auto* depthImpl = static_cast<VulkanTextureImpl*>(depth.getImpl());
+        auto& colorImpl = static_cast<VulkanTextureImpl&>(color);
+        auto& depthImpl = static_cast<VulkanTextureImpl&>(depth);
 
-        AIKO_ASSERT(colorImpl && colorImpl->isValid(), "Invalid Vulkan color texture");
-        AIKO_ASSERT(depthImpl && depthImpl->isValid(), "Invalid Vulkan depth texture");
+        AIKO_ASSERT(colorImpl.isValid(), "Invalid Vulkan color texture");
+        AIKO_ASSERT(depthImpl.isValid(), "Invalid Vulkan depth texture");
 
         VulkanContext& ctx = VulkanContext::current();
 
@@ -59,7 +49,7 @@ namespace aiko::renderer::vulkan
 
         const VkAttachmentDescription colorAttachment =
         {
-            .format = colorImpl->format(),
+            .format = colorImpl.format(),
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -71,7 +61,7 @@ namespace aiko::renderer::vulkan
 
         const VkAttachmentDescription depthAttachment =
         {
-            .format = depthImpl->format(),
+            .format = depthImpl.format(),
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -157,8 +147,8 @@ namespace aiko::renderer::vulkan
 
         const std::array<VkImageView, 2> imageViews =
         {
-            colorImpl->imageView(),
-            depthImpl->imageView()
+            colorImpl.imageView(),
+            depthImpl.imageView()
         };
 
         const VkFramebufferCreateInfo framebufferInfo =

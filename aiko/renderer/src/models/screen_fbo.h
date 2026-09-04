@@ -32,8 +32,6 @@
         ScreenFbo();
         ~ScreenFbo() = default;
 
-        void use();
-        void unuse();
         bool isValid();
 
         // load
