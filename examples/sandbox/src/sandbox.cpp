@@ -221,22 +221,14 @@ namespace sb
         auto& pboMaterial = mesh4->getMaterial();
 
         pboMaterial.m_lit = false;
-        aiko::SamplerState sampler{};
-        sampler.mipFilter = aiko::TextureMipFilter::None;
-        sampler.minFilter = aiko::TextureFilter::Nearest;
-        sampler.magFilter = aiko::TextureFilter::Nearest;
 
-        if (const aiko::TextureBinding* binding = pboMaterial.textureBinding("u_texture"))
+        const aiko::SamplerState sampler
         {
-            if (binding->runtimeTexture != nullptr)
-            {
-                pboMaterial.setTexture("u_texture", binding->runtimeTexture, sampler);
-            }
-            else if (binding->textureId != aiko::InvalidAssetId)
-            {
-                pboMaterial.setTexture("u_texture", binding->textureId, sampler);
-            }
-        }
+            .minFilter = aiko::TextureFilter::Nearest,
+            .magFilter = aiko::TextureFilter::Nearest,
+            .mipFilter = aiko::TextureMipFilter::None,
+        };
+        pboMaterial.setTextureSampler("u_texture", sampler);
 
     }
 

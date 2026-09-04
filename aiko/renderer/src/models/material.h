@@ -40,9 +40,11 @@
 
         void setUniform(const string& name, UniformValue value);
 
-        void setTexture(const string& name, AssetId textureId, const SamplerState& sampler = {});
+        void setTexture(const string& name, AssetId textureId);
+        void setTexture(const string& name, AssetId textureId, const SamplerState& sampler);
 
-        void setTexture(const string& name, const Texture* texture, const SamplerState& sampler = {});
+        void setTexture(const string& name, const Texture* texture);
+        void setTexture(const string& name, const Texture* texture, const SamplerState& sampler);
 
         void clearTexture(const string& name);
 
@@ -68,6 +70,8 @@
         void setVec4(const string& name, float x, float y, float z, float w);
 
         void setMat4(const string& name, const mat4& value);
+
+        void setTextureSampler(const string& name, const SamplerState& sampler);
 
         const UniformMap& uniforms() const
         {

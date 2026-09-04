@@ -30,6 +30,14 @@ namespace aiko
         m_uniforms.insert_or_assign(name, std::move(value));
     }
 
+    void Material::setTexture(const string& name, AssetId textureId)
+    {
+        AIKO_ASSERT(name.empty() == false, "Texture binding name cannot be empty");
+        TextureBinding& binding = m_textureBindings[name];
+        binding.textureId = textureId;
+        binding.runtimeTexture = nullptr;
+    }
+
     void Material::setBool(const string& name, bool value)
     {
         setUniform(name, value);
@@ -86,6 +94,14 @@ namespace aiko
         setUniform(name, value);
     }
 
+    void Material::setTextureSampler(const string& name, const SamplerState& sampler)
+    {
+        AIKO_ASSERT(name.empty() == false, "Texture binding name cannot be empty");
+        auto [it, inserted] = m_textureBindings.try_emplace(name);
+        AIKO_UNUSED(inserted);
+        it->second.sampler = sampler;
+    }
+
     void Material::setTexture(const string& name, AssetId textureId, const SamplerState& sampler)
     {
         AIKO_ASSERT(name.empty() == false, "Texture binding name cannot be empty");
@@ -98,6 +114,14 @@ namespace aiko
                 .sampler = sampler,
             }
         );
+    }
+
+    void Material::setTexture(const string& name, const Texture* texture)
+    {
+        AIKO_ASSERT(name.empty() == false, "Texture binding name cannot be empty");
+        TextureBinding& binding = m_textureBindings[name];
+        binding.textureId = InvalidAssetId;
+        binding.runtimeTexture = texture;
     }
 
     void Material::setTexture(const string& name, const Texture* texture, const SamplerState& sampler)
