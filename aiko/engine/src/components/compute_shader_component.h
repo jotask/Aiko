@@ -4,6 +4,7 @@
 #include "assets/asset_reference.h"
 #include "assets/types/shader_asset.h"
 #include "assets/asset_binding.h"
+#include "types/compute_pass.h"
 
 namespace aiko
 {
