@@ -65,18 +65,11 @@ namespace aiko
     void RenderSystem::render(const Transform& trans, const Model& model)
     {
         AIKO_FUNCTION_PROFILE
-        const MaterialInstance defaultInstance{};
-        render(trans, model, defaultInstance);
-    }
-
-    void RenderSystem::render(const Transform& trans, const Model& model, const MaterialInstance& instance)
-    {
-        AIKO_FUNCTION_PROFILE
         for (const auto& submesh : model.getSubMeshes())
         {
             AIKO_ASSERT(submesh.meshId != InvalidAssetId, "Runtime model submesh has invalid mesh id");
             Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(submesh.meshId);
-            m_renderModule->getRenderer().submit(trans, mesh, submesh.material, instance);
+            m_renderModule->getRenderer().submit(trans, mesh, submesh.material);
         }
     }
 
@@ -101,7 +94,7 @@ namespace aiko
             return;
         }
         Model& runtimeModel = m_renderModule->getRenderer().resources().getModel(modelId);
-        render(trans, runtimeModel, modelComponent.getMaterialInstance());
+        render(trans, runtimeModel);
     }
 
     void RenderSystem::render(const Transform& trans, const SpriteComponent& spriteComponent)

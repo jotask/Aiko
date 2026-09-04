@@ -40,7 +40,6 @@ namespace aiko
 
         void render(const Transform& trans, const Mesh&, const Material&);
         void render(const Transform& trans, const Model& model);
-        void render(const Transform& trans, const Model& model, const MaterialInstance&);
 
         void render(const Transform& trans, const MeshComponent& meshComponent);
         void render(const Transform& trans, const ModelComponent& modelComponent);

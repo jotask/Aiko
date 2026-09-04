@@ -12,8 +12,12 @@ namespace aiko
         {
             SubMesh runtimeSubMesh{};
             runtimeSubMesh.meshId = submesh.meshId;
-            runtimeSubMesh.material = submesh.material;
-            m_subMeshes.push_back(runtimeSubMesh);
+            runtimeSubMesh.material.m_shaderId = submesh.material.shaderId;
+            runtimeSubMesh.material.m_diffuseTextureId = submesh.material.diffuseTextureId;
+            runtimeSubMesh.material.m_baseColor = submesh.material.baseColor;
+            runtimeSubMesh.material.m_useVertexColor = submesh.material.useVertexColor;
+            runtimeSubMesh.material.m_lit = submesh.material.lit;
+            m_subMeshes.push_back(std::move(runtimeSubMesh));
         }
     }
 

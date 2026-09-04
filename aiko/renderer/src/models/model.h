@@ -2,6 +2,7 @@
 
 #include "assets/types/mesh_asset.h"
 #include "assets/iasset_provider.h"
+#include "models/material.h"
 
 namespace aiko
 {
@@ -15,7 +16,7 @@ namespace aiko
         struct SubMesh
         {
             AssetId meshId = InvalidAssetId;
-            MaterialAsset material{};
+            Material material{};
         };
 
         // Copy
