@@ -133,6 +133,11 @@ namespace aiko::renderer::vulkan
         const uint32_t frame = m_context.currentFrameIndex();
         AIKO_ASSERT(frame < FramesInFlight, "Invalid Vulkan frame index");
 
+        clearMaterialBindings(frame);
+
+        const VkResult materialReset = vkResetDescriptorPool(m_context.device(), m_materialDescriptorPools[frame], 0);
+        AIKO_ASSERT(materialReset == VK_SUCCESS, "Failed to reset material descriptor pool");
+
         completeReadbacksForFrame(frame);
         resetUploadArenaForFrame(frame);
 
@@ -353,7 +358,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material)
     {
-        const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, material.m_renderState, false);
+        const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, material.m_shaderId, material.m_renderState, false);
         drawMeshWithPipeline(viewId, world, mesh, pipeline);
     }
 
@@ -439,7 +444,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(meshImpl != nullptr, "Instanced mesh has no Vulkan implementation");
         AIKO_ASSERT(meshImpl->isValid(), "Invalid Vulkan instanced mesh");
 
-        const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, material.m_renderState, true);
+        const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, InvalidAssetId, material.m_renderState, true);
 
         const VkDeviceSize instanceBytes = sizeof(VulkanInstanceData) * static_cast<VkDeviceSize>(instanceCount);
 
@@ -1171,7 +1176,7 @@ namespace aiko::renderer::vulkan
                 break;
         }
 
-        const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, topology, desc.material->m_renderState, false);
+        const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, topology, desc.material->m_shaderId, desc.material->m_renderState, false);
 
         Mesh& mesh = resolveTransientMesh(*desc.geometry);
         drawMeshWithPipeline(viewId, desc.mtx, mesh, pipeline);
@@ -1228,6 +1233,7 @@ namespace aiko::renderer::vulkan
         const Texture* texture = resolveMaterialTexture(material);
         AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
         prepareTextureForSampling(*texture);
+        resolveMaterialBinding(material);
     }
 
     const Texture* VulkanRenderDevice::resolveMaterialTexture(const Material& material)
@@ -1364,21 +1370,24 @@ namespace aiko::renderer::vulkan
         m_frameDescriptorPool = VK_NULL_HANDLE;
     }
 
-    void VulkanRenderDevice::createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, const RenderState& renderState, VkPipeline& pipeline)
+    void VulkanRenderDevice::createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, VkPipeline& pipeline)
     {
         AIKO_ASSERT(renderPass != VK_NULL_HANDLE, "Model render pass is invalid");
         AIKO_ASSERT(m_modelPipelineLayout != VK_NULL_HANDLE, "Model pipeline layout is invalid");
+        AIKO_ASSERT(shaderId != InvalidAssetId, "Model material has invalid shader id");
 
-        VulkanShaderImpl shader;
-        shader.load("model.vs", "model.fs");
-        validateModelShaderAbi(shader.reflection());
-        validateModelPushConstants(shader.reflection());
+        Shader& shader = getResources()->getShader(shaderId);
+        auto* shaderImpl = static_cast<VulkanShaderImpl*>(shader.getImpl());
+        AIKO_ASSERT(shaderImpl != nullptr && shaderImpl->isValid(), "Invalid Vulkan material shader");
+
+        validateModelShaderAbi(shaderImpl->reflection());
+        validateModelPushConstants(shaderImpl->reflection());
 
         const VkPipelineShaderStageCreateInfo vertShaderStageInfo =
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
             .stage = VK_SHADER_STAGE_VERTEX_BIT,
-            .module = shader.vertexModule(),
+            .module = shaderImpl->vertexModule(),
             .pName = "main",
         };
 
@@ -1386,7 +1395,7 @@ namespace aiko::renderer::vulkan
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
             .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .module = shader.fragmentModule(),
+            .module = shaderImpl->fragmentModule(),
             .pName = "main",
         };
 
@@ -1508,9 +1517,6 @@ namespace aiko::renderer::vulkan
         };
 
         const VkResult result = vkCreateGraphicsPipelines(m_context.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
-
-        shader.unload();
-
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to create model graphics pipeline");
     }
 
@@ -2117,17 +2123,11 @@ namespace aiko::renderer::vulkan
                 .pSetLayouts = &m_screenDescriptorSetLayout,
             };
 
-            const VkResult result = vkAllocateDescriptorSets(
-                m_context.device(),
-                &allocInfo,
-                &m_screenDescriptorSet
-            );
-
+            const VkResult result = vkAllocateDescriptorSets(m_context.device(), &allocInfo, &m_screenDescriptorSet);
             AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate screen descriptor set");
         }
 
-        if (m_screenDescriptorImageView != imageView ||
-            m_screenDescriptorSampler != sampler)
+        if (m_screenDescriptorImageView != imageView || m_screenDescriptorSampler != sampler)
         {
             const VkDescriptorImageInfo imageInfo =
             {
@@ -2180,39 +2180,59 @@ namespace aiko::renderer::vulkan
             .pPoolSizes = poolSizes.data(),
         };
 
-        const VkResult result = vkCreateDescriptorPool(m_context.device(), &poolInfo, nullptr, &m_materialDescriptorPool);
-        AIKO_ASSERT(result == VK_SUCCESS, "Failed to create material descriptor pool");
+        for (u32 frame = 0; frame < FramesInFlight; ++frame)
+        {
+            const VkResult result = vkCreateDescriptorPool(m_context.device(), &poolInfo, nullptr, &m_materialDescriptorPools[frame]);
+            AIKO_ASSERT(result == VK_SUCCESS, "Failed to create material descriptor pool");
+        }
     }
 
     void VulkanRenderDevice::destroyMaterialResources()
     {
         VkDevice device = m_context.device();
-
-        for (auto& [material, binding] : m_materialBindingCache)
+        for (u32 frame = 0; frame < FramesInFlight; ++frame)
         {
+            clearMaterialBindings(frame);
+            if (m_materialDescriptorPools[frame] != VK_NULL_HANDLE)
+            {
+                vkDestroyDescriptorPool(device, m_materialDescriptorPools[frame], nullptr);
+                m_materialDescriptorPools[frame] = VK_NULL_HANDLE;
+            }
+        }
+    }
+
+    void VulkanRenderDevice::clearMaterialBindings(u32 frame)
+    {
+        AIKO_ASSERT(frame < FramesInFlight, "Invalid material binding frame");
+
+        VkDevice device = m_context.device();
+
+        auto& cache = m_materialBindingCaches[frame];
+
+        for (auto& [key, binding] : cache)
+        {
+            AIKO_UNUSED(key);
+
             if (binding.uniformMapped != nullptr)
             {
                 vkUnmapMemory(device, binding.uniformMemory);
+                binding.uniformMapped = nullptr;
             }
 
             if (binding.uniformBuffer != VK_NULL_HANDLE)
             {
                 vkDestroyBuffer(device, binding.uniformBuffer, nullptr);
+                binding.uniformBuffer = VK_NULL_HANDLE;
             }
 
             if (binding.uniformMemory != VK_NULL_HANDLE)
             {
                 vkFreeMemory(device, binding.uniformMemory, nullptr);
+                binding.uniformMemory = VK_NULL_HANDLE;
             }
         }
 
-        m_materialBindingCache.clear();
-
-        if (m_materialDescriptorPool != VK_NULL_HANDLE)
-        {
-            vkDestroyDescriptorPool(device, m_materialDescriptorPool, nullptr);
-            m_materialDescriptorPool = VK_NULL_HANDLE;
-        }
+        cache.clear();
     }
 
     VulkanRenderDevice::CachedMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
@@ -2220,9 +2240,16 @@ namespace aiko::renderer::vulkan
 
         const MaterialBindingKey key = makeMaterialBindingKey(material);
 
-        auto it = m_materialBindingCache.find(key);
-        if (it != m_materialBindingCache.end())
+        const u32 frame = m_context.currentFrameIndex();
+
+        AIKO_ASSERT(frame < FramesInFlight, "Invalid material binding frame");
+
+        auto& cache = m_materialBindingCaches[frame];
+
+        auto it = cache.find(key);
+        if (it != cache.end())
         {
+            refreshMaterialTextureBinding(it->second, material);
             return it->second;
         }
 
@@ -2235,25 +2262,13 @@ namespace aiko::renderer::vulkan
         const VkDescriptorSetAllocateInfo allocInfo =
         {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .descriptorPool = m_materialDescriptorPool,
+            .descriptorPool = m_materialDescriptorPools[frame],
             .descriptorSetCount = 1,
             .pSetLayouts = &m_materialDescriptorSetLayout,
         };
 
         VkResult result = vkAllocateDescriptorSets(m_context.device(), &allocInfo, &binding.descriptorSet);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate material descriptor set");
-
-        const Texture* texture = resolveMaterialTexture(material);
-        AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
-
-        const bool hasRealTexture = texture != &m_whiteTexture;
-
-        auto* textureImpl = static_cast<VulkanTextureImpl*>(texture->getImpl());
-        AIKO_ASSERT(textureImpl != nullptr && textureImpl->isValid(), "Invalid Vulkan material texture");
-
-        binding.imageView = textureImpl->imageView();
-        binding.sampler = textureImpl->sampler();
-        binding.hasTexture = hasRealTexture;
 
         const VkDescriptorBufferInfo bufferInfo =
         {
@@ -2262,40 +2277,67 @@ namespace aiko::renderer::vulkan
             .range = sizeof(VulkanMaterialUbo),
         };
 
+        const VkWriteDescriptorSet bufferWrite =
+        {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = binding.descriptorSet,
+            .dstBinding = abi::MaterialUboBinding,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = &bufferInfo,
+        };
+
+        vkUpdateDescriptorSets(m_context.device(), 1, &bufferWrite, 0, nullptr);
+
+        refreshMaterialTextureBinding(binding, material);
+
+        auto [insertedIt, inserted] = cache.emplace(key, binding);
+
+        return insertedIt->second;
+
+    }
+
+    void VulkanRenderDevice::refreshMaterialTextureBinding(CachedMaterialBinding& binding, const Material& material)
+    {
+        const Texture* texture = resolveMaterialTexture(material);
+        AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
+
+        auto* textureImpl = static_cast<VulkanTextureImpl*>(texture->getImpl());
+        AIKO_ASSERT(textureImpl != nullptr && textureImpl->isValid(), "Invalid Vulkan material texture");
+
+        const VkImageView imageView = textureImpl->imageView();
+        const VkSampler sampler = textureImpl->sampler();
+
+        const bool hasTexture = texture != &m_whiteTexture;
+
+        if (binding.imageView == imageView && binding.sampler == sampler && binding.hasTexture == hasTexture)
+        {
+            return;
+        }
+
         const VkDescriptorImageInfo imageInfo =
         {
-            .sampler = binding.sampler,
-            .imageView = binding.imageView,
+            .sampler = sampler,
+            .imageView = imageView,
             .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         };
 
-        const std::array<VkWriteDescriptorSet, 2> writes =
+        const VkWriteDescriptorSet write =
         {
-            VkWriteDescriptorSet
-            {
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = binding.descriptorSet,
-                .dstBinding = abi::MaterialUboBinding,
-                .descriptorCount = 1,
-                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .pBufferInfo = &bufferInfo,
-            },
-            VkWriteDescriptorSet
-            {
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = binding.descriptorSet,
-                .dstBinding = abi::MaterialTextureBinding,
-                .descriptorCount = 1,
-                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .pImageInfo = &imageInfo,
-            }
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = binding.descriptorSet,
+            .dstBinding = abi::MaterialTextureBinding,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = &imageInfo,
         };
 
-        vkUpdateDescriptorSets( m_context.device(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
+        vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
 
-        auto [insertedIt, inserted] = m_materialBindingCache.emplace(key, binding);
-        return insertedIt->second;
-
+        binding.imageView = imageView;
+        binding.sampler = sampler;
+        binding.hasTexture = hasTexture;
     }
 
     void VulkanRenderDevice::destroyTransientResources()
@@ -4038,12 +4080,13 @@ namespace aiko::renderer::vulkan
         m_context.waitIdle();
     }
 
-    VkPipeline VulkanRenderDevice::getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, const RenderState& renderState, bool instanced)
+    VkPipeline VulkanRenderDevice::getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced)
     {
         const ModelPipelineKey key =
         {
             .renderPass = renderPass,
             .topology = topology,
+            .shaderId = instanced ? InvalidAssetId : shaderId,
             .cullMode = renderState.cullMode,
             .depthTest = renderState.depthTest,
             .depthWrite = renderState.depthWrite,
@@ -4052,8 +4095,7 @@ namespace aiko::renderer::vulkan
             .instanced = instanced,
         };
 
-        if (const auto it = m_modelPipelines.find(key);
-            it != m_modelPipelines.end())
+        if (const auto it = m_modelPipelines.find(key); it != m_modelPipelines.end())
         {
             return it->second;
         }
@@ -4066,7 +4108,7 @@ namespace aiko::renderer::vulkan
         }
         else
         {
-            createModelPipeline(renderPass, topology, renderState, pipeline);
+            createModelPipeline(renderPass, topology, shaderId, renderState, pipeline);
         }
 
         AIKO_ASSERT( pipeline != VK_NULL_HANDLE, "Failed to create Vulkan model pipeline");
@@ -4078,7 +4120,7 @@ namespace aiko::renderer::vulkan
 
     VulkanRenderDevice::MaterialBindingKey VulkanRenderDevice::makeMaterialBindingKey(const Material& material) const
     {
-        return MaterialBindingKey
+        MaterialBindingKey key =
         {
             .shaderId = material.m_shaderId,
             .diffuseTextureId = material.m_diffuseTextureId,
@@ -4087,6 +4129,33 @@ namespace aiko::renderer::vulkan
             .lit = material.m_lit,
             .baseColor = material.m_baseColor.rgba(),
         };
+
+        size_t offset = 0;
+
+        auto appendCustom = [&](const char* name)
+        {
+            vec4 value{0.0f};
+
+            if (const auto it = material.m_customVec4Uniforms.find(name); it != material.m_customVec4Uniforms.end())
+            {
+                value = it->second;
+            }
+
+            key.customValues[offset++] = value.x;
+            key.customValues[offset++] = value.y;
+            key.customValues[offset++] = value.z;
+            key.customValues[offset++] = value.w;
+        };
+
+        appendCustom("u_particleSizeLife");
+        appendCustom("u_particleStartColor");
+        appendCustom("u_particleEndColor");
+        appendCustom("u_billboardParams");
+        appendCustom("u_nbodyRender");
+
+        AIKO_ASSERT(offset == key.customValues.size(), "Material binding key custom uniform size mismatch");
+
+        return key;
     }
 
 }

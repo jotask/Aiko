@@ -107,7 +107,7 @@ namespace aiko::renderer::vulkan
 
         void createFrameResources();
         void destroyFrameResources();
-        void createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, const RenderState& renderState, VkPipeline& pipeline);
+        void createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, VkPipeline& pipeline);
         void createModelInstancedPipeline(VkRenderPass renderPass, const RenderState& renderState, VkPipeline& pipeline);
         void createModelPipelineLayout();
         void destroyModelPipeline();
@@ -134,16 +134,19 @@ namespace aiko::renderer::vulkan
         };
 
         Texture m_whiteTexture;
-        VkDescriptorPool m_materialDescriptorPool = VK_NULL_HANDLE;
+        std::array<VkDescriptorPool, FramesInFlight> m_materialDescriptorPools{};
 
         struct MaterialBindingKey
         {
             AssetId shaderId = InvalidAssetId;
             AssetId diffuseTextureId = InvalidAssetId;
             const Texture* runtimeDiffuseTexture = nullptr;
+
             bool useVertexColor = false;
             bool lit = false;
             u32 baseColor = 0;
+
+            std::array<float, 20> customValues{};
 
             bool operator==(const MaterialBindingKey& other) const
             {
@@ -152,7 +155,8 @@ namespace aiko::renderer::vulkan
                     && runtimeDiffuseTexture == other.runtimeDiffuseTexture
                     && useVertexColor == other.useVertexColor
                     && lit == other.lit
-                    && baseColor == other.baseColor;
+                    && baseColor == other.baseColor
+                    && customValues == other.customValues;
             }
         };
 
@@ -160,13 +164,17 @@ namespace aiko::renderer::vulkan
         {
             size_t operator()(const MaterialBindingKey& key) const
             {
-                std::size_t seed = 0;
+                size_t seed = 0;
                 utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
                 utils::hashCombine(std::hash<AssetId>{}(key.diffuseTextureId), seed);
                 utils::hashCombine(std::hash<const Texture*>{}(key.runtimeDiffuseTexture), seed);
                 utils::hashCombine(std::hash<bool>{}(key.useVertexColor), seed);
                 utils::hashCombine(std::hash<bool>{}(key.lit), seed);
                 utils::hashCombine(std::hash<u32>{}(key.baseColor), seed);
+                for (const float value : key.customValues)
+                {
+                    utils::hashCombine(std::hash<float>{}(value), seed);
+                }
                 return seed;
             }
         };
@@ -175,6 +183,7 @@ namespace aiko::renderer::vulkan
         {
             VkRenderPass renderPass = VK_NULL_HANDLE;
             VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+            AssetId shaderId = InvalidAssetId;
 
             CullMode cullMode = CullMode::None;
 
@@ -191,6 +200,7 @@ namespace aiko::renderer::vulkan
                 return
                     renderPass == other.renderPass &&
                     topology == other.topology &&
+                    shaderId == other.shaderId &&
                     cullMode == other.cullMode &&
                     depthTest == other.depthTest &&
                     depthWrite == other.depthWrite &&
@@ -207,6 +217,7 @@ namespace aiko::renderer::vulkan
                 size_t seed = 0;
                 utils::hashCombine(std::hash<VkRenderPass>{}(key.renderPass), seed);
                 utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.topology)), seed);
+                utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
                 utils::hashCombine(std::hash<uint32_t>{}( static_cast<uint32_t>(key.cullMode)), seed);
                 utils::hashCombine(std::hash<bool>{}(key.depthTest), seed);
                 utils::hashCombine(std::hash<bool>{}(key.depthWrite), seed);
@@ -219,14 +230,16 @@ namespace aiko::renderer::vulkan
 
         std::unordered_map<ModelPipelineKey, VkPipeline, ModelPipelineKeyHash> m_modelPipelines;
 
-        VkPipeline getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, const RenderState& renderState, bool instanced);
+        VkPipeline getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced);
 
-        std::unordered_map<MaterialBindingKey, CachedMaterialBinding, MaterialBindingKeyHash> m_materialBindingCache;
+        std::array<std::unordered_map<MaterialBindingKey, CachedMaterialBinding, MaterialBindingKeyHash>, FramesInFlight> m_materialBindingCaches;
         MaterialBindingKey makeMaterialBindingKey(const Material& material) const;
 
         void createMaterialResources();
         void destroyMaterialResources();
+        void clearMaterialBindings(u32 frame);
         CachedMaterialBinding& resolveMaterialBinding(const Material& material);
+        void refreshMaterialTextureBinding(CachedMaterialBinding& binding, const Material& material);
 
         mat4 m_sceneViewProj = mat4(1.0f);
 
