@@ -13,6 +13,7 @@ namespace aiko::renderer::vulkan
 {
     struct VulkanShaderDescriptorBinding
     {
+        std::string name;
         uint32_t set = 0;
         uint32_t binding = 0;
         VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
