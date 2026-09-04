@@ -173,10 +173,21 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        VkDevice device = VulkanContext::current().device();
+        VulkanContext& ctx = VulkanContext::current();
 
-        if (m_framebuffer != VK_NULL_HANDLE) vkDestroyFramebuffer(device, m_framebuffer, nullptr);
-        if (m_renderPass != VK_NULL_HANDLE) vkDestroyRenderPass(device, m_renderPass, nullptr);
+        ctx.waitIdle();
+
+        VkDevice device = ctx.device();
+
+        if (m_framebuffer != VK_NULL_HANDLE)
+        {
+            vkDestroyFramebuffer(device, m_framebuffer, nullptr);
+        }
+
+        if (m_renderPass != VK_NULL_HANDLE)
+        {
+            vkDestroyRenderPass(device, m_renderPass, nullptr);
+        }
 
         m_framebuffer = VK_NULL_HANDLE;
         m_renderPass = VK_NULL_HANDLE;

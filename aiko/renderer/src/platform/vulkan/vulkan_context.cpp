@@ -1781,6 +1781,11 @@ namespace aiko::renderer::vulkan
 
     }
 
+    VkFormat VulkanContext::depthFormat() const
+    {
+        return findDepthFormat(m_physicalDevice);
+    }
+
     VkCommandBuffer VulkanContext::preComputeCommandBuffer()
     {
         AIKO_ASSERT(m_currentFrame < m_preComputeCommandBuffers.size(), "Invalid pre-compute command buffer frame");

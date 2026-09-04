@@ -73,10 +73,6 @@ namespace aiko
 
     void ScreenFbo::resize(int width, int height)
     {
-        if (m_frameBuffer.isValid() == true)
-        {
-            m_frameBuffer.unload();
-        }
         m_frameBuffer.create(width, height);
         AIKO_ASSERT(m_frameBuffer.isValid(), "ScreenFbo framebuffer invalid!");
 

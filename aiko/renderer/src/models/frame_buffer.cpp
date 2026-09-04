@@ -38,6 +38,10 @@ namespace aiko
 
     void FrameBuffer::create(int width, int height)
     {
+        AIKO_ASSERT(width > 0 && height > 0, "Framebuffer size must be greater than zero");
+
+        unload();
+
         colorTexture.create(
             {
                 .type = TextureType::RenderTarget,

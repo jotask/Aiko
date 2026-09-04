@@ -23,6 +23,8 @@ namespace aiko::renderer::vulkan
         VkQueue graphicsQueue() const { return m_graphicsQueue; }
         VkRenderPass renderPass() const { return m_renderPass; }
         std::vector<VkImage> swapChainImages() const { return m_swapChainImages; }
+        VkFormat swapChainImageFormat() const { return m_swapChainImageFormat; }
+        VkFormat depthFormat() const;
         VkExtent2D swapChainExtent() const { return m_swapChainExtent; }
         VkFramebuffer currentSwapChainFramebuffer() const { return m_swapChainFramebuffers[m_currentImageIndex]; }
         VkCommandBuffer activeCommandBuffer() const { return m_activeCommandBuffer; }

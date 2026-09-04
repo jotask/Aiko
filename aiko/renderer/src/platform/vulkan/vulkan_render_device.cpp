@@ -213,6 +213,16 @@ namespace aiko::renderer::vulkan
             auto* colorImpl = static_cast<VulkanTextureImpl*>(frameBuffer->getColorTexture().getImpl());
             AIKO_ASSERT(colorImpl != nullptr, "Invalid Vulkan framebuffer color texture");
 
+            auto* depthImpl = static_cast<VulkanTextureImpl*>(frameBuffer->getDepthTexture().getImpl());
+            AIKO_ASSERT(depthImpl != nullptr, "Invalid Vulkan framebuffer depth texture");
+
+            m_activeRenderPassCompatibility =
+            {
+                .colorFormat = colorImpl->format(),
+                .depthFormat = depthImpl->format(),
+                .samples = VK_SAMPLE_COUNT_1_BIT,
+            };
+
             const VulkanImageState colorState = colorImpl->state();
 
             if (colorState.queueFamily == VK_QUEUE_FAMILY_IGNORED)
@@ -252,9 +262,17 @@ namespace aiko::renderer::vulkan
         else
         {
             m_activeColorAttachment = nullptr;
+
             renderPass = m_context.renderPass();
             framebuffer = m_context.currentSwapChainFramebuffer();
             extent = m_context.swapChainExtent();
+
+            m_activeRenderPassCompatibility =
+            {
+                .colorFormat = m_context.swapChainImageFormat(),
+                .depthFormat = m_context.depthFormat(),
+                .samples = VK_SAMPLE_COUNT_1_BIT,
+            };
         }
 
         std::array<VkClearValue, 2> clearValues{};
@@ -315,6 +333,7 @@ namespace aiko::renderer::vulkan
 
         m_activeRenderPass = VK_NULL_HANDLE;
         m_activeExtent = {};
+        m_activeRenderPassCompatibility = {};
 
     }
 
@@ -3651,6 +3670,9 @@ namespace aiko::renderer::vulkan
 
     VkPipeline VulkanRenderDevice::getOrCreateGpuInstancedPipeline(const Material& material, VkRenderPass renderPass)
     {
+
+        AIKO_ASSERT(m_activeRenderPassCompatibility.colorFormat != VK_FORMAT_UNDEFINED, "Graphics pipeline requires an active render-pass compatibility key");
+
         AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "GPU-instanced material has no shader");
         AIKO_ASSERT(renderPass != VK_NULL_HANDLE, "GPU-instanced render pass is invalid");
 
@@ -3663,7 +3685,7 @@ namespace aiko::renderer::vulkan
         const GpuPipelineKey key =
         {
             .shaderId = shader.id(),
-            .renderPass = renderPass,
+            .renderPass = m_activeRenderPassCompatibility,
         };
 
         if (const auto it = m_gpuInstancedPipelines.find(key); it != m_gpuInstancedPipelines.end())
@@ -3831,6 +3853,9 @@ namespace aiko::renderer::vulkan
 
     VkPipeline VulkanRenderDevice::getOrCreateGpuVertexPipeline(const Material& material, VkRenderPass renderPass, VkPrimitiveTopology topology)
     {
+
+        AIKO_ASSERT(m_activeRenderPassCompatibility.colorFormat != VK_FORMAT_UNDEFINED, "Graphics pipeline requires an active render-pass compatibility key");
+
         AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "GPU vertex material has no shader");
         AIKO_ASSERT(renderPass != VK_NULL_HANDLE, "GPU vertex render pass is invalid");
 
@@ -3843,7 +3868,7 @@ namespace aiko::renderer::vulkan
         const GpuVertexPipelineKey key =
         {
             .shaderId = shader.id(),
-            .renderPass = renderPass,
+            .renderPass = m_activeRenderPassCompatibility,
             .topology = topology,
         };
 
@@ -4094,9 +4119,12 @@ namespace aiko::renderer::vulkan
 
     VkPipeline VulkanRenderDevice::getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced)
     {
+
+        AIKO_ASSERT(m_activeRenderPassCompatibility.colorFormat != VK_FORMAT_UNDEFINED, "Graphics pipeline requires an active render-pass compatibility key");
+
         const ModelPipelineKey key =
         {
-            .renderPass = renderPass,
+            .renderPass = m_activeRenderPassCompatibility,
             .topology = topology,
             .shaderId = instanced ? InvalidAssetId : shaderId,
             .fillMode = renderState.fillMode,

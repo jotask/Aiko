@@ -179,9 +179,35 @@ namespace aiko::renderer::vulkan
             }
         };
 
+        struct RenderPassCompatibilityKey
+        {
+            VkFormat colorFormat = VK_FORMAT_UNDEFINED;
+            VkFormat depthFormat = VK_FORMAT_UNDEFINED;
+            VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
+
+            bool operator==(const RenderPassCompatibilityKey& other) const
+            {
+                return colorFormat == other.colorFormat
+                    && depthFormat == other.depthFormat
+                    && samples == other.samples;
+            }
+        };
+
+        struct RenderPassCompatibilityKeyHash
+        {
+            size_t operator()(const RenderPassCompatibilityKey& key) const
+            {
+                size_t seed = 0;
+                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.colorFormat)), seed);
+                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.depthFormat)), seed);
+                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.samples)), seed);
+                return seed;
+            }
+        };
+
         struct ModelPipelineKey
         {
-            VkRenderPass renderPass = VK_NULL_HANDLE;
+            RenderPassCompatibilityKey renderPass{};
             VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
             AssetId shaderId = InvalidAssetId;
             FillMode fillMode = FillMode::Solid;
@@ -217,7 +243,7 @@ namespace aiko::renderer::vulkan
             size_t operator()(const ModelPipelineKey& key) const
             {
                 size_t seed = 0;
-                utils::hashCombine(std::hash<VkRenderPass>{}(key.renderPass), seed);
+                utils::hashCombine(RenderPassCompatibilityKeyHash{}(key.renderPass), seed);
                 utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.topology)), seed);
                 utils::hashCombine(std::hash<AssetId>{}(key.shaderId), seed);
                 utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.fillMode)), seed);
@@ -231,6 +257,7 @@ namespace aiko::renderer::vulkan
             }
         };
 
+        RenderPassCompatibilityKey m_activeRenderPassCompatibility{};
         std::unordered_map<ModelPipelineKey, VkPipeline, ModelPipelineKeyHash> m_modelPipelines;
 
         VkPipeline getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced);
@@ -361,7 +388,7 @@ namespace aiko::renderer::vulkan
         struct GpuPipelineKey
         {
             RenderResourceId shaderId = InvalidRenderResourceId;
-            VkRenderPass renderPass = VK_NULL_HANDLE;
+            RenderPassCompatibilityKey renderPass{};
 
             bool operator==(const GpuPipelineKey& other) const
             {
@@ -374,8 +401,8 @@ namespace aiko::renderer::vulkan
             size_t operator()(const GpuPipelineKey& key) const
             {
                 size_t seed = 0;
-                utils::hashCombine( std::hash<RenderResourceId>{}(key.shaderId), seed);
-                utils::hashCombine(std::hash<VkRenderPass>{}(key.renderPass), seed);
+                utils::hashCombine(std::hash<RenderResourceId>{}(key.shaderId), seed);
+                utils::hashCombine(RenderPassCompatibilityKeyHash{}(key.renderPass), seed);
                 return seed;
             }
         };
@@ -388,7 +415,7 @@ namespace aiko::renderer::vulkan
         struct GpuVertexPipelineKey
         {
             RenderResourceId shaderId = InvalidRenderResourceId;
-            VkRenderPass renderPass = VK_NULL_HANDLE;
+            RenderPassCompatibilityKey renderPass{};
             VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 
             bool operator==(const GpuVertexPipelineKey& other) const
@@ -405,7 +432,7 @@ namespace aiko::renderer::vulkan
             {
                 size_t seed = 0;
                 utils::hashCombine(std::hash<RenderResourceId>{}(key.shaderId), seed);
-                utils::hashCombine(std::hash<VkRenderPass>{}(key.renderPass), seed);
+                utils::hashCombine(RenderPassCompatibilityKeyHash{}(key.renderPass), seed);
                 utils::hashCombine(std::hash<uint32_t>{}( static_cast<uint32_t>(key.topology)), seed);
                 return seed;
             }
