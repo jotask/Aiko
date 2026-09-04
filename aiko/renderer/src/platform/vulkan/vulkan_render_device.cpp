@@ -1240,11 +1240,9 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(texture.isValid(), "Cannot prepare invalid texture");
 
         const TextureInfo info = texture.getInfo();
-
         AIKO_ASSERT(info.type != TextureType::DepthStencil, "Depth texture sampling is not supported yet");
 
         auto* textureImpl = static_cast<VulkanTextureImpl*>(texture.getImpl());
-
         AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan texture implementation");
 
         const VulkanImageState sampledState =
@@ -3632,7 +3630,7 @@ namespace aiko::renderer::vulkan
 
             const VulkanBufferState destination =
             {
-                .stage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+                .stage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                 .access = VK_ACCESS_SHADER_READ_BIT,
                 .queueFamily = m_context.graphicsQueueFamily(),
             };

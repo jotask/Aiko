@@ -233,6 +233,20 @@ namespace aiko::renderer::vulkan
 
         VulkanContext& ctx = VulkanContext::current();
 
+        const bool computeOwned = m_state.queueFamily != VK_QUEUE_FAMILY_IGNORED && m_state.queueFamily != ctx.graphicsQueueFamily();
+
+        if (m_state.layout == VK_IMAGE_LAYOUT_GENERAL || computeOwned)
+        {
+            AIKO_ASSERT(ctx.activeCommandBuffer() == VK_NULL_HANDLE, "Cannot replace compute texture pixels during an active frame yet");
+        }
+
+        if (computeOwned)
+        {
+            AIKO_ASSERT(ctx.hasDedicatedComputeQueue() && m_state.queueFamily == ctx.computeQueueFamily(), "Texture has unexpected queue ownership");
+            ctx.waitIdle();
+            m_state = {};
+        }
+
         VkBuffer stagingBuffer = VK_NULL_HANDLE;
         VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
 
