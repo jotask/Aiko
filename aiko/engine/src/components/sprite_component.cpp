@@ -115,7 +115,7 @@ namespace aiko
             }
 
             m_texture.resolve(textureId);
-            m_material.m_diffuseTextureId = textureId;
+            m_material.setTexture("u_texture", textureId);
 
             if (m_meshId == InvalidAssetId)
             {
@@ -139,7 +139,7 @@ namespace aiko
             const AssetId textureId = context.create(*m_pendingTexture);
 
             m_texture.set(textureId);
-            m_material.m_diffuseTextureId = textureId;
+            m_material.setTexture("u_texture", textureId);
 
             m_pendingTexture.reset();
         }

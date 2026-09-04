@@ -155,8 +155,7 @@ namespace aiko
                 if (state.output.isValid() == true)
                 {
                     Material& material = spriteCmp->getMaterial();
-                    material.m_runtimeDiffuseTexture = &state.output;
-                    material.m_diffuseTextureId = InvalidAssetId;
+                    material.setTexture("u_texture", &state.output);
                 }
             }
         }
@@ -395,9 +394,12 @@ namespace aiko
 
             Material& material = sprite->getMaterial();
 
-            if (material.m_runtimeDiffuseTexture == &state.output)
+            if (const TextureBinding* binding = material.textureBinding("u_texture"))
             {
-                material.m_runtimeDiffuseTexture = nullptr;
+                if (binding->runtimeTexture == &state.output)
+                {
+                    material.clearTexture("u_texture");
+                }
             }
         }
     }

@@ -68,8 +68,7 @@ namespace aiko
         m_frameBuffer.create(width, height);
         AIKO_ASSERT(m_frameBuffer.isValid(), "ScreenFbo framebuffer invalid!");
 
-        m_material.m_runtimeDiffuseTexture = &m_frameBuffer.getColorTexture();
-        m_material.m_diffuseTextureId = InvalidAssetId;
+        m_material.setTexture("u_texture", &m_frameBuffer.getColorTexture());
 
     }
 
@@ -77,7 +76,7 @@ namespace aiko
     {
         m_mesh.unload();
         m_frameBuffer.unload();
-        m_material.m_runtimeDiffuseTexture = nullptr;
+        m_material.clearTexture("u_texture");
     }
 
     void ScreenFbo::setMaterial(Material&& material)

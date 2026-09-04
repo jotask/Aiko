@@ -19,7 +19,10 @@ namespace aiko
         material->m_baseColor = materialAsset.baseColor;
 
         material->m_shaderId = materialAsset.shaderId;
-        material->m_diffuseTextureId = materialAsset.diffuseTextureId;
+        if (materialAsset.diffuseTextureId != InvalidAssetId)
+        {
+            material->setTexture("u_texture", materialAsset.diffuseTextureId);
+        }
 
         return material;
     }
@@ -37,8 +40,7 @@ namespace aiko
 
         if (instance.runtimeDiffuseTexture != nullptr)
         {
-            material->m_runtimeDiffuseTexture = instance.runtimeDiffuseTexture;
-            material->m_diffuseTextureId = InvalidAssetId;
+            material->setTexture("u_texture", instance.runtimeDiffuseTexture);
         }
 
         return material;
