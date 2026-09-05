@@ -956,8 +956,7 @@ namespace aiko::renderer::vulkan
         ubo.u_ambientColor = u.ambient.color.toVec4();
         ubo.u_ambientIntensity = { u.ambient.intensity, 0.0f, 0.0f, 0.0f };
 
-        const uint32_t lightCount = static_cast<uint32_t>(u.lights.size() < MAX_LIGHTS ? u.lights.size() : MAX_LIGHTS);
-
+        const u32 lightCount = static_cast<u32>(std::min<size_t>(u.lights.size(), MaxFrameLights));
         ubo.u_lightCount = { static_cast<float>(lightCount), 0.0f, 0.0f, 0.0f };
 
         for (uint32_t i = 0; i < lightCount; ++i)

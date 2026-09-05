@@ -19,7 +19,7 @@ namespace aiko
     constexpr ViewId READBACK_VIEW = 250;
     constexpr ViewId READBACK_BLIT_VIEW = 251;
 
-    constexpr uint16_t MAX_LIGHTS = 8;
+    constexpr u32 MaxFrameLights = 8;
 
     struct DeviceInitDesc
     {

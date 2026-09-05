@@ -71,11 +71,11 @@ namespace aiko
         alignas(16) vec4 u_ambientColor;
         alignas(16) vec4 u_ambientIntensity;
         alignas(16) vec4 u_lightCount;
-        alignas(16) std::array<vec4, MAX_LIGHTS> u_lightType;
-        alignas(16) std::array<vec4, MAX_LIGHTS> u_lightPosRange;
-        alignas(16) std::array<vec4, MAX_LIGHTS> u_lightDir;
-        alignas(16) std::array<vec4, MAX_LIGHTS> u_lightColorInt;
-        alignas(16) std::array<vec4, MAX_LIGHTS> u_lightSpotCos;
+        alignas(16) std::array<vec4, MaxFrameLights> u_lightType;
+        alignas(16) std::array<vec4, MaxFrameLights> u_lightPosRange;
+        alignas(16) std::array<vec4, MaxFrameLights> u_lightDir;
+        alignas(16) std::array<vec4, MaxFrameLights> u_lightColorInt;
+        alignas(16) std::array<vec4, MaxFrameLights> u_lightSpotCos;
     };
 
     struct VulkanImageState
