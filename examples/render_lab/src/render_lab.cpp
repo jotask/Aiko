@@ -7,18 +7,15 @@
 #include "components/model_component.h"
 #include "components/particle_emitter_component.h"
 #include "components/sprite_component.h"
-
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/render_context.h"
-
+#include "layers/contexts/scene_context.h"
 #include "models/camera.h"
 #include "models/game_object.h"
 #include "models/mesh_factory.h"
 #include "models/texture_factory.h"
-
 #include "systems/render_system.h"
 #include "systems/system_connector.h"
-
 #include "types/color.h"
 #include "types/render_state.h"
 
@@ -50,6 +47,9 @@ namespace aiko::lab
 
     void RenderLab::init()
     {
+        scene().ambientLight().color = WHITE;
+        scene().ambientLight().intensity = 0.15f;
+
         initCamera();
 
         if constexpr (EnableModelTests)

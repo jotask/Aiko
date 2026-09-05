@@ -12,8 +12,8 @@ namespace aiko
 
     struct AmbientLight
     {
-        float intensity;
-        Color color;
+        Color color = WHITE;
+        float intensity = 0.75f;
     };
 
     struct LightData

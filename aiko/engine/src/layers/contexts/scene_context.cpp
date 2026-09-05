@@ -2,6 +2,7 @@
 
 #include "systems/system_connector.h"
 #include "systems/scene_system.h"
+#include "scene/scene.h"
 
 namespace aiko
 {
@@ -20,6 +21,16 @@ namespace aiko
     GameObject* SceneContext::Instantiate(GameObject* parent, string name)
     {
         return m_sceneSystem->createGameObject(parent, std::move(name));
+    }
+
+    AmbientLight& SceneContext::ambientLight()
+    {
+        return m_sceneSystem->getScene().ambientLight();
+    }
+
+    const AmbientLight& SceneContext::ambientLight() const
+    {
+        return m_sceneSystem->getScene().ambientLight();
     }
 
 }

@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "models/game_object.h"
+#include "models/light.h"
 
 namespace aiko
 {
@@ -36,9 +37,14 @@ namespace aiko
         template<class T>
         vector<const T*> components() const;
 
+        AmbientLight& ambientLight() { return m_ambientLight; }
+        const AmbientLight& ambientLight() const { return m_ambientLight; }
+
     private:
         using ComponentBucket = vector<Component*>;
         std::unordered_map<std::type_index, ComponentBucket> m_componentIndex;
+
+        AmbientLight m_ambientLight;
 
         vector<AikoUPtr<GameObject>> m_objects;
         GameObject* m_activeCamera = nullptr;

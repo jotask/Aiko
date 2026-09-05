@@ -2,6 +2,8 @@
 
 #include <aiko_types.h>
 
+#include "models/light.h"
+
 namespace aiko
 {
 
@@ -15,6 +17,9 @@ namespace aiko
 
         GameObject* Instantiate(string name);
         GameObject* Instantiate(GameObject* parent, string name);
+
+        AmbientLight& ambientLight();
+        const AmbientLight& ambientLight() const;
 
     private:
         friend class LayerContext;
