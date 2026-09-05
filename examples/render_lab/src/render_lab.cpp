@@ -307,6 +307,43 @@ namespace aiko::lab
         m_defaultMaterial.m_lit = false;
         m_defaultMaterial.m_useVertexColor = false;
 
+        // --------------------------------------------------
+        // Primitive colors
+        // --------------------------------------------------
+
+        m_primitiveRedMaterial.m_shaderId = modelShader;
+        m_primitiveRedMaterial.m_baseColor = RED;
+        m_primitiveRedMaterial.m_lit = false;
+        m_primitiveRedMaterial.m_useVertexColor = false;
+
+        m_primitiveGreenMaterial.m_shaderId = modelShader;
+        m_primitiveGreenMaterial.m_baseColor = GREEN;
+        m_primitiveGreenMaterial.m_lit = false;
+        m_primitiveGreenMaterial.m_useVertexColor = false;
+
+        m_primitiveBlueMaterial.m_shaderId = modelShader;
+        m_primitiveBlueMaterial.m_baseColor = BLUE;
+        m_primitiveBlueMaterial.m_lit = false;
+        m_primitiveBlueMaterial.m_useVertexColor = false;
+
+        m_primitiveYellowMaterial.m_shaderId = modelShader;
+        m_primitiveYellowMaterial.m_baseColor = YELLOW;
+        m_primitiveYellowMaterial.m_lit = false;
+        m_primitiveYellowMaterial.m_useVertexColor = false;
+
+        // --------------------------------------------------
+        // Lighting comparison
+        // --------------------------------------------------
+
+        m_litMaterial.m_shaderId = modelShader;
+        m_litMaterial.m_baseColor = WHITE;
+        m_litMaterial.m_lit = true;
+        m_litMaterial.m_useVertexColor = false;
+
+        m_unlitMaterial.m_shaderId = modelShader;
+        m_unlitMaterial.m_baseColor = WHITE;
+        m_unlitMaterial.m_lit = false;
+        m_unlitMaterial.m_useVertexColor = false;
 
         // --------------------------------------------------
         // Typed uniform storage
@@ -473,6 +510,10 @@ namespace aiko::lab
 
     void RenderLab::initLights()
     {
+
+        constexpr float LightRange = 8.0f;
+        constexpr float LightIntensity = 1.0f;
+
         GameObject* root = Instantiate("Lights");
 
         constexpr float SpawnRadius = 6.0f;
@@ -486,12 +527,13 @@ namespace aiko::lab
             {
                 utils::getRandomValue(-SpawnRadius, SpawnRadius),
                 utils::getRandomValue(0.0f, SpawnRadius),
-                utils::getRandomValue(-SpawnRadius, SpawnRadius),
+                -12.0f + utils::getRandomValue(-SpawnRadius, SpawnRadius),
             };
 
             LightComponent* light = object->addComponent<LightComponent>();
 
-            light->setPointLight(Color::getRandomColor(), 1.0f);
+            light->setPointLight(Color::getRandomColor(), LightRange);
+            light->intensity = LightIntensity;
 
             LightInstance instance;
             instance.object = object;
@@ -730,7 +772,7 @@ namespace aiko::lab
             {
                 std::sin(light.angle) * Radius,
                 1.5f,
-                std::cos(light.angle) * Radius
+                -12.0f + std::cos(light.angle) * Radius
             };
         }
     }
@@ -775,20 +817,19 @@ namespace aiko::lab
     void RenderLab::renderPrimitives()
     {
         constexpr float Size = 0.5f;
-
-        m_renderSystem->renderPoint({-4.0f, 3.0f, 0.0f});
-        m_renderSystem->renderLine({-4.0f, 2.5f, 0.0f}, {-2.0f, 2.5f, 0.0f});
-        m_renderSystem->renderTriangle({-4.0f, 2.0f, 0.0f}, Size);
-        m_renderSystem->renderRectangle({-3.0f, 2.0f, 0.0f}, Size);
-        m_renderSystem->renderCircle({-2.0f, 2.0f, 0.0f}, Size, 32);
-        m_renderSystem->renderNgon({-1.0f, 2.0f, 0.0f}, Size, 6);
-        m_renderSystem->renderCube({-4.0f, 1.0f, 0.0f}, Size);
-        m_renderSystem->renderPyramid({-3.0f, 1.0f, 0.0f}, Size);
-        m_renderSystem->renderSphere({-2.0f, 1.0f, 0.0f}, Size);
-        m_renderSystem->renderCylinder({-1.0f, 1.0f, 0.0f}, Size, 16);
-        m_renderSystem->renderTorus({-4.0f, 0.0f, 0.0f}, Size);
-        m_renderSystem->renderKnot({-3.0f, 0.0f, 0.0f}, Size);
-        m_renderSystem->renderGrid({0.0f, -2.5f, 0.0f}, 0.5f, {10, 10});
+        m_renderSystem->renderPoint({-4.0f, 3.0f, 0.0f}, &m_primitiveRedMaterial);
+        m_renderSystem->renderLine({-4.0f, 2.5f, 0.0f}, {-2.0f, 2.5f, 0.0f}, &m_primitiveGreenMaterial);
+        m_renderSystem->renderTriangle({-4.0f, 2.0f, 0.0f}, Size, &m_primitiveBlueMaterial);
+        m_renderSystem->renderRectangle({-3.0f, 2.0f, 0.0f}, Size, &m_primitiveYellowMaterial);
+        m_renderSystem->renderCircle({-2.0f, 2.0f, 0.0f}, Size, 32, &m_primitiveRedMaterial);
+        m_renderSystem->renderNgon({-1.0f, 2.0f, 0.0f}, Size, 6, &m_primitiveGreenMaterial);
+        m_renderSystem->renderCube({-4.0f, 1.0f, 0.0f}, Size, &m_primitiveBlueMaterial);
+        m_renderSystem->renderPyramid({-3.0f, 1.0f, 0.0f}, Size, &m_primitiveYellowMaterial);
+        m_renderSystem->renderSphere({-2.0f, 1.0f, 0.0f}, Size, 25, &m_primitiveRedMaterial);
+        m_renderSystem->renderCylinder({-1.0f, 1.0f, 0.0f}, Size, 16, &m_primitiveGreenMaterial);
+        m_renderSystem->renderTorus({-4.0f, 0.0f, 0.0f}, Size, &m_primitiveBlueMaterial);
+        m_renderSystem->renderKnot({-3.0f, 0.0f, 0.0f}, Size, &m_primitiveYellowMaterial);
+        m_renderSystem->renderGrid({0.0f, -2.5f, 0.0f}, 0.5f, {10, 10}, &m_primitiveGreenMaterial);
     }
 
     // --------------------------------------------------
@@ -905,9 +946,25 @@ namespace aiko::lab
 
     void RenderLab::renderLights()
     {
+        // --------------------------------------------------
+        // Lit vs unlit comparison
+        //
+        // LEFT  = affected by scene lights
+        // RIGHT = ignores scene lights
+        // --------------------------------------------------
+
+        m_renderSystem->renderSphere({-1.5f, 0.0f, -12.0f}, 1.0f, 32, &m_litMaterial);
+        m_renderSystem->renderSphere({1.5f, 0.0f, -12.0f}, 1.0f, 32, &m_unlitMaterial);
+
+        // Additional lit geometry so normals/shading are obvious.
+
+        m_renderSystem->renderCube({-1.5f, -2.0f, -12.0f}, 0.75f, &m_litMaterial);
+        m_renderSystem->renderCube({1.5f, -2.0f, -12.0f}, 0.75f, &m_unlitMaterial);
+
+        // Light position markers.
         for (const LightInstance& light : m_lights)
         {
-            m_renderSystem->renderSphere(light.object->transform().position, 0.1f, 12);
+            m_renderSystem->renderSphere(light.object->transform().position, 0.08f, 12, &m_primitiveYellowMaterial);
         }
     }
 }

@@ -104,6 +104,16 @@ namespace aiko::lab
         Material m_defaultMaterial;
         Material m_uniformMaterial;
 
+        // Primitive color validation
+        Material m_primitiveRedMaterial;
+        Material m_primitiveGreenMaterial;
+        Material m_primitiveBlueMaterial;
+        Material m_primitiveYellowMaterial;
+
+        // Lighting validation
+        Material m_litMaterial;
+        Material m_unlitMaterial;
+
         // Render state validation
         Material m_solidMaterial;
         Material m_wireframeMaterial;
