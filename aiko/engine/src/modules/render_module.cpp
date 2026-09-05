@@ -8,6 +8,7 @@
 #include "display/display_manager.h"
 #include "models/camera.h"
 #include "models/mesh_factory.h"
+#include "types/builtin_shaders.h"
 #include "time/time.h"
 
 namespace aiko
@@ -38,7 +39,7 @@ namespace aiko
     {
         AssetManager* assetManager = m_assetManager->getManager();
 
-        const AssetId passthroughShaderId = assetManager->registerShader("passthrough");
+        const AssetId passthroughShaderId = assetManager->registerShader(renderer::BuiltinShader::Passthrough);
         assetManager->loadShaderAsset(passthroughShaderId);
 
         m_renderer = std::make_unique<AikoRenderer>(*assetManager, passthroughShaderId);

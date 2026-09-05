@@ -16,6 +16,7 @@
 #include "models/texture_factory.h"
 #include "systems/render_system.h"
 #include "systems/system_connector.h"
+#include "types/builtin_shaders.h"
 #include "types/color.h"
 #include "types/render_state.h"
 
@@ -297,7 +298,7 @@ namespace aiko::lab
 
     void RenderLab::initMaterials()
     {
-        const AssetId modelShader = assets().loadShader("model");
+        const AssetId modelShader = assets().loadShader(renderer::BuiltinShader::Model);
 
         // --------------------------------------------------
         // Basic material

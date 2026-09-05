@@ -10,6 +10,7 @@
 #include "components/mesh_component.h"
 #include "components/sprite_component.h"
 #include "components/model_component.h"
+#include "types/builtin_shaders.h"
 #include <intrumentor/profiler.h>
 
 namespace aiko
@@ -21,7 +22,7 @@ namespace aiko
 
     void RenderSystem::init()
     {
-        m_materialPrimitives.m_shaderId = m_assetSystem->registerAsset<ShaderAsset>("model");
+        m_materialPrimitives.m_shaderId = m_assetSystem->registerAsset<ShaderAsset>(renderer::BuiltinShader::Model);
         m_assetSystem->loadAsset<ShaderAsset>(m_materialPrimitives.m_shaderId);
         m_materialPrimitives.m_lit = false;
         m_materialPrimitives.m_useVertexColor = false;
