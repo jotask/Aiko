@@ -31,6 +31,8 @@
 
 #include "core/utils.h"
 
+#include "types/render_config.h"
+
 namespace aiko
 {
 
@@ -42,7 +44,7 @@ namespace aiko
         AikoRenderer(IAssetProvider& assets, const AssetId& passthroughShaderId);
         ~AikoRenderer() = default;
 
-        void init();
+        void init(const RendererConfig& config);
         void beginFrame();
         void endFrame();
         void dispose();

@@ -8,7 +8,6 @@ namespace aiko
 {
     DisplayModule::DisplayModule(Aiko* aiko)
         : BaseModule(aiko)
-        // , m_manager(nullptr)
     {
     }
 
@@ -20,7 +19,7 @@ namespace aiko
     void DisplayModule::preInit()
     {
         const AikoConfig cfg = getAiko()->getConfig();
-        DisplayManager::it().init(cfg.window_tittle, cfg.width, cfg.height);
+        DisplayManager::it().init(cfg.windowTitle, cfg.width, cfg.height);
     }
 
     void DisplayModule::preUpdate()

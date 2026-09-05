@@ -24,7 +24,7 @@ namespace aiko
 
     }
 
-    void AikoRenderer::init()
+    void AikoRenderer::init(const RendererConfig& config)
     {
 
         auto* window = DisplayManager::it().getNativeWindow();
@@ -37,7 +37,7 @@ namespace aiko
             .nativeWindowHandle = window,
             .width = static_cast<u32>(size.x),
             .height = static_cast<u32>(size.y),
-            .vsync = false,
+            .vsync = config.vsync,
         };
 
         if (m_renderer->init(description) == false)

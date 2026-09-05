@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types/color.h"
+#include <types/render_config.h>
 
 #include <cstdint>
 
@@ -11,16 +11,14 @@ namespace aiko
     {
     public:
 
-        static constexpr Color DEFAULT_BACKGROUND_COLOR = BLACK;
-
         AikoConfig();
-        AikoConfig(string tittle, uint16_t width, uint64_t height, Color = DEFAULT_BACKGROUND_COLOR, bool auto_render = true );
+        AikoConfig(string title, uint16_t width, uint16_t height);
+
+        RendererConfig renderer;
 
         uint16_t width;
         uint16_t height;
-        string window_tittle;
-        Color background_color;
-        bool auto_render = true;
+        string windowTitle;
 
     };
 

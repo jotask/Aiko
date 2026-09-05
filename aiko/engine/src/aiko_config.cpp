@@ -4,16 +4,14 @@ namespace aiko
 {
 
     AikoConfig::AikoConfig()
-        : AikoConfig("Aiko", 800, 600, DEFAULT_BACKGROUND_COLOR, true)
+        : AikoConfig("Aiko", 800, 600)
     {
     }
 
-    AikoConfig::AikoConfig(string tittle, uint16_t width, uint64_t height, Color color, bool auto_render)
-        : window_tittle(tittle)
-        , width (width)
+    AikoConfig::AikoConfig(string title, uint16_t width, uint16_t height)
+        : windowTitle(title)
+        , width(width)
         , height(height)
-        , background_color(color)
-        , auto_render(auto_render)
     {
 
     }

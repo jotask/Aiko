@@ -29,7 +29,7 @@ namespace aiko
     
         void close();
 
-        const AikoConfig getConfig() const { return cfg; }
+        const AikoConfig& getConfig() const { return cfg; }
 
     private:
 

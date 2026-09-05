@@ -1,15 +1,15 @@
 #include "render_module.h"
 
-#include "modules/module_connector.h"
-
-#include <aiko_renderer.h>
-
+#include "aiko.h"
 #include "assets_manager_module.h"
 #include "display/display_manager.h"
 #include "models/camera.h"
 #include "models/mesh_factory.h"
-#include "types/builtin_shaders.h"
+#include "modules/module_connector.h"
 #include "time/time.h"
+#include "types/builtin_shaders.h"
+
+#include <aiko_renderer.h>
 
 namespace aiko
 {
@@ -43,7 +43,7 @@ namespace aiko
         assetManager->loadShaderAsset(passthroughShaderId);
 
         m_renderer = std::make_unique<AikoRenderer>(*assetManager, passthroughShaderId);
-        m_renderer->init();
+        m_renderer->init(getAiko()->getConfig().renderer);
     }
 
     void RenderModule::update()
