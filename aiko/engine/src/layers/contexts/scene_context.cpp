@@ -43,4 +43,19 @@ namespace aiko
         return m_sceneSystem->getScene().ambientLight();
     }
 
+    void SceneContext::setActiveCamera(GameObject* camera)
+    {
+        m_sceneSystem->getScene().setActiveCamera(camera);
+    }
+
+    GameObject* SceneContext::activeCamera()
+    {
+        return m_sceneSystem->getScene().getActiveCamera();
+    }
+
+    const GameObject* SceneContext::activeCamera() const
+    {
+        return m_sceneSystem->getScene().getActiveCamera();
+    }
+
 }

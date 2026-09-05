@@ -24,6 +24,10 @@ namespace aiko
         AmbientLight& ambientLight();
         const AmbientLight& ambientLight() const;
 
+        void setActiveCamera(GameObject* camera);
+        GameObject* activeCamera();
+        const GameObject* activeCamera() const;
+
     private:
         friend class LayerContext;
 

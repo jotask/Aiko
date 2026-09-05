@@ -29,16 +29,12 @@ namespace aiko
         const Camera& getCamera() const { return m_camera; }
         Camera& getCamera() { return m_camera; }
 
-        bool isMain() const { return isMainCamera; }
-    
     protected:
         virtual void init() override;
     
     private:
 
         Camera::CameraType m_type;
-
-        bool isMainCamera = true;
 
         // Orbit
         float m_radius = 3.5f;

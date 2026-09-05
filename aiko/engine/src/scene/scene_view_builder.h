@@ -13,7 +13,7 @@ namespace aiko
         SceneViewBuilder() = default;
         SceneView build(Scene& scene);
     private:
-        const Camera* findMainCamera(Scene& scene);
+        const Camera* findActiveCamera(Scene& scene);
         void gatherLights(Scene& scene, SceneView& out);
     };
 

@@ -11,38 +11,29 @@ namespace aiko
     {
         SceneView view;
         view.clear();
-        view.camera = findMainCamera(scene);
+        view.camera = findActiveCamera(scene);
         view.clearColor = scene.clearColor();
         view.ambientLight = scene.ambientLight();
         gatherLights(scene, view);
         return view;
     }
 
-    const Camera* SceneViewBuilder::findMainCamera(Scene& scene)
+    const Camera* SceneViewBuilder::findActiveCamera(Scene& scene)
     {
         if (GameObject* active = scene.getActiveCamera())
         {
-            if (CameraComponent* component = active->getComponent<CameraComponent>())
+            CameraComponent* component = active->getComponent<CameraComponent>();
+            AIKO_ASSERT(component != nullptr, "Active camera GameObject has no CameraComponent");
+            if (component != nullptr)
             {
                 return &component->getCamera();
             }
         }
-
         const auto cameras = scene.components<CameraComponent>();
-
-        for (CameraComponent* component : cameras)
-        {
-            if (component != nullptr && component->isMain())
-            {
-                return &component->getCamera();
-            }
-        }
-
         if (cameras.empty())
         {
             return nullptr;
         }
-
         return &cameras.front()->getCamera();
     }
 
