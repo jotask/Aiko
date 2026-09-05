@@ -53,9 +53,7 @@ namespace aiko::renderer::vulkan
 
     public:
 
-        virtual void presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& fb) override;
-        virtual void presentTextureToScreen(ViewId viewId, const ScreenFbo& screen, const Texture& texture) override;
-
+        virtual void presentTextureToScreen(ViewId viewId, const Mesh& screenMesh, const Texture& texture) override;
 
         virtual void bindFrame(ViewId viewId, const FrameData& u) override;
 

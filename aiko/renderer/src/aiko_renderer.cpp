@@ -15,10 +15,9 @@
 
 namespace aiko
 {
-    AikoRenderer::AikoRenderer(IAssetProvider& assets, const AssetId& passthroughShaderId)
+    AikoRenderer::AikoRenderer(IAssetProvider& assets)
         : m_resources(assets)
         , m_renderer(renderer::RendererFactory::createRenderDevice(&m_resources))
-        , m_passthroughShaderId(passthroughShaderId)
     {
 
     }
@@ -48,20 +47,16 @@ namespace aiko
             std::abort();
         }
 
-        // Create Screen fbo
-        if (m_screenFbo.isValid() == true)
+        // Create scene render target
+        if (m_sceneTarget.isValid() == true)
         {
-            m_screenFbo.unload();
+            m_sceneTarget.unload();
         }
-        AIKO_ASSERT(m_passthroughShaderId != InvalidAssetId, "ScreenFbo shader invalid!");
-        Material screenFboMaterial = {};
-        screenFboMaterial.m_shaderId = m_passthroughShaderId;
-        screenFboMaterial.m_useVertexColor = false;
-        screenFboMaterial.m_lit = false;
-        screenFboMaterial.m_baseColor = WHITE;
-        m_screenFbo.setMaterial(std::move(screenFboMaterial));
 
-        m_screenFbo.create(surface.width, surface.height);
+        m_sceneTarget.create(surface.width, surface.height);
+
+        m_screenPresenter.init();
+        AIKO_ASSERT(m_screenPresenter.isValid(), "Screen presenter invalid");
 
         // bind to on window resize
         EventSystem::it().bind<WindowResizeEvent>(this, &AikoRenderer::onWindowResize);
@@ -78,7 +73,7 @@ namespace aiko
         {
             m_renderSurface = *m_pendingSurfaceResize;
             m_renderer->resize(m_renderSurface.x, m_renderSurface.y);
-            m_screenFbo.resize(m_renderSurface.x, m_renderSurface.y);
+            m_sceneTarget.resize(m_renderSurface.x, m_renderSurface.y);
             m_pendingSurfaceResize.reset();
         }
 
@@ -104,7 +99,8 @@ namespace aiko
     {
         m_imgui.dispose();
         m_transientGeometryCache.clear();
-        m_screenFbo.unload();
+        m_screenPresenter.dispose();
+        m_sceneTarget.unload();
         m_resources.clear();
         m_renderer->shutdown();
     }
@@ -203,7 +199,7 @@ namespace aiko
 
     const FrameBuffer& AikoRenderer::getTargetTexture() const
     {
-        return m_screenFbo.getFrameBuffer();
+        return m_sceneTarget.frameBuffer();
     }
 
     void AikoRenderer::waitIdle()
@@ -271,7 +267,7 @@ namespace aiko
             .clear = m_clearColor
         };
 
-        const FrameBuffer& fbo = m_screenFbo.getFrameBuffer();
+        const FrameBuffer& target = m_sceneTarget.frameBuffer();
 
         std::unordered_set<const Material*> preparedMaterials;
 
@@ -359,7 +355,7 @@ namespace aiko
             }
         }
 
-        m_renderer->beginPass(SCENE_VIEW, pass, &fbo);
+        m_renderer->beginPass(SCENE_VIEW, pass, &target);
         m_renderer->bindFrame(SCENE_VIEW, frameData);
 
         {
@@ -441,31 +437,21 @@ namespace aiko
             .projection = mat4(1.0f),
         };
 
+        const Texture* presentTexture = &m_sceneTarget.colorTexture();
+
         if (m_debugTexture != nullptr && m_debugTexture->isValid())
         {
-            m_renderer->prepareTextureForSampling(*m_debugTexture);
+            presentTexture = m_debugTexture;
         }
-        else
-        {
-            const TextureBinding* screenBinding = m_screenFbo.getMaterial().textureBinding("u_texture");
-            AIKO_ASSERT(screenBinding != nullptr, "ScreenFbo has no texture binding");
-            const Texture* screenTexture = screenBinding->runtimeTexture;
-            AIKO_ASSERT(screenTexture != nullptr, "ScreenFbo has no runtime texture");
-            AIKO_ASSERT( screenTexture->isValid(), "ScreenFbo runtime texture is invalid");
-            m_renderer->prepareTextureForSampling(*screenTexture);
-        }
+
+        AIKO_ASSERT(presentTexture->isValid(), "Present texture is invalid");
+
+        m_renderer->prepareTextureForSampling(*presentTexture);
 
         m_renderer->beginPass(SCREEN_VIEW, presentPass, nullptr);
         m_renderer->bindFrame(SCREEN_VIEW, screenFrame);
 
-        if (m_debugTexture != nullptr && m_debugTexture->isValid())
-        {
-            m_renderer->presentTextureToScreen(SCREEN_VIEW, m_screenFbo, *m_debugTexture);
-        }
-        else
-        {
-            m_renderer->presentFrameBufferToScreen(SCREEN_VIEW, m_screenFbo);
-        }
+        m_renderer->presentTextureToScreen(SCREEN_VIEW, m_screenPresenter.mesh(), *presentTexture);
 
         m_imgui.endFrame(size.x, size.y);
 

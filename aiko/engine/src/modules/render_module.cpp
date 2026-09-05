@@ -50,7 +50,7 @@ namespace aiko
             .height = static_cast<u32>(size.y),
         };
 
-        m_renderer = std::make_unique<AikoRenderer>(*assetManager, passthroughShaderId);
+        m_renderer = std::make_unique<AikoRenderer>(*assetManager);
         m_renderer->init(getAiko()->getConfig().renderer, surface);
     }
 

@@ -761,18 +761,7 @@ namespace aiko::renderer::vulkan
         drawMeshWithPipeline(viewId, world, mesh, pipeline);
     }
 
-    void VulkanRenderDevice::presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& screen)
-    {
-        const TextureBinding* textureBinding = screen.getMaterial().textureBinding("u_texture");
-        AIKO_ASSERT(textureBinding != nullptr, "ScreenFbo has no texture binding");
-        const Texture* texture = textureBinding->runtimeTexture;
-        AIKO_ASSERT(texture != nullptr, "ScreenFbo has no runtime texture");
-        AIKO_ASSERT(texture->isValid(), "ScreenFbo runtime texture is invalid");
-
-        presentTextureToScreen(viewId, screen, *texture);
-    }
-
-    void VulkanRenderDevice::presentTextureToScreen(ViewId viewId, const ScreenFbo& screen, const Texture& texture)
+    void VulkanRenderDevice::presentTextureToScreen(ViewId viewId, const Mesh& screenMesh, const Texture& texture)
     {
         AIKO_UNUSED(viewId);
 
@@ -782,8 +771,7 @@ namespace aiko::renderer::vulkan
 
         VkDescriptorSet descriptorSet = getScreenDescriptorSet(texture);
 
-        const Mesh& mesh = screen.getMesh();
-        auto* meshImpl = static_cast<VulkanMeshImpl*>(getMeshBackend(mesh));
+        auto* meshImpl = static_cast<VulkanMeshImpl*>(getMeshBackend(screenMesh));
 
         AIKO_ASSERT(meshImpl != nullptr, "Invalid screen mesh impl");
         AIKO_ASSERT(meshImpl->isValid(), "Invalid screen mesh");

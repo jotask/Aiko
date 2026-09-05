@@ -1,20 +1,19 @@
 #pragma once
 
-#include <aiko_types.h>
-
 #include "models/compute_buffer.h"
 #include "models/compute_shader.h"
+#include "models/frame_buffer.h"
 #include "models/material.h"
 #include "models/mesh.h"
-#include "models/texture.h"
-#include "models/screen_fbo.h"
 #include "models/shader.h"
-#include "models/frame_buffer.h"
-#include "types/render_types.h"
+#include "models/texture.h"
 #include "renderer/frame_uniforms.h"
 #include "types/compute_pass.h"
 #include "types/draw_types.h"
+#include "types/render_types.h"
 #include "types/transient_types.h"
+
+#include <aiko_types.h>
 
 namespace aiko
 {
@@ -52,8 +51,7 @@ namespace aiko::renderer
 
     public:
 
-        virtual void presentFrameBufferToScreen(ViewId viewId, const ScreenFbo& fb) = 0;
-        virtual void presentTextureToScreen(ViewId viewId, const ScreenFbo& screen, const Texture& texture) = 0;
+        virtual void presentTextureToScreen(ViewId viewId, const Mesh& screenMesh, const Texture& texture) = 0;
 
         virtual void bindFrame(ViewId viewId, const FrameData& u) = 0;
 
