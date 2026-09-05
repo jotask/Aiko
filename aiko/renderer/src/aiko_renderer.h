@@ -1,18 +1,14 @@
 #pragma once
 
-#include <events/event.hpp>
 #include <aiko_types.h>
 
 #include "assets/types/material_asset.h"
 #include "metadata/material_instance.h"
 
-#include "core/singleton.h"
 #include "core/transform.h"
 #include "display/display_events.hpp"
 #include "models/camera.h"
-#include "models/shader.h"
 #include "models/texture.h"
-#include "models/frame_buffer.h"
 #include "models/mesh.h"
 #include "models/model.h"
 #include "models/screen_fbo.h"
@@ -20,17 +16,14 @@
 #include <types/color.h>
 #include <types/render_types.h>
 #include "types/aiko_renderer_types.h"
+#include "renderer/render_queue.h"
 
 #include "imgui/aiko_imgui.h"
 #include "resources/render_resource_manager.h"
-#include "types/draw_types.h"
-#include "types/transient_types.h"
 
 #include <unordered_map>
 #include <deque>
 #include <optional>
-
-#include "core/utils.h"
 
 #include "types/render_config.h"
 
@@ -93,25 +86,17 @@ namespace aiko
 
         ScreenFbo m_screenFbo;
 
-        std::vector<RenderItem> m_queue;
-        std::vector<InstanceItem> m_instancedQueue;
-        std::vector<uint8_t> m_instanceDataArena;
         std::vector<ComputePass> m_computeQueue;
-        std::vector<GpuInstanceDrawDesc> m_gpuInstanceDraws;
-        std::vector<GpuBillboardDrawDesc> m_gpuBillboardQueue;
-        std::vector<uint8_t> m_mergedInstanceDataArena;
-
-        std::vector<TransientDrawDesc> m_transientQueue;
-        std::vector<GpuVertexDrawDesc> m_gpuVertexDraws;
 
         std::vector<LightData> m_lights;
         AmbientLight m_ambientLight;
 
     private:
 
+        RenderQueue m_renderQueue;
+
         renderer::FrameData buildSceneFrameData(const Camera& camera) const;
         void executeComputePasses();
-        PreparedScenePass buildScenePass();
         void submitScenePass(const renderer::FrameData& frameData, const PreparedScenePass& passData, const ivec2& size);
         void submitPresentPass(const ivec2& size);
 

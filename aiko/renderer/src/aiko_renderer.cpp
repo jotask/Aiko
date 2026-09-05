@@ -86,15 +86,8 @@ namespace aiko
 
         m_frameMaterials.clear();
         m_frameMaterialCache.clear();
-        m_queue.clear();
-        m_transientQueue.clear();
-        m_instancedQueue.clear();
-        m_instanceDataArena.clear();
-        m_gpuBillboardQueue.clear();
-        m_mergedInstanceDataArena.clear();
+        m_renderQueue.clear();
         m_computeQueue.clear();
-        m_gpuInstanceDraws.clear();
-        m_gpuVertexDraws.clear();
         m_lights.clear();
         m_imgui.beginFrame(m_renderSurface.x, m_renderSurface.y);
     }
@@ -131,42 +124,13 @@ namespace aiko
     void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const Material& material)
     {
         AIKO_FUNCTION_PROFILE
-        RenderItem item =
-        {
-            .mesh = &mesh,
-            .material = &material,
-            .transform = transform.getWorldMatrix()
-        };
-        m_queue.push_back(item);
+        m_renderQueue.submit(mesh, material, transform.getWorldMatrix());
     }
 
     void AikoRenderer::submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride)
     {
         AIKO_FUNCTION_PROFILE
-        if (data == nullptr || instanceCount == 0 || stride == 0)
-        {
-            return;
-        }
-
-        const size_t byteCount = size_t(instanceCount) * size_t(stride);
-        if (byteCount == 0)
-        {
-            return;
-        }
-
-        const size_t offset = m_instanceDataArena.size();
-        m_instanceDataArena.resize(offset + byteCount);
-        memcpy(m_instanceDataArena.data() + offset, data, byteCount);
-
-        InstanceItem item;
-        item.mesh = &mesh;
-        item.material = &material;
-        item.dataOffset = offset;
-        item.byteCount = byteCount;
-        item.count = instanceCount;
-        item.stride = stride;
-
-        m_instancedQueue.push_back(item);
+        m_renderQueue.submitInstanced(mesh, material, data, instanceCount, stride);
     }
 
     void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const MaterialAsset& materialAsset, const MaterialInstance& materialInstance)
@@ -179,12 +143,12 @@ namespace aiko
     void AikoRenderer::submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology)
     {
         AIKO_FUNCTION_PROFILE
-        TransientDrawDesc data = {};
-        data.mtx = transform.getWorldMatrix();
-        data.material = &material;
-        data.topology = topology;
-        data.geometry = &resolveTransientGeometry(meshAsset, topology);
-        m_transientQueue.push_back(std::move(data));
+        TransientDrawDesc draw = {};
+        draw.mtx = transform.getWorldMatrix();
+        draw.material = &material;
+        draw.topology = topology;
+        draw.geometry = &resolveTransientGeometry(meshAsset, topology);
+        m_renderQueue.submitTransient(std::move(draw));
     }
 
     void AikoRenderer::enqueueCompute(const ComputePass& pass)
@@ -204,17 +168,17 @@ namespace aiko
 
     void AikoRenderer::drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc)
     {
-        m_gpuInstanceDraws.push_back(desc);
+        m_renderQueue.submitGpuInstances(desc);
     }
 
     void AikoRenderer::drawBillboards(const GpuBillboardDrawDesc& desc)
     {
-        m_gpuBillboardQueue.push_back(desc);
+        m_renderQueue.submitGpuBillboards(desc);
     }
 
     void AikoRenderer::drawVerticesGpu(const GpuVertexDrawDesc& desc)
     {
-        m_gpuVertexDraws.push_back(desc);
+        m_renderQueue.submitGpuVertices(desc);
     }
 
     void AikoRenderer::render(const Camera& camera)
@@ -225,7 +189,7 @@ namespace aiko
         m_renderer->bindFrame(COMPUTE_VIEW, frameData);
         executeComputePasses();
 
-        const PreparedScenePass scenePass = buildScenePass();
+        const PreparedScenePass scenePass = m_renderQueue.buildScenePass();
         submitScenePass(frameData, scenePass, m_renderSurface);
 
         submitPresentPass(m_renderSurface);
@@ -293,219 +257,6 @@ namespace aiko
         }
 
         m_renderer->endPass();
-    }
-
-    PreparedScenePass AikoRenderer::buildScenePass()
-    {
-        AIKO_FUNCTION_PROFILE
-        PreparedScenePass passData;
-
-        passData.gpuInstances.reserve(m_gpuInstanceDraws.size());
-        for (const GpuInstanceDrawDesc& desc : m_gpuInstanceDraws)
-        {
-            passData.gpuInstances.push_back(&desc);
-        }
-
-        passData.gpuBillboards.reserve(m_gpuBillboardQueue.size());
-        for (const GpuBillboardDrawDesc& desc : m_gpuBillboardQueue)
-        {
-            passData.gpuBillboards.push_back(&desc);
-        }
-
-        passData.gpuVertices.reserve(m_gpuVertexDraws.size());
-        for (const GpuVertexDrawDesc& desc : m_gpuVertexDraws)
-        {
-            passData.gpuVertices.push_back(&desc);
-        }
-
-        passData.opaque.reserve(m_queue.size());
-        for (const RenderItem& item : m_queue)
-        {
-            if (item.mesh == nullptr || item.material == nullptr)
-            {
-                continue;
-            }
-
-            passData.opaque.push_back(PreparedRenderPacket
-            {
-                .draw =
-                {
-                    .mesh = item.mesh,
-                    .material = item.material,
-                    .world = item.transform
-                },
-                .materialId = item.material->id()
-            });
-        }
-
-        std::ranges::sort(passData.opaque, [](const PreparedRenderPacket& a, const PreparedRenderPacket& b)
-        {
-            if (a.materialId != b.materialId)
-            {
-                return a.materialId < b.materialId;
-            }
-
-            if (a.draw.material != b.draw.material)
-            {
-                return a.draw.material < b.draw.material;
-            }
-
-            return a.draw.mesh < b.draw.mesh;
-        });
-
-        {
-            std::vector<PreparedInstancedPacket> sortedInstanced;
-            sortedInstanced.reserve(m_instancedQueue.size());
-
-            size_t totalInstancedBytes = 0;
-
-            for (const InstanceItem& item : m_instancedQueue)
-            {
-                if (item.mesh == nullptr || item.material == nullptr || item.byteCount == 0)
-                {
-                    continue;
-                }
-
-                AIKO_ASSERT(item.dataOffset + item.byteCount <= m_instanceDataArena.size(), "Instanced data range out of bounds");
-                AIKO_ASSERT(item.byteCount == size_t(item.count) * size_t(item.stride), "Instanced byteCount mismatch");
-
-                totalInstancedBytes += item.byteCount;
-
-                sortedInstanced.push_back(PreparedInstancedPacket
-                {
-                    .draw =
-                    {
-                        .mesh = item.mesh,
-                        .material = item.material,
-                        .data = m_instanceDataArena.data() + item.dataOffset,
-                        .instanceCount = item.count,
-                        .stride = item.stride
-                    },
-                    .materialId = item.material->id(),
-                    .meshId = item.mesh->id(),
-                    .mergedDataOffset = 0,
-                    .mergedByteCount = 0
-                });
-            }
-
-            std::ranges::sort(sortedInstanced, [](const PreparedInstancedPacket& a, const PreparedInstancedPacket& b)
-            {
-                if (a.draw.material != b.draw.material)
-                    return a.draw.material < b.draw.material;
-
-                if (a.draw.mesh != b.draw.mesh)
-                    return a.draw.mesh < b.draw.mesh;
-
-                return a.draw.stride < b.draw.stride;
-            });
-
-            m_mergedInstanceDataArena.clear();
-            m_mergedInstanceDataArena.reserve(totalInstancedBytes);
-
-            std::vector<PreparedInstancedPacket> mergedInstanced;
-            mergedInstanced.reserve(sortedInstanced.size());
-
-            for (const PreparedInstancedPacket& packet : sortedInstanced)
-            {
-                const size_t packetByteCount =
-                    size_t(packet.draw.instanceCount) * size_t(packet.draw.stride);
-
-                AIKO_ASSERT(packetByteCount > 0, "Merged instanced packet byteCount is zero");
-
-                const auto* srcBytes = static_cast<const uint8_t*>(packet.draw.data);
-                AIKO_ASSERT(srcBytes != nullptr, "Prepared instanced packet has null source data");
-
-                if (mergedInstanced.empty())
-                {
-                    const size_t offset = m_mergedInstanceDataArena.size();
-                    m_mergedInstanceDataArena.resize(offset + packetByteCount);
-                    memcpy(m_mergedInstanceDataArena.data() + offset, srcBytes, packetByteCount);
-
-                    PreparedInstancedPacket mergedPacket = packet;
-                    mergedPacket.mergedDataOffset = offset;
-                    mergedPacket.mergedByteCount = packetByteCount;
-                    mergedPacket.draw.data = m_mergedInstanceDataArena.data() + offset;
-
-                    mergedInstanced.push_back(std::move(mergedPacket));
-                    continue;
-                }
-
-                PreparedInstancedPacket& last = mergedInstanced.back();
-
-                const bool compatible =
-                    last.draw.mesh == packet.draw.mesh &&
-                    last.draw.material == packet.draw.material &&
-                    last.draw.stride == packet.draw.stride;
-
-                if (!compatible)
-                {
-                    const size_t offset = m_mergedInstanceDataArena.size();
-                    m_mergedInstanceDataArena.resize(offset + packetByteCount);
-                    memcpy(m_mergedInstanceDataArena.data() + offset, srcBytes, packetByteCount);
-
-                    PreparedInstancedPacket mergedPacket = packet;
-                    mergedPacket.mergedDataOffset = offset;
-                    mergedPacket.mergedByteCount = packetByteCount;
-                    mergedPacket.draw.data = m_mergedInstanceDataArena.data() + offset;
-
-                    mergedInstanced.push_back(std::move(mergedPacket));
-                    continue;
-                }
-
-                const size_t appendOffset = m_mergedInstanceDataArena.size();
-                m_mergedInstanceDataArena.resize(appendOffset + packetByteCount);
-                memcpy(m_mergedInstanceDataArena.data() + appendOffset, srcBytes, packetByteCount);
-
-                last.draw.instanceCount += packet.draw.instanceCount;
-                last.mergedByteCount += packetByteCount;
-                last.draw.data = m_mergedInstanceDataArena.data() + last.mergedDataOffset;
-            }
-
-            passData.instanced = std::move(mergedInstanced);
-
-        }
-
-        {
-
-            passData.transient.reserve(m_transientQueue.size());
-
-            for (const TransientDrawDesc& item : m_transientQueue)
-            {
-                const bool hasCachedGeometry =
-                    item.geometry != nullptr &&
-                    !item.geometry->vertices.empty();
-
-                const bool hasInlineGeometry =
-                    !item.vertices.empty();
-
-                if (item.material == nullptr || (!hasCachedGeometry && !hasInlineGeometry))
-                {
-                    continue;
-                }
-
-                passData.transient.push_back(PreparedTransientPacket
-                {
-                    .item = &item,
-                    .materialId = item.material->id()
-                });
-            }
-
-            std::ranges::sort(passData.transient, [](const PreparedTransientPacket& a, const PreparedTransientPacket& b)
-            {
-                if (a.materialId != b.materialId)
-                {
-                    return a.materialId < b.materialId;
-                }
-
-                AIKO_ASSERT(a.item != nullptr, "Prepared transient packet a has null item");
-                AIKO_ASSERT(b.item != nullptr, "Prepared transient packet b has null item");
-
-                return a.item->material < b.item->material;
-            });
-
-        }
-
-        return passData;
     }
 
     void AikoRenderer::submitScenePass(const renderer::FrameData& frameData, const PreparedScenePass& passData, const ivec2& size)
