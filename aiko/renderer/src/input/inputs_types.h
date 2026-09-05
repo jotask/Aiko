@@ -1,10 +1,11 @@
 #pragma once
 
+#include <aiko_types.h>
+
 namespace aiko
 {
-
-typedef enum {
-
+    enum class Key : u16
+    {
           KEY_UNKNOWN         =    0
         , KEY_SPACE           =   32
         , KEY_APOSTROPHE      =   39  /* ' */
@@ -129,19 +130,20 @@ typedef enum {
         , KEY_MENU            =   348
         ,
 
-    } Key;
+    };
 
-    typedef enum {
-        MOUSE_BUTTON_LEFT = 0,       // Mouse button left
-        MOUSE_BUTTON_RIGHT = 1,       // Mouse button right
-        MOUSE_BUTTON_MIDDLE = 2,       // Mouse button middle (pressed wheel)
-        MOUSE_BUTTON_SIDE = 3,       // Mouse button side (advanced mouse device)
-        MOUSE_BUTTON_EXTRA = 4,       // Mouse button extra (advanced mouse device)
-        MOUSE_BUTTON_FORWARD = 5,       // Mouse button forward (advanced mouse device)
-        MOUSE_BUTTON_BACK = 6,       // Mouse button back (advanced mouse device)
-    } MouseButton;
+    enum class MouseButton : u8
+    {
+        MOUSE_BUTTON_LEFT       = 0,       // Mouse button left
+        MOUSE_BUTTON_RIGHT      = 1,       // Mouse button right
+        MOUSE_BUTTON_MIDDLE     = 2,       // Mouse button middle (pressed wheel)
+        MOUSE_BUTTON_SIDE       = 3,       // Mouse button side (advanced mouse device)
+        MOUSE_BUTTON_EXTRA      = 4,       // Mouse button extra (advanced mouse device)
+        MOUSE_BUTTON_FORWARD    = 5,       // Mouse button forward (advanced mouse device)
+        MOUSE_BUTTON_BACK       = 6,       // Mouse button back (advanced mouse device)
+    };
 
-    enum class PressedType
+    enum class PressedType : u8
     {
         RELEASE, // The key or mouse button was released.
         PRESS, // The key or mouse button was pressed.

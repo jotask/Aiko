@@ -2,10 +2,6 @@
 
 #include <memory>
 
-#include <aiko_types.h>
-#include <math/math.h>
-#include <utils/enum_iterator.h>
-
 #include "systems/base_system.h"
 #include "models/camera.h"
 #include "input/inputs_types.h"
@@ -17,7 +13,6 @@ namespace aiko
 
     class InputSystem : public BaseSystem
     {
-        typedef EnumIterator<aiko::Key, aiko::Key::KEY_UNKNOWN, aiko::Key::KEY_MENU> KeyIterator;
     public:
     
         using CameraPtr = std::shared_ptr<Camera>;

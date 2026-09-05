@@ -188,7 +188,7 @@ namespace aiko
     void DisplayManager::onKeyPressed(OnKeyPressedEvent& event)
     {
         const Key key = static_cast<Key>(event.key);
-        glfwSetWindowShouldClose(m_native, key == KEY_ESCAPE);
+        glfwSetWindowShouldClose(m_native, key == Key::KEY_ESCAPE);
     }
 
     void DisplayManager::onWindowResize(WindowResizeEvent& event)
@@ -203,11 +203,8 @@ namespace aiko
             WindowCloseEvent even;
             EventSystem::it().sendEvent(even);
         }
-
         string title = m_display.getWindowTitle() + " : [" + std::format("{:.0f}", Time::it().getFps() ) + " FPS]";
         glfwSetWindowTitle(m_native, title.c_str());
-
-
     }
 
 }
