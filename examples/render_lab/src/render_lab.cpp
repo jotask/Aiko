@@ -480,17 +480,14 @@ namespace aiko::lab
         // before both become visible in the final fragment.
         // --------------------------------------------------
 
-        m_multiTextureMaterial.m_shaderId = modelShader;
+        const AssetId multiTextureShader = assets().loadShader("multi_texture_validation");
+        m_multiTextureMaterial.m_shaderId = multiTextureShader;
         m_multiTextureMaterial.m_lit = false;
         m_multiTextureMaterial.m_useVertexColor = false;
         m_multiTextureMaterial.m_baseColor = WHITE;
 
         m_multiTextureMaterial.setTexture("u_texture", &m_runtimeTextureA, nearestSampler);
         m_multiTextureMaterial.setTexture("u_secondaryTexture", &m_runtimeTextureB, linearSampler);
-
-        // Verify sampler-before-texture semantics too.
-        m_multiTextureMaterial.setTextureSampler("u_futureTexture", nearestSampler);
-        m_multiTextureMaterial.setTexture("u_futureTexture", &m_runtimeTextureB);
 
     }
 
