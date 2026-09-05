@@ -431,6 +431,17 @@ namespace aiko::lab
         m_uniformMaterial.setVec4("u_labVec4", vec4{1.0f, 0.5f, 0.25f, 1.0f});
         m_uniformMaterial.setMat4("u_labMat4", mat4(1.0f));
 
+        // --------------------------------------------------
+        // Custom shader selection validation
+        // --------------------------------------------------
+
+        const AssetId customShader = assets().loadShader("custom_shader_validation");
+
+        m_customShaderMaterial.m_shaderId = customShader;
+        m_customShaderMaterial.m_baseColor = RED;
+        m_customShaderMaterial.m_lit = true;
+        m_customShaderMaterial.m_useVertexColor = true;
+
     }
 
     // --------------------------------------------------
@@ -840,6 +851,7 @@ namespace aiko::lab
     {
         m_renderSystem->renderCube({-5.0f, 0.0f, -5.0f}, 0.75f, &m_defaultMaterial);
         m_renderSystem->renderCube({-3.0f, 0.0f, -5.0f}, 0.75f, &m_uniformMaterial);
+        m_renderSystem->renderCube({-1.0f, 0.0f, -5.0f}, 0.75f, &m_customShaderMaterial);
     }
 
     // --------------------------------------------------

@@ -100,9 +100,10 @@ namespace aiko::lab
         Material m_runtimeTextureMaterial;
         Material m_multiTextureMaterial;
 
-        // Material/uniform validation
+        // Material/uniform/shader validation
         Material m_defaultMaterial;
         Material m_uniformMaterial;
+        Material m_customShaderMaterial;
 
         // Primitive color validation
         Material m_primitiveRedMaterial;
