@@ -99,11 +99,10 @@ namespace aiko::renderer::vulkan
         VulkanTextureImpl* m_activeColorAttachment = nullptr;
         VulkanTextureImpl* m_activeDepthAttachment = nullptr;
 
-        VkDescriptorPool m_frameDescriptorPool = VK_NULL_HANDLE;
-        std::array<VkBuffer, FramesInFlight> m_frameUniformBuffers{};
-        std::array<VkDeviceMemory, FramesInFlight> m_frameUniformMemories{};
-        std::array<void*, FramesInFlight> m_frameUniformMapped{};
-        std::array<VkDescriptorSet, FramesInFlight> m_frameDescriptorSets{};
+        static constexpr uint32_t MaxFrameBindingsPerFrame = 32;
+
+        std::array<VkDescriptorPool, FramesInFlight> m_frameDescriptorPools{};
+        std::array<std::vector<VulkanFrameBinding>, FramesInFlight> m_frameBindings;
 
         void createFrameResources();
         void destroyFrameResources();
@@ -222,6 +221,8 @@ namespace aiko::renderer::vulkan
         void destroySamplerCache();
         const Texture* resolveTextureBinding(const TextureBinding& binding);
         void refreshMaterialTextureBindings(CachedMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings);
+
+        void resetFrameBindings(u32 frame);
 
     };
 }

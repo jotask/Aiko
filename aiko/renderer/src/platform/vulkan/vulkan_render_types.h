@@ -99,4 +99,12 @@ namespace aiko::renderer::vulkan
             return seed;
         }
     };
+
+    struct VulkanFrameBinding
+    {
+        VkBuffer uniformBuffer = VK_NULL_HANDLE;
+        VkDeviceMemory uniformMemory = VK_NULL_HANDLE;
+        void* uniformMapped = nullptr;
+        VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+    };
 }

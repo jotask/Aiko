@@ -533,6 +533,7 @@ namespace aiko::renderer::vulkan
         const uint32_t frame = m_context.currentFrameIndex();
         AIKO_ASSERT(frame < FramesInFlight, "Invalid Vulkan frame index");
 
+        resetFrameBindings(frame);
         clearMaterialBindings(frame);
 
         const VkResult materialReset = vkResetDescriptorPool(m_context.device(), m_materialDescriptorPools[frame], 0);
@@ -952,19 +953,46 @@ namespace aiko::renderer::vulkan
         ubo.u_view = u.view;
         ubo.u_projection = u.projection;
         ubo.u_viewProj = ubo.u_projection * ubo.u_view;
+
         m_sceneViewProj = ubo.u_viewProj;
 
-        ubo.u_cameraPos = { u.cameraPosition.x, u.cameraPosition.y, u.cameraPosition.z, 1.0f };
+        ubo.u_cameraPos =
+        {
+            u.cameraPosition.x,
+            u.cameraPosition.y,
+            u.cameraPosition.z,
+            1.0f
+        };
 
-        ubo.u_time = { u.time, u.deltaTime, 0.0f, 0.0f };
+        ubo.u_time =
+        {
+            u.time,
+            u.deltaTime,
+            0.0f,
+            0.0f
+        };
 
         ubo.u_ambientColor = u.ambient.color.toVec4();
-        ubo.u_ambientIntensity = { u.ambient.intensity, 0.0f, 0.0f, 0.0f };
 
-        const u32 lightCount = static_cast<u32>(std::min<size_t>(u.lights.size(), MaxFrameLights));
-        ubo.u_lightCount = { static_cast<float>(lightCount), 0.0f, 0.0f, 0.0f };
+        ubo.u_ambientIntensity =
+        {
+            u.ambient.intensity,
+            0.0f,
+            0.0f,
+            0.0f
+        };
 
-        for (uint32_t i = 0; i < lightCount; ++i)
+        const u32 lightCount = static_cast<u32>(std::min<size_t>( u.lights.size(), MaxFrameLights));
+
+        ubo.u_lightCount =
+        {
+            static_cast<float>(lightCount),
+            0.0f,
+            0.0f,
+            0.0f
+        };
+
+        for (u32 i = 0; i < lightCount; ++i)
         {
             const LightData& light = u.lights[i];
 
@@ -1009,10 +1037,70 @@ namespace aiko::renderer::vulkan
             };
         }
 
-        std::memcpy(m_frameUniformMapped[frame], &ubo, sizeof(ubo));
+        AIKO_ASSERT(m_frameBindings[frame].size() < MaxFrameBindingsPerFrame, "Exceeded frame bindings per frame");
+
+        VulkanFrameBinding binding{};
+
+        const VkDeviceSize bufferSize = sizeof(VulkanFrameUbo);
+
+        const std::array<uint32_t, 2> queueFamilies =
+        {
+            m_context.graphicsQueueFamily(),
+            m_context.computeQueueFamily(),
+        };
+
+        if (m_context.hasDedicatedComputeQueue())
+        {
+            m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory, VK_SHARING_MODE_CONCURRENT, queueFamilies.data(), static_cast<u32>(queueFamilies.size()));
+        }
+        else
+        {
+            m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory);
+        }
+
+        const VkResult mapResult =
+            vkMapMemory(m_context.device(), binding.uniformMemory, 0, bufferSize, 0, &binding.uniformMapped);
+
+        AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map frame uniform buffer");
+
+        std::memcpy(binding.uniformMapped, &ubo, sizeof(ubo));
+
+        const VkDescriptorSetAllocateInfo allocInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+            .descriptorPool = m_frameDescriptorPools[frame],
+            .descriptorSetCount = 1,
+            .pSetLayouts = &m_frameDescriptorSetLayout,
+        };
+
+        const VkResult allocResult = vkAllocateDescriptorSets(m_context.device(), &allocInfo, &binding.descriptorSet);
+
+        AIKO_ASSERT(allocResult == VK_SUCCESS, "Failed to allocate frame descriptor set");
+
+        const VkDescriptorBufferInfo bufferInfo =
+        {
+            .buffer = binding.uniformBuffer,
+            .offset = 0,
+            .range = sizeof(VulkanFrameUbo),
+        };
+
+        const VkWriteDescriptorSet write =
+        {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = binding.descriptorSet,
+            .dstBinding = abi::GraphicsFrameBinding,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = &bufferInfo,
+        };
+
+        vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
+
+        m_frameBindings[frame].push_back(binding);
+
         if (viewId == SCENE_VIEW)
         {
-            vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, abi::GraphicsFrameSet, 1, &m_frameDescriptorSets[frame], 0, nullptr );
+            vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, abi::GraphicsFrameSet, 1, &m_frameBindings[frame].back().descriptorSet, 0, nullptr);
         }
 
     }
@@ -1643,78 +1731,24 @@ namespace aiko::renderer::vulkan
         const VkDescriptorPoolSize poolSize =
         {
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = static_cast<uint32_t>(FramesInFlight),
+            .descriptorCount = MaxFrameBindingsPerFrame,
         };
 
-        const VkDescriptorPoolCreateInfo poolInfo =
+        for (u32 frame = 0; frame < FramesInFlight; ++frame)
         {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .maxSets = static_cast<uint32_t>(FramesInFlight),
-            .poolSizeCount = 1,
-            .pPoolSizes = &poolSize,
-        };
-
-        const VkResult resultPoolCreation = vkCreateDescriptorPool(m_context.device(), &poolInfo, nullptr, &m_frameDescriptorPool);
-        AIKO_ASSERT(resultPoolCreation == VK_SUCCESS, "Failed to create frame descriptor pool");
-
-        const VkDeviceSize bufferSize = sizeof(VulkanFrameUbo);
-
-        const std::array<uint32_t, 2> frameQueueFamilies =
-        {
-            m_context.graphicsQueueFamily(),
-            m_context.computeQueueFamily(),
-        };
-
-        for (size_t i = 0; i < FramesInFlight; ++i)
-        {
-
-            if (m_context.hasDedicatedComputeQueue())
+            const VkDescriptorPoolCreateInfo poolInfo =
             {
-                m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_frameUniformBuffers[i], m_frameUniformMemories[i], VK_SHARING_MODE_CONCURRENT, frameQueueFamilies.data(), static_cast<uint32_t>(frameQueueFamilies.size()));
-            }
-            else
-            {
-                m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_frameUniformBuffers[i], m_frameUniformMemories[i]);
-            }
-
-            const VkResult resultMapMemory = vkMapMemory(m_context.device(), m_frameUniformMemories[i], 0, bufferSize, 0, &m_frameUniformMapped[i]);
-            AIKO_ASSERT(resultMapMemory == VK_SUCCESS, "Failed to map frame uniform buffer");
-        }
-
-        std::array<VkDescriptorSetLayout, FramesInFlight> layouts{};
-        layouts.fill(m_frameDescriptorSetLayout);
-
-        const VkDescriptorSetAllocateInfo allocInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .descriptorPool = m_frameDescriptorPool,
-            .descriptorSetCount = static_cast<uint32_t>(FramesInFlight),
-            .pSetLayouts = layouts.data(),
-        };
-
-        const VkResult resultAllocDescSet = vkAllocateDescriptorSets(m_context.device(), &allocInfo, m_frameDescriptorSets.data() );
-        AIKO_ASSERT(resultAllocDescSet == VK_SUCCESS, "Failed to allocate frame descriptor sets");
-
-        for (size_t i = 0; i < FramesInFlight; ++i)
-        {
-            const VkDescriptorBufferInfo bufferInfo =
-            {
-                .buffer = m_frameUniformBuffers[i],
-                .offset = 0,
-                .range = sizeof(VulkanFrameUbo),
+                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+                .flags = 0,
+                .maxSets = MaxFrameBindingsPerFrame,
+                .poolSizeCount = 1,
+                .pPoolSizes = &poolSize,
             };
 
-            const VkWriteDescriptorSet write =
-            {
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = m_frameDescriptorSets[i],
-                .dstBinding = abi::GraphicsFrameBinding,
-                .descriptorCount = 1,
-                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .pBufferInfo = &bufferInfo,
-            };
+            const VkResult result = vkCreateDescriptorPool(m_context.device(), &poolInfo, nullptr, &m_frameDescriptorPools[frame]);
+            AIKO_ASSERT(result == VK_SUCCESS, "Failed to create frame descriptor pool");
 
-            vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
+            m_frameBindings[frame].reserve(MaxFrameBindingsPerFrame);
         }
     }
 
@@ -1722,35 +1756,37 @@ namespace aiko::renderer::vulkan
     {
         VkDevice device = m_context.device();
 
-        for (size_t i = 0; i < FramesInFlight; ++i)
+        for (u32 frame = 0; frame < FramesInFlight; ++frame)
         {
-            if (m_frameUniformMapped[i] != nullptr)
+            for (VulkanFrameBinding& binding : m_frameBindings[frame])
             {
-                vkUnmapMemory(device, m_frameUniformMemories[i]);
+                if (binding.uniformMapped != nullptr)
+                {
+                    vkUnmapMemory(device, binding.uniformMemory);
+                    binding.uniformMapped = nullptr;
+                }
+
+                if (binding.uniformBuffer != VK_NULL_HANDLE)
+                {
+                    vkDestroyBuffer(device, binding.uniformBuffer, nullptr);
+                    binding.uniformBuffer = VK_NULL_HANDLE;
+                }
+
+                if (binding.uniformMemory != VK_NULL_HANDLE)
+                {
+                    vkFreeMemory(device, binding.uniformMemory, nullptr);
+                    binding.uniformMemory = VK_NULL_HANDLE;
+                }
             }
 
-            if (m_frameUniformBuffers[i] != VK_NULL_HANDLE)
-            {
-                vkDestroyBuffer(device, m_frameUniformBuffers[i], nullptr);
-            }
+            m_frameBindings[frame].clear();
 
-            if (m_frameUniformMemories[i] != VK_NULL_HANDLE)
+            if (m_frameDescriptorPools[frame] != VK_NULL_HANDLE)
             {
-                vkFreeMemory(device, m_frameUniformMemories[i], nullptr);
+                vkDestroyDescriptorPool(device, m_frameDescriptorPools[frame], nullptr);
+                m_frameDescriptorPools[frame] = VK_NULL_HANDLE;
             }
-
-            m_frameUniformMapped[i] = nullptr;
-            m_frameUniformBuffers[i] = VK_NULL_HANDLE;
-            m_frameUniformMemories[i] = VK_NULL_HANDLE;
-            m_frameDescriptorSets[i] = VK_NULL_HANDLE;
         }
-
-        if (m_frameDescriptorPool != VK_NULL_HANDLE)
-        {
-            vkDestroyDescriptorPool(device, m_frameDescriptorPool, nullptr);
-        }
-
-        m_frameDescriptorPool = VK_NULL_HANDLE;
     }
 
     void VulkanRenderDevice::createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, VkPipeline& pipeline)
@@ -3156,12 +3192,15 @@ namespace aiko::renderer::vulkan
         }
 
         const uint32_t frame = m_context.currentFrameIndex();
-
         AIKO_ASSERT(frame < FramesInFlight, "Invalid Vulkan frame index");
+        AIKO_ASSERT(m_frameBindings[frame].empty() == false, "Compute descriptor requires a frame binding");
+
+        const VulkanFrameBinding& frameBinding = m_frameBindings[frame].back();
+        AIKO_ASSERT(frameBinding.uniformBuffer != VK_NULL_HANDLE, "Compute frame binding has no uniform buffer");
 
         const VkDescriptorBufferInfo frameInfo =
         {
-            .buffer = m_frameUniformBuffers[frame],
+            .buffer = frameBinding.uniformBuffer,
             .offset = 0,
             .range = sizeof(VulkanFrameUbo),
         };
@@ -4590,6 +4629,38 @@ namespace aiko::renderer::vulkan
             cached.sampler = sampler;
             cached.hasTexture = hasTexture;
         }
+    }
+
+    void VulkanRenderDevice::resetFrameBindings(u32 frame)
+    {
+        AIKO_ASSERT(frame < FramesInFlight, "Invalid frame binding frame");
+
+        VkDevice device = m_context.device();
+
+        for (VulkanFrameBinding& binding : m_frameBindings[frame])
+        {
+            if (binding.uniformMapped != nullptr)
+            {
+                vkUnmapMemory(device, binding.uniformMemory);
+                binding.uniformMapped = nullptr;
+            }
+
+            if (binding.uniformBuffer != VK_NULL_HANDLE)
+            {
+                vkDestroyBuffer(device, binding.uniformBuffer, nullptr);
+            }
+
+            if (binding.uniformMemory != VK_NULL_HANDLE)
+            {
+                vkFreeMemory(device, binding.uniformMemory, nullptr);
+            }
+        }
+
+        m_frameBindings[frame].clear();
+
+        const VkResult result = vkResetDescriptorPool(device, m_frameDescriptorPools[frame], 0);
+
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to reset frame descriptor pool");
     }
 
     void VulkanRenderDevice::prepareBufferForGraphics(VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination)
