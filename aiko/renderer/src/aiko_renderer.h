@@ -44,7 +44,7 @@ namespace aiko
         AikoRenderer(IAssetProvider& assets, const AssetId& passthroughShaderId);
         ~AikoRenderer() = default;
 
-        void init(const RendererConfig& config);
+        void init(const RendererConfig& config, const RenderSurfaceDesc& surface);
         void beginFrame();
         void endFrame();
         void dispose();
@@ -88,6 +88,7 @@ namespace aiko
     protected:
 
         Color m_clearColor;
+        ivec2 m_renderSurface;
 
         ScreenFbo m_screenFbo;
 
@@ -216,7 +217,7 @@ namespace aiko
         AikoImgui m_imgui;
         AssetId m_passthroughShaderId = InvalidAssetId;
 
-        std::optional<ivec2> m_windowResizeRequest = std::nullopt;
+        std::optional<ivec2> m_pendingSurfaceResize = std::nullopt;
 
     };
 

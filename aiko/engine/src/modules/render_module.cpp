@@ -37,13 +37,22 @@ namespace aiko
 
     void RenderModule::init()
     {
+
         AssetManager* assetManager = m_assetManager->getManager();
 
         const AssetId passthroughShaderId = assetManager->registerShader(renderer::BuiltinShader::Passthrough);
         assetManager->loadShaderAsset(passthroughShaderId);
 
+        const ivec2 size = DisplayManager::it().getDisplay()->getDisplaySize();
+        const RenderSurfaceDesc surface =
+        {
+            .nativeWindowHandle = DisplayManager::it().getNativeWindow(),
+            .width = static_cast<u32>(size.x),
+            .height = static_cast<u32>(size.y),
+        };
+
         m_renderer = std::make_unique<AikoRenderer>(*assetManager, passthroughShaderId);
-        m_renderer->init(getAiko()->getConfig().renderer);
+        m_renderer->init(getAiko()->getConfig().renderer, surface);
     }
 
     void RenderModule::update()

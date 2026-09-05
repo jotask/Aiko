@@ -509,11 +509,10 @@ namespace aiko::renderer::vulkan
         m_context.shutdown();
     }
 
-    void VulkanRenderDevice::resize(u32 width, u32 height, bool vsync)
+    void VulkanRenderDevice::resize(u32 width, u32 height)
     {
         AIKO_UNUSED(width);
         AIKO_UNUSED(height);
-        AIKO_UNUSED(vsync);
         m_context.requestSwapChainRecreation();
     }
 

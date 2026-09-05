@@ -34,7 +34,7 @@ namespace aiko::renderer
         virtual void shutdown() = 0;
         virtual void waitIdle() {};
 
-        virtual void resize(u32 width, u32 height, bool vsync) = 0;
+        virtual void resize(u32 width, u32 height) = 0;
 
         virtual void beginFrame() = 0;
         virtual void endFrame() = 0;

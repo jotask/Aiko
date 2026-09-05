@@ -8,7 +8,6 @@
 #include "render_factory.h"
 #include "core/transform.h"
 #include "time/time.h"
-#include "display/display_manager.h"
 #include "imgui/aiko_imgui.h"
 #include "models/camera.h"
 
@@ -24,19 +23,22 @@ namespace aiko
 
     }
 
-    void AikoRenderer::init(const RendererConfig& config)
+    void AikoRenderer::init(const RendererConfig& config, const RenderSurfaceDesc& surface)
     {
 
-        auto* window = DisplayManager::it().getNativeWindow();
-        AIKO_ASSERT(window, "No window created!")
+        AIKO_ASSERT(surface.nativeWindowHandle != nullptr, "No window created!");
 
-        const ivec2 size = DisplayManager::it().getDisplay()->getDisplaySize();
+        m_renderSurface =
+        {
+            static_cast<int>(surface.width),
+            static_cast<int>(surface.height)
+        };
 
         const DeviceInitDesc description =
         {
-            .nativeWindowHandle = window,
-            .width = static_cast<u32>(size.x),
-            .height = static_cast<u32>(size.y),
+            .nativeWindowHandle = surface.nativeWindowHandle,
+            .width = surface.width,
+            .height = surface.height,
             .vsync = config.vsync,
         };
 
@@ -59,18 +61,29 @@ namespace aiko
         screenFboMaterial.m_baseColor = WHITE;
         m_screenFbo.setMaterial(std::move(screenFboMaterial));
 
-        m_screenFbo.create(size.x, size.y);
+        m_screenFbo.create(surface.width, surface.height);
 
         // bind to on window resize
         EventSystem::it().bind<WindowResizeEvent>(this, &AikoRenderer::onWindowResize);
 
-        m_imgui.init(DisplayManager::it().getNativeWindow());
+        m_imgui.init(static_cast<GLFWwindow*>(surface.nativeWindowHandle));
 
     }
 
     void AikoRenderer::beginFrame()
     {
         AIKO_FUNCTION_PROFILE;
+
+        if (m_pendingSurfaceResize.has_value())
+        {
+            m_renderSurface = *m_pendingSurfaceResize;
+            m_renderer->resize(m_renderSurface.x, m_renderSurface.y);
+            m_screenFbo.resize(m_renderSurface.x, m_renderSurface.y);
+            m_pendingSurfaceResize.reset();
+        }
+
+        m_renderer->beginFrame();
+
         m_frameMaterials.clear();
         m_frameMaterialCache.clear();
         m_queue.clear();
@@ -83,14 +96,7 @@ namespace aiko
         m_gpuInstanceDraws.clear();
         m_gpuVertexDraws.clear();
         m_lights.clear();
-        m_renderer->beginFrame();
-        if (m_windowResizeRequest != std::nullopt)
-        {
-            m_screenFbo.resize(m_windowResizeRequest->x, m_windowResizeRequest->y);
-            m_windowResizeRequest = std::nullopt;
-        }
-        const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
-        m_imgui.beginFrame(size.x, size.y);
+        m_imgui.beginFrame(m_renderSurface.x, m_renderSurface.y);
     }
 
     void AikoRenderer::endFrame()
@@ -214,17 +220,15 @@ namespace aiko
     void AikoRenderer::render(const Camera& camera)
     {
         AIKO_FUNCTION_PROFILE
-        const ivec2 size = DisplayManager::it().getDisplay()->getDisplaySize();
-
         const renderer::FrameData frameData = buildSceneFrameData(camera);
 
         m_renderer->bindFrame(COMPUTE_VIEW, frameData);
         executeComputePasses();
 
         const PreparedScenePass scenePass = buildScenePass();
-        submitScenePass(frameData, scenePass, size);
+        submitScenePass(frameData, scenePass, m_renderSurface);
 
-        submitPresentPass(size);
+        submitPresentPass(m_renderSurface);
 
     }
 
@@ -249,8 +253,11 @@ namespace aiko
         {
             return;
         }
-        m_windowResizeRequest = { event.width, event.height };
-        m_renderer->resize(event.width, event.height, false); // TODO: remove VSync from resize API
+        m_pendingSurfaceResize =
+        {
+            event.width,
+            event.height
+        };
     }
 
     renderer::FrameData AikoRenderer::buildSceneFrameData(const Camera& camera) const

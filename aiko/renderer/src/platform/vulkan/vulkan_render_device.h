@@ -34,7 +34,7 @@ namespace aiko::renderer::vulkan
         virtual void shutdown() override;
         virtual void waitIdle() override;
 
-        virtual void resize(u32 width, u32 height, bool vsync) override;
+        virtual void resize(u32 width, u32 height) override;
 
         virtual void beginFrame() override;
         virtual void endFrame() override;
