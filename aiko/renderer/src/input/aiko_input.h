@@ -3,15 +3,13 @@
 #include <map>
 
 #include <math/math.h>
-#include <events/event.hpp>
-#include <core/singleton.h>
 
 #include "inputs_types.h"
 #include "display/display_events.hpp"
 
 namespace aiko
 {
-    class AikoInput : public Singleton<AikoInput>
+    class AikoInput
     {
     public:
 

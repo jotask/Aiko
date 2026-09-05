@@ -3,10 +3,6 @@
 #include <input/aiko_input.h>
 
 #include "modules/module_connector.h"
-#include "modules/render_module.h"
-#include "components/transform_component.h"
-#include "components/camera_component.h"
-#include "models/camera.h"
 #include "modules/input_module.h"
 
 namespace aiko
@@ -19,42 +15,42 @@ namespace aiko
 
     void InputSystem::setIsMouseCentred(bool centred) const
     {
-        AikoInput::it().setCentredToScreen(centred);
+        m_inputModule->input().setCentredToScreen(centred);
     }
 
     bool InputSystem::getIsMouseCentred() const
     {
-        return AikoInput::it().getCentredToScreen();
+        return m_inputModule->input().getCentredToScreen();
     }
 
     bool InputSystem::isKeyPressed(Key key) const
     {
-        return AikoInput::it().isKeyPressed(key);
+        return m_inputModule->input().isKeyPressed(key);
     }
 
     bool InputSystem::isKeyJustPressed(Key key) const
     {
-        return AikoInput::it().isKeyJustPressed(key);
+        return m_inputModule->input().isKeyJustPressed(key);
     }
 
     vec2 InputSystem::getMousePosition() const
     {
-        return AikoInput::it().getMousePosition();
+        return m_inputModule->input().getMousePosition();
     }
 
     vec2 InputSystem::getMouseDelta() const
     {
-        return AikoInput::it().getMouseDelta();
+        return m_inputModule->input().getMouseDelta();
     }
 
     vec2 InputSystem::getMouseScrollBack() const
     {
-        return AikoInput::it().getMouseScrollBack();
+        return m_inputModule->input().getMouseScrollBack();
     }
 
     bool InputSystem::isMouseButtonPressed(MouseButton button) const
     {
-        return AikoInput::it().isMouseButtonPressed(button);
+        return m_inputModule->input().isMouseButtonPressed(button);
     }
 
 }

@@ -15,16 +15,16 @@ namespace aiko
     void InputModule::init()
     {
         GLFWwindow* native = static_cast<GLFWwindow*>(m_displayModule->getNativeWindow());
-        AikoInput::it().init(native);
+        m_input.init(native);
     }
 
     void InputModule::preUpdate()
     {
-        AikoInput::it().pollEvents();
+        m_input.pollEvents();
     }
 
     void InputModule::postUpdate()
     {
-        AikoInput::it().clearEvents();
+        m_input.clearEvents();
     }
 }

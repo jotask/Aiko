@@ -7,18 +7,13 @@
 #include <utils/enum_iterator.h>
 
 #include "systems/base_system.h"
-#include "models/game_object.h"
-#include "types/camera_controller_types.h"
 #include "models/camera.h"
-#include "types/camera_controller_types.h"
 #include "input/inputs_types.h"
 
 namespace aiko
 {
 
     class InputModule;
-    
-    // TODO ? DO we need this class? This is just a proxy really
 
     class InputSystem : public BaseSystem
     {
@@ -45,7 +40,7 @@ namespace aiko
 
     private:
 
-        InputModule* m_inputModule;
+        InputModule* m_inputModule = nullptr;
 
     };
 
