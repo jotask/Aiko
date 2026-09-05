@@ -295,7 +295,7 @@ namespace aiko
         m_renderer->endPass();
     }
 
-    AikoRenderer::PreparedScenePass AikoRenderer::buildScenePass()
+    PreparedScenePass AikoRenderer::buildScenePass()
     {
         AIKO_FUNCTION_PROFILE
         PreparedScenePass passData;

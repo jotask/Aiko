@@ -150,4 +150,10 @@ namespace aiko
         REPEAT, // The key was held down until it repeated.
     };
 
+    struct InputState
+    {
+        PressedType type = PressedType::RELEASE;
+        bool justPressed = false;
+    };
+
 }

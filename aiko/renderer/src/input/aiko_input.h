@@ -34,14 +34,8 @@ namespace aiko
 
     private:
 
-        struct InputType
-        {
-            PressedType Type;
-            bool justPressed;
-        };
-
-        std::map<Key, InputType> m_keys_inputs;
-        std::map<MouseButton, InputType> m_mouse_inputs;
+        std::map<Key, InputState> m_keys_inputs;
+        std::map<MouseButton, InputState> m_mouse_inputs;
 
         void onKeyPressed(OnKeyPressedEvent& event);
         void onMouseKeyPressed(OnMouseKeyPressedEvent& event);

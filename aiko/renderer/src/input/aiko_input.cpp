@@ -21,7 +21,7 @@ namespace aiko
     {
         if (m_keys_inputs.find(key) != m_keys_inputs.end())
         {
-            PressedType type = m_keys_inputs.at(key).Type;
+            PressedType type = m_keys_inputs.at(key).type;
             return type == PressedType::PRESS || type == PressedType::REPEAT;
         }
         return false;
@@ -55,7 +55,7 @@ namespace aiko
     {
         if (m_mouse_inputs.find(button) != m_mouse_inputs.end())
         {
-            PressedType type = m_mouse_inputs.at(button).Type;
+            PressedType type = m_mouse_inputs.at(button).type;
             return type == PressedType::PRESS || type == PressedType::REPEAT;
         }
         return false;
@@ -126,7 +126,7 @@ namespace aiko
             }
         }
 
-        m_keys_inputs[key].Type = action;
+        m_keys_inputs[key].type = action;
         m_keys_inputs[key].justPressed = action == PressedType::PRESS;
 
     }
@@ -151,7 +151,7 @@ namespace aiko
             }
         }
 
-        m_mouse_inputs[key].Type = action;
+        m_mouse_inputs[key].type = action;
         m_mouse_inputs[key].justPressed = action == PressedType::PRESS;
 
     }
