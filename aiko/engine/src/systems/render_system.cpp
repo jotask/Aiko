@@ -143,7 +143,7 @@ namespace aiko
 
     const FrameBuffer& RenderSystem::getTargetTexture() const
     {
-        return m_renderModule->getRenderer().getTargetTexture();
+        return m_renderModule->getRenderer().sceneRenderTarget().frameBuffer();
     }
 
     Camera* RenderSystem::getMainCamera()

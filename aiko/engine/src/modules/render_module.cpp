@@ -5,7 +5,6 @@
 #include "modules/display_module.h"
 #include "models/camera.h"
 #include "modules/module_connector.h"
-#include "types/builtin_shaders.h"
 
 #include <aiko_renderer.h>
 
@@ -38,9 +37,6 @@ namespace aiko
     {
 
         AssetManager* assetManager = m_assetManager->getManager();
-
-        const AssetId passthroughShaderId = assetManager->registerShader(renderer::BuiltinShader::Passthrough);
-        assetManager->loadShaderAsset(passthroughShaderId);
 
         const ivec2 size = m_displayModule->getDisplaySize();
         const RenderSurfaceDesc surface =

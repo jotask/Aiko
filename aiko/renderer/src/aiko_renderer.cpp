@@ -197,11 +197,6 @@ namespace aiko
         m_debugTexture = texture;
     }
 
-    const FrameBuffer& AikoRenderer::getTargetTexture() const
-    {
-        return m_sceneTarget.frameBuffer();
-    }
-
     void AikoRenderer::waitIdle()
     {
         m_renderer->waitIdle();

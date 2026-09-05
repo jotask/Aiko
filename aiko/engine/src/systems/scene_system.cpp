@@ -31,11 +31,13 @@ namespace aiko
     {
         AIKO_FUNCTION_PROFILE
         SceneView view = m_sceneViewBuilder.build(m_scene);
-        if(view.camera != nullptr)
+
+        m_renderModule->setMainCamera(view.camera);
+
+        if (view.camera != nullptr)
         {
             m_renderModule->getRenderer().setClearColor(view.clearColor);
             m_renderModule->getRenderer().submit(view.ambientLight, view.lights);
-            m_renderModule->setMainCamera(view.camera);
         }
 
         for (MeshComponent* component : m_scene.components<MeshComponent>())
