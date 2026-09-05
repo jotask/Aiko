@@ -180,15 +180,24 @@ namespace aiko
     void AikoRenderer::render(const Camera& camera)
     {
         AIKO_FUNCTION_PROFILE
-        const renderer::FrameData frameData = buildSceneFrameData(camera);
+
+        const RenderTarget& target = activeSceneRenderTarget();
+        const ivec2 targetSize = target.size();
+
+        AIKO_ASSERT(target.isValid(), "Active scene render target is invalid");
+        AIKO_ASSERT(targetSize.x > 0 && targetSize.y > 0, "Active scene render target has invalid size");
+
+        const renderer::FrameData frameData = buildSceneFrameData(camera, targetSize);
 
         m_renderer->bindFrame(COMPUTE_VIEW, frameData);
+
         executeComputePasses();
 
         const PreparedScenePass scenePass = m_renderQueue.buildScenePass();
-        submitScenePass(frameData, scenePass, m_renderSurface);
 
-        submitPresentPass(m_renderSurface);
+        submitScenePass(frameData, scenePass, target);
+
+        submitPresentPass(target.colorTexture());
 
     }
 
@@ -215,20 +224,19 @@ namespace aiko
         };
     }
 
-    renderer::FrameData AikoRenderer::buildSceneFrameData(const Camera& camera) const
+    renderer::FrameData AikoRenderer::buildSceneFrameData(const Camera& camera, const ivec2& targetSize) const
     {
         AIKO_FUNCTION_PROFILE
-        const renderer::FrameData frameData =
+        return
         {
             .view = camera.getViewMatrix(),
-            .projection = camera.getProjectionMatrix(m_renderSurface),
+            .projection = camera.getProjectionMatrix(targetSize),
             .cameraPosition = camera.position,
-            .time = static_cast<float>( Time::it().secondSinceStart()),
+            .time = static_cast<float>(Time::it().secondSinceStart()),
             .deltaTime = Time::it().getDeltaTime(),
             .ambient = m_ambientLight,
             .lights = m_lights,
         };
-        return frameData;
     }
 
     void AikoRenderer::executeComputePasses()
@@ -250,9 +258,10 @@ namespace aiko
         m_renderer->endPass();
     }
 
-    void AikoRenderer::submitScenePass(const renderer::FrameData& frameData, const PreparedScenePass& passData, const ivec2& size)
+    void AikoRenderer::submitScenePass(const renderer::FrameData& frameData, const PreparedScenePass& passData, const RenderTarget& target)
     {
         AIKO_FUNCTION_PROFILE
+        const ivec2 size = target.size();
         const renderer::PassDescription pass =
         {
             .width = static_cast<u32>(size.x),
@@ -262,7 +271,7 @@ namespace aiko
             .clear = m_clearColor
         };
 
-        const FrameBuffer& target = m_sceneTarget.frameBuffer();
+        const FrameBuffer& frameBuffer = target.frameBuffer();
 
         std::unordered_set<const Material*> preparedMaterials;
 
@@ -350,7 +359,7 @@ namespace aiko
             }
         }
 
-        m_renderer->beginPass(SCENE_VIEW, pass, &target);
+        m_renderer->beginPass(SCENE_VIEW, pass, &frameBuffer);
         m_renderer->bindFrame(SCENE_VIEW, frameData);
 
         {
@@ -415,13 +424,14 @@ namespace aiko
         m_renderer->endPass();
     }
 
-    void AikoRenderer::submitPresentPass(const ivec2& size)
+    void AikoRenderer::submitPresentPass(const Texture& sceneTexture)
     {
         AIKO_FUNCTION_PROFILE
-        const renderer::PassDescription presentPass
+
+        const renderer::PassDescription presentPass =
         {
-            .width = static_cast<u32>(size.x),
-            .height = static_cast<u32>(size.y),
+            .width = static_cast<u32>(m_renderSurface.x),
+            .height = static_cast<u32>(m_renderSurface.y),
             .clearColor = false,
             .clearDepth = false,
         };
@@ -432,7 +442,7 @@ namespace aiko
             .projection = mat4(1.0f),
         };
 
-        const Texture* presentTexture = &m_sceneTarget.colorTexture();
+        const Texture* presentTexture = &sceneTexture;
 
         if (m_debugTexture != nullptr && m_debugTexture->isValid())
         {
@@ -448,7 +458,7 @@ namespace aiko
 
         m_renderer->presentTextureToScreen(SCREEN_VIEW, m_screenPresenter.mesh(), *presentTexture);
 
-        m_imgui.endFrame(size.x, size.y);
+        m_imgui.endFrame(m_renderSurface.x, m_renderSurface.y);
 
         m_renderer->endPass();
     }

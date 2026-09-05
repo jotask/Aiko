@@ -41,11 +41,21 @@ namespace aiko::lab
         constexpr bool EnableParticleTests = true;
         constexpr bool EnableComputeTests = true;
         constexpr bool EnableGpuVertexTests = true;
+        constexpr bool EnableRenderTargetTests = true;
     }
 
     void RenderLab::connect(SystemConnector& systemConnector)
     {
         BIND_SYSTEM_REQUIRED_REF(RenderSystem, systemConnector, m_renderSystem);
+    }
+
+    void RenderLab::dispose()
+    {
+        if constexpr (EnableRenderTargetTests)
+        {
+            renderer().setSceneRenderTarget(nullptr);
+            m_validationRenderTarget.unload();
+        }
     }
 
     void RenderLab::init()
@@ -99,6 +109,11 @@ namespace aiko::lab
         if constexpr (EnableGpuVertexTests)
         {
             initGpuVertices();
+        }
+
+        if constexpr (EnableRenderTargetTests)
+        {
+            initRenderTarget();
         }
     }
 
@@ -709,6 +724,13 @@ namespace aiko::lab
         m_gpuVertexMaterial.m_useVertexColor = false;
         m_gpuVertexMaterial.m_baseColor = WHITE;
 
+    }
+
+    void RenderLab::initRenderTarget()
+    {
+        m_validationRenderTarget.create(640, 360);
+        AIKO_ASSERT(m_validationRenderTarget.isValid(), "RenderLab validation render target is invalid");
+        renderer().setSceneRenderTarget(&m_validationRenderTarget);
     }
 
     // --------------------------------------------------

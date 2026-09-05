@@ -6,6 +6,7 @@
 #include "models/mesh.h"
 #include "models/texture.h"
 #include "models/compute_buffer.h"
+#include "models/render_target.h"
 
 namespace aiko
 {
@@ -29,6 +30,7 @@ namespace aiko::lab
         void update() override;
         void render() override;
         void connect(SystemConnector& systemConnector) override;
+        void dispose() override;
 
     private:
         struct LightInstance
@@ -53,6 +55,7 @@ namespace aiko::lab
         void initParticles();
         void initCompute();
         void initGpuVertices();
+        void initRenderTarget();
 
         // --------------------------------------------------
         // Update
@@ -137,5 +140,8 @@ namespace aiko::lab
         ComputeBuffer m_gpuIndexBuffer;
         ComputeBuffer m_gpuIndirectBuffer;
         Material m_gpuVertexMaterial;
+
+        // Render target validation
+        RenderTarget m_validationRenderTarget;
     };
 }

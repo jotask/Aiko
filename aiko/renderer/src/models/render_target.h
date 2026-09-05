@@ -44,7 +44,13 @@ namespace aiko
             return m_frameBuffer.getDepthTexture();
         }
 
+        ivec2 size() const
+        {
+            return m_size;
+        }
+
     private:
         FrameBuffer m_frameBuffer;
+        ivec2 m_size = {0, 0};
     };
 }

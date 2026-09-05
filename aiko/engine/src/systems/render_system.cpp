@@ -146,6 +146,11 @@ namespace aiko
         return m_renderModule->getRenderer().pollReadback(req);
     }
 
+    void RenderSystem::setSceneRenderTarget(RenderTarget* target)
+    {
+        m_renderModule->getRenderer().setSceneRenderTarget(target);
+    }
+
     const FrameBuffer& RenderSystem::getTargetTexture() const
     {
         return m_renderModule->getRenderer().sceneRenderTarget().frameBuffer();

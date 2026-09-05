@@ -21,6 +21,7 @@ namespace aiko
     class SceneSystem;
     class RenderModule;
     class AssetSystem;
+    class RenderTarget;
 
     class RenderSystem : public BaseSystem
     {
@@ -54,6 +55,7 @@ namespace aiko
         void requestReadback(const ComputeReadbackRequest&);
         bool pollReadback(ComputeReadbackResult&);
 
+        void setSceneRenderTarget(RenderTarget* target);
         const FrameBuffer& getTargetTexture() const;
 
         Camera* getMainCamera();

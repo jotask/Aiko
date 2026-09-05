@@ -64,6 +64,11 @@ namespace aiko
 
         const RenderTarget& sceneRenderTarget() const { return m_sceneTarget; }
 
+        void setSceneRenderTarget(RenderTarget* target)
+        {
+            m_sceneRenderTargetOverride = target;
+        }
+
         RenderResourceManager& resources() { return m_resources; }
 
         void waitIdle();
@@ -94,10 +99,10 @@ namespace aiko
 
         RenderQueue m_renderQueue;
 
-        renderer::FrameData buildSceneFrameData(const Camera& camera) const;
+        renderer::FrameData buildSceneFrameData(const Camera& camera, const ivec2& targetSize) const;
         void executeComputePasses();
-        void submitScenePass(const renderer::FrameData& frameData, const PreparedScenePass& passData, const ivec2& size);
-        void submitPresentPass(const ivec2& size);
+        void submitScenePass(const renderer::FrameData& frameData, const PreparedScenePass& passData, const RenderTarget& target);
+        void submitPresentPass(const Texture& texture);
 
         static_assert(COMPUTE_VIEW < SCENE_VIEW, "Compute View MUST be less than Scene View");
 
@@ -108,9 +113,21 @@ namespace aiko
         const TransientGeometry& resolveTransientGeometry(const MeshAsset& meshAsset, TransientTopology topology);
         std::unordered_map<TransientCacheKey, TransientGeometry, TransientCacheKeyHash> m_transientGeometryCache;
 
+        RenderTarget& activeSceneRenderTarget()
+        {
+            return m_sceneRenderTargetOverride != nullptr ? *m_sceneRenderTargetOverride : m_sceneTarget;
+        }
+
+        const RenderTarget& activeSceneRenderTarget() const
+        {
+            return m_sceneRenderTargetOverride != nullptr ? *m_sceneRenderTargetOverride : m_sceneTarget;
+        }
+
         AikoImgui m_imgui;
 
         std::optional<ivec2> m_pendingSurfaceResize = std::nullopt;
+
+        RenderTarget* m_sceneRenderTargetOverride = nullptr;
 
     };
 
