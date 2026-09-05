@@ -19,7 +19,6 @@ namespace aiko
     AikoRenderer::AikoRenderer(IAssetProvider& assets, const AssetId& passthroughShaderId)
         : m_resources(assets)
         , m_renderer(renderer::RendererFactory::createRenderDevice(&m_resources))
-        , m_background_color(RAYWHITE)
         , m_passthroughShaderId(passthroughShaderId)
     {
 
@@ -111,9 +110,9 @@ namespace aiko
         m_renderer->shutdown();
     }
 
-    void AikoRenderer::setBackgroundColor(const Color color)
+    void AikoRenderer::setClearColor(Color color)
     {
-        m_background_color = color;
+        m_clearColor = color;
     }
 
     void AikoRenderer::submit(const AmbientLight& ambient, const vector<LightData>& data)
@@ -511,7 +510,7 @@ namespace aiko
             .height = static_cast<u32>(size.y),
             .clearColor = true,
             .clearDepth = true,
-            .clear = m_background_color
+            .clear = m_clearColor
         };
 
         const FrameBuffer& fbo = m_screenFbo.getFrameBuffer();
@@ -674,9 +673,8 @@ namespace aiko
         {
             .width = static_cast<u32>(size.x),
             .height = static_cast<u32>(size.y),
-            .clearColor = true,
-            .clearDepth = true,
-            .clear = MAGENTA
+            .clearColor = false,
+            .clearDepth = false,
         };
 
         const renderer::FrameData screenFrame =

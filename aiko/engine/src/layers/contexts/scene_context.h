@@ -18,6 +18,9 @@ namespace aiko
         GameObject* Instantiate(string name);
         GameObject* Instantiate(GameObject* parent, string name);
 
+        Color& clearColor();
+        const Color& clearColor() const;
+
         AmbientLight& ambientLight();
         const AmbientLight& ambientLight() const;
 

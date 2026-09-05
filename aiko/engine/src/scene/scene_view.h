@@ -8,6 +8,7 @@ namespace aiko
     struct SceneView
     {
         const Camera* camera = nullptr;
+        Color clearColor = RAYWHITE;
         AmbientLight ambientLight = {};
         vector<LightData> lights;
 

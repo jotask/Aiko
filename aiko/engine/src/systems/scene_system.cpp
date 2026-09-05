@@ -33,6 +33,7 @@ namespace aiko
         SceneView view = m_sceneViewBuilder.build(m_scene);
         if(view.camera != nullptr)
         {
+            m_renderModule->getRenderer().setClearColor(view.clearColor);
             m_renderModule->getRenderer().submit(view.ambientLight, view.lights);
             m_renderModule->setMainCamera(view.camera);
         }

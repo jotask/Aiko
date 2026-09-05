@@ -23,6 +23,16 @@ namespace aiko
         return m_sceneSystem->createGameObject(parent, std::move(name));
     }
 
+    Color& SceneContext::clearColor()
+    {
+        return m_sceneSystem->getScene().clearColor();
+    }
+
+    const Color& SceneContext::clearColor() const
+    {
+        return m_sceneSystem->getScene().clearColor();
+    }
+
     AmbientLight& SceneContext::ambientLight()
     {
         return m_sceneSystem->getScene().ambientLight();

@@ -37,6 +37,9 @@ namespace aiko
         template<class T>
         vector<const T*> components() const;
 
+        Color& clearColor() { return m_clearColor; }
+        const Color& clearColor() const { return m_clearColor; }
+
         AmbientLight& ambientLight() { return m_ambientLight; }
         const AmbientLight& ambientLight() const { return m_ambientLight; }
 
@@ -44,6 +47,7 @@ namespace aiko
         using ComponentBucket = vector<Component*>;
         std::unordered_map<std::type_index, ComponentBucket> m_componentIndex;
 
+        Color m_clearColor = RAYWHITE;
         AmbientLight m_ambientLight;
 
         vector<AikoUPtr<GameObject>> m_objects;

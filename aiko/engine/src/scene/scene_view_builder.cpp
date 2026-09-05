@@ -12,6 +12,7 @@ namespace aiko
         SceneView view;
         view.clear();
         view.camera = findMainCamera(scene);
+        view.clearColor = scene.clearColor();
         view.ambientLight = scene.ambientLight();
         gatherLights(scene, view);
         return view;

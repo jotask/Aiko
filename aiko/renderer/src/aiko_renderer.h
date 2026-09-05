@@ -47,7 +47,7 @@ namespace aiko
         void endFrame();
         void dispose();
 
-        void setBackgroundColor(const Color);
+        void setClearColor(Color);
 
         void submit(const AmbientLight& ambient, const vector<LightData>& data);
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
@@ -85,7 +85,7 @@ namespace aiko
 
     protected:
 
-        Color m_background_color;
+        Color m_clearColor;
 
         ScreenFbo m_screenFbo;
 
