@@ -27,4 +27,9 @@ namespace aiko
         m_renderSystem->renderInstanced(mesh, material, instances, instanceCount);
     }
 
+    void RenderContext::drawVerticesGpu(const GpuVertexDrawDesc& desc)
+    {
+        m_renderSystem->drawVerticesGpu(desc);
+    }
+
 }

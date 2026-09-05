@@ -106,6 +106,11 @@ namespace aiko
         m_renderModule->getRenderer().submit(trans, mesh, spriteComponent.getMaterial());
     }
 
+    void RenderSystem::drawVerticesGpu(const GpuVertexDrawDesc& desc)
+    {
+        m_renderModule->getRenderer().drawVerticesGpu(desc);
+    }
+
     void RenderSystem::renderInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount)
     {
         AIKO_ASSERT(instances != nullptr, "Instanced render has no instance data");

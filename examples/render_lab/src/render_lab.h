@@ -5,6 +5,7 @@
 #include "models/material.h"
 #include "models/mesh.h"
 #include "models/texture.h"
+#include "models/compute_buffer.h"
 
 namespace aiko
 {
@@ -51,6 +52,7 @@ namespace aiko::lab
         void initLights();
         void initParticles();
         void initCompute();
+        void initGpuVertices();
 
         // --------------------------------------------------
         // Update
@@ -71,6 +73,7 @@ namespace aiko::lab
         void renderRuntimeTextureTests();
         void renderInstancing();
         void renderLights();
+        void renderGpuVertices();
 
     private:
         RenderSystem* m_renderSystem = nullptr;
@@ -128,5 +131,11 @@ namespace aiko::lab
         Material m_noDepthMaterial;
 
         Material m_blendMaterial;
+
+        // GPU vertex validation
+        ComputeBuffer m_gpuVertexBuffer;
+        ComputeBuffer m_gpuIndexBuffer;
+        ComputeBuffer m_gpuIndirectBuffer;
+        Material m_gpuVertexMaterial;
     };
 }

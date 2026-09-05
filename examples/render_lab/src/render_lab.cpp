@@ -23,6 +23,7 @@
 #include <core/random.h>
 
 #include <chrono>
+#include <array>
 #include <cmath>
 
 namespace aiko::lab
@@ -39,6 +40,7 @@ namespace aiko::lab
         constexpr bool EnableLightTests = true;
         constexpr bool EnableParticleTests = true;
         constexpr bool EnableComputeTests = true;
+        constexpr bool EnableGpuVertexTests = true;
     }
 
     void RenderLab::connect(SystemConnector& systemConnector)
@@ -92,6 +94,11 @@ namespace aiko::lab
         if constexpr (EnableComputeTests)
         {
             initCompute();
+        }
+
+        if constexpr (EnableGpuVertexTests)
+        {
+            initGpuVertices();
         }
     }
 
@@ -148,6 +155,11 @@ namespace aiko::lab
         if constexpr (EnableLightTests)
         {
             renderLights();
+        }
+
+        if constexpr (EnableGpuVertexTests)
+        {
+            renderGpuVertices();
         }
     }
 
@@ -637,6 +649,68 @@ namespace aiko::lab
         m_computeReadback->setExecutionMode(ComputeShaderComponent::ComputeExecutionMode::Once);
     }
 
+    void RenderLab::initGpuVertices()
+    {
+        const std::array<vec4, 4> vertices =
+        {
+            vec4{-1.0f, -1.0f, -8.0f, 1.0f},
+            vec4{ 1.0f, -1.0f, -8.0f, 1.0f},
+            vec4{ 1.0f,  1.0f, -8.0f, 1.0f},
+            vec4{-1.0f,  1.0f, -8.0f, 1.0f},
+        };
+
+        const std::array<uint32_t, 6> indices =
+        {
+            0, 1, 2,
+            0, 2, 3,
+        };
+
+        // VkDrawIndexedIndirectCommand:
+        // indexCount, instanceCount, firstIndex, vertexOffset, firstInstance
+        const std::array<uint32_t, 5> indirect =
+        {
+            6,
+            1,
+            0,
+            0,
+            0,
+        };
+
+        m_gpuVertexBuffer.create(
+            {
+                .format = ComputeBufferFormat::Vec4f,
+                .count = static_cast<uint32_t>(vertices.size()),
+                .usage = ComputeBufferUsage::Vertex | ComputeBufferUsage::TransferDst,
+            },
+            vertices.data()
+        );
+
+        m_gpuIndexBuffer.create(
+            {
+                .format = ComputeBufferFormat::Uint32,
+                .count = static_cast<uint32_t>(indices.size()),
+                .usage = ComputeBufferUsage::Index | ComputeBufferUsage::TransferDst,
+            },
+            indices.data()
+        );
+
+        m_gpuIndirectBuffer.create(
+            {
+                .format = ComputeBufferFormat::Uint32,
+                .count = static_cast<uint32_t>(indirect.size()),
+                .usage = ComputeBufferUsage::Indirect | ComputeBufferUsage::TransferDst,
+            },
+            indirect.data()
+        );
+
+        m_gpuVertexMaterial.m_shaderId = assets().loadShader("gpu_vertex_validation");
+
+        m_gpuVertexMaterial.m_lit = false;
+        m_gpuVertexMaterial.m_useVertexColor = false;
+        m_gpuVertexMaterial.m_baseColor = WHITE;
+
+    }
+
     // --------------------------------------------------
     // Updates
     // --------------------------------------------------
@@ -978,5 +1052,20 @@ namespace aiko::lab
         {
             m_renderSystem->renderSphere(light.object->transform().position, 0.08f, 12, &m_primitiveYellowMaterial);
         }
+    }
+
+    void RenderLab::renderGpuVertices()
+    {
+        const GpuVertexDrawDesc draw =
+        {
+            .material = &m_gpuVertexMaterial,
+            .vertexBuffer = &m_gpuVertexBuffer,
+            .vertexCount = 4,
+            .indexBuffer = &m_gpuIndexBuffer,
+            .indexCount = 6,
+            .indirectBuffer = &m_gpuIndirectBuffer,
+            .topology = TransientTopology::Triangles,
+        };
+        renderer().drawVerticesGpu(draw);
     }
 }
