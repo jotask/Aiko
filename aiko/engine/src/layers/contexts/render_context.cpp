@@ -32,9 +32,9 @@ namespace aiko
         m_renderSystem->drawVerticesGpu(desc);
     }
 
-    void RenderContext::setSceneRenderTarget(RenderTarget* target)
+    void RenderContext::renderToTarget(const Camera& camera, RenderTarget& target)
     {
-        m_renderSystem->setSceneRenderTarget(target);
+        m_renderSystem->renderToTarget(camera, target);
     }
 
 }

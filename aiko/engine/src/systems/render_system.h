@@ -55,7 +55,7 @@ namespace aiko
         void requestReadback(const ComputeReadbackRequest&);
         bool pollReadback(ComputeReadbackResult&);
 
-        void setSceneRenderTarget(RenderTarget* target);
+        void renderToTarget(const Camera& camera, RenderTarget& target);
         const FrameBuffer& getTargetTexture() const;
 
         Camera* getMainCamera();

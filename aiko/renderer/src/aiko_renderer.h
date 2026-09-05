@@ -16,6 +16,7 @@
 #include "resources/render_resource_manager.h"
 #include "types/aiko_renderer_types.h"
 #include "types/render_config.h"
+#include "renderer/scene_render_request.h"
 
 #include <types/color.h>
 #include <types/render_types.h>
@@ -62,12 +63,8 @@ namespace aiko
 
         void setDebugTexture(const Texture* texture);   // nullptr disables
 
+        void renderToTarget(const Camera& camera, RenderTarget& target);
         const RenderTarget& sceneRenderTarget() const { return m_sceneTarget; }
-
-        void setSceneRenderTarget(RenderTarget* target)
-        {
-            m_sceneRenderTargetOverride = target;
-        }
 
         RenderResourceManager& resources() { return m_resources; }
 
@@ -113,21 +110,11 @@ namespace aiko
         const TransientGeometry& resolveTransientGeometry(const MeshAsset& meshAsset, TransientTopology topology);
         std::unordered_map<TransientCacheKey, TransientGeometry, TransientCacheKeyHash> m_transientGeometryCache;
 
-        RenderTarget& activeSceneRenderTarget()
-        {
-            return m_sceneRenderTargetOverride != nullptr ? *m_sceneRenderTargetOverride : m_sceneTarget;
-        }
-
-        const RenderTarget& activeSceneRenderTarget() const
-        {
-            return m_sceneRenderTargetOverride != nullptr ? *m_sceneRenderTargetOverride : m_sceneTarget;
-        }
-
         AikoImgui m_imgui;
 
         std::optional<ivec2> m_pendingSurfaceResize = std::nullopt;
 
-        RenderTarget* m_sceneRenderTargetOverride = nullptr;
+        std::vector<SceneRenderRequest> m_sceneRenderRequests;
 
     };
 

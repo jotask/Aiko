@@ -13,6 +13,7 @@ namespace aiko
     struct Transform;
     struct InstanceData;
     struct GpuVertexDrawDesc;
+    class Camera;
     class RenderTarget;
 
     class RenderContext
@@ -22,8 +23,7 @@ namespace aiko
         void drawMesh(const Transform& transform, const Mesh& mesh, const Material& material);
         void drawMeshInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
-
-        void setSceneRenderTarget(RenderTarget* target);
+        void renderToTarget(const Camera& camera, RenderTarget& target);
 
     private:
         friend class LayerContext;

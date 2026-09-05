@@ -7,6 +7,7 @@
 #include "models/texture.h"
 #include "models/compute_buffer.h"
 #include "models/render_target.h"
+#include "models/camera.h"
 
 namespace aiko
 {
@@ -30,7 +31,6 @@ namespace aiko::lab
         void update() override;
         void render() override;
         void connect(SystemConnector& systemConnector) override;
-        void dispose() override;
 
     private:
         struct LightInstance
@@ -77,6 +77,7 @@ namespace aiko::lab
         void renderInstancing();
         void renderLights();
         void renderGpuVertices();
+        void renderRenderTargetTest();
 
     private:
         RenderSystem* m_renderSystem = nullptr;
@@ -141,7 +142,12 @@ namespace aiko::lab
         ComputeBuffer m_gpuIndirectBuffer;
         Material m_gpuVertexMaterial;
 
-        // Render target validation
+        // Render-to-texture validation
+        Camera m_secondaryCamera;
         RenderTarget m_validationRenderTarget;
+
+        Mesh m_renderTargetMesh;
+        Material m_renderTargetMaterial;
+
     };
 }

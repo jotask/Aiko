@@ -83,6 +83,7 @@ namespace aiko
         m_frameMaterialCache.clear();
         m_renderQueue.clear();
         m_computeQueue.clear();
+        m_sceneRenderRequests.clear();
         m_lights.clear();
         m_imgui.beginFrame(m_renderSurface.x, m_renderSurface.y);
     }
@@ -181,29 +182,49 @@ namespace aiko
     {
         AIKO_FUNCTION_PROFILE
 
-        const RenderTarget& target = activeSceneRenderTarget();
-        const ivec2 targetSize = target.size();
-
-        AIKO_ASSERT(target.isValid(), "Active scene render target is invalid");
-        AIKO_ASSERT(targetSize.x > 0 && targetSize.y > 0, "Active scene render target has invalid size");
-
-        const renderer::FrameData frameData = buildSceneFrameData(camera, targetSize);
+        const renderer::FrameData frameData = buildSceneFrameData(camera, m_sceneTarget.size());
 
         m_renderer->bindFrame(COMPUTE_VIEW, frameData);
-
         executeComputePasses();
 
+        // Secondary cameras first.
+        for (SceneRenderRequest& request : m_sceneRenderRequests)
+        {
+            AIKO_ASSERT(request.target != nullptr, "Scene render request has no target");
+            AIKO_ASSERT(request.target->isValid(), "Scene render request target is invalid");
+
+            const renderer::FrameData requestFrame = buildSceneFrameData(request.camera, request.target->size());
+
+            const PreparedScenePass requestPass = request.queue.buildScenePass();
+
+            submitScenePass(requestFrame, requestPass, *request.target);
+        }
+
+        // Main camera.
         const PreparedScenePass scenePass = m_renderQueue.buildScenePass();
 
-        submitScenePass(frameData, scenePass, target);
+        submitScenePass(frameData, scenePass, m_sceneTarget);
 
-        submitPresentPass(target.colorTexture());
+        submitPresentPass(m_sceneTarget.colorTexture());
 
     }
 
     void AikoRenderer::setDebugTexture(const Texture* texture)
     {
         m_debugTexture = texture;
+    }
+
+    void AikoRenderer::renderToTarget(const Camera& camera, RenderTarget& target)
+    {
+        AIKO_ASSERT(target.isValid(), "Cannot render to an invalid RenderTarget");
+        m_sceneRenderRequests.push_back(
+            SceneRenderRequest
+            {
+                .camera = camera,
+                .target = &target,
+                .queue = m_renderQueue,
+            }
+        );
     }
 
     void AikoRenderer::waitIdle()

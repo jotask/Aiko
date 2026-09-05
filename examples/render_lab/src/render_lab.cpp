@@ -49,15 +49,6 @@ namespace aiko::lab
         BIND_SYSTEM_REQUIRED_REF(RenderSystem, systemConnector, m_renderSystem);
     }
 
-    void RenderLab::dispose()
-    {
-        if constexpr (EnableRenderTargetTests)
-        {
-            renderer().setSceneRenderTarget(nullptr);
-            m_validationRenderTarget.unload();
-        }
-    }
-
     void RenderLab::init()
     {
         scene().clearColor() = RAYWHITE;
@@ -175,6 +166,11 @@ namespace aiko::lab
         if constexpr (EnableGpuVertexTests)
         {
             renderGpuVertices();
+        }
+
+        if constexpr (EnableRenderTargetTests)
+        {
+            renderRenderTargetTest();
         }
     }
 
@@ -729,8 +725,39 @@ namespace aiko::lab
     void RenderLab::initRenderTarget()
     {
         m_validationRenderTarget.create(640, 360);
+
         AIKO_ASSERT(m_validationRenderTarget.isValid(), "RenderLab validation render target is invalid");
-        renderer().setSceneRenderTarget(&m_validationRenderTarget);
+
+        m_secondaryCamera.position =
+        {
+            10.0f,
+            6.0f,
+            4.0f
+        };
+
+        m_secondaryCamera.target =
+        {
+            0.0f,
+            0.0f,
+            -8.0f
+        };
+
+        m_renderTargetMesh.upload(mesh::factory::generateQuad());
+
+        m_renderTargetMaterial.m_shaderId = assets().loadShader(renderer::BuiltinShader::Model);
+
+        m_renderTargetMaterial.m_baseColor = WHITE;
+        m_renderTargetMaterial.m_lit = false;
+        m_renderTargetMaterial.m_useVertexColor = false;
+
+        const SamplerState sampler =
+        {
+            .minFilter = TextureFilter::Linear,
+            .magFilter = TextureFilter::Linear,
+            .mipFilter = TextureMipFilter::None,
+        };
+
+        m_renderTargetMaterial.setTexture("u_texture", &m_validationRenderTarget.colorTexture(), sampler);
     }
 
     // --------------------------------------------------
@@ -1089,5 +1116,32 @@ namespace aiko::lab
             .topology = TransientTopology::Triangles,
         };
         renderer().drawVerticesGpu(draw);
+    }
+
+    void RenderLab::renderRenderTargetTest()
+    {
+        // Snapshot everything submitted so far this frame and render it
+        // from the secondary camera into the offscreen target.
+        renderer().renderToTarget(m_secondaryCamera, m_validationRenderTarget);
+
+        // This is submitted only after the snapshot, so the secondary
+        // camera does not recursively render its own monitor.
+        Transform monitor;
+
+        monitor.position =
+        {
+            4.0f,
+            2.5f,
+            -3.5f
+        };
+
+        monitor.scale =
+        {
+            3.2f,
+            1.8f,
+            1.0f
+        };
+
+        renderer().drawMesh(monitor, m_renderTargetMesh, m_renderTargetMaterial);
     }
 }
