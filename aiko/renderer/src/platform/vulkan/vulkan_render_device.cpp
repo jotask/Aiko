@@ -120,12 +120,17 @@ namespace aiko::renderer::vulkan
 
                 case UniformType::UInt:
                 {
-                    const u32* typed = std::get_if<u32>(&value);
-                    AIKO_ASSERT(typed != nullptr, "Uniform type mismatch");
-                    if (typed != nullptr)
+                    if (const u32* typed = std::get_if<u32>(&value))
                     {
                         writeUniformBytes(destination, member, *typed);
+                        return;
                     }
+                    if (const bool* typed = std::get_if<bool>(&value))
+                    {
+                        writeBoolUniform(destination, member, 0, *typed);
+                        return;
+                    }
+                    AIKO_ASSERT(false, "Uniform type mismatch");
                     return;
                 }
 

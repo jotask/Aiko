@@ -348,25 +348,6 @@ namespace aiko::lab
         m_unlitMaterial.m_useVertexColor = false;
 
         // --------------------------------------------------
-        // Typed uniform storage
-        // --------------------------------------------------
-
-        m_uniformMaterial.m_shaderId = modelShader;
-        m_uniformMaterial.m_baseColor = WHITE;
-        m_uniformMaterial.m_lit = false;
-        m_uniformMaterial.m_useVertexColor = false;
-
-        m_uniformMaterial.setBool("u_labBool", true);
-        m_uniformMaterial.setInt("u_labInt", -42);
-        m_uniformMaterial.setUInt("u_labUInt", 42u);
-        m_uniformMaterial.setFloat("u_labFloat", 0.5f);
-        m_uniformMaterial.setVec2("u_labVec2", vec2{0.25f, 0.75f});
-        m_uniformMaterial.setVec3("u_labVec3", vec3{1.0f, 0.5f, 0.25f});
-        m_uniformMaterial.setVec4("u_labVec4", vec4{1.0f, 0.5f, 0.25f, 1.0f});
-        m_uniformMaterial.setMat4("u_labMat4", mat4(1.0f));
-
-
-        // --------------------------------------------------
         // Fill modes
         // --------------------------------------------------
 
@@ -422,7 +403,6 @@ namespace aiko::lab
         m_noDepthMaterial.m_renderState.depthTest = false;
         m_noDepthMaterial.m_renderState.depthWrite = false;
 
-
         // --------------------------------------------------
         // Blend state
         // --------------------------------------------------
@@ -431,6 +411,26 @@ namespace aiko::lab
         m_blendMaterial.m_baseColor = WHITE;
         m_blendMaterial.m_lit = false;
         m_blendMaterial.m_renderState.blend = true;
+
+        // --------------------------------------------------
+        // Typed uniform validation
+        // --------------------------------------------------
+
+        const AssetId uniformShader = assets().loadShader("uniform_validation");
+        m_uniformMaterial.m_shaderId = uniformShader;
+        m_uniformMaterial.m_baseColor = WHITE;
+        m_uniformMaterial.m_lit = false;
+        m_uniformMaterial.m_useVertexColor = false;
+
+        m_uniformMaterial.setBool("u_labBool", true);
+        m_uniformMaterial.setInt("u_labInt", -42);
+        m_uniformMaterial.setUInt("u_labUInt", 42u);
+        m_uniformMaterial.setFloat("u_labFloat", 0.5f);
+        m_uniformMaterial.setVec2("u_labVec2", vec2{0.25f, 0.75f});
+        m_uniformMaterial.setVec3("u_labVec3", vec3{1.0f, 0.5f, 0.25f});
+        m_uniformMaterial.setVec4("u_labVec4", vec4{1.0f, 0.5f, 0.25f, 1.0f});
+        m_uniformMaterial.setMat4("u_labMat4", mat4(1.0f));
+
     }
 
     // --------------------------------------------------
@@ -443,7 +443,7 @@ namespace aiko::lab
         m_runtimeTextureB.upload(texture::factory::generateBlank(64, 64, BLUE) );
         m_runtimeTextureMesh.upload(mesh::factory::generateQuad());
 
-        const AssetId modelShader = assets().loadShader("model");
+        const AssetId modelShader = assets().loadShader(renderer::BuiltinShader::Model);
 
         const SamplerState nearestSampler =
         {
@@ -491,6 +491,7 @@ namespace aiko::lab
         // Verify sampler-before-texture semantics too.
         m_multiTextureMaterial.setTextureSampler("u_futureTexture", nearestSampler);
         m_multiTextureMaterial.setTexture("u_futureTexture", &m_runtimeTextureB);
+
     }
 
     // --------------------------------------------------
@@ -500,7 +501,7 @@ namespace aiko::lab
     void RenderLab::initInstancing()
     {
         m_instancingMesh.upload(mesh::factory::generateCube());
-        m_instancingMaterial.m_shaderId = assets().loadShader("model");
+        m_instancingMaterial.m_shaderId = assets().loadShader(renderer::BuiltinShader::Model);
         m_instancingMaterial.m_useVertexColor = true;
         m_instancingMaterial.m_lit = false;
         m_instancingMaterial.m_baseColor = WHITE;
