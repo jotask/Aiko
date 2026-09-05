@@ -30,7 +30,7 @@ namespace aiko
 
     public:
 
-        void init();
+        void init(GLFWwindow* window);
         void pollEvents();
         void clearEvents();
 
@@ -52,6 +52,7 @@ namespace aiko
 
         PressedType convertToAction(int code);
 
+        GLFWwindow* m_window = nullptr;
         vec2 m_mousePosition;
         vec2 m_mouseScrollBack;
         vec2 m_mouseDelta;

@@ -28,9 +28,9 @@ namespace aiko
         return math::lookAt( position, target, getUp());
     }
 
-    mat4 Camera::getProjectionMatrix() const
+    mat4 Camera::getProjectionMatrix(const ivec2& size) const
     {
-        const auto size = DisplayManager::it().getDisplay()->getDisplaySize();
+        AIKO_ASSERT(size.x > 0 && size.y > 0, "Invalid camera render size");
         const float aspectRatio = static_cast<float>(size.x)/static_cast<float>(size.y);
         switch (m_cameraType)
         {

@@ -266,7 +266,7 @@ namespace aiko
         const renderer::FrameData frameData =
         {
             .view = camera.getViewMatrix(),
-            .projection = camera.getProjectionMatrix(),
+            .projection = camera.getProjectionMatrix(m_renderSurface),
             .cameraPosition = camera.position,
             .time = static_cast<float>( Time::it().secondSinceStart()),
             .deltaTime = Time::it().getDeltaTime(),

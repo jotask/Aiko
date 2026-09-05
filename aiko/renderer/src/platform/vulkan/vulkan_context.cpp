@@ -34,6 +34,9 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(s_currentContext == nullptr || s_currentContext == this, "Multiple VulkanContext instances are active");
         s_currentContext = this;
 
+        m_window = static_cast<GLFWwindow*>(desc.nativeWindowHandle);
+        AIKO_ASSERT(m_window != nullptr, "Invalid native window handle");
+
         m_vsync = desc.vsync;
 
         createInstance();
@@ -170,6 +173,8 @@ namespace aiko::renderer::vulkan
         m_currentFrame = 0;
         m_currentImageIndex = 0;
 
+        m_window = nullptr;
+
         if (s_currentContext == this)
         {
             s_currentContext = nullptr;
@@ -270,8 +275,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanContext::createSurface()
     {
-        GLFWwindow* window = DisplayManager::it().getNativeWindow();
-        const VkResult result = glfwCreateWindowSurface(m_vk, window, nullptr, &m_surface);
+        const VkResult result = glfwCreateWindowSurface(m_vk, m_window, nullptr, &m_surface);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to create window surface!");
     }
 
@@ -955,13 +959,12 @@ namespace aiko::renderer::vulkan
 
     void VulkanContext::recreateSwapChain()
     {
-        GLFWwindow* window = DisplayManager::it().getNativeWindow();
 
         int width = 0;
         int height = 0;
         while (width == 0 || height == 0)
         {
-            glfwGetFramebufferSize(window, &width, &height);
+            glfwGetFramebufferSize(m_window, &width, &height);
             glfwWaitEvents();
         }
 
@@ -1722,10 +1725,10 @@ namespace aiko::renderer::vulkan
         {
             return capabilities.currentExtent;
         }
-        GLFWwindow* window = DisplayManager::it().getNativeWindow();
+
         int width = -1;
         int height = -1;
-        glfwGetFramebufferSize(window, &width, &height);
+        glfwGetFramebufferSize(m_window, &width, &height);
 
         VkExtent2D actualExtent =
         {

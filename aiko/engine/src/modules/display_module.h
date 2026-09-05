@@ -15,7 +15,8 @@ namespace aiko
         DisplayModule(Aiko* aiko);
         virtual ~DisplayModule() = default;
 
-        const ivec2 getDisplaySize() const;
+        ivec2 getDisplaySize() const;
+        void* getNativeWindow() const;
 
     protected:
 
@@ -23,9 +24,8 @@ namespace aiko
         virtual void preUpdate() override;
         virtual void endFrame() override;
 
-
     private:
-        // AikoUPtr<DisplayManager> m_manager;
+        DisplayManager m_manager;
 
     };
 

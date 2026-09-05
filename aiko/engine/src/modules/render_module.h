@@ -40,8 +40,9 @@ namespace aiko
 
     private:
 
-        AssetsManagerModule* m_assetManager;
-        const Camera* m_mainCamera;
+        DisplayModule* m_displayModule = nullptr;
+        AssetsManagerModule* m_assetManager = nullptr;
+        const Camera* m_mainCamera = nullptr;
 
         vector<InstanceItem> m_instances;
 

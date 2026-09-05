@@ -6,7 +6,6 @@
 #include <events/events.hpp>
 
 #include "display/display_events.hpp"
-#include "display/display_manager.h"
 
 #define LOG_INPUT false
 
@@ -64,15 +63,15 @@ namespace aiko
 
     void AikoInput::setCentredToScreen(bool newMouseCentred)
     {
+        AIKO_ASSERT(m_window != nullptr, "Input not initialized");
         m_mouseCentred = newMouseCentred;
-        GLFWwindow* window = DisplayManager::it().getNativeWindow();
         if (m_mouseCentred == true)
         {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
         else
         {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
     }
 
@@ -81,14 +80,15 @@ namespace aiko
         return m_mouseCentred;
     }
 
-    void AikoInput::init()
+    void AikoInput::init(GLFWwindow* window)
     {
+        AIKO_ASSERT(window != nullptr, "Invalid input window");
+        m_window = window;
         EventSystem::it().bind<OnKeyPressedEvent>(this, &AikoInput::onKeyPressed);
         EventSystem::it().bind<OnMouseKeyPressedEvent>(this, &AikoInput::onMouseKeyPressed);
         EventSystem::it().bind<OnMouseMoveEvent>(this, &AikoInput::onMouseMoved);
         EventSystem::it().bind<OnMouseScrollEvent>(this, &AikoInput::OnMouseScrollCallback);
-        GLFWwindow* window = DisplayManager::it().getNativeWindow();
-        glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
+        glfwSetInputMode(m_window, GLFW_STICKY_KEYS, GLFW_TRUE);
         setCentredToScreen(false);
     }
 

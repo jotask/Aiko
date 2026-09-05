@@ -24,7 +24,7 @@ namespace aiko
         float getFOV() const { return m_fov; }
 
         mat4 getViewMatrix() const;
-        mat4 getProjectionMatrix() const;
+        mat4 getProjectionMatrix(const ivec2& size) const;
 
         vec3 getCameraDirection() const;
         vec3 getCameraRight() const;

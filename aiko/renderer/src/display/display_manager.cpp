@@ -69,6 +69,11 @@ namespace aiko
         return &m_display;
     }
 
+    const Display* DisplayManager::getDisplay() const
+    {
+        return &m_display;
+    }
+
     GLFWwindow * DisplayManager::getNativeWindow() const
     {
         return m_native;

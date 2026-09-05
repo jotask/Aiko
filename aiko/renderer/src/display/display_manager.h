@@ -1,7 +1,6 @@
 #pragma once
 
 #include <aiko_types.h>
-#include <core/singleton.h>
 
 #include "display/display.h"
 #include "display/display_events.hpp"
@@ -11,7 +10,7 @@ class GLFWwindow;
 namespace aiko
 {
 
-    class DisplayManager : public Singleton<DisplayManager>
+    class DisplayManager
     {
 
     public:
@@ -25,6 +24,7 @@ namespace aiko
         void dispose();
 
         Display* getDisplay();
+        const Display* getDisplay() const;
         GLFWwindow* getNativeWindow() const;
 
     private:

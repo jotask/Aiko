@@ -6,6 +6,8 @@
 #include <optional>
 #include <limits>
 
+class GLFWwindow;
+
 namespace aiko::renderer::vulkan
 {
     class VulkanContext
@@ -79,6 +81,7 @@ namespace aiko::renderer::vulkan
         VkInstance m_vk = VK_NULL_HANDLE;
         VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
         VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+        GLFWwindow* m_window = nullptr;
         VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
         VkDevice m_device = VK_NULL_HANDLE;
         VkRenderPass m_renderPass = VK_NULL_HANDLE;

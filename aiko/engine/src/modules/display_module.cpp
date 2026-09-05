@@ -11,25 +11,30 @@ namespace aiko
     {
     }
 
-    const ivec2 DisplayModule::getDisplaySize() const
+    ivec2 DisplayModule::getDisplaySize() const
     {
-        return DisplayManager::it().getDisplay()->getDisplaySize();
+        return m_manager.getDisplay()->getDisplaySize();
+    }
+
+    void* DisplayModule::getNativeWindow() const
+    {
+        return m_manager.getNativeWindow();
     }
 
     void DisplayModule::preInit()
     {
-        const AikoConfig cfg = getAiko()->getConfig();
-        DisplayManager::it().init(cfg.windowTitle, cfg.width, cfg.height);
+        const AikoConfig& cfg = getAiko()->getConfig();
+        m_manager.init(cfg.windowTitle, cfg.width, cfg.height);
     }
 
     void DisplayModule::preUpdate()
     {
-        DisplayManager::it().update();
+        m_manager.update();
     }
 
     void DisplayModule::endFrame()
     {
-        DisplayManager::it().swap();
+        m_manager.swap();
     }
 
 }

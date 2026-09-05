@@ -2,11 +2,9 @@
 
 #include "aiko.h"
 #include "assets_manager_module.h"
-#include "display/display_manager.h"
+#include "modules/display_module.h"
 #include "models/camera.h"
-#include "models/mesh_factory.h"
 #include "modules/module_connector.h"
-#include "time/time.h"
 #include "types/builtin_shaders.h"
 
 #include <aiko_renderer.h>
@@ -32,6 +30,7 @@ namespace aiko
 
     void RenderModule::connect(ModuleConnector* moduleConnector)
     {
+        BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule);
         BIND_MODULE_REQUIRED(AssetsManagerModule, moduleConnector, m_assetManager);
     }
 
@@ -43,10 +42,10 @@ namespace aiko
         const AssetId passthroughShaderId = assetManager->registerShader(renderer::BuiltinShader::Passthrough);
         assetManager->loadShaderAsset(passthroughShaderId);
 
-        const ivec2 size = DisplayManager::it().getDisplay()->getDisplaySize();
+        const ivec2 size = m_displayModule->getDisplaySize();
         const RenderSurfaceDesc surface =
         {
-            .nativeWindowHandle = DisplayManager::it().getNativeWindow(),
+            .nativeWindowHandle = m_displayModule->getNativeWindow(),
             .width = static_cast<u32>(size.x),
             .height = static_cast<u32>(size.y),
         };
