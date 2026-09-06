@@ -419,6 +419,7 @@ namespace aiko::renderer::vulkan
     VulkanRenderDevice::VulkanRenderDevice(RenderResourceManager* resources)
         : IRenderDevice(resources)
         , m_uploadArena(m_context, FramesInFlight)
+        , m_gpuReadDescriptors(m_context, FramesInFlight)
         , m_samplerCache(m_context)
     {
 
@@ -446,7 +447,7 @@ namespace aiko::renderer::vulkan
         createScreenPipeline();
         createScreenDescriptorPool();
 
-        createGpuReadResources();
+        m_gpuReadDescriptors.create();
         createModelPipelineLayout();
         createFrameResources();
 
@@ -466,7 +467,7 @@ namespace aiko::renderer::vulkan
         destroyGpuInstancedPipelines();
         destroyGpuVertexPipelines();
         destroyModelPipeline();
-        destroyGpuReadResources();
+        m_gpuReadDescriptors.destroy();
         destroyScreenPipeline();
         destroyTransientResources();
         destroyComputePipelines();
@@ -517,8 +518,7 @@ namespace aiko::renderer::vulkan
             createScreenPipeline();
         }
 
-        const VkResult gpuReadReset = vkResetDescriptorPool(m_context.device(), m_gpuReadDescriptorPools[frame], 0);
-        AIKO_ASSERT(gpuReadReset == VK_SUCCESS, "Failed to reset GPU-read descriptor pool");
+        m_gpuReadDescriptors.resetFrame(frame);
 
     }
 
@@ -2138,7 +2138,7 @@ namespace aiko::renderer::vulkan
         std::array<VkDescriptorSetLayout, 3> setLayouts{};
         setLayouts[abi::GraphicsFrameSet] = m_frameDescriptorSetLayout;
         setLayouts[abi::GraphicsMaterialSet] = m_materialDescriptorSetLayout;
-        setLayouts[abi::GraphicsGpuReadSet] = m_gpuReadDescriptorSetLayout;
+        setLayouts[abi::GraphicsGpuReadSet] = m_gpuReadDescriptors.layout();
 
         const VkPushConstantRange pushConstantRange =
         {
@@ -3849,96 +3849,6 @@ namespace aiko::renderer::vulkan
         m_completedReadbacks.clear();
     }
 
-    void VulkanRenderDevice::createGpuReadResources()
-    {
-
-        std::array<VkDescriptorSetLayoutBinding, abi::MaxGpuReadBindings> bindings{};
-
-        for (uint32_t i = 0; i < abi::MaxGpuReadBindings; ++i)
-        {
-            bindings[i] =
-            {
-                .binding = i,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                .descriptorCount = 1,
-                .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                .pImmutableSamplers = nullptr,
-            };
-        }
-
-        const VkDescriptorSetLayoutCreateInfo layoutInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .bindingCount = static_cast<uint32_t>(bindings.size()),
-            .pBindings = bindings.data(),
-        };
-
-        const VkResult layoutResult = vkCreateDescriptorSetLayout(m_context.device(), &layoutInfo, nullptr, &m_gpuReadDescriptorSetLayout);
-        AIKO_ASSERT( layoutResult == VK_SUCCESS, "Failed to create GPU-read descriptor layout");
-
-        for (uint32_t frame = 0; frame < FramesInFlight; ++frame)
-        {
-            const VkDescriptorPoolSize poolSize =
-            {
-                .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                .descriptorCount = abi::MaxGpuReadBindings * MaxGpuDrawsPerFrame,
-            };
-
-            const VkDescriptorPoolCreateInfo poolInfo =
-            {
-                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-                .maxSets = MaxGpuDrawsPerFrame,
-                .poolSizeCount = 1,
-                .pPoolSizes = &poolSize,
-            };
-
-            const VkResult poolResult = vkCreateDescriptorPool(m_context.device(), &poolInfo, nullptr, &m_gpuReadDescriptorPools[frame]);
-
-            AIKO_ASSERT(poolResult == VK_SUCCESS, "Failed to create GPU-read descriptor pool");
-        }
-    }
-
-    void VulkanRenderDevice::destroyGpuReadResources()
-    {
-        VkDevice device = m_context.device();
-        for (VkDescriptorPool& pool : m_gpuReadDescriptorPools)
-        {
-            if (pool != VK_NULL_HANDLE)
-            {
-                vkDestroyDescriptorPool(device, pool, nullptr);
-                pool = VK_NULL_HANDLE;
-            }
-        }
-
-        if (m_gpuReadDescriptorSetLayout != VK_NULL_HANDLE)
-        {
-            vkDestroyDescriptorSetLayout(device, m_gpuReadDescriptorSetLayout, nullptr);
-            m_gpuReadDescriptorSetLayout = VK_NULL_HANDLE;
-        }
-    }
-
-    VkDescriptorSet VulkanRenderDevice::allocateGpuReadDescriptorSet()
-    {
-
-        const uint32_t frame = m_context.currentFrameIndex();
-        AIKO_ASSERT(frame < FramesInFlight, "Invalid Vulkan frame index");
-
-        const VkDescriptorSetAllocateInfo info =
-        {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .descriptorPool = m_gpuReadDescriptorPools[frame],
-            .descriptorSetCount = 1,
-            .pSetLayouts = &m_gpuReadDescriptorSetLayout,
-        };
-
-        VkDescriptorSet set = VK_NULL_HANDLE;
-
-        const VkResult result = vkAllocateDescriptorSets(m_context.device(), &info, &set);
-        AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate GPU-read descriptor set");
-
-        return set;
-    }
-
     void VulkanRenderDevice::prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings)
     {
         VkCommandBuffer commandBuffer =
@@ -3967,7 +3877,7 @@ namespace aiko::renderer::vulkan
     {
         AIKO_ASSERT(bindings.size() <= abi::MaxGpuReadBindings, "Too many GPU-read buffers");
 
-        VkDescriptorSet set = allocateGpuReadDescriptorSet();
+        VkDescriptorSet set = m_gpuReadDescriptors.allocate(m_context.currentFrameIndex());
 
         std::array<VkDescriptorBufferInfo, abi::MaxGpuReadBindings> infos{};
         std::array<VkWriteDescriptorSet, abi::MaxGpuReadBindings> writes{};

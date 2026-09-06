@@ -19,6 +19,7 @@
 #include "vulkan_pipeline_types.h"
 #include "vulkan_render_types.h"
 #include "vulkan_transfer_types.h"
+#include "vulkan_gpu_read_descriptors.h"
 #include "vulkan_sampler_cache.h"
 
 namespace aiko::renderer::vulkan
@@ -196,15 +197,8 @@ namespace aiko::renderer::vulkan
         void completeReadbacksForFrame(uint32_t frameIndex);
         void destroyReadbackResources();
 
-        static constexpr uint32_t MaxGpuDrawsPerFrame = 256;
+        VulkanGpuReadDescriptors m_gpuReadDescriptors;
 
-        std::array<VkDescriptorPool, FramesInFlight> m_gpuReadDescriptorPools{};
-        VkDescriptorSetLayout m_gpuReadDescriptorSetLayout = VK_NULL_HANDLE;
-
-        void createGpuReadResources();
-        void destroyGpuReadResources();
-
-        VkDescriptorSet allocateGpuReadDescriptorSet();
         VkDescriptorSet buildGpuReadDescriptorSet(const vector<GpuReadBufferBinding>& bindings);
 
         std::unordered_map<GpuPipelineKey, VkPipeline, GpuPipelineKeyHash> m_gpuInstancedPipelines;
