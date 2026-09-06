@@ -164,6 +164,8 @@ namespace aiko::renderer::vulkan
 
         VulkanSamplerCache m_samplerCache;
 
+        std::unordered_map<const Material*, VulkanMaterialBinding*> m_preparedMaterialBindings;
+
         const Texture* resolveTextureBinding(const TextureBinding& binding);
         void refreshMaterialTextureBindings(VulkanMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings);
 

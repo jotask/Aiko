@@ -453,6 +453,7 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::beginFrame()
     {
         AIKO_FUNCTION_PROFILE
+        m_preparedMaterialBindings.clear();
         m_frameActive = m_context.beginFrame();
 
         if (m_frameActive == false)
@@ -666,6 +667,8 @@ namespace aiko::renderer::vulkan
         m_activeExtent = {};
         m_activeRenderPassCompatibility = {};
 
+        m_preparedMaterialBindings.clear();
+
     }
 
     void VulkanRenderDevice::present()
@@ -682,8 +685,26 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::bindMaterial(const Material& material)
     {
         AIKO_FUNCTION_PROFILE
-        VulkanMaterialBinding& binding = resolveMaterialBinding(material);
-        vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsMaterialSet, 1, &binding.descriptorSet, 0, nullptr);
+
+        VulkanMaterialBinding* binding = nullptr;
+
+        if (const auto it = m_preparedMaterialBindings.find(&material); it != m_preparedMaterialBindings.end())
+        {
+            binding = it->second;
+        }
+        else
+        {
+            // Preserve existing behavior for callers that bind without
+            // an explicit prepareMaterial() phase.
+            binding = &resolveMaterialBinding(material);
+
+            m_preparedMaterialBindings.emplace(&material, binding);
+        }
+
+        AIKO_ASSERT(binding != nullptr, "Prepared material binding is null");
+
+        vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsMaterialSet, 1, &binding->descriptorSet, 0, nullptr);
+
     }
 
     void VulkanRenderDevice::drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material)
@@ -1639,8 +1660,8 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
             prepareTextureForSampling(*texture);
         }
-
-        resolveMaterialBinding(material);
+        VulkanMaterialBinding& binding = resolveMaterialBinding(material);
+        m_preparedMaterialBindings[&material] = &binding;
     }
 
     VulkanMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
