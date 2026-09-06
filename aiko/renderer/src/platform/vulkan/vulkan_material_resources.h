@@ -30,6 +30,7 @@ namespace aiko::renderer::vulkan
 
     private:
 
+        void recycleBindings(uint32_t frame);
         void destroyBindings(uint32_t frame);
 
         static constexpr uint32_t MaxBindings = 1024;

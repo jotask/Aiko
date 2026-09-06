@@ -3,6 +3,7 @@
 #include <array>
 #include <cstring>
 #include <utility>
+#include <algorithm>
 
 #include "vulkan_context.h"
 #include "vulkan_descriptor_abi.h"
@@ -69,16 +70,40 @@ namespace aiko::renderer::vulkan
             return it->second;
         }
 
+        const VkDeviceSize requiredUniformSize = static_cast<VkDeviceSize>(key.uniformData.size());
+
+        AIKO_ASSERT(requiredUniformSize > 0, "Material uniform buffer has zero size");
+
         VulkanMaterialBinding binding{};
 
-        binding.uniformSize = static_cast<VkDeviceSize>(key.uniformData.size());
+        auto reusable = std::find_if(
+            resources.recycledBindings.begin(),
+            resources.recycledBindings.end(),
+            [requiredUniformSize](const VulkanMaterialBinding& candidate)
+            {
+                return candidate.uniformSize >= requiredUniformSize;
+            }
+        );
 
-        AIKO_ASSERT(binding.uniformSize > 0, "Material uniform buffer has zero size");
+        if (reusable != resources.recycledBindings.end())
+        {
+            binding = std::move(*reusable);
+            if (reusable != resources.recycledBindings.end() - 1)
+            {
+                *reusable = std::move(resources.recycledBindings.back());
+            }
+            resources.recycledBindings.pop_back();
+        }
+        else
+        {
+            binding.uniformSize = requiredUniformSize;
 
-        m_context.createBuffer(binding.uniformSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer,binding.uniformMemory);
+            m_context.createBuffer(binding.uniformSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory);
 
-        const VkResult mapResult = vkMapMemory(m_context.device(), binding.uniformMemory, 0, binding.uniformSize, 0, &binding.uniformMapped);
-        AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map material uniform buffer");
+            const VkResult mapResult = vkMapMemory(m_context.device(), binding.uniformMemory, 0, binding.uniformSize, 0, &binding.uniformMapped);
+
+            AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map material uniform buffer");
+        }
 
         std::memcpy(binding.uniformMapped, key.uniformData.data(), key.uniformData.size());
 
@@ -97,7 +122,7 @@ namespace aiko::renderer::vulkan
         {
             .buffer = binding.uniformBuffer,
             .offset = 0,
-            .range = binding.uniformSize,
+            .range = requiredUniformSize,
         };
 
         const VkWriteDescriptorSet bufferWrite =
@@ -127,7 +152,7 @@ namespace aiko::renderer::vulkan
 
         VulkanMaterialFrameResources& resources = m_frames[frame];
 
-        destroyBindings(frame);
+        recycleBindings(frame);
 
         AIKO_ASSERT(resources.descriptorPool != VK_NULL_HANDLE, "Material descriptor pool is not initialized");
 
@@ -158,6 +183,31 @@ namespace aiko::renderer::vulkan
         m_materialLayout = VK_NULL_HANDLE;
     }
 
+    void VulkanMaterialResources::recycleBindings(uint32_t frame)
+    {
+        AIKO_FUNCTION_PROFILE
+
+        AIKO_ASSERT(frame < m_frames.size(), "Invalid material frame index");
+
+        VulkanMaterialFrameResources& resources = m_frames[frame];
+
+        for (auto& [key, binding] : resources.bindings)
+        {
+            AIKO_UNUSED(key);
+
+            // Descriptor sets become invalid after vkResetDescriptorPool().
+            binding.descriptorSet = VK_NULL_HANDLE;
+
+            // The next fresh descriptor set must receive texture writes even if
+            // image/sampler state happens to match the previous frame.
+            binding.textures.clear();
+
+            resources.recycledBindings.push_back(std::move(binding));
+        }
+
+        resources.bindings.clear();
+    }
+
     void VulkanMaterialResources::destroyBindings(uint32_t frame)
     {
         AIKO_FUNCTION_PROFILE
@@ -168,29 +218,40 @@ namespace aiko::renderer::vulkan
 
         VulkanMaterialFrameResources& resources = m_frames[frame];
 
+        const auto destroyBinding = [device](VulkanMaterialBinding& binding)
+            {
+                if (binding.uniformMapped != nullptr)
+                {
+                    vkUnmapMemory(device, binding.uniformMemory);
+                    binding.uniformMapped = nullptr;
+                }
+
+                if (binding.uniformBuffer != VK_NULL_HANDLE)
+                {
+                    vkDestroyBuffer(device, binding.uniformBuffer, nullptr);
+                    binding.uniformBuffer = VK_NULL_HANDLE;
+                }
+
+                if (binding.uniformMemory != VK_NULL_HANDLE)
+                {
+                    vkFreeMemory(device, binding.uniformMemory, nullptr);
+                    binding.uniformMemory = VK_NULL_HANDLE;
+                }
+            };
+
         for (auto& [key, binding] : resources.bindings)
         {
             AIKO_UNUSED(key);
-
-            if (binding.uniformMapped != nullptr)
-            {
-                vkUnmapMemory(device, binding.uniformMemory);
-                binding.uniformMapped = nullptr;
-            }
-
-            if (binding.uniformBuffer != VK_NULL_HANDLE)
-            {
-                vkDestroyBuffer(device, binding.uniformBuffer, nullptr);
-                binding.uniformBuffer = VK_NULL_HANDLE;
-            }
-
-            if (binding.uniformMemory != VK_NULL_HANDLE)
-            {
-                vkFreeMemory(device, binding.uniformMemory, nullptr);
-                binding.uniformMemory = VK_NULL_HANDLE;
-            }
+            destroyBinding(binding);
         }
 
         resources.bindings.clear();
+
+        for (VulkanMaterialBinding& binding : resources.recycledBindings)
+        {
+            destroyBinding(binding);
+        }
+
+        resources.recycledBindings.clear();
     }
 }

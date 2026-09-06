@@ -112,5 +112,6 @@ namespace aiko::renderer::vulkan
     {
         VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
         std::unordered_map<MaterialBindingKey, VulkanMaterialBinding, MaterialBindingKeyHash> bindings;
+        std::vector<VulkanMaterialBinding> recycledBindings;
     };
 }
