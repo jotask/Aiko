@@ -1825,7 +1825,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::drawMeshWithPipeline(ViewId viewId, const mat4& world, const Mesh& mesh, VkPipeline pipeline)
     {
-
+        AIKO_FUNCTION_PROFILE
         if (viewId != SCENE_VIEW || m_renderPassActive == false)
         {
             return;
@@ -2821,7 +2821,7 @@ namespace aiko::renderer::vulkan
 
     VkPipeline VulkanRenderDevice::getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced)
     {
-
+        AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(m_activeRenderPassCompatibility.colorFormat != VK_FORMAT_UNDEFINED, "Graphics pipeline requires an active render-pass compatibility key");
 
         const ModelPipelineKey key =
