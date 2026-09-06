@@ -465,7 +465,6 @@ namespace aiko::renderer::vulkan
 
         m_frameResources.resetFrame(frame);
         m_materialResources.resetFrame(frame);
-        resetTransientFrameResources(frame);
 
         m_readbackResources.completeFrame(frame);
         m_uploadArena.resetFrame(frame);
@@ -1472,7 +1471,7 @@ namespace aiko::renderer::vulkan
 
         AIKO_ASSERT(desc.material != nullptr, "Transient draw has no material");
 
-        if (desc.geometry == nullptr || desc.geometry->vertices.empty())
+        if (desc.geometry == nullptr || desc.geometry->vertices.empty() || desc.geometry->indices.empty())
         {
             return;
         }
@@ -1484,9 +1483,11 @@ namespace aiko::renderer::vulkan
             case TransientTopology::Triangles:
                 topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
                 break;
+
             case TransientTopology::Lines:
                 topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
                 break;
+
             case TransientTopology::Points:
                 topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
                 break;
@@ -1494,8 +1495,80 @@ namespace aiko::renderer::vulkan
 
         const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, topology, desc.material->m_shaderId, desc.material->m_renderState, false);
 
-        Mesh& mesh = resolveTransientMesh(*desc.geometry);
-        drawMeshWithPipeline(viewId, desc.mtx, mesh, pipeline);
+        const uint32_t frame = m_context.currentFrameIndex();
+
+        const VkDeviceSize vertexBytes = sizeof(VulkanVertex) * desc.geometry->vertices.size();
+
+        const VkDeviceSize indexBytes = sizeof(uint16_t) * desc.geometry->indices.size();
+
+        const UploadSlice vertexSlice = m_uploadArena.allocate(frame, vertexBytes, alignof(VulkanVertex));
+
+        const UploadSlice indexSlice = m_uploadArena.allocate(frame, indexBytes, alignof(uint16_t));
+
+        auto* vertices = static_cast<VulkanVertex*>(vertexSlice.mapped);
+
+        for (size_t i = 0; i < desc.geometry->vertices.size(); ++i)
+        {
+            const TransientVertex& source = desc.geometry->vertices[i];
+
+            vertices[i] =
+            {
+                .position = source.position,
+                .normal = source.normal,
+                .uv = source.uv,
+                .color = source.color,
+            };
+        }
+
+        std::memcpy(indexSlice.mapped, desc.geometry->indices.data(), static_cast<size_t>(indexBytes));
+
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+
+        AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Transient draw requires an active command buffer");
+
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+        const VkViewport viewport =
+        {
+            .x = 0.0f,
+            .y = 0.0f,
+            .width = static_cast<float>(m_activeExtent.width),
+            .height = static_cast<float>(m_activeExtent.height),
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f,
+        };
+
+        const VkRect2D scissor =
+        {
+            .offset = { 0, 0 },
+            .extent = m_activeExtent,
+        };
+
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+        struct DrawPushConstants
+        {
+            mat4 u_model;
+            mat4 u_modelViewProj;
+        };
+
+        const DrawPushConstants push =
+        {
+            .u_model = desc.mtx,
+            .u_modelViewProj = m_sceneViewProj * desc.mtx,
+        };
+
+        vkCmdPushConstants(commandBuffer, m_modelPipelines.layout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
+
+        const VkBuffer vertexBuffer = vertexSlice.buffer;
+        const VkDeviceSize vertexOffset = vertexSlice.offset;
+
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, &vertexOffset);
+
+        vkCmdBindIndexBuffer(commandBuffer, indexSlice.buffer, indexSlice.offset, VK_INDEX_TYPE_UINT16);
+
+        vkCmdDrawIndexed(commandBuffer,static_cast<uint32_t>(desc.geometry->indices.size()),1,0,0,0);
 
     }
 
@@ -1635,56 +1708,13 @@ namespace aiko::renderer::vulkan
 
     }
 
-    void VulkanRenderDevice::resetTransientFrameResources(u32 frame)
-    {
-        AIKO_ASSERT(frame < FramesInFlight, "Invalid transient frame index");
-        auto& meshes = m_transientMeshCaches[frame];
-        for (auto& [geometry, mesh] : meshes)
-        {
-            AIKO_UNUSED(geometry);
-            if (mesh != nullptr)
-            {
-                mesh->unload();
-            }
-        }
-        meshes.clear();
-    }
-
     void VulkanRenderDevice::destroyTransientResources()
     {
-        for (u32 frame = 0; frame < FramesInFlight; ++frame)
-        {
-            resetTransientFrameResources(frame);
-        }
-
         if (m_billboardMesh != nullptr)
         {
             m_billboardMesh->unload();
             m_billboardMesh.reset();
         }
-    }
-
-    Mesh& VulkanRenderDevice::resolveTransientMesh(const TransientGeometry& geometry)
-    {
-        AIKO_FUNCTION_PROFILE
-        const u32 frame = m_context.currentFrameIndex();
-
-        AIKO_ASSERT(frame < FramesInFlight, "Invalid transient mesh frame");
-
-        auto& meshes = m_transientMeshCaches[frame];
-
-        if (auto it = meshes.find(&geometry); it != meshes.end())
-        {
-            return *it->second;
-        }
-
-        AikoUPtr<Mesh> mesh = createTransientMesh(geometry);
-
-        Mesh& result = *mesh;
-
-        meshes.emplace(&geometry, std::move(mesh));
-
-        return result;
     }
 
     AikoUPtr<Mesh> VulkanRenderDevice::createTransientMesh(const TransientGeometry& geometry)
