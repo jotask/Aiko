@@ -26,6 +26,7 @@
 #include "vulkan_screen_resources.h"
 #include "vulkan_frame_resources.h"
 #include "vulkan_model_pipelines.h"
+#include "vulkan_gpu_pipelines.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -100,6 +101,7 @@ namespace aiko::renderer::vulkan
 
         VulkanFrameResources m_frameResources;
         VulkanModelPipelines m_modelPipelines;
+        VulkanGpuPipelines m_gpuPipelines;
         VulkanScreenResources m_screenResources;
 
         static constexpr uint32_t MaxMaterialBindings = 1024;
@@ -166,16 +168,8 @@ namespace aiko::renderer::vulkan
 
         VkDescriptorSet buildGpuReadDescriptorSet(const vector<GpuReadBufferBinding>& bindings);
 
-        std::unordered_map<GpuPipelineKey, VkPipeline, GpuPipelineKeyHash> m_gpuInstancedPipelines;
-
         VkPipeline getOrCreateGpuInstancedPipeline(const Material& material, VkRenderPass renderPass);
-        void destroyGpuInstancedPipelines();
-
-        std::unordered_map<GpuVertexPipelineKey, VkPipeline, GpuVertexPipelineKeyHash> m_gpuVertexPipelines;
-
         VkPipeline getOrCreateGpuVertexPipeline(const Material& material, VkRenderPass renderPass, VkPrimitiveTopology topology);
-
-        void destroyGpuVertexPipelines();
 
         VulkanSamplerCache m_samplerCache;
 
