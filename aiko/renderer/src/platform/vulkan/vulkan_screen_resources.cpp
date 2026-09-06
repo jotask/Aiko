@@ -74,7 +74,6 @@ namespace aiko::renderer::vulkan
         };
 
         const VkResult allocResult = vkAllocateDescriptorSets(m_context.device(),&allocInfo,m_descriptorSets.data());
-
         AIKO_ASSERT(allocResult == VK_SUCCESS, "Failed to allocate screen descriptor sets");
     }
 
@@ -99,7 +98,6 @@ namespace aiko::renderer::vulkan
         };
 
         const VkResult result = vkCreatePipelineLayout(m_context.device(),&info,nullptr,&m_pipelineLayout);
-
         AIKO_ASSERT(result == VK_SUCCESS,"Failed to create screen pipeline layout");
     }
 

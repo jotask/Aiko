@@ -24,6 +24,7 @@
 #include "vulkan_compute_descriptors.h"
 #include "vulkan_compute_pipelines.h"
 #include "vulkan_screen_resources.h"
+#include "vulkan_frame_resources.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -91,7 +92,6 @@ namespace aiko::renderer::vulkan
         bool m_renderPassActive = false;
         bool m_computePassActive = false;
 
-        VkDescriptorSetLayout m_frameDescriptorSetLayout = VK_NULL_HANDLE;
         VkDescriptorSetLayout m_materialDescriptorSetLayout = VK_NULL_HANDLE;
         VkPipelineLayout m_modelPipelineLayout = VK_NULL_HANDLE;
 
@@ -100,13 +100,8 @@ namespace aiko::renderer::vulkan
         VulkanTextureImpl* m_activeColorAttachment = nullptr;
         VulkanTextureImpl* m_activeDepthAttachment = nullptr;
 
-        static constexpr uint32_t MaxFrameBindingsPerFrame = 32;
+        VulkanFrameResources m_frameResources;
 
-        std::array<VkDescriptorPool, FramesInFlight> m_frameDescriptorPools{};
-        std::array<std::vector<VulkanFrameBinding>, FramesInFlight> m_frameBindings;
-
-        void createFrameResources();
-        void destroyFrameResources();
         void createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, VkPipeline& pipeline);
         void createModelInstancedPipeline(VkRenderPass renderPass, const RenderState& renderState, VkPipeline& pipeline);
         void createModelPipelineLayout();
@@ -195,7 +190,6 @@ namespace aiko::renderer::vulkan
         const Texture* resolveTextureBinding(const TextureBinding& binding);
         void refreshMaterialTextureBindings(VulkanMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings);
 
-        void resetFrameBindings(u32 frame);
 
     };
 }
