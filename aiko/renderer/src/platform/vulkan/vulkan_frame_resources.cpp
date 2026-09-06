@@ -14,6 +14,7 @@ namespace aiko::renderer::vulkan
         : m_context(context)
         , m_pools(frameCount, VK_NULL_HANDLE)
         , m_bindings(frameCount)
+        , m_recycledBindings(frameCount)
     {
         AIKO_ASSERT(frameCount > 0, "Vulkan frame resources require at least one frame");
     }
@@ -62,6 +63,7 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(result == VK_SUCCESS, "Failed to create frame descriptor pool");
 
             m_bindings[frame].reserve(MaxBindingsPerFrame);
+            m_recycledBindings[frame].reserve(MaxBindingsPerFrame);
         }
     }
 
@@ -78,23 +80,34 @@ namespace aiko::renderer::vulkan
 
         const VkDeviceSize bufferSize = sizeof(VulkanFrameUbo);
 
-        const std::array<uint32_t, 2> queueFamilies =
+        auto& recycled = m_recycledBindings[frameIndex];
+
+        if (recycled.empty() == false)
+        {
+            binding = std::move(recycled.back());
+            recycled.pop_back();
+        }
+        else
+        {
+            const std::array<uint32_t, 2> queueFamilies =
             {
                 m_context.graphicsQueueFamily(),
                 m_context.computeQueueFamily(),
             };
 
-        if (m_context.hasDedicatedComputeQueue())
-        {
-            m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory, VK_SHARING_MODE_CONCURRENT, queueFamilies.data(), static_cast<uint32_t>(queueFamilies.size()));
-        }
-        else
-        {
-            m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory);
-        }
+            if (m_context.hasDedicatedComputeQueue())
+            {
+                m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory, VK_SHARING_MODE_CONCURRENT, queueFamilies.data(), static_cast<uint32_t>(queueFamilies.size()));
+            }
+            else
+            {
+                m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory);
+            }
 
-        const VkResult mapResult = vkMapMemory( m_context.device(), binding.uniformMemory, 0, bufferSize, 0, &binding.uniformMapped);
-        AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map frame uniform buffer");
+            const VkResult mapResult = vkMapMemory(m_context.device(), binding.uniformMemory, 0, bufferSize, 0, &binding.uniformMapped);
+
+            AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map frame uniform buffer");
+        }
 
         std::memcpy(binding.uniformMapped, &ubo, sizeof(ubo));
 
@@ -141,34 +154,69 @@ namespace aiko::renderer::vulkan
         return bindings.back();
     }
 
+    void VulkanFrameResources::recycleBindings(uint32_t frameIndex)
+    {
+        AIKO_FUNCTION_PROFILE
+
+        AIKO_ASSERT(frameIndex < m_bindings.size(), "Invalid frame binding frame");
+
+        auto& bindings = m_bindings[frameIndex];
+        auto& recycled = m_recycledBindings[frameIndex];
+
+        for (VulkanFrameBinding& binding : bindings)
+        {
+            // Invalid after vkResetDescriptorPool().
+            binding.descriptorSet = VK_NULL_HANDLE;
+            recycled.push_back(std::move(binding));
+        }
+
+        bindings.clear();
+    }
+
     void VulkanFrameResources::destroyBindings(uint32_t frameIndex)
     {
+        AIKO_FUNCTION_PROFILE
+
         AIKO_ASSERT(frameIndex < m_bindings.size(), "Invalid frame binding frame");
 
         VkDevice device = m_context.device();
 
+        const auto destroyBinding = [device](VulkanFrameBinding& binding)
+            {
+                if (binding.uniformMapped != nullptr)
+                {
+                    vkUnmapMemory(device, binding.uniformMemory);
+                    binding.uniformMapped = nullptr;
+                }
+
+                if (binding.uniformBuffer != VK_NULL_HANDLE)
+                {
+                    vkDestroyBuffer(device, binding.uniformBuffer, nullptr);
+                    binding.uniformBuffer = VK_NULL_HANDLE;
+                }
+
+                if (binding.uniformMemory != VK_NULL_HANDLE)
+                {
+                    vkFreeMemory(device, binding.uniformMemory, nullptr);
+                    binding.uniformMemory = VK_NULL_HANDLE;
+                }
+
+                binding.descriptorSet = VK_NULL_HANDLE;
+            };
+
         for (VulkanFrameBinding& binding : m_bindings[frameIndex])
         {
-            if (binding.uniformMapped != nullptr)
-            {
-                vkUnmapMemory(device, binding.uniformMemory);
-                binding.uniformMapped = nullptr;
-            }
-
-            if (binding.uniformBuffer != VK_NULL_HANDLE)
-            {
-                vkDestroyBuffer(device, binding.uniformBuffer, nullptr);
-                binding.uniformBuffer = VK_NULL_HANDLE;
-            }
-
-            if (binding.uniformMemory != VK_NULL_HANDLE)
-            {
-                vkFreeMemory(device, binding.uniformMemory, nullptr);
-                binding.uniformMemory = VK_NULL_HANDLE;
-            }
+            destroyBinding(binding);
         }
 
         m_bindings[frameIndex].clear();
+
+        for (VulkanFrameBinding& binding : m_recycledBindings[frameIndex])
+        {
+            destroyBinding(binding);
+        }
+
+        m_recycledBindings[frameIndex].clear();
     }
 
     void VulkanFrameResources::resetFrame(uint32_t frameIndex)
@@ -176,7 +224,7 @@ namespace aiko::renderer::vulkan
         AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(frameIndex < m_pools.size(), "Invalid frame binding frame");
         AIKO_ASSERT(m_pools[frameIndex] != VK_NULL_HANDLE, "Frame descriptor pool is invalid");
-        destroyBindings(frameIndex);
+        recycleBindings(frameIndex);
         const VkResult result = vkResetDescriptorPool(m_context.device(), m_pools[frameIndex], 0);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to reset frame descriptor pool");
     }

@@ -36,6 +36,7 @@ namespace aiko::renderer::vulkan
     private:
         static constexpr uint32_t  MaxBindingsPerFrame = 32;
 
+        void recycleBindings(uint32_t frameIndex);
         void destroyBindings(uint32_t frameIndex);
 
         VulkanContext& m_context;
@@ -43,6 +44,8 @@ namespace aiko::renderer::vulkan
         std::vector<VkDescriptorPool> m_pools;
 
         std::vector<std::vector<VulkanFrameBinding>> m_bindings;
+
+        std::vector<std::vector<VulkanFrameBinding>> m_recycledBindings;
 
         VkDescriptorSetLayout m_layout = VK_NULL_HANDLE;
     };
