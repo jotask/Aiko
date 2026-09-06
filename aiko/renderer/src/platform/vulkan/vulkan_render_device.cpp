@@ -452,6 +452,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::beginFrame()
     {
+        AIKO_FUNCTION_PROFILE
         m_frameActive = m_context.beginFrame();
 
         if (m_frameActive == false)
@@ -482,6 +483,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::endFrame()
     {
+        AIKO_FUNCTION_PROFILE
         if (m_frameActive == false)
         {
             return;
@@ -493,6 +495,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::beginPass(uint16_t viewId, const PassDescription& pass, const FrameBuffer* frameBuffer)
     {
+        AIKO_FUNCTION_PROFILE
         if (m_frameActive == false)
         {
             return;
@@ -614,6 +617,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::endPass()
     {
+        AIKO_FUNCTION_PROFILE
         if (m_computePassActive)
         {
             m_computePassActive = false;
@@ -667,6 +671,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::present()
     {
+        AIKO_FUNCTION_PROFILE
         if (m_frameActive == false)
         {
             return;
@@ -870,6 +875,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::bindFrame(ViewId viewId, const FrameData& u)
     {
+        AIKO_FUNCTION_PROFILE
         if (viewId != SCENE_VIEW && viewId != COMPUTE_VIEW)
         {
             return;
@@ -978,7 +984,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::execute(ViewId viewId, const ComputePass& pass)
     {
-
+        AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(viewId == COMPUTE_VIEW, "Compute pass must use COMPUTE_VIEW");
         AIKO_ASSERT(m_computePassActive, "Compute dispatch requires an active compute pass");
         AIKO_ASSERT(pass.shader != nullptr, "Compute pass has no shader");
@@ -1542,6 +1548,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::prepareMaterial(const Material& material)
     {
+        AIKO_FUNCTION_PROFILE
         for (const auto& [name, textureBinding] : material.textureBindings())
         {
             AIKO_UNUSED(name);
@@ -1555,7 +1562,7 @@ namespace aiko::renderer::vulkan
 
     VulkanMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
     {
-
+        AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "Material binding requires a shader");
 
         Shader& shader = getResources()->getShader(material.m_shaderId);
