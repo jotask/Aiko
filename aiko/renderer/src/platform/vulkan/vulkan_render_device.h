@@ -19,6 +19,7 @@
 #include "vulkan_pipeline_types.h"
 #include "vulkan_render_types.h"
 #include "vulkan_transfer_types.h"
+#include "vulkan_sampler_cache.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -217,10 +218,8 @@ namespace aiko::renderer::vulkan
 
         void destroyGpuVertexPipelines();
 
-        std::unordered_map<SamplerState, VkSampler, SamplerStateHash> m_samplerCache;
+        VulkanSamplerCache m_samplerCache;
 
-        VkSampler getOrCreateSampler(const SamplerState& state);
-        void destroySamplerCache();
         const Texture* resolveTextureBinding(const TextureBinding& binding);
         void refreshMaterialTextureBindings(VulkanMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings);
 
