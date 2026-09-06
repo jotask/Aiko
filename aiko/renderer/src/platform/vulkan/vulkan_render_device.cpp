@@ -509,6 +509,8 @@ namespace aiko::renderer::vulkan
             return;
         }
 
+        m_boundGraphicsPipeline = VK_NULL_HANDLE;
+
         AIKO_ASSERT(m_computePassActive == false, "Graphics pass cannot begin while compute pass is active");
 
         VkRenderPass renderPass;
@@ -687,6 +689,7 @@ namespace aiko::renderer::vulkan
         m_activeRenderPass = VK_NULL_HANDLE;
         m_activeExtent = {};
         m_activeRenderPassCompatibility = {};
+        m_boundGraphicsPipeline = VK_NULL_HANDLE;
 
         m_preparedMaterialBindings.clear();
 
@@ -763,7 +766,7 @@ namespace aiko::renderer::vulkan
 
         VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        bindGraphicsPipeline(pipeline);
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
@@ -843,7 +846,7 @@ namespace aiko::renderer::vulkan
         VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Instanced draw requires an active command buffer");
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        bindGraphicsPipeline(pipeline);
 
         struct DrawPushConstants
         {
@@ -1172,7 +1175,7 @@ namespace aiko::renderer::vulkan
         VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "GPU-instanced draw requires an active command buffer");
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        bindGraphicsPipeline(pipeline);
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsGpuReadSet, 1, &gpuReadSet, 0, nullptr);
 
         struct DrawPushConstants
@@ -1311,7 +1314,7 @@ namespace aiko::renderer::vulkan
         VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "GPU vertex draw requires an active command buffer");
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        bindGraphicsPipeline(pipeline);
 
         struct DrawPushConstants
         {
@@ -1498,7 +1501,7 @@ namespace aiko::renderer::vulkan
 
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Transient draw requires an active command buffer");
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        bindGraphicsPipeline(pipeline);
 
         struct DrawPushConstants
         {
@@ -1763,7 +1766,7 @@ namespace aiko::renderer::vulkan
 
         VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        bindGraphicsPipeline(pipeline);
 
         struct DrawPushConstants
         {
@@ -2721,6 +2724,17 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::waitIdle()
     {
         m_context.waitIdle();
+    }
+
+    void VulkanRenderDevice::bindGraphicsPipeline(VkPipeline pipeline)
+    {
+        AIKO_ASSERT(pipeline != VK_NULL_HANDLE, "Cannot bind null graphics pipeline");
+        if (m_boundGraphicsPipeline == pipeline)
+        {
+            return;
+        }
+        vkCmdBindPipeline(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        m_boundGraphicsPipeline = pipeline;
     }
 
     VkPipeline VulkanRenderDevice::getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced)

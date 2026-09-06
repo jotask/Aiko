@@ -107,6 +107,9 @@ namespace aiko::renderer::vulkan
         VulkanScreenResources m_screenResources;
         VulkanMaterialResources m_materialResources;
 
+        VkPipeline m_boundGraphicsPipeline = VK_NULL_HANDLE;
+        void bindGraphicsPipeline(VkPipeline pipeline);
+
         Texture m_whiteTexture;
 
         RenderPassCompatibilityKey m_activeRenderPassCompatibility{};
