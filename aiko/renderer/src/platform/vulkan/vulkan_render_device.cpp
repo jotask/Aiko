@@ -418,6 +418,7 @@ namespace aiko::renderer::vulkan
 
     VulkanRenderDevice::VulkanRenderDevice(RenderResourceManager* resources)
         : IRenderDevice(resources)
+        , m_computeDescriptors(m_context, FramesInFlight)
         , m_uploadArena(m_context, FramesInFlight)
         , m_gpuReadDescriptors(m_context, FramesInFlight)
         , m_samplerCache(m_context)
@@ -440,8 +441,8 @@ namespace aiko::renderer::vulkan
 
         m_context.init(desc);
 
+        m_computeDescriptors.create();
         createComputePipelineLayout();
-        createComputeDescriptorPools();
 
         createScreenPipelineLayout();
         createScreenPipeline();
@@ -471,8 +472,8 @@ namespace aiko::renderer::vulkan
         destroyScreenPipeline();
         destroyTransientResources();
         destroyComputePipelines();
-        destroyComputeDescriptorPools();
         destroyComputePipelineLayout();
+        m_computeDescriptors.destroy();
         destroyReadbackResources();
         m_uploadArena.destroy();
         m_samplerCache.destroy();
@@ -505,8 +506,7 @@ namespace aiko::renderer::vulkan
         completeReadbacksForFrame(frame);
         m_uploadArena.resetFrame(frame);
 
-        const VkResult resetResult = vkResetDescriptorPool(m_context.device(), m_computeDescriptorPools[frame], 0);
-        AIKO_ASSERT(resetResult == VK_SUCCESS, "Failed to reset compute descriptor pool");
+        m_computeDescriptors.resetFrame(frame);
 
         if (m_context.consumeSwapChainFormatChanged() == true)
         {
@@ -1081,7 +1081,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan compute shader implementation");
 
         const VkPipeline pipeline = getOrCreateComputePipeline(*shaderImpl);
-        const VkDescriptorSet descriptorSet = allocateComputeDescriptorSet();
+        const VkDescriptorSet descriptorSet = m_computeDescriptors.allocate(m_context.currentFrameIndex());
 
         const bool useDedicatedCompute = m_context.hasDedicatedComputeQueue();
 
@@ -2920,51 +2920,8 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::createComputePipelineLayout()
     {
 
-        std::array<VkDescriptorSetLayoutBinding, abi::MaxComputeBufferBindings + abi::MaxComputeImageBindings + 1> bindings{};
-
-        for (uint32_t i = 0; i < abi::MaxComputeBufferBindings; ++i)
-        {
-            bindings[i] =
-            {
-                .binding = i,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                .descriptorCount = 1,
-                .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-                .pImmutableSamplers = nullptr,
-            };
-        }
-
-        for (uint32_t i = 0; i < abi::MaxComputeImageBindings; ++i)
-        {
-            const uint32_t bindingIndex = abi::ComputeImageBindingBase + i;
-            bindings[bindingIndex] =
-            {
-                .binding = bindingIndex,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-                .descriptorCount = 1,
-                .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-                .pImmutableSamplers = nullptr,
-            };
-        }
-
-        bindings[abi::ComputeFrameBinding] =
-        {
-            .binding = abi::ComputeFrameBinding,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .pImmutableSamplers = nullptr,
-        };
-
-        const VkDescriptorSetLayoutCreateInfo descriptorLayoutInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .bindingCount = static_cast<uint32_t>(bindings.size()),
-            .pBindings = bindings.data(),
-        };
-
-        const VkResult descriptorResult = vkCreateDescriptorSetLayout(m_context.device(), &descriptorLayoutInfo, nullptr, &m_computeDescriptorSetLayout);
-        AIKO_ASSERT(descriptorResult == VK_SUCCESS, "Failed to create compute descriptor set layout");
+        const VkDescriptorSetLayout descriptorSetLayout = m_computeDescriptors.layout();
+        AIKO_ASSERT(descriptorSetLayout != VK_NULL_HANDLE, "Compute descriptor layout is invalid");
 
         const VkPushConstantRange pushConstantRange =
         {
@@ -2977,31 +2934,23 @@ namespace aiko::renderer::vulkan
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .setLayoutCount = 1,
-            .pSetLayouts = &m_computeDescriptorSetLayout,
+            .pSetLayouts = &descriptorSetLayout,
             .pushConstantRangeCount = 1,
             .pPushConstantRanges = &pushConstantRange,
         };
 
         const VkResult pipelineResult = vkCreatePipelineLayout(m_context.device(), &pipelineLayoutInfo, nullptr, &m_computePipelineLayout);
 
-        AIKO_ASSERT(pipelineResult == VK_SUCCESS,"Failed to create compute pipeline layout");
+        AIKO_ASSERT(pipelineResult == VK_SUCCESS, "Failed to create compute pipeline layout");
 
     }
 
     void VulkanRenderDevice::destroyComputePipelineLayout()
     {
-        VkDevice device = m_context.device();
-
         if (m_computePipelineLayout != VK_NULL_HANDLE)
         {
-            vkDestroyPipelineLayout(device, m_computePipelineLayout, nullptr);
+            vkDestroyPipelineLayout(m_context.device(), m_computePipelineLayout, nullptr);
             m_computePipelineLayout = VK_NULL_HANDLE;
-        }
-
-        if (m_computeDescriptorSetLayout != VK_NULL_HANDLE)
-        {
-            vkDestroyDescriptorSetLayout(device,m_computeDescriptorSetLayout,nullptr);
-            m_computeDescriptorSetLayout = VK_NULL_HANDLE;
         }
     }
 
@@ -3058,79 +3007,6 @@ namespace aiko::renderer::vulkan
         }
 
         m_computePipelines.clear();
-    }
-
-    void VulkanRenderDevice::createComputeDescriptorPools()
-    {
-        for (size_t frame = 0; frame < FramesInFlight; ++frame)
-        {
-            const std::array<VkDescriptorPoolSize, 3> poolSizes =
-            {
-                VkDescriptorPoolSize
-                {
-                    .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                    .descriptorCount = abi::MaxComputeBufferBindings * MaxComputeDispatchesPerFrame,
-                },
-                VkDescriptorPoolSize
-                {
-                    .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-                    .descriptorCount = abi::MaxComputeImageBindings * MaxComputeDispatchesPerFrame,
-                },
-                VkDescriptorPoolSize
-                {
-                    .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                    .descriptorCount = MaxComputeDispatchesPerFrame,
-                }
-            };
-
-            const VkDescriptorPoolCreateInfo poolInfo =
-            {
-                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-                .maxSets = MaxComputeDispatchesPerFrame,
-                .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-                .pPoolSizes = poolSizes.data(),
-            };
-
-            const VkResult result = vkCreateDescriptorPool(m_context.device(), &poolInfo, nullptr, &m_computeDescriptorPools[frame]);
-            AIKO_ASSERT(result == VK_SUCCESS, "Failed to create compute descriptor pool");
-
-        }
-    }
-
-    VkDescriptorSet VulkanRenderDevice::allocateComputeDescriptorSet()
-    {
-        const uint32_t frame = m_context.currentFrameIndex();
-
-        AIKO_ASSERT(frame < FramesInFlight, "Invalid Vulkan frame index");
-        AIKO_ASSERT(m_computeDescriptorPools[frame] != VK_NULL_HANDLE, "Compute descriptor pool is invalid");
-
-        const VkDescriptorSetAllocateInfo allocInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .descriptorPool = m_computeDescriptorPools[frame],
-            .descriptorSetCount = 1,
-            .pSetLayouts = &m_computeDescriptorSetLayout,
-        };
-
-        VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
-
-        const VkResult result = vkAllocateDescriptorSets(m_context.device(), &allocInfo, &descriptorSet);
-        AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate compute descriptor set");
-
-        return descriptorSet;
-    }
-
-    void VulkanRenderDevice::destroyComputeDescriptorPools()
-    {
-        VkDevice device = m_context.device();
-        for (VkDescriptorPool& pool : m_computeDescriptorPools)
-        {
-            if (pool != VK_NULL_HANDLE)
-            {
-                vkDestroyDescriptorPool(device, pool, nullptr);
-                pool = VK_NULL_HANDLE;
-            }
-        }
     }
 
     void VulkanRenderDevice::updateComputeDescriptors(VkDescriptorSet descriptorSet, const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images)
