@@ -1666,6 +1666,7 @@ namespace aiko::renderer::vulkan
 
     Mesh& VulkanRenderDevice::resolveTransientMesh(const TransientGeometry& geometry)
     {
+        AIKO_FUNCTION_PROFILE
         const u32 frame = m_context.currentFrameIndex();
 
         AIKO_ASSERT(frame < FramesInFlight, "Invalid transient mesh frame");
@@ -1688,6 +1689,7 @@ namespace aiko::renderer::vulkan
 
     AikoUPtr<Mesh> VulkanRenderDevice::createTransientMesh(const TransientGeometry& geometry)
     {
+        AIKO_FUNCTION_PROFILE
         MeshAsset asset{};
 
         asset.m_vertices.reserve(geometry.vertices.size());
