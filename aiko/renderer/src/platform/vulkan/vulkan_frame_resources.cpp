@@ -6,6 +6,8 @@
 #include "vulkan_context.h"
 #include "vulkan_descriptor_abi.h"
 
+#include <intrumentor/profiler.h>
+
 namespace aiko::renderer::vulkan
 {
     VulkanFrameResources::VulkanFrameResources(VulkanContext& context, uint32_t frameCount)
@@ -171,6 +173,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanFrameResources::resetFrame(uint32_t frameIndex)
     {
+        AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(frameIndex < m_pools.size(), "Invalid frame binding frame");
         AIKO_ASSERT(m_pools[frameIndex] != VK_NULL_HANDLE, "Frame descriptor pool is invalid");
         destroyBindings(frameIndex);

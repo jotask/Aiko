@@ -29,6 +29,9 @@ namespace aiko::renderer::vulkan
         void destroy();
 
     private:
+
+        void destroyBindings(uint32_t frame);
+
         static constexpr uint32_t MaxBindings = 1024;
 
         VulkanContext& m_context;

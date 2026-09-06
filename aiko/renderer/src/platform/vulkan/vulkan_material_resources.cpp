@@ -7,6 +7,8 @@
 #include "vulkan_context.h"
 #include "vulkan_descriptor_abi.h"
 
+#include <intrumentor/profiler.h>
+
 namespace aiko::renderer::vulkan
 {
     VulkanMaterialResources::VulkanMaterialResources(VulkanContext& context, uint32_t frameCount)
@@ -119,6 +121,47 @@ namespace aiko::renderer::vulkan
 
     void VulkanMaterialResources::resetFrame(uint32_t frame)
     {
+        AIKO_FUNCTION_PROFILE
+
+        AIKO_ASSERT(frame < m_frames.size(), "Invalid material frame index");
+
+        VulkanMaterialFrameResources& resources = m_frames[frame];
+
+        destroyBindings(frame);
+
+        AIKO_ASSERT(resources.descriptorPool != VK_NULL_HANDLE, "Material descriptor pool is not initialized");
+
+        const VkResult result = vkResetDescriptorPool(m_context.device(), resources.descriptorPool, 0);
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to reset material descriptor pool");
+    }
+
+    void VulkanMaterialResources::destroy()
+    {
+        VkDevice device = m_context.device();
+
+        for (uint32_t frame = 0; frame < m_frames.size(); ++frame)
+        {
+            VulkanMaterialFrameResources& resources = m_frames[frame];
+
+            if (resources.descriptorPool == VK_NULL_HANDLE)
+            {
+                continue;
+            }
+
+            resetFrame(frame);
+
+            vkDestroyDescriptorPool(device, resources.descriptorPool, nullptr);
+
+            resources.descriptorPool = VK_NULL_HANDLE;
+        }
+
+        m_materialLayout = VK_NULL_HANDLE;
+    }
+
+    void VulkanMaterialResources::destroyBindings(uint32_t frame)
+    {
+        AIKO_FUNCTION_PROFILE
+
         AIKO_ASSERT(frame < m_frames.size(), "Invalid material frame index");
 
         VkDevice device = m_context.device();
@@ -149,33 +192,5 @@ namespace aiko::renderer::vulkan
         }
 
         resources.bindings.clear();
-
-        AIKO_ASSERT(resources.descriptorPool != VK_NULL_HANDLE, "Material descriptor pool is not initialized");
-
-        const VkResult result = vkResetDescriptorPool(device, resources.descriptorPool, 0);
-        AIKO_ASSERT(result == VK_SUCCESS, "Failed to reset material descriptor pool");
-    }
-
-    void VulkanMaterialResources::destroy()
-    {
-        VkDevice device = m_context.device();
-
-        for (uint32_t frame = 0; frame < m_frames.size(); ++frame)
-        {
-            VulkanMaterialFrameResources& resources = m_frames[frame];
-
-            if (resources.descriptorPool == VK_NULL_HANDLE)
-            {
-                continue;
-            }
-
-            resetFrame(frame);
-
-            vkDestroyDescriptorPool(device, resources.descriptorPool, nullptr);
-
-            resources.descriptorPool = VK_NULL_HANDLE;
-        }
-
-        m_materialLayout = VK_NULL_HANDLE;
     }
 }
