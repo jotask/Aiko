@@ -14,6 +14,8 @@
 #include "renderer/Irenderdevice.h"
 #include "vulkan_descriptor_abi.h"
 #include "impl/vulkan_computeshader_impl.h"
+
+#include "vulkan_upload_arena.h"
 #include "vulkan_pipeline_types.h"
 #include "vulkan_render_types.h"
 #include "vulkan_transfer_types.h"
@@ -180,13 +182,9 @@ namespace aiko::renderer::vulkan
         void transitionComputeBuffers(VkCommandBuffer commandBuffer, const vector<ComputeBufferBinding>& bindings, bool useDedicatedCompute);
         VulkanBufferState computeBufferState(ComputeAccess access, uint32_t queueFamily) const;
 
-        static constexpr VkDeviceSize DefaultUploadArenaChunkSize = 4 * 1024 * 1024;
-        std::array<vector<UploadArenaChunk>, FramesInFlight> m_uploadArenaChunks;
+        VulkanUploadArena m_uploadArena;
 
         void flushComputeBufferUploads(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, uint32_t queueFamily);
-        UploadSlice allocateUploadSlice(uint32_t frameIndex, VkDeviceSize size, VkDeviceSize alignment);
-        void resetUploadArenaForFrame(uint32_t frameIndex);
-        void destroyUploadArena();
 
         vector<ReadbackRequest> m_readbackRequests;
         vector<InFlightReadback> m_inFlightReadbacks;
