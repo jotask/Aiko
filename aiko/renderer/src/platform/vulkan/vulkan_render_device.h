@@ -28,6 +28,7 @@
 #include "vulkan_model_pipelines.h"
 #include "vulkan_gpu_pipelines.h"
 #include "vulkan_readback_resources.h"
+#include "vulkan_material_resources.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -104,11 +105,9 @@ namespace aiko::renderer::vulkan
         VulkanModelPipelines m_modelPipelines;
         VulkanGpuPipelines m_gpuPipelines;
         VulkanScreenResources m_screenResources;
-
-        static constexpr uint32_t MaxMaterialBindings = 1024;
+        VulkanMaterialResources m_materialResources;
 
         Texture m_whiteTexture;
-        std::array<VulkanMaterialFrameResources, FramesInFlight> m_materialFrameResources = {};
 
         RenderPassCompatibilityKey m_activeRenderPassCompatibility{};
 
@@ -116,9 +115,6 @@ namespace aiko::renderer::vulkan
 
         MaterialBindingKey makeMaterialBindingKey(const Material& material, std::vector<MaterialTextureBindingKey> textures, std::vector<uint8_t> uniformData) const;
 
-        void createMaterialResources();
-        void destroyMaterialResources();
-        void resetMaterialFrameResources(u32 frame);
         VulkanMaterialBinding& resolveMaterialBinding(const Material& material);
 
         mat4 m_sceneViewProj = mat4(1.0f);

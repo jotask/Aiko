@@ -384,6 +384,7 @@ namespace aiko::renderer::vulkan
         , m_modelPipelines(m_context)
         , m_gpuPipelines(m_context)
         , m_screenResources(m_context, FramesInFlight)
+        , m_materialResources(m_context, FramesInFlight)
         , m_computeDescriptors(m_context, FramesInFlight)
         , m_computePipelines(m_context)
         , m_uploadArena(m_context, FramesInFlight)
@@ -416,7 +417,7 @@ namespace aiko::renderer::vulkan
         m_gpuReadDescriptors.create();
         m_modelPipelines.create(m_frameResources.layout(), m_gpuReadDescriptors.layout());
         m_gpuPipelines.create(m_modelPipelines.layout());
-        createMaterialResources();
+        m_materialResources.create(m_modelPipelines.materialLayout());
         m_whiteTexture.create();
         m_whiteTexture.setPixels({WHITE});
 
@@ -426,7 +427,7 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::shutdown()
     {
         waitIdle();
-        destroyMaterialResources();
+        m_materialResources.destroy();
         m_whiteTexture.unload();
         m_gpuPipelines.destroy();
         m_modelPipelines.destroy();
@@ -462,7 +463,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(frame < FramesInFlight, "Invalid Vulkan frame index");
 
         m_frameResources.resetFrame(frame);
-        resetMaterialFrameResources(frame);
+        m_materialResources.resetFrame(frame);
         resetTransientFrameResources(frame);
 
         m_readbackResources.completeFrame(frame);
@@ -1548,92 +1549,6 @@ namespace aiko::renderer::vulkan
         resolveMaterialBinding(material);
     }
 
-    void VulkanRenderDevice::createMaterialResources()
-    {
-        const std::array<VkDescriptorPoolSize, 2> poolSizes =
-        {
-            VkDescriptorPoolSize
-            {
-                .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .descriptorCount = MaxMaterialBindings,
-            },
-            VkDescriptorPoolSize
-            {
-                .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .descriptorCount = MaxMaterialBindings * abi::MaxMaterialTextureBindings,
-            },
-        };
-
-        const VkDescriptorPoolCreateInfo poolInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .maxSets = MaxMaterialBindings,
-            .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-            .pPoolSizes = poolSizes.data(),
-        };
-
-        for (u32 frame = 0; frame < FramesInFlight; ++frame)
-        {
-            VulkanMaterialFrameResources& materialResources = m_materialFrameResources[frame];
-            const VkResult result = vkCreateDescriptorPool(m_context.device(), &poolInfo, nullptr, &materialResources.descriptorPool);
-            AIKO_ASSERT(result == VK_SUCCESS, "Failed to create material descriptor pool");
-        }
-    }
-
-    void VulkanRenderDevice::destroyMaterialResources()
-    {
-        VkDevice device = m_context.device();
-        for (u32 frame = 0; frame < FramesInFlight; ++frame)
-        {
-            resetMaterialFrameResources(frame);
-            VulkanMaterialFrameResources& materialResources = m_materialFrameResources[frame];
-            if (materialResources.descriptorPool != VK_NULL_HANDLE)
-            {
-                vkDestroyDescriptorPool(device, materialResources.descriptorPool, nullptr);
-                materialResources.descriptorPool = VK_NULL_HANDLE;
-            }
-        }
-    }
-
-    void VulkanRenderDevice::resetMaterialFrameResources(u32 frame)
-    {
-        AIKO_ASSERT(frame < FramesInFlight, "Invalid material frame index");
-
-        VkDevice device = m_context.device();
-
-        VulkanMaterialFrameResources& materialResources = m_materialFrameResources[frame];
-
-        for (auto& [key, binding] : materialResources.bindings)
-        {
-            AIKO_UNUSED(key);
-
-            if (binding.uniformMapped != nullptr)
-            {
-                vkUnmapMemory(device, binding.uniformMemory);
-                binding.uniformMapped = nullptr;
-            }
-
-            if (binding.uniformBuffer != VK_NULL_HANDLE)
-            {
-                vkDestroyBuffer(device, binding.uniformBuffer, nullptr);
-                binding.uniformBuffer = VK_NULL_HANDLE;
-            }
-
-            if (binding.uniformMemory != VK_NULL_HANDLE)
-            {
-                vkFreeMemory(device, binding.uniformMemory, nullptr);
-                binding.uniformMemory = VK_NULL_HANDLE;
-            }
-        }
-
-        materialResources.bindings.clear();
-
-        AIKO_ASSERT(materialResources.descriptorPool != VK_NULL_HANDLE, "Material descriptor pool is not initialized");
-
-        const VkResult result = vkResetDescriptorPool(device, materialResources.descriptorPool, 0);
-        AIKO_ASSERT(result == VK_SUCCESS, "Failed to reset material descriptor pool");
-    }
-
     VulkanMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
     {
 
@@ -1697,67 +1612,15 @@ namespace aiko::renderer::vulkan
         const MaterialBindingKey key = makeMaterialBindingKey(material, std::move(textureKeys), std::move(uniformData));
 
         const u32 frame = m_context.currentFrameIndex();
-        AIKO_ASSERT(frame < FramesInFlight, "Invalid material binding frame");
 
-        VulkanMaterialFrameResources& materialResources = m_materialFrameResources[frame];
+        VulkanMaterialBinding& binding = m_materialResources.getOrCreate(frame, key);
 
-        auto& bindings = materialResources.bindings;
-
-        auto it = bindings.find(key);
-        if (it != bindings.end())
-        {
-            refreshMaterialTextureBindings(it->second, textureDescriptors, textureBindings);
-            return it->second;
-        }
-
-        VulkanMaterialBinding binding{};
-
-        binding.uniformSize = static_cast<VkDeviceSize>(key.uniformData.size());
-        AIKO_ASSERT(binding.uniformSize > 0, "Material uniform buffer has zero size");
-
-        m_context.createBuffer(binding.uniformSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory);
-        vkMapMemory(m_context.device(), binding.uniformMemory, 0, binding.uniformSize, 0, &binding.uniformMapped);
-
-        std::memcpy(binding.uniformMapped, key.uniformData.data(), key.uniformData.size());
-
-        const VkDescriptorSetLayout materialLayout = m_modelPipelines.materialLayout();
-        AIKO_ASSERT(materialLayout != VK_NULL_HANDLE, "Material descriptor layout is invalid");
-
-        const VkDescriptorSetAllocateInfo allocInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .descriptorPool = materialResources.descriptorPool,
-            .descriptorSetCount = 1,
-            .pSetLayouts = &materialLayout,
-        };
-
-        VkResult result = vkAllocateDescriptorSets(m_context.device(), &allocInfo, &binding.descriptorSet);
-        AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate material descriptor set");
-
-        const VkDescriptorBufferInfo bufferInfo =
-        {
-            .buffer = binding.uniformBuffer,
-            .offset = 0,
-            .range = binding.uniformSize,
-        };
-
-        const VkWriteDescriptorSet bufferWrite =
-        {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = binding.descriptorSet,
-            .dstBinding = abi::MaterialUboBinding,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pBufferInfo = &bufferInfo,
-        };
-
-        vkUpdateDescriptorSets(m_context.device(), 1, &bufferWrite, 0, nullptr);
-
+        // This must run on both cache hits and misses.
+        // RenderTarget resize can recreate VkImageView while
+        // the public Texture wrapper remains stable.
         refreshMaterialTextureBindings(binding, textureDescriptors, textureBindings);
 
-        auto [insertedIt, inserted] = bindings.emplace(key, binding);
-
-        return insertedIt->second;
+        return binding;
 
     }
 
