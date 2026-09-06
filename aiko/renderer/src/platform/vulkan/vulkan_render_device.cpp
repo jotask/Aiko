@@ -1116,9 +1116,13 @@ namespace aiko::renderer::vulkan
 
         bufferImpl->retainReadback();
 
+        const ReadbackId id = request.id != InvalidReadbackId ? request.id : m_nextReadbackId++;
+
+        AIKO_ASSERT(id != InvalidReadbackId, "Vulkan readback id overflow");
+
         m_readbackRequests.push_back(
         {
-            .id = request.id,
+            .id = id,
             .source = std::move(source),
             .byteSize = request.byteSize,
         });
