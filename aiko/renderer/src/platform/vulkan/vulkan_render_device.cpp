@@ -613,6 +613,27 @@ namespace aiko::renderer::vulkan
         vkCmdBeginRenderPass(m_context.activeCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         m_renderPassActive = true;
 
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+
+        const VkViewport viewport =
+        {
+            .x = 0.0f,
+            .y = 0.0f,
+            .width = static_cast<float>(m_activeExtent.width),
+            .height = static_cast<float>(m_activeExtent.height),
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f,
+        };
+
+        const VkRect2D scissor =
+        {
+            .offset = { 0, 0 },
+            .extent = m_activeExtent,
+        };
+
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
     }
 
     void VulkanRenderDevice::endPass()
@@ -744,27 +765,6 @@ namespace aiko::renderer::vulkan
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-        const VkExtent2D extent = m_context.swapChainExtent();
-
-        const VkViewport viewport =
-        {
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = static_cast<float>(extent.width),
-            .height = static_cast<float>(extent.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f,
-        };
-
-        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-        const VkRect2D scissor =
-        {
-            .offset = { 0, 0 },
-            .extent = extent,
-        };
-
-        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
         const mat4 mvp = mat4(1.0f);
@@ -844,25 +844,6 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Instanced draw requires an active command buffer");
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-        const VkViewport viewport =
-        {
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = static_cast<float>(m_activeExtent.width),
-            .height = static_cast<float>(m_activeExtent.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f,
-        };
-
-        const VkRect2D scissor =
-        {
-            .offset = { 0, 0 },
-            .extent = m_activeExtent,
-        };
-
-        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         struct DrawPushConstants
         {
@@ -1192,27 +1173,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "GPU-instanced draw requires an active command buffer");
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsGpuReadSet, 1, &gpuReadSet, 0, nullptr);
-
-        const VkViewport viewport =
-        {
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = static_cast<float>(m_activeExtent.width),
-            .height = static_cast<float>(m_activeExtent.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f,
-        };
-
-        const VkRect2D scissor =
-        {
-            .offset = { 0, 0 },
-            .extent = m_activeExtent,
-        };
-
-        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         struct DrawPushConstants
         {
@@ -1351,25 +1312,6 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "GPU vertex draw requires an active command buffer");
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-        const VkViewport viewport =
-        {
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = static_cast<float>(m_activeExtent.width),
-            .height = static_cast<float>(m_activeExtent.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f,
-        };
-
-        const VkRect2D scissor =
-        {
-            .offset = { 0, 0 },
-            .extent = m_activeExtent,
-        };
-
-        vkCmdSetViewport(commandBuffer,0,1,&viewport);
-        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         struct DrawPushConstants
         {
@@ -1557,25 +1499,6 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Transient draw requires an active command buffer");
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-        const VkViewport viewport =
-        {
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = static_cast<float>(m_activeExtent.width),
-            .height = static_cast<float>(m_activeExtent.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f,
-        };
-
-        const VkRect2D scissor =
-        {
-            .offset = { 0, 0 },
-            .extent = m_activeExtent,
-        };
-
-        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         struct DrawPushConstants
         {
@@ -1841,25 +1764,6 @@ namespace aiko::renderer::vulkan
         VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-        const VkViewport viewport =
-        {
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = static_cast<float>(m_activeExtent.width),
-            .height = static_cast<float>(m_activeExtent.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f,
-        };
-
-        const VkRect2D scissor =
-        {
-            .offset = { 0, 0 },
-            .extent = m_activeExtent,
-        };
-
-        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         struct DrawPushConstants
         {
