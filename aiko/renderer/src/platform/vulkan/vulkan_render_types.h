@@ -11,7 +11,7 @@
 
 namespace aiko::renderer::vulkan
 {
-    struct CachedTextureBinding
+    struct VulkanMaterialTextureState
     {
         uint32_t binding = 0;
 
@@ -20,10 +20,10 @@ namespace aiko::renderer::vulkan
 
         bool hasTexture = false;
 
-        bool operator==(const CachedTextureBinding& other) const = default;
+        bool operator==(const VulkanMaterialTextureState& other) const = default;
     };
 
-    struct CachedMaterialBinding
+    struct VulkanMaterialBinding
     {
         VkBuffer uniformBuffer = VK_NULL_HANDLE;
         VkDeviceMemory uniformMemory = VK_NULL_HANDLE;
@@ -33,7 +33,7 @@ namespace aiko::renderer::vulkan
 
         VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 
-        std::vector<CachedTextureBinding> textures;
+        std::vector<VulkanMaterialTextureState> textures;
     };
 
     struct MaterialTextureBindingKey
@@ -106,5 +106,11 @@ namespace aiko::renderer::vulkan
         VkDeviceMemory uniformMemory = VK_NULL_HANDLE;
         void* uniformMapped = nullptr;
         VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+    };
+
+    struct VulkanMaterialFrameResources
+    {
+        VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+        std::unordered_map<MaterialBindingKey, VulkanMaterialBinding, MaterialBindingKeyHash> bindings;
     };
 }

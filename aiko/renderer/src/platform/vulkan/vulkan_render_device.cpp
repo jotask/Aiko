@@ -534,10 +534,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(frame < FramesInFlight, "Invalid Vulkan frame index");
 
         resetFrameBindings(frame);
-        clearMaterialBindings(frame);
-
-        const VkResult materialReset = vkResetDescriptorPool(m_context.device(), m_materialDescriptorPools[frame], 0);
-        AIKO_ASSERT(materialReset == VK_SUCCESS, "Failed to reset material descriptor pool");
+        resetMaterialFrameResources(frame);
 
         completeReadbacksForFrame(frame);
         resetUploadArenaForFrame(frame);
@@ -757,7 +754,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::bindMaterial(const Material& material)
     {
-        CachedMaterialBinding& binding = resolveMaterialBinding(material);
+        VulkanMaterialBinding& binding = resolveMaterialBinding(material);
         vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, abi::GraphicsMaterialSet, 1, &binding.descriptorSet, 0, nullptr);
     }
 
@@ -2615,7 +2612,8 @@ namespace aiko::renderer::vulkan
 
         for (u32 frame = 0; frame < FramesInFlight; ++frame)
         {
-            const VkResult result = vkCreateDescriptorPool(m_context.device(), &poolInfo, nullptr, &m_materialDescriptorPools[frame]);
+            VulkanMaterialFrameResources& materialResources = m_materialFrameResources[frame];
+            const VkResult result = vkCreateDescriptorPool(m_context.device(), &poolInfo, nullptr, &materialResources.descriptorPool);
             AIKO_ASSERT(result == VK_SUCCESS, "Failed to create material descriptor pool");
         }
     }
@@ -2625,24 +2623,25 @@ namespace aiko::renderer::vulkan
         VkDevice device = m_context.device();
         for (u32 frame = 0; frame < FramesInFlight; ++frame)
         {
-            clearMaterialBindings(frame);
-            if (m_materialDescriptorPools[frame] != VK_NULL_HANDLE)
+            resetMaterialFrameResources(frame);
+            VulkanMaterialFrameResources& materialResources = m_materialFrameResources[frame];
+            if (materialResources.descriptorPool != VK_NULL_HANDLE)
             {
-                vkDestroyDescriptorPool(device, m_materialDescriptorPools[frame], nullptr);
-                m_materialDescriptorPools[frame] = VK_NULL_HANDLE;
+                vkDestroyDescriptorPool(device, materialResources.descriptorPool, nullptr);
+                materialResources.descriptorPool = VK_NULL_HANDLE;
             }
         }
     }
 
-    void VulkanRenderDevice::clearMaterialBindings(u32 frame)
+    void VulkanRenderDevice::resetMaterialFrameResources(u32 frame)
     {
-        AIKO_ASSERT(frame < FramesInFlight, "Invalid material binding frame");
+        AIKO_ASSERT(frame < FramesInFlight, "Invalid material frame index");
 
         VkDevice device = m_context.device();
 
-        auto& cache = m_materialBindingCaches[frame];
+        VulkanMaterialFrameResources& materialResources = m_materialFrameResources[frame];
 
-        for (auto& [key, binding] : cache)
+        for (auto& [key, binding] : materialResources.bindings)
         {
             AIKO_UNUSED(key);
 
@@ -2665,10 +2664,15 @@ namespace aiko::renderer::vulkan
             }
         }
 
-        cache.clear();
+        materialResources.bindings.clear();
+
+        AIKO_ASSERT(materialResources.descriptorPool != VK_NULL_HANDLE, "Material descriptor pool is not initialized");
+
+        const VkResult result = vkResetDescriptorPool(device, materialResources.descriptorPool, 0);
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to reset material descriptor pool");
     }
 
-    CachedMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
+    VulkanMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
     {
 
         AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "Material binding requires a shader");
@@ -2733,16 +2737,18 @@ namespace aiko::renderer::vulkan
         const u32 frame = m_context.currentFrameIndex();
         AIKO_ASSERT(frame < FramesInFlight, "Invalid material binding frame");
 
-        auto& cache = m_materialBindingCaches[frame];
+        VulkanMaterialFrameResources& materialResources = m_materialFrameResources[frame];
 
-        auto it = cache.find(key);
-        if (it != cache.end())
+        auto& bindings = materialResources.bindings;
+
+        auto it = bindings.find(key);
+        if (it != bindings.end())
         {
             refreshMaterialTextureBindings(it->second, textureDescriptors, textureBindings);
             return it->second;
         }
 
-        CachedMaterialBinding binding{};
+        VulkanMaterialBinding binding{};
 
         binding.uniformSize = static_cast<VkDeviceSize>(key.uniformData.size());
         AIKO_ASSERT(binding.uniformSize > 0, "Material uniform buffer has zero size");
@@ -2755,7 +2761,7 @@ namespace aiko::renderer::vulkan
         const VkDescriptorSetAllocateInfo allocInfo =
         {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .descriptorPool = m_materialDescriptorPools[frame],
+            .descriptorPool = materialResources.descriptorPool,
             .descriptorSetCount = 1,
             .pSetLayouts = &m_materialDescriptorSetLayout,
         };
@@ -2784,7 +2790,7 @@ namespace aiko::renderer::vulkan
 
         refreshMaterialTextureBindings(binding, textureDescriptors, textureBindings);
 
-        auto [insertedIt, inserted] = cache.emplace(key, binding);
+        auto [insertedIt, inserted] = bindings.emplace(key, binding);
 
         return insertedIt->second;
 
@@ -4566,7 +4572,7 @@ namespace aiko::renderer::vulkan
         };
     }
 
-    void VulkanRenderDevice::refreshMaterialTextureBindings(CachedMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings)
+    void VulkanRenderDevice::refreshMaterialTextureBindings(VulkanMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings)
     {
         AIKO_ASSERT(descriptors.size() == textureBindings.size(), "Material texture descriptor count mismatch");
 
@@ -4591,7 +4597,7 @@ namespace aiko::renderer::vulkan
 
             const bool hasTexture = texture != &m_whiteTexture;
 
-            CachedTextureBinding& cached = binding.textures[i];
+            VulkanMaterialTextureState& cached = binding.textures[i];
 
             if (
                 cached.binding == descriptor.binding &&

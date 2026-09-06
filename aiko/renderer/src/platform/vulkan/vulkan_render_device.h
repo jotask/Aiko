@@ -119,20 +119,19 @@ namespace aiko::renderer::vulkan
         static constexpr uint32_t MaxMaterialBindings = 1024;
 
         Texture m_whiteTexture;
-        std::array<VkDescriptorPool, FramesInFlight> m_materialDescriptorPools{};
+        std::array<VulkanMaterialFrameResources, FramesInFlight> m_materialFrameResources = {};
 
         RenderPassCompatibilityKey m_activeRenderPassCompatibility{};
         std::unordered_map<ModelPipelineKey, VkPipeline, ModelPipelineKeyHash> m_modelPipelines;
 
         VkPipeline getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced);
 
-        std::array<std::unordered_map<MaterialBindingKey, CachedMaterialBinding, MaterialBindingKeyHash>, FramesInFlight> m_materialBindingCaches;
         MaterialBindingKey makeMaterialBindingKey(const Material& material, std::vector<MaterialTextureBindingKey> textures, std::vector<uint8_t> uniformData) const;
 
         void createMaterialResources();
         void destroyMaterialResources();
-        void clearMaterialBindings(u32 frame);
-        CachedMaterialBinding& resolveMaterialBinding(const Material& material);
+        void resetMaterialFrameResources(u32 frame);
+        VulkanMaterialBinding& resolveMaterialBinding(const Material& material);
 
         mat4 m_sceneViewProj = mat4(1.0f);
 
@@ -220,7 +219,7 @@ namespace aiko::renderer::vulkan
         VkSampler getOrCreateSampler(const SamplerState& state);
         void destroySamplerCache();
         const Texture* resolveTextureBinding(const TextureBinding& binding);
-        void refreshMaterialTextureBindings(CachedMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings);
+        void refreshMaterialTextureBindings(VulkanMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings);
 
         void resetFrameBindings(u32 frame);
 
