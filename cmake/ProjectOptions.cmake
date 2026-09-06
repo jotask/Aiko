@@ -9,6 +9,7 @@ function(aiko_setup_options)
     set_property(CACHE AIKO_RENDER PROPERTY STRINGS AIKO_BGFX AIKO_NATIVE AIKO_VULKAN)
 
     option(AIKO_PROFILER "Enable profiling tools" OFF)
+    option(AIKO_PROFILE_COPIES "Enable copy/move profiling counters" OFF)
 
     # Initialize unity build for targets created after this point
     if(AIKO_ENABLE_UNITY)
@@ -65,6 +66,9 @@ function(aiko_apply_defaults target_name)
 
     if(AIKO_PROFILER)
         target_compile_definitions(${target_name} PRIVATE AIKO_PROFILER)
+    endif()
+
+    if(AIKO_PROFILE_COPIES)
         target_compile_definitions(${target_name} PRIVATE AIKO_PROFILE_COPIES)
     endif()
 

@@ -39,7 +39,33 @@
         "AIKO_RENDER": "AIKO_VULKAN",
         "AIKO_BUILD_EXAMPLES": "ON",
         "AIKO_ENABLE_UNITY": "OFF",
-        "AIKO_PROFILER": "ON"
+        "AIKO_PROFILER": "ON",
+        "AIKO_PROFILE_COPIES": "OFF"
+      }
+    },
+    {
+      "name": "all-relwithdebinfo",
+      "displayName": "Core + examples / RelWithDebInfo",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/all-relwithdebinfo",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "AIKO_RENDER": "AIKO_VULKAN",
+        "AIKO_BUILD_EXAMPLES": "ON",
+        "AIKO_ENABLE_UNITY": "OFF",
+        "AIKO_PROFILER": "OFF",
+        "AIKO_PROFILE_COPIES": "OFF"
+      }
+    },
+    {
+      "name": "all-relwithdebinfo-profiler",
+      "displayName": "Core + examples / RelWithDebInfo / Profiler",
+      "inherits": "all-relwithdebinfo",
+      "binaryDir": "${sourceDir}/build/all-relwithdebinfo-profiler",
+      "cacheVariables": {
+        "AIKO_PROFILER": "ON",
+        "AIKO_PROFILE_COPIES": "OFF"
       }
     },
     {
