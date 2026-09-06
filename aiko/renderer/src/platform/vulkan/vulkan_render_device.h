@@ -23,6 +23,7 @@
 #include "vulkan_sampler_cache.h"
 #include "vulkan_compute_descriptors.h"
 #include "vulkan_compute_pipelines.h"
+#include "vulkan_screen_resources.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -89,12 +90,6 @@ namespace aiko::renderer::vulkan
         bool m_frameActive = false;
         bool m_renderPassActive = false;
         bool m_computePassActive = false;
-        VkDescriptorSetLayout m_screenDescriptorSetLayout = VK_NULL_HANDLE;
-        VkPipelineLayout m_screenPipelineLayout = VK_NULL_HANDLE;
-        VkPipeline m_screenPipeline = VK_NULL_HANDLE;
-
-        VkDescriptorPool m_screenDescriptorPool = VK_NULL_HANDLE;
-        std::array<VkDescriptorSet, FramesInFlight> m_screenDescriptorSets{};
 
         VkDescriptorSetLayout m_frameDescriptorSetLayout = VK_NULL_HANDLE;
         VkDescriptorSetLayout m_materialDescriptorSetLayout = VK_NULL_HANDLE;
@@ -116,11 +111,8 @@ namespace aiko::renderer::vulkan
         void createModelInstancedPipeline(VkRenderPass renderPass, const RenderState& renderState, VkPipeline& pipeline);
         void createModelPipelineLayout();
         void destroyModelPipeline();
-        void createScreenPipelineLayout();
-        void destroyScreenPipeline();
-        void createScreenPipeline();
-        void createScreenDescriptorPool();
-        VkDescriptorSet getScreenDescriptorSet(const Texture& texture);
+
+        VulkanScreenResources m_screenResources;
 
         static constexpr uint32_t MaxMaterialBindings = 1024;
 
