@@ -65,6 +65,7 @@ namespace aiko::lab
         void updateLights();
         void updateCompute();
         void updateRuntimeTexture();
+        void updateRenderTargetStress();
 
         // --------------------------------------------------
         // Render

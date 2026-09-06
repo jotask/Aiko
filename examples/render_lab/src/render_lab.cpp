@@ -42,6 +42,7 @@ namespace aiko::lab
         constexpr bool EnableComputeTests = true;
         constexpr bool EnableGpuVertexTests = true;
         constexpr bool EnableRenderTargetTests = true;
+        constexpr bool EnableRenderTargetResizeStress = true;
     }
 
     void RenderLab::connect(SystemConnector& systemConnector)
@@ -128,6 +129,11 @@ namespace aiko::lab
         if constexpr (EnableComputeTests)
         {
             updateCompute();
+        }
+
+        if constexpr (EnableRenderTargetTests && EnableRenderTargetResizeStress)
+        {
+            updateRenderTargetStress();
         }
     }
 
@@ -891,6 +897,46 @@ namespace aiko::lab
         }
 
         sprite->refresh();
+    }
+
+    void RenderLab::updateRenderTargetStress()
+    {
+        using Clock = std::chrono::steady_clock;
+
+        static const std::array<ivec2, 3> TargetSizes =
+        {
+            ivec2{320, 180},
+            ivec2{640, 360},
+            ivec2{960, 540},
+        };
+
+        static constexpr double ResizeIntervalSeconds = 0.75;
+        static auto lastResize = Clock::now();
+        // Initial RenderLab target is 640x360.
+
+        static std::size_t sizeIndex = 1;
+        const auto now = Clock::now();
+        const std::chrono::duration<double> elapsed = now - lastResize;
+
+        if (elapsed.count() < ResizeIntervalSeconds)
+        {
+            return;
+        }
+
+        lastResize = now;
+        sizeIndex = (sizeIndex + 1) % TargetSizes.size();
+
+        const ivec2 targetSize = TargetSizes[sizeIndex];
+
+        m_validationRenderTarget.resize(static_cast<u32>(targetSize.x), static_cast<u32>(targetSize.y));
+        AIKO_ASSERT(m_validationRenderTarget.isValid(), "RenderLab render target invalid after resize");
+
+        const ivec2 actualSize = m_validationRenderTarget.size();
+        AIKO_ASSERT(actualSize.x == targetSize.x && actualSize.y == targetSize.y, "RenderLab render target size mismatch after resize");
+
+        const TextureBinding* binding = m_renderTargetMaterial.textureBinding("u_texture");
+        AIKO_ASSERT(binding != nullptr, "RenderLab render target material lost texture binding");
+        AIKO_ASSERT(binding->runtimeTexture == &m_validationRenderTarget.colorTexture(), "RenderLab render target material has stale texture binding");
     }
 
     void RenderLab::updateLights()
