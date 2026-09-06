@@ -510,6 +510,7 @@ namespace aiko::renderer::vulkan
         }
 
         m_boundGraphicsPipeline = VK_NULL_HANDLE;
+        m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
 
         AIKO_ASSERT(m_computePassActive == false, "Graphics pass cannot begin while compute pass is active");
 
@@ -690,6 +691,7 @@ namespace aiko::renderer::vulkan
         m_activeExtent = {};
         m_activeRenderPassCompatibility = {};
         m_boundGraphicsPipeline = VK_NULL_HANDLE;
+        m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
 
         m_preparedMaterialBindings.clear();
 
@@ -726,9 +728,16 @@ namespace aiko::renderer::vulkan
         }
 
         AIKO_ASSERT(binding != nullptr, "Prepared material binding is null");
+        AIKO_ASSERT(binding->descriptorSet != VK_NULL_HANDLE, "Prepared material descriptor set is null");
+
+        if (m_boundMaterialDescriptorSet == binding->descriptorSet)
+        {
+            return;
+        }
 
         vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsMaterialSet, 1, &binding->descriptorSet, 0, nullptr);
 
+        m_boundMaterialDescriptorSet = binding->descriptorSet;
     }
 
     void VulkanRenderDevice::drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material)

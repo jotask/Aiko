@@ -110,6 +110,8 @@ namespace aiko::renderer::vulkan
         VkPipeline m_boundGraphicsPipeline = VK_NULL_HANDLE;
         void bindGraphicsPipeline(VkPipeline pipeline);
 
+        VkDescriptorSet m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
+
         Texture m_whiteTexture;
 
         RenderPassCompatibilityKey m_activeRenderPassCompatibility{};
