@@ -3,8 +3,10 @@
 #include <volk.h>
 
 #include "aiko_types.h"
+#include "assets/asset_id.h"
 #include "core/utils.h"
 #include "types/render_state.h"
+#include "types/render_types.h"
 
 namespace aiko::renderer::vulkan
 {

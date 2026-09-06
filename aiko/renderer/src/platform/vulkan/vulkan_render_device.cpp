@@ -25,44 +25,6 @@ namespace aiko::renderer::vulkan
 
     namespace
     {
-        VkCullModeFlags toVulkanCullMode(CullMode mode)
-        {
-            switch (mode)
-            {
-                case CullMode::None: return VK_CULL_MODE_NONE;
-                case CullMode::Front: return VK_CULL_MODE_FRONT_BIT;
-                case CullMode::Back: return VK_CULL_MODE_BACK_BIT;
-            }
-            AIKO_ASSERT(false, "Unsupported CullMode");
-            return VK_CULL_MODE_NONE;
-        }
-
-        VkCompareOp toVulkanDepthCompare(DepthCompare compare)
-        {
-            switch (compare)
-            {
-                case DepthCompare::Less: return VK_COMPARE_OP_LESS;
-                case DepthCompare::LessEqual: return VK_COMPARE_OP_LESS_OR_EQUAL;
-                case DepthCompare::Equal: return VK_COMPARE_OP_EQUAL;
-                case DepthCompare::Greater: return VK_COMPARE_OP_GREATER;
-                case DepthCompare::GreaterEqual: return VK_COMPARE_OP_GREATER_OR_EQUAL;
-                case DepthCompare::Always: return VK_COMPARE_OP_ALWAYS;
-            }
-            AIKO_ASSERT(false, "Unsupported DepthCompare");
-            return VK_COMPARE_OP_LESS_OR_EQUAL;
-        }
-
-        VkPolygonMode toVulkanPolygonMode(FillMode mode)
-        {
-            switch (mode)
-            {
-                case FillMode::Solid: return VK_POLYGON_MODE_FILL;
-                case FillMode::Wireframe: return VK_POLYGON_MODE_LINE;
-                case FillMode::Point: return VK_POLYGON_MODE_POINT;
-            }
-            AIKO_ASSERT(false, "Unsupported fill mode");
-            return VK_POLYGON_MODE_FILL;
-        }
 
         template<typename T>
         void writeUniformBytes(std::vector<uint8_t>& destination, const VulkanShaderUniformMember& member, const T& value)
@@ -419,6 +381,7 @@ namespace aiko::renderer::vulkan
     VulkanRenderDevice::VulkanRenderDevice(RenderResourceManager* resources)
         : IRenderDevice(resources)
         , m_frameResources(m_context, FramesInFlight)
+        , m_modelPipelines(m_context)
         , m_screenResources(m_context, FramesInFlight)
         , m_computeDescriptors(m_context, FramesInFlight)
         , m_computePipelines(m_context)
@@ -446,14 +409,10 @@ namespace aiko::renderer::vulkan
 
         m_computeDescriptors.create();
         m_computePipelines.create(m_computeDescriptors.layout());
-
         m_screenResources.create();
-
         m_frameResources.create();
         m_gpuReadDescriptors.create();
-
-        createModelPipelineLayout();
-
+        m_modelPipelines.create(m_frameResources.layout(), m_gpuReadDescriptors.layout());
         createMaterialResources();
         m_whiteTexture.create();
         m_whiteTexture.setPixels({WHITE});
@@ -468,7 +427,7 @@ namespace aiko::renderer::vulkan
         m_whiteTexture.unload();
         destroyGpuInstancedPipelines();
         destroyGpuVertexPipelines();
-        destroyModelPipeline();
+        m_modelPipelines.destroy();
         m_frameResources.destroy();
         m_gpuReadDescriptors.destroy();
         m_screenResources.destroy();
@@ -716,7 +675,7 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::bindMaterial(const Material& material)
     {
         VulkanMaterialBinding& binding = resolveMaterialBinding(material);
-        vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, abi::GraphicsMaterialSet, 1, &binding.descriptorSet, 0, nullptr);
+        vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsMaterialSet, 1, &binding.descriptorSet, 0, nullptr);
     }
 
     void VulkanRenderDevice::drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material)
@@ -887,7 +846,7 @@ namespace aiko::renderer::vulkan
             .u_modelViewProj = m_sceneViewProj * world,
         };
 
-        vkCmdPushConstants(commandBuffer, m_modelPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
+        vkCmdPushConstants(commandBuffer, m_modelPipelines.layout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
 
         const VkBuffer vertexBuffers[] =
         {
@@ -1009,7 +968,7 @@ namespace aiko::renderer::vulkan
 
         if (viewId == SCENE_VIEW)
         {
-            vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, abi::GraphicsFrameSet, 1, &binding.descriptorSet, 0, nullptr);
+            vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsFrameSet, 1, &binding.descriptorSet, 0, nullptr);
         }
 
     }
@@ -1209,7 +1168,7 @@ namespace aiko::renderer::vulkan
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelineLayout, abi::GraphicsGpuReadSet, 1, &gpuReadSet, 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsGpuReadSet, 1, &gpuReadSet, 0, nullptr);
 
         const VkViewport viewport =
         {
@@ -1244,7 +1203,7 @@ namespace aiko::renderer::vulkan
             .u_modelViewProj = m_sceneViewProj * world,
         };
 
-        vkCmdPushConstants(commandBuffer, m_modelPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
+        vkCmdPushConstants(commandBuffer, m_modelPipelines.layout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
 
         const VkBuffer vertexBuffers[] =
         {
@@ -1400,7 +1359,7 @@ namespace aiko::renderer::vulkan
             .u_modelViewProj = m_sceneViewProj * world,
         };
 
-        vkCmdPushConstants(commandBuffer, m_modelPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
+        vkCmdPushConstants(commandBuffer, m_modelPipelines.layout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
 
         const VkBuffer vertexBuffer = bufferImpl->buffer();
         const VkDeviceSize offset = 0;
@@ -1600,466 +1559,6 @@ namespace aiko::renderer::vulkan
         resolveMaterialBinding(material);
     }
 
-    void VulkanRenderDevice::createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, VkPipeline& pipeline)
-    {
-        AIKO_ASSERT(renderPass != VK_NULL_HANDLE, "Model render pass is invalid");
-        AIKO_ASSERT(m_modelPipelineLayout != VK_NULL_HANDLE, "Model pipeline layout is invalid");
-        AIKO_ASSERT(shaderId != InvalidAssetId, "Model material has invalid shader id");
-
-        Shader& shader = getResources()->getShader(shaderId);
-        auto* shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
-        AIKO_ASSERT(shaderImpl != nullptr && shaderImpl->isValid(), "Invalid Vulkan material shader");
-
-        validateModelShaderAbi(shaderImpl->reflection());
-        validateModelPushConstants(shaderImpl->reflection());
-
-        const VkPipelineShaderStageCreateInfo vertShaderStageInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .stage = VK_SHADER_STAGE_VERTEX_BIT,
-            .module = shaderImpl->vertexModule(),
-            .pName = "main",
-        };
-
-        const VkPipelineShaderStageCreateInfo fragShaderStageInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .module = shaderImpl->fragmentModule(),
-            .pName = "main",
-        };
-
-        const std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages =
-        {
-            vertShaderStageInfo,
-            fragShaderStageInfo
-        };
-
-        const VkVertexInputBindingDescription bindingDescription = VulkanVertex::bindingDescription();
-
-        const auto attributeDescriptions = VulkanVertex::attributeDescriptions();
-
-        const VkPipelineVertexInputStateCreateInfo vertexInputInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .vertexBindingDescriptionCount = 1,
-            .pVertexBindingDescriptions = &bindingDescription,
-            .vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size()),
-            .pVertexAttributeDescriptions = attributeDescriptions.data(),
-        };
-
-        const VkPipelineInputAssemblyStateCreateInfo inputAssembly =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-            .topology = topology,
-            .primitiveRestartEnable = VK_FALSE,
-        };
-
-        const VkPipelineViewportStateCreateInfo viewportState =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-            .viewportCount = 1,
-            .scissorCount = 1,
-        };
-
-        const VkPipelineRasterizationStateCreateInfo rasterizer =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-            .depthClampEnable = VK_FALSE,
-            .rasterizerDiscardEnable = VK_FALSE,
-            .polygonMode = toVulkanPolygonMode(renderState.fillMode),
-            .cullMode = toVulkanCullMode(renderState.cullMode),
-            .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
-            .depthBiasEnable = VK_FALSE,
-            .lineWidth = 1.0f,
-        };
-
-        const VkPipelineMultisampleStateCreateInfo multisampling =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-            .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-            .sampleShadingEnable = VK_FALSE,
-        };
-
-        const VkPipelineDepthStencilStateCreateInfo depthStencil =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-            .depthTestEnable = renderState.depthTest ? VK_TRUE : VK_FALSE,
-            .depthWriteEnable = renderState.depthWrite ? VK_TRUE : VK_FALSE,
-            .depthCompareOp = toVulkanDepthCompare(renderState.depthCompare),
-            .depthBoundsTestEnable = VK_FALSE,
-            .stencilTestEnable = VK_FALSE,
-        };
-
-        const VkPipelineColorBlendAttachmentState colorBlendAttachment =
-        {
-            .blendEnable = renderState.blend ? VK_TRUE : VK_FALSE,
-            .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-            .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-            .colorBlendOp = VK_BLEND_OP_ADD,
-            .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-            .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-            .alphaBlendOp = VK_BLEND_OP_ADD,
-            .colorWriteMask =
-                VK_COLOR_COMPONENT_R_BIT |
-                VK_COLOR_COMPONENT_G_BIT |
-                VK_COLOR_COMPONENT_B_BIT |
-                VK_COLOR_COMPONENT_A_BIT,
-        };
-
-        const VkPipelineColorBlendStateCreateInfo colorBlending =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-            .logicOpEnable = VK_FALSE,
-            .attachmentCount = 1,
-            .pAttachments = &colorBlendAttachment,
-        };
-
-        const std::array<VkDynamicState, 2> dynamicStates =
-        {
-            VK_DYNAMIC_STATE_VIEWPORT,
-            VK_DYNAMIC_STATE_SCISSOR,
-        };
-
-        const VkPipelineDynamicStateCreateInfo dynamicState =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-            .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
-            .pDynamicStates = dynamicStates.data(),
-        };
-
-        const VkGraphicsPipelineCreateInfo pipelineInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-            .stageCount = static_cast<uint32_t>(shaderStages.size()),
-            .pStages = shaderStages.data(),
-            .pVertexInputState = &vertexInputInfo,
-            .pInputAssemblyState = &inputAssembly,
-            .pViewportState = &viewportState,
-            .pRasterizationState = &rasterizer,
-            .pMultisampleState = &multisampling,
-            .pDepthStencilState = &depthStencil,
-            .pColorBlendState = &colorBlending,
-            .pDynamicState = &dynamicState,
-            .layout = m_modelPipelineLayout,
-            .renderPass = renderPass,
-            .subpass = 0,
-        };
-
-        const VkResult result = vkCreateGraphicsPipelines(m_context.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
-        AIKO_ASSERT(result == VK_SUCCESS, "Failed to create model graphics pipeline");
-    }
-
-    void VulkanRenderDevice::createModelInstancedPipeline(VkRenderPass renderPass, const RenderState& renderState, VkPipeline& pipeline)
-    {
-        AIKO_ASSERT(renderPass != VK_NULL_HANDLE, "Model instanced render pass is invalid");
-        AIKO_ASSERT(m_modelPipelineLayout != VK_NULL_HANDLE, "Model pipeline layout is invalid");
-
-        VulkanShaderImpl shader;
-        shader.load("model_instanced.vs", "model_instanced.fs");
-
-        validateModelShaderAbi(shader.reflection());
-        validateModelPushConstants(shader.reflection());
-
-        const VkPipelineShaderStageCreateInfo vertShaderStageInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .stage = VK_SHADER_STAGE_VERTEX_BIT,
-            .module = shader.vertexModule(),
-            .pName = "main",
-        };
-
-        const VkPipelineShaderStageCreateInfo fragShaderStageInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .module = shader.fragmentModule(),
-            .pName = "main",
-        };
-
-        const std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages =
-        {
-            vertShaderStageInfo,
-            fragShaderStageInfo
-        };
-
-        const VkVertexInputBindingDescription meshBinding = VulkanVertex::bindingDescription();
-
-        const VkVertexInputBindingDescription instanceBinding =
-        {
-            .binding = 1,
-            .stride = sizeof(VulkanInstanceData),
-            .inputRate = VK_VERTEX_INPUT_RATE_INSTANCE,
-        };
-
-        const std::array<VkVertexInputBindingDescription, 2> bindings =
-        {
-            meshBinding,
-            instanceBinding
-        };
-
-        const auto meshAttributes = VulkanVertex::attributeDescriptions();
-
-        std::array<VkVertexInputAttributeDescription, 8> attributes{};
-
-        for (size_t i = 0; i < meshAttributes.size(); ++i)
-        {
-            attributes[i] = meshAttributes[i];
-        }
-
-        attributes[4] =
-        {
-            .location = 4,
-            .binding = 1,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(VulkanInstanceData, position),
-        };
-
-        attributes[5] =
-        {
-            .location = 5,
-            .binding = 1,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(VulkanInstanceData, rotation),
-        };
-
-        attributes[6] =
-        {
-            .location = 6,
-            .binding = 1,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(VulkanInstanceData, scale),
-        };
-
-        attributes[7] =
-        {
-            .location = 7,
-            .binding = 1,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(VulkanInstanceData, color),
-        };
-
-        const VkPipelineVertexInputStateCreateInfo vertexInputInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .vertexBindingDescriptionCount = static_cast<uint32_t>(bindings.size()),
-            .pVertexBindingDescriptions = bindings.data(),
-            .vertexAttributeDescriptionCount = static_cast<uint32_t>(attributes.size()),
-            .pVertexAttributeDescriptions = attributes.data(),
-        };
-
-        const VkPipelineInputAssemblyStateCreateInfo inputAssembly =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-            .primitiveRestartEnable = VK_FALSE,
-        };
-
-        const VkPipelineViewportStateCreateInfo viewportState =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-            .viewportCount = 1,
-            .scissorCount = 1,
-        };
-
-        const VkPipelineRasterizationStateCreateInfo rasterizer =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-            .depthClampEnable = VK_FALSE,
-            .rasterizerDiscardEnable = VK_FALSE,
-            .polygonMode = toVulkanPolygonMode(renderState.fillMode),
-            .cullMode = toVulkanCullMode(renderState.cullMode),
-            .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
-            .depthBiasEnable = VK_FALSE,
-            .lineWidth = 1.0f,
-        };
-
-        const VkPipelineMultisampleStateCreateInfo multisampling =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-            .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-            .sampleShadingEnable = VK_FALSE,
-        };
-
-        const VkPipelineDepthStencilStateCreateInfo depthStencil =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-            .depthTestEnable = renderState.depthTest ? VK_TRUE : VK_FALSE,
-            .depthWriteEnable = renderState.depthWrite ? VK_TRUE : VK_FALSE,
-            .depthCompareOp = toVulkanDepthCompare(renderState.depthCompare),
-            .depthBoundsTestEnable = VK_FALSE,
-            .stencilTestEnable = VK_FALSE,
-        };
-
-        const VkPipelineColorBlendAttachmentState colorBlendAttachment =
-        {
-            .blendEnable = renderState.blend ? VK_TRUE : VK_FALSE,
-            .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-            .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-            .colorBlendOp = VK_BLEND_OP_ADD,
-            .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-            .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-            .alphaBlendOp = VK_BLEND_OP_ADD,
-            .colorWriteMask =
-                VK_COLOR_COMPONENT_R_BIT |
-                VK_COLOR_COMPONENT_G_BIT |
-                VK_COLOR_COMPONENT_B_BIT |
-                VK_COLOR_COMPONENT_A_BIT,
-        };
-
-        const VkPipelineColorBlendStateCreateInfo colorBlending =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-            .logicOpEnable = VK_FALSE,
-            .attachmentCount = 1,
-            .pAttachments = &colorBlendAttachment,
-        };
-
-        const std::array<VkDynamicState, 2> dynamicStates =
-        {
-            VK_DYNAMIC_STATE_VIEWPORT,
-            VK_DYNAMIC_STATE_SCISSOR,
-        };
-
-        const VkPipelineDynamicStateCreateInfo dynamicState =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-            .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
-            .pDynamicStates = dynamicStates.data(),
-        };
-
-        const VkGraphicsPipelineCreateInfo pipelineInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-            .stageCount = static_cast<uint32_t>(shaderStages.size()),
-            .pStages = shaderStages.data(),
-            .pVertexInputState = &vertexInputInfo,
-            .pInputAssemblyState = &inputAssembly,
-            .pViewportState = &viewportState,
-            .pRasterizationState = &rasterizer,
-            .pMultisampleState = &multisampling,
-            .pDepthStencilState = &depthStencil,
-            .pColorBlendState = &colorBlending,
-            .pDynamicState = &dynamicState,
-            .layout = m_modelPipelineLayout,
-            .renderPass = renderPass,
-            .subpass = 0,
-        };
-
-        const VkResult result = vkCreateGraphicsPipelines(
-            m_context.device(),
-            VK_NULL_HANDLE,
-            1,
-            &pipelineInfo,
-            nullptr,
-            &pipeline
-        );
-
-        shader.unload();
-
-        AIKO_ASSERT(result == VK_SUCCESS, "Failed to create model instanced graphics pipeline");
-    }
-
-    void VulkanRenderDevice::createModelPipelineLayout()
-    {
-
-        std::array<
-            VkDescriptorSetLayoutBinding,
-            1 + abi::MaxMaterialTextureBindings
-        > materialBindings{};
-
-        materialBindings[0] =
-        {
-            .binding = abi::MaterialUboBinding,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags =
-                VK_SHADER_STAGE_VERTEX_BIT |
-                VK_SHADER_STAGE_FRAGMENT_BIT,
-            .pImmutableSamplers = nullptr,
-        };
-
-        for (uint32_t i = 0; i < abi::MaxMaterialTextureBindings; ++i)
-        {
-            materialBindings[i + 1] =
-            {
-                .binding = abi::MaterialTextureBindingBase + i,
-                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .descriptorCount = 1,
-                .stageFlags =
-                    VK_SHADER_STAGE_VERTEX_BIT |
-                    VK_SHADER_STAGE_FRAGMENT_BIT,
-                .pImmutableSamplers = nullptr,
-            };
-        }
-
-        const VkDescriptorSetLayoutCreateInfo materialLayoutInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .bindingCount = static_cast<uint32_t>(materialBindings.size()),
-            .pBindings = materialBindings.data(),
-        };
-
-        const VkResult resultCreationLayout = vkCreateDescriptorSetLayout(m_context.device(), &materialLayoutInfo, nullptr, &m_materialDescriptorSetLayout);
-        AIKO_ASSERT(resultCreationLayout == VK_SUCCESS, "Failed to create material descriptor set layout");
-
-        AIKO_ASSERT(m_frameResources.layout() != VK_NULL_HANDLE, "Frame descriptor layout is invalid");
-
-        std::array<VkDescriptorSetLayout, 3> setLayouts{};
-        setLayouts[abi::GraphicsFrameSet] = m_frameResources.layout();
-        setLayouts[abi::GraphicsMaterialSet] = m_materialDescriptorSetLayout;
-        setLayouts[abi::GraphicsGpuReadSet] = m_gpuReadDescriptors.layout();
-
-        const VkPushConstantRange pushConstantRange =
-        {
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-            .offset = 0,
-            .size = sizeof(mat4) * 2,
-        };
-
-        const VkPipelineLayoutCreateInfo pipelineLayoutInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-            .setLayoutCount = static_cast<uint32_t>(setLayouts.size()),
-            .pSetLayouts = setLayouts.data(),
-            .pushConstantRangeCount = 1,
-            .pPushConstantRanges = &pushConstantRange,
-        };
-
-        VkResult resultPipelineCreation = vkCreatePipelineLayout(m_context.device(), &pipelineLayoutInfo, nullptr, &m_modelPipelineLayout);
-        AIKO_ASSERT(resultPipelineCreation == VK_SUCCESS, "Failed to create model pipeline layout");
-
-    }
-
-    void VulkanRenderDevice::destroyModelPipeline()
-    {
-        VkDevice device = m_context.device();
-
-        for (auto& [key, pipeline] : m_modelPipelines)
-        {
-            AIKO_UNUSED(key);
-            if (pipeline != VK_NULL_HANDLE)
-            {
-                vkDestroyPipeline( device, pipeline, nullptr);
-            }
-        }
-
-        m_modelPipelines.clear();
-
-        if (m_modelPipelineLayout != VK_NULL_HANDLE)
-        {
-            vkDestroyPipelineLayout(device, m_modelPipelineLayout, nullptr);
-            m_modelPipelineLayout = VK_NULL_HANDLE;
-        }
-
-        if (m_materialDescriptorSetLayout != VK_NULL_HANDLE)
-        {
-            vkDestroyDescriptorSetLayout(device, m_materialDescriptorSetLayout, nullptr);
-            m_materialDescriptorSetLayout = VK_NULL_HANDLE;
-        }
-
-    }
-
     void VulkanRenderDevice::createMaterialResources()
     {
         const std::array<VkDescriptorPoolSize, 2> poolSizes =
@@ -2232,12 +1731,15 @@ namespace aiko::renderer::vulkan
 
         std::memcpy(binding.uniformMapped, key.uniformData.data(), key.uniformData.size());
 
+        const VkDescriptorSetLayout materialLayout = m_modelPipelines.materialLayout();
+        AIKO_ASSERT(materialLayout != VK_NULL_HANDLE, "Material descriptor layout is invalid");
+
         const VkDescriptorSetAllocateInfo allocInfo =
         {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
             .descriptorPool = materialResources.descriptorPool,
             .descriptorSetCount = 1,
-            .pSetLayouts = &m_materialDescriptorSetLayout,
+            .pSetLayouts = &materialLayout,
         };
 
         VkResult result = vkAllocateDescriptorSets(m_context.device(), &allocInfo, &binding.descriptorSet);
@@ -2411,7 +1913,7 @@ namespace aiko::renderer::vulkan
         }
 
         AIKO_ASSERT(pipeline != VK_NULL_HANDLE, "Model pipeline is invalid");
-        AIKO_ASSERT(m_modelPipelineLayout != VK_NULL_HANDLE, "Model pipeline layout is invalid");
+        AIKO_ASSERT(m_modelPipelines.layout() != VK_NULL_HANDLE, "Model pipeline layout is invalid");
 
         auto* meshImpl = static_cast<VulkanMeshImpl*>(getMeshBackend(mesh));
         AIKO_ASSERT(meshImpl != nullptr, "Mesh has no Vulkan impl");
@@ -2452,7 +1954,7 @@ namespace aiko::renderer::vulkan
             .u_modelViewProj = m_sceneViewProj * world,
         };
 
-        vkCmdPushConstants(commandBuffer, m_modelPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
+        vkCmdPushConstants(commandBuffer, m_modelPipelines.layout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
 
         const VkBuffer vertexBuffers[] = { meshImpl->vertexBuffer() };
         const VkDeviceSize offsets[] = { 0 };
@@ -3401,7 +2903,7 @@ namespace aiko::renderer::vulkan
             .pDepthStencilState = &depthStencil,
             .pColorBlendState = &colorBlending,
             .pDynamicState = &dynamicState,
-            .layout = m_modelPipelineLayout,
+            .layout = m_modelPipelines.layout(),
             .renderPass = renderPass,
             .subpass = 0,
         };
@@ -3597,7 +3099,7 @@ namespace aiko::renderer::vulkan
             .pDepthStencilState = &depthStencil,
             .pColorBlendState = &colorBlending,
             .pDynamicState = &dynamicState,
-            .layout = m_modelPipelineLayout,
+            .layout = m_modelPipelines.layout(),
             .renderPass = renderPass,
             .subpass = 0,
         };
@@ -3807,27 +3309,16 @@ namespace aiko::renderer::vulkan
             .instanced = instanced,
         };
 
-        if (const auto it = m_modelPipelines.find(key); it != m_modelPipelines.end())
-        {
-            return it->second;
-        }
-
-        VkPipeline pipeline = VK_NULL_HANDLE;
-
         if (instanced)
         {
-            createModelInstancedPipeline(renderPass, renderState, pipeline);
-        }
-        else
-        {
-            createModelPipeline(renderPass, topology, shaderId, renderState, pipeline);
+            return m_modelPipelines.getOrCreateInstanced(key, renderPass);
         }
 
-        AIKO_ASSERT( pipeline != VK_NULL_HANDLE, "Failed to create Vulkan model pipeline");
-
-        m_modelPipelines.emplace(key, pipeline);
-
-        return pipeline;
+        AIKO_ASSERT(shaderId != InvalidAssetId, "Model material has invalid shader id");
+        Shader& shader = getResources()->getShader(shaderId);
+        auto* shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
+        AIKO_ASSERT(shaderImpl != nullptr && shaderImpl->isValid(), "Invalid Vulkan material shader");
+        return m_modelPipelines.getOrCreate(key, renderPass, *shaderImpl);
     }
 
 }

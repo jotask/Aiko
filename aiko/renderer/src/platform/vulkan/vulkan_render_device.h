@@ -25,6 +25,7 @@
 #include "vulkan_compute_pipelines.h"
 #include "vulkan_screen_resources.h"
 #include "vulkan_frame_resources.h"
+#include "vulkan_model_pipelines.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -92,21 +93,13 @@ namespace aiko::renderer::vulkan
         bool m_renderPassActive = false;
         bool m_computePassActive = false;
 
-        VkDescriptorSetLayout m_materialDescriptorSetLayout = VK_NULL_HANDLE;
-        VkPipelineLayout m_modelPipelineLayout = VK_NULL_HANDLE;
-
         VkRenderPass m_activeRenderPass = VK_NULL_HANDLE;
         VkExtent2D m_activeExtent = {};
         VulkanTextureImpl* m_activeColorAttachment = nullptr;
         VulkanTextureImpl* m_activeDepthAttachment = nullptr;
 
         VulkanFrameResources m_frameResources;
-
-        void createModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, VkPipeline& pipeline);
-        void createModelInstancedPipeline(VkRenderPass renderPass, const RenderState& renderState, VkPipeline& pipeline);
-        void createModelPipelineLayout();
-        void destroyModelPipeline();
-
+        VulkanModelPipelines m_modelPipelines;
         VulkanScreenResources m_screenResources;
 
         static constexpr uint32_t MaxMaterialBindings = 1024;
@@ -115,7 +108,6 @@ namespace aiko::renderer::vulkan
         std::array<VulkanMaterialFrameResources, FramesInFlight> m_materialFrameResources = {};
 
         RenderPassCompatibilityKey m_activeRenderPassCompatibility{};
-        std::unordered_map<ModelPipelineKey, VkPipeline, ModelPipelineKeyHash> m_modelPipelines;
 
         VkPipeline getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced);
 

@@ -8,10 +8,7 @@
 
 namespace aiko::renderer::vulkan
 {
-    VulkanFrameResources::VulkanFrameResources(
-        VulkanContext& context,
-        uint32_t frameCount
-    )
+    VulkanFrameResources::VulkanFrameResources(VulkanContext& context, uint32_t frameCount)
         : m_context(context)
         , m_pools(frameCount, VK_NULL_HANDLE)
         , m_bindings(frameCount)
@@ -85,9 +82,7 @@ namespace aiko::renderer::vulkan
                 m_context.computeQueueFamily(),
             };
 
-        if (
-            m_context.hasDedicatedComputeQueue()
-        )
+        if (m_context.hasDedicatedComputeQueue())
         {
             m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory, VK_SHARING_MODE_CONCURRENT, queueFamilies.data(), static_cast<uint32_t>(queueFamilies.size()));
         }
@@ -186,7 +181,6 @@ namespace aiko::renderer::vulkan
     void VulkanFrameResources::destroy()
     {
         VkDevice device = m_context.device();
-
         for (uint32_t frame = 0; frame < m_pools.size(); ++frame)
         {
             destroyBindings(frame);
