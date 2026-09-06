@@ -22,6 +22,7 @@
 #include "vulkan_gpu_read_descriptors.h"
 #include "vulkan_sampler_cache.h"
 #include "vulkan_compute_descriptors.h"
+#include "vulkan_compute_pipelines.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -153,17 +154,7 @@ namespace aiko::renderer::vulkan
         void drawMeshWithPipeline(ViewId viewId, const mat4& world, const Mesh& mesh, VkPipeline pipeline);
 
         VulkanComputeDescriptors m_computeDescriptors;
-
-        VkPipelineLayout m_computePipelineLayout = VK_NULL_HANDLE;
-
-        void createComputePipelineLayout();
-        void destroyComputePipelineLayout();
-
-        std::unordered_map<VkShaderModule, VkPipeline> m_computePipelines;
-
-        VkPipeline getOrCreateComputePipeline(const VulkanComputeShaderImpl& shader);
-
-        void destroyComputePipelines();
+        VulkanComputePipelines m_computePipelines;
 
         void updateComputeDescriptors(VkDescriptorSet descriptorSet, const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images);
         void transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings, bool useDedicatedCompute);

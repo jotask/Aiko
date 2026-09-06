@@ -419,6 +419,7 @@ namespace aiko::renderer::vulkan
     VulkanRenderDevice::VulkanRenderDevice(RenderResourceManager* resources)
         : IRenderDevice(resources)
         , m_computeDescriptors(m_context, FramesInFlight)
+        , m_computePipelines(m_context)
         , m_uploadArena(m_context, FramesInFlight)
         , m_gpuReadDescriptors(m_context, FramesInFlight)
         , m_samplerCache(m_context)
@@ -442,7 +443,7 @@ namespace aiko::renderer::vulkan
         m_context.init(desc);
 
         m_computeDescriptors.create();
-        createComputePipelineLayout();
+        m_computePipelines.create(m_computeDescriptors.layout());
 
         createScreenPipelineLayout();
         createScreenPipeline();
@@ -471,8 +472,7 @@ namespace aiko::renderer::vulkan
         m_gpuReadDescriptors.destroy();
         destroyScreenPipeline();
         destroyTransientResources();
-        destroyComputePipelines();
-        destroyComputePipelineLayout();
+        m_computePipelines.destroy();
         m_computeDescriptors.destroy();
         destroyReadbackResources();
         m_uploadArena.destroy();
@@ -1080,7 +1080,9 @@ namespace aiko::renderer::vulkan
         auto* shaderImpl = static_cast<VulkanComputeShaderImpl*>(getComputeShaderBackend(*pass.shader));
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan compute shader implementation");
 
-        const VkPipeline pipeline = getOrCreateComputePipeline(*shaderImpl);
+        const VkPipeline pipeline = m_computePipelines.getOrCreate(*shaderImpl);
+        const VkPipelineLayout pipelineLayout = m_computePipelines.layout();
+
         const VkDescriptorSet descriptorSet = m_computeDescriptors.allocate(m_context.currentFrameIndex());
 
         const bool useDedicatedCompute = m_context.hasDedicatedComputeQueue();
@@ -1169,13 +1171,13 @@ namespace aiko::renderer::vulkan
         updateComputeDescriptors(descriptorSet, pass.buffers, pass.images);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
         if (pass.pushConstants.empty() == false)
         {
             AIKO_ASSERT(pass.pushConstants.size() <= MaxComputePushConstantBytes, "Compute push constants exceed engine limit");
             AIKO_ASSERT(pass.pushConstants.size() % 4 == 0, "Compute push constant size must be a multiple of 4 bytes");
-            vkCmdPushConstants(commandBuffer, m_computePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, static_cast<uint32_t>( pass.pushConstants.size()), pass.pushConstants.data());
+            vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, static_cast<uint32_t>( pass.pushConstants.size()), pass.pushConstants.data());
         }
 
         if (indirectBufferImpl != nullptr)
@@ -2915,98 +2917,6 @@ namespace aiko::renderer::vulkan
         vkCmdBindIndexBuffer(commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT16);
 
         vkCmdDrawIndexed(commandBuffer, meshImpl->indexCount(), 1, 0, 0, 0);
-    }
-
-    void VulkanRenderDevice::createComputePipelineLayout()
-    {
-
-        const VkDescriptorSetLayout descriptorSetLayout = m_computeDescriptors.layout();
-        AIKO_ASSERT(descriptorSetLayout != VK_NULL_HANDLE, "Compute descriptor layout is invalid");
-
-        const VkPushConstantRange pushConstantRange =
-        {
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .offset = 0,
-            .size = MaxComputePushConstantBytes,
-        };
-
-        const VkPipelineLayoutCreateInfo pipelineLayoutInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-            .setLayoutCount = 1,
-            .pSetLayouts = &descriptorSetLayout,
-            .pushConstantRangeCount = 1,
-            .pPushConstantRanges = &pushConstantRange,
-        };
-
-        const VkResult pipelineResult = vkCreatePipelineLayout(m_context.device(), &pipelineLayoutInfo, nullptr, &m_computePipelineLayout);
-
-        AIKO_ASSERT(pipelineResult == VK_SUCCESS, "Failed to create compute pipeline layout");
-
-    }
-
-    void VulkanRenderDevice::destroyComputePipelineLayout()
-    {
-        if (m_computePipelineLayout != VK_NULL_HANDLE)
-        {
-            vkDestroyPipelineLayout(m_context.device(), m_computePipelineLayout, nullptr);
-            m_computePipelineLayout = VK_NULL_HANDLE;
-        }
-    }
-
-    VkPipeline VulkanRenderDevice::getOrCreateComputePipeline(const VulkanComputeShaderImpl& shader)
-    {
-        const VkShaderModule shaderModule = shader.module();
-        AIKO_ASSERT(shaderModule != VK_NULL_HANDLE, "Invalid compute shader module");
-
-        const auto it = m_computePipelines.find(shaderModule);
-
-        if (it != m_computePipelines.end())
-        {
-            return it->second;
-        }
-
-        validateComputePushConstants(shader.reflection(), MaxComputePushConstantBytes);
-
-        const VkPipelineShaderStageCreateInfo shaderStage =
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .stage = VK_SHADER_STAGE_COMPUTE_BIT,
-            .module = shaderModule,
-            .pName = "main",
-        };
-
-        const VkComputePipelineCreateInfo pipelineInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-            .stage = shaderStage,
-            .layout = m_computePipelineLayout,
-        };
-
-        VkPipeline pipeline = VK_NULL_HANDLE;
-
-        const VkResult result = vkCreateComputePipelines(m_context.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
-        AIKO_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan compute pipeline");
-
-        m_computePipelines.emplace(shaderModule, pipeline);
-
-        return pipeline;
-
-    }
-
-    void VulkanRenderDevice::destroyComputePipelines()
-    {
-        VkDevice device = m_context.device();
-        for (const auto& [shaderModule, pipeline] : m_computePipelines)
-        {
-            AIKO_UNUSED(shaderModule);
-            if (pipeline != VK_NULL_HANDLE)
-            {
-                vkDestroyPipeline(device, pipeline, nullptr);
-            }
-        }
-
-        m_computePipelines.clear();
     }
 
     void VulkanRenderDevice::updateComputeDescriptors(VkDescriptorSet descriptorSet, const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images)
