@@ -81,6 +81,7 @@ namespace aiko
 
         m_frameMaterials.clear();
         m_frameMaterialCache.clear();
+        m_frameTransientGeometries.clear();
         m_renderQueue.clear();
         m_computeQueue.clear();
         m_sceneRenderRequests.clear();
@@ -99,7 +100,7 @@ namespace aiko
     void AikoRenderer::dispose()
     {
         m_imgui.dispose();
-        m_transientGeometryCache.clear();
+        m_frameTransientGeometries.clear();
         m_screenPresenter.dispose();
         m_sceneTarget.unload();
         m_resources.clear();
@@ -143,8 +144,7 @@ namespace aiko
         TransientDrawDesc draw = {};
         draw.mtx = transform.getWorldMatrix();
         draw.material = &material;
-        draw.topology = topology;
-        draw.geometry = &resolveTransientGeometry(meshAsset, topology);
+        draw.geometry = &stageTransientGeometry(meshAsset, topology);
         m_renderQueue.submitTransient(std::move(draw));
     }
 
@@ -534,61 +534,48 @@ namespace aiko
         return material;
     }
 
-    const TransientGeometry& AikoRenderer::resolveTransientGeometry(const MeshAsset& meshAsset,
-        TransientTopology topology)
+    const TransientGeometry& AikoRenderer::stageTransientGeometry(const MeshAsset& meshAsset, TransientTopology topology)
     {
+
         AIKO_FUNCTION_PROFILE
 
-   const TransientCacheKey key
-   {
-       .meshAsset = &meshAsset,
-       .topology = topology
-   };
+        m_frameTransientGeometries.emplace_back();
 
-        if (auto it = m_transientGeometryCache.find(key); it != m_transientGeometryCache.end())
-        {
-            return it->second;
-        }
+        TransientGeometry& geometry = m_frameTransientGeometries.back();
 
-        TransientGeometry geometry{};
         geometry.topology = topology;
         geometry.vertices.reserve(meshAsset.m_vertices.size());
 
         for (uint32_t i = 0; i < static_cast<uint32_t>(meshAsset.m_vertices.size()); ++i)
         {
-            TransientVertex v{};
+            TransientVertex vertex{};
 
-            v.position = meshAsset.m_vertices[i];
+            vertex.position = meshAsset.m_vertices[i];
 
             if (i < meshAsset.m_textCoord.size())
             {
-                v.uv = meshAsset.m_textCoord[i];
+                vertex.uv = meshAsset.m_textCoord[i];
             }
 
             if (i < meshAsset.m_normals.size())
             {
-                v.normal = meshAsset.m_normals[i];
+                vertex.normal = meshAsset.m_normals[i];
             }
 
             if (i < meshAsset.m_colors.size())
             {
-                v.color = meshAsset.m_colors[i];
+                vertex.color = meshAsset.m_colors[i];
             }
             else
             {
-                v.color = WHITE;
+                vertex.color = WHITE;
             }
 
-            geometry.vertices.push_back(v);
+            geometry.vertices.push_back(vertex);
         }
 
-        if (!meshAsset.m_indices.empty())
-        {
-            geometry.indices = meshAsset.m_indices;
-        }
+        geometry.indices = meshAsset.m_indices;
 
-        auto [it, inserted] = m_transientGeometryCache.emplace(key, std::move(geometry));
-        AIKO_ASSERT(inserted, "Failed to cache transient geometry");
-        return it->second;
+        return geometry;
     }
 }

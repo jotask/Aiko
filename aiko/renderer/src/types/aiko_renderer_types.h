@@ -13,7 +13,6 @@
 namespace aiko
 {
     class Texture;
-    struct MeshAsset;
 
     struct FrameMaterialKey
     {
@@ -82,27 +81,5 @@ namespace aiko
         vector<PreparedRenderPacket> opaque;
         vector<PreparedInstancedPacket> instanced;
         vector<PreparedTransientPacket> transient;
-    };
-
-    struct TransientCacheKey
-    {
-        const MeshAsset* meshAsset = nullptr;
-        TransientTopology topology = TransientTopology::Triangles;
-
-        bool operator==(const TransientCacheKey& other) const
-        {
-            return meshAsset == other.meshAsset && topology == other.topology;
-        }
-    };
-
-    struct TransientCacheKeyHash
-    {
-        size_t operator()(const TransientCacheKey& key) const
-        {
-            std::size_t seed = 0;
-            utils::hashCombine(std::hash<const MeshAsset*>{}(key.meshAsset), seed);
-            utils::hashCombine(std::hash<int>{}(static_cast<int>(key.topology)), seed);
-            return seed;
-        }
     };
 }

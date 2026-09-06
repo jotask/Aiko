@@ -196,9 +196,8 @@ namespace aiko
 
             for (const PreparedInstancedPacket& packet : sortedInstanced)
             {
-                const size_t packetByteCount =
-                    size_t(packet.draw.instanceCount) * size_t(packet.draw.stride);
 
+                const size_t packetByteCount = size_t(packet.draw.instanceCount) * size_t(packet.draw.stride);
                 AIKO_ASSERT(packetByteCount > 0, "Merged instanced packet byteCount is zero");
 
                 const auto* srcBytes = static_cast<const uint8_t*>(packet.draw.data);
@@ -260,14 +259,9 @@ namespace aiko
 
             for (const TransientDrawDesc& item : m_transientDraws)
             {
-                const bool hasCachedGeometry =
-                    item.geometry != nullptr &&
-                    !item.geometry->vertices.empty();
+                const bool hasGeometry = item.geometry != nullptr && !item.geometry->vertices.empty();
 
-                const bool hasInlineGeometry =
-                    !item.vertices.empty();
-
-                if (item.material == nullptr || (!hasCachedGeometry && !hasInlineGeometry))
+                if (item.material == nullptr || !hasGeometry)
                 {
                     continue;
                 }

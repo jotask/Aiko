@@ -535,6 +535,7 @@ namespace aiko::renderer::vulkan
 
         resetFrameBindings(frame);
         resetMaterialFrameResources(frame);
+        resetTransientFrameResources(frame);
 
         completeReadbacksForFrame(frame);
         resetUploadArenaForFrame(frame);
@@ -1356,44 +1357,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(desc.positionBuffer->isValid(), "GPU billboard position buffer is invalid");
         AIKO_ASSERT(desc.instanceCount > 0, "GPU billboard draw has zero instances");
 
-        static const TransientGeometry billboardGeometry =
-        {
-            .topology = TransientTopology::Triangles,
-            .vertices =
-            {
-                {
-                    .position = vec3(-0.5f, -0.5f, 0.0f),
-                    .uv = vec2(0.0f, 1.0f),
-                    .normal = vec3(0.0f, 0.0f, 1.0f),
-                    .color = WHITE,
-                },
-                {
-                    .position = vec3(0.5f, -0.5f, 0.0f),
-                    .uv = vec2(1.0f, 1.0f),
-                    .normal = vec3(0.0f, 0.0f, 1.0f),
-                    .color = WHITE,
-                },
-                {
-                    .position = vec3(0.5f, 0.5f, 0.0f),
-                    .uv = vec2(1.0f, 0.0f),
-                    .normal = vec3(0.0f, 0.0f, 1.0f),
-                    .color = WHITE,
-                },
-                {
-                    .position = vec3(-0.5f, 0.5f, 0.0f),
-                    .uv = vec2(0.0f, 0.0f),
-                    .normal = vec3(0.0f, 0.0f, 1.0f),
-                    .color = WHITE,
-                },
-            },
-            .indices =
-            {
-                0, 1, 2,
-                0, 2, 3,
-            },
-        };
-
-        Mesh& mesh = resolveTransientMesh(billboardGeometry);
+        Mesh& mesh = resolveBillboardMesh();
 
         const GpuInstanceDrawDesc draw =
         {
@@ -1643,7 +1607,7 @@ namespace aiko::renderer::vulkan
 
         VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-        switch (desc.topology)
+        switch (desc.geometry->topology)
         {
             case TransientTopology::Triangles:
                 topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -2796,38 +2760,79 @@ namespace aiko::renderer::vulkan
 
     }
 
-    void VulkanRenderDevice::destroyTransientResources()
+    void VulkanRenderDevice::resetTransientFrameResources(u32 frame)
     {
-        for (auto& [geometry, mesh] : m_transientMeshCache)
+        AIKO_ASSERT(frame < FramesInFlight, "Invalid transient frame index");
+        auto& meshes = m_transientMeshCaches[frame];
+        for (auto& [geometry, mesh] : meshes)
         {
+            AIKO_UNUSED(geometry);
             if (mesh != nullptr)
             {
                 mesh->unload();
             }
         }
+        meshes.clear();
+    }
 
-        m_transientMeshCache.clear();
+    void VulkanRenderDevice::destroyTransientResources()
+    {
+        for (u32 frame = 0; frame < FramesInFlight; ++frame)
+        {
+            resetTransientFrameResources(frame);
+        }
+
+        if (m_billboardMesh != nullptr)
+        {
+            m_billboardMesh->unload();
+            m_billboardMesh.reset();
+        }
     }
 
     Mesh& VulkanRenderDevice::resolveTransientMesh(const TransientGeometry& geometry)
     {
-        if (auto it = m_transientMeshCache.find(&geometry); it != m_transientMeshCache.end())
+        const u32 frame = m_context.currentFrameIndex();
+
+        AIKO_ASSERT(
+            frame < FramesInFlight,
+            "Invalid transient mesh frame"
+        );
+
+        auto& meshes = m_transientMeshCaches[frame];
+
+        if (auto it = meshes.find(&geometry); it != meshes.end())
         {
             return *it->second;
         }
 
+        AikoUPtr<Mesh> mesh =
+            createTransientMesh(geometry);
+
+        Mesh& result = *mesh;
+
+        meshes.emplace(
+            &geometry,
+            std::move(mesh)
+        );
+
+        return result;
+    }
+
+    AikoUPtr<Mesh> VulkanRenderDevice::createTransientMesh(const TransientGeometry& geometry)
+    {
         MeshAsset asset{};
+
         asset.m_vertices.reserve(geometry.vertices.size());
         asset.m_textCoord.reserve(geometry.vertices.size());
         asset.m_normals.reserve(geometry.vertices.size());
         asset.m_colors.reserve(geometry.vertices.size());
 
-        for (const TransientVertex& v : geometry.vertices)
+        for (const TransientVertex& vertex : geometry.vertices)
         {
-            asset.m_vertices.push_back(v.position);
-            asset.m_textCoord.push_back(v.uv);
-            asset.m_normals.push_back(v.normal);
-            asset.m_colors.push_back(v.color);
+            asset.m_vertices.push_back(vertex.position);
+            asset.m_textCoord.push_back(vertex.uv);
+            asset.m_normals.push_back(vertex.normal);
+            asset.m_colors.push_back(vertex.color);
         }
 
         asset.m_indices = geometry.indices;
@@ -2835,9 +2840,56 @@ namespace aiko::renderer::vulkan
         auto mesh = std::make_unique<Mesh>();
         mesh->upload(asset);
 
-        Mesh& ref = *mesh;
-        m_transientMeshCache.emplace(&geometry, std::move(mesh));
-        return ref;
+        return mesh;
+    }
+
+    Mesh& VulkanRenderDevice::resolveBillboardMesh()
+    {
+        if (m_billboardMesh != nullptr)
+        {
+            return *m_billboardMesh;
+        }
+
+        static const TransientGeometry geometry =
+        {
+            .topology = TransientTopology::Triangles,
+            .vertices =
+            {
+                {
+                    .position = vec3(-0.5f, -0.5f, 0.0f),
+                    .uv = vec2(0.0f, 1.0f),
+                    .normal = vec3(0.0f, 0.0f, 1.0f),
+                    .color = WHITE,
+                },
+                {
+                    .position = vec3(0.5f, -0.5f, 0.0f),
+                    .uv = vec2(1.0f, 1.0f),
+                    .normal = vec3(0.0f, 0.0f, 1.0f),
+                    .color = WHITE,
+                },
+                {
+                    .position = vec3(0.5f, 0.5f, 0.0f),
+                    .uv = vec2(1.0f, 0.0f),
+                    .normal = vec3(0.0f, 0.0f, 1.0f),
+                    .color = WHITE,
+                },
+                {
+                    .position = vec3(-0.5f, 0.5f, 0.0f),
+                    .uv = vec2(0.0f, 0.0f),
+                    .normal = vec3(0.0f, 0.0f, 1.0f),
+                    .color = WHITE,
+                },
+            },
+            .indices =
+            {
+                0, 1, 2,
+                0, 2, 3,
+            },
+        };
+
+        m_billboardMesh = createTransientMesh(geometry);
+
+        return *m_billboardMesh;
     }
 
     void VulkanRenderDevice::drawMeshWithPipeline(ViewId viewId, const mat4& world, const Mesh& mesh, VkPipeline pipeline)

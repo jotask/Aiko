@@ -38,14 +38,7 @@ namespace aiko
     struct TransientDrawDesc
     {
         mat4 mtx = mat4(1.0f);
-
         const Material* material = nullptr;
-
-        TransientTopology topology = TransientTopology::Triangles;
-
         const TransientGeometry* geometry = nullptr;
-
-        std::vector<TransientVertex> vertices;
-        std::vector<uint16_t> indices;
     };
 }

@@ -135,10 +135,15 @@ namespace aiko::renderer::vulkan
 
         mat4 m_sceneViewProj = mat4(1.0f);
 
-        std::unordered_map<const TransientGeometry*, AikoUPtr<Mesh>> m_transientMeshCache;
+        std::array<std::unordered_map<const TransientGeometry*, AikoUPtr<Mesh>>, FramesInFlight> m_transientMeshCaches{};
+        void resetTransientFrameResources(u32 frame);
 
         void destroyTransientResources();
         Mesh& resolveTransientMesh(const TransientGeometry& geometry);
+
+        AikoUPtr<Mesh> m_billboardMesh;
+        AikoUPtr<Mesh> createTransientMesh(const TransientGeometry& geometry);
+        Mesh& resolveBillboardMesh();
 
         void drawMeshWithPipeline(ViewId viewId, const mat4& world, const Mesh& mesh, VkPipeline pipeline);
 

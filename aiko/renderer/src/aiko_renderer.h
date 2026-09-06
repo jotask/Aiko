@@ -107,8 +107,8 @@ namespace aiko
         std::deque<Material> m_frameMaterials;
         std::unordered_map<FrameMaterialKey, Material*, FrameMaterialKeyHash> m_frameMaterialCache;
 
-        const TransientGeometry& resolveTransientGeometry(const MeshAsset& meshAsset, TransientTopology topology);
-        std::unordered_map<TransientCacheKey, TransientGeometry, TransientCacheKeyHash> m_transientGeometryCache;
+        const TransientGeometry& stageTransientGeometry(const MeshAsset& meshAsset, TransientTopology topology);
+        std::deque<TransientGeometry> m_frameTransientGeometries;
 
         AikoImgui m_imgui;
 
