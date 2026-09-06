@@ -167,19 +167,13 @@ namespace aiko::renderer::vulkan
         for (uint32_t frame = 0; frame < m_frames.size(); ++frame)
         {
             VulkanMaterialFrameResources& resources = m_frames[frame];
-
-            if (resources.descriptorPool == VK_NULL_HANDLE)
+            destroyBindings(frame);
+            if (resources.descriptorPool != VK_NULL_HANDLE)
             {
-                continue;
+                vkDestroyDescriptorPool(device, resources.descriptorPool, nullptr);
+                resources.descriptorPool = VK_NULL_HANDLE;
             }
-
-            resetFrame(frame);
-
-            vkDestroyDescriptorPool(device, resources.descriptorPool, nullptr);
-
-            resources.descriptorPool = VK_NULL_HANDLE;
         }
-
         m_materialLayout = VK_NULL_HANDLE;
     }
 
