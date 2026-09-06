@@ -46,13 +46,19 @@ set_target_properties(TracyClient PROPERTIES FOLDER "Dependencies")
 
 if (AIKO_PROFILER)
 
+    if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        set(TRACY_TOOL_CXX_FLAGS "-include cstdint")
+    else()
+        set(TRACY_TOOL_CXX_FLAGS "")
+    endif()
+
     set(TRACY_PROFILER_BIN "${tracy_SOURCE_DIR}/profiler/build/tracy-profiler")
     set(TRACY_PROFILER_LAUNCHER "${CMAKE_CURRENT_BINARY_DIR}/run-tracy-profiler.sh")
 
     file(GENERATE OUTPUT "${TRACY_PROFILER_LAUNCHER}" CONTENT
-            "#!/usr/bin/env bash
-            set -e
-            exec \"${TRACY_PROFILER_BIN}\"
+        "#!/usr/bin/env bash
+        set -e
+        nohup \"${TRACY_PROFILER_BIN}\" >/dev/null 2>&1 </dev/null &
     ")
 
     add_custom_target(TracyProfilerBuild
@@ -61,6 +67,7 @@ if (AIKO_PROFILER)
             -B ${tracy_SOURCE_DIR}/profiler/build
             -DCMAKE_BUILD_TYPE=Release
             -DLEGACY=ON
+            "-DCMAKE_CXX_FLAGS=${TRACY_TOOL_CXX_FLAGS}"
             COMMAND ${CMAKE_COMMAND}
             --build ${tracy_SOURCE_DIR}/profiler/build
             --parallel 2
@@ -71,7 +78,6 @@ if (AIKO_PROFILER)
     add_custom_target(TracyProfiler
             COMMAND /bin/bash "${TRACY_PROFILER_LAUNCHER}"
             DEPENDS TracyProfilerBuild
-            USES_TERMINAL
             COMMENT "Launching Tracy profiler"
     )
 
@@ -87,6 +93,7 @@ if (AIKO_PROFILER)
             -S ${tracy_SOURCE_DIR}/csvexport
             -B ${tracy_SOURCE_DIR}/csvexport/build
             -DCMAKE_BUILD_TYPE=Release
+            "-DCMAKE_CXX_FLAGS=${TRACY_TOOL_CXX_FLAGS}"
             COMMAND ${CMAKE_COMMAND}
             --build ${tracy_SOURCE_DIR}/csvexport/build
             --parallel 2
