@@ -17,23 +17,6 @@ namespace aiko::renderer::vulkan
         uint32_t byteSize = 0;
     };
 
-    struct InFlightReadback
-    {
-        ReadbackId id = InvalidReadbackId;
-
-        VkBuffer stagingBuffer = VK_NULL_HANDLE;
-        VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
-
-        uint32_t byteSize = 0;
-        uint32_t frameIndex = 0;
-    };
-
-    struct CompletedReadback
-    {
-        ReadbackId id = InvalidReadbackId;
-        vector<uint8_t> data;
-    };
-
     struct UploadArenaChunk
     {
         VkBuffer buffer = VK_NULL_HANDLE;

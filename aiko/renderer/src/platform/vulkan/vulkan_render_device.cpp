@@ -387,6 +387,7 @@ namespace aiko::renderer::vulkan
         , m_computeDescriptors(m_context, FramesInFlight)
         , m_computePipelines(m_context)
         , m_uploadArena(m_context, FramesInFlight)
+        , m_readbackResources(m_context)
         , m_gpuReadDescriptors(m_context, FramesInFlight)
         , m_samplerCache(m_context)
     {
@@ -464,7 +465,7 @@ namespace aiko::renderer::vulkan
         resetMaterialFrameResources(frame);
         resetTransientFrameResources(frame);
 
-        completeReadbacksForFrame(frame);
+        m_readbackResources.completeFrame(frame);
         m_uploadArena.resetFrame(frame);
 
         m_computeDescriptors.resetFrame(frame);
@@ -1124,20 +1125,7 @@ namespace aiko::renderer::vulkan
 
     bool VulkanRenderDevice::pollReadback(ComputeReadbackResult& result)
     {
-        if (m_completedReadbacks.empty())
-        {
-            return false;
-        }
-
-        CompletedReadback completed = std::move(m_completedReadbacks.front());
-
-        m_completedReadbacks.pop_front();
-
-        result.id = completed.id;
-        result.ready = true;
-        result.data = std::move(completed.data);
-
-        return true;
+        return m_readbackResources.poll(result);
     }
 
     void VulkanRenderDevice::drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc)
@@ -2539,7 +2527,6 @@ namespace aiko::renderer::vulkan
         }
 
         VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
-
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE,"Readback requires an active frame command buffer");
 
         const uint32_t frame = m_context.currentFrameIndex();
@@ -2551,10 +2538,7 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(bufferImpl->hasRetainedReadback(), "Compute readback source is not retained");
             AIKO_ASSERT(hasFlag(bufferImpl->usage(),ComputeBufferUsage::TransferSrc), "Compute readback requires transfer-source usage");
 
-            VkBuffer stagingBuffer = VK_NULL_HANDLE;
-            VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
-
-            m_context.createBuffer(request.byteSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
+            const VulkanReadbackAllocation staging = m_readbackResources.allocate(request.id, request.byteSize, frame);
 
             const VulkanBufferState readbackState =
             {
@@ -2572,7 +2556,7 @@ namespace aiko::renderer::vulkan
                 .size = request.byteSize,
             };
 
-            vkCmdCopyBuffer(commandBuffer, bufferImpl->buffer(), stagingBuffer, 1, &copy);
+            vkCmdCopyBuffer(commandBuffer, bufferImpl->buffer(), staging.buffer, 1, &copy);
 
             const VkBufferMemoryBarrier hostBarrier =
             {
@@ -2581,21 +2565,13 @@ namespace aiko::renderer::vulkan
                 .dstAccessMask = VK_ACCESS_HOST_READ_BIT,
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .buffer = stagingBuffer,
+                .buffer = staging.buffer,
                 .offset = 0,
-                .size = request.byteSize,
+                .size = staging.byteSize,
             };
 
             vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT, 0, 0, nullptr, 1, &hostBarrier, 0, nullptr);
 
-            m_inFlightReadbacks.push_back(
-            {
-                .id = request.id,
-                .stagingBuffer = stagingBuffer,
-                .stagingMemory = stagingMemory,
-                .byteSize = request.byteSize,
-                .frameIndex = frame,
-            });
         }
 
         for (ReadbackRequest& request : m_readbackRequests)
@@ -2614,56 +2590,8 @@ namespace aiko::renderer::vulkan
         m_readbackRequests.clear();
     }
 
-    void VulkanRenderDevice::completeReadbacksForFrame(uint32_t frameIndex)
-    {
-        VkDevice device = m_context.device();
-
-        auto it = m_inFlightReadbacks.begin();
-
-        while (it != m_inFlightReadbacks.end())
-        {
-            if (it->frameIndex != frameIndex)
-            {
-                ++it;
-                continue;
-            }
-
-            CompletedReadback completed{};
-            completed.id = it->id;
-            completed.data.resize(it->byteSize);
-
-            void* mapped = nullptr;
-
-            const VkResult result = vkMapMemory(device, it->stagingMemory, 0, it->byteSize, 0, &mapped);
-            AIKO_ASSERT(result == VK_SUCCESS, "Failed to map Vulkan readback staging buffer");
-
-            std::memcpy(completed.data.data(), mapped, it->byteSize);
-
-            vkUnmapMemory(device, it->stagingMemory);
-            vkDestroyBuffer(device, it->stagingBuffer, nullptr);
-            vkFreeMemory(device, it->stagingMemory, nullptr);
-
-            m_completedReadbacks.push_back(std::move(completed));
-
-            it = m_inFlightReadbacks.erase(it);
-        }
-    }
-
     void VulkanRenderDevice::destroyReadbackResources()
     {
-        for (InFlightReadback& readback : m_inFlightReadbacks)
-        {
-            if (readback.stagingBuffer != VK_NULL_HANDLE)
-            {
-                vkDestroyBuffer(m_context.device(), readback.stagingBuffer, nullptr);
-            }
-
-            if (readback.stagingMemory != VK_NULL_HANDLE)
-            {
-                vkFreeMemory(m_context.device(), readback.stagingMemory, nullptr);
-            }
-        }
-
         for (ReadbackRequest& request : m_readbackRequests)
         {
             if (request.source == nullptr)
@@ -2675,9 +2603,9 @@ namespace aiko::renderer::vulkan
             bufferImpl->releaseReadback();
         }
 
-        m_inFlightReadbacks.clear();
         m_readbackRequests.clear();
-        m_completedReadbacks.clear();
+
+        m_readbackResources.destroy();
     }
 
     void VulkanRenderDevice::prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings)

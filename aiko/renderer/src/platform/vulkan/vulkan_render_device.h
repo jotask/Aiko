@@ -27,6 +27,7 @@
 #include "vulkan_frame_resources.h"
 #include "vulkan_model_pipelines.h"
 #include "vulkan_gpu_pipelines.h"
+#include "vulkan_readback_resources.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -156,12 +157,10 @@ namespace aiko::renderer::vulkan
         void flushComputeBufferUploads(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, uint32_t queueFamily);
 
         vector<ReadbackRequest> m_readbackRequests;
-        vector<InFlightReadback> m_inFlightReadbacks;
-        std::deque<CompletedReadback> m_completedReadbacks;
+        VulkanReadbackResources m_readbackResources;
         ReadbackId m_nextReadbackId = 1;
 
         void recordReadbackCopies();
-        void completeReadbacksForFrame(uint32_t frameIndex);
         void destroyReadbackResources();
 
         VulkanGpuReadDescriptors m_gpuReadDescriptors;
