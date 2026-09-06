@@ -1668,10 +1668,7 @@ namespace aiko::renderer::vulkan
     {
         const u32 frame = m_context.currentFrameIndex();
 
-        AIKO_ASSERT(
-            frame < FramesInFlight,
-            "Invalid transient mesh frame"
-        );
+        AIKO_ASSERT(frame < FramesInFlight, "Invalid transient mesh frame");
 
         auto& meshes = m_transientMeshCaches[frame];
 
@@ -1680,15 +1677,11 @@ namespace aiko::renderer::vulkan
             return *it->second;
         }
 
-        AikoUPtr<Mesh> mesh =
-            createTransientMesh(geometry);
+        AikoUPtr<Mesh> mesh = createTransientMesh(geometry);
 
         Mesh& result = *mesh;
 
-        meshes.emplace(
-            &geometry,
-            std::move(mesh)
-        );
+        meshes.emplace(&geometry, std::move(mesh));
 
         return result;
     }
