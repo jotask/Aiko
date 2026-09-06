@@ -4,6 +4,7 @@
 #include <logger/logger.h>
 #include <display/display_events.hpp>
 #include <time/time.h>
+#include <intrumentor/profiler.h>
 
 #include "modules/module_connector.h"
 #include "systems/system_connector.h"
@@ -62,6 +63,8 @@ namespace aiko
         init();
         while (m_shouldStop == false)
         {
+            AIKO_FRAME_MARK
+            AIKO_ZONE_NAMED("Aiko::Frame")
             Time::it().update();
             update();
             render();
@@ -114,6 +117,7 @@ namespace aiko
 
     void Aiko::update()
     {
+        AIKO_FUNCTION_PROFILE
         for (auto&& module : m_modules) module->preUpdate();
         for (auto&& module : m_modules) module->update();
         for (auto&& system : m_systems) system->update();
@@ -123,6 +127,7 @@ namespace aiko
 
     void Aiko::render()
     {
+        AIKO_FUNCTION_PROFILE
         for (auto&& module : m_modules) module->beginFrame();
         for (auto&& module : m_modules) module->preRender();
         for (auto&& module : m_modules) module->render();

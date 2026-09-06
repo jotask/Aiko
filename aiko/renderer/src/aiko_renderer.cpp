@@ -94,7 +94,6 @@ namespace aiko
         AIKO_FUNCTION_PROFILE;
         m_renderer->endFrame();
         m_renderer->present();
-        AIKO_FRAME_MARK
     }
 
     void AikoRenderer::dispose()
