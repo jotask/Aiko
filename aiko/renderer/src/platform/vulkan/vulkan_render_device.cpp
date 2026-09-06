@@ -693,8 +693,6 @@ namespace aiko::renderer::vulkan
         m_boundGraphicsPipeline = VK_NULL_HANDLE;
         m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
 
-        m_preparedMaterialBindings.clear();
-
     }
 
     void VulkanRenderDevice::present()
@@ -1595,8 +1593,15 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
             prepareTextureForSampling(*texture);
         }
+
+        if (m_preparedMaterialBindings.contains(&material))
+        {
+            return;
+        }
         VulkanMaterialBinding& binding = resolveMaterialBinding(material);
-        m_preparedMaterialBindings[&material] = &binding;
+        const auto [it, inserted] = m_preparedMaterialBindings.emplace(&material, &binding);
+        AIKO_UNUSED(it);
+        AIKO_ASSERT(inserted, "Failed to cache prepared Vulkan material binding");
     }
 
     VulkanMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
