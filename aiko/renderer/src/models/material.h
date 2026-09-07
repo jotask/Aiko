@@ -1,16 +1,17 @@
  #pragma once
 
-#include "models/shader.h"
-#include "models/texture.h"
+#include "assets/asset_id.h"
 #include "types/color.h"
 #include "types/render_types.h"
 #include "types/uniform_value.h"
-#include <metadata/texture_meta.h>
 #include "types/render_state.h"
+
+#include <metadata/texture_meta.h>
 
  namespace aiko
 {
-    class ComputeBuffer;
+     class ComputeBuffer;
+     class Texture;
 
      struct TextureBinding
      {
