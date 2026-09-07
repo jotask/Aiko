@@ -19,6 +19,9 @@
 #include <aiko_query_types.h>
 #include <player_controller_types.h>
 
+#include <aiko_physics.h>
+#include <aiko_player_controller.h>
+
 #include <stdlib.h>
 
 int main()
@@ -38,6 +41,9 @@ int main()
     aiko::ComputeShader computeShader;
     aiko::FrameBuffer framebuffer;
     aiko::RenderTarget renderTarget;
+
+    aiko::physics::AikoPhysics physics;
+    aiko::physics::PlayerController playerController;
 
     return EXIT_SUCCESS;
 }
