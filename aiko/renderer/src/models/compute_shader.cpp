@@ -1,6 +1,7 @@
 #include "compute_shader.h"
 
 #include "render_factory.h"
+#include "interfaces/icomputeshader_impl.h"
 
 namespace aiko
 {

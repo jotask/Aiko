@@ -1,7 +1,13 @@
  #pragma once
 
+#include "types/render_types.h"
+
 #include <aiko_types.h>
-#include "interfaces/icomputeshader_impl.h"
+
+namespace aiko::interfaces
+{
+    class IComputeShaderImpl;
+}
 
  namespace aiko
 {
