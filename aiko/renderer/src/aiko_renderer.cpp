@@ -7,6 +7,7 @@
 
 #include "renderer/Irenderdevice.h"
 #include "assets/types/material_asset.h"
+#include "assets/types/mesh_asset.h"
 #include "core/transform.h"
 #include "metadata/material_instance.h"
 #include "models/camera.h"

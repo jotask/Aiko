@@ -1,6 +1,7 @@
 #include "compute_buffer.h"
 
 #include "render_factory.h"
+#include "types/compute_pass.h"
 #include "interfaces/i_computebuffer.h"
 
 namespace aiko

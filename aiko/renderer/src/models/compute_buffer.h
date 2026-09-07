@@ -1,7 +1,5 @@
  #pragma once
 
-#include "types/compute_pass.h"
-
 #include <aiko_types.h>
 
 namespace aiko::interfaces
@@ -16,6 +14,8 @@ namespace aiko::interfaces
         class RendererFactory;
         class IRenderDevice;
     }
+
+    struct ComputeBufferDesc;
 
     class ComputeBuffer
     {

@@ -1,7 +1,6 @@
  #pragma once
 
 #include "aiko_types.h"
-#include "assets/types/mesh_asset.h"
 #include "types/render_types.h"
 
 namespace aiko::interfaces
@@ -17,6 +16,8 @@ namespace aiko
          class RendererFactory;
          class IRenderDevice;
      }
+
+    struct MeshAsset;
 
     class Mesh
     {

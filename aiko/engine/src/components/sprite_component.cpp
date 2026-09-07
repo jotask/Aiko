@@ -1,7 +1,8 @@
 #include "sprite_component.h"
 
-#include "models/mesh_factory.h"
+#include "assets/types/mesh_asset.h"
 #include "assets/types/shader_asset.h"
+#include "models/mesh_factory.h"
 
 #include <algorithm>
 

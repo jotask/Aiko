@@ -12,7 +12,6 @@
 #include <models/compute_shader.h>
 #include <models/frame_buffer.h>
 #include <models/render_target.h>
-
 #include <aiko_body_desc.h>
 #include <aiko_shape_desc.h>
 #include <aiko_physics_types.h>
@@ -29,6 +28,8 @@
 #include <layers/layer.h>
 #include <scene/scene.h>
 #include <systems/system.h>
+#include <assets/types/mesh_asset.h>
+#include <types/compute_pass.h>
 
 #include <stdlib.h>
 
@@ -77,6 +78,14 @@ int main()
     (void)layer;
     (void)system;
     (void)scene;
+
+    aiko::MeshAsset meshAsset;
+    aiko::ModelAsset modelAsset;
+    aiko::ComputeBufferDesc computeBufferDesc{};
+
+    (void)meshAsset;
+    (void)modelAsset;
+    (void)computeBufferDesc;
 
     return EXIT_SUCCESS;
 }

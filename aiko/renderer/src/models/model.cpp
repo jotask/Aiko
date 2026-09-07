@@ -1,5 +1,7 @@
 #include "models/model.h"
 
+#include "assets/types/mesh_asset.h"
+
 namespace aiko
 {
 

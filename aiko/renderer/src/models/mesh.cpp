@@ -1,6 +1,7 @@
 #include "models/mesh.h"
 
 #include "render_factory.h"
+#include "assets/types/mesh_asset.h"
 #include "interfaces/imesh_impl.h"
 
 namespace aiko

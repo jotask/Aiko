@@ -1,5 +1,6 @@
 #include "primitive_mesh_cache.h"
 
+#include "assets/types/mesh_asset.h"
 #include "models/mesh_factory.h"
 
 namespace aiko

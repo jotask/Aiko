@@ -1,12 +1,13 @@
 #pragma once
 
-#include "assets/types/mesh_asset.h"
+#include <assets/asset_id.h>
 #include "models/material.h"
 
 namespace aiko
 {
 
     class RenderResourceManager;
+    struct ModelAsset;
 
     class Model
     {

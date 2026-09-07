@@ -1,5 +1,7 @@
 #include "mesh_factory.h"
 
+#include "assets/types/mesh_asset.h"
+
 #include <math/math.h>
 
 namespace aiko
