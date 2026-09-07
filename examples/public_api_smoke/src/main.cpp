@@ -22,6 +22,10 @@
 #include <aiko_physics.h>
 #include <aiko_player_controller.h>
 
+#include <aiko_renderer.h>
+#include <modules/render_module.h>
+#include <modules/module.h>
+
 #include <stdlib.h>
 
 int main()
@@ -44,6 +48,14 @@ int main()
 
     aiko::physics::AikoPhysics physics;
     aiko::physics::PlayerController playerController;
+
+    aiko::AikoRenderer* renderer = nullptr;
+    aiko::RenderModule* renderModule = nullptr;
+    aiko::Module* module = nullptr;
+
+    (void)renderer;
+    (void)renderModule;
+    (void)module;
 
     return EXIT_SUCCESS;
 }
