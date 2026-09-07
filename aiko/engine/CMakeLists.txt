@@ -32,4 +32,4 @@ target_link_libraries(Aiko
 
 target_include_directories(Aiko PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-aiko_apply_defaults(Aiko)
+aiko_apply_engine_defaults(Aiko)

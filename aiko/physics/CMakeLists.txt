@@ -11,4 +11,4 @@ target_link_libraries(AikoPhysics PRIVATE Jolt::Jolt AikoCore )
 
 target_include_directories(AikoPhysics PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-aiko_apply_defaults(AikoPhysics)
+aiko_apply_engine_defaults(AikoPhysics)

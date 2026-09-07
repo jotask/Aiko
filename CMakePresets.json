@@ -8,6 +8,7 @@
       "binaryDir": "${sourceDir}/build/core-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "AIKO_ENGINE_DEBUG": "ON",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "AIKO_RENDER": "AIKO_VULKAN",
         "AIKO_BUILD_EXAMPLES": "OFF",
@@ -21,6 +22,7 @@
       "binaryDir": "${sourceDir}/build/all-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "AIKO_ENGINE_DEBUG": "ON",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "AIKO_RENDER": "AIKO_VULKAN",
         "AIKO_BUILD_EXAMPLES": "ON",
@@ -35,6 +37,7 @@
       "binaryDir": "${sourceDir}/build/all-debug-profiler",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "AIKO_ENGINE_DEBUG": "ON",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "AIKO_RENDER": "AIKO_VULKAN",
         "AIKO_BUILD_EXAMPLES": "ON",
@@ -75,6 +78,15 @@
       "binaryDir": "${sourceDir}/build/all-debug-unity",
       "cacheVariables": {
         "AIKO_ENABLE_UNITY": "ON"
+      }
+    },
+    {
+      "name": "aiko-debug-project",
+      "displayName": "Core + examples / Debug / Optimized Engine",
+      "inherits": "all-debug",
+      "binaryDir": "${sourceDir}/build/all-debug-optimized-engine",
+      "cacheVariables": {
+        "AIKO_ENGINE_DEBUG": "OFF"
       }
     }
   ]

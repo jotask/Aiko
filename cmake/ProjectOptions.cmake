@@ -8,6 +8,8 @@ function(aiko_setup_options)
     set(AIKO_RENDER "AIKO_VULKAN" CACHE STRING "Render backend")
     set_property(CACHE AIKO_RENDER PROPERTY STRINGS AIKO_BGFX AIKO_NATIVE AIKO_VULKAN)
 
+    option(AIKO_ENGINE_DEBUG "Enable debug behavior for Aiko engine libraries" OFF)
+
     option(AIKO_PROFILER "Enable profiling tools" OFF)
     option(AIKO_PROFILE_COPIES "Enable copy/move profiling counters" OFF)
 
@@ -17,6 +19,24 @@ function(aiko_setup_options)
     else()
         set(CMAKE_UNITY_BUILD OFF PARENT_SCOPE)
     endif()
+endfunction()
+
+function(aiko_apply_engine_defaults target_name)
+
+    aiko_apply_defaults(${target_name})
+
+    if(AIKO_ENGINE_DEBUG)
+        target_compile_definitions(${target_name} PRIVATE AIKO_DEBUG)
+    else()
+        target_compile_definitions(${target_name} PRIVATE NDEBUG)
+
+        if(MSVC)
+            target_compile_options(${target_name} PRIVATE /O2)
+        elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+            target_compile_options(${target_name} PRIVATE -O2)
+        endif()
+    endif()
+
 endfunction()
 
 function(aiko_detect_platform)
@@ -71,8 +91,6 @@ function(aiko_apply_defaults target_name)
     if(AIKO_PROFILE_COPIES)
         target_compile_definitions(${target_name} PRIVATE AIKO_PROFILE_COPIES)
     endif()
-
-    target_compile_definitions(${target_name} PRIVATE $<$<CONFIG:Debug>:AIKO_DEBUG>)
 
 endfunction()
 

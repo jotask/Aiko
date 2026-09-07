@@ -13,4 +13,4 @@ target_link_libraries(AikoCore PRIVATE glm spdlog )
 target_link_libraries(AikoCore PUBLIC Tracy::TracyClient )
 target_include_directories(AikoCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-aiko_apply_defaults(AikoCore)
+aiko_apply_engine_defaults(AikoCore)
