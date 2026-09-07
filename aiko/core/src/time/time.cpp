@@ -30,7 +30,26 @@ namespace aiko
 
         if (current - previousTime >= 1.0)
         {
-            fps = frameCount;
+
+            const double elapsed = current - previousTime;
+            fps = static_cast<double>(frameCount) / elapsed;
+
+            if (fpsSampleCount < FpsAverageSamples)
+            {
+                fpsSamples[fpsSampleIndex] = fps;
+                fpsSampleSum += fps;
+                ++fpsSampleCount;
+            }
+            else
+            {
+                fpsSampleSum -= fpsSamples[fpsSampleIndex];
+                fpsSamples[fpsSampleIndex] = fps;
+                fpsSampleSum += fps;
+            }
+
+            fpsSampleIndex = (fpsSampleIndex + 1) % FpsAverageSamples;
+            averageFps = fpsSampleSum / static_cast<double>(fpsSampleCount);
+
             frameCount = 0;
             previousTime = current;
         }
