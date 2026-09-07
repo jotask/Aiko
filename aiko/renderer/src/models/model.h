@@ -1,7 +1,6 @@
 #pragma once
 
 #include "assets/types/mesh_asset.h"
-#include "assets/iasset_provider.h"
 #include "models/material.h"
 
 namespace aiko
