@@ -6,7 +6,7 @@ namespace aiko
 {
     struct RendererConfig
     {
-        bool vsync = true;
+        bool vsync = false;
     };
 
     struct RenderSurfaceDesc
