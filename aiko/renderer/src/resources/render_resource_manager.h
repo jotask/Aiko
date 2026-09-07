@@ -2,23 +2,24 @@
 
 #include <unordered_map>
 
+#include <aiko_types.h>
 #include <assets/asset_id.h>
 #include <assets/iasset_provider.h>
 
-#include "models/texture.h"
-#include "models/mesh.h"
-#include "models/model.h"
-#include "models/shader.h"
-#include "models/compute_shader.h"
-
 namespace aiko
 {
+    class Texture;
+    class Mesh;
+    class Model;
+    class Shader;
+    class ComputeShader;
 
     class RenderResourceManager
     {
     public:
 
         explicit RenderResourceManager(IAssetProvider& assets);
+        ~RenderResourceManager();
 
         Texture& getTexture(const AssetId& id);
         Mesh& getMesh(const AssetId& id);

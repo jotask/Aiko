@@ -1,5 +1,11 @@
 #include "render_resource_manager.h"
 
+#include "models/texture.h"
+#include "models/mesh.h"
+#include "models/model.h"
+#include "models/shader.h"
+#include "models/compute_shader.h"
+
 namespace aiko
 {
 
@@ -7,6 +13,8 @@ namespace aiko
         : m_assetProvider(assets)
     {
     }
+
+    RenderResourceManager::~RenderResourceManager() = default;
 
     Texture& RenderResourceManager::getTexture(const AssetId& id)
     {
