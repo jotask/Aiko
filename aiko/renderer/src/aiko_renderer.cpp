@@ -5,6 +5,7 @@
 
 #include "display/display_events.hpp"
 
+#include "renderer/Irenderdevice.h"
 #include "render_factory.h"
 #include "core/transform.h"
 #include "time/time.h"

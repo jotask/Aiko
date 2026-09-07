@@ -1,8 +1,9 @@
 #pragma once
 
 #include "components/compute_shader_component.h"
+#include "models/compute_buffer.h"
+#include "models/texture.h"
 #include "systems/base_system.h"
-
 #include "types/compute_pass.h"
 
 namespace aiko

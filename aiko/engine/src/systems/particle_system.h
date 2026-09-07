@@ -1,10 +1,13 @@
 #pragma once
 
-#include <unordered_map>
-
-#include <aiko_types.h>
+#include "models/compute_buffer.h"
 #include "systems/base_system.h"
 #include "types/compute_pass.h"
+#include "models/material.h"
+#include "models/mesh.h"
+
+#include <aiko_types.h>
+#include <unordered_map>
 
 namespace aiko
 {

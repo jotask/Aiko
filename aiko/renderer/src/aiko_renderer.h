@@ -6,17 +6,19 @@
 #include "imgui/aiko_imgui.h"
 #include "metadata/material_instance.h"
 #include "models/camera.h"
+#include "models/light.h"
 #include "models/mesh.h"
 #include "models/model.h"
 #include "models/render_target.h"
 #include "models/texture.h"
-#include "renderer/Irenderdevice.h"
+#include "renderer/frame_uniforms.h"
 #include "renderer/render_queue.h"
+#include "renderer/scene_render_request.h"
 #include "renderer/screen_presenter.h"
 #include "resources/render_resource_manager.h"
 #include "types/aiko_renderer_types.h"
+#include "types/compute_pass.h"
 #include "types/render_config.h"
-#include "renderer/scene_render_request.h"
 
 #include <types/color.h>
 #include <types/render_types.h>
@@ -28,6 +30,11 @@
 
 namespace aiko
 {
+
+    namespace renderer
+    {
+        class IRenderDevice;
+    }
 
     class AikoRenderer
     {
