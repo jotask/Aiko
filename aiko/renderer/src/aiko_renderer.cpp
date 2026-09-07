@@ -11,8 +11,6 @@
 #include "imgui/aiko_imgui.h"
 #include "models/camera.h"
 
-#include <unordered_set>
-
 namespace aiko
 {
     AikoRenderer::AikoRenderer(IAssetProvider& assets)
@@ -293,20 +291,13 @@ namespace aiko
 
         const FrameBuffer& frameBuffer = target.frameBuffer();
 
-        std::unordered_set<const Material*> preparedMaterials;
-
         auto prepareMaterial = [&](const Material* material)
+        {
+            if (material != nullptr)
             {
-                if (material == nullptr)
-                {
-                    return;
-                }
-
-                if (preparedMaterials.insert(material).second)
-                {
-                    m_renderer->prepareMaterial(*material);
-                }
-            };
+                m_renderer->prepareMaterial(*material);
+            }
+        };
 
         for (const GpuInstanceDrawDesc* desc : passData.gpuInstances)
         {

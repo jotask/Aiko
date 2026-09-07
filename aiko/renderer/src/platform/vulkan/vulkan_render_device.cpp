@@ -1590,17 +1590,16 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::prepareMaterial(const Material& material)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_preparedMaterialBindings.contains(&material))
+        {
+            return;
+        }
         for (const auto& [name, textureBinding] : material.textureBindings())
         {
             AIKO_UNUSED(name);
             const Texture* texture = resolveTextureBinding(textureBinding);
             AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
             prepareTextureForSampling(*texture);
-        }
-
-        if (m_preparedMaterialBindings.contains(&material))
-        {
-            return;
         }
         VulkanMaterialBinding& binding = resolveMaterialBinding(material);
         const auto [it, inserted] = m_preparedMaterialBindings.emplace(&material, &binding);
