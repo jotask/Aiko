@@ -1,8 +1,11 @@
 #pragma once
 
-#include <aiko_types.h>
 #include <typeindex>
+#include <type_traits>
 #include <unordered_map>
+
+#include <aiko_types.h>
+#include <types/color.h>
 
 #include "models/game_object.h"
 #include "models/light.h"

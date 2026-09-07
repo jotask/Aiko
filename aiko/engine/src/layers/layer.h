@@ -1,7 +1,6 @@
 #pragma once
 
 #include <aiko_types.h>
-#include <events/event.hpp>
 
 namespace aiko
 {
@@ -11,7 +10,7 @@ namespace aiko
     class LayerContext;
     class SystemConnector;
     class SystemRegistry;
-
+    class Event;
     class RenderContext;
     class InputContext;
     class SceneContext;

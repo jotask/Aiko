@@ -1,12 +1,12 @@
 #pragma once
 
-#include <functional>
 #include <utility>
 #include <type_traits>
-#include <algorithm>
 #include <typeindex>
 #include <unordered_map>
+#include <memory>
 
+#include <logger/logger.h>
 #include "core/uuid.h"
 #include "aiko_types.h"
 #include "component.h"

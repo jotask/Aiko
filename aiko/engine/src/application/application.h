@@ -1,11 +1,11 @@
 #pragma once
 
 #include <aiko_types.h>
-#include <aiko_config.h>
 
 namespace aiko
 {
 
+    struct AikoConfig;
     class Aiko;
     class Event;
     class Layer;
