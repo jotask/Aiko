@@ -3,8 +3,12 @@
 #include <aiko_types.h>
 #include <math/math.h>
 #include "types/uniform_value.h"
+#include "types/render_types.h"
 
-#include "interfaces/ishader_impl.h"
+namespace aiko::interfaces
+{
+    class IShaderImpl;
+}
 
 namespace aiko
 {
@@ -29,7 +33,7 @@ namespace aiko
         Shader& operator=(Shader&&) noexcept = delete;
 
         Shader();
-        ~Shader() = default;
+        ~Shader();
 
         RenderResourceId id() const;
 

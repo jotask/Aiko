@@ -6,6 +6,7 @@
 #include <core/file.h>
 
 #include "render_factory.h"
+#include "interfaces/ishader_impl.h"
 
 namespace aiko
 {
@@ -15,6 +16,8 @@ namespace aiko
     {
         AIKO_ASSERT(backend != nullptr, "RendererFactory::createShaderImpl returned null");
     }
+
+    Shader::~Shader() = default;
 
     RenderResourceId Shader::id() const
     {

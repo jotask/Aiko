@@ -1,6 +1,7 @@
 #include "models/frame_buffer.h"
 
 #include "render_factory.h"
+#include "interfaces/iframebuffer_impl.h"
 
 namespace aiko
 {

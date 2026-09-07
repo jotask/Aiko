@@ -1,10 +1,15 @@
  #pragma once
 
+#include "assets/types/texture_asset.h"
+#include "types/render_types.h"
+#include "types/texture_types.h"
+
 #include <aiko_types.h>
 
-#include "assets/types/texture_asset.h"
-#include "types/texture_types.h"
-#include "interfaces/itexture_impl.h"
+namespace aiko::interfaces
+{
+    class ITextureImpl;
+}
 
 namespace aiko
 {

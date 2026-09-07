@@ -1,7 +1,13 @@
  #pragma once
 
+#include "types/compute_pass.h"
+
 #include <aiko_types.h>
-#include "interfaces/i_computebuffer.h"
+
+namespace aiko::interfaces
+{
+    class IComputeBufferImpl;
+}
 
  namespace aiko
 {

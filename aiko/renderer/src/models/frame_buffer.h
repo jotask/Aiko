@@ -1,10 +1,14 @@
  #pragma once
 
 #include <aiko_types.h>
-#include <math/math.h>
+#include "types/render_types.h"
 
 #include "texture.h"
-#include "interfaces/iframebuffer_impl.h"
+
+namespace aiko::interfaces
+{
+    class IFrameBufferImpl;
+}
 
  namespace aiko
 {

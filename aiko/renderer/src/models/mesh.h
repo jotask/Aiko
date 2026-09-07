@@ -2,10 +2,14 @@
 
 #include "aiko_types.h"
 #include "assets/types/mesh_asset.h"
-#include "types/color.h"
-#include "interfaces/imesh_impl.h"
+#include "types/render_types.h"
 
- namespace aiko
+namespace aiko::interfaces
+{
+    class IMeshImpl;
+}
+
+namespace aiko
 {
 
      namespace renderer
