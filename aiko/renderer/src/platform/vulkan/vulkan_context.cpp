@@ -44,6 +44,7 @@ namespace aiko::renderer::vulkan
         createSurface();
         pickPhysicalDevice();
         createLogicalDevice();
+        m_gpuProfiler.create(m_physicalDevice, m_device, m_graphicsQueueFamily, MAX_FRAMES_IN_FLIGHT);
         createSwapChain();
         createImageViews();
         createRenderPass();
@@ -134,6 +135,8 @@ namespace aiko::renderer::vulkan
             vkDestroyRenderPass(m_device, m_renderPass, nullptr);
             m_renderPass = VK_NULL_HANDLE;
         }
+
+        m_gpuProfiler.destroy();
 
         if (m_device != VK_NULL_HANDLE)
         {
@@ -736,6 +739,8 @@ namespace aiko::renderer::vulkan
             return false;
         }
 
+        m_gpuProfiler.resolveGraphicsFrame(m_currentFrame);
+
         destroyRetiredResourcesForFrame(m_currentFrame);
         uint32_t imageIndex = 0;
         VkResult acquireResult = vkAcquireNextImageKHR(m_device, m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame], VK_NULL_HANDLE, &imageIndex );
@@ -796,7 +801,14 @@ namespace aiko::renderer::vulkan
         const VkResult beginResult = vkBeginCommandBuffer(m_activeCommandBuffer, &beginInfo);
         AIKO_ASSERT(beginResult == VK_SUCCESS, "Failed to begin command buffer");
 
-        return beginResult == VK_SUCCESS;
+        if (beginResult != VK_SUCCESS)
+        {
+            return false;
+        }
+
+        m_gpuProfiler.beginGraphicsFrame(m_activeCommandBuffer, m_currentFrame);
+
+        return true;
     }
 
     void VulkanContext::submitAndPresent()
@@ -813,6 +825,8 @@ namespace aiko::renderer::vulkan
             const VkResult computeEndResult = vkEndCommandBuffer(compute);
             AIKO_ASSERT(computeEndResult == VK_SUCCESS, "Failed to end compute command buffer");
         }
+
+        m_gpuProfiler.endGraphicsFrame(m_activeCommandBuffer, m_currentFrame);
 
         const VkResult endResult = vkEndCommandBuffer(m_activeCommandBuffer);
         AIKO_ASSERT(endResult == VK_SUCCESS, "Failed to end command buffer");

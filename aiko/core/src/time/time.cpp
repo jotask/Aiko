@@ -1,6 +1,7 @@
 #include "time.h"
 
 #include <chrono>
+#include <intrumentor/profiler.h>
 
 namespace aiko
 {
@@ -49,6 +50,9 @@ namespace aiko
 
             fpsSampleIndex = (fpsSampleIndex + 1) % FpsAverageSamples;
             averageFps = fpsSampleSum / static_cast<double>(fpsSampleCount);
+
+            AIKO_PLOT("FPS", fps);
+            AIKO_PLOT("Average FPS", averageFps);
 
             frameCount = 0;
             previousTime = current;

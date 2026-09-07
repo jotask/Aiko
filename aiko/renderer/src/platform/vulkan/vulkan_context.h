@@ -2,6 +2,7 @@
 
 #include "vulkan_types.h"
 #include "vulkan_resource_types.h"
+#include "vulkan_gpu_profiler.h"
 
 #include <array>
 #include <optional>
@@ -40,6 +41,10 @@ namespace aiko::renderer::vulkan
         uint32_t graphicsQueueFamily() const { return m_graphicsQueueFamily; }
         uint32_t computeQueueFamily() const { return m_computeQueueFamily; }
         bool hasDedicatedComputeQueue() const { return m_computeQueue != VK_NULL_HANDLE && m_computeQueueFamily != m_graphicsQueueFamily; }
+
+        double graphicsGpuMs() const { return m_gpuProfiler.graphicsGpuMs(); }
+        void beginGraphicsGpuPass() { m_gpuProfiler.beginGraphicsPass(m_activeCommandBuffer, m_currentFrame); }
+        void endGraphicsGpuPass() { m_gpuProfiler.endGraphicsPass(m_activeCommandBuffer, m_currentFrame); }
 
     private:
 
@@ -101,6 +106,8 @@ namespace aiko::renderer::vulkan
 
         bool m_framebufferResized = false;
         bool m_vsync = false;
+
+        VulkanGpuProfiler m_gpuProfiler;
 
     public:
 

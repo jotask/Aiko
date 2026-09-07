@@ -509,6 +509,8 @@ namespace aiko::renderer::vulkan
             return;
         }
 
+        m_context.beginGraphicsGpuPass();
+
         m_boundGraphicsPipeline = VK_NULL_HANDLE;
         m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
 
@@ -654,6 +656,8 @@ namespace aiko::renderer::vulkan
         }
 
         vkCmdEndRenderPass(m_context.activeCommandBuffer());
+
+        m_context.endGraphicsGpuPass();
 
         if (m_activeColorAttachment != nullptr)
         {
