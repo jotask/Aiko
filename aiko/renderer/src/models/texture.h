@@ -1,10 +1,9 @@
  #pragma once
 
-#include "assets/types/texture_asset.h"
-#include "types/render_types.h"
-#include "types/texture_types.h"
-
-#include <aiko_types.h>
+#include <metadata/texture_meta.h>
+#include <types/color.h>
+#include <types/render_types.h>
+#include <types/texture_types.h>
 
 namespace aiko::interfaces
 {
@@ -19,6 +18,8 @@ namespace aiko
         class RendererFactory;
         class IRenderDevice;
     }
+
+    struct TextureAsset;
 
     class Texture
     {

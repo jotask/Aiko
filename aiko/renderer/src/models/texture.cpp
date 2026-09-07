@@ -1,6 +1,7 @@
 #include "texture.h"
 
 #include "render_factory.h"
+#include "assets/types/texture_asset.h"
 #include "interfaces/itexture_impl.h"
 
 namespace aiko
