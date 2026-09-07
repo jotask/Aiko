@@ -1,24 +1,15 @@
 #pragma once
 
-#include "assets/types/material_asset.h"
-#include "core/transform.h"
-#include "display/display_events.hpp"
 #include "imgui/aiko_imgui.h"
-#include "metadata/material_instance.h"
-#include "models/camera.h"
 #include "models/light.h"
 #include "models/material.h"
-#include "models/mesh.h"
 #include "models/render_target.h"
-#include "models/texture.h"
-#include "renderer/frame_uniforms.h"
 #include "renderer/render_queue.h"
 #include "renderer/scene_render_request.h"
 #include "renderer/screen_presenter.h"
 #include "resources/render_resource_manager.h"
 #include "types/aiko_renderer_types.h"
 #include "types/compute_pass.h"
-#include "types/render_config.h"
 
 #include <types/color.h>
 #include <types/render_types.h>
@@ -34,7 +25,18 @@ namespace aiko
     namespace renderer
     {
         class IRenderDevice;
+        struct FrameData;
     }
+
+    class Camera;
+    class MaterialAsset;
+    class MaterialInstance;
+    class Mesh;
+    class Texture;
+    class Transform;
+    struct RendererConfig;
+    struct RenderSurfaceDesc;
+    struct WindowResizeEvent;
 
     class AikoRenderer
     {

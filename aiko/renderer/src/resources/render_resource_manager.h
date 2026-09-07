@@ -4,10 +4,10 @@
 
 #include <aiko_types.h>
 #include <assets/asset_id.h>
-#include <assets/iasset_provider.h>
 
 namespace aiko
 {
+    class IAssetProvider;
     class Texture;
     class Mesh;
     class Model;

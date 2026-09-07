@@ -5,6 +5,7 @@
 #include "models/model.h"
 #include "models/shader.h"
 #include "models/compute_shader.h"
+#include <assets/iasset_provider.h>
 
 namespace aiko
 {
