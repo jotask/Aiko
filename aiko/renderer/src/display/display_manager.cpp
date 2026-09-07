@@ -203,7 +203,7 @@ namespace aiko
             WindowCloseEvent even;
             EventSystem::it().sendEvent(even);
         }
-        string title = m_display.getWindowTitle() + " : [" + std::format("{:.0f}", Time::it().getFps() ) + " FPS]";
+        string title = m_display.getWindowTitle() + " : [FPS: " + std::format("{:.0f}", Time::it().getFps() ) + " | Avg: " + std::format("{:.0f}", Time::it().getAverageFps() ) + "]";
         glfwSetWindowTitle(m_native, title.c_str());
     }
 
