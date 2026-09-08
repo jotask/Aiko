@@ -26,6 +26,18 @@ FetchContent_Declare(
         GIT_PROGRESS   TRUE
 )
 message("Fetching JoltPhysics")
+
+if(NOT AIKO_ENGINE_DEBUG)
+    set(USE_ASSERTS OFF CACHE BOOL "" FORCE)
+    set(DEBUG_RENDERER_IN_DEBUG_AND_RELEASE OFF CACHE BOOL "" FORCE)
+    set(PROFILER_IN_DEBUG_AND_RELEASE OFF CACHE BOOL "" FORCE)
+endif()
+
 FetchContent_MakeAvailable(JoltPhysics)
+
+if(NOT AIKO_ENGINE_DEBUG)
+    aiko_apply_optimized_runtime(Jolt)
+    target_compile_definitions(Jolt INTERFACE NDEBUG)
+endif()
 
 #----------------------------------------------------------------------

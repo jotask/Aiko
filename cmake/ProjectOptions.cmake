@@ -21,22 +21,32 @@ function(aiko_setup_options)
     endif()
 endfunction()
 
-function(aiko_apply_engine_defaults target_name)
+function(aiko_apply_optimized_runtime target_name)
+    if(NOT TARGET ${target_name})
+        message(FATAL_ERROR "Runtime target does not exist: ${target_name}")
+    endif()
 
+    if(AIKO_ENGINE_DEBUG)
+        return()
+    endif()
+
+    target_compile_definitions(${target_name} PRIVATE NDEBUG)
+
+    if(MSVC)
+        target_compile_options(${target_name} PRIVATE /O2)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+        target_compile_options(${target_name} PRIVATE -O2)
+    endif()
+endfunction()
+
+function(aiko_apply_engine_defaults target_name)
     aiko_apply_defaults(${target_name})
 
     if(AIKO_ENGINE_DEBUG)
         target_compile_definitions(${target_name} PRIVATE AIKO_DEBUG)
     else()
-        target_compile_definitions(${target_name} PRIVATE NDEBUG)
-
-        if(MSVC)
-            target_compile_options(${target_name} PRIVATE /O2)
-        elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
-            target_compile_options(${target_name} PRIVATE -O2)
-        endif()
+        aiko_apply_optimized_runtime(${target_name})
     endif()
-
 endfunction()
 
 function(aiko_detect_platform)
