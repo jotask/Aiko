@@ -69,7 +69,7 @@ namespace aiko
         const AssetRecord* record = m_registry.find(id);
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Texture, "Texture asset id not registered");
 
-        TextureAsset asset = AssetImporter::loadTexture(record->source, this);
+        TextureAsset asset = AssetImporter::loadTexture(record->source);
         m_textureAssets.emplace(id, std::move(asset));
     }
 
@@ -85,7 +85,7 @@ namespace aiko
         const AssetRecord* record = m_registry.find(id);
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Mesh, "Mesh asset id not registered");
 
-        MeshAsset asset = AssetImporter::loadMesh(record->source, this);
+        MeshAsset asset = AssetImporter::loadMesh(record->source);
         m_meshAssets.emplace(id, std::move(asset));
     }
 
@@ -99,16 +99,41 @@ namespace aiko
         }
 
         const AssetRecord* record = m_registry.find(id);
+
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Model, "Model asset id not registered");
 
-        ModelAsset asset = AssetImporter::loadModel(record->source, this);
+        ImportedModel imported = AssetImporter::loadModel(record->source);
+
+        ModelAsset asset{};
+
+        for (ImportedModelSubMesh& importedSubmesh : imported.submeshes)
+        {
+            ModelAsset::SubMesh submesh{};
+
+            submesh.meshId = registerMesh(importedSubmesh.mesh);
+            submesh.material.useVertexColor = importedSubmesh.useVertexColor;
+            submesh.material.lit = importedSubmesh.lit;
+            submesh.material.baseColor = importedSubmesh.baseColor;
+            submesh.material.shaderId = registerShader(importedSubmesh.shaderSource);
+
+            submesh.material.diffuseTextureId = InvalidAssetId;
+
+            if (!importedSubmesh.diffuseTextureSource.empty())
+            {
+                submesh.material.diffuseTextureId = registerTexture(importedSubmesh.diffuseTextureSource);
+            }
+
+            asset.submeshes.push_back(std::move(submesh));
+        }
 
         for (const ModelAsset::SubMesh& submesh : asset.submeshes)
         {
             AIKO_ASSERT(submesh.meshId != InvalidAssetId, "Model submesh has invalid mesh asset id");
+
             loadMeshAsset(submesh.meshId);
 
             AIKO_ASSERT(submesh.material.shaderId != InvalidAssetId, "Model submesh has invalid shader asset id");
+
             loadShaderAsset(submesh.material.shaderId);
 
             if (submesh.material.diffuseTextureId != InvalidAssetId)
@@ -132,7 +157,7 @@ namespace aiko
         const AssetRecord* record = m_registry.find(id);
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Shader, "Shader asset id not registered");
 
-        ShaderAsset asset = AssetImporter::loadShader(record->source, this);
+        ShaderAsset asset = AssetImporter::loadShader(record->source);
         m_shaderAssets.emplace(id, std::move(asset));
     }
 
@@ -148,7 +173,7 @@ namespace aiko
         const AssetRecord* record = m_registry.find(id);
         AIKO_ASSERT(record != nullptr && record->type == AssetType::ComputeShader, "Compute shader asset id not registered");
 
-        ComputeShaderAsset asset = AssetImporter::loadComputeShader(record->source, this);
+        ComputeShaderAsset asset = AssetImporter::loadComputeShader(record->source);
         m_computeShaderAssets.emplace(id, std::move(asset));
     }
 
@@ -366,4 +391,42 @@ namespace aiko
         m_shaderExplicitKeys.emplace(key, id);
         return id;
     }
+
+    string AssetManager::getAssetSource(const AssetId& id, AssetType expectedType) const
+    {
+        AIKO_ASSERT(id != InvalidAssetId, "Attempting to get source from invalid asset id");
+        const AssetRecord* record = m_registry.find(id);
+        AIKO_ASSERT(record != nullptr, "Asset id not registered");
+        AIKO_ASSERT(record->type == expectedType, "Asset type mismatch");
+        return record->source;
+    }
+
+    void AssetManager::installTextureAsset(const AssetId& id, TextureAsset asset)
+    {
+        m_textureAssets.insert_or_assign(id, std::move(asset));
+    }
+
+    void AssetManager::installMeshAsset(const AssetId& id, MeshAsset asset)
+    {
+        m_meshAssets.insert_or_assign(id, std::move(asset));
+    }
+
+    void AssetManager::installModelAsset(const AssetId& id, ModelAsset asset)
+    {
+        m_modelAssets.insert_or_assign(id, std::move(asset));
+    }
+
+    void AssetManager::installShaderAsset(const AssetId& id, ShaderAsset asset)
+    {
+        m_shaderAssets.insert_or_assign(id, std::move(asset));
+    }
+
+    void AssetManager::installComputeShaderAsset(const AssetId& id, ComputeShaderAsset asset)
+    {
+        m_computeShaderAssets.insert_or_assign(
+            id,
+            std::move(asset)
+        );
+    }
+
 }

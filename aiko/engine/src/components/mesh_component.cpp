@@ -67,7 +67,10 @@ namespace aiko
             const AssetId id = context.create(*m_pendingMesh);
 
             m_mesh.set(id);
+
             m_material.m_shaderId = context.load<ShaderAsset>("model");
+
+            context.loadAsset<ShaderAsset>(m_material.m_shaderId);
 
             m_pendingMesh.reset();
         }

@@ -8,8 +8,6 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "assets/asset_manager.h"
-
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -17,7 +15,7 @@
 namespace aiko
 {
 
-    TextureAsset AssetImporter::loadTexture(const string& file_path, AssetManager* manager)
+    TextureAsset AssetImporter::loadTexture(const string& file_path)
     {
 
         std::string base = global::GLOBAL_ASSET_PATH;
@@ -29,8 +27,6 @@ namespace aiko
         int height;
         int channels;
 
-        // Load image data with stb_image
-        stbi_set_flip_vertically_on_load(true);
         unsigned char* data = stbi_load(base.c_str(), &width, &height, &channels, 4); // force RGBA
 
         AIKO_ASSERT(data, "Texture Failed to load texture.")
@@ -46,15 +42,21 @@ namespace aiko
         const size_t pixelCount = static_cast<size_t>(width) * static_cast<size_t>(height);
         asset.pixels.resize(pixelCount);
 
-        for (size_t i = 0; i < pixelCount; ++i)
+        for (size_t y = 0; y < static_cast<size_t>(height); ++y)
         {
-            const size_t offset = i * 4;
-            asset.pixels[i] = Color::fromBytes(
-                data[offset + 0], // r
-                data[offset + 1], // g
-                data[offset + 2], // b
-                data[offset + 3]  // a
-            );
+            const size_t sourceY = static_cast<size_t>(height) - 1 - y;
+            for (size_t x = 0; x < static_cast<size_t>(width); ++x)
+            {
+                const size_t sourceOffset = (sourceY * static_cast<size_t>(width) + x) * 4;
+                const size_t targetOffset = y * static_cast<size_t>(width) + x;
+                asset.pixels[targetOffset] =
+                    Color::fromBytes(
+                        data[sourceOffset + 0],
+                        data[sourceOffset + 1],
+                        data[sourceOffset + 2],
+                        data[sourceOffset + 3]
+                    );
+            }
         }
 
         stbi_image_free(data);
@@ -116,7 +118,7 @@ namespace aiko
 
     }
 
-    MeshAsset AssetImporter::loadMesh(const string& file_path, AssetManager* manager)
+    MeshAsset AssetImporter::loadMesh(const string& file_path)
     {
         auto final_file_path = global::getAssetPath(file_path.c_str());
 
@@ -138,11 +140,11 @@ namespace aiko
 
     }
 
-    ModelAsset AssetImporter::loadModel(const string& file_path, AssetManager* manager)
+    ImportedModel AssetImporter::loadModel(const string& filePath)
     {
 
-        string path = string("models/") + file_path;
-        auto final_file_path = global::getAssetPath(path.c_str());
+        string path = string("models/") + filePath;
+        auto finalFilePath = global::getAssetPath(path.c_str());
 
         Assimp::Importer importer;
 
@@ -153,57 +155,60 @@ namespace aiko
             aiProcess_JoinIdenticalVertices |
             aiProcess_FlipWindingOrder;
 
-        const aiScene* scene = importer.ReadFile(final_file_path, post);
+        const aiScene* scene = importer.ReadFile(finalFilePath, post);
+
         AIKO_ASSERT(scene != nullptr && scene->mNumMeshes > 0, "Failed to load model");
 
-        ModelAsset asset{};
+        ImportedModel result{};
 
         for (uint i = 0; i < scene->mNumMeshes; ++i)
         {
-            const aiMesh* paiMesh = scene->mMeshes[i];
-            const aiMaterial* aiMat = scene->mMaterials[paiMesh->mMaterialIndex];
+            const aiMesh* aiMesh = scene->mMeshes[i];
+            const aiMaterial* aiMaterial = scene->mMaterials[aiMesh->mMaterialIndex];
 
-            ModelAsset::SubMesh submesh{};
+            ImportedModelSubMesh submesh{};
 
-            MeshAsset meshAsset = importAiMesh(paiMesh);
-            submesh.meshId = manager->registerMesh(meshAsset);
-
-            const bool hasVertexColors = paiMesh->HasVertexColors(0);
-            submesh.material.useVertexColor = hasVertexColors;
-            submesh.material.shaderId = manager->registerShader("model");
-            submesh.material.diffuseTextureId = InvalidAssetId;
-            submesh.material.lit = true;
+            submesh.mesh = importAiMesh(aiMesh);
+            submesh.useVertexColor = aiMesh->HasVertexColors(0);
+            submesh.lit = true;
+            submesh.shaderSource = "model";
 
             aiString texturePath;
-            if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS)
+
+            if (aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS)
             {
-                std::string texFile = string("models/") + texturePath.C_Str();
-                submesh.material.diffuseTextureId = manager->registerTexture(texFile);
+                submesh.diffuseTextureSource = string("models/") + texturePath.C_Str();
             }
 
             aiColor3D diffuse(1.0f, 1.0f, 1.0f);
-            if (AI_SUCCESS != aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse))
+
+            if (AI_SUCCESS != aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse))
             {
                 diffuse = aiColor3D(1.0f, 1.0f, 1.0f);
             }
 
-            submesh.material.baseColor = { diffuse.r, diffuse.g, diffuse.b, 1.0f };
-
-            if (hasVertexColors && submesh.material.diffuseTextureId == InvalidAssetId)
+            submesh.baseColor =
             {
-                submesh.material.baseColor = WHITE;
+                diffuse.r,
+                diffuse.g,
+                diffuse.b,
+                1.0f
+            };
+
+            if (submesh.useVertexColor && submesh.diffuseTextureSource.empty())
+            {
+                submesh.baseColor = WHITE;
             }
 
-            asset.submeshes.push_back(std::move(submesh));
+            result.submeshes.push_back(std::move(submesh));
         }
 
-        return asset;
+        return result;
 
     }
 
-    ShaderAsset AssetImporter::loadShader(const string& path, AssetManager* manager)
+    ShaderAsset AssetImporter::loadShader(const string& path)
     {
-        AIKO_UNUSED(manager);
         const ShaderAsset asset
         {
             .vertexPath = path + ".vs",
@@ -212,9 +217,8 @@ namespace aiko
         return asset;
     }
 
-    ComputeShaderAsset AssetImporter::loadComputeShader(const string& path, AssetManager* manager)
+    ComputeShaderAsset AssetImporter::loadComputeShader(const string& path)
     {
-        AIKO_UNUSED(manager);
         const ComputeShaderAsset asset
         {
             .computePath = path + ".cs"

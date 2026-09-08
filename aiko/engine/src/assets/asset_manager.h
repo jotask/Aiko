@@ -13,9 +13,11 @@
 
 namespace aiko
 {
+    class AssetSystem;
 
     class AssetManager : public IAssetProvider, public IAssetRegistry
     {
+        friend class AssetSystem;
     public:
 
         virtual const TextureAsset& getTextureAsset(const AssetId& id) override;
@@ -76,6 +78,14 @@ namespace aiko
         std::unordered_map<AssetId, ComputeShaderAsset> m_computeShaderAssets;
 
         std::unordered_map<std::string, AssetId> m_shaderExplicitKeys;
+
+        string getAssetSource(const AssetId& id, AssetType expectedType) const;
+
+        void installTextureAsset(const AssetId& id, TextureAsset asset);
+        void installMeshAsset(const AssetId& id, MeshAsset asset);
+        void installModelAsset(const AssetId& id, ModelAsset asset);
+        void installShaderAsset(const AssetId& id, ShaderAsset asset);
+        void installComputeShaderAsset(const AssetId& id, ComputeShaderAsset asset);
 
     };
 

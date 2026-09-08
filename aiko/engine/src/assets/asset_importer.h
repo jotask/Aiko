@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assets/import/model_import_result.h"
 #include "assets/types/mesh_asset.h"
 #include "assets/types/texture_asset.h"
 
@@ -9,15 +10,15 @@
 
 namespace aiko
 {
-    class AssetManager;
+
     class AssetImporter
     {
     public:
-        static TextureAsset loadTexture(const string& path, AssetManager* manager);
-        static MeshAsset loadMesh(const string& path, AssetManager* manager);
-        static ModelAsset loadModel(const string& path, AssetManager* manager);
-        static ShaderAsset loadShader(const string& path, AssetManager* manager);
-        static ComputeShaderAsset loadComputeShader(const string& path, AssetManager* manager);
+        static TextureAsset loadTexture(const string& path);
+        static MeshAsset loadMesh(const string& path);
+        static ImportedModel loadModel(const string& path);
+        static ShaderAsset loadShader(const string& path);
+        static ComputeShaderAsset loadComputeShader(const string& path);
     };
 
 }

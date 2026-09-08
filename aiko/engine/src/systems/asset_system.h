@@ -6,8 +6,11 @@
 #include "assets/types/mesh_asset.h"
 #include "assets/types/shader_asset.h"
 #include "assets/types/texture_asset.h"
+#include "assets/asset_load_state.h"
 
+#include <unordered_map>
 #include <type_traits>
+#include <unordered_set>
 
 namespace aiko
 {
@@ -15,6 +18,7 @@ namespace aiko
     class RenderModule;
     class AssetsManagerModule;
     class AssetBindingContext;
+    class JobSystem;
 
     class AssetSystem : public BaseSystem
     {
@@ -55,6 +59,12 @@ namespace aiko
             return isLoaded(id, std::type_identity<T>{});
         }
 
+        template<typename T>
+        AssetLoadState getLoadState(const AssetId& id) const
+        {
+            return getLoadState(id, std::type_identity<T>{});
+        }
+
         AssetId create(const TextureAsset& asset);
         AssetId create(const MeshAsset& asset);
 
@@ -68,6 +78,7 @@ namespace aiko
     protected:
 
         virtual void connect(ModuleConnector*, SystemConnector*) override;
+        virtual void update() override;
 
     private:
 
@@ -91,8 +102,18 @@ namespace aiko
         void loadAsset(const AssetId& id, std::type_identity<ShaderAsset>);
         void loadAsset(const AssetId& id, std::type_identity<ComputeShaderAsset>);
 
+        AssetLoadState getLoadState(const AssetId& id, std::type_identity<TextureAsset>) const;
+        AssetLoadState getLoadState(const AssetId& id, std::type_identity<MeshAsset>) const;
+        AssetLoadState getLoadState(const AssetId& id, std::type_identity<ModelAsset>) const;
+        AssetLoadState getLoadState(const AssetId& id, std::type_identity<ShaderAsset>) const;
+        AssetLoadState getLoadState(const AssetId& id, std::type_identity<ComputeShaderAsset>) const;
+
+        std::unordered_map<AssetId, AssetLoadState> m_loadStates;
+        std::unordered_set<AssetId> m_finalizingModels;
+
         RenderModule* m_renderModule;
         AssetsManagerModule* m_assetModule;
+        JobSystem* m_jobSystem = nullptr;
 
     };
 

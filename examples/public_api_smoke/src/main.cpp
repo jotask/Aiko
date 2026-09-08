@@ -98,6 +98,8 @@
 #include <layers/contexts/job_context.h>
 #include <types/job_types.h>
 
+#include <assets/asset_load_state.h>
+
 #include <stdlib.h>
 
 int main()
@@ -172,6 +174,9 @@ int main()
 
     aiko::JobStats jobStats{};
     AIKO_UNUSED(jobStats);
+
+    aiko::AssetLoadState assetState = aiko::AssetLoadState::Unloaded;
+    AIKO_UNUSED(assetState);
 
     return EXIT_SUCCESS;
 }

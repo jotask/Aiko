@@ -78,6 +78,15 @@ namespace aiko
         {
             return;
         }
+        const Material& material = meshComponent.getMaterial();
+        if (material.m_shaderId == InvalidAssetId)
+        {
+            return;
+        }
+        if (!m_assetSystem->isLoaded<ShaderAsset>(material.m_shaderId))
+        {
+            return;
+        }
         Mesh& mesh = m_renderModule->getMesh(meshId);
         m_renderModule->submit(trans, mesh, meshComponent.getMaterial());
     }
