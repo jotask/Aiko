@@ -1,5 +1,6 @@
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/render_regression")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/public_api_smoke")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/performance_smoke")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/render_lab")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/sandbox")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/cellular_automaton")
