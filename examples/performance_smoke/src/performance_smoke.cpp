@@ -39,13 +39,8 @@ namespace aiko::perf
         initWorld();
         initLights();
 
-        std::cout
-            << "[PerformanceSmoke] initialized "
-            << ObjectCount
-            << " mesh objects, "
-            << m_animatedObjects.size()
-            << " animated"
-            << '\n';
+        logger::Log::info("[PerformanceSmoke] initialized. %zu mesh objects, %zu animated", ObjectCount, m_animatedObjects.size());
+
     }
 
     void PerformanceSmoke::update()
@@ -205,12 +200,7 @@ namespace aiko::perf
 
         const float frameMs = fps > 0.0f ? 1000.0f / fps : 0.0f;
 
-        std::cout
-            << "[PerformanceSmoke] "
-            << "objects=" << ObjectCount
-            << " animated=" << m_animatedObjects.size()
-            << " fps=" << fps
-            << " frame=" << frameMs << " ms"
-            << '\n';
+        logger::Log::info("[PerformanceSmoke] objects= %zu  animated= %zu animated fps=%f frame=%f", ObjectCount, m_animatedObjects.size(), fps, frameMs);
+
     }
 }
