@@ -244,7 +244,7 @@ namespace aiko
             draw.readBuffers.push_back({8, &state->lifeBuffer});
             draw.instanceCount = count;
 
-            m_renderModule->getRenderer().drawMeshInstancedGpu(draw);
+            m_renderModule->drawMeshInstancedGpu(draw);
         }
 
     }

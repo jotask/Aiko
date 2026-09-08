@@ -17,6 +17,11 @@ namespace aiko
     {
     }
 
+    void RenderModule::setClearColor(Color color)
+    {
+        m_renderer->setClearColor(color);
+    }
+
     void RenderModule::setMainCamera(const Camera* camera)
     {
         m_mainCamera = camera;
@@ -25,6 +30,97 @@ namespace aiko
     void RenderModule::submitLights(const AmbientLight& ambient, const vector<LightData>& data)
     {
         m_renderer->submit(ambient, data);
+    }
+
+    Mesh& RenderModule::getMesh(const AssetId& id)
+    {
+        return m_renderer->resources().getMesh(id);
+    }
+
+    Model& RenderModule::getModel(const AssetId& id)
+    {
+        return m_renderer->resources().getModel(id);
+    }
+
+    ComputeShader& RenderModule::getComputeShader(const AssetId& id)
+    {
+        return m_renderer->resources().getComputeShader(id);
+    }
+
+    void RenderModule::submit(const Transform& transform, const Mesh& mesh, const Material& material)
+    {
+        m_renderer->submit(transform, mesh, material);
+    }
+
+    void RenderModule::submitInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount)
+    {
+        m_renderer->submit(
+            mesh,
+            material,
+            instances,
+            instanceCount,
+            sizeof(InstanceData)
+        );
+    }
+
+    void RenderModule::enqueueCompute(const ComputePass& pass)
+    {
+        m_renderer->enqueueCompute(pass);
+    }
+
+    void RenderModule::drawVerticesGpu(const GpuVertexDrawDesc& desc)
+    {
+        m_renderer->drawVerticesGpu(desc);
+    }
+
+    void RenderModule::drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc)
+    {
+        m_renderer->drawMeshInstancedGpu(desc);
+    }
+
+    void RenderModule::submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology)
+    {
+        m_renderer->submitTransient(transform, material, meshAsset, topology);
+    }
+
+    void RenderModule::requestReadback(const ComputeReadbackRequest& req)
+    {
+        m_renderer->requestReadback(req);
+    }
+
+    bool RenderModule::pollReadback(ComputeReadbackResult& out)
+    {
+        return m_renderer->pollReadback(out);
+    }
+
+    void RenderModule::renderToTarget(const Camera& camera, RenderTarget& target)
+    {
+        m_renderer->renderToTarget(camera, target);
+    }
+
+    const FrameBuffer& RenderModule::getTargetTexture() const
+    {
+        return m_renderer->sceneRenderTarget().frameBuffer();
+    }
+
+    void RenderModule::updateTexture(const AssetId& id)
+    {
+        m_renderer->resources().updateTexture(id);
+    }
+
+    void RenderModule::unloadMesh(const AssetId& id)
+    {
+        m_renderer->resources().unloadMesh(id);
+    }
+
+    void RenderModule::unloadModel(const AssetId& id)
+    {
+        m_renderer->resources().unloadModel(id);
+    }
+
+    void RenderModule::unloadShader(const AssetId& id)
+    {
+        m_renderer->resources().unloadShader(id);
     }
 
     void RenderModule::connect(ModuleConnector* moduleConnector)

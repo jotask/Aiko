@@ -129,21 +129,21 @@ namespace aiko
 
     void AssetSystem::invalidateTexture(const AssetId& id)
     {
-        m_renderModule->getRenderer().resources().updateTexture(id);
+        m_renderModule->updateTexture(id);
     }
 
     void AssetSystem::invalidateMesh(const AssetId& id)
     {
-        m_renderModule->getRenderer().resources().unloadMesh(id);
+        m_renderModule->unloadMesh(id);
     }
 
     void AssetSystem::invalidateModel(const AssetId& id)
     {
-        m_renderModule->getRenderer().resources().unloadModel(id);
+        m_renderModule->unloadModel(id);
     }
 
     void AssetSystem::invalidateShader(const AssetId& id)
     {
-        m_renderModule->getRenderer().resources().unloadShader(id);
+        m_renderModule->unloadShader(id);
     }
 }

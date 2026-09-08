@@ -37,7 +37,7 @@ namespace aiko
     {
         AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(meshId != InvalidAssetId, "MeshComponent has no mesh id assigned");
-        Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
+        Mesh& mesh = m_renderModule->getMesh(meshId);
         render(trans, mesh, material);
     }
 
@@ -56,7 +56,7 @@ namespace aiko
     void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Material& mat)
     {
         AIKO_FUNCTION_PROFILE
-        m_renderModule->getRenderer().submit(trans, mesh, mat);
+        m_renderModule->submit(trans, mesh, mat);
     }
 
     void RenderSystem::render(const Transform& trans, const Model& model)
@@ -65,8 +65,8 @@ namespace aiko
         for (const auto& submesh : model.getSubMeshes())
         {
             AIKO_ASSERT(submesh.meshId != InvalidAssetId, "Runtime model submesh has invalid mesh id");
-            Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(submesh.meshId);
-            m_renderModule->getRenderer().submit(trans, mesh, submesh.material);
+            Mesh& mesh = m_renderModule->getMesh(submesh.meshId);
+            m_renderModule->submit(trans, mesh, submesh.material);
         }
     }
 
@@ -78,8 +78,8 @@ namespace aiko
         {
             return;
         }
-        Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
-        m_renderModule->getRenderer().submit(trans, mesh, meshComponent.getMaterial());
+        Mesh& mesh = m_renderModule->getMesh(meshId);
+        m_renderModule->submit(trans, mesh, meshComponent.getMaterial());
     }
 
     void RenderSystem::render(const Transform& trans, const ModelComponent& modelComponent)
@@ -90,7 +90,7 @@ namespace aiko
         {
             return;
         }
-        Model& runtimeModel = m_renderModule->getRenderer().resources().getModel(modelId);
+        Model& runtimeModel = m_renderModule->getModel(modelId);
         render(trans, runtimeModel);
     }
 
@@ -102,30 +102,30 @@ namespace aiko
         {
             return;
         }
-        Mesh& mesh = m_renderModule->getRenderer().resources().getMesh(meshId);
-        m_renderModule->getRenderer().submit(trans, mesh, spriteComponent.getMaterial());
+        Mesh& mesh = m_renderModule->getMesh(meshId);
+        m_renderModule->submit(trans, mesh, spriteComponent.getMaterial());
     }
 
     void RenderSystem::drawVerticesGpu(const GpuVertexDrawDesc& desc)
     {
-        m_renderModule->getRenderer().drawVerticesGpu(desc);
+        m_renderModule->drawVerticesGpu(desc);
     }
 
     void RenderSystem::renderInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount)
     {
         AIKO_ASSERT(instances != nullptr, "Instanced render has no instance data");
         AIKO_ASSERT(instanceCount > 0, "Instanced render has zero instances");
-        m_renderModule->getRenderer().submit(mesh, material, instances, instanceCount, sizeof(InstanceData));
+        m_renderModule->submitInstanced(mesh, material, instances, instanceCount);
     }
 
     void RenderSystem::dispatch(const ComputePass& pass, const AssetId& shaderId)
     {
         AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(shaderId != InvalidAssetId, "Attempting to dispatch compute with invalid shader id");
-        ComputeShader& shader = m_renderModule->getRenderer().resources().getComputeShader(shaderId);
+        ComputeShader& shader = m_renderModule->getComputeShader(shaderId);
         ComputePass runtimePass = pass;
         runtimePass.shader = &shader;
-        m_renderModule->getRenderer().enqueueCompute(runtimePass);
+        m_renderModule->enqueueCompute(runtimePass);
     }
 
     void RenderSystem::dispatch(const ComputePass& pass, const ComputeShaderComponent& component)
@@ -137,23 +137,23 @@ namespace aiko
     void RenderSystem::requestReadback(const ComputeReadbackRequest& req)
     {
         AIKO_FUNCTION_PROFILE
-        m_renderModule->getRenderer().requestReadback(req);
+        m_renderModule->requestReadback(req);
     }
 
     bool RenderSystem::pollReadback(ComputeReadbackResult& req)
     {
         AIKO_FUNCTION_PROFILE
-        return m_renderModule->getRenderer().pollReadback(req);
+        return m_renderModule->pollReadback(req);
     }
 
     void RenderSystem::renderToTarget(const Camera& camera, RenderTarget& target)
     {
-        m_renderModule->getRenderer().renderToTarget(camera, target);
+        m_renderModule->renderToTarget(camera, target);
     }
 
     const FrameBuffer& RenderSystem::getTargetTexture() const
     {
-        return m_renderModule->getRenderer().sceneRenderTarget().frameBuffer();
+        return m_renderModule->getTargetTexture();
     }
 
     Camera* RenderSystem::getMainCamera()

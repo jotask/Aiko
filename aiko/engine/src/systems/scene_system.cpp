@@ -36,8 +36,8 @@ namespace aiko
 
         if (view.camera != nullptr)
         {
-            m_renderModule->getRenderer().setClearColor(view.clearColor);
-            m_renderModule->getRenderer().submit(view.ambientLight, view.lights);
+            m_renderModule->setClearColor(view.clearColor);
+            m_renderModule->submitLights(view.ambientLight, view.lights);
         }
 
         for (MeshComponent* component : m_scene.components<MeshComponent>())
