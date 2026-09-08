@@ -28,6 +28,7 @@
 #include "systems/physics_system.h"
 #include "systems/render_system.h"
 #include "systems/scene_system.h"
+#include "systems/job_system.h"
 #include "systems/system_registry.h"
 
 namespace aiko
@@ -98,6 +99,7 @@ namespace aiko
         systemRegistry.add<ComputeSystem>();
         systemRegistry.add<InputSystem>();
         systemRegistry.add<CameraSystem>();
+        systemRegistry.add<JobSystem>();
         systemRegistry.add<AssetBindingSystem>();
         systemRegistry.add<PhysicsSystem>();
         systemRegistry.add<ParticleSystem>();

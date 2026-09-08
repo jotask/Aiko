@@ -95,6 +95,9 @@
 #include <aiko_query_types.h>
 #include <player_controller_types.h>
 
+#include <layers/contexts/job_context.h>
+#include <types/job_types.h>
+
 #include <stdlib.h>
 
 int main()
@@ -166,6 +169,9 @@ int main()
     AIKO_UNUSED(surfaceDesc);
     AIKO_UNUSED(renderState);
     AIKO_UNUSED(computeBufferDesc);
+
+    aiko::JobStats jobStats{};
+    AIKO_UNUSED(jobStats);
 
     return EXIT_SUCCESS;
 }

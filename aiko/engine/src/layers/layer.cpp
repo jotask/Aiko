@@ -86,4 +86,16 @@ namespace aiko
         return m_context->assets();
     }
 
+    JobContext& Layer::jobs()
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->jobs();
+    }
+
+    const JobContext& Layer::jobs() const
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->jobs();
+    }
+
 }

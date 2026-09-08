@@ -15,6 +15,7 @@ namespace aiko
     class InputContext;
     class SceneContext;
     class AssetContext;
+    class JobContext;
 
     class Layer
     {
@@ -56,6 +57,9 @@ namespace aiko
 
         AssetContext& assets();
         const AssetContext& assets() const;
+
+        JobContext& jobs();
+        const JobContext& jobs() const;
 
     private:
         friend class Application;

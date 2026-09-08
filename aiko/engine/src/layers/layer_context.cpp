@@ -9,6 +9,7 @@ namespace aiko
         , m_render(connector)
         , m_scene(connector)
         , m_assets(connector)
+        , m_jobs(connector)
     {
 
     }
