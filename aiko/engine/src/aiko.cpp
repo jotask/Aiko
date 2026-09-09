@@ -93,13 +93,13 @@ namespace aiko
         // Systems
         SystemRegistry systemRegistry(m_systems);
 
+        systemRegistry.add<JobSystem>();
         systemRegistry.add<SceneSystem>();
         systemRegistry.add<RenderSystem>();
         systemRegistry.add<AssetSystem>();
         systemRegistry.add<ComputeSystem>();
         systemRegistry.add<InputSystem>();
         systemRegistry.add<CameraSystem>();
-        systemRegistry.add<JobSystem>();
         systemRegistry.add<AssetBindingSystem>();
         systemRegistry.add<PhysicsSystem>();
         systemRegistry.add<ParticleSystem>();
