@@ -15,11 +15,6 @@ namespace aiko
 
         }
 
-        Aiko* Window::getAiko() const
-        {
-            return m_editor->getAiko();
-        }
-
         EditorContext& Window::context()
         {
             return m_editor->context();

@@ -24,6 +24,7 @@ namespace aiko
     class Texture
     {
         friend class FrameBuffer;
+        friend class AikoImgui;
         friend class renderer::IRenderDevice;
         friend class renderer::RendererFactory;
     public:

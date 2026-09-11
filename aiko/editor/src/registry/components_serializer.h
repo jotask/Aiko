@@ -6,7 +6,7 @@ namespace aiko
 {
     class GameObject;
     class Component;
-    class TransforComponent;
+    class TransformComponent;
     class SpriteComponent;
     class MeshComponent;
     class LightComponent;
@@ -18,10 +18,10 @@ namespace aiko::editor::component
 
     void serializeComponent(Component*);
 
-    YAML::Node serializeTransform(TransforComponent*);
-    YAML::Node serializeSprite(SpriteComponent*);
-    YAML::Node serializeMesh(MeshComponent*);
-    YAML::Node serializeLight(LightComponent*);
-    YAML::Node serializeCamera(CameraComponent*);
+    YAML::Node serializeTransform(const TransformComponent*);
+    YAML::Node serializeSprite(const SpriteComponent*);
+    YAML::Node serializeMesh(const MeshComponent*);
+    YAML::Node serializeLight(const LightComponent*);
+    YAML::Node serializeCamera(const CameraComponent*);
 
 }

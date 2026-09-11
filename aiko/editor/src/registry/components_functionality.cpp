@@ -20,19 +20,6 @@ namespace aiko::editor
             return result;
         }
 
-        void removeComponent(string name, GameObject* obj)
-        {
-            for (const auto& entry : s_componentEntries)
-            {
-                if (entry.name == name)
-                {
-                    entry.remove(obj);
-                    return;
-                }
-            }
-            AIKO_ASSERT(false, "ERROR :: Component is not supported by the editor");
-        }
-
         void addComponent(string name, GameObject* obj)
         {
             for (const auto& entry : s_componentEntries)

@@ -4,6 +4,7 @@
 #include "display/display_manager.h"
 #include "intrumentor/profiler.h"
 #include "time/time.h"
+#include "models/texture.h"
 
 #if defined(AIKO_BGFX)
     #include "platform/bgfx/imgui/imgui_impl_bgfx.h"
@@ -111,6 +112,12 @@ namespace aiko
         ImGui::DestroyContext();
         m_window = nullptr;
         m_isInitialized = false;
+    }
+
+    ImguiTextureId AikoImgui::textureId(const Texture& texture)
+    {
+        AIKO_ASSERT(texture.isValid(), "Cannot register invalid ImGui texture");
+        return backend->textureId(*texture.backend);
     }
 
 }

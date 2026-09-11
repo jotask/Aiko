@@ -237,6 +237,11 @@ namespace aiko
         m_renderer->waitIdle();
     }
 
+    ImguiTextureId AikoRenderer::imguiTextureId(const Texture& texture)
+    {
+        return m_imgui.textureId(texture);
+    }
+
     void AikoRenderer::onWindowResize(WindowResizeEvent& event)
     {
         if (event.width <= 0 || event.height <= 0)

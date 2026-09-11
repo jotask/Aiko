@@ -6,6 +6,11 @@
 #include "windows/game_window.h"
 #include "windows/hirearchy_window.h"
 #include "windows/menu_bar.h"
+#include "systems/render_system.h"
+#include "systems/scene_system.h"
+#include "systems/system_connector.h"
+#include <events/events.hpp>
+#include <display/display_events.hpp>
 
 #include <aiko_includes.h>
 #include <imgui.h>
@@ -17,15 +22,16 @@ namespace aiko::editor
 
     }
 
-    Aiko* AikoEditor::getAiko() const
+    void AikoEditor::connect(SystemConnector& connector)
     {
-        return app->m_aiko.get();
+        BIND_SYSTEM_REQUIRED_REF(RenderSystem, connector, m_renderSystem);
+        BIND_SYSTEM_REQUIRED_REF(SceneSystem, connector, m_sceneSystem);
     }
 
     void AikoEditor::init()
     {
 
-        auto camera = app->Instantiate("Camera");
+        auto camera = Instantiate("Camera");
         auto cam = camera->addComponent<aiko::CameraComponent>(camera::CameraController::Orbit);
 
         ImGuiIO& io = ImGui::GetIO();
@@ -40,16 +46,16 @@ namespace aiko::editor
 
         const aiko::MeshAsset defaultCube = aiko::mesh::factory::generateCube();
 
-        auto root = app->Instantiate("Root");
+        auto root = Instantiate("Root");
 
-        auto m_go1 = app->Instantiate(root, "Cube1");
+        auto m_go1 = Instantiate(root, "Cube1");
         m_go1->transform().position = { 1.0f, 0.0f, 0.0f };
         m_go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto mesh1 = m_go1->addComponent<MeshComponent>();
         mesh1->load(defaultCube);
 
-        auto m_go2 = app->Instantiate(root, "Cube2");
+        auto m_go2 = Instantiate(root, "Cube2");
         m_go2->transform().position = { -1.0f, 0.0f, 0.0f };
         m_go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         m_go2->transform().scale = { 1.0f, 1.0f, 1.0f };
@@ -71,6 +77,12 @@ namespace aiko::editor
                 tmp->render();
             }
         }
-
     }
+
+    void AikoEditor::requestClose()
+    {
+        WindowCloseEvent event;
+        EventSystem::it().sendEvent(event);
+    }
+
 }

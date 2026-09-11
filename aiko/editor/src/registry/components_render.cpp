@@ -25,7 +25,7 @@ namespace aiko::editor
             AIKO_ASSERT(false, "ERROR :: Component is not supported by the editor");
         }
 
-        void drawTransform(TransforComponent* t)
+        void drawTransform(TransformComponent* t)
         {
             ImGui::PushID(t);
             ImGui::DragFloat3("Position", t->transform.position, IMGUI_VELOCITY);

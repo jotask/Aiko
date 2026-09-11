@@ -7,5 +7,12 @@ namespace aiko::editor
     namespace global
     {
         inline const std::string GLOBAL_SCENE_FILES_PATH = "${GLOBAL_SCENE_FILES_PATH}";
+
+        inline const std::string GLOBAL_ASSET_PATH = "${GLOBAL_ASSET_PATH}";
+
+        inline std::string getAssetPath(const char* subpath)
+        {
+            return GLOBAL_ASSET_PATH + subpath;
+        }
     }
 }

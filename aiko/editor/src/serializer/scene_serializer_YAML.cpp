@@ -24,14 +24,14 @@ namespace aiko::editor
     {
         YAML::Emitter out;
         out << YAML::BeginSeq;
-        for (GameObject* obj : scene.getObjects())
+        for (const GameObject* obj : scene.getObjects())
         {
             out << YAML::BeginMap;
             out << YAML::Key << "uuid" << YAML::Value << obj->uuid();
             out << YAML::Key << "name" << YAML::Value << obj->getName();
             out << YAML::Key << "components" << YAML::Value;
             out << YAML::BeginSeq;
-            for (Component* component : obj->getComponents())
+            for (const Component* component : obj->getComponents())
             {
                 out << serializer::serializeComponent(component);
             }

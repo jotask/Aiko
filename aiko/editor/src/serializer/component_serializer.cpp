@@ -14,7 +14,7 @@
 namespace aiko::editor::serializer
 {
 
-    YAML::Node serializeComponent(Component* compt)
+    YAML::Node serializeComponent(const Component* compt)
     {
         for (const auto& entry : component::s_componentEntries)
         {

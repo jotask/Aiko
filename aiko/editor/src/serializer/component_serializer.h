@@ -7,7 +7,7 @@
 namespace aiko::editor::serializer
 {
 
-    YAML::Node serializeComponent(Component*);
+    YAML::Node serializeComponent(const Component*);
     void deserializeComponent(Component*);
 
 }

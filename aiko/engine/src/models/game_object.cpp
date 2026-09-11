@@ -21,6 +21,32 @@ namespace aiko
         return getComponent<TransformComponent>()->transform;
     }
 
+    vector<Component*> GameObject::getComponents()
+    {
+        vector<Component*> result;
+        result.reserve(m_components.size());
+
+        for (const auto& component : m_components)
+        {
+            result.push_back(component.get());
+        }
+
+        return result;
+    }
+
+    vector<const Component*> GameObject::getComponents() const
+    {
+        vector<const Component*> result;
+        result.reserve(m_components.size());
+
+        for (const auto& component : m_components)
+        {
+            result.push_back(component.get());
+        }
+
+        return result;
+    }
+
     bool GameObject::removeComponent(Component* item)
     {
         if (item == nullptr)

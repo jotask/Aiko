@@ -62,8 +62,7 @@ namespace aiko
                     }
                     if (ImGui::MenuItem("Exit", "Alt+F4"))
                     {
-                        // Handle exiting the application
-                        getAiko()->close();
+                        getEditor()->requestClose();
                     }
                     ImGui::EndMenu();
                 }
@@ -114,7 +113,7 @@ namespace aiko
                     std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
                     // action
                     logger::Log::info("%s == %s", filePathName.c_str(), filePath.c_str());
-                    SceneSystem* ecs = getAiko()->getSystem<SceneSystem>();
+                    SceneSystem* ecs = getEditor()->sceneSystem();
                     const Scene& scene = ecs->getScene();
                     SceneSerializerYAML::serializeScene(scene, filePathName);
                 }
@@ -131,7 +130,7 @@ namespace aiko
                     std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
                     // action
                     logger::Log::info("%s == %s", filePathName.c_str(), filePath.c_str());
-                    SceneSystem* ecs = getAiko()->getSystem<SceneSystem>();
+                    SceneSystem* ecs = getEditor()->sceneSystem();
                     Scene& scene = ecs->getScene();
                     SceneSerializerYAML::deserializeScene(scene, filePathName);
                 }

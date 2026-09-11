@@ -16,9 +16,8 @@ namespace aiko::editor::component
         std::string name;
         std::function<bool(GameObject*)> has;
         std::function<void(GameObject*)> add;
-        std::function<void(GameObject*)> remove;
         std::function<bool(Component*)> render;
-        std::function<bool(Component* c, YAML::Node& node)> serialize;
+        std::function<bool(const Component* c, YAML::Node& node)> serialize;
         std::function<bool(const YAML::Node& node, GameObject& obj)> deserialize;
     };
 

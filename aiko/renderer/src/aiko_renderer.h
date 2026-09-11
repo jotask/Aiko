@@ -79,6 +79,8 @@ namespace aiko
 
         void waitIdle();
 
+        ImguiTextureId imguiTextureId(const Texture& texture);
+
     protected:
 
         const Texture* m_debugTexture = nullptr;
@@ -126,5 +128,6 @@ namespace aiko
         std::vector<SceneRenderRequest> m_sceneRenderRequests;
 
     };
+
 
 }

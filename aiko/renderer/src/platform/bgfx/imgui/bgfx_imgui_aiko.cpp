@@ -3,6 +3,7 @@
 #include <bgfx/bgfx.h>
 #include "platform/bgfx/imgui/bgfx_imgui_aiko.h"
 #include "platform/bgfx/bgfx_types.h"
+#include "interfaces/itexture_impl.h"
 
 #include <imgui.h>
 
@@ -33,6 +34,11 @@ namespace aiko::renderer::bgfx
     {
         ImGui_Implbgfx_Shutdown();
         ImGui_ImplGlfw_Shutdown();
+    }
+
+    ImguiTextureId BgfxImguiImpl::textureId(const interfaces::ITextureImpl& texture)
+    {
+        return texture.id();
     }
 
 }

@@ -6,7 +6,7 @@ namespace aiko
 {
     class GameObject;
     class Component;
-    class TransforComponent;
+    class TransformComponent;
     class SpriteComponent;
     class MeshComponent;
     class LightComponent;
@@ -18,6 +18,5 @@ namespace aiko::editor::component
 
     vector<string> getMissingComponents(GameObject*);
     void addComponent(string, GameObject*);
-    void removeComponent(string, GameObject*);
 
 }

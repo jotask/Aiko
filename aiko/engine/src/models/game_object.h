@@ -37,6 +37,9 @@ namespace aiko
         template<class T>
         const T* getComponent() const;
 
+        vector<Component*> getComponents();
+        vector<const Component*> getComponents() const;
+
         template<class T>
         vector<T*> getComponents();
 

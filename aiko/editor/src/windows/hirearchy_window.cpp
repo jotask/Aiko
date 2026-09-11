@@ -29,8 +29,7 @@ namespace aiko
 
         void HirearchyWindow::render()
         {
-            static auto* ecs = getAiko()->getSystem<SceneSystem>();
-
+            auto* ecs = getEditor()->sceneSystem();
             if (ImGui::Begin("Hirearchy"))
             {
                 ImGui::SetNextItemOpen(true, ImGuiCond_Once);
@@ -74,8 +73,8 @@ namespace aiko
                 {
                     if (ImGui::MenuItem("Create GameObject"))
                     {
-                        AikoPtr<GameObject> go = ecs->createGameObject();
-                        context().setSelectedGameObject(go.get());
+                        GameObject* go = ecs->createGameObject();
+                        context().setSelectedGameObject(go);
                     }
                     ImGui::EndPopup();
                 }
@@ -178,11 +177,11 @@ namespace aiko
 
                     if (ImGui::MenuItem("Create Child GameObject"))
                     {
-                        auto* ecs = getAiko()->getSystem<SceneSystem>();
-                        AikoPtr<GameObject> go = ecs->createGameObject();
+                        auto* ecs = getEditor()->sceneSystem();
+                        GameObject* go = ecs->createGameObject();
 
-                        attachChild(obj, go.get());
-                        context().setSelectedGameObject(go.get());
+                        attachChild(obj, go);
+                        context().setSelectedGameObject(go);
 
                         ImGui::EndPopup();
 

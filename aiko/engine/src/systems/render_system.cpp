@@ -53,6 +53,11 @@ namespace aiko
 
     }
 
+    ImguiTextureId RenderSystem::getTargetTextureId() const
+    {
+        return m_renderModule->getTargetTextureId();
+    }
+
     void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Material& mat)
     {
         AIKO_FUNCTION_PROFILE

@@ -28,7 +28,7 @@ namespace aiko
         void GameWindow::render()
         {
 
-            static auto* renderSystem = getAiko()->getSystem<RenderSystem>();
+            auto* renderSystem = getEditor()->renderSystem();
             if(ImGui::Begin("Game"))
             {
 
@@ -77,7 +77,7 @@ namespace aiko
                 // and here we can add our created texture as image to ImGui
                 // unfortunately we need to use the cast to void* or I didn't find another way tbh
                 ImGui::GetWindowDrawList()->AddImage(
-                    (ImTextureID)texture.id(),
+                    (ImTextureID)renderSystem->getTargetTextureId(),
                     ImVec2(pos.x, pos.y),
                     ImVec2(pos.x + imageWidth, pos.y + imageHeight),
                     ImVec2(0, 1),

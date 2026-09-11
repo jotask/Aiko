@@ -21,7 +21,6 @@ namespace aiko
             bool is_open = true;
         protected:
             AikoEditor* getEditor() const { return m_editor; };
-            Aiko* getAiko() const;
             EditorContext& context();
             const EditorContext& context() const;
         private:

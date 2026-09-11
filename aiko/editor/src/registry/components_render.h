@@ -4,7 +4,7 @@ namespace aiko
 {
     class GameObject;
     class Component;
-    class TransforComponent;
+    class TransformComponent;
     class SpriteComponent;
     class MeshComponent;
     class LightComponent;
@@ -16,7 +16,7 @@ namespace aiko::editor::component
 
     void drawComponent(Component*);
 
-    void drawTransform(TransforComponent*);
+    void drawTransform(TransformComponent*);
     void drawSprite(SpriteComponent*);
     void drawMesh(MeshComponent*);
     void drawLight(LightComponent*);

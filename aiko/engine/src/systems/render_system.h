@@ -62,6 +62,8 @@ namespace aiko
 
         void clearCaches();
 
+        ImguiTextureId getTargetTextureId() const;
+
     protected:
 
         virtual void connect(ModuleConnector*, SystemConnector*) override;

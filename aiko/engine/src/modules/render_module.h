@@ -52,6 +52,8 @@ namespace aiko
         void unloadModel(const AssetId& id);
         void unloadShader(const AssetId& id);
 
+        ImguiTextureId getTargetTextureId() const;
+
     protected:
 
 
