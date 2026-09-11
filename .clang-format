@@ -1,0 +1,117 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+# ----------------------------------------------------------------------
+# Indentation
+# ----------------------------------------------------------------------
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+ContinuationIndentWidth: 8
+AccessModifierOffset: -4
+
+NamespaceIndentation: All
+IndentCaseLabels: true
+IndentPPDirectives: BeforeHash
+
+# ----------------------------------------------------------------------
+# Braces
+# ----------------------------------------------------------------------
+
+BreakBeforeBraces: Custom
+
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeLambdaBody: true
+  BeforeWhile: true
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+
+# ----------------------------------------------------------------------
+# Line wrapping
+# ----------------------------------------------------------------------
+
+ColumnLimit: 99999
+
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+
+AlwaysBreakTemplateDeclarations: Yes
+
+BreakConstructorInitializers: BeforeComma
+PackConstructorInitializers: Never
+
+# ----------------------------------------------------------------------
+# Alignment
+# ----------------------------------------------------------------------
+
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: false
+AlignOperands: Align
+
+PointerAlignment: Left
+ReferenceAlignment: Pointer
+
+# ----------------------------------------------------------------------
+# Spaces
+# ----------------------------------------------------------------------
+
+SpaceAfterCStyleCast: true
+SpaceAfterTemplateKeyword: false
+
+SpaceBeforeRangeBasedForLoopColon: false
+
+SpacesInAngles: false
+SpacesInParentheses: false
+SpacesInCStyleCastParentheses: false
+
+# ----------------------------------------------------------------------
+# Includes
+# ----------------------------------------------------------------------
+
+IncludeBlocks: Regroup
+
+IncludeCategories:
+  # Current file's matching header is handled automatically by clang-format.
+
+  # Aiko project headers
+  - Regex: '^".*"$'
+    Priority: 1
+
+  # Third-party headers containing a path
+  - Regex: '^<[^>]+/[^>]+>$'
+    Priority: 2
+
+  # Standard/system headers
+  - Regex: '^<[^>]+>$'
+    Priority: 3
+
+SortIncludes:
+  Enabled: true
+  IgnoreCase: false
+  IgnoreExtension: false
+
+# ----------------------------------------------------------------------
+# Misc
+# ----------------------------------------------------------------------
+
+FixNamespaceComments: false
+InsertNewlineAtEOF: true
+Standard: c++20

@@ -30,7 +30,7 @@ namespace nes
         if (late == true) stack_pointer--;
         if constexpr (NES_CPU_LOG)
         {
-            aiko::Log::trace(stack_print_padding, "pushStack: ", unsigned(stack_address), " Value: ", unsigned(value) );
+            aiko::logger::Log::trace(stack_print_padding, "pushStack: ", unsigned(stack_address), " Value: ", unsigned(value) );
         }
         assertStackAddress();
         write(stack_address, value);
@@ -42,7 +42,7 @@ namespace nes
         const Byte low  = getLow(value);
         if constexpr (NES_CPU_LOG)
         {
-            aiko::Log::trace(stack_print_padding, "pushWordStack() Value: ", toString(value));
+            aiko::logger::Log::trace(stack_print_padding, "pushWordStack() Value: ", toString(value));
         }
         stack_print_padding = "        ";
         pushStack(high, late);
@@ -66,7 +66,7 @@ namespace nes
         const Byte result = read(stack_address);
         if constexpr (NES_CPU_LOG)
         {
-            aiko::Log::trace(stack_print_padding, "popStack: ", toString(stack_address), " Value: ", toString(result));
+            aiko::logger::Log::trace(stack_print_padding, "popStack: ", toString(stack_address), " Value: ", toString(result));
         }
         return result;
     }
@@ -75,7 +75,7 @@ namespace nes
     {
         if constexpr (NES_CPU_LOG)
         {
-            aiko::Log::trace(stack_print_padding, "popWordStack() ");
+            aiko::logger::Log::trace(stack_print_padding, "popWordStack() ");
         }
         stack_print_padding = "        ";
         const Byte low = popStack(false);
@@ -84,7 +84,7 @@ namespace nes
         const Word result = toWord(high, low);
         if constexpr (NES_CPU_LOG)
         {
-            aiko::Log::trace(stack_print_padding, "popWordStack() ", toString(result));
+            aiko::logger::Log::trace(stack_print_padding, "popWordStack() ", toString(result));
         }
         return result;
     }

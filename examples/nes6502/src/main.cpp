@@ -4,7 +4,8 @@
 
 int main()
 {
-    nes::NesEmulator nes;
-    nes.run();
+    aiko::Application app;
+    app.pushLayer(std::make_unique<nes::NesEmulator>());
+    app.run();
     return EXIT_SUCCESS;
 }

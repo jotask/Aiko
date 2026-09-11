@@ -1,21 +1,59 @@
 #pragma once
 
+#include "aiko_includes.h"
 #include "application/application.h"
+#include "layers/layer.h"
+#include "systems/render_system.h"
 
-namespace sandbox
+namespace sb
 {
 
-    class Sandbox : public aiko::Application
+    class Sandbox : public aiko::Layer
     {
     protected:
         virtual void init() override;
         virtual void update() override;
         virtual void render() override;
+        virtual void connect(aiko::SystemConnector&) override;
     private:
-        aiko::GameObject* m_go1;
-        aiko::GameObject* m_go2;
-        aiko::GameObject* m_texture;
-        aiko::GameObject* m_texturePbo;
+
+        aiko::RenderSystem* m_renderSystem = nullptr;
+
+        aiko::GameObject* m_go1 = nullptr;
+        aiko::GameObject* m_go2 = nullptr;
+        aiko::GameObject* m_texture = nullptr;
+        aiko::GameObject* m_texturePbo = nullptr;
+
+        struct LightInst
+        {
+            aiko::GameObject* obj = nullptr;
+            aiko::LightComponent* cmp = nullptr;
+            float angle = 0.0f;
+        };
+        std::vector<LightInst> m_lights;
+
+        aiko::ComputeShaderComponent* m_computeReadback = nullptr;
+        bool m_computeReadbackPrinted = false;
+
+        aiko::Mesh m_instancingMesh;
+        aiko::Material m_instancingMaterial;
+
+        void initCompute();
+        void initMeshes();
+        void initComponents();
+        void initLights();
+        void initParticles();
+        void initInstancing();
+
+        void updateComponents();
+        void updateLights();
+
+        void renderPrimitives();
+        void renderLights();
+        void renderInstancing();
+
+        void updateCompute();
+
     };
 
 }

@@ -1,0 +1,130 @@
+#pragma once
+
+#include "imgui/aiko_imgui.h"
+#include "models/light.h"
+#include "models/material.h"
+#include "models/render_target.h"
+#include "renderer/render_queue.h"
+#include "renderer/scene_render_request.h"
+#include "renderer/screen_presenter.h"
+#include "resources/render_resource_manager.h"
+#include "types/aiko_renderer_types.h"
+#include "types/compute_pass.h"
+
+#include <types/color.h>
+#include <types/render_types.h>
+
+#include <aiko_types.h>
+#include <deque>
+#include <optional>
+#include <unordered_map>
+
+namespace aiko
+{
+
+    namespace renderer
+    {
+        class IRenderDevice;
+        struct FrameData;
+    }
+
+    class Camera;
+    class MaterialAsset;
+    class MaterialInstance;
+    class Mesh;
+    class Texture;
+    class Transform;
+    struct RendererConfig;
+    struct RenderSurfaceDesc;
+    struct WindowResizeEvent;
+
+    class AikoRenderer
+    {
+    
+    public:
+
+        AikoRenderer(IAssetProvider& assets);
+        ~AikoRenderer() = default;
+
+        void init(const RendererConfig& config, const RenderSurfaceDesc& surface);
+        void beginFrame();
+        void endFrame();
+        void dispose();
+
+        void setClearColor(Color);
+
+        void submit(const AmbientLight& ambient, const vector<LightData>& data);
+        void submit(const Transform& transform, const Mesh& mesh, const Material& material);
+        void submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride);
+        void submit(const Transform& transform, const Mesh& mesh, const MaterialAsset& materialAsset, const MaterialInstance& materialInstance);
+
+        void submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology);
+
+        void enqueueCompute(const ComputePass& pass);
+        void requestReadback(const ComputeReadbackRequest& req);
+        bool pollReadback(ComputeReadbackResult& out);
+
+        void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
+        void drawBillboards(const GpuBillboardDrawDesc& desc);
+        void drawVerticesGpu(const GpuVertexDrawDesc& desc);
+
+        void render(const Camera& camera);
+
+        void setDebugTexture(const Texture* texture);   // nullptr disables
+
+        void renderToTarget(const Camera& camera, RenderTarget& target);
+        const RenderTarget& sceneRenderTarget() const { return m_sceneTarget; }
+
+        RenderResourceManager& resources() { return m_resources; }
+
+        void waitIdle();
+
+    protected:
+
+        const Texture* m_debugTexture = nullptr;
+
+        void onWindowResize(WindowResizeEvent&);
+
+        RenderResourceManager m_resources;
+        AikoPtr<renderer::IRenderDevice> m_renderer;
+
+    protected:
+
+        Color m_clearColor;
+        ivec2 m_renderSurface;
+
+        RenderTarget m_sceneTarget;
+        ScreenPresenter m_screenPresenter;
+
+        std::vector<ComputePass> m_computeQueue;
+
+        std::vector<LightData> m_lights;
+        AmbientLight m_ambientLight;
+
+    private:
+
+        RenderQueue m_renderQueue;
+
+        renderer::FrameData buildSceneFrameData(const Camera& camera, const ivec2& targetSize) const;
+        void executeComputePasses();
+        void submitScenePass(const renderer::FrameData& frameData, const PreparedScenePass& passData, const RenderTarget& target);
+        void submitPresentPass(const Texture& texture);
+
+        static_assert(COMPUTE_VIEW < SCENE_VIEW, "Compute View MUST be less than Scene View");
+
+        Material& stageMaterial(const MaterialAsset& materialAsset, const MaterialInstance& materialInstance);
+        std::deque<Material> m_frameMaterials;
+        std::unordered_map<FrameMaterialKey, Material*, FrameMaterialKeyHash> m_frameMaterialCache;
+
+        const TransientGeometry& stageTransientGeometry(const MeshAsset& meshAsset, TransientTopology topology);
+        std::deque<TransientGeometry> m_frameTransientGeometries;
+
+        AikoImgui m_imgui;
+
+        std::optional<ivec2> m_pendingSurfaceResize = std::nullopt;
+
+        std::vector<SceneRenderRequest> m_sceneRenderRequests;
+
+    };
+
+}

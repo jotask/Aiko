@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include <fstream>
-#include <string>
 #include <cstring> // For strcmp
 
 #include "aiko_includes.h"
@@ -42,7 +41,7 @@ namespace nes
         stream.open(file, std::ios::binary);
         if (stream.is_open() == false)
         {
-            aiko::Log::error("Couldn't load binary file: ", file);
+            aiko::logger::Log::error("Couldn't load binary file: ", file);
             assert(false && "Error loading ROM");
         }
 
@@ -51,8 +50,8 @@ namespace nes
 
         if (memcmp("NES\x1A", header.name, 4) != 0)
         {
-            aiko::Log::error("Inserted invalid cartridge. Only iNES file are supported");
-            assert(false, "UnkownFile");
+            aiko::logger::Log::error("Inserted invalid cartridge. Only iNES file are supported");
+            assert(false && "UnkownFile");
         }
 
         // TODO What to do with the trainer from some roms?
@@ -62,7 +61,7 @@ namespace nes
 
         Byte nFileType = 1;
 
-        assert(nFileType == 1, "TODO Not Implemented");
+        assert(nFileType == 1 && "TODO Not Implemented");
         
         if (nFileType == 1)
         {
@@ -78,7 +77,7 @@ namespace nes
         {
         case 0:         mapper = std::make_shared<Mapper_000>(header.prg_rom_chunks, header.chr_rom_chunks);        break;
         default:
-            assert(false, "Mapper Not Supported");
+            assert(false && "Mapper Not Supported");
             break;
         }
 

@@ -1,0 +1,69 @@
+#include stdlib
+
+LET code = "+++++ +++++[>+++++ +++++<-] >++++.---.+++++ ++..+++.>>>+++[>+++++ +++++<-]>++.<<<<+++++ +++.----- ---.+++.----- -.----- ---.>>+++++ +++++."
+
+LET mem[3000] = 0
+LET ptr = 0
+LET pc = 0
+
+WHILE pc < length(code) REPEAT
+
+    LET cmd = code[pc]
+
+    IF cmd == '>' THEN
+        SET ptr = ptr + 1
+    END
+
+    IF cmd == '<' THEN
+        SET ptr = ptr - 1
+    END
+
+    IF cmd == '+' THEN
+        SET mem[ptr] = mem[ptr] + 1
+    END
+
+    IF cmd == '-' THEN
+        SET mem[ptr] = mem[ptr] - 1
+    END
+
+    IF cmd == '.' THEN
+        PRINT mem[ptr]
+    END
+
+    IF cmd == ',' THEN
+        PRINT "Input a character and store its ASCII value in memory[ptr]"
+    END
+
+    IF cmd == '[' THEN
+        IF mem[ptr] == 0 THEN
+            LET depth = 1
+            WHILE depth > 0 REPEAT
+                SET pc = pc + 1
+                IF code[pc] == '[' THEN
+                    SET depth = depth + 1
+                END
+                IF code[pc] == ']' THEN
+                    SET depth = depth - 1
+                END
+            END
+        END
+    END
+
+    IF cmd == ']' THEN
+        IF mem[ptr] != 0 THEN
+            LET depth = 1
+            WHILE depth > 0 REPEAT
+                SET pc = pc - 1
+                IF code[pc] == ']' THEN
+                    SET depth = depth + 1
+                END
+                IF code[pc] == '[' THEN
+                    SET depth = depth - 1
+                END
+            END
+        END
+    END
+
+    SET pc = pc + 1
+
+END

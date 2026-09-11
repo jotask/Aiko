@@ -1,0 +1,16 @@
+CONST nul = '\0'
+
+FUNCTION length : str
+    LET count = 0
+    WHILE str[count] != nul REPEAT
+        SET count = count + 1
+    END
+    RETURN count
+END
+
+FUNCTION abs : x
+    IF x < 0 THEN
+        RETURN 0 - x
+    END
+    RETURN x
+END

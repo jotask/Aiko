@@ -2,6 +2,7 @@
 
 #include "nes/nintendo_entertainment_system.h"
 #include "emulator_window.h"
+#include "aiko_extensions/nes_events.h"
 
 namespace nes
 {
@@ -14,7 +15,7 @@ namespace nes
         virtual void render() override;
     private:
 
-        void onNesClock(aiko::Event& event);
+        void onNesClock(NesOnClockEvent& event);
 
     };
 }

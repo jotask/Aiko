@@ -1,0 +1,42 @@
+#pragma once
+
+#include <memory>
+
+#include "systems/base_system.h"
+#include "models/camera.h"
+#include "input/inputs_types.h"
+
+namespace aiko
+{
+
+    class InputModule;
+
+    class InputSystem : public BaseSystem
+    {
+    public:
+    
+        using CameraPtr = std::shared_ptr<Camera>;
+
+        InputSystem() = default;
+        virtual ~InputSystem() = default;
+
+        void setIsMouseCentred(bool centred) const;
+        bool getIsMouseCentred() const;
+        bool isKeyPressed(Key) const;
+        bool isKeyJustPressed(Key) const;
+        vec2 getMousePosition() const;
+        vec2 getMouseDelta() const;
+        vec2 getMouseScrollBack() const;
+        bool isMouseButtonPressed(MouseButton button) const;
+
+    protected:
+    
+        virtual void connect(ModuleConnector*, SystemConnector*) override;
+
+    private:
+
+        InputModule* m_inputModule = nullptr;
+
+    };
+
+}

@@ -83,7 +83,7 @@ namespace nes
 
         // Instructions
         void adc(); // Add with carry
-        void and(); // Logical AND
+        void and_op(); // Logical AND
         void asl(); // Arithmetic Shift Left
         void bcc(); // branch if carry clear
         void bcs(); // Branch if carry set

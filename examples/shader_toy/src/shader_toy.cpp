@@ -3,7 +3,8 @@
 #include <chrono>
 #include <cassert>
 
-#include "shared/math.h"
+#include <math/math.h>
+
 #include "models/game_object.h"
 #include "components/camera_component.h"
 #include "components/mesh_component.h"

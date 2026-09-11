@@ -18,7 +18,7 @@ namespace nes
         Byte& cycles = this->waitForCycles;
         if constexpr (NES_CPU_LOG)
         {
-            aiko::Log::trace("Executing [", toString(opCode), "] OpCode");
+            aiko::logger::Log::trace("Executing [", toString(opCode), "] OpCode");
         }
 
         OpCode op  = instruction_tables[opCode];
@@ -45,7 +45,7 @@ namespace nes
         switch (op.instruction)
         {
             case Instruction::adc:      adc();      break;
-            case Instruction::and:      and();      break;
+            case Instruction::and_op:      and_op();      break;
             case Instruction::asl:      asl();      break;
             case Instruction::bcc:      bcc();      break;
             case Instruction::bcs:      bcs();      break;
@@ -106,14 +106,14 @@ namespace nes
 
         if constexpr (NES_CPU_LOG)
         {
-            aiko::Log::trace("  OpCode: ", toString(opCode), " Addressing Modes: ", to_string(m_currentAddressMode), " Instruction: ", to_string(m_currentInstruction) );
+            aiko::logger::Log::trace("  OpCode: ", toString(opCode), " Addressing Modes: ", to_string(m_currentAddressMode), " Instruction: ", to_string(m_currentInstruction) );
         }
 
         line++;
 
         if constexpr (NES_CPU_LOG)
         {
-            aiko::Log::info("A:", toString(A), " X: ", toString(X), " Y: ", toString(Y), " P: ", toString(P), " SP: ", toString(stack_pointer), " Line: ", unsigned(line), " PC: ", unsigned(program_counter));
+            aiko::logger::Log::info("A:", toString(A), " X: ", toString(X), " Y: ", toString(Y), " P: ", toString(P), " SP: ", toString(stack_pointer), " Line: ", unsigned(line), " PC: ", unsigned(program_counter));
         }
         if constexpr ( NES_TESTS_ENABLED )
         {

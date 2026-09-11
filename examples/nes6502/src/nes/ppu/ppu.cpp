@@ -7,7 +7,7 @@ namespace nes
 {
 
     Ppu::Ppu()
-        : m_pixels(NES_WIDTH* NES_HEIGHT)
+        : m_pixels(NES_WIDTH * NES_HEIGHT)
     {
 
     }

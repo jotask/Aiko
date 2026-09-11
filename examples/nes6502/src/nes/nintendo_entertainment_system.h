@@ -2,10 +2,11 @@
 
 #include <string>
 #include <thread>
+#include <atomic>
 
 #include "application/application.h"
-#include "models/shader.h"
-#include "types/textures.h"
+#include "../../../../aiko/renderer/src/models/shader.h"
+#include "../../../../aiko/core/src/types/texture_types.h"
 #include "types/asset_type.h"
 
 #include "nes/cpu/cpu.h"

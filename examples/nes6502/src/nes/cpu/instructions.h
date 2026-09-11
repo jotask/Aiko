@@ -32,7 +32,7 @@ namespace nes
     enum class Instruction
     {
         adc,
-        and,
+        and_op,
         asl,
         bcc,
         bcs,
@@ -90,13 +90,13 @@ namespace nes
         xxx,
     };
 
-    static const char* to_string(AddressModes mode)
+    static const char* to_string(nes::AddressModes mode)
     {
         auto str = magic_enum::enum_name<AddressModes>(mode);
         return str.data();
     }
 
-    static const char* to_string(Instruction mode)
+    static const char* to_string(nes::Instruction mode)
     {
         auto str = magic_enum::enum_name<Instruction>(mode);
         return str.data();
@@ -105,17 +105,17 @@ namespace nes
     struct OpCode
     {
         aiko::string name;
-        Instruction instruction;
-        AddressModes mode;
-        Byte cycles;
+        nes::Instruction instruction;
+        nes::AddressModes mode;
+        nes::Byte cycles;
     };
 
     static std::vector<OpCode> instruction_tables =
     {
         { "BRK", Instruction::brk, AddressModes::Immediate, 7 },{ "ORA", Instruction::ora, AddressModes::IndirectX, 6 },{ "???", Instruction::xxx, AddressModes::Implied  , 2 },{ "???", Instruction::xxx, AddressModes::Implied, 8 },{ "???", Instruction::nop, AddressModes::Implied  , 3 },{ "ORA", Instruction::ora, AddressModes::ZeroPage , 3 },{ "ASL", Instruction::asl, AddressModes::ZeroPage , 5 },{ "???", Instruction::xxx, AddressModes::Implied, 5 },{ "PHP", Instruction::php, AddressModes::Implied, 3 },{ "ORA", Instruction::ora, AddressModes::Immediate, 2 },{ "ASL", Instruction::asl, AddressModes::Implied, 2 },{ "???", Instruction::xxx, AddressModes::Implied, 2 },{ "???", Instruction::nop, AddressModes::Implied  , 4 },{ "ORA", Instruction::ora, AddressModes::Absolute , 4 },{ "ASL", Instruction::asl, AddressModes::Absolute , 6 },{ "???", Instruction::xxx, AddressModes::Implied, 6 },
         { "BPL", Instruction::bpl, AddressModes::Relative , 2 },{ "ORA", Instruction::ora, AddressModes::IndirectY, 5 },{ "???", Instruction::xxx, AddressModes::Implied  , 2 },{ "???", Instruction::xxx, AddressModes::Implied, 8 },{ "???", Instruction::nop, AddressModes::Implied  , 4 },{ "ORA", Instruction::ora, AddressModes::ZeroPageX, 4 },{ "ASL", Instruction::asl, AddressModes::ZeroPageX, 6 },{ "???", Instruction::xxx, AddressModes::Implied, 6 },{ "CLC", Instruction::clc, AddressModes::Implied, 2 },{ "ORA", Instruction::ora, AddressModes::AbsoluteY, 4 },{ "???", Instruction::nop, AddressModes::Implied, 2 },{ "???", Instruction::xxx, AddressModes::Implied, 7 },{ "???", Instruction::nop, AddressModes::Implied  , 4 },{ "ORA", Instruction::ora, AddressModes::AbsoluteX, 4 },{ "ASL", Instruction::asl, AddressModes::AbsoluteX, 7 },{ "???", Instruction::xxx, AddressModes::Implied, 7 },
-        { "JSR", Instruction::jsr, AddressModes::Absolute , 6 },{ "AND", Instruction::and, AddressModes::IndirectX, 6 },{ "???", Instruction::xxx, AddressModes::Implied  , 2 },{ "???", Instruction::xxx, AddressModes::Implied, 8 },{ "BIT", Instruction::bit, AddressModes::ZeroPage , 3 },{ "AND", Instruction::and, AddressModes::ZeroPage , 3 },{ "ROL", Instruction::rol, AddressModes::ZeroPage , 5 },{ "???", Instruction::xxx, AddressModes::Implied, 5 },{ "PLP", Instruction::plp, AddressModes::Implied, 4 },{ "AND", Instruction::and, AddressModes::Immediate, 2 },{ "ROL", Instruction::rol, AddressModes::Implied, 2 },{ "???", Instruction::xxx, AddressModes::Implied, 2 },{ "BIT", Instruction::bit, AddressModes::Absolute , 4 },{ "AND", Instruction::and, AddressModes::Absolute , 4 },{ "ROL", Instruction::rol, AddressModes::Absolute , 6 },{ "???", Instruction::xxx, AddressModes::Implied, 6 },
-        { "BMI", Instruction::bmi, AddressModes::Relative , 2 },{ "AND", Instruction::and, AddressModes::IndirectY, 5 },{ "???", Instruction::xxx, AddressModes::Implied  , 2 },{ "???", Instruction::xxx, AddressModes::Implied, 8 },{ "???", Instruction::nop, AddressModes::Implied  , 4 },{ "AND", Instruction::and, AddressModes::ZeroPageX, 4 },{ "ROL", Instruction::rol, AddressModes::ZeroPageX, 6 },{ "???", Instruction::xxx, AddressModes::Implied, 6 },{ "SEC", Instruction::sec, AddressModes::Implied, 2 },{ "AND", Instruction::and, AddressModes::AbsoluteY, 4 },{ "???", Instruction::nop, AddressModes::Implied, 2 },{ "???", Instruction::xxx, AddressModes::Implied, 7 },{ "???", Instruction::nop, AddressModes::Implied  , 4 },{ "AND", Instruction::and, AddressModes::AbsoluteX, 4 },{ "ROL", Instruction::rol, AddressModes::AbsoluteX, 7 },{ "???", Instruction::xxx, AddressModes::Implied, 7 },
+        { "JSR", Instruction::jsr, AddressModes::Absolute , 6 },{ "AND", Instruction::and_op, AddressModes::IndirectX, 6 },{ "???", Instruction::xxx, AddressModes::Implied  , 2 },{ "???", Instruction::xxx, AddressModes::Implied, 8 },{ "BIT", Instruction::bit, AddressModes::ZeroPage , 3 },{ "AND", Instruction::and_op, AddressModes::ZeroPage , 3 },{ "ROL", Instruction::rol, AddressModes::ZeroPage , 5 },{ "???", Instruction::xxx, AddressModes::Implied, 5 },{ "PLP", Instruction::plp, AddressModes::Implied, 4 },{ "AND", Instruction::and_op, AddressModes::Immediate, 2 },{ "ROL", Instruction::rol, AddressModes::Implied, 2 },{ "???", Instruction::xxx, AddressModes::Implied, 2 },{ "BIT", Instruction::bit, AddressModes::Absolute , 4 },{ "AND", Instruction::and_op, AddressModes::Absolute , 4 },{ "ROL", Instruction::rol, AddressModes::Absolute , 6 },{ "???", Instruction::xxx, AddressModes::Implied, 6 },
+        { "BMI", Instruction::bmi, AddressModes::Relative , 2 },{ "AND", Instruction::and_op, AddressModes::IndirectY, 5 },{ "???", Instruction::xxx, AddressModes::Implied  , 2 },{ "???", Instruction::xxx, AddressModes::Implied, 8 },{ "???", Instruction::nop, AddressModes::Implied  , 4 },{ "AND", Instruction::and_op, AddressModes::ZeroPageX, 4 },{ "ROL", Instruction::rol, AddressModes::ZeroPageX, 6 },{ "???", Instruction::xxx, AddressModes::Implied, 6 },{ "SEC", Instruction::sec, AddressModes::Implied, 2 },{ "AND", Instruction::and_op, AddressModes::AbsoluteY, 4 },{ "???", Instruction::nop, AddressModes::Implied, 2 },{ "???", Instruction::xxx, AddressModes::Implied, 7 },{ "???", Instruction::nop, AddressModes::Implied  , 4 },{ "AND", Instruction::and_op, AddressModes::AbsoluteX, 4 },{ "ROL", Instruction::rol, AddressModes::AbsoluteX, 7 },{ "???", Instruction::xxx, AddressModes::Implied, 7 },
         { "RTI", Instruction::rti, AddressModes::Implied  , 6 },{ "EOR", Instruction::eor, AddressModes::IndirectX, 6 },{ "???", Instruction::xxx, AddressModes::Implied  , 2 },{ "???", Instruction::xxx, AddressModes::Implied, 8 },{ "???", Instruction::nop, AddressModes::Implied  , 3 },{ "EOR", Instruction::eor, AddressModes::ZeroPage , 3 },{ "LSR", Instruction::lsr, AddressModes::ZeroPage , 5 },{ "???", Instruction::xxx, AddressModes::Implied, 5 },{ "PHA", Instruction::pha, AddressModes::Implied, 3 },{ "EOR", Instruction::eor, AddressModes::Immediate, 2 },{ "LSR", Instruction::lsr, AddressModes::Implied, 2 },{ "???", Instruction::xxx, AddressModes::Implied, 2 },{ "JMP", Instruction::jmp, AddressModes::Absolute , 3 },{ "EOR", Instruction::eor, AddressModes::Absolute , 4 },{ "LSR", Instruction::lsr, AddressModes::Absolute , 6 },{ "???", Instruction::xxx, AddressModes::Implied, 6 },
         { "BVC", Instruction::bvc, AddressModes::Relative , 2 },{ "EOR", Instruction::eor, AddressModes::IndirectY, 5 },{ "???", Instruction::xxx, AddressModes::Implied  , 2 },{ "???", Instruction::xxx, AddressModes::Implied, 8 },{ "???", Instruction::nop, AddressModes::Implied  , 4 },{ "EOR", Instruction::eor, AddressModes::ZeroPageX, 4 },{ "LSR", Instruction::lsr, AddressModes::ZeroPageX, 6 },{ "???", Instruction::xxx, AddressModes::Implied, 6 },{ "CLI", Instruction::cli, AddressModes::Implied, 2 },{ "EOR", Instruction::eor, AddressModes::AbsoluteY, 4 },{ "???", Instruction::nop, AddressModes::Implied, 2 },{ "???", Instruction::xxx, AddressModes::Implied, 7 },{ "???", Instruction::nop, AddressModes::Implied  , 4 },{ "EOR", Instruction::eor, AddressModes::AbsoluteX, 4 },{ "LSR", Instruction::lsr, AddressModes::AbsoluteX, 7 },{ "???", Instruction::xxx, AddressModes::Implied, 7 },
         { "RTS", Instruction::rts, AddressModes::Implied  , 6 },{ "ADC", Instruction::adc, AddressModes::IndirectX, 6 },{ "???", Instruction::xxx, AddressModes::Implied  , 2 },{ "???", Instruction::xxx, AddressModes::Implied, 8 },{ "???", Instruction::nop, AddressModes::Implied  , 3 },{ "ADC", Instruction::adc, AddressModes::ZeroPage , 3 },{ "ROR", Instruction::ror, AddressModes::ZeroPage , 5 },{ "???", Instruction::xxx, AddressModes::Implied, 5 },{ "PLA", Instruction::pla, AddressModes::Implied, 4 },{ "ADC", Instruction::adc, AddressModes::Immediate, 2 },{ "ROR", Instruction::ror, AddressModes::Implied, 2 },{ "???", Instruction::xxx, AddressModes::Implied, 2 },{ "JMP", Instruction::jmp, AddressModes::Indirect , 5 },{ "ADC", Instruction::adc, AddressModes::Absolute , 4 },{ "ROR", Instruction::ror, AddressModes::Absolute , 6 },{ "???", Instruction::xxx, AddressModes::Implied, 6 },

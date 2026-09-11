@@ -9,6 +9,5 @@ namespace nes
     public:
         NesOnClockEvent() = default;
         virtual ~NesOnClockEvent() = default;
-        virtual EventId     getId() const { return "NesOnClockEvent"; }
     };
 }

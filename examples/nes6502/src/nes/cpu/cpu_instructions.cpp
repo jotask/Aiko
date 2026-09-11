@@ -22,9 +22,9 @@ namespace nes
         // TODO
     }
 
-    void Cpu:: and()
+    void Cpu:: and_op()
     {
-        setCurrentInstruction(Instruction:: and);
+        setCurrentInstruction(Instruction::and_op);
         fetchData();
         A = A & memoryFetched;
         setFlag(Z, A == 0x00);

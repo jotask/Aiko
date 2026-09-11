@@ -1,0 +1,112 @@
+- uuid: 97aab97c-1fc6-4e90-82a5-33e07ca38a34
+  name: Camera
+  components:
+    - type: TransforComponent
+      data:
+        position:
+          x: 0
+          y: 0
+          z: 0
+        rotation:
+          x: 0
+          y: 0
+          z: 0
+        scale:
+          x: 1
+          y: 1
+          z: 1
+    - type: CameraComponent
+      data:
+        controller_type: Orbit
+        view_type: Perspective
+        isMain: true
+        cam_position:
+          x: -2.5980902
+          y: 0
+          z: -2.3451924
+        cam_target:
+          x: 0
+          y: 0
+          z: 0
+        fov: 45
+- uuid: 397e06a2-bdc0-4fa7-9a89-e5ab72406d2b
+  name: Root
+  components:
+    - type: TransforComponent
+      data:
+        position:
+          x: 0
+          y: 0
+          z: 0
+        rotation:
+          x: 0
+          y: 0
+          z: 0
+        scale:
+          x: 1
+          y: 1
+          z: 1
+- uuid: 3e56a4c8-b5fe-4693-9bed-19b6315f0ede
+  name: Cube1
+  components:
+    - type: TransforComponent
+      data:
+        position:
+          x: 1
+          y: 0
+          z: 0
+        rotation:
+          x: 0
+          y: 0
+          z: 0
+        scale:
+          x: 1
+          y: 1
+          z: 1
+    - type: MeshComponent
+      data:
+        meshId: 05a0f388-da42-4ec8-886b-dd7921a976d1
+        material:
+          shaderId: 00000000-0000-0000-0000-000000000000
+          diffuseTextureId: 00000000-0000-0000-0000-000000000000
+          color:
+            r: 1
+            g: 1
+            b: 1
+            a: 1
+          useVertexColor: false
+          lit: true
+        materialInstance:
+          shaderId: 00000000-0000-0000-0000-000000000000
+- uuid: 83c11c67-08c2-4789-93d0-7994f307709b
+  name: Cube2
+  components:
+    - type: TransforComponent
+      data:
+        position:
+          x: -1
+          y: 0
+          z: 0
+        rotation:
+          x: 0
+          y: 0
+          z: 0
+        scale:
+          x: 1
+          y: 1
+          z: 1
+    - type: MeshComponent
+      data:
+        meshId: 3d2ac286-9c91-44e3-b631-9e8b16d96412
+        material:
+          shaderId: 00000000-0000-0000-0000-000000000000
+          diffuseTextureId: 00000000-0000-0000-0000-000000000000
+          color:
+            r: 1
+            g: 1
+            b: 1
+            a: 1
+          useVertexColor: false
+          lit: true
+        materialInstance:
+          shaderId: 00000000-0000-0000-0000-000000000000

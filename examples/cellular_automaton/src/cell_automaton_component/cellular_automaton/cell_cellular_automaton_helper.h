@@ -1,7 +1,7 @@
 #pragma once
 
 #include "aiko_types.h"
-#include "types/color.h"
+#include "../../../../../aiko/core/src/types/color.h"
 
 namespace aiko::ca
 {
@@ -10,7 +10,7 @@ namespace aiko::ca
     {
 
         constexpr bool DEBUG_CHUNKS = false;
-        constexpr const uint DRAW_DEAD_CELLS = false;
+        constexpr const uint DRAW_DEAD_CELLS = true;
         constexpr bool RANDOM_CELL_INIT = true;
 
         constexpr bool ASYNC_UPDATE_CHUNK = false;

@@ -1,0 +1,33 @@
+#pragma once
+
+#include "aiko_types.h"
+
+#include <fstream>
+#include <sstream>
+#include <filesystem>
+
+namespace aiko
+{
+    namespace files
+    {
+        static string readFileContent(const std::filesystem::path& file_path)
+        {
+            AIKO_ASSERT(std::filesystem::exists(file_path), "File don't exist!");
+            std::ifstream file(file_path);
+            AIKO_ASSERT(file.fail() == false, "Failed to open and read file");
+            std::stringstream shaderStream;
+            shaderStream << file.rdbuf();
+            file.close();
+            return string(shaderStream.str());
+        }
+
+        static vector<uint8_t> readFileBytes(const std::filesystem::path& file_path)
+        {
+            AIKO_ASSERT(std::filesystem::exists(file_path), "File don't exist!");
+            std::ifstream file(file_path, std::ios::binary);
+            AIKO_ASSERT(file.is_open(), "Failed to open and read file");
+            return {std::istreambuf_iterator<char>(file),std::istreambuf_iterator<char>()};
+        }
+
+    }
+}

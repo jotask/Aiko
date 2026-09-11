@@ -1,13 +1,9 @@
 #include "world_cellular_automaton.h"
 
-#include <assert.h>
 #include <chrono>
 #include <execution>
 
-#include "models/game_object.h"
-#include "constants.h"
-
-#include "core/log.h"
+#include <models/game_object.h>
 
 namespace aiko::ca
 {

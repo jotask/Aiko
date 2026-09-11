@@ -4,7 +4,8 @@
 
 int main()
 {
-	aiko::ca::CellularAutomaton ca;
-	ca.run();
+	aiko::Application app;
+	app.pushLayer(std::make_unique<aiko::ca::CellularAutomaton>());
+	app.run();
 	return EXIT_SUCCESS;
 }

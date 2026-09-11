@@ -1,0 +1,53 @@
+ #pragma once
+
+#include "aiko_types.h"
+#include "types/render_types.h"
+
+namespace aiko::interfaces
+{
+    class IMeshImpl;
+}
+
+namespace aiko
+{
+
+     namespace renderer
+     {
+         class RendererFactory;
+         class IRenderDevice;
+     }
+
+    struct MeshAsset;
+
+    class Mesh
+    {
+        friend class renderer::RendererFactory;
+        friend class renderer::IRenderDevice;
+    public:
+
+         // Copy
+         Mesh(const Mesh&) = delete;
+         Mesh& operator=(const Mesh&) = delete;
+
+         // Move
+         Mesh(Mesh&&) noexcept = delete;
+         Mesh& operator=(Mesh&&) noexcept = delete;
+
+        Mesh(const MeshAsset& data);
+        Mesh();
+        ~Mesh();
+
+        virtual bool isValid() const;
+        virtual void unload();
+        virtual void refresh();
+        virtual RenderResourceId id() const;
+
+        void upload(const MeshAsset& asset);
+
+     private:
+
+        AikoPtr<interfaces::IMeshImpl> backend;
+
+    };
+
+}

@@ -1,24 +1,8 @@
 #include "nes_emulator.h"
 
-#include <chrono>
-#include <sstream>
-#include <cassert>
-#include <cmath>
+#include <models/game_object.h>
 
-#include "shared/math.h"
-#include "models/game_object.h"
-#include "components/camera_component.h"
-#include "components/mesh_component.h"
-#include "components/light_component.h"
-#include "systems/render_system.h"
-#include "core/utils.h"
-#include "types/inputs.h"
-#include "models/camera.h"
-#include "shared/math.h"
-#include "core/log.h"
 #include "constants.h"
-#include "nes/bus.h"
-#include "nes/memory.h"
 #include "nes/utils/nes_utils.h"
 #include "nes/cpu/instructions.h"
 #include "nes/tests/online_test_manager.h"
@@ -28,29 +12,22 @@
 
 namespace nes
 {
-
     NesEmulator::NesEmulator()
-        : aiko::Application(aiko::AikoConfig("NesEmulator", 1024, 768, aiko::DARKGREEN))
-        , m_emulator(this, &m_nes)
-    {
-
-    }
-
-    NesEmulator::~NesEmulator()
+        : m_emulator(this, &m_nes)
     {
     }
 
-    aiko::PboTextureComponent* NesEmulator::getNesGo() const
+    aiko::SpriteComponent* NesEmulator::getNesGo() const
     {
         return m_nesgo;
     }
 
-    aiko::PboTextureComponent* NesEmulator::getPT0() const
+    aiko::SpriteComponent* NesEmulator::getPT0() const
     {
         return pattern_table_0;
     }
 
-    aiko::PboTextureComponent* NesEmulator::getPalette() const
+    aiko::SpriteComponent* NesEmulator::getPalette() const
     {
         return palette;
     }
@@ -58,17 +35,32 @@ namespace nes
     void NesEmulator::init()
     {
 
+        auto setTextureConfiguration = [](aiko::Material& material)
+        {
+            material.m_lit = false;
+            material.m_diffuse.setTextureFilter(aiko::texture::TextureFilter::Nearest, aiko::texture::TextureFilter::Nearest);
+            material.m_diffuse.setTextureMipFilter(aiko::texture::TextureMipFilter::None);
+            material.m_diffuse.setTextureWrapMode(aiko::texture::TextureWrapMode::Clamp, aiko::texture::TextureWrapMode::Clamp);
+        };
+
+        auto camera = Instantiate("Camera");
+        auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Static, aiko::Camera::CameraType::Orthographic );
+        camera->transform().position = { 0.0f, 1.0f, 3.0f };
+        cam->getCamera().position = camera->transform().position;
+
         auto go = Instantiate("NesTexture");
-        m_nesgo = go->addComponent<aiko::PboTextureComponent>("Pt0", NES_WIDTH, NES_HEIGHT, false).get();
+        m_nesgo = go->addComponent<aiko::SpriteComponent>(NES_WIDTH, NES_HEIGHT);
+        setTextureConfiguration(m_nesgo->getMaterial());
 
         auto table_pattern_go_1 = Instantiate("CHR table");
-        pattern_table_0 = table_pattern_go_1->addComponent<aiko::PboTextureComponent>("Pt0", 256, 128, false).get();
+        pattern_table_0 = table_pattern_go_1->addComponent<aiko::SpriteComponent>(256, 128);
+        setTextureConfiguration(pattern_table_0->getMaterial());
 
         auto palette_go = Instantiate("Palette");
-        const Byte size = (Byte) std::sqrt(COLOUR_PALETTE_SIZE);
         constexpr const Byte palette_width = COLOUR_PALETTE_SIZE / 4;
         constexpr const Byte palette_height = COLOUR_PALETTE_SIZE / 16;
-        palette = palette_go->addComponent<aiko::PboTextureComponent>("pal", palette_width, palette_height, false).get();
+        palette = palette_go->addComponent<aiko::SpriteComponent>(palette_width, palette_height);
+        setTextureConfiguration(palette->getMaterial());
 
         m_emulator.init();
         if constexpr (NES_TESTS_ENABLED)

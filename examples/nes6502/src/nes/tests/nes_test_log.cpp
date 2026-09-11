@@ -80,39 +80,39 @@ namespace nes::test
             };
             if (prev.instruction.compare(aiko::string(to_string(op.instruction))) == false )
             {
-                aiko::Log::warning("ERROR :: INS :: EXPECTED : ", prev.instruction, " -> RECEIVED : ", aiko::string(to_string(op.instruction)));
+                aiko::logger::Log::warning("ERROR :: INS :: EXPECTED : ", prev.instruction, " -> RECEIVED : ", aiko::string(to_string(op.instruction)));
                 success = false;
             }
         }
 
         if (test.pc != programCounter)
         {
-            aiko::Log::warning("ERROR :: PC :: EXPECTED : ", toString(test.pc), " -> RECEIVED : ", toString(programCounter));
+            aiko::logger::Log::warning("ERROR :: PC :: EXPECTED : ", toString(test.pc), " -> RECEIVED : ", toString(programCounter));
             success = false;
         }
         if (test.a != A)
         {
-            aiko::Log::warning("ERROR :: A :: EXPECTED : ", toString(test.a), " -> RECEIVED : ", toString(A));
+            aiko::logger::Log::warning("ERROR :: A :: EXPECTED : ", toString(test.a), " -> RECEIVED : ", toString(A));
             success = false;
         }
         if (test.x != X)
         {
-            aiko::Log::warning("ERROR :: X :: EXPECTED : ", toString(test.x), " -> RECEIVED : ", toString(X));
+            aiko::logger::Log::warning("ERROR :: X :: EXPECTED : ", toString(test.x), " -> RECEIVED : ", toString(X));
             success = false;
         }
         if (test.y != Y)
         {
-            aiko::Log::warning("ERROR :: Y :: EXPECTED : ", toString(test.y), " -> RECEIVED : ", toString(Y));
+            aiko::logger::Log::warning("ERROR :: Y :: EXPECTED : ", toString(test.y), " -> RECEIVED : ", toString(Y));
             success = false;
         }
         if (test.sp != stackPointer)
         {
-            aiko::Log::warning("ERROR :: SP :: EXPECTED : ", toString(test.sp), " -> RECEIVED : ", toString(stackPointer));
+            aiko::logger::Log::warning("ERROR :: SP :: EXPECTED : ", toString(test.sp), " -> RECEIVED : ", toString(stackPointer));
             success = false;
         }
         if (test.p != P)
         {
-            aiko::Log::warning("ERROR :: P :: EXPECTED : ", unsigned(test.p), " -> RECEIVED : ", unsigned(P));
+            aiko::logger::Log::warning("ERROR :: P :: EXPECTED : ", unsigned(test.p), " -> RECEIVED : ", unsigned(P));
             printStatusFlags("    EXPECTED:", test.p);
             printStatusFlags("    RECEIVED:", P);
             success = false;

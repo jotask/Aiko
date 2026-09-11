@@ -5,7 +5,7 @@
 
 namespace aiko
 {
-    class RenderSystem;
+    class LayerContext;
     namespace ca
     {
         class WorldCellularAutomaton;
@@ -15,16 +15,12 @@ namespace aiko
 
             class AutomatonRender
             {
-            private:
-                const bool s_render_cells = true;
-                RenderSystem* m_renderSystem;
-
             public:
 
                 AutomatonRender();
                 ~AutomatonRender() = default;
 
-                void init(RenderSystem* m_renderSystem);
+                void init(aiko::LayerContext& context);
 
                 void render(WorldCellularAutomaton* world);
 
@@ -32,6 +28,9 @@ namespace aiko
 
                 Color getColorFromCell(CellCellularAutomaton::CellState stat);
 
+            private:
+                const bool s_render_cells = true;
+                aiko::LayerContext* m_context = nullptr;
             };
 
         }
