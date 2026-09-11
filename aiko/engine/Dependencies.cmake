@@ -28,6 +28,20 @@ if (TARGET assimp)
             -Wno-error=dangling-reference
     )
 
+    if(MINGW AND NOT BUILD_SHARED_LIBS)
+        # Assimp hard-codes -Bstatic around libstdc++ and winpthread for MinGW.
+        # With modern MinGW this can select a problematic static winpthread.
+        # Keep Assimp static, but let winpthread use the normal dynamic runtime.
+        get_target_property(_assimp_interface_links assimp INTERFACE_LINK_LIBRARIES)
+
+        if(_assimp_interface_links)
+            list(REMOVE_ITEM _assimp_interface_links "-Wl,-Bstatic" "-lstdc++" "-lwinpthread")
+            set_property(TARGET assimp PROPERTY INTERFACE_LINK_LIBRARIES "${_assimp_interface_links}")
+        endif()
+
+        set_property(TARGET assimp APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-Wl,-Bdynamic" "-lwinpthread")
+    endif()
+
     set_target_properties(assimp PROPERTIES FOLDER "Dependencies")
 endif()
 
