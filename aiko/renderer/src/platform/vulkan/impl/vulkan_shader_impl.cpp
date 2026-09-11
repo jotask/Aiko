@@ -44,8 +44,8 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(std::filesystem::exists(vshaderPath), "Vertex shader file not found!");
         AIKO_ASSERT(std::filesystem::exists(fshaderPath), "Fragment shader file not found!");
 
-        auto vertShaderCode = files::readFileBytes(vshaderPath.c_str());
-        auto fragShaderCode = files::readFileBytes(fshaderPath.c_str());
+        auto vertShaderCode = files::readFileBytes(vshaderPath);
+        auto fragShaderCode = files::readFileBytes(fshaderPath);
 
         m_reflection.clear();
 

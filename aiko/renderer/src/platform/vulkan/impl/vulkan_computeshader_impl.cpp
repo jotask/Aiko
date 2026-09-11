@@ -44,7 +44,7 @@ namespace aiko::renderer::vulkan
         const stdpath base = stdpath(global::GLOBAL_PATH) / "build/assets/shaders/vulkan";
         const stdpath computeShaderPath = base / (replacePrefix(file.c_str(), ".comp") + std::string(".spv"));
 
-        const auto code = files::readFileBytes(computeShaderPath.c_str());
+        const auto code = files::readFileBytes(computeShaderPath);
         AIKO_ASSERT(code.empty() == false, "Failed to read compute shader file");
         AIKO_ASSERT(code.size() % sizeof(uint32_t) == 0, "Invalid SPIR-V byte size");
 

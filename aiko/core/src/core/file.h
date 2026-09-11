@@ -10,7 +10,7 @@ namespace aiko
 {
     namespace files
     {
-        static string readFileContent(const char* file_path)
+        static string readFileContent(const std::filesystem::path& file_path)
         {
             AIKO_ASSERT(std::filesystem::exists(file_path), "File don't exist!");
             std::ifstream file(file_path);
@@ -21,7 +21,7 @@ namespace aiko
             return string(shaderStream.str());
         }
 
-        static vector<uint8_t> readFileBytes(const char* file_path)
+        static vector<uint8_t> readFileBytes(const std::filesystem::path& file_path)
         {
             AIKO_ASSERT(std::filesystem::exists(file_path), "File don't exist!");
             std::ifstream file(file_path, std::ios::binary);
