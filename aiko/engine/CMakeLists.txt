@@ -3,7 +3,7 @@ include(Dependencies.cmake)
 # generate constant file
 set(GLOBAL_PATH ${CMAKE_SOURCE_DIR}/)
 set(GLOBAL_ASSET_PATH ${CMAKE_SOURCE_DIR}/assets/)
-configure_file(constants.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/constants.h)
+configure_file(constants.h.in ${CMAKE_CURRENT_BINARY_DIR}/constants.h)
 
 aiko_collect_target_sources(AIKO_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
@@ -30,6 +30,6 @@ target_link_libraries(Aiko
         AikoPublicHeaders
 )
 
-target_include_directories(Aiko PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(Aiko PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 
 aiko_apply_engine_defaults(Aiko)
