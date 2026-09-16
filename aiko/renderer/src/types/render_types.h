@@ -14,7 +14,8 @@ namespace aiko
     constexpr ViewId COMPUTE_DRAW = 1;
     constexpr ViewId SCENE_VIEW = 2;
     constexpr ViewId SCREEN_VIEW = 3;
-    constexpr ViewId IMGUI_VIEW = 4;
+    constexpr ViewId UI_VIEW = 4;
+    constexpr ViewId IMGUI_VIEW = 5;
 
     constexpr ViewId READBACK_VIEW = 250;
     constexpr ViewId READBACK_BLIT_VIEW = 251;

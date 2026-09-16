@@ -8,5 +8,6 @@ namespace aiko::renderer
     {
         inline constexpr std::string_view Model = "model";
         inline constexpr std::string_view Passthrough = "passthrough";
+        inline constexpr std::string_view UI = "ui";
     }
 }

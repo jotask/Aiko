@@ -128,6 +128,11 @@ namespace aiko
         return m_renderer->imguiTextureId(m_renderer->sceneRenderTarget().colorTexture());
     }
 
+    void RenderModule::setUiShader(AssetId shaderId)
+    {
+        m_renderer->setUiShader(shaderId);
+    }
+
     void RenderModule::connect(ModuleConnector* moduleConnector)
     {
         BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule);

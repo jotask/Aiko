@@ -54,6 +54,8 @@ namespace aiko
 
         ImguiTextureId getTargetTextureId() const;
 
+        void setUiShader(AssetId shaderId);
+
     protected:
 
 

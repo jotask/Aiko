@@ -24,6 +24,13 @@ namespace aiko
     {
         m_materialPrimitives.m_shaderId = m_assetSystem->registerAsset<ShaderAsset>(renderer::BuiltinShader::Model);
         m_assetSystem->loadAsset<ShaderAsset>(m_materialPrimitives.m_shaderId);
+
+        const AssetId uiShader = m_assetSystem->registerAsset<ShaderAsset>(renderer::BuiltinShader::UI);
+
+        m_assetSystem->loadAsset<ShaderAsset>(uiShader);
+
+        m_renderModule->setUiShader(uiShader);
+
         m_primitiveMeshCache.init();
     }
 

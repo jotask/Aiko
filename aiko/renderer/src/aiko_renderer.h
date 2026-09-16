@@ -10,6 +10,8 @@
 #include "resources/render_resource_manager.h"
 #include "types/aiko_renderer_types.h"
 #include "types/compute_pass.h"
+#include "ui/ui_renderer.h"
+#include "ui/ui_draw_list.h"
 
 #include <types/color.h>
 #include <types/render_types.h>
@@ -70,7 +72,8 @@ namespace aiko
 
         void render(const Camera& camera);
 
-        void setDebugTexture(const Texture* texture);   // nullptr disables
+        void setDebugTexture(const Texture* texture);
+        void setUiShader(AssetId shaderId);
 
         void renderToTarget(const Camera& camera, RenderTarget& target);
         const RenderTarget& sceneRenderTarget() const { return m_sceneTarget; }
@@ -111,6 +114,7 @@ namespace aiko
         void executeComputePasses();
         void submitScenePass(const renderer::FrameData& frameData, const PreparedScenePass& passData, const RenderTarget& target);
         void submitPresentPass(const Texture& texture);
+        void submitUiPass();
 
         static_assert(COMPUTE_VIEW < SCENE_VIEW, "Compute View MUST be less than Scene View");
 
@@ -126,6 +130,9 @@ namespace aiko
         std::optional<ivec2> m_pendingSurfaceResize = std::nullopt;
 
         std::vector<SceneRenderRequest> m_sceneRenderRequests;
+
+        UIRenderer m_uiRenderer;
+        UIDrawList m_uiDrawList;
 
     };
 
