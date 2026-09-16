@@ -98,4 +98,16 @@ namespace aiko
         return m_context->jobs();
     }
 
+    UIContext& Layer::ui()
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->ui();
+    }
+
+    const UIContext& Layer::ui() const
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->ui();
+    }
+
 }

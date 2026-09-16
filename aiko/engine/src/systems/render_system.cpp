@@ -65,6 +65,11 @@ namespace aiko
         return m_renderModule->getTargetTextureId();
     }
 
+    void RenderSystem::drawUiRect(const vec2& position, const vec2& size, Color color)
+    {
+        m_renderModule->drawUiRect(position, size, color);
+    }
+
     void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Material& mat)
     {
         AIKO_FUNCTION_PROFILE

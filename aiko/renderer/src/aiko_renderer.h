@@ -84,6 +84,8 @@ namespace aiko
 
         ImguiTextureId imguiTextureId(const Texture& texture);
 
+        void drawUiRect(const vec2& position, const vec2& size, Color color);
+
     protected:
 
         const Texture* m_debugTexture = nullptr;

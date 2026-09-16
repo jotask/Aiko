@@ -5,6 +5,7 @@
 #include "layers/contexts/scene_context.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/job_context.h"
+#include "layers/contexts/ui_context.h"
 
 namespace aiko
 {
@@ -33,6 +34,9 @@ namespace aiko
         JobContext& jobs() { return m_jobs; }
         const JobContext& jobs() const { return m_jobs; }
 
+        UIContext& ui() { return m_ui; }
+        const UIContext& ui() const { return m_ui; }
+
     private:
 
         friend class Aiko;
@@ -44,6 +48,7 @@ namespace aiko
         SceneContext m_scene;
         AssetContext m_assets;
         JobContext m_jobs;
+        UIContext m_ui;
 
     };
 }

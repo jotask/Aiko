@@ -64,6 +64,8 @@ namespace aiko
 
         ImguiTextureId getTargetTextureId() const;
 
+        void drawUiRect(const vec2& position, const vec2& size, Color color);
+
     protected:
 
         virtual void connect(ModuleConnector*, SystemConnector*) override;

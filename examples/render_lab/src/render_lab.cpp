@@ -26,6 +26,8 @@
 #include <array>
 #include <cmath>
 
+#include "layers/contexts/ui_context.h"
+
 namespace aiko::lab
 {
     namespace
@@ -139,6 +141,12 @@ namespace aiko::lab
 
     void RenderLab::render()
     {
+
+        ui().rect(
+            {100.0f, 100.0f},
+            {300.0f, 120.0f},
+            RED);
+
         if constexpr (EnablePrimitiveTests)
         {
             renderPrimitives();

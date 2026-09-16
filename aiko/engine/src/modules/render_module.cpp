@@ -133,6 +133,11 @@ namespace aiko
         m_renderer->setUiShader(shaderId);
     }
 
+    void RenderModule::drawUiRect(const vec2& position, const vec2& size, Color color)
+    {
+        m_renderer->drawUiRect(position, size, color);
+    }
+
     void RenderModule::connect(ModuleConnector* moduleConnector)
     {
         BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule);

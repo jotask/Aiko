@@ -251,6 +251,16 @@ namespace aiko
         return m_imgui.textureId(texture);
     }
 
+    void AikoRenderer::drawUiRect(const vec2& position, const vec2& size, Color color)
+    {
+        m_uiDrawList.addRect(
+        {
+            .position = position,
+            .size = size
+        },
+        color);
+    }
+
     void AikoRenderer::onWindowResize(WindowResizeEvent& event)
     {
         if (event.width <= 0 || event.height <= 0)
