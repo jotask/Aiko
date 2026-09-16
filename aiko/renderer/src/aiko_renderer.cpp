@@ -92,6 +92,7 @@ namespace aiko
         m_computeQueue.clear();
         m_sceneRenderRequests.clear();
         m_lights.clear();
+        m_uiDrawList.clear();
         m_imgui.beginFrame(m_renderSurface.x, m_renderSurface.y);
     }
 
