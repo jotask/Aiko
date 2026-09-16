@@ -3,6 +3,8 @@
 #include "ui_draw_list.h"
 #include "models/material.h"
 
+#include <deque>
+
 namespace aiko
 {
 
@@ -15,18 +17,21 @@ namespace aiko
     {
     public:
 
+        void beginFrame();
+
         void setShader(AssetId shaderId);
 
         void render(renderer::IRenderDevice& device, const UIDrawList& drawList);
 
         const Material& material() const
         {
-            return m_material;
+            return m_baseMaterial;
         }
 
     private:
 
-        Material m_material;
+        Material m_baseMaterial;
+        std::deque<Material> m_frameMaterials;
     };
 
 }

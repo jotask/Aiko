@@ -5,13 +5,17 @@
 
 namespace aiko
 {
+    void UIRenderer::beginFrame()
+    {
+        m_frameMaterials.clear();
+    }
 
     void UIRenderer::setShader(AssetId shaderId)
     {
-        m_material.m_shaderId = shaderId;
-        m_material.m_baseColor = WHITE;
-        m_material.m_useVertexColor = true;
-        m_material.m_lit = false;
+        m_baseMaterial.m_shaderId = shaderId;
+        m_baseMaterial.m_baseColor = WHITE;
+        m_baseMaterial.m_useVertexColor = true;
+        m_baseMaterial.m_lit = false;
     }
 
     void UIRenderer::render(renderer::IRenderDevice& device, const UIDrawList& drawList)
@@ -48,10 +52,24 @@ namespace aiko
 
         for (const UIDrawCommand& command : drawList.commands())
         {
+            m_frameMaterials.emplace_back();
+
+            Material& material = m_frameMaterials.back();
+
+            material.m_shaderId = m_baseMaterial.m_shaderId;
+            material.m_baseColor = WHITE;
+            material.m_useVertexColor = true;
+            material.m_lit = false;
+
+            if (command.textureId != InvalidAssetId)
+            {
+                material.setTexture("u_texture", command.textureId);
+            }
+
             TransientDrawDesc draw;
 
             draw.mtx = mat4(1.0f);
-            draw.material = &m_material;
+            draw.material = &material;
             draw.geometry = &geometry;
             draw.indexOffset = command.indexOffset;
             draw.indexCount = command.indexCount;

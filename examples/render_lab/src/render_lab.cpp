@@ -152,6 +152,16 @@ namespace aiko::lab
             {150.0f, 120.0f},
             GREEN);
 
+        if (m_uiTestSprite != nullptr)
+        {
+            const AssetId textureId = m_uiTestSprite->getTextureId();
+
+            if (textureId != InvalidAssetId)
+            {
+                ui().image(textureId, {650.0f, 100.0f}, {200.0f, 120.0f}, WHITE);
+            }
+        }
+
         if constexpr (EnablePrimitiveTests)
         {
             renderPrimitives();
@@ -301,11 +311,11 @@ namespace aiko::lab
             1.0f
         };
 
-        SpriteComponent* assetSprite = assetTexture->addComponent<SpriteComponent>();
+        m_uiTestSprite = assetTexture->addComponent<SpriteComponent>();
 
-        assetSprite->load("texel_checker.png");
+        m_uiTestSprite->load("texel_checker.png");
 
-        assetSprite->getMaterial().m_lit = false;
+        m_uiTestSprite->getMaterial().m_lit = false;
 
         m_dynamicTextureObject = Instantiate(root, "DynamicTexture");
 
