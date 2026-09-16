@@ -222,6 +222,46 @@ namespace aiko::renderer::vulkan
         const SpvReflectResult createResult = spvReflectCreateShaderModule(code.size(), code.data(), &module);
         AIKO_ASSERT(createResult == SPV_REFLECT_RESULT_SUCCESS, "Failed to reflect SPIR-V shader");
 
+        if (stage == VK_SHADER_STAGE_VERTEX_BIT)
+        {
+            uint32_t inputCount = 0;
+
+            SpvReflectResult inputResult = spvReflectEnumerateInputVariables(&module, &inputCount, nullptr);
+
+            AIKO_ASSERT(inputResult == SPV_REFLECT_RESULT_SUCCESS, "Failed to enumerate vertex shader inputs");
+
+            std::vector<SpvReflectInterfaceVariable*> inputs(inputCount);
+
+            if (inputCount > 0)
+            {
+                inputResult = spvReflectEnumerateInputVariables(&module, &inputCount, inputs.data());
+
+                AIKO_ASSERT(inputResult == SPV_REFLECT_RESULT_SUCCESS, "Failed to read vertex shader inputs");
+            }
+
+            for (const SpvReflectInterfaceVariable* input : inputs)
+            {
+                AIKO_ASSERT(input != nullptr, "Invalid reflected vertex shader input");
+
+                if ((input->decoration_flags & SPV_REFLECT_DECORATION_BUILT_IN) != 0)
+                {
+                    continue;
+                }
+
+                reflection.vertexInputLocations.push_back(input->location);
+            }
+
+            std::sort(
+                reflection.vertexInputLocations.begin(),
+                reflection.vertexInputLocations.end());
+
+            reflection.vertexInputLocations.erase(
+                std::unique(
+                    reflection.vertexInputLocations.begin(),
+                    reflection.vertexInputLocations.end()),
+                reflection.vertexInputLocations.end());
+        }
+
         uint32_t descriptorCount = 0;
 
         SpvReflectResult result = spvReflectEnumerateDescriptorBindings(&module, &descriptorCount, nullptr);

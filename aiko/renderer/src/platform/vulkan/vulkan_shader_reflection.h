@@ -57,11 +57,13 @@ namespace aiko::renderer::vulkan
         std::vector<VulkanShaderDescriptorBinding> descriptorBindings;
         std::vector<VulkanShaderPushConstantRange> pushConstantRanges;
         std::optional<VulkanShaderUniformBlock> materialUniformBlock;
+        std::vector<uint32_t> vertexInputLocations;
         void clear()
         {
             descriptorBindings.clear();
             pushConstantRanges.clear();
             materialUniformBlock = std::nullopt;
+            vertexInputLocations.clear();
         }
     };
 }
