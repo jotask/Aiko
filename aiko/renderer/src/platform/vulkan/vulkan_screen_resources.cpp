@@ -240,7 +240,7 @@ namespace aiko::renderer::vulkan
             .pColorBlendState = &colorBlending,
             .pDynamicState = &dynamicState,
             .layout = m_pipelineLayout,
-            .renderPass = m_context.renderPass(),
+            .renderPass = m_context.clearRenderPass(),
             .subpass = 0,
         };
 

@@ -47,7 +47,8 @@ namespace aiko::renderer::vulkan
         m_gpuProfiler.create(m_physicalDevice, m_device, m_graphicsQueueFamily, MAX_FRAMES_IN_FLIGHT);
         createSwapChain();
         createImageViews();
-        createRenderPass();
+        m_clearRenderPass = createRenderPass(VK_ATTACHMENT_LOAD_OP_CLEAR);
+        m_loadRenderPass = createRenderPass(VK_ATTACHMENT_LOAD_OP_LOAD);
         createCommandPool();
         createComputeCommandPool();
         createSwapChainDepthResources();
@@ -130,10 +131,16 @@ namespace aiko::renderer::vulkan
         m_commandBuffers.clear();
         m_activeCommandBuffer = VK_NULL_HANDLE;
 
-        if (m_renderPass != VK_NULL_HANDLE)
+        if (m_clearRenderPass != VK_NULL_HANDLE)
         {
-            vkDestroyRenderPass(m_device, m_renderPass, nullptr);
-            m_renderPass = VK_NULL_HANDLE;
+            vkDestroyRenderPass(m_device, m_clearRenderPass, nullptr);
+            m_clearRenderPass = VK_NULL_HANDLE;
+        }
+
+        if (m_loadRenderPass != VK_NULL_HANDLE)
+        {
+            vkDestroyRenderPass(m_device, m_loadRenderPass, nullptr);
+            m_loadRenderPass = VK_NULL_HANDLE;
         }
 
         m_gpuProfiler.destroy();
@@ -461,17 +468,23 @@ namespace aiko::renderer::vulkan
         }
     }
 
-    void VulkanContext::createRenderPass()
+    VkRenderPass VulkanContext::createRenderPass(VkAttachmentLoadOp colorLoadOp)
     {
+
+        const VkImageLayout initialLayout =
+            colorLoadOp == VK_ATTACHMENT_LOAD_OP_LOAD
+                ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+                : VK_IMAGE_LAYOUT_UNDEFINED;
+
         const VkAttachmentDescription colorAttachment =
         {
             .format = m_swapChainImageFormat,
             .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .loadOp = colorLoadOp,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .initialLayout = initialLayout,
             .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         };
 
@@ -530,8 +543,11 @@ namespace aiko::renderer::vulkan
             .pDependencies = &dependency,
         };
 
-        VkResult result = vkCreateRenderPass(m_device, &renderPassInfo, nullptr, &m_renderPass);
+        VkRenderPass renderPass = VK_NULL_HANDLE;
+        VkResult result = vkCreateRenderPass(m_device, &renderPassInfo, nullptr, &renderPass);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to create render pass!");
+
+        return renderPass;
     }
 
     void VulkanContext::createCommandPool()
@@ -626,7 +642,7 @@ namespace aiko::renderer::vulkan
             const VkFramebufferCreateInfo framebufferInfo =
             {
                 .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                .renderPass = m_renderPass,
+                .renderPass = m_clearRenderPass,
                 .attachmentCount = static_cast<uint32_t>(attachments.size()),
                 .pAttachments = attachments.data(),
                 .width = m_swapChainExtent.width,
@@ -1001,12 +1017,19 @@ namespace aiko::renderer::vulkan
 
         if (formatChanged == true)
         {
-            if (m_renderPass != VK_NULL_HANDLE)
+            if (m_clearRenderPass != VK_NULL_HANDLE)
             {
-                vkDestroyRenderPass(m_device, m_renderPass, nullptr);
-                m_renderPass = VK_NULL_HANDLE;
+                vkDestroyRenderPass(m_device, m_clearRenderPass, nullptr);
+                m_clearRenderPass = VK_NULL_HANDLE;
             }
-            createRenderPass();
+
+            if (m_loadRenderPass != VK_NULL_HANDLE)
+            {
+                vkDestroyRenderPass(m_device, m_loadRenderPass, nullptr);
+                m_loadRenderPass = VK_NULL_HANDLE;
+            }
+            m_clearRenderPass = createRenderPass(VK_ATTACHMENT_LOAD_OP_CLEAR);
+            m_loadRenderPass = createRenderPass(VK_ATTACHMENT_LOAD_OP_LOAD);
             m_swapChainFormatChanged = true;
         }
 

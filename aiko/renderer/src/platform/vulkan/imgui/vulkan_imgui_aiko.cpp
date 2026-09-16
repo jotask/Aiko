@@ -24,7 +24,7 @@ namespace aiko::renderer::vulkan
 
         const ImGui_ImplVulkan_PipelineInfo pipelineInfo =
         {
-            .RenderPass = ctx.renderPass(),
+            .RenderPass = ctx.clearRenderPass(),
             .Subpass = 0,
             .MSAASamples = VK_SAMPLE_COUNT_1_BIT,
         };

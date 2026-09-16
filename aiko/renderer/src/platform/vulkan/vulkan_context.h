@@ -25,7 +25,8 @@ namespace aiko::renderer::vulkan
         VkDevice device() const { return m_device; }
         VkPhysicalDevice physicalDevice() const { return m_physicalDevice; }
         VkQueue graphicsQueue() const { return m_graphicsQueue; }
-        VkRenderPass renderPass() const { return m_renderPass; }
+        VkRenderPass clearRenderPass() const { return m_clearRenderPass; }
+        VkRenderPass loadRenderPass() const { return m_loadRenderPass; }
         std::vector<VkImage> swapChainImages() const { return m_swapChainImages; }
         VkFormat swapChainImageFormat() const { return m_swapChainImageFormat; }
         VkFormat depthFormat() const;
@@ -63,7 +64,8 @@ namespace aiko::renderer::vulkan
         GLFWwindow* m_window = nullptr;
         VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
         VkDevice m_device = VK_NULL_HANDLE;
-        VkRenderPass m_renderPass = VK_NULL_HANDLE;
+        VkRenderPass m_clearRenderPass = VK_NULL_HANDLE;
+        VkRenderPass m_loadRenderPass = VK_NULL_HANDLE;
         VkCommandPool m_commandPool = VK_NULL_HANDLE;
         VkCommandPool m_computeCommandPool = VK_NULL_HANDLE;
 
@@ -118,7 +120,7 @@ namespace aiko::renderer::vulkan
         void createLogicalDevice();
         void createSwapChain(VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE);
         void createImageViews();
-        void createRenderPass();
+        VkRenderPass createRenderPass(VkAttachmentLoadOp colorLoadOp);
         void createCommandPool();
         void createSyncObjects();
         void createSwapChainDepthResources();

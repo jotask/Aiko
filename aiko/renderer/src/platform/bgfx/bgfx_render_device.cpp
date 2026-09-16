@@ -165,8 +165,16 @@ namespace aiko::renderer::bgfx
         ::bgfx::setViewRect(viewId, 0, 0, (uint16_t)pass.width, (uint16_t)pass.height);
 
         uint16_t flags = 0;
-        if (pass.clearColor) flags |= BGFX_CLEAR_COLOR;
-        if (pass.clearDepth) flags |= BGFX_CLEAR_DEPTH;
+
+        if (pass.colorLoadOp == AttachmentLoadOp::Clear)
+        {
+            flags |= BGFX_CLEAR_COLOR;
+        }
+
+        if (pass.depthLoadOp == AttachmentLoadOp::Clear)
+        {
+            flags |= BGFX_CLEAR_DEPTH;
+        }
 
         const uint32_t rgba = pass.clear.rgba();
 

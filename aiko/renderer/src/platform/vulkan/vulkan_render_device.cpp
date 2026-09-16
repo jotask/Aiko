@@ -582,7 +582,22 @@ namespace aiko::renderer::vulkan
             m_activeColorAttachment = nullptr;
             m_activeDepthAttachment = nullptr;
 
-            renderPass = m_context.renderPass();
+            switch (pass.colorLoadOp)
+            {
+            case AttachmentLoadOp::Clear:
+                renderPass = m_context.clearRenderPass();
+                break;
+
+            case AttachmentLoadOp::Load:
+                renderPass = m_context.loadRenderPass();
+                break;
+
+            case AttachmentLoadOp::DontCare:
+                AIKO_ASSERT(false, "Swapchain DontCare load operation is not implemented");
+                renderPass = m_context.clearRenderPass();
+                break;
+            }
+
             framebuffer = m_context.currentSwapChainFramebuffer();
             extent = m_context.swapChainExtent();
 
@@ -895,7 +910,7 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::bindFrame(ViewId viewId, const FrameData& u)
     {
         AIKO_FUNCTION_PROFILE
-        if (viewId != SCENE_VIEW && viewId != COMPUTE_VIEW)
+        if (viewId != SCENE_VIEW && viewId != UI_VIEW && viewId != COMPUTE_VIEW)
         {
             return;
         }
@@ -994,7 +1009,7 @@ namespace aiko::renderer::vulkan
 
         const VulkanFrameBinding& binding = m_frameResources.allocate(frame, ubo);
 
-        if (viewId == SCENE_VIEW)
+        if (viewId == SCENE_VIEW || viewId == UI_VIEW)
         {
             vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsFrameSet, 1, &binding.descriptorSet, 0, nullptr);
         }
@@ -1450,7 +1465,7 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawTransient(ViewId viewId, const TransientDrawDesc& desc)
     {
         AIKO_FUNCTION_PROFILE
-        if (viewId != SCENE_VIEW || m_renderPassActive == false)
+        if (m_renderPassActive == false)
         {
             return;
         }
