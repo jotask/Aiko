@@ -77,7 +77,8 @@ namespace aiko
         m_commands.push_back(
         {
             .indexOffset = indexOffset,
-            .indexCount = 6
+            .indexCount = 6,
+            .textureId = textureId
         });
     }
 }
