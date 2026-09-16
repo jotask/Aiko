@@ -15,6 +15,11 @@ namespace aiko
 
         void addRect(const UIRect& rect, Color color);
 
+        const vector<UIDrawCommand>& commands() const
+        {
+            return m_commands;
+        }
+
         const vector<UIVertex>& vertices() const
         {
             return m_vertices;
@@ -32,6 +37,7 @@ namespace aiko
 
     private:
 
+        vector<UIDrawCommand> m_commands;
         vector<UIVertex> m_vertices;
         vector<uint16_t> m_indices;
     };

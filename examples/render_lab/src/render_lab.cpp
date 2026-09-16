@@ -147,6 +147,11 @@ namespace aiko::lab
             {300.0f, 120.0f},
             RED);
 
+        ui().rect(
+            {450.0f, 100.0f},
+            {150.0f, 120.0f},
+            GREEN);
+
         if constexpr (EnablePrimitiveTests)
         {
             renderPrimitives();

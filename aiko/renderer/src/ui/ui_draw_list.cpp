@@ -9,11 +9,14 @@ namespace aiko
     {
         m_vertices.clear();
         m_indices.clear();
+        m_commands.clear();
     }
 
     void UIDrawList::addRect(const UIRect& rect, Color color)
     {
         AIKO_ASSERT(m_vertices.size() <= std::numeric_limits<uint16_t>::max() - 4, "UIDrawList exceeded the 16-bit vertex limit");
+
+        const uint32_t indexOffset = static_cast<uint32_t>(m_indices.size());
 
         const uint16_t base = static_cast<uint16_t>(m_vertices.size());
 
@@ -59,6 +62,12 @@ namespace aiko
         m_indices.push_back(base + 1);
         m_indices.push_back(base + 2);
         m_indices.push_back(base + 3);
+
+        m_commands.push_back(
+        {
+            .indexOffset = indexOffset,
+            .indexCount = 6
+        });
     }
 
 }
