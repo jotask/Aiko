@@ -14,6 +14,17 @@ namespace aiko
 
     void UIDrawList::addRect(const UIRect& rect, Color color)
     {
+        addQuad(rect, color, InvalidAssetId);
+    }
+
+    void UIDrawList::addImage(const UIRect& rect, AssetId textureId, Color tint)
+    {
+        AIKO_ASSERT(textureId != InvalidAssetId, "UI image requires a valid texture asset");
+        addQuad(rect, tint, textureId);
+    }
+
+    void UIDrawList::addQuad(const UIRect& rect, Color color, AssetId textureId)
+    {
         AIKO_ASSERT(m_vertices.size() <= std::numeric_limits<uint16_t>::max() - 4, "UIDrawList exceeded the 16-bit vertex limit");
 
         const uint32_t indexOffset = static_cast<uint32_t>(m_indices.size());
@@ -69,5 +80,4 @@ namespace aiko
             .indexCount = 6
         });
     }
-
 }

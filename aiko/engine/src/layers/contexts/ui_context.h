@@ -14,6 +14,7 @@ namespace aiko
     public:
 
         void rect(const vec2& position, const vec2& size, Color color);
+        void image(AssetId textureId, const vec2& position, const vec2& size, Color tint = WHITE);
 
     private:
 

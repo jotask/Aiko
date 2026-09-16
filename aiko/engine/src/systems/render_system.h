@@ -65,6 +65,7 @@ namespace aiko
         ImguiTextureId getTargetTextureId() const;
 
         void drawUiRect(const vec2& position, const vec2& size, Color color);
+        void drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint);
 
     protected:
 

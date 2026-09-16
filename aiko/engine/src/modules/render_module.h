@@ -57,6 +57,7 @@ namespace aiko
         void setUiShader(AssetId shaderId);
 
         void drawUiRect(const vec2& position, const vec2& size, Color color);
+        void drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint);
 
     protected:
 

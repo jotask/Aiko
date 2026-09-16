@@ -2,6 +2,7 @@
 
 #include <math/math.h>
 #include <types/color.h>
+#include <assets/asset_id.h>
 
 namespace aiko
 {
@@ -10,6 +11,8 @@ namespace aiko
     {
         uint32_t indexOffset = 0;
         uint32_t indexCount = 0;
+
+        AssetId textureId = InvalidAssetId;
     };
 
     struct UIRect

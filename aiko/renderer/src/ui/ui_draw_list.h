@@ -3,6 +3,7 @@
 #include "ui_types.h"
 
 #include <aiko_types.h>
+#include <assets/asset_id.h>
 
 namespace aiko
 {
@@ -14,6 +15,7 @@ namespace aiko
         void clear();
 
         void addRect(const UIRect& rect, Color color);
+        void addImage(const UIRect& rect, AssetId textureId, Color tint = WHITE);
 
         const vector<UIDrawCommand>& commands() const
         {
@@ -40,6 +42,8 @@ namespace aiko
         vector<UIDrawCommand> m_commands;
         vector<UIVertex> m_vertices;
         vector<uint16_t> m_indices;
+
+        void addQuad(const UIRect& rect, Color color, AssetId textureId);
     };
 
 }

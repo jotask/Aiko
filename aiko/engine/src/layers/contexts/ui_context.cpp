@@ -17,4 +17,8 @@ namespace aiko
         m_renderSystem->drawUiRect(position, size, color);
     }
 
+    void UIContext::image(AssetId textureId, const vec2& position, const vec2& size, Color tint)
+    {
+        m_renderSystem->drawUiImage(textureId, position, size, tint);
+    }
 }
