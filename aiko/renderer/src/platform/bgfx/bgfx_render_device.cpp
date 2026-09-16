@@ -726,7 +726,16 @@ namespace aiko::renderer::bgfx
         ::bgfx::setVertexBuffer(0, &tvb);
         if (useIndices == true)
         {
-            ::bgfx::setIndexBuffer(&tib);
+
+            const uint32_t totalIndexCount = static_cast<uint32_t>(desc.geometry->indices.size());
+
+            AIKO_ASSERT(desc.indexOffset <= totalIndexCount, "Transient draw index offset exceeds geometry");
+
+            const uint32_t indexCount = desc.indexCount != 0 ? desc.indexCount : totalIndexCount - desc.indexOffset;
+
+            AIKO_ASSERT(desc.indexOffset + indexCount <= totalIndexCount, "Transient draw index range exceeds geometry");
+
+            bgfx::setIndexBuffer(&tib, desc.indexOffset, indexCount);
         }
 
         uint64_t state = s_default_state;

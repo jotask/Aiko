@@ -46,13 +46,18 @@ namespace aiko
 
         geometry.indices = drawList.indices();
 
-        TransientDrawDesc draw;
+        for (const UIDrawCommand& command : drawList.commands())
+        {
+            TransientDrawDesc draw;
 
-        draw.mtx = mat4(1.0f);
-        draw.material = &m_material;
-        draw.geometry = &geometry;
+            draw.mtx = mat4(1.0f);
+            draw.material = &m_material;
+            draw.geometry = &geometry;
+            draw.indexOffset = command.indexOffset;
+            draw.indexCount = command.indexCount;
 
-        device.submitTransient(UI_VIEW, draw);
+            device.submitTransient(UI_VIEW, draw);
+        }
     }
 
 }

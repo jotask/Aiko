@@ -1550,7 +1550,15 @@ namespace aiko::renderer::vulkan
 
         vkCmdBindIndexBuffer(commandBuffer, indexSlice.buffer, indexSlice.offset, VK_INDEX_TYPE_UINT16);
 
-        vkCmdDrawIndexed(commandBuffer,static_cast<uint32_t>(desc.geometry->indices.size()),1,0,0,0);
+        const uint32_t totalIndexCount = static_cast<uint32_t>(desc.geometry->indices.size());
+
+        AIKO_ASSERT(desc.indexOffset <= totalIndexCount, "Transient draw index offset exceeds geometry");
+
+        const uint32_t indexCount = desc.indexCount != 0 ? desc.indexCount : totalIndexCount - desc.indexOffset;
+
+        AIKO_ASSERT(desc.indexOffset + indexCount <= totalIndexCount, "Transient draw index range exceeds geometry");
+
+        vkCmdDrawIndexed(commandBuffer, indexCount, 1, desc.indexOffset, 0, 0);
 
     }
 

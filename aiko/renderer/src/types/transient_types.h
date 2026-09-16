@@ -40,5 +40,7 @@ namespace aiko
         mat4 mtx = mat4(1.0f);
         const Material* material = nullptr;
         const TransientGeometry* geometry = nullptr;
+        uint32_t indexOffset = 0;
+        uint32_t indexCount = 0;
     };
 }
