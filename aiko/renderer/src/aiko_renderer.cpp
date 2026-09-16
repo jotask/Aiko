@@ -75,15 +75,6 @@ namespace aiko
     {
         AIKO_FUNCTION_PROFILE;
 
-        m_uiDrawList.clear();
-
-        m_uiDrawList.addRect(
-            {
-                .position = {100.0f, 100.0f},
-                .size = {300.0f, 120.0f}
-            },
-            RED);
-
         if (m_pendingSurfaceResize.has_value())
         {
             m_renderSurface = *m_pendingSurfaceResize;
