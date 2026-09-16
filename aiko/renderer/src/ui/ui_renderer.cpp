@@ -16,6 +16,7 @@ namespace aiko
         m_baseMaterial.m_baseColor = WHITE;
         m_baseMaterial.m_useVertexColor = true;
         m_baseMaterial.m_lit = false;
+        m_baseMaterial.m_renderState.blend = true;
     }
 
     void UIRenderer::render(renderer::IRenderDevice& device, const UIDrawList& drawList)
@@ -60,6 +61,7 @@ namespace aiko
             material.m_baseColor = WHITE;
             material.m_useVertexColor = true;
             material.m_lit = false;
+            material.m_renderState = m_baseMaterial.m_renderState;
 
             if (command.textureId != InvalidAssetId)
             {

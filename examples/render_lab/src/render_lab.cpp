@@ -147,20 +147,22 @@ namespace aiko::lab
             {300.0f, 120.0f},
             RED);
 
+        if (m_uiTestSprite != nullptr)
+        {
+            const AssetId textureId = m_uiTestSprite->getTextureId();
+            if (textureId != InvalidAssetId)
+            {
+                ui().image(textureId,
+                {650.0f, 100.0f},
+                {200.0f, 120.0f},
+                WHITE);
+            }
+        }
+
         ui().rect(
             {450.0f, 100.0f},
             {150.0f, 120.0f},
             GREEN);
-
-        if (m_uiTestSprite != nullptr)
-        {
-            const AssetId textureId = m_uiTestSprite->getTextureId();
-
-            if (textureId != InvalidAssetId)
-            {
-                ui().image(textureId, {650.0f, 100.0f}, {200.0f, 120.0f}, WHITE);
-            }
-        }
 
         if constexpr (EnablePrimitiveTests)
         {
