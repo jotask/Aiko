@@ -391,44 +391,64 @@ namespace aiko::renderer::vulkan
 
         const auto meshAttributes = VulkanVertex::attributeDescriptions();
 
-        std::array< VkVertexInputAttributeDescription, 8> attributes{};
+        std::vector<VkVertexInputAttributeDescription> supportedAttributes;
+        supportedAttributes.reserve(8);
 
-        for (size_t i = 0; i < meshAttributes.size(); ++i)
+        supportedAttributes.insert(
+            supportedAttributes.end(),
+            meshAttributes.begin(),
+            meshAttributes.end());
+
+        supportedAttributes.push_back(
+            {
+                .location = 4,
+                .binding = 1,
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .offset = offsetof(VulkanInstanceData, position),
+            });
+
+        supportedAttributes.push_back(
+            {
+                .location = 5,
+                .binding = 1,
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .offset = offsetof(VulkanInstanceData, rotation),
+            });
+
+        supportedAttributes.push_back(
+            {
+                .location = 6,
+                .binding = 1,
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .offset = offsetof(VulkanInstanceData, scale),
+            });
+
+        supportedAttributes.push_back(
+            {
+                .location = 7,
+                .binding = 1,
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .offset = offsetof(VulkanInstanceData, color),
+            });
+
+        std::vector<VkVertexInputAttributeDescription> attributes;
+        attributes.reserve(supportedAttributes.size());
+
+        for (const uint32_t location : shader.reflection().vertexInputLocations)
         {
-            attributes[i] = meshAttributes[i];
+            const auto it =
+                std::find_if(
+                    supportedAttributes.begin(),
+                    supportedAttributes.end(),
+                    [location](const VkVertexInputAttributeDescription& attribute)
+                    {
+                        return attribute.location == location;
+                    });
+
+            AIKO_ASSERT(it != supportedAttributes.end(), "Instanced model vertex shader uses unsupported vertex input location");
+
+            attributes.push_back(*it);
         }
-
-        attributes[4] =
-        {
-            .location = 4,
-            .binding = 1,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(VulkanInstanceData, position),
-        };
-
-        attributes[5] =
-        {
-            .location = 5,
-            .binding = 1,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(VulkanInstanceData, rotation),
-        };
-
-        attributes[6] =
-        {
-            .location = 6,
-            .binding = 1,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(VulkanInstanceData, scale),
-        };
-
-        attributes[7] =
-        {
-            .location = 7,
-            .binding = 1,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(VulkanInstanceData, color),
-        };
 
         const VkPipelineVertexInputStateCreateInfo  vertexInputInfo =
         {
