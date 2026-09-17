@@ -2577,6 +2577,12 @@ namespace aiko::renderer::vulkan
         {
             .shaderId = shader.id(),
             .renderPass = m_activeRenderPassCompatibility,
+            .fillMode = material.m_renderState.fillMode,
+            .cullMode = material.m_renderState.cullMode,
+            .depthTest = material.m_renderState.depthTest,
+            .depthWrite = material.m_renderState.depthWrite,
+            .depthCompare = material.m_renderState.depthCompare,
+            .blend = material.m_renderState.blend,
         };
 
         return m_gpuPipelines.getOrCreateInstanced(key, renderPass, *shaderImpl);
@@ -2599,6 +2605,12 @@ namespace aiko::renderer::vulkan
             .shaderId = shader.id(),
             .renderPass = m_activeRenderPassCompatibility,
             .topology = topology,
+            .fillMode = material.m_renderState.fillMode,
+            .cullMode = material.m_renderState.cullMode,
+            .depthTest = material.m_renderState.depthTest,
+            .depthWrite = material.m_renderState.depthWrite,
+            .depthCompare = material.m_renderState.depthCompare,
+            .blend = material.m_renderState.blend,
         };
 
         return m_gpuPipelines.getOrCreateVertex(key, renderPass, *shaderImpl);

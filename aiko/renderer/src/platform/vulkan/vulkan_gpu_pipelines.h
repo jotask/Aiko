@@ -30,9 +30,9 @@ namespace aiko::renderer::vulkan
         VkPipeline getOrCreateVertex(const GpuVertexPipelineKey& key, VkRenderPass renderPass, const VulkanShaderImpl& shader);
 
     private:
-        VkPipeline createInstancedPipeline(VkRenderPass renderPass,const VulkanShaderImpl& shader);
+        VkPipeline createInstancedPipeline(const GpuPipelineKey& key, VkRenderPass renderPass,const VulkanShaderImpl& shader);
 
-        VkPipeline createVertexPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, const VulkanShaderImpl& shader);
+        VkPipeline createVertexPipeline(const GpuVertexPipelineKey& key, VkRenderPass renderPass, const VulkanShaderImpl& shader);
 
         VulkanContext& m_context;
 

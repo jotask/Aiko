@@ -10,6 +10,51 @@
 
 namespace aiko::renderer::vulkan
 {
+    namespace
+    {
+        VkCullModeFlags toVulkanCullMode(CullMode mode)
+        {
+            switch (mode)
+            {
+            case CullMode::None:  return VK_CULL_MODE_NONE;
+            case CullMode::Front: return VK_CULL_MODE_FRONT_BIT;
+            case CullMode::Back:  return VK_CULL_MODE_BACK_BIT;
+            }
+
+            AIKO_ASSERT(false, "Unsupported CullMode");
+            return VK_CULL_MODE_NONE;
+        }
+
+        VkCompareOp toVulkanDepthCompare(DepthCompare compare)
+        {
+            switch (compare)
+            {
+            case DepthCompare::Less:         return VK_COMPARE_OP_LESS;
+            case DepthCompare::LessEqual:    return VK_COMPARE_OP_LESS_OR_EQUAL;
+            case DepthCompare::Equal:        return VK_COMPARE_OP_EQUAL;
+            case DepthCompare::Greater:      return VK_COMPARE_OP_GREATER;
+            case DepthCompare::GreaterEqual: return VK_COMPARE_OP_GREATER_OR_EQUAL;
+            case DepthCompare::Always:       return VK_COMPARE_OP_ALWAYS;
+            }
+
+            AIKO_ASSERT(false, "Unsupported DepthCompare");
+            return VK_COMPARE_OP_LESS_OR_EQUAL;
+        }
+
+        VkPolygonMode toVulkanPolygonMode(FillMode mode)
+        {
+            switch (mode)
+            {
+            case FillMode::Solid:     return VK_POLYGON_MODE_FILL;
+            case FillMode::Wireframe: return VK_POLYGON_MODE_LINE;
+            case FillMode::Point:     return VK_POLYGON_MODE_POINT;
+            }
+
+            AIKO_ASSERT(false, "Unsupported fill mode");
+            return VK_POLYGON_MODE_FILL;
+        }
+    }
+
     VulkanGpuPipelines::VulkanGpuPipelines(VulkanContext& context)
         : m_context(context)
     {
@@ -33,7 +78,7 @@ namespace aiko::renderer::vulkan
             return it->second;
         }
 
-        const VkPipeline pipeline = createInstancedPipeline(renderPass, shader);
+        const VkPipeline pipeline = createInstancedPipeline(key, renderPass, shader);
         AIKO_ASSERT(pipeline != VK_NULL_HANDLE, "Failed to create GPU-instanced graphics pipeline");
 
         m_instancedPipelines.emplace(key, pipeline);
@@ -52,7 +97,7 @@ namespace aiko::renderer::vulkan
             return it->second;
         }
 
-        const VkPipeline pipeline = createVertexPipeline(renderPass, key.topology, shader);
+        const VkPipeline pipeline = createVertexPipeline(key, renderPass, shader);
         AIKO_ASSERT(pipeline != VK_NULL_HANDLE, "Failed to create GPU vertex graphics pipeline");
 
         m_vertexPipelines.emplace(key, pipeline);
@@ -60,7 +105,7 @@ namespace aiko::renderer::vulkan
         return pipeline;
     }
 
-    VkPipeline VulkanGpuPipelines::createInstancedPipeline(VkRenderPass renderPass, const VulkanShaderImpl& shader)
+    VkPipeline VulkanGpuPipelines::createInstancedPipeline(const GpuPipelineKey& key, VkRenderPass renderPass, const VulkanShaderImpl& shader)
     {
         AIKO_ASSERT(renderPass != VK_NULL_HANDLE,"GPU-instanced render pass is invalid");
         AIKO_ASSERT(m_layout != VK_NULL_HANDLE, "GPU pipeline layout is invalid");
@@ -141,8 +186,8 @@ namespace aiko::renderer::vulkan
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
-            .polygonMode = VK_POLYGON_MODE_FILL,
-            .cullMode = VK_CULL_MODE_NONE,
+            .polygonMode = toVulkanPolygonMode(key.fillMode),
+            .cullMode = toVulkanCullMode(key.cullMode),
             .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
             .lineWidth = 1.0f,
@@ -158,16 +203,16 @@ namespace aiko::renderer::vulkan
         const VkPipelineDepthStencilStateCreateInfo depthStencil =
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-            .depthTestEnable = VK_TRUE,
-            .depthWriteEnable = VK_TRUE,
-            .depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
+            .depthTestEnable = key.depthTest ? VK_TRUE : VK_FALSE,
+            .depthWriteEnable = key.depthWrite ? VK_TRUE : VK_FALSE,
+            .depthCompareOp = toVulkanDepthCompare(key.depthCompare),
             .depthBoundsTestEnable = VK_FALSE,
             .stencilTestEnable = VK_FALSE,
         };
 
         const VkPipelineColorBlendAttachmentState colorBlendAttachment =
         {
-            .blendEnable = VK_FALSE,
+            .blendEnable = key.blend ? VK_TRUE : VK_FALSE,
             .colorWriteMask =
                 VK_COLOR_COMPONENT_R_BIT |
                 VK_COLOR_COMPONENT_G_BIT |
@@ -222,7 +267,7 @@ namespace aiko::renderer::vulkan
         return pipeline;
     }
 
-    VkPipeline VulkanGpuPipelines::createVertexPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, const VulkanShaderImpl& shader)
+    VkPipeline VulkanGpuPipelines::createVertexPipeline(const GpuVertexPipelineKey& key, VkRenderPass renderPass, const VulkanShaderImpl& shader)
     {
         AIKO_ASSERT(renderPass != VK_NULL_HANDLE, "GPU vertex render pass is invalid");
         AIKO_ASSERT(m_layout != VK_NULL_HANDLE, "GPU pipeline layout is invalid");
@@ -279,7 +324,7 @@ namespace aiko::renderer::vulkan
         const VkPipelineInputAssemblyStateCreateInfo inputAssembly =
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-            .topology = topology,
+            .topology = key.topology,
             .primitiveRestartEnable = VK_FALSE,
         };
 
@@ -295,8 +340,8 @@ namespace aiko::renderer::vulkan
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
-            .polygonMode = VK_POLYGON_MODE_FILL,
-            .cullMode = VK_CULL_MODE_NONE,
+            .polygonMode = toVulkanPolygonMode(key.fillMode),
+            .cullMode = toVulkanCullMode(key.cullMode),
             .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
             .lineWidth = 1.0f,
@@ -312,16 +357,16 @@ namespace aiko::renderer::vulkan
         const VkPipelineDepthStencilStateCreateInfo depthStencil =
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-            .depthTestEnable = VK_TRUE,
-            .depthWriteEnable = VK_TRUE,
-            .depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
+            .depthTestEnable = key.depthTest ? VK_TRUE : VK_FALSE,
+            .depthWriteEnable = key.depthWrite ? VK_TRUE : VK_FALSE,
+            .depthCompareOp = toVulkanDepthCompare(key.depthCompare),
             .depthBoundsTestEnable = VK_FALSE,
             .stencilTestEnable = VK_FALSE,
         };
 
         const VkPipelineColorBlendAttachmentState colorBlendAttachment =
         {
-            .blendEnable = VK_FALSE,
+            .blendEnable = key.blend ? VK_TRUE : VK_FALSE,
             .colorWriteMask =
                 VK_COLOR_COMPONENT_R_BIT |
                 VK_COLOR_COMPONENT_G_BIT |
