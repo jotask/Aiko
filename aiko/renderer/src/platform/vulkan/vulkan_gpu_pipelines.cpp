@@ -1,5 +1,6 @@
 #include "vulkan_gpu_pipelines.h"
 
+#include <algorithm>
 #include <array>
 
 #include "vulkan_context.h"
@@ -91,7 +92,26 @@ namespace aiko::renderer::vulkan
 
         const VkVertexInputBindingDescription bindingDescription = VulkanVertex::bindingDescription();
 
-        const auto attributeDescriptions = VulkanVertex::attributeDescriptions();
+        const auto vertexAttributes = VulkanVertex::attributeDescriptions();
+
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+        attributeDescriptions.reserve(vertexAttributes.size());
+
+        for (const uint32_t location : shader.reflection().vertexInputLocations)
+        {
+            const auto it =
+                std::find_if(
+                    vertexAttributes.begin(),
+                    vertexAttributes.end(),
+                    [location](const VkVertexInputAttributeDescription& attribute)
+                    {
+                        return attribute.location == location;
+                    });
+
+            AIKO_ASSERT(it != vertexAttributes.end(), "GPU-instanced vertex shader uses unsupported vertex input location");
+
+            attributeDescriptions.push_back(*it);
+        }
 
         const VkPipelineVertexInputStateCreateInfo vertexInputInfo =
         {
