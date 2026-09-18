@@ -14,6 +14,7 @@
 #include "models/game_object.h"
 #include "models/mesh_factory.h"
 #include "models/texture_factory.h"
+#include "models/sprite_sheet.h"
 #include "systems/render_system.h"
 #include "systems/system_connector.h"
 #include "types/builtin_shaders.h"
@@ -301,6 +302,9 @@ namespace aiko::lab
         m_uiTestSprite = assetTexture->addComponent<SpriteComponent>();
 
         m_uiTestSprite->load("texel_checker.png");
+
+        const SpriteSheet spriteSheet(256, 256, 64, 64);
+        m_uiTestSprite->setTextureRegion(spriteSheet.region(1));
 
         m_uiTestSprite->getMaterial().m_lit = false;
 
