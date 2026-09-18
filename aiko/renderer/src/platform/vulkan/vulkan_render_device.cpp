@@ -1054,6 +1054,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(pass.shader->isValid(), "Invalid compute shader");
         AIKO_ASSERT(pass.buffers.empty() == false || pass.images.empty() == false, "Vulkan compute requires at least one resource");
         AIKO_ASSERT(pass.buffers.size() <= abi::MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
+        AIKO_ASSERT(pass.images.size() <= abi::MaxComputeImageBindings, "Too many Vulkan compute image bindings");
 
         auto* shaderImpl = static_cast<VulkanComputeShaderImpl*>(getComputeShaderBackend(*pass.shader));
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan compute shader implementation");
@@ -1909,6 +1910,7 @@ namespace aiko::renderer::vulkan
         std::array<VkDescriptorImageInfo, abi::MaxComputeImageBindings> imageInfos{};
         std::array<VkWriteDescriptorSet, abi::MaxComputeImageBindings> imageWrites{};
         std::array<bool, abi::MaxComputeBufferBindings> usedBindings{};
+        std::array<bool, abi::MaxComputeImageBindings> usedImageBindings{};
 
         uint32_t writeCount = 0;
 
@@ -1952,11 +1954,14 @@ namespace aiko::renderer::vulkan
         for (const ComputeImageBinding& binding : images)
         {
             AIKO_ASSERT(binding.stage < abi::MaxComputeImageBindings, "Compute image binding exceeds Vulkan binding limit");
+            AIKO_ASSERT(usedImageBindings[binding.stage] == false, "Duplicate Vulkan compute image binding");
             AIKO_ASSERT(binding.texture != nullptr, "Compute image texture is null");
             AIKO_ASSERT(binding.texture->isValid(), "Invalid compute image texture");
 
             auto* textureImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(*binding.texture));
             AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan compute texture");
+
+            usedImageBindings[binding.stage] = true;
 
             imageInfos[imageWriteCount] =
             {
