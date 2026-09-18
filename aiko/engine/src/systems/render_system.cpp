@@ -10,6 +10,7 @@
 #include "components/mesh_component.h"
 #include "components/sprite_component.h"
 #include "components/model_component.h"
+#include "assets/types/mesh_asset.h"
 #include "types/builtin_shaders.h"
 #include <intrumentor/profiler.h>
 
@@ -133,13 +134,67 @@ namespace aiko
     void RenderSystem::render(const Transform& trans, const SpriteComponent& spriteComponent)
     {
         AIKO_FUNCTION_PROFILE
-        const AssetId& meshId = spriteComponent.getMeshId();
-        if (meshId == InvalidAssetId)
+
+        const AssetId& textureId = spriteComponent.getTextureId();
+        if (textureId == InvalidAssetId)
         {
             return;
         }
-        Mesh& mesh = m_renderModule->getMesh(meshId);
-        m_renderModule->submit(trans, mesh, spriteComponent.getMaterial());
+
+        const Material& material = spriteComponent.getMaterial();
+        if (material.m_shaderId == InvalidAssetId)
+        {
+            return;
+        }
+
+        if (m_assetSystem->isLoaded<ShaderAsset>(material.m_shaderId) == false)
+        {
+            return;
+        }
+
+        const TextureRegion& region = spriteComponent.getTextureRegion();
+
+        MeshAsset quad;
+
+        quad.m_vertices =
+        {
+            { 0.5f,  0.5f, 0.0f},
+            { 0.5f, -0.5f, 0.0f},
+            {-0.5f, -0.5f, 0.0f},
+            {-0.5f,  0.5f, 0.0f},
+        };
+
+        quad.m_textCoord =
+        {
+            {region.max.x, region.max.y},
+            {region.max.x, region.min.y},
+            {region.min.x, region.min.y},
+            {region.min.x, region.max.y},
+        };
+
+        quad.m_normals =
+        {
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
+        };
+
+        quad.m_colors =
+        {
+            WHITE,
+            WHITE,
+            WHITE,
+            WHITE,
+        };
+
+        quad.m_indices =
+        {
+            0, 1, 3,
+            1, 2, 3
+        };
+
+        m_renderModule->submitTransient(trans, material, quad, TransientTopology::Triangles);
     }
 
     void RenderSystem::drawVerticesGpu(const GpuVertexDrawDesc& desc)

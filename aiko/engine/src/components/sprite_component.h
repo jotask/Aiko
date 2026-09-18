@@ -6,6 +6,7 @@
 #include "assets/types/texture_asset.h"
 #include "models/material.h"
 #include "models/component.h"
+#include "models/texture_region.h"
 
 #include <aiko_types.h>
 
@@ -37,7 +38,9 @@ namespace aiko
 
         const AssetId& getTextureId() const;
 
-        const AssetId& getMeshId() const { return m_meshId; }
+        void setTextureRegion(const TextureRegion& region) { m_textureRegion = region; }
+        const TextureRegion& getTextureRegion() const { return m_textureRegion; }
+
         size_t getWidth() const { return m_width; }
         size_t getHeight() const { return m_height; }
 
@@ -49,11 +52,11 @@ namespace aiko
         void resolveAssetBinding(AssetBindingContext& context) override;
 
         AssetReference<TextureAsset> m_texture;
+        TextureRegion m_textureRegion = TextureRegion::full();
 
         std::optional<TextureAsset> m_pendingTexture;
         bool m_refreshRequested = false;
 
-        AssetId             m_meshId = InvalidAssetId;
         Material m_material;
 
         size_t m_width = 0;

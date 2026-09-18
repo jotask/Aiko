@@ -1,8 +1,6 @@
 #include "sprite_component.h"
 
-#include "assets/types/mesh_asset.h"
 #include "assets/types/shader_asset.h"
-#include "models/mesh_factory.h"
 
 #include <algorithm>
 
@@ -22,6 +20,7 @@ namespace aiko
     void SpriteComponent::load(string path)
     {
         m_pendingTexture.reset();
+        m_textureRegion = TextureRegion::full();
 
         m_texture.request(std::move(path));
         m_refreshRequested = false;
@@ -37,6 +36,8 @@ namespace aiko
     {
         AIKO_ASSERT(texture.desc.width > 0 && texture.desc.height > 0, "Sprite texture size must be greater than zero");
         AIKO_ASSERT(texture.pixels.size() == static_cast<size_t>(texture.desc.width) * static_cast<size_t>(texture.desc.height), "Sprite texture pixel count does not match texture size");
+
+        m_textureRegion = TextureRegion::full();
 
         m_texture.reset();
         m_refreshRequested = false;
@@ -118,20 +119,11 @@ namespace aiko
             m_texture.resolve(textureId);
             m_material.setTexture("u_texture", textureId);
 
-            if (m_meshId == InvalidAssetId)
-            {
-                m_meshId = context.create(mesh::factory::generateQuad());
-            }
-
             m_material.m_shaderId = context.load<ShaderAsset>("model");
         }
 
         if (m_pendingTexture.has_value())
         {
-            if (m_meshId == InvalidAssetId)
-            {
-                m_meshId = context.create(mesh::factory::generateQuad());
-            }
 
             m_material.m_shaderId = context.load<ShaderAsset>("model");
 
