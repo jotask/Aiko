@@ -143,6 +143,11 @@ namespace aiko
         m_renderer->drawUiImage(textureId, position, size, tint);
     }
 
+    void RenderModule::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint)
+    {
+        m_renderer->drawUiImage(textureId, region, position, size, tint);
+    }
+
     void RenderModule::connect(ModuleConnector* moduleConnector)
     {
         BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule);

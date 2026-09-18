@@ -44,6 +44,7 @@ namespace aiko::lab
         constexpr bool EnableComputeTests = true;
         constexpr bool EnableGpuVertexTests = true;
         constexpr bool EnableRenderTargetTests = true;
+        constexpr bool EnableUI = true;
         constexpr bool EnableRenderTargetResizeStress = true;
     }
 
@@ -142,28 +143,6 @@ namespace aiko::lab
     void RenderLab::render()
     {
 
-        ui().rect(
-            {100.0f, 100.0f},
-            {300.0f, 120.0f},
-            RED);
-
-        if (m_uiTestSprite != nullptr)
-        {
-            const AssetId textureId = m_uiTestSprite->getTextureId();
-            if (textureId != InvalidAssetId)
-            {
-                ui().image(textureId,
-                {650.0f, 100.0f},
-                {200.0f, 120.0f},
-                WHITE);
-            }
-        }
-
-        ui().rect(
-            {450.0f, 100.0f},
-            {150.0f, 120.0f},
-            GREEN);
-
         if constexpr (EnablePrimitiveTests)
         {
             renderPrimitives();
@@ -203,6 +182,12 @@ namespace aiko::lab
         {
             renderRenderTargetTest();
         }
+
+        if constexpr (EnableUI)
+        {
+            renderUI();
+        }
+
     }
 
     // --------------------------------------------------
@@ -1214,5 +1199,45 @@ namespace aiko::lab
         };
 
         renderer().drawMesh(monitor, m_renderTargetMesh, m_renderTargetMaterial);
+    }
+
+    void RenderLab::renderUI()
+    {
+        ui().rect(
+            {100.0f, 100.0f},
+            {300.0f, 120.0f},
+            RED);
+
+        if (m_uiTestSprite != nullptr)
+        {
+            const AssetId textureId = m_uiTestSprite->getTextureId();
+            if (textureId != InvalidAssetId)
+            {
+                ui().image(
+                    textureId,
+                {650.0f, 100.0f},
+                {200.0f, 120.0f},
+                WHITE);
+
+                const TextureRegion region =
+                {
+                    .min = {0.0f, 0.0f},
+                    .max = {0.25f, 0.25f}
+                };
+
+                ui().image(
+                    textureId,
+                    region,
+                    {870.0f, 100.0f},
+                    {200.0f, 120.0f},
+                    WHITE);
+
+            }
+        }
+
+        ui().rect(
+            {450.0f, 100.0f},
+            {150.0f, 120.0f},
+            GREEN);
     }
 }

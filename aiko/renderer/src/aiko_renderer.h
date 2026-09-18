@@ -10,6 +10,7 @@
 #include "resources/render_resource_manager.h"
 #include "types/aiko_renderer_types.h"
 #include "types/compute_pass.h"
+#include "models/texture_region.h"
 #include "ui/ui_renderer.h"
 #include "ui/ui_draw_list.h"
 
@@ -86,6 +87,7 @@ namespace aiko
 
         void drawUiRect(const vec2& position, const vec2& size, Color color);
         void drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint);
+        void drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint);
 
     protected:
 

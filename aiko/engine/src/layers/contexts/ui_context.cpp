@@ -21,4 +21,9 @@ namespace aiko
     {
         m_renderSystem->drawUiImage(textureId, position, size, tint);
     }
+
+    void UIContext::image(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint)
+    {
+        m_renderSystem->drawUiImage(textureId, region, position, size, tint);
+    }
 }

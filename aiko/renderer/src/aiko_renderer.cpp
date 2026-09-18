@@ -274,6 +274,18 @@ namespace aiko
         tint);
     }
 
+    void AikoRenderer::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint)
+    {
+        m_uiDrawList.addImage(
+        {
+            .position = position,
+            .size = size
+        },
+        textureId,
+        region,
+        tint);
+    }
+
     void AikoRenderer::onWindowResize(WindowResizeEvent& event)
     {
         if (event.width <= 0 || event.height <= 0)

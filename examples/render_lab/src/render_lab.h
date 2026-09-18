@@ -80,6 +80,7 @@ namespace aiko::lab
         void renderLights();
         void renderGpuVertices();
         void renderRenderTargetTest();
+        void renderUI();
 
     private:
         RenderSystem* m_renderSystem = nullptr;

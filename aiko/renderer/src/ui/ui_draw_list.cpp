@@ -14,16 +14,22 @@ namespace aiko
 
     void UIDrawList::addRect(const UIRect& rect, Color color)
     {
-        addQuad(rect, color, InvalidAssetId);
+        addQuad(rect, color, InvalidAssetId, TextureRegion::full());
     }
 
     void UIDrawList::addImage(const UIRect& rect, AssetId textureId, Color tint)
     {
         AIKO_ASSERT(textureId != InvalidAssetId, "UI image requires a valid texture asset");
-        addQuad(rect, tint, textureId);
+        addImage(rect, textureId, TextureRegion::full(), tint);
     }
 
-    void UIDrawList::addQuad(const UIRect& rect, Color color, AssetId textureId)
+    void UIDrawList::addImage(const UIRect& rect, AssetId textureId, const TextureRegion& region, Color tint)
+    {
+        AIKO_ASSERT(textureId != InvalidAssetId, "UI image requires a valid texture asset");
+        addQuad(rect, tint, textureId, region);
+    }
+
+    void UIDrawList::addQuad(const UIRect& rect, Color color, AssetId textureId, const TextureRegion& region)
     {
         AIKO_ASSERT(m_vertices.size() <= std::numeric_limits<uint16_t>::max() - 4, "UIDrawList exceeded the 16-bit vertex limit");
 
@@ -41,28 +47,28 @@ namespace aiko
         m_vertices.push_back(
         {
             .position = {left, top},
-            .uv = {0.0f, 0.0f},
+            .uv = {region.min.x, region.min.y},
             .color = color
         });
 
         m_vertices.push_back(
         {
             .position = {right, top},
-            .uv = {1.0f, 0.0f},
+            .uv = {region.max.x, region.min.y},
             .color = color
         });
 
         m_vertices.push_back(
         {
             .position = {left, bottom},
-            .uv = {0.0f, 1.0f},
+            .uv = {region.min.x, region.max.y},
             .color = color
         });
 
         m_vertices.push_back(
         {
             .position = {right, bottom},
-            .uv = {1.0f, 1.0f},
+            .uv = {region.max.x, region.max.y},
             .color = color
         });
 

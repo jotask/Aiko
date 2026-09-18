@@ -2,6 +2,7 @@
 
 #include <assets/asset_id.h>
 #include "modules/base_module.h"
+#include <models/texture_region.h>
 #include "models/light.h"
 
 namespace aiko
@@ -58,6 +59,7 @@ namespace aiko
 
         void drawUiRect(const vec2& position, const vec2& size, Color color);
         void drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint);
+        void drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint);
 
     protected:
 

@@ -75,6 +75,11 @@ namespace aiko
         m_renderModule->drawUiImage(textureId, position, size, tint);
     }
 
+    void RenderSystem::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint)
+    {
+        m_renderModule->drawUiImage(textureId, region, position, size, tint);
+    }
+
     void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Material& mat)
     {
         AIKO_FUNCTION_PROFILE
