@@ -15,6 +15,46 @@
 namespace aiko::renderer::vulkan
 {
 
+    template<typename T, typename Enumerate> static std::vector<T> enumerateVulkanValues(Enumerate&& enumerate, const char* errorMessage)
+    {
+        for (;;)
+        {
+            uint32_t count = 0;
+
+            VkResult result = enumerate(&count, nullptr);
+            AIKO_ASSERT(result == VK_SUCCESS, errorMessage);
+
+            if (result != VK_SUCCESS)
+            {
+                return {};
+            }
+
+            if (count == 0)
+            {
+                return {};
+            }
+
+            std::vector<T> values(count);
+
+            result = enumerate(&count, values.data());
+
+            if (result == VK_INCOMPLETE)
+            {
+                continue;
+            }
+
+            AIKO_ASSERT(result == VK_SUCCESS, errorMessage);
+
+            if (result != VK_SUCCESS)
+            {
+                return {};
+            }
+
+            values.resize(count);
+            return values;
+        }
+    }
+
     static VkBool32 s_debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
     {
         std::string msg = "Validation layer: ";
@@ -75,15 +115,14 @@ namespace aiko::renderer::vulkan
     static bool checkValidationLayerSupport()
     {
 
-        uint32_t layerCount = 0;
-
-        const VkResult resultEnumerate = vkEnumerateInstanceLayerProperties( &layerCount,nullptr);
-        AIKO_ASSERT(resultEnumerate == VK_SUCCESS, "Failed to enumerate Vulkan layers!");
-
-        std::vector<VkLayerProperties> availableLayers(layerCount);
-
-        const VkResult resultInstance = vkEnumerateInstanceLayerProperties( &layerCount,availableLayers.data());
-        AIKO_ASSERT(resultInstance == VK_SUCCESS, "Failed to enumerate Vulkan layers!");
+        const std::vector<VkLayerProperties> availableLayers =
+            enumerateVulkanValues<VkLayerProperties>(
+                [](uint32_t* count, VkLayerProperties* properties)
+                {
+                    return vkEnumerateInstanceLayerProperties(count, properties);
+                },
+                "Failed to enumerate Vulkan layers"
+            );
 
         logger::Log::info("Available Vulkan layers:");
 
@@ -118,6 +157,14 @@ namespace aiko::renderer::vulkan
     {
         uint32_t glfwExtensionCount = 0;
         const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+        AIKO_ASSERT(glfwExtensions != nullptr && glfwExtensionCount > 0, "GLFW failed to provide required Vulkan instance extensions");
+
+        if (glfwExtensions == nullptr || glfwExtensionCount == 0)
+        {
+            return {};
+        }
+
         std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
         if constexpr (enableValidationLayers == true)
         {
@@ -128,11 +175,19 @@ namespace aiko::renderer::vulkan
 
     static bool checkDeviceExtensionSupport(VkPhysicalDevice device)
     {
-        uint32_t extensionCount = 0;
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-
-        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+        const std::vector<VkExtensionProperties> availableExtensions =
+            enumerateVulkanValues<VkExtensionProperties>(
+                [device](uint32_t* count, VkExtensionProperties* properties)
+                {
+                    return vkEnumerateDeviceExtensionProperties(
+                        device,
+                        nullptr,
+                        count,
+                        properties
+                    );
+                },
+                "Failed to enumerate Vulkan device extensions"
+            );
 
         std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
@@ -148,25 +203,30 @@ namespace aiko::renderer::vulkan
     {
         SwapChainSupportDetails details;
 
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilties);
+        const VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilties);
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to query Vulkan surface capabilities");
 
-        uint32_t formatCount = 0;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+        details.formats = enumerateVulkanValues<VkSurfaceFormatKHR>(
+            [device, surface](uint32_t* count, VkSurfaceFormatKHR* formats)
+            {
+                return vkGetPhysicalDeviceSurfaceFormatsKHR(
+                    device,
+                    surface,
+                    count,
+                    formats
+                );
+            },
+            "Failed to query Vulkan surface formats"
+        );
 
-        if (formatCount != 0)
-        {
-            details.formats.resize(formatCount);
-            vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
-        }
-
-        uint32_t presentModeCount = 0;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
-
-        if (presentModeCount != 0)
-        {
-            details.presentModes.resize(presentModeCount);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
-        }
+        details.presentModes =
+            enumerateVulkanValues<VkPresentModeKHR>(
+                [device, surface](uint32_t* count, VkPresentModeKHR* presentModes)
+                {
+                    return vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, count, presentModes);
+                },
+                "Failed to query Vulkan present modes"
+            );
 
         return details;
     }
