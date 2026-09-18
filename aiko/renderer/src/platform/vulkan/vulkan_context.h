@@ -138,7 +138,7 @@ namespace aiko::renderer::vulkan
         bool beginFrame();
         void submitAndPresent();
 
-        void recreateSwapChain();
+        bool recreateSwapChain();
         void cleanupSwapChainResources();
         void cleanupSwapChain();
 

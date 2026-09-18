@@ -721,13 +721,17 @@ namespace aiko::renderer::vulkan
         {
             return;
         }
-        m_context.submitAndPresent();
         m_frameActive = false;
+        m_context.submitAndPresent();
     }
 
     void VulkanRenderDevice::bindMaterial(const Material& material)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
 
         VulkanMaterialBinding* binding = nullptr;
 
@@ -760,6 +764,10 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
         const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, material.m_shaderId, material.m_renderState, false);
         drawMeshWithPipeline(viewId, world, mesh, pipeline);
     }
@@ -768,6 +776,11 @@ namespace aiko::renderer::vulkan
     {
         AIKO_FUNCTION_PROFILE
         AIKO_UNUSED(viewId);
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
 
         AIKO_ASSERT(m_renderPassActive, "Screen pass is not active");
 
@@ -812,6 +825,11 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         if (viewId != SCENE_VIEW || m_renderPassActive == false)
         {
             return;
@@ -910,6 +928,11 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::bindFrame(ViewId viewId, const FrameData& u)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         if (viewId != SCENE_VIEW && viewId != UI_VIEW && viewId != COMPUTE_VIEW)
         {
             return;
@@ -1019,6 +1042,12 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::execute(ViewId viewId, const ComputePass& pass)
     {
         AIKO_FUNCTION_PROFILE
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         AIKO_ASSERT(viewId == COMPUTE_VIEW, "Compute pass must use COMPUTE_VIEW");
         AIKO_ASSERT(m_computePassActive, "Compute dispatch requires an active compute pass");
         AIKO_ASSERT(pass.shader != nullptr, "Compute pass has no shader");
@@ -1176,6 +1205,10 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
         if (viewId != SCENE_VIEW || m_renderPassActive == false)
         {
             return;
@@ -1239,6 +1272,10 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
         AIKO_ASSERT(desc.material != nullptr, "GPU billboard draw has no material");
         AIKO_ASSERT(desc.positionBuffer != nullptr, "GPU billboard draw has no position buffer");
         AIKO_ASSERT(desc.positionBuffer->isValid(), "GPU billboard position buffer is invalid");
@@ -1266,6 +1303,10 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawVerticesGpu(ViewId viewId, const GpuVertexDrawDesc& desc)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
         if (viewId != SCENE_VIEW || m_renderPassActive == false)
         {
             return;
@@ -1393,6 +1434,12 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::prepareVertexBuffer(const ComputeBuffer& buffer)
     {
         AIKO_FUNCTION_PROFILE
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         auto* impl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(buffer));
         AIKO_ASSERT(impl != nullptr, "Invalid Vulkan compute buffer implementation");
         AIKO_ASSERT(impl->isValid(), "Invalid Vulkan vertex compute buffer");
@@ -1416,6 +1463,12 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::prepareIndexBuffer(const ComputeBuffer& buffer)
     {
         AIKO_FUNCTION_PROFILE
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         auto* impl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(buffer));
         AIKO_ASSERT(impl != nullptr, "Invalid Vulkan compute buffer implementation");
         AIKO_ASSERT(impl->isValid(), "Invalid Vulkan index compute buffer");
@@ -1441,6 +1494,12 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::prepareIndirectBuffer(const ComputeBuffer& buffer)
     {
         AIKO_FUNCTION_PROFILE
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         auto* impl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(buffer));
         AIKO_ASSERT(impl != nullptr, "Invalid Vulkan compute buffer implementation");
         AIKO_ASSERT(impl->isValid(), "Invalid Vulkan indirect compute buffer");
@@ -1565,7 +1624,12 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::prepareTextureForSampling(const Texture& texture)
     {
         AIKO_FUNCTION_PROFILE
-        AIKO_ASSERT(m_frameActive, "Texture preparation requires an active frame");
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         AIKO_ASSERT(m_renderPassActive == false, "Texture preparation must happen outside a render pass");
         AIKO_ASSERT(texture.isValid(), "Cannot prepare invalid texture");
 
@@ -1613,6 +1677,10 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::prepareMaterial(const Material& material)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
         if (m_preparedMaterialBindings.contains(&material))
         {
             return;
@@ -2487,8 +2555,10 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings)
     {
-        VkCommandBuffer commandBuffer =
-        m_context.activeCommandBuffer();
+        if (m_frameActive == false)
+        {
+            return;
+        }
 
         for (const GpuReadBufferBinding& binding : bindings)
         {

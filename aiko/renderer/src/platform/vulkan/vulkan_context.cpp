@@ -746,7 +746,10 @@ namespace aiko::renderer::vulkan
 
         if (m_framebufferResized)
         {
-            recreateSwapChain();
+            if (recreateSwapChain() == false)
+            {
+                return false;
+            }
         }
 
         const VkResult fenceResult = vkWaitForFences(m_device, 1, &m_inFlightFences[m_currentFrame], VK_TRUE, UINT64_MAX);
@@ -766,11 +769,10 @@ namespace aiko::renderer::vulkan
         if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR)
         {
             recreateSwapChain();
-            acquireResult = vkAcquireNextImageKHR(m_device, m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
+            return false;
         }
 
         AIKO_ASSERT(acquireResult == VK_SUCCESS || acquireResult == VK_SUBOPTIMAL_KHR, "Failed to acquire swapchain image");
-
         m_currentImageIndex = imageIndex;
 
         m_preComputeCommandBufferUsed = false;
@@ -989,18 +991,27 @@ namespace aiko::renderer::vulkan
 
     }
 
-    void VulkanContext::recreateSwapChain()
+    bool VulkanContext::recreateSwapChain()
     {
 
         int width = 0;
         int height = 0;
-        while (width == 0 || height == 0)
+
+        glfwGetFramebufferSize(m_window, &width, &height);
+
+        while ((width == 0 || height == 0) && !glfwWindowShouldClose(m_window))
         {
-            glfwGetFramebufferSize(m_window, &width, &height);
             glfwWaitEvents();
+            glfwGetFramebufferSize(m_window, &width, &height);
         }
 
-        vkDeviceWaitIdle(m_device);
+        if (glfwWindowShouldClose(m_window))
+        {
+            return false;
+        }
+
+        const VkResult idleResult = vkDeviceWaitIdle(m_device);
+        AIKO_ASSERT(idleResult == VK_SUCCESS, "Failed waiting for Vulkan device idle during swapchain recreation");
 
         const VkFormat previousFormat = m_swapChainImageFormat;
         const VkSwapchainKHR oldSwapchain = m_swapChain;
@@ -1056,6 +1067,8 @@ namespace aiko::renderer::vulkan
         m_activeCommandBuffer = VK_NULL_HANDLE;
 
         m_framebufferResized = false;
+
+        return true;
 
     }
 
