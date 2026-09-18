@@ -154,22 +154,41 @@ namespace aiko
 
         const TextureRegion& region = spriteComponent.getTextureRegion();
 
+        const vec2& size = spriteComponent.getSize();
+
+        const vec2& pivot = spriteComponent.getPivot();
+
+        const float left = -pivot.x * size.x;
+        const float right = left + size.x;
+
+        const float bottom = -pivot.y * size.y;
+        const float top = bottom + size.y;
+
+        const bool flipX = spriteComponent.getFlipX();
+        const bool flipY = spriteComponent.getFlipY();
+
+        const float minU = flipX ? region.max.x : region.min.x;
+        const float maxU = flipX ? region.min.x : region.max.x;
+
+        const float minV = flipY ? region.max.y : region.min.y;
+        const float maxV = flipY ? region.min.y : region.max.y;
+
         MeshAsset quad;
 
         quad.m_vertices =
         {
-            { 0.5f,  0.5f, 0.0f},
-            { 0.5f, -0.5f, 0.0f},
-            {-0.5f, -0.5f, 0.0f},
-            {-0.5f,  0.5f, 0.0f},
+            { right, top,    0.0f},
+            { right, bottom, 0.0f},
+            { left,  bottom, 0.0f},
+            { left,  top,    0.0f},
         };
 
         quad.m_textCoord =
         {
-            {region.max.x, region.max.y},
-            {region.max.x, region.min.y},
-            {region.min.x, region.min.y},
-            {region.min.x, region.max.y},
+            {maxU, maxV},
+            {maxU, minV},
+            {minU, minV},
+            {minU, maxV},
         };
 
         quad.m_normals =
