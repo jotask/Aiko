@@ -182,6 +182,7 @@ namespace aiko::renderer::vulkan
 
         m_currentFrame = 0;
         m_currentImageIndex = 0;
+        m_capabilities = {};
 
         m_window = nullptr;
 
@@ -349,10 +350,11 @@ namespace aiko::renderer::vulkan
 
         VkPhysicalDeviceFeatures supportedFeatures{};
         vkGetPhysicalDeviceFeatures(m_physicalDevice, &supportedFeatures);
-        AIKO_ASSERT(supportedFeatures.fillModeNonSolid == VK_TRUE, "Vulkan device does not support non-solid fill modes");
+
+        m_capabilities.nonSolidFill = supportedFeatures.fillModeNonSolid == VK_TRUE;
 
         VkPhysicalDeviceFeatures deviceFeatures{};
-        deviceFeatures.fillModeNonSolid = VK_TRUE;
+        deviceFeatures.fillModeNonSolid = m_capabilities.nonSolidFill ? VK_TRUE : VK_FALSE;
 
         const VkDeviceCreateInfo createInfo =
         {

@@ -3,6 +3,7 @@
 #include "vulkan_types.h"
 #include "vulkan_resource_types.h"
 #include "vulkan_gpu_profiler.h"
+#include "vulkan_device_capabilities.h"
 
 #include <array>
 #include <optional>
@@ -46,6 +47,8 @@ namespace aiko::renderer::vulkan
         double graphicsGpuMs() const { return m_gpuProfiler.graphicsGpuMs(); }
         void beginGraphicsGpuPass() { m_gpuProfiler.beginGraphicsPass(m_activeCommandBuffer, m_currentFrame); }
         void endGraphicsGpuPass() { m_gpuProfiler.endGraphicsPass(m_activeCommandBuffer, m_currentFrame); }
+
+        const VulkanDeviceCapabilities& capabilities() const { return m_capabilities; }
 
     private:
 
@@ -108,6 +111,8 @@ namespace aiko::renderer::vulkan
 
         bool m_framebufferResized = false;
         bool m_vsync = false;
+
+        VulkanDeviceCapabilities m_capabilities{};
 
         VulkanGpuProfiler m_gpuProfiler;
 
