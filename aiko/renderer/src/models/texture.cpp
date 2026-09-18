@@ -81,9 +81,12 @@ namespace aiko
         }
 
         const TextureInfo info = getInfo();
-        if (info.width != asset.desc.width ||
+        if (info.type != asset.desc.type ||
+            info.format != asset.desc.format ||
+            info.width != asset.desc.width ||
             info.height != asset.desc.height ||
-            info.format != asset.desc.format)
+            info.mipmaps != asset.desc.mipmaps ||
+            info.computeWrite != asset.desc.computeWrite)
         {
             unload();
             upload(asset);
