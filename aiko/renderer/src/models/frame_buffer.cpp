@@ -39,7 +39,7 @@ namespace aiko
                 .format = TextureFormat::RGBA8,
                 .width = width,
                 .height = height,
-                .mipmaps = false,
+                .mipmaps = 1,
                 .computeWrite = true,
             });
         depthTexture.create(
@@ -48,7 +48,7 @@ namespace aiko
                 .format = TextureFormat::D24S8,
                 .width = width,
                 .height = height,
-                .mipmaps = false,
+                .mipmaps = 1,
             });
         backend->create(*colorTexture.backend, *depthTexture.backend);
     }

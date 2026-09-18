@@ -48,7 +48,21 @@ namespace aiko::renderer::vulkan
 
         m_vkFormat = convertToVkFormat(desc.format);
 
-        VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        const uint32_t maxMipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(desc.width, desc.height)))) + 1;
+
+        if (desc.type == TextureType::Sampled)
+        {
+            AIKO_ASSERT(desc.mipmaps >= 1, "Sampled texture must have at least one mip level");
+            AIKO_ASSERT(static_cast<uint32_t>(desc.mipmaps) <= maxMipLevels, "Sampled texture mip count exceeds maximum mip levels");
+            m_mipLevels = static_cast<uint32_t>(desc.mipmaps);
+        }
+        else
+        {
+            AIKO_ASSERT(desc.mipmaps == 1, "Only sampled textures currently support multiple mip levels");
+            m_mipLevels = 1;
+        }
+
+        VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
 
         switch (desc.type)
@@ -59,7 +73,7 @@ namespace aiko::renderer::vulkan
                 {
                     usage |= VK_IMAGE_USAGE_STORAGE_BIT;
                 }
-                if (desc.mipmaps)
+                if (m_mipLevels > 1)
                 {
                     usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
                 }
@@ -80,15 +94,6 @@ namespace aiko::renderer::vulkan
 
             default:
                 AIKO_ASSERT(false, "Unsupported Vulkan texture type");
-        }
-
-        if (desc.type == TextureType::Sampled && desc.mipmaps)
-        {
-            m_mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(desc.width, desc.height)))) + 1;
-        }
-        else
-        {
-            m_mipLevels = 1;
         }
 
         ctx.createImage(
