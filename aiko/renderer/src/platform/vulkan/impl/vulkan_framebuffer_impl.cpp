@@ -31,6 +31,28 @@ namespace aiko::renderer::vulkan
         return m_framebuffer != VK_NULL_HANDLE && m_renderPass != VK_NULL_HANDLE;
     }
 
+    TextureFormat VulkanFrameBufferImpl::preferredDepthFormat() const
+    {
+        VulkanContext& ctx = VulkanContext::current();
+
+        VkFormatProperties properties{};
+
+        vkGetPhysicalDeviceFormatProperties(ctx.physicalDevice(), VK_FORMAT_D32_SFLOAT, &properties);
+
+        if (properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+        {
+            return TextureFormat::D32F;
+        }
+
+        properties = {};
+
+        vkGetPhysicalDeviceFormatProperties(ctx.physicalDevice(), VK_FORMAT_D24_UNORM_S8_UINT, &properties);
+
+        AIKO_ASSERT(properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, "No supported Aiko depth format");
+
+        return TextureFormat::D24S8;
+    }
+
     void VulkanFrameBufferImpl::create(interfaces::ITextureImpl& color, interfaces::ITextureImpl& depth)
     {
         unload();

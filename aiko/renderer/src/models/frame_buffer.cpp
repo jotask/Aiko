@@ -45,7 +45,7 @@ namespace aiko
         depthTexture.create(
             {
                 .type = TextureType::DepthStencil,
-                .format = TextureFormat::D24S8,
+                .format = backend->preferredDepthFormat(),
                 .width = width,
                 .height = height,
                 .mipmaps = 1,
