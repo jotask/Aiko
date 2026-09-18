@@ -96,6 +96,41 @@ namespace aiko::renderer::vulkan
                 AIKO_ASSERT(false, "Unsupported Vulkan texture type");
         }
 
+        VkFormatProperties formatProperties{};
+        vkGetPhysicalDeviceFormatProperties(ctx.physicalDevice(), m_vkFormat, &formatProperties);
+
+        VkFormatFeatureFlags requiredFeatures = 0;
+
+        switch (desc.type)
+        {
+        case TextureType::Sampled:
+            requiredFeatures |= VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
+
+            if (desc.computeWrite)
+            {
+                requiredFeatures |= VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
+            }
+            break;
+
+        case TextureType::RenderTarget:
+            requiredFeatures |= VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
+
+            if (desc.computeWrite)
+            {
+                requiredFeatures |= VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
+            }
+            break;
+
+        case TextureType::DepthStencil:
+            requiredFeatures |= VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+            break;
+
+        default:
+            AIKO_ASSERT(false, "Unsupported Vulkan texture type");
+        }
+
+        AIKO_ASSERT((formatProperties.optimalTilingFeatures & requiredFeatures) == requiredFeatures, "Texture format does not support the requested Vulkan usage");
+
         ctx.createImage(
             static_cast<uint32_t>(desc.width),
             static_cast<uint32_t>(desc.height),
