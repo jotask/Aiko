@@ -876,11 +876,9 @@ namespace aiko::lab
         // - cross-axis centering
         // --------------------------------------------------
 
-        GameObject* layoutPanel =
-            scene().Instantiate(canvasObject, "Horizontal Layout");
+        GameObject* layoutPanel = scene().Instantiate(canvasObject, "Horizontal Layout");
 
-        RectTransformComponent* layoutRect =
-            layoutPanel->addComponent<RectTransformComponent>();
+        RectTransformComponent* layoutRect = layoutPanel->addComponent<RectTransformComponent>();
 
         layoutRect->setAnchors(
             {0.5f, 0.5f},
@@ -890,13 +888,11 @@ namespace aiko::lab
         layoutRect->setAnchoredPosition({0.0f, -300.0f});
         layoutRect->setSizeDelta({800.0f, 100.0f});
 
-        ImageComponent* layoutBackground =
-            layoutPanel->addComponent<ImageComponent>();
+        ImageComponent* layoutBackground = layoutPanel->addComponent<ImageComponent>();
 
         layoutBackground->setColor(GRAY);
 
-        HorizontalLayoutComponent* horizontalLayout =
-            layoutPanel->addComponent<HorizontalLayoutComponent>();
+        HorizontalLayoutComponent* horizontalLayout = layoutPanel->addComponent<HorizontalLayoutComponent>();
 
         horizontalLayout->setPadding(
             {
@@ -907,24 +903,20 @@ namespace aiko::lab
             });
 
         horizontalLayout->setSpacing(20.0f);
-        horizontalLayout->setChildAlignment(
-            UICrossAxisAlignment::Center);
+        horizontalLayout->setChildAlignment(UICrossAxisAlignment::Center);
 
         // Child A
         // Preferred 120 wide, never consumes surplus.
 
-        GameObject* layoutChildA =
-            scene().Instantiate(layoutPanel, "Layout Child A");
+        GameObject* layoutChildA = scene().Instantiate(layoutPanel, "Layout Child A");
 
         layoutChildA->addComponent<RectTransformComponent>();
 
-        ImageComponent* layoutImageA =
-            layoutChildA->addComponent<ImageComponent>();
+        ImageComponent* layoutImageA = layoutChildA->addComponent<ImageComponent>();
 
         layoutImageA->setColor(RED);
 
-        LayoutElementComponent* layoutElementA =
-            layoutChildA->addComponent<LayoutElementComponent>();
+        LayoutElementComponent* layoutElementA = layoutChildA->addComponent<LayoutElementComponent>();
 
         layoutElementA->setMinSize({80.0f, 60.0f});
         layoutElementA->setPreferredSize({120.0f, 80.0f});
@@ -932,18 +924,15 @@ namespace aiko::lab
         // Child B
         // Flexible weight 1.
 
-        GameObject* layoutChildB =
-            scene().Instantiate(layoutPanel, "Layout Child B");
+        GameObject* layoutChildB = scene().Instantiate(layoutPanel, "Layout Child B");
 
         layoutChildB->addComponent<RectTransformComponent>();
 
-        ImageComponent* layoutImageB =
-            layoutChildB->addComponent<ImageComponent>();
+        ImageComponent* layoutImageB = layoutChildB->addComponent<ImageComponent>();
 
         layoutImageB->setColor(GREEN);
 
-        LayoutElementComponent* layoutElementB =
-            layoutChildB->addComponent<LayoutElementComponent>();
+        LayoutElementComponent* layoutElementB = layoutChildB->addComponent<LayoutElementComponent>();
 
         layoutElementB->setMinSize({100.0f, 80.0f});
         layoutElementB->setPreferredSize({160.0f, 100.0f});
@@ -952,18 +941,15 @@ namespace aiko::lab
         // Child C
         // Flexible weight 2, so it receives twice B's surplus.
 
-        GameObject* layoutChildC =
-            scene().Instantiate(layoutPanel, "Layout Child C");
+        GameObject* layoutChildC = scene().Instantiate(layoutPanel, "Layout Child C");
 
         layoutChildC->addComponent<RectTransformComponent>();
 
-        ImageComponent* layoutImageC =
-            layoutChildC->addComponent<ImageComponent>();
+        ImageComponent* layoutImageC = layoutChildC->addComponent<ImageComponent>();
 
         layoutImageC->setColor(BLUE);
 
-        LayoutElementComponent* layoutElementC =
-            layoutChildC->addComponent<LayoutElementComponent>();
+        LayoutElementComponent* layoutElementC = layoutChildC->addComponent<LayoutElementComponent>();
 
         layoutElementC->setMinSize({100.0f, 100.0f});
         layoutElementC->setPreferredSize({160.0f, 120.0f});
@@ -979,11 +965,9 @@ namespace aiko::lab
         // - horizontal cross-axis centering
         // --------------------------------------------------
 
-        GameObject* verticalPanel =
-            scene().Instantiate(canvasObject, "Vertical Layout");
+        GameObject* verticalPanel = scene().Instantiate(canvasObject, "Vertical Layout");
 
-        RectTransformComponent* verticalRect =
-            verticalPanel->addComponent<RectTransformComponent>();
+        RectTransformComponent* verticalRect = verticalPanel->addComponent<RectTransformComponent>();
 
         verticalRect->setAnchors(
             {0.0f, 0.5f},
@@ -993,13 +977,11 @@ namespace aiko::lab
         verticalRect->setAnchoredPosition({80.0f, 0.0f});
         verticalRect->setSizeDelta({320.0f, 500.0f});
 
-        ImageComponent* verticalBackground =
-            verticalPanel->addComponent<ImageComponent>();
+        ImageComponent* verticalBackground = verticalPanel->addComponent<ImageComponent>();
 
         verticalBackground->setColor(GRAY);
 
-        VerticalLayoutComponent* verticalLayout =
-            verticalPanel->addComponent<VerticalLayoutComponent>();
+        VerticalLayoutComponent* verticalLayout = verticalPanel->addComponent<VerticalLayoutComponent>();
 
         verticalLayout->setPadding(
             {
@@ -1010,24 +992,20 @@ namespace aiko::lab
             });
 
         verticalLayout->setSpacing(20.0f);
-        verticalLayout->setChildAlignment(
-            UICrossAxisAlignment::Center);
+        verticalLayout->setChildAlignment(UICrossAxisAlignment::Center);
 
         // Child A
         // Fixed at preferred height once enough space exists.
 
-        GameObject* verticalChildA =
-            scene().Instantiate(verticalPanel, "Vertical Child A");
+        GameObject* verticalChildA = scene().Instantiate(verticalPanel, "Vertical Child A");
 
         verticalChildA->addComponent<RectTransformComponent>();
 
-        ImageComponent* verticalImageA =
-            verticalChildA->addComponent<ImageComponent>();
+        ImageComponent* verticalImageA = verticalChildA->addComponent<ImageComponent>();
 
         verticalImageA->setColor(RED);
 
-        LayoutElementComponent* verticalElementA =
-            verticalChildA->addComponent<LayoutElementComponent>();
+        LayoutElementComponent* verticalElementA = verticalChildA->addComponent<LayoutElementComponent>();
 
         verticalElementA->setMinSize({120.0f, 60.0f});
         verticalElementA->setPreferredSize({180.0f, 80.0f});
@@ -1035,18 +1013,15 @@ namespace aiko::lab
         // Child B
         // Flexible Y weight 1.
 
-        GameObject* verticalChildB =
-            scene().Instantiate(verticalPanel, "Vertical Child B");
+        GameObject* verticalChildB = scene().Instantiate(verticalPanel, "Vertical Child B");
 
         verticalChildB->addComponent<RectTransformComponent>();
 
-        ImageComponent* verticalImageB =
-            verticalChildB->addComponent<ImageComponent>();
+        ImageComponent* verticalImageB = verticalChildB->addComponent<ImageComponent>();
 
         verticalImageB->setColor(GREEN);
 
-        LayoutElementComponent* verticalElementB =
-            verticalChildB->addComponent<LayoutElementComponent>();
+        LayoutElementComponent* verticalElementB = verticalChildB->addComponent<LayoutElementComponent>();
 
         verticalElementB->setMinSize({160.0f, 80.0f});
         verticalElementB->setPreferredSize({220.0f, 100.0f});
@@ -1056,18 +1031,15 @@ namespace aiko::lab
         // Flexible Y weight 2, so it receives twice B's
         // share of vertical surplus.
 
-        GameObject* verticalChildC =
-            scene().Instantiate(verticalPanel, "Vertical Child C");
+        GameObject* verticalChildC = scene().Instantiate(verticalPanel, "Vertical Child C");
 
         verticalChildC->addComponent<RectTransformComponent>();
 
-        ImageComponent* verticalImageC =
-            verticalChildC->addComponent<ImageComponent>();
+        ImageComponent* verticalImageC = verticalChildC->addComponent<ImageComponent>();
 
         verticalImageC->setColor(BLUE);
 
-        LayoutElementComponent* verticalElementC =
-            verticalChildC->addComponent<LayoutElementComponent>();
+        LayoutElementComponent* verticalElementC = verticalChildC->addComponent<LayoutElementComponent>();
 
         verticalElementC->setMinSize({200.0f, 80.0f});
         verticalElementC->setPreferredSize({260.0f, 100.0f});
@@ -1084,11 +1056,9 @@ namespace aiko::lab
         // Vertical -> effective UIRect -> Horizontal.
         // --------------------------------------------------
 
-        GameObject* nestedLayoutPanel =
-            scene().Instantiate(canvasObject, "Nested Layout");
+        GameObject* nestedLayoutPanel = scene().Instantiate(canvasObject, "Nested Layout");
 
-        RectTransformComponent* nestedLayoutRect =
-            nestedLayoutPanel->addComponent<RectTransformComponent>();
+        RectTransformComponent* nestedLayoutRect = nestedLayoutPanel->addComponent<RectTransformComponent>();
 
         nestedLayoutRect->setAnchors(
             {1.0f, 0.5f},
@@ -1098,13 +1068,11 @@ namespace aiko::lab
         nestedLayoutRect->setAnchoredPosition({-80.0f, 0.0f});
         nestedLayoutRect->setSizeDelta({500.0f, 400.0f});
 
-        ImageComponent* nestedLayoutBackground =
-            nestedLayoutPanel->addComponent<ImageComponent>();
+        ImageComponent* nestedLayoutBackground = nestedLayoutPanel->addComponent<ImageComponent>();
 
         nestedLayoutBackground->setColor(GRAY);
 
-        VerticalLayoutComponent* nestedVerticalLayout =
-            nestedLayoutPanel->addComponent<VerticalLayoutComponent>();
+        VerticalLayoutComponent* nestedVerticalLayout = nestedLayoutPanel->addComponent<VerticalLayoutComponent>();
 
         nestedVerticalLayout->setPadding(
             {
@@ -1115,32 +1083,27 @@ namespace aiko::lab
             });
 
         nestedVerticalLayout->setSpacing(20.0f);
-        nestedVerticalLayout->setChildAlignment(
-            UICrossAxisAlignment::Center);
+        nestedVerticalLayout->setChildAlignment(UICrossAxisAlignment::Center);
 
         // --------------------------------------------------
         // Nested row A
         // --------------------------------------------------
 
-        GameObject* nestedRowA =
-            scene().Instantiate(nestedLayoutPanel, "Nested Row A");
+        GameObject* nestedRowA = scene().Instantiate(nestedLayoutPanel, "Nested Row A");
 
         nestedRowA->addComponent<RectTransformComponent>();
 
-        ImageComponent* nestedRowAImage =
-            nestedRowA->addComponent<ImageComponent>();
+        ImageComponent* nestedRowAImage = nestedRowA->addComponent<ImageComponent>();
 
         nestedRowAImage->setColor(WHITE);
 
-        LayoutElementComponent* nestedRowAElement =
-            nestedRowA->addComponent<LayoutElementComponent>();
+        LayoutElementComponent* nestedRowAElement = nestedRowA->addComponent<LayoutElementComponent>();
 
         nestedRowAElement->setMinSize({300.0f, 100.0f});
         nestedRowAElement->setPreferredSize({420.0f, 120.0f});
         nestedRowAElement->setFlexibleWeight({0.0f, 1.0f});
 
-        HorizontalLayoutComponent* nestedRowALayout =
-            nestedRowA->addComponent<HorizontalLayoutComponent>();
+        HorizontalLayoutComponent* nestedRowALayout = nestedRowA->addComponent<HorizontalLayoutComponent>();
 
         nestedRowALayout->setPadding(
             {
@@ -1151,38 +1114,31 @@ namespace aiko::lab
             });
 
         nestedRowALayout->setSpacing(10.0f);
-        nestedRowALayout->setChildAlignment(
-            UICrossAxisAlignment::Center);
+        nestedRowALayout->setChildAlignment(UICrossAxisAlignment::Center);
 
-        GameObject* nestedRowAChildA =
-            scene().Instantiate(nestedRowA, "Nested Row A Child A");
+        GameObject* nestedRowAChildA = scene().Instantiate(nestedRowA, "Nested Row A Child A");
 
         nestedRowAChildA->addComponent<RectTransformComponent>();
 
-        ImageComponent* nestedRowAImageA =
-            nestedRowAChildA->addComponent<ImageComponent>();
+        ImageComponent* nestedRowAImageA = nestedRowAChildA->addComponent<ImageComponent>();
 
         nestedRowAImageA->setColor(RED);
 
-        LayoutElementComponent* nestedRowAElementA =
-            nestedRowAChildA->addComponent<LayoutElementComponent>();
+        LayoutElementComponent* nestedRowAElementA = nestedRowAChildA->addComponent<LayoutElementComponent>();
 
         nestedRowAElementA->setMinSize({80.0f, 50.0f});
         nestedRowAElementA->setPreferredSize({100.0f, 70.0f});
         nestedRowAElementA->setFlexibleWeight({1.0f, 0.0f});
 
-        GameObject* nestedRowAChildB =
-            scene().Instantiate(nestedRowA, "Nested Row A Child B");
+        GameObject* nestedRowAChildB = scene().Instantiate(nestedRowA, "Nested Row A Child B");
 
         nestedRowAChildB->addComponent<RectTransformComponent>();
 
-        ImageComponent* nestedRowAImageB =
-            nestedRowAChildB->addComponent<ImageComponent>();
+        ImageComponent* nestedRowAImageB = nestedRowAChildB->addComponent<ImageComponent>();
 
         nestedRowAImageB->setColor(GREEN);
 
-        LayoutElementComponent* nestedRowAElementB =
-            nestedRowAChildB->addComponent<LayoutElementComponent>();
+        LayoutElementComponent* nestedRowAElementB = nestedRowAChildB->addComponent<LayoutElementComponent>();
 
         nestedRowAElementB->setMinSize({80.0f, 50.0f});
         nestedRowAElementB->setPreferredSize({100.0f, 70.0f});
@@ -1192,25 +1148,21 @@ namespace aiko::lab
         // Nested row B
         // --------------------------------------------------
 
-        GameObject* nestedRowB =
-            scene().Instantiate(nestedLayoutPanel, "Nested Row B");
+        GameObject* nestedRowB = scene().Instantiate(nestedLayoutPanel, "Nested Row B");
 
         nestedRowB->addComponent<RectTransformComponent>();
 
-        ImageComponent* nestedRowBImage =
-            nestedRowB->addComponent<ImageComponent>();
+        ImageComponent* nestedRowBImage = nestedRowB->addComponent<ImageComponent>();
 
         nestedRowBImage->setColor(WHITE);
 
-        LayoutElementComponent* nestedRowBElement =
-            nestedRowB->addComponent<LayoutElementComponent>();
+        LayoutElementComponent* nestedRowBElement = nestedRowB->addComponent<LayoutElementComponent>();
 
         nestedRowBElement->setMinSize({300.0f, 100.0f});
         nestedRowBElement->setPreferredSize({420.0f, 120.0f});
         nestedRowBElement->setFlexibleWeight({0.0f, 2.0f});
 
-        HorizontalLayoutComponent* nestedRowBLayout =
-            nestedRowB->addComponent<HorizontalLayoutComponent>();
+        HorizontalLayoutComponent* nestedRowBLayout = nestedRowB->addComponent<HorizontalLayoutComponent>();
 
         nestedRowBLayout->setPadding(
             {
@@ -1221,38 +1173,31 @@ namespace aiko::lab
             });
 
         nestedRowBLayout->setSpacing(10.0f);
-        nestedRowBLayout->setChildAlignment(
-            UICrossAxisAlignment::Center);
+        nestedRowBLayout->setChildAlignment(UICrossAxisAlignment::Center);
 
-        GameObject* nestedRowBChildA =
-            scene().Instantiate(nestedRowB, "Nested Row B Child A");
+        GameObject* nestedRowBChildA = scene().Instantiate(nestedRowB, "Nested Row B Child A");
 
         nestedRowBChildA->addComponent<RectTransformComponent>();
 
-        ImageComponent* nestedRowBImageA =
-            nestedRowBChildA->addComponent<ImageComponent>();
+        ImageComponent* nestedRowBImageA = nestedRowBChildA->addComponent<ImageComponent>();
 
         nestedRowBImageA->setColor(BLUE);
 
-        LayoutElementComponent* nestedRowBElementA =
-            nestedRowBChildA->addComponent<LayoutElementComponent>();
+        LayoutElementComponent* nestedRowBElementA = nestedRowBChildA->addComponent<LayoutElementComponent>();
 
         nestedRowBElementA->setMinSize({80.0f, 50.0f});
         nestedRowBElementA->setPreferredSize({120.0f, 70.0f});
         nestedRowBElementA->setFlexibleWeight({1.0f, 0.0f});
 
-        GameObject* nestedRowBChildB =
-            scene().Instantiate(nestedRowB, "Nested Row B Child B");
+        GameObject* nestedRowBChildB = scene().Instantiate(nestedRowB, "Nested Row B Child B");
 
         nestedRowBChildB->addComponent<RectTransformComponent>();
 
-        ImageComponent* nestedRowBImageB =
-            nestedRowBChildB->addComponent<ImageComponent>();
+        ImageComponent* nestedRowBImageB = nestedRowBChildB->addComponent<ImageComponent>();
 
         nestedRowBImageB->setColor(MAGENTA);
 
-        LayoutElementComponent* nestedRowBElementB =
-            nestedRowBChildB->addComponent<LayoutElementComponent>();
+        LayoutElementComponent* nestedRowBElementB = nestedRowBChildB->addComponent<LayoutElementComponent>();
 
         nestedRowBElementB->setMinSize({80.0f, 50.0f});
         nestedRowBElementB->setPreferredSize({120.0f, 70.0f});
