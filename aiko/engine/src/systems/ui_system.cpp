@@ -14,6 +14,8 @@
 #include "components/image_component.h"
 #include "models/game_object.h"
 #include "scene/scene.h"
+#include "components/horizontal_layout_component.h"
+#include "components/layout_element_component.h"
 
 namespace aiko
 {
@@ -145,28 +147,35 @@ namespace aiko
             return;
         }
 
-        RectTransformComponent* rectTransform = object.getComponent<RectTransformComponent>();
+        RectTransformComponent* rectTransform =
+            object.getComponent<RectTransformComponent>();
 
         UIRect resolvedRect = parentRect;
 
         if (rectTransform != nullptr)
         {
-
             resolvedRect = resolveRect(*rectTransform, parentRect);
 
-            if (resolvedRect.size.x < 0.0f || resolvedRect.size.y < 0.0f)
+            if (resolvedRect.size.x < 0.0f ||
+                resolvedRect.size.y < 0.0f)
             {
                 return;
             }
         }
 
+        renderResolvedObject(object, resolvedRect, canvasScale, theme);
+    }
+
+    void UISystem::renderResolvedObject(GameObject& object, const UIRect& resolvedRect, float canvasScale, const UITheme& theme)
+    {
         if (ImageComponent* image = object.getComponent<ImageComponent>())
         {
+            RectTransformComponent* rectTransform = object.getComponent<RectTransformComponent>();
+
             AIKO_ASSERT(rectTransform != nullptr, "ImageComponent requires a RectTransformComponent");
 
             if (rectTransform != nullptr)
             {
-
                 UIImageAppearance appearance = theme.image.appearance;
 
                 if (image->hasColorOverride())
@@ -175,16 +184,14 @@ namespace aiko
                 }
 
                 const vec2 physicalPosition = resolvedRect.position * canvasScale;
+
                 const vec2 physicalSize = resolvedRect.size * canvasScale;
 
                 if (physicalSize.x > 0.0f && physicalSize.y > 0.0f)
                 {
                     if (image->hasTexture() == false)
                     {
-                        m_renderSystem->drawUiRect(
-                            physicalPosition,
-                            physicalSize,
-                            appearance.color);
+                        m_renderSystem->drawUiRect(physicalPosition, physicalSize, appearance.color);
                     }
                     else
                     {
@@ -192,21 +199,145 @@ namespace aiko
 
                         if (textureId != InvalidAssetId)
                         {
-                            m_renderSystem->drawUiImage(
-                                textureId,
-                                image->getTextureRegion(),
-                                physicalPosition,
-                                physicalSize,
-                                appearance.color);
+                            m_renderSystem->drawUiImage(textureId, image->getTextureRegion(), physicalPosition, physicalSize, appearance.color);
                         }
                     }
                 }
             }
         }
 
+        if (HorizontalLayoutComponent* layout = object.getComponent<HorizontalLayoutComponent>())
+        {
+            renderHorizontalLayout(object, resolvedRect, *layout, canvasScale, theme);
+
+            return;
+        }
+
         for (GameObject* child : object.getChildren())
         {
             renderObject(*child, resolvedRect, canvasScale, theme);
+        }
+    }
+
+    void UISystem::renderHorizontalLayout(GameObject& object, const UIRect& resolvedRect, const HorizontalLayoutComponent& layout, float canvasScale, const UITheme& theme)
+    {
+        const vector<GameObject*> children = object.getChildren();
+
+        if (children.empty())
+        {
+            return;
+        }
+
+        const UIPadding& padding = layout.getPadding();
+
+        const float innerWidth = std::max(0.0f, resolvedRect.size.x - padding.left - padding.right);
+
+        const float innerHeight = std::max(0.0f, resolvedRect.size.y - padding.top - padding.bottom);
+
+        const float totalSpacing = layout.getSpacing() * static_cast<float>(children.size() - 1);
+
+        const float availableWidth = std::max(0.0f, innerWidth - totalSpacing);
+
+        float totalMinWidth = 0.0f;
+        float totalPreferredWidth = 0.0f;
+        float totalFlexibleWeight = 0.0f;
+
+        for (GameObject* child : children)
+        {
+            const LayoutElementComponent* element = child->getComponent<LayoutElementComponent>();
+
+            if (element == nullptr)
+            {
+                continue;
+            }
+
+            const float minWidth = element->getMinSize().x;
+            const float preferredWidth = std::max(minWidth, element->getPreferredSize().x);
+
+            totalMinWidth += minWidth;
+            totalPreferredWidth += preferredWidth;
+            totalFlexibleWeight += element->getFlexibleWeight().x;
+        }
+
+        float interpolation = 1.0f;
+        float surplus = 0.0f;
+
+        if (availableWidth < totalPreferredWidth)
+        {
+            const float preferredRange = totalPreferredWidth - totalMinWidth;
+
+            if (preferredRange > 0.0f)
+            {
+                interpolation = std::max(0.0f, std::min( 1.0f, (availableWidth - totalMinWidth) / preferredRange));
+            }
+            else
+            {
+                interpolation = 0.0f;
+            }
+        }
+        else
+        {
+            surplus = availableWidth - totalPreferredWidth;
+        }
+
+        float cursorX = resolvedRect.position.x + padding.left;
+
+        const float contentTop = resolvedRect.position.y + padding.top;
+
+        for (GameObject* child : children)
+        {
+            const LayoutElementComponent* element = child->getComponent<LayoutElementComponent>();
+
+            vec2 minSize = {0.0f, 0.0f};
+            vec2 preferredSize = {0.0f, 0.0f};
+            vec2 flexibleWeight = {0.0f, 0.0f};
+
+            if (element != nullptr)
+            {
+                minSize = element->getMinSize();
+                preferredSize = element->getPreferredSize();
+                flexibleWeight = element->getFlexibleWeight();
+            }
+
+            preferredSize.x = std::max(minSize.x, preferredSize.x);
+
+            preferredSize.y = std::max(minSize.y, preferredSize.y);
+
+            float width = minSize.x + (preferredSize.x - minSize.x) * interpolation;
+
+            if (surplus > 0.0f && totalFlexibleWeight > 0.0f && flexibleWeight.x > 0.0f)
+            {
+                width += surplus * (flexibleWeight.x / totalFlexibleWeight);
+            }
+
+            float height = std::min(innerHeight, std::max(minSize.y, preferredSize.y));
+
+            float positionY = contentTop;
+
+            switch (layout.getChildAlignment())
+            {
+                case UICrossAxisAlignment::Start:
+                    break;
+
+                case UICrossAxisAlignment::Center:
+                    positionY +=
+                        (innerHeight - height) * 0.5f;
+                    break;
+
+                case UICrossAxisAlignment::End:
+                    positionY += innerHeight - height;
+                    break;
+            }
+
+            const UIRect childRect =
+            {
+                .position = {cursorX, positionY},
+                .size = {width, height}
+            };
+
+            renderResolvedObject(*child, childRect, canvasScale, theme);
+
+            cursorX += width + layout.getSpacing();
         }
     }
 

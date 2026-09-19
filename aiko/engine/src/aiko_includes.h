@@ -17,8 +17,11 @@
 #include "components/canvas_component.h"
 #include "components/rect_transform_component.h"
 #include "components/image_component.h"
+#include "components/layout_element_component.h"
+#include "components/horizontal_layout_component.h"
 
 #include "ui/ui_style.h"
+#include "ui/ui_layout.h"
 
 #include "models/shader.h"
 #include "models/mesh.h"

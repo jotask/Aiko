@@ -15,6 +15,7 @@ namespace aiko
     class DisplayModule;
     class RenderSystem;
     class GameObject;
+    class HorizontalLayoutComponent;
 
     class UISystem : public BaseSystem
     {
@@ -40,6 +41,10 @@ namespace aiko
 
         void renderCanvas(CanvasComponent& canvas, const vec2& surfaceSize);
         void renderObject(GameObject& object, const UIRect& parentRect, float canvasScale, const UITheme& theme);
+
+        void renderResolvedObject(GameObject& object, const UIRect& resolvedRect, float canvasScale, const UITheme& theme);
+        void renderHorizontalLayout(GameObject& object, const UIRect& resolvedRect, const HorizontalLayoutComponent& layout, float canvasScale, const UITheme& theme);
+
     };
 
 }

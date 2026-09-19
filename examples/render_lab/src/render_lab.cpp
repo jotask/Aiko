@@ -866,6 +866,110 @@ namespace aiko::lab
         stretchImage->setColor(BLUE);
 
         // --------------------------------------------------
+        // Horizontal layout test
+        //
+        // Validates:
+        // - padding
+        // - spacing
+        // - preferred sizes
+        // - flexible surplus distribution
+        // - cross-axis centering
+        // --------------------------------------------------
+
+        GameObject* layoutPanel =
+            scene().Instantiate(canvasObject, "Horizontal Layout");
+
+        RectTransformComponent* layoutRect =
+            layoutPanel->addComponent<RectTransformComponent>();
+
+        layoutRect->setAnchors(
+            {0.5f, 0.5f},
+            {0.5f, 0.5f});
+
+        layoutRect->setPivot({0.5f, 0.5f});
+        layoutRect->setAnchoredPosition({0.0f, -300.0f});
+        layoutRect->setSizeDelta({800.0f, 100.0f});
+
+        ImageComponent* layoutBackground =
+            layoutPanel->addComponent<ImageComponent>();
+
+        layoutBackground->setColor(GRAY);
+
+        HorizontalLayoutComponent* horizontalLayout =
+            layoutPanel->addComponent<HorizontalLayoutComponent>();
+
+        horizontalLayout->setPadding(
+            {
+                .left = 20.0f,
+                .right = 20.0f,
+                .top = 20.0f,
+                .bottom = 20.0f
+            });
+
+        horizontalLayout->setSpacing(20.0f);
+        horizontalLayout->setChildAlignment(
+            UICrossAxisAlignment::Center);
+
+        // Child A
+        // Preferred 120 wide, never consumes surplus.
+
+        GameObject* layoutChildA =
+            scene().Instantiate(layoutPanel, "Layout Child A");
+
+        layoutChildA->addComponent<RectTransformComponent>();
+
+        ImageComponent* layoutImageA =
+            layoutChildA->addComponent<ImageComponent>();
+
+        layoutImageA->setColor(RED);
+
+        LayoutElementComponent* layoutElementA =
+            layoutChildA->addComponent<LayoutElementComponent>();
+
+        layoutElementA->setMinSize({80.0f, 60.0f});
+        layoutElementA->setPreferredSize({120.0f, 80.0f});
+
+        // Child B
+        // Flexible weight 1.
+
+        GameObject* layoutChildB =
+            scene().Instantiate(layoutPanel, "Layout Child B");
+
+        layoutChildB->addComponent<RectTransformComponent>();
+
+        ImageComponent* layoutImageB =
+            layoutChildB->addComponent<ImageComponent>();
+
+        layoutImageB->setColor(GREEN);
+
+        LayoutElementComponent* layoutElementB =
+            layoutChildB->addComponent<LayoutElementComponent>();
+
+        layoutElementB->setMinSize({100.0f, 80.0f});
+        layoutElementB->setPreferredSize({160.0f, 100.0f});
+        layoutElementB->setFlexibleWeight({1.0f, 0.0f});
+
+        // Child C
+        // Flexible weight 2, so it receives twice B's surplus.
+
+        GameObject* layoutChildC =
+            scene().Instantiate(layoutPanel, "Layout Child C");
+
+        layoutChildC->addComponent<RectTransformComponent>();
+
+        ImageComponent* layoutImageC =
+            layoutChildC->addComponent<ImageComponent>();
+
+        layoutImageC->setColor(BLUE);
+
+        LayoutElementComponent* layoutElementC =
+            layoutChildC->addComponent<LayoutElementComponent>();
+
+        layoutElementC->setMinSize({100.0f, 100.0f});
+        layoutElementC->setPreferredSize({160.0f, 120.0f});
+        layoutElementC->setFlexibleWeight({2.0f, 0.0f});
+
+        // --------------------------------------------------
         // Canvas 1 - sorting test
         //
         // Higher sortingOrder, therefore this must render
