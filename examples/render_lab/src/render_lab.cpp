@@ -111,6 +111,11 @@ namespace aiko::lab
         {
             initRenderTarget();
         }
+
+        if constexpr (EnableUI)
+        {
+            initUI();
+        }
     }
 
     void RenderLab::update()
@@ -780,6 +785,137 @@ namespace aiko::lab
         m_renderTargetMaterial.setTexture("u_texture", &m_validationRenderTarget.colorTexture(), sampler);
     }
 
+    void RenderLab::initUI()
+    {
+       // --------------------------------------------------
+        // Canvas 0 - main retained UI
+        // --------------------------------------------------
+
+        GameObject* canvasObject = scene().Instantiate("UI Test Canvas");
+
+        CanvasComponent* canvas =
+            canvasObject->addComponent<CanvasComponent>();
+
+        canvas->setScaleMode(CanvasScaleMode::ScaleWithScreenSize);
+        canvas->setReferenceResolution({1920.0f, 1080.0f});
+        canvas->setMatchWidthOrHeight(0.5f);
+        canvas->setSortingOrder(0);
+
+        // --------------------------------------------------
+        // Center panel
+        //
+        // Fixed-size centered RectTransform.
+        // --------------------------------------------------
+
+        GameObject* centerPanel =
+            scene().Instantiate(canvasObject, "Center Panel");
+
+        RectTransformComponent* centerRect =
+            centerPanel->addComponent<RectTransformComponent>();
+
+        centerRect->setAnchors(
+            {0.5f, 0.5f},
+            {0.5f, 0.5f});
+
+        centerRect->setPivot({0.5f, 0.5f});
+        centerRect->setAnchoredPosition({0.0f, 0.0f});
+        centerRect->setSizeDelta({500.0f, 300.0f});
+
+        ImageComponent* centerImage =
+            centerPanel->addComponent<ImageComponent>();
+
+        centerImage->setColor(RED);
+
+        // --------------------------------------------------
+        // Nested child
+        //
+        // Stretches inside the red parent with a logical
+        // 50-unit inset on every side.
+        // --------------------------------------------------
+
+        GameObject* nestedPanel =
+            scene().Instantiate(centerPanel, "Nested Panel");
+
+        RectTransformComponent* nestedRect =
+            nestedPanel->addComponent<RectTransformComponent>();
+
+        nestedRect->setAnchors(
+            {0.0f, 0.0f},
+            {1.0f, 1.0f});
+
+        nestedRect->setPivot({0.5f, 0.5f});
+        nestedRect->setAnchoredPosition({0.0f, 0.0f});
+        nestedRect->setSizeDelta({-100.0f, -100.0f});
+
+        ImageComponent* nestedImage =
+            nestedPanel->addComponent<ImageComponent>();
+
+        nestedImage->setColor(GREEN);
+
+        // --------------------------------------------------
+        // Stretch test
+        //
+        // Anchored to the bottom area of the entire Canvas.
+        // 100 logical-unit horizontal margins.
+        // --------------------------------------------------
+
+        GameObject* stretchPanel =
+            scene().Instantiate(canvasObject, "Stretch Panel");
+
+        RectTransformComponent* stretchRect =
+            stretchPanel->addComponent<RectTransformComponent>();
+
+        stretchRect->setAnchors(
+            {0.0f, 1.0f},
+            {1.0f, 1.0f});
+
+        stretchRect->setPivot({0.5f, 1.0f});
+        stretchRect->setAnchoredPosition({0.0f, -50.0f});
+        stretchRect->setSizeDelta({-200.0f, 100.0f});
+
+        ImageComponent* stretchImage =
+            stretchPanel->addComponent<ImageComponent>();
+
+        stretchImage->setColor(BLUE);
+
+        // --------------------------------------------------
+        // Canvas 1 - sorting test
+        //
+        // Higher sortingOrder, therefore this must render
+        // over the main Canvas where they overlap.
+        // --------------------------------------------------
+
+        GameObject* overlayCanvasObject =
+            scene().Instantiate("UI Test Overlay Canvas");
+
+        CanvasComponent* overlayCanvas =
+            overlayCanvasObject->addComponent<CanvasComponent>();
+
+        overlayCanvas->setScaleMode(CanvasScaleMode::ScaleWithScreenSize);
+        overlayCanvas->setReferenceResolution({1920.0f, 1080.0f});
+        overlayCanvas->setMatchWidthOrHeight(0.5f);
+        overlayCanvas->setSortingOrder(100);
+
+        GameObject* overlayPanel =
+            scene().Instantiate(overlayCanvasObject, "Overlay Panel");
+
+        RectTransformComponent* overlayRect =
+            overlayPanel->addComponent<RectTransformComponent>();
+
+        overlayRect->setAnchors(
+            {0.5f, 0.5f},
+            {0.5f, 0.5f});
+
+        overlayRect->setPivot({0.5f, 0.5f});
+        overlayRect->setAnchoredPosition({180.0f, 100.0f});
+        overlayRect->setSizeDelta({180.0f, 180.0f});
+
+        ImageComponent* overlayImage =
+            overlayPanel->addComponent<ImageComponent>();
+
+        overlayImage->setColor(YELLOW);
+    }
+
     // --------------------------------------------------
     // Updates
     // --------------------------------------------------
@@ -1207,102 +1343,26 @@ namespace aiko::lab
 
     void RenderLab::renderUI()
     {
-        // --------------------------------------------------
-        // Unclipped background/reference
-        // --------------------------------------------------
+        // Immediate UIContext test.
+        //
+        // UISystem has already submitted the retained UI by the
+        // time Application::render() reaches here, so these should
+        // appear above the retained UI.
 
         ui().rect(
-            {50.0f, 50.0f},
-            {700.0f, 500.0f},
-            Color{40, 40, 40, 255});
-
-        // --------------------------------------------------
-        // Parent clip
-        //
-        // Red is 300x300, but only the 220x220 parent area
-        // should be visible.
-        // --------------------------------------------------
-
-        ui().pushClipRect(
-            {150.0f, 120.0f},
-            {220.0f, 220.0f});
-
-        ui().rect(
-            {100.0f, 70.0f},
-            {320.0f, 320.0f},
-            RED);
-
-        // --------------------------------------------------
-        // Nested clip
-        //
-        // Requested child:
-        //   x = 250..450
-        //   y = 200..400
-        //
-        // Parent:
-        //   x = 150..370
-        //   y = 120..340
-        //
-        // Effective child:
-        //   x = 250..370
-        //   y = 200..340
-        //
-        // Therefore blue should only appear in that
-        // 120x140 intersection.
-        // --------------------------------------------------
-
-        ui().pushClipRect(
-            {250.0f, 200.0f},
-            {200.0f, 200.0f});
-
-        ui().rect(
-            {200.0f, 150.0f},
-            {300.0f, 300.0f},
-            BLUE);
-
-        ui().popClipRect();
-
-        // --------------------------------------------------
-        // Parent restoration
-        //
-        // Green should be clipped by the parent only,
-        // proving popClipRect restored the parent clip.
-        // --------------------------------------------------
-
-        ui().rect(
-            {120.0f, 280.0f},
-            {300.0f, 100.0f},
-            GREEN);
-
-        ui().popClipRect();
-
-        // --------------------------------------------------
-        // No-clip restoration
-        //
-        // This must render completely. If it gets clipped,
-        // Vulkan scissor state leaked from the previous draw.
-        // --------------------------------------------------
-
-        ui().rect(
-            {430.0f, 120.0f},
-            {180.0f, 100.0f},
-            YELLOW);
-
-        // --------------------------------------------------
-        // Render-surface clipping
-        //
-        // Part of this rectangle intentionally lies outside
-        // the top-left of the window.
-        // --------------------------------------------------
-
-        ui().pushClipRect(
-            {-50.0f, -40.0f},
-            {180.0f, 160.0f});
-
-        ui().rect(
-            {-100.0f, -100.0f},
-            {300.0f, 300.0f},
+            {20.0f, 20.0f},
+            {200.0f, 60.0f},
             MAGENTA);
+
+        // Clipping test for the immediate frontend.
+        ui().pushClipRect(
+            {20.0f, 100.0f},
+            {200.0f, 100.0f});
+
+        ui().rect(
+            {-30.0f, 120.0f},
+            {300.0f, 60.0f},
+            CYAN);
 
         ui().popClipRect();
     }

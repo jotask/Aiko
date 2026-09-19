@@ -14,6 +14,9 @@
 #include "components/mesh_component.h"
 #include "components/light_component.h"
 #include "components/sprite_component.h"
+#include "components/canvas_component.h"
+#include "components/rect_transform_component.h"
+#include "components/image_component.h"
 
 #include "models/shader.h"
 #include "models/mesh.h"

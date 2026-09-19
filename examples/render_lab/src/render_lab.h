@@ -57,6 +57,7 @@ namespace aiko::lab
         void initCompute();
         void initGpuVertices();
         void initRenderTarget();
+        void initUI();
 
         // --------------------------------------------------
         // Update

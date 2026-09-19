@@ -57,6 +57,12 @@ namespace aiko
         Transform& transform();
         const Transform& transform() const;
 
+        GameObject* getParent();
+        const GameObject* getParent() const;
+
+        vector<GameObject*> getChildren();
+        vector<const GameObject*> getChildren() const;
+
         const uuid::Uuid& uuid() const { return m_uuid; }
 
     private:

@@ -1,5 +1,7 @@
 #include "game_object.h"
 
+#include <utility>
+
 #include "components/transform_component.h"
 #include "scene/scene.h"
 
@@ -19,6 +21,100 @@ namespace aiko
     const Transform& GameObject::transform() const
     {
         return getComponent<TransformComponent>()->transform;
+    }
+
+    GameObject* GameObject::getParent()
+    {
+        Transform* parent = transform().getParent();
+
+        if (parent == nullptr || m_scene == nullptr)
+        {
+            return nullptr;
+        }
+
+        for (GameObject* object : m_scene->getObjects())
+        {
+            if (&object->transform() == parent)
+            {
+                return object;
+            }
+        }
+
+        return nullptr;
+    }
+
+    const GameObject* GameObject::getParent() const
+    {
+        const Transform* parent = transform().getParent();
+
+        if (parent == nullptr || m_scene == nullptr)
+        {
+            return nullptr;
+        }
+
+        for (const GameObject* object : std::as_const(*m_scene).getObjects())
+        {
+            if (&object->transform() == parent)
+            {
+                return object;
+            }
+        }
+
+        return nullptr;
+    }
+
+    vector<GameObject*> GameObject::getChildren()
+    {
+        vector<GameObject*> result;
+
+        if (m_scene == nullptr)
+        {
+            return result;
+        }
+
+        const vector<Transform*>& children = transform().getChildren();
+        result.reserve(children.size());
+
+        for (Transform* child : children)
+        {
+            for (GameObject* object : m_scene->getObjects())
+            {
+                if (&object->transform() == child)
+                {
+                    result.push_back(object);
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    vector<const GameObject*> GameObject::getChildren() const
+    {
+        vector<const GameObject*> result;
+
+        if (m_scene == nullptr)
+        {
+            return result;
+        }
+
+        const vector<Transform*>& children = transform().getChildren();
+        result.reserve(children.size());
+
+        for (const Transform* child : children)
+        {
+            for (const GameObject* object : std::as_const(*m_scene).getObjects())
+            {
+                if (&object->transform() == child)
+                {
+                    result.push_back(object);
+                    break;
+                }
+            }
+        }
+
+        return result;
     }
 
     vector<Component*> GameObject::getComponents()
