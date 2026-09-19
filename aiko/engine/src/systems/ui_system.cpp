@@ -15,6 +15,7 @@
 #include "models/game_object.h"
 #include "scene/scene.h"
 #include "components/horizontal_layout_component.h"
+#include "components/vertical_layout_component.h"
 #include "components/layout_element_component.h"
 
 namespace aiko
@@ -208,7 +209,30 @@ namespace aiko
 
         if (HorizontalLayoutComponent* layout = object.getComponent<HorizontalLayoutComponent>())
         {
-            renderHorizontalLayout(object, resolvedRect, *layout, canvasScale, theme);
+            renderLinearLayout(
+                object,
+                resolvedRect,
+                layout->getPadding(),
+                layout->getSpacing(),
+                layout->getChildAlignment(),
+                LayoutAxis::Horizontal,
+                canvasScale,
+                theme);
+
+            return;
+        }
+
+        if (VerticalLayoutComponent* layout = object.getComponent<VerticalLayoutComponent>())
+        {
+            renderLinearLayout(
+                object,
+                resolvedRect,
+                layout->getPadding(),
+                layout->getSpacing(),
+                layout->getChildAlignment(),
+                LayoutAxis::Vertical,
+                canvasScale,
+                theme);
 
             return;
         }
@@ -219,7 +243,7 @@ namespace aiko
         }
     }
 
-    void UISystem::renderHorizontalLayout(GameObject& object, const UIRect& resolvedRect, const HorizontalLayoutComponent& layout, float canvasScale, const UITheme& theme)
+    void UISystem::renderLinearLayout(GameObject& object, const UIRect& resolvedRect, const UIPadding& padding, float spacing, UICrossAxisAlignment childAlignment, LayoutAxis axis, float canvasScale, const UITheme& theme)
     {
         const vector<GameObject*> children = object.getChildren();
 
@@ -228,47 +252,91 @@ namespace aiko
             return;
         }
 
-        const UIPadding& padding = layout.getPadding();
+        const bool horizontal = axis == LayoutAxis::Horizontal;
 
-        const float innerWidth = std::max(0.0f, resolvedRect.size.x - padding.left - padding.right);
+        const float mainStartPadding =
+            horizontal ? padding.left : padding.top;
 
-        const float innerHeight = std::max(0.0f, resolvedRect.size.y - padding.top - padding.bottom);
+        const float mainEndPadding =
+            horizontal ? padding.right : padding.bottom;
 
-        const float totalSpacing = layout.getSpacing() * static_cast<float>(children.size() - 1);
+        const float crossStartPadding =
+            horizontal ? padding.top : padding.left;
 
-        const float availableWidth = std::max(0.0f, innerWidth - totalSpacing);
+        const float crossEndPadding =
+            horizontal ? padding.bottom : padding.right;
 
-        float totalMinWidth = 0.0f;
-        float totalPreferredWidth = 0.0f;
+        const float resolvedMainSize =
+            horizontal ? resolvedRect.size.x : resolvedRect.size.y;
+
+        const float resolvedCrossSize =
+            horizontal ? resolvedRect.size.y : resolvedRect.size.x;
+
+        const float innerMainSize =
+            std::max(
+                0.0f,
+                resolvedMainSize - mainStartPadding - mainEndPadding);
+
+        const float innerCrossSize =
+            std::max(
+                0.0f,
+                resolvedCrossSize - crossStartPadding - crossEndPadding);
+
+        const float totalSpacing =
+            spacing * static_cast<float>(children.size() - 1);
+
+        const float availableMainSize =
+            std::max(0.0f, innerMainSize - totalSpacing);
+
+        float totalMinMainSize = 0.0f;
+        float totalPreferredMainSize = 0.0f;
         float totalFlexibleWeight = 0.0f;
 
         for (GameObject* child : children)
         {
-            const LayoutElementComponent* element = child->getComponent<LayoutElementComponent>();
+            const LayoutElementComponent* element =
+                child->getComponent<LayoutElementComponent>();
 
             if (element == nullptr)
             {
                 continue;
             }
 
-            const float minWidth = element->getMinSize().x;
-            const float preferredWidth = std::max(minWidth, element->getPreferredSize().x);
+            const vec2& minSize = element->getMinSize();
+            const vec2& preferredSize = element->getPreferredSize();
+            const vec2& flexibleWeight = element->getFlexibleWeight();
 
-            totalMinWidth += minWidth;
-            totalPreferredWidth += preferredWidth;
-            totalFlexibleWeight += element->getFlexibleWeight().x;
+            const float minMainSize =
+                horizontal ? minSize.x : minSize.y;
+
+            const float preferredMainSize =
+                std::max(
+                    minMainSize,
+                    horizontal ? preferredSize.x : preferredSize.y);
+
+            const float flexibleMainWeight =
+                horizontal ? flexibleWeight.x : flexibleWeight.y;
+
+            totalMinMainSize += minMainSize;
+            totalPreferredMainSize += preferredMainSize;
+            totalFlexibleWeight += flexibleMainWeight;
         }
 
         float interpolation = 1.0f;
         float surplus = 0.0f;
 
-        if (availableWidth < totalPreferredWidth)
+        if (availableMainSize < totalPreferredMainSize)
         {
-            const float preferredRange = totalPreferredWidth - totalMinWidth;
+            const float preferredRange =
+                totalPreferredMainSize - totalMinMainSize;
 
             if (preferredRange > 0.0f)
             {
-                interpolation = std::max(0.0f, std::min( 1.0f, (availableWidth - totalMinWidth) / preferredRange));
+                interpolation = std::clamp(
+                    (availableMainSize - totalMinMainSize) /
+                        preferredRange,
+                    0.0f,
+                    1.0f);
             }
             else
             {
@@ -277,16 +345,26 @@ namespace aiko
         }
         else
         {
-            surplus = availableWidth - totalPreferredWidth;
+            surplus =
+                availableMainSize - totalPreferredMainSize;
         }
 
-        float cursorX = resolvedRect.position.x + padding.left;
+        float cursor =
+            (horizontal
+                ? resolvedRect.position.x
+                : resolvedRect.position.y) +
+            mainStartPadding;
 
-        const float contentTop = resolvedRect.position.y + padding.top;
+        const float crossStart =
+            (horizontal
+                ? resolvedRect.position.y
+                : resolvedRect.position.x) +
+            crossStartPadding;
 
         for (GameObject* child : children)
         {
-            const LayoutElementComponent* element = child->getComponent<LayoutElementComponent>();
+            const LayoutElementComponent* element =
+                child->getComponent<LayoutElementComponent>();
 
             vec2 minSize = {0.0f, 0.0f};
             vec2 preferredSize = {0.0f, 0.0f};
@@ -299,45 +377,85 @@ namespace aiko
                 flexibleWeight = element->getFlexibleWeight();
             }
 
-            preferredSize.x = std::max(minSize.x, preferredSize.x);
+            const float minMainSize =
+                horizontal ? minSize.x : minSize.y;
 
-            preferredSize.y = std::max(minSize.y, preferredSize.y);
+            const float preferredMainSize =
+                std::max(
+                    minMainSize,
+                    horizontal ? preferredSize.x : preferredSize.y);
 
-            float width = minSize.x + (preferredSize.x - minSize.x) * interpolation;
+            const float flexibleMainWeight =
+                horizontal ? flexibleWeight.x : flexibleWeight.y;
 
-            if (surplus > 0.0f && totalFlexibleWeight > 0.0f && flexibleWeight.x > 0.0f)
+            float allocatedMainSize =
+                minMainSize +
+                (preferredMainSize - minMainSize) * interpolation;
+
+            if (surplus > 0.0f &&
+                totalFlexibleWeight > 0.0f &&
+                flexibleMainWeight > 0.0f)
             {
-                width += surplus * (flexibleWeight.x / totalFlexibleWeight);
+                allocatedMainSize +=
+                    surplus *
+                    (flexibleMainWeight / totalFlexibleWeight);
             }
 
-            float height = std::min(innerHeight, std::max(minSize.y, preferredSize.y));
+            const float minCrossSize =
+                horizontal ? minSize.y : minSize.x;
 
-            float positionY = contentTop;
+            const float preferredCrossSize =
+                std::max(
+                    minCrossSize,
+                    horizontal ? preferredSize.y : preferredSize.x);
 
-            switch (layout.getChildAlignment())
+            const float allocatedCrossSize =
+                std::min(innerCrossSize, preferredCrossSize);
+
+            float crossPosition = crossStart;
+
+            switch (childAlignment)
             {
                 case UICrossAxisAlignment::Start:
                     break;
 
                 case UICrossAxisAlignment::Center:
-                    positionY +=
-                        (innerHeight - height) * 0.5f;
+                    crossPosition +=
+                        (innerCrossSize - allocatedCrossSize) * 0.5f;
                     break;
 
                 case UICrossAxisAlignment::End:
-                    positionY += innerHeight - height;
+                    crossPosition +=
+                        innerCrossSize - allocatedCrossSize;
                     break;
             }
 
-            const UIRect childRect =
+            UIRect childRect;
+
+            if (horizontal)
             {
-                .position = {cursorX, positionY},
-                .size = {width, height}
-            };
+                childRect =
+                {
+                    .position = {cursor, crossPosition},
+                    .size = {allocatedMainSize, allocatedCrossSize}
+                };
+            }
+            else
+            {
+                childRect =
+                {
+                    .position = {crossPosition, cursor},
+                    .size = {allocatedCrossSize, allocatedMainSize}
+                };
+            }
 
-            renderResolvedObject(*child, childRect, canvasScale, theme);
+            renderResolvedObject(
+                *child,
+                childRect,
+                canvasScale,
+                theme);
 
-            cursorX += width + layout.getSpacing();
+            cursor += allocatedMainSize + spacing;
         }
     }
 

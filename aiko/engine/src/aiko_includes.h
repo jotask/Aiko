@@ -19,6 +19,7 @@
 #include "components/image_component.h"
 #include "components/layout_element_component.h"
 #include "components/horizontal_layout_component.h"
+#include "components/vertical_layout_component.h"
 
 #include "ui/ui_style.h"
 #include "ui/ui_layout.h"

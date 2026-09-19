@@ -5,6 +5,7 @@
 #include "systems/base_system.h"
 #include "ui/ui_types.h"
 #include "ui/ui_style.h"
+#include "ui/ui_layout.h"
 
 namespace aiko
 {
@@ -15,10 +16,15 @@ namespace aiko
     class DisplayModule;
     class RenderSystem;
     class GameObject;
-    class HorizontalLayoutComponent;
 
     class UISystem : public BaseSystem
     {
+    private:
+        enum class LayoutAxis
+        {
+            Horizontal,
+            Vertical
+        };
     public:
 
         UISystem();
@@ -43,8 +49,7 @@ namespace aiko
         void renderObject(GameObject& object, const UIRect& parentRect, float canvasScale, const UITheme& theme);
 
         void renderResolvedObject(GameObject& object, const UIRect& resolvedRect, float canvasScale, const UITheme& theme);
-        void renderHorizontalLayout(GameObject& object, const UIRect& resolvedRect, const HorizontalLayoutComponent& layout, float canvasScale, const UITheme& theme);
-
+        void renderLinearLayout(GameObject& object, const UIRect& resolvedRect, const UIPadding& padding, float spacing, UICrossAxisAlignment childAlignment, LayoutAxis axis, float canvasScale, const UITheme& theme);
     };
 
 }

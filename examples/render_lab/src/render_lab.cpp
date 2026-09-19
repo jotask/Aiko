@@ -970,6 +970,295 @@ namespace aiko::lab
         layoutElementC->setFlexibleWeight({2.0f, 0.0f});
 
         // --------------------------------------------------
+        // Vertical layout test
+        //
+        // Validates:
+        // - vertical main-axis allocation
+        // - preferred heights
+        // - flexible Y surplus distribution
+        // - horizontal cross-axis centering
+        // --------------------------------------------------
+
+        GameObject* verticalPanel =
+            scene().Instantiate(canvasObject, "Vertical Layout");
+
+        RectTransformComponent* verticalRect =
+            verticalPanel->addComponent<RectTransformComponent>();
+
+        verticalRect->setAnchors(
+            {0.0f, 0.5f},
+            {0.0f, 0.5f});
+
+        verticalRect->setPivot({0.0f, 0.5f});
+        verticalRect->setAnchoredPosition({80.0f, 0.0f});
+        verticalRect->setSizeDelta({320.0f, 500.0f});
+
+        ImageComponent* verticalBackground =
+            verticalPanel->addComponent<ImageComponent>();
+
+        verticalBackground->setColor(GRAY);
+
+        VerticalLayoutComponent* verticalLayout =
+            verticalPanel->addComponent<VerticalLayoutComponent>();
+
+        verticalLayout->setPadding(
+            {
+                .left = 20.0f,
+                .right = 20.0f,
+                .top = 20.0f,
+                .bottom = 20.0f
+            });
+
+        verticalLayout->setSpacing(20.0f);
+        verticalLayout->setChildAlignment(
+            UICrossAxisAlignment::Center);
+
+        // Child A
+        // Fixed at preferred height once enough space exists.
+
+        GameObject* verticalChildA =
+            scene().Instantiate(verticalPanel, "Vertical Child A");
+
+        verticalChildA->addComponent<RectTransformComponent>();
+
+        ImageComponent* verticalImageA =
+            verticalChildA->addComponent<ImageComponent>();
+
+        verticalImageA->setColor(RED);
+
+        LayoutElementComponent* verticalElementA =
+            verticalChildA->addComponent<LayoutElementComponent>();
+
+        verticalElementA->setMinSize({120.0f, 60.0f});
+        verticalElementA->setPreferredSize({180.0f, 80.0f});
+
+        // Child B
+        // Flexible Y weight 1.
+
+        GameObject* verticalChildB =
+            scene().Instantiate(verticalPanel, "Vertical Child B");
+
+        verticalChildB->addComponent<RectTransformComponent>();
+
+        ImageComponent* verticalImageB =
+            verticalChildB->addComponent<ImageComponent>();
+
+        verticalImageB->setColor(GREEN);
+
+        LayoutElementComponent* verticalElementB =
+            verticalChildB->addComponent<LayoutElementComponent>();
+
+        verticalElementB->setMinSize({160.0f, 80.0f});
+        verticalElementB->setPreferredSize({220.0f, 100.0f});
+        verticalElementB->setFlexibleWeight({0.0f, 1.0f});
+
+        // Child C
+        // Flexible Y weight 2, so it receives twice B's
+        // share of vertical surplus.
+
+        GameObject* verticalChildC =
+            scene().Instantiate(verticalPanel, "Vertical Child C");
+
+        verticalChildC->addComponent<RectTransformComponent>();
+
+        ImageComponent* verticalImageC =
+            verticalChildC->addComponent<ImageComponent>();
+
+        verticalImageC->setColor(BLUE);
+
+        LayoutElementComponent* verticalElementC =
+            verticalChildC->addComponent<LayoutElementComponent>();
+
+        verticalElementC->setMinSize({200.0f, 80.0f});
+        verticalElementC->setPreferredSize({260.0f, 100.0f});
+        verticalElementC->setFlexibleWeight({0.0f, 2.0f});
+
+        // --------------------------------------------------
+        // Nested layout test
+        //
+        // Vertical layout controls two row containers.
+        // Each row then performs its own horizontal layout
+        // using the effective rect assigned by the parent.
+        //
+        // Validates:
+        // Vertical -> effective UIRect -> Horizontal.
+        // --------------------------------------------------
+
+        GameObject* nestedLayoutPanel =
+            scene().Instantiate(canvasObject, "Nested Layout");
+
+        RectTransformComponent* nestedLayoutRect =
+            nestedLayoutPanel->addComponent<RectTransformComponent>();
+
+        nestedLayoutRect->setAnchors(
+            {1.0f, 0.5f},
+            {1.0f, 0.5f});
+
+        nestedLayoutRect->setPivot({1.0f, 0.5f});
+        nestedLayoutRect->setAnchoredPosition({-80.0f, 0.0f});
+        nestedLayoutRect->setSizeDelta({500.0f, 400.0f});
+
+        ImageComponent* nestedLayoutBackground =
+            nestedLayoutPanel->addComponent<ImageComponent>();
+
+        nestedLayoutBackground->setColor(GRAY);
+
+        VerticalLayoutComponent* nestedVerticalLayout =
+            nestedLayoutPanel->addComponent<VerticalLayoutComponent>();
+
+        nestedVerticalLayout->setPadding(
+            {
+                .left = 20.0f,
+                .right = 20.0f,
+                .top = 20.0f,
+                .bottom = 20.0f
+            });
+
+        nestedVerticalLayout->setSpacing(20.0f);
+        nestedVerticalLayout->setChildAlignment(
+            UICrossAxisAlignment::Center);
+
+        // --------------------------------------------------
+        // Nested row A
+        // --------------------------------------------------
+
+        GameObject* nestedRowA =
+            scene().Instantiate(nestedLayoutPanel, "Nested Row A");
+
+        nestedRowA->addComponent<RectTransformComponent>();
+
+        ImageComponent* nestedRowAImage =
+            nestedRowA->addComponent<ImageComponent>();
+
+        nestedRowAImage->setColor(WHITE);
+
+        LayoutElementComponent* nestedRowAElement =
+            nestedRowA->addComponent<LayoutElementComponent>();
+
+        nestedRowAElement->setMinSize({300.0f, 100.0f});
+        nestedRowAElement->setPreferredSize({420.0f, 120.0f});
+        nestedRowAElement->setFlexibleWeight({0.0f, 1.0f});
+
+        HorizontalLayoutComponent* nestedRowALayout =
+            nestedRowA->addComponent<HorizontalLayoutComponent>();
+
+        nestedRowALayout->setPadding(
+            {
+                .left = 10.0f,
+                .right = 10.0f,
+                .top = 10.0f,
+                .bottom = 10.0f
+            });
+
+        nestedRowALayout->setSpacing(10.0f);
+        nestedRowALayout->setChildAlignment(
+            UICrossAxisAlignment::Center);
+
+        GameObject* nestedRowAChildA =
+            scene().Instantiate(nestedRowA, "Nested Row A Child A");
+
+        nestedRowAChildA->addComponent<RectTransformComponent>();
+
+        ImageComponent* nestedRowAImageA =
+            nestedRowAChildA->addComponent<ImageComponent>();
+
+        nestedRowAImageA->setColor(RED);
+
+        LayoutElementComponent* nestedRowAElementA =
+            nestedRowAChildA->addComponent<LayoutElementComponent>();
+
+        nestedRowAElementA->setMinSize({80.0f, 50.0f});
+        nestedRowAElementA->setPreferredSize({100.0f, 70.0f});
+        nestedRowAElementA->setFlexibleWeight({1.0f, 0.0f});
+
+        GameObject* nestedRowAChildB =
+            scene().Instantiate(nestedRowA, "Nested Row A Child B");
+
+        nestedRowAChildB->addComponent<RectTransformComponent>();
+
+        ImageComponent* nestedRowAImageB =
+            nestedRowAChildB->addComponent<ImageComponent>();
+
+        nestedRowAImageB->setColor(GREEN);
+
+        LayoutElementComponent* nestedRowAElementB =
+            nestedRowAChildB->addComponent<LayoutElementComponent>();
+
+        nestedRowAElementB->setMinSize({80.0f, 50.0f});
+        nestedRowAElementB->setPreferredSize({100.0f, 70.0f});
+        nestedRowAElementB->setFlexibleWeight({2.0f, 0.0f});
+
+        // --------------------------------------------------
+        // Nested row B
+        // --------------------------------------------------
+
+        GameObject* nestedRowB =
+            scene().Instantiate(nestedLayoutPanel, "Nested Row B");
+
+        nestedRowB->addComponent<RectTransformComponent>();
+
+        ImageComponent* nestedRowBImage =
+            nestedRowB->addComponent<ImageComponent>();
+
+        nestedRowBImage->setColor(WHITE);
+
+        LayoutElementComponent* nestedRowBElement =
+            nestedRowB->addComponent<LayoutElementComponent>();
+
+        nestedRowBElement->setMinSize({300.0f, 100.0f});
+        nestedRowBElement->setPreferredSize({420.0f, 120.0f});
+        nestedRowBElement->setFlexibleWeight({0.0f, 2.0f});
+
+        HorizontalLayoutComponent* nestedRowBLayout =
+            nestedRowB->addComponent<HorizontalLayoutComponent>();
+
+        nestedRowBLayout->setPadding(
+            {
+                .left = 10.0f,
+                .right = 10.0f,
+                .top = 10.0f,
+                .bottom = 10.0f
+            });
+
+        nestedRowBLayout->setSpacing(10.0f);
+        nestedRowBLayout->setChildAlignment(
+            UICrossAxisAlignment::Center);
+
+        GameObject* nestedRowBChildA =
+            scene().Instantiate(nestedRowB, "Nested Row B Child A");
+
+        nestedRowBChildA->addComponent<RectTransformComponent>();
+
+        ImageComponent* nestedRowBImageA =
+            nestedRowBChildA->addComponent<ImageComponent>();
+
+        nestedRowBImageA->setColor(BLUE);
+
+        LayoutElementComponent* nestedRowBElementA =
+            nestedRowBChildA->addComponent<LayoutElementComponent>();
+
+        nestedRowBElementA->setMinSize({80.0f, 50.0f});
+        nestedRowBElementA->setPreferredSize({120.0f, 70.0f});
+        nestedRowBElementA->setFlexibleWeight({1.0f, 0.0f});
+
+        GameObject* nestedRowBChildB =
+            scene().Instantiate(nestedRowB, "Nested Row B Child B");
+
+        nestedRowBChildB->addComponent<RectTransformComponent>();
+
+        ImageComponent* nestedRowBImageB =
+            nestedRowBChildB->addComponent<ImageComponent>();
+
+        nestedRowBImageB->setColor(MAGENTA);
+
+        LayoutElementComponent* nestedRowBElementB =
+            nestedRowBChildB->addComponent<LayoutElementComponent>();
+
+        nestedRowBElementB->setMinSize({80.0f, 50.0f});
+        nestedRowBElementB->setPreferredSize({120.0f, 70.0f});
+        nestedRowBElementB->setFlexibleWeight({1.0f, 0.0f});
+
+        // --------------------------------------------------
         // Canvas 1 - sorting test
         //
         // Higher sortingOrder, therefore this must render
