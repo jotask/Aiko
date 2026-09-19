@@ -18,6 +18,8 @@
 #include "components/rect_transform_component.h"
 #include "components/image_component.h"
 
+#include "ui/ui_style.h"
+
 #include "models/shader.h"
 #include "models/mesh.h"
 #include "models/camera.h"

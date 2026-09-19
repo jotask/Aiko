@@ -130,13 +130,15 @@ namespace aiko
             .size = surfaceSize / scale
         };
 
+        const UITheme& theme = canvas.getTheme();
+
         for (GameObject* child : canvasObject->getChildren())
         {
-            renderObject(*child, canvasRect, scale);
+            renderObject(*child, canvasRect, scale, theme);
         }
     }
 
-    void UISystem::renderObject(GameObject& object, const UIRect& parentRect, float canvasScale)
+    void UISystem::renderObject(GameObject& object, const UIRect& parentRect, float canvasScale, const UITheme& theme)
     {
         if (object.hasComponent<CanvasComponent>())
         {
@@ -149,6 +151,7 @@ namespace aiko
 
         if (rectTransform != nullptr)
         {
+
             resolvedRect = resolveRect(*rectTransform, parentRect);
 
             if (resolvedRect.size.x < 0.0f || resolvedRect.size.y < 0.0f)
@@ -163,6 +166,14 @@ namespace aiko
 
             if (rectTransform != nullptr)
             {
+
+                UIImageAppearance appearance = theme.image.appearance;
+
+                if (image->hasColorOverride())
+                {
+                    appearance.color = image->getColorOverride();
+                }
+
                 const vec2 physicalPosition = resolvedRect.position * canvasScale;
                 const vec2 physicalSize = resolvedRect.size * canvasScale;
 
@@ -173,7 +184,7 @@ namespace aiko
                         m_renderSystem->drawUiRect(
                             physicalPosition,
                             physicalSize,
-                            image->getColor());
+                            appearance.color);
                     }
                     else
                     {
@@ -186,7 +197,7 @@ namespace aiko
                                 image->getTextureRegion(),
                                 physicalPosition,
                                 physicalSize,
-                                image->getColor());
+                                appearance.color);
                         }
                     }
                 }
@@ -195,7 +206,7 @@ namespace aiko
 
         for (GameObject* child : object.getChildren())
         {
-            renderObject(*child, resolvedRect, canvasScale);
+            renderObject(*child, resolvedRect, canvasScale, theme);
         }
     }
 

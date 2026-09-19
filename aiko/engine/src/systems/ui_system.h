@@ -4,6 +4,7 @@
 
 #include "systems/base_system.h"
 #include "ui/ui_types.h"
+#include "ui/ui_style.h"
 
 namespace aiko
 {
@@ -38,7 +39,7 @@ namespace aiko
         SceneSystem* m_sceneSystem = nullptr;
 
         void renderCanvas(CanvasComponent& canvas, const vec2& surfaceSize);
-        void renderObject(GameObject& object, const UIRect& parentRect, float canvasScale);
+        void renderObject(GameObject& object, const UIRect& parentRect, float canvasScale, const UITheme& theme);
     };
 
 }

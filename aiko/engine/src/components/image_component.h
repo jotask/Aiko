@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "assets/asset_binding.h"
 #include "assets/asset_reference.h"
 #include "assets/types/texture_asset.h"
@@ -35,12 +37,23 @@ namespace aiko
 
         void setColor(Color color)
         {
-            m_color = color;
+            m_colorOverride = color;
         }
 
-        Color getColor() const
+        void clearColorOverride()
         {
-            return m_color;
+            m_colorOverride.reset();
+        }
+
+        bool hasColorOverride() const
+        {
+            return m_colorOverride.has_value();
+        }
+
+        Color getColorOverride() const
+        {
+            AIKO_ASSERT(m_colorOverride.has_value(), "ImageComponent has no color override");
+            return *m_colorOverride;
         }
 
     private:
@@ -51,7 +64,7 @@ namespace aiko
 
         TextureRegion m_textureRegion = TextureRegion::full();
 
-        Color m_color = WHITE;
+        std::optional<Color> m_colorOverride;
     };
 
 }

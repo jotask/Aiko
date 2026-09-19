@@ -800,6 +800,8 @@ namespace aiko::lab
         canvas->setMatchWidthOrHeight(0.5f);
         canvas->setSortingOrder(0);
 
+        canvas->getTheme().image.appearance.color = MAGENTA;
+
         // --------------------------------------------------
         // Center panel
         //
@@ -819,6 +821,7 @@ namespace aiko::lab
         ImageComponent* centerImage = centerPanel->addComponent<ImageComponent>();
 
         centerImage->setColor(RED);
+        centerImage->clearColorOverride();
 
         // --------------------------------------------------
         // Nested child

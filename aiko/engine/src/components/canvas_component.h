@@ -3,6 +3,7 @@
 #include <aiko_types.h>
 #include <math/math.h>
 
+#include "ui/ui_style.h"
 #include "models/component.h"
 
 namespace aiko
@@ -78,6 +79,21 @@ namespace aiko
             return m_sortingOrder;
         }
 
+        void setTheme(const UITheme& theme)
+        {
+            m_theme = theme;
+        }
+
+        UITheme& getTheme()
+        {
+            return m_theme;
+        }
+
+        const UITheme& getTheme() const
+        {
+            return m_theme;
+        }
+
     private:
 
         CanvasScaleMode m_scaleMode = CanvasScaleMode::ScaleWithScreenSize;
@@ -88,6 +104,8 @@ namespace aiko
         float m_scaleFactor = 1.0f;
 
         int32_t m_sortingOrder = 0;
+
+        UITheme m_theme;
     };
 
 }
