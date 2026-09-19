@@ -793,8 +793,7 @@ namespace aiko::lab
 
         GameObject* canvasObject = scene().Instantiate("UI Test Canvas");
 
-        CanvasComponent* canvas =
-            canvasObject->addComponent<CanvasComponent>();
+        CanvasComponent* canvas = canvasObject->addComponent<CanvasComponent>();
 
         canvas->setScaleMode(CanvasScaleMode::ScaleWithScreenSize);
         canvas->setReferenceResolution({1920.0f, 1080.0f});
@@ -807,22 +806,17 @@ namespace aiko::lab
         // Fixed-size centered RectTransform.
         // --------------------------------------------------
 
-        GameObject* centerPanel =
-            scene().Instantiate(canvasObject, "Center Panel");
+        GameObject* centerPanel = scene().Instantiate(canvasObject, "Center Panel");
 
-        RectTransformComponent* centerRect =
-            centerPanel->addComponent<RectTransformComponent>();
+        RectTransformComponent* centerRect = centerPanel->addComponent<RectTransformComponent>();
 
-        centerRect->setAnchors(
-            {0.5f, 0.5f},
-            {0.5f, 0.5f});
+        centerRect->setAnchors({0.5f, 0.5f}, {0.5f, 0.5f});
 
         centerRect->setPivot({0.5f, 0.5f});
         centerRect->setAnchoredPosition({0.0f, 0.0f});
         centerRect->setSizeDelta({500.0f, 300.0f});
 
-        ImageComponent* centerImage =
-            centerPanel->addComponent<ImageComponent>();
+        ImageComponent* centerImage = centerPanel->addComponent<ImageComponent>();
 
         centerImage->setColor(RED);
 
@@ -833,22 +827,17 @@ namespace aiko::lab
         // 50-unit inset on every side.
         // --------------------------------------------------
 
-        GameObject* nestedPanel =
-            scene().Instantiate(centerPanel, "Nested Panel");
+        GameObject* nestedPanel = scene().Instantiate(centerPanel, "Nested Panel");
 
-        RectTransformComponent* nestedRect =
-            nestedPanel->addComponent<RectTransformComponent>();
+        RectTransformComponent* nestedRect = nestedPanel->addComponent<RectTransformComponent>();
 
-        nestedRect->setAnchors(
-            {0.0f, 0.0f},
-            {1.0f, 1.0f});
+        nestedRect->setAnchors({0.0f, 0.0f}, {1.0f, 1.0f});
 
         nestedRect->setPivot({0.5f, 0.5f});
         nestedRect->setAnchoredPosition({0.0f, 0.0f});
         nestedRect->setSizeDelta({-100.0f, -100.0f});
 
-        ImageComponent* nestedImage =
-            nestedPanel->addComponent<ImageComponent>();
+        ImageComponent* nestedImage = nestedPanel->addComponent<ImageComponent>();
 
         nestedImage->setColor(GREEN);
 
@@ -859,22 +848,17 @@ namespace aiko::lab
         // 100 logical-unit horizontal margins.
         // --------------------------------------------------
 
-        GameObject* stretchPanel =
-            scene().Instantiate(canvasObject, "Stretch Panel");
+        GameObject* stretchPanel = scene().Instantiate(canvasObject, "Stretch Panel");
 
-        RectTransformComponent* stretchRect =
-            stretchPanel->addComponent<RectTransformComponent>();
+        RectTransformComponent* stretchRect = stretchPanel->addComponent<RectTransformComponent>();
 
-        stretchRect->setAnchors(
-            {0.0f, 1.0f},
-            {1.0f, 1.0f});
+        stretchRect->setAnchors({0.0f, 1.0f}, {1.0f, 1.0f});
 
         stretchRect->setPivot({0.5f, 1.0f});
         stretchRect->setAnchoredPosition({0.0f, -50.0f});
         stretchRect->setSizeDelta({-200.0f, 100.0f});
 
-        ImageComponent* stretchImage =
-            stretchPanel->addComponent<ImageComponent>();
+        ImageComponent* stretchImage = stretchPanel->addComponent<ImageComponent>();
 
         stretchImage->setColor(BLUE);
 
@@ -885,35 +869,29 @@ namespace aiko::lab
         // over the main Canvas where they overlap.
         // --------------------------------------------------
 
-        GameObject* overlayCanvasObject =
-            scene().Instantiate("UI Test Overlay Canvas");
+        GameObject* overlayCanvasObject = scene().Instantiate("UI Test Overlay Canvas");
 
-        CanvasComponent* overlayCanvas =
-            overlayCanvasObject->addComponent<CanvasComponent>();
+        CanvasComponent* overlayCanvas = overlayCanvasObject->addComponent<CanvasComponent>();
 
         overlayCanvas->setScaleMode(CanvasScaleMode::ScaleWithScreenSize);
         overlayCanvas->setReferenceResolution({1920.0f, 1080.0f});
         overlayCanvas->setMatchWidthOrHeight(0.5f);
         overlayCanvas->setSortingOrder(100);
 
-        GameObject* overlayPanel =
-            scene().Instantiate(overlayCanvasObject, "Overlay Panel");
+        GameObject* overlayPanel = scene().Instantiate(overlayCanvasObject, "Overlay Panel");
 
-        RectTransformComponent* overlayRect =
-            overlayPanel->addComponent<RectTransformComponent>();
+        RectTransformComponent* overlayRect = overlayPanel->addComponent<RectTransformComponent>();
 
-        overlayRect->setAnchors(
-            {0.5f, 0.5f},
-            {0.5f, 0.5f});
+        overlayRect->setAnchors({0.5f, 0.5f}, {0.5f, 0.5f});
 
         overlayRect->setPivot({0.5f, 0.5f});
         overlayRect->setAnchoredPosition({180.0f, 100.0f});
         overlayRect->setSizeDelta({180.0f, 180.0f});
 
-        ImageComponent* overlayImage =
-            overlayPanel->addComponent<ImageComponent>();
+        ImageComponent* overlayImage = overlayPanel->addComponent<ImageComponent>();
 
-        overlayImage->setColor(YELLOW);
+        overlayImage->load("texel_checker.png");
+        overlayImage->setColor(WHITE);
     }
 
     // --------------------------------------------------

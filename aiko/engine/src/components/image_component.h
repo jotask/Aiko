@@ -1,6 +1,8 @@
 #pragma once
 
-#include <assets/asset_id.h>
+#include "assets/asset_binding.h"
+#include "assets/asset_reference.h"
+#include "assets/types/texture_asset.h"
 #include <models/texture_region.h>
 #include <types/color.h>
 
@@ -9,22 +11,17 @@
 namespace aiko
 {
 
-    class ImageComponent : public Component
+    class ImageComponent : public Component, public IAssetBinding
     {
     public:
 
         ImageComponent();
         virtual ~ImageComponent() = default;
 
-        void setTexture(AssetId textureId)
-        {
-            m_textureId = textureId;
-        }
+        void load(string path);
 
-        const AssetId& getTexture() const
-        {
-            return m_textureId;
-        }
+        const AssetId& getTextureId() const;
+        bool hasTexture() const;
 
         void setTextureRegion(const TextureRegion& region)
         {
@@ -48,7 +45,10 @@ namespace aiko
 
     private:
 
-        AssetId m_textureId = InvalidAssetId;
+        void resolveAssetBinding(AssetBindingContext& context) override;
+
+        AssetReference<TextureAsset> m_texture;
+
         TextureRegion m_textureRegion = TextureRegion::full();
 
         Color m_color = WHITE;

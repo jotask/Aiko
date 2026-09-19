@@ -168,7 +168,7 @@ namespace aiko
 
                 if (physicalSize.x > 0.0f && physicalSize.y > 0.0f)
                 {
-                    if (image->getTexture() == InvalidAssetId)
+                    if (image->hasTexture() == false)
                     {
                         m_renderSystem->drawUiRect(
                             physicalPosition,
@@ -177,12 +177,17 @@ namespace aiko
                     }
                     else
                     {
-                        m_renderSystem->drawUiImage(
-                            image->getTexture(),
-                            image->getTextureRegion(),
-                            physicalPosition,
-                            physicalSize,
-                            image->getColor());
+                        const AssetId& textureId = image->getTextureId();
+
+                        if (textureId != InvalidAssetId)
+                        {
+                            m_renderSystem->drawUiImage(
+                                textureId,
+                                image->getTextureRegion(),
+                                physicalPosition,
+                                physicalSize,
+                                image->getColor());
+                        }
                     }
                 }
             }
