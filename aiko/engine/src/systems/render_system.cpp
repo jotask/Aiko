@@ -81,6 +81,16 @@ namespace aiko
         m_renderModule->drawUiImage(textureId, region, position, size, tint);
     }
 
+    void RenderSystem::pushUiClipRect(const vec2& position, const vec2& size)
+    {
+        m_renderModule->pushUiClipRect(position, size);
+    }
+
+    void RenderSystem::popUiClipRect()
+    {
+        m_renderModule->popUiClipRect();
+    }
+
     void RenderSystem::render(const Transform& trans, const Mesh& mesh, const Material& mat)
     {
         AIKO_FUNCTION_PROFILE

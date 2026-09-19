@@ -20,6 +20,9 @@ namespace aiko
         void addImage(const UIRect& rect, AssetId textureId, Color tint = WHITE);
         void addImage(const UIRect& rect, AssetId textureId, const TextureRegion& region, Color tint = WHITE);
 
+        void pushClipRect(const UIRect& rect);
+        void popClipRect();
+
         const vector<UIDrawCommand>& commands() const
         {
             return m_commands;
@@ -45,6 +48,8 @@ namespace aiko
         vector<UIDrawCommand> m_commands;
         vector<UIVertex> m_vertices;
         vector<uint16_t> m_indices;
+
+        vector<UIRect> m_clipStack;
 
         void addQuad(const UIRect& rect, Color color, AssetId textureId, const TextureRegion& region);
 

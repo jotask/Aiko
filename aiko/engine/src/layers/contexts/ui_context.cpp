@@ -26,4 +26,14 @@ namespace aiko
     {
         m_renderSystem->drawUiImage(textureId, region, position, size, tint);
     }
+
+    void UIContext::pushClipRect(const vec2& position, const vec2& size)
+    {
+        m_renderSystem->pushUiClipRect(position, size);
+    }
+
+    void UIContext::popClipRect()
+    {
+        m_renderSystem->popUiClipRect();
+    }
 }

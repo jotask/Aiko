@@ -1207,41 +1207,103 @@ namespace aiko::lab
 
     void RenderLab::renderUI()
     {
+        // --------------------------------------------------
+        // Unclipped background/reference
+        // --------------------------------------------------
+
         ui().rect(
-            {100.0f, 100.0f},
-            {300.0f, 120.0f},
+            {50.0f, 50.0f},
+            {700.0f, 500.0f},
+            Color{40, 40, 40, 255});
+
+        // --------------------------------------------------
+        // Parent clip
+        //
+        // Red is 300x300, but only the 220x220 parent area
+        // should be visible.
+        // --------------------------------------------------
+
+        ui().pushClipRect(
+            {150.0f, 120.0f},
+            {220.0f, 220.0f});
+
+        ui().rect(
+            {100.0f, 70.0f},
+            {320.0f, 320.0f},
             RED);
 
-        if (m_uiTestSprite != nullptr)
-        {
-            const AssetId textureId = m_uiTestSprite->getTextureId();
-            if (textureId != InvalidAssetId)
-            {
-                ui().image(
-                    textureId,
-                {650.0f, 100.0f},
-                {200.0f, 120.0f},
-                WHITE);
+        // --------------------------------------------------
+        // Nested clip
+        //
+        // Requested child:
+        //   x = 250..450
+        //   y = 200..400
+        //
+        // Parent:
+        //   x = 150..370
+        //   y = 120..340
+        //
+        // Effective child:
+        //   x = 250..370
+        //   y = 200..340
+        //
+        // Therefore blue should only appear in that
+        // 120x140 intersection.
+        // --------------------------------------------------
 
-                const TextureRegion region =
-                {
-                    .min = {0.0f, 0.0f},
-                    .max = {0.25f, 0.25f}
-                };
-
-                ui().image(
-                    textureId,
-                    region,
-                    {870.0f, 100.0f},
-                    {200.0f, 120.0f},
-                    WHITE);
-
-            }
-        }
+        ui().pushClipRect(
+            {250.0f, 200.0f},
+            {200.0f, 200.0f});
 
         ui().rect(
-            {450.0f, 100.0f},
-            {150.0f, 120.0f},
+            {200.0f, 150.0f},
+            {300.0f, 300.0f},
+            BLUE);
+
+        ui().popClipRect();
+
+        // --------------------------------------------------
+        // Parent restoration
+        //
+        // Green should be clipped by the parent only,
+        // proving popClipRect restored the parent clip.
+        // --------------------------------------------------
+
+        ui().rect(
+            {120.0f, 280.0f},
+            {300.0f, 100.0f},
             GREEN);
+
+        ui().popClipRect();
+
+        // --------------------------------------------------
+        // No-clip restoration
+        //
+        // This must render completely. If it gets clipped,
+        // Vulkan scissor state leaked from the previous draw.
+        // --------------------------------------------------
+
+        ui().rect(
+            {430.0f, 120.0f},
+            {180.0f, 100.0f},
+            YELLOW);
+
+        // --------------------------------------------------
+        // Render-surface clipping
+        //
+        // Part of this rectangle intentionally lies outside
+        // the top-left of the window.
+        // --------------------------------------------------
+
+        ui().pushClipRect(
+            {-50.0f, -40.0f},
+            {180.0f, 160.0f});
+
+        ui().rect(
+            {-100.0f, -100.0f},
+            {300.0f, 300.0f},
+            MAGENTA);
+
+        ui().popClipRect();
     }
 }

@@ -21,7 +21,7 @@ namespace aiko
 
         void setShader(AssetId shaderId);
 
-        void render(renderer::IRenderDevice& device, const UIDrawList& drawList);
+        void render(renderer::IRenderDevice& device, const UIDrawList& drawList, const ivec2& surfaceSize);
 
         const Material& material() const
         {

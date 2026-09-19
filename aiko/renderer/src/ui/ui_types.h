@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <math/math.h>
 #include <types/color.h>
 #include <assets/asset_id.h>
@@ -7,18 +9,20 @@
 namespace aiko
 {
 
+    struct UIRect
+    {
+        vec2 position{0.0f};
+        vec2 size{0.0f};
+    };
+
     struct UIDrawCommand
     {
         uint32_t indexOffset = 0;
         uint32_t indexCount = 0;
 
         AssetId textureId = InvalidAssetId;
-    };
 
-    struct UIRect
-    {
-        vec2 position{0.0f};
-        vec2 size{0.0f};
+        std::optional<UIRect> clipRect;
     };
 
     struct UIVertex

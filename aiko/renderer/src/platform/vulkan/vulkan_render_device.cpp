@@ -1618,6 +1618,42 @@ namespace aiko::renderer::vulkan
 
         AIKO_ASSERT(desc.indexOffset + indexCount <= totalIndexCount, "Transient draw index range exceeds geometry");
 
+        VkRect2D scissor =
+        {
+            .offset = {0, 0},
+            .extent = m_activeExtent
+        };
+
+        if (desc.scissor.has_value())
+        {
+            const ScissorRect& requested = *desc.scissor;
+
+            AIKO_ASSERT(requested.x >= 0, "Scissor x must not be negative");
+            AIKO_ASSERT(requested.y >= 0, "Scissor y must not be negative");
+
+            const uint32_t x = static_cast<uint32_t>(requested.x);
+            const uint32_t y = static_cast<uint32_t>(requested.y);
+
+            AIKO_ASSERT(x <= m_activeExtent.width, "Scissor x exceeds render target");
+            AIKO_ASSERT(y <= m_activeExtent.height, "Scissor y exceeds render target");
+            AIKO_ASSERT(requested.width <= m_activeExtent.width - x, "Scissor exceeds render target width");
+            AIKO_ASSERT(requested.height <= m_activeExtent.height - y, "Scissor exceeds render target height");
+
+            scissor.offset =
+            {
+                requested.x,
+                requested.y
+            };
+
+            scissor.extent =
+            {
+                requested.width,
+                requested.height
+            };
+        }
+
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
         vkCmdDrawIndexed(commandBuffer, indexCount, 1, desc.indexOffset, 0, 0);
 
     }

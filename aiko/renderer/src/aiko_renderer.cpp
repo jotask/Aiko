@@ -286,6 +286,20 @@ namespace aiko
         tint);
     }
 
+    void AikoRenderer::pushUiClipRect(const vec2& position, const vec2& size)
+    {
+        m_uiDrawList.pushClipRect(
+        {
+            .position = position,
+            .size = size
+        });
+    }
+
+    void AikoRenderer::popUiClipRect()
+    {
+        m_uiDrawList.popClipRect();
+    }
+
     void AikoRenderer::onWindowResize(WindowResizeEvent& event)
     {
         if (event.width <= 0 || event.height <= 0)
@@ -564,7 +578,7 @@ namespace aiko
         m_renderer->beginPass(UI_VIEW, uiPass, nullptr);
         m_renderer->bindFrame(UI_VIEW, uiFrame);
 
-        m_uiRenderer.render(*m_renderer, m_uiDrawList);
+        m_uiRenderer.render(*m_renderer, m_uiDrawList, m_renderSurface);
 
         m_renderer->endPass();
 

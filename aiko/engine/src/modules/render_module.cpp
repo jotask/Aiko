@@ -148,6 +148,16 @@ namespace aiko
         m_renderer->drawUiImage(textureId, region, position, size, tint);
     }
 
+    void RenderModule::pushUiClipRect(const vec2& position, const vec2& size)
+    {
+        m_renderer->pushUiClipRect(position, size);
+    }
+
+    void RenderModule::popUiClipRect()
+    {
+        m_renderer->popUiClipRect();
+    }
+
     void RenderModule::connect(ModuleConnector* moduleConnector)
     {
         BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule);

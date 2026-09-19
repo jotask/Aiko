@@ -61,6 +61,9 @@ namespace aiko
         void drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint);
         void drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint);
 
+        void pushUiClipRect(const vec2& position, const vec2& size);
+        void popUiClipRect();
+
     protected:
 
 

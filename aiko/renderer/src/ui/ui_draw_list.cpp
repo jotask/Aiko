@@ -1,5 +1,6 @@
 #include "ui_draw_list.h"
 
+#include <algorithm>
 #include <limits>
 
 namespace aiko
@@ -10,6 +11,7 @@ namespace aiko
         m_vertices.clear();
         m_indices.clear();
         m_commands.clear();
+        m_clipStack.clear();
     }
 
     void UIDrawList::addRect(const UIRect& rect, Color color)
@@ -27,6 +29,44 @@ namespace aiko
     {
         AIKO_ASSERT(textureId != InvalidAssetId, "UI image requires a valid texture asset");
         addQuad(rect, tint, textureId, region);
+    }
+
+    void UIDrawList::pushClipRect(const UIRect& rect)
+    {
+        AIKO_ASSERT(rect.size.x >= 0.0f, "UI clip width must not be negative");
+        AIKO_ASSERT(rect.size.y >= 0.0f, "UI clip height must not be negative");
+
+        UIRect effective = rect;
+
+        if (m_clipStack.empty() == false)
+        {
+            const UIRect& parent = m_clipStack.back();
+
+            const float left = std::max(parent.position.x, rect.position.x);
+            const float top = std::max(parent.position.y, rect.position.y);
+            const float right = std::min(parent.position.x + parent.size.x, rect.position.x + rect.size.x);
+            const float bottom = std::min(parent.position.y + parent.size.y, rect.position.y + rect.size.y);
+
+            effective.position =
+            {
+                left,
+                top
+            };
+
+            effective.size =
+            {
+                std::max(0.0f, right - left),
+                std::max(0.0f, bottom - top)
+            };
+        }
+
+        m_clipStack.push_back(effective);
+    }
+
+    void UIDrawList::popClipRect()
+    {
+        AIKO_ASSERT(m_clipStack.empty() == false, "UI clip stack is empty");
+        m_clipStack.pop_back();
     }
 
     void UIDrawList::addQuad(const UIRect& rect, Color color, AssetId textureId, const TextureRegion& region)
@@ -80,11 +120,18 @@ namespace aiko
         m_indices.push_back(base + 2);
         m_indices.push_back(base + 3);
 
-        m_commands.push_back(
+        UIDrawCommand command =
         {
             .indexOffset = indexOffset,
             .indexCount = 6,
             .textureId = textureId
-        });
+        };
+
+        if (m_clipStack.empty() == false)
+        {
+            command.clipRect = m_clipStack.back();
+        }
+
+        m_commands.push_back(command);
     }
 }
