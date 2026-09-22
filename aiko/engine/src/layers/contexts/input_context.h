@@ -13,15 +13,18 @@ namespace aiko
     public:
         bool isKeyPressed(Key key) const;
         bool isKeyJustPressed(Key key) const;
+        bool isKeyJustReleased(Key key) const;
 
         vec2 getMousePosition() const;
         vec2 getMouseDelta() const;
-        vec2 getMouseScrollBack() const;
+        vec2 getMouseScrollDelta() const;
 
         bool isMouseButtonPressed(MouseButton button) const;
+        bool isMouseButtonJustPressed(MouseButton button) const;
+        bool isMouseButtonJustReleased(MouseButton button) const;
 
-        void setIsMouseCentred(bool centred) const;
-        bool getIsMouseCentred() const;
+        void setMouseCaptured(bool captured) const;
+        bool isMouseCaptured() const;
 
     private:
         friend class LayerContext;

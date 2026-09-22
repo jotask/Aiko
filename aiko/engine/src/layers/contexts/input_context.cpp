@@ -8,7 +8,10 @@ namespace aiko
     InputContext::InputContext(SystemConnector& connector)
     {
         m_inputSystem = connector.find<InputSystem>();
-        AIKO_ASSERT(m_inputSystem != nullptr, "Required system InputSystem not found");
+        AIKO_ASSERT(
+            m_inputSystem != nullptr,
+            "Required system InputSystem not found"
+        );
     }
 
     bool InputContext::isKeyPressed(Key key) const
@@ -21,6 +24,11 @@ namespace aiko
         return m_inputSystem->isKeyJustPressed(key);
     }
 
+    bool InputContext::isKeyJustReleased(Key key) const
+    {
+        return m_inputSystem->isKeyJustReleased(key);
+    }
+
     vec2 InputContext::getMousePosition() const
     {
         return m_inputSystem->getMousePosition();
@@ -31,9 +39,9 @@ namespace aiko
         return m_inputSystem->getMouseDelta();
     }
 
-    vec2 InputContext::getMouseScrollBack() const
+    vec2 InputContext::getMouseScrollDelta() const
     {
-        return m_inputSystem->getMouseScrollBack();
+        return m_inputSystem->getMouseScrollDelta();
     }
 
     bool InputContext::isMouseButtonPressed(MouseButton button) const
@@ -41,13 +49,25 @@ namespace aiko
         return m_inputSystem->isMouseButtonPressed(button);
     }
 
-    void InputContext::setIsMouseCentred(bool centred) const
+    bool InputContext::isMouseButtonJustPressed(
+        MouseButton button) const
     {
-        m_inputSystem->setIsMouseCentred(centred);
+        return m_inputSystem->isMouseButtonJustPressed(button);
     }
 
-    bool InputContext::getIsMouseCentred() const
+    bool InputContext::isMouseButtonJustReleased(
+        MouseButton button) const
     {
-        return m_inputSystem->getIsMouseCentred();
+        return m_inputSystem->isMouseButtonJustReleased(button);
+    }
+
+    void InputContext::setMouseCaptured(bool captured) const
+    {
+        m_inputSystem->setMouseCaptured(captured);
+    }
+
+    bool InputContext::isMouseCaptured() const
+    {
+        return m_inputSystem->isMouseCaptured();
     }
 }

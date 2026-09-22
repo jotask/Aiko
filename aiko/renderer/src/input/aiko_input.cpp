@@ -29,11 +29,26 @@ namespace aiko
 
     bool AikoInput::isKeyJustPressed(Key key) const
     {
-        if (m_keys_inputs.find(key) != m_keys_inputs.end())
+        const auto it = m_keys_inputs.find(key);
+
+        if (it == m_keys_inputs.end())
         {
-            return m_keys_inputs.at(key).justPressed;
+            return false;
         }
-        return false;
+
+        return it->second.justPressed;
+    }
+
+    bool AikoInput::isKeyJustReleased(Key key) const
+    {
+        const auto it = m_keys_inputs.find(key);
+
+        if (it == m_keys_inputs.end())
+        {
+            return false;
+        }
+
+        return it->second.justReleased;
     }
 
     vec2 AikoInput::getMousePosition() const
@@ -46,9 +61,9 @@ namespace aiko
         return m_mouseDelta;
     }
 
-    vec2 AikoInput::getMouseScrollBack() const
+    vec2 AikoInput::getMouseScrollDelta() const
     {
-        return m_mouseScrollBack;
+        return m_mouseScrollDelta;
     }
 
     bool AikoInput::isMouseButtonPressed(MouseButton button) const
@@ -61,35 +76,72 @@ namespace aiko
         return false;
     }
 
-    void AikoInput::setCentredToScreen(bool newMouseCentred)
+    bool AikoInput::isMouseButtonJustPressed(MouseButton button) const
     {
-        AIKO_ASSERT(m_window != nullptr, "Input not initialized");
-        m_mouseCentred = newMouseCentred;
-        if (m_mouseCentred == true)
+        const auto it = m_mouse_inputs.find(button);
+
+        if (it == m_mouse_inputs.end())
         {
-            glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            return false;
         }
-        else
-        {
-            glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        }
+
+        return it->second.justPressed;
     }
 
-    bool AikoInput::getCentredToScreen() const
+    bool AikoInput::isMouseButtonJustReleased(MouseButton button) const
     {
-        return m_mouseCentred;
+        const auto it = m_mouse_inputs.find(button);
+
+        if (it == m_mouse_inputs.end())
+        {
+            return false;
+        }
+
+        return it->second.justReleased;
+    }
+
+    void AikoInput::setMouseCaptured(bool captured)
+    {
+        AIKO_ASSERT(m_window != nullptr, "Input not initialized");
+
+        m_mouseCaptured = captured;
+
+        glfwSetInputMode(
+            m_window,
+            GLFW_CURSOR,
+            captured
+                ? GLFW_CURSOR_DISABLED
+                : GLFW_CURSOR_NORMAL
+        );
+
+        double x = 0.0;
+        double y = 0.0;
+
+        glfwGetCursorPos(m_window, &x, &y);
+
+        m_mousePosition =
+        {
+            static_cast<float>(x),
+            static_cast<float>(y)
+        };
+
+        m_mouseDelta = {};
+    }
+
+    bool AikoInput::isMouseCaptured() const
+    {
+        return m_mouseCaptured;
     }
 
     void AikoInput::init(GLFWwindow* window)
     {
         AIKO_ASSERT(window != nullptr, "Invalid input window");
         m_window = window;
-        EventSystem::it().bind<OnKeyPressedEvent>(this, &AikoInput::onKeyPressed);
-        EventSystem::it().bind<OnMouseKeyPressedEvent>(this, &AikoInput::onMouseKeyPressed);
+        EventSystem::it().bind<OnKeyPressedEvent>(this, &AikoInput::onKeyInput);
+        EventSystem::it().bind<OnMouseKeyPressedEvent>(this, &AikoInput::onMouseButtonInput);
         EventSystem::it().bind<OnMouseMoveEvent>(this, &AikoInput::onMouseMoved);
-        EventSystem::it().bind<OnMouseScrollEvent>(this, &AikoInput::OnMouseScrollCallback);
-        glfwSetInputMode(m_window, GLFW_STICKY_KEYS, GLFW_TRUE);
-        setCentredToScreen(false);
+        EventSystem::it().bind<OnMouseScrollEvent>(this, &AikoInput::onMouseScrolled);
+        setMouseCaptured(false);
     }
 
     void AikoInput::pollEvents()
@@ -97,17 +149,25 @@ namespace aiko
         glfwPollEvents();
     }
 
-    void AikoInput::clearEvents()
+    void AikoInput::clearFrameState()
     {
-        for (auto it = m_keys_inputs.begin(); it != m_keys_inputs.end(); it++)
+        for (auto& [key, state] : m_keys_inputs)
         {
-            it->second.justPressed = false;
+            state.justPressed = false;
+            state.justReleased = false;
         }
+
+        for (auto& [button, state] : m_mouse_inputs)
+        {
+            state.justPressed = false;
+            state.justReleased = false;
+        }
+
         m_mouseDelta = {};
-        m_mouseScrollBack = {};
+        m_mouseScrollDelta = {};
     }
 
-    void AikoInput::onKeyPressed(OnKeyPressedEvent& event)
+    void AikoInput::onKeyInput(OnKeyPressedEvent& event)
     {
         const Key key = static_cast<Key>(event.key);
         const PressedType action = convertToAction(event.action);
@@ -126,12 +186,22 @@ namespace aiko
             }
         }
 
-        m_keys_inputs[key].type = action;
-        m_keys_inputs[key].justPressed = action == PressedType::PRESS;
+        InputState& state = m_keys_inputs[key];
+
+        state.type = action;
+
+        if (action == PressedType::PRESS)
+        {
+            state.justPressed = true;
+        }
+        else if (action == PressedType::RELEASE)
+        {
+            state.justReleased = true;
+        }
 
     }
 
-    void AikoInput::onMouseKeyPressed(OnMouseKeyPressedEvent& event)
+    void AikoInput::onMouseButtonInput(OnMouseKeyPressedEvent& event)
     {
 
         const MouseButton key = static_cast<MouseButton>(event.button);
@@ -151,21 +221,40 @@ namespace aiko
             }
         }
 
-        m_mouse_inputs[key].type = action;
-        m_mouse_inputs[key].justPressed = action == PressedType::PRESS;
+        InputState& state = m_mouse_inputs[key];
+
+        state.type = action;
+
+        if (action == PressedType::PRESS)
+        {
+            state.justPressed = true;
+        }
+        else if (action == PressedType::RELEASE)
+        {
+            state.justReleased = true;
+        }
 
     }
 
     void AikoInput::onMouseMoved(OnMouseMoveEvent& event)
     {
-        vec2 newMousePosition = { event.x, event.y };
-        m_mouseDelta = newMousePosition - m_mousePosition;
+        const vec2 newMousePosition =
+        {
+            event.x,
+            event.y
+        };
+
+        m_mouseDelta += newMousePosition - m_mousePosition;
         m_mousePosition = newMousePosition;
     }
 
-    void AikoInput::OnMouseScrollCallback(OnMouseScrollEvent& event)
+    void AikoInput::onMouseScrolled(OnMouseScrollEvent& event)
     {
-        m_mouseScrollBack = { static_cast<float>( event.xoffset ), static_cast<float>( event.yoffset ) };
+        m_mouseScrollDelta += vec2
+        {
+            static_cast<float>(event.xoffset),
+            static_cast<float>(event.yoffset)
+        };
     }
 
     PressedType AikoInput::convertToAction(int action)

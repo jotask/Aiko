@@ -16,39 +16,46 @@ namespace aiko
         AikoInput();
         ~AikoInput() = default;
 
-        bool isKeyPressed(Key) const;
-        bool isKeyJustPressed(Key) const;
+        bool isKeyPressed(Key key) const;
+        bool isKeyJustPressed(Key key) const;
+        bool isKeyJustReleased(Key key) const;
+
         vec2 getMousePosition() const;
         vec2 getMouseDelta() const;
-        vec2 getMouseScrollBack() const;
-        bool isMouseButtonPressed(MouseButton button) const;
+        vec2 getMouseScrollDelta() const;
 
-        void setCentredToScreen(bool);
-        bool getCentredToScreen() const;
+        bool isMouseButtonPressed(MouseButton button) const;
+        bool isMouseButtonJustPressed(MouseButton button) const;
+        bool isMouseButtonJustReleased(MouseButton button) const;
+
+        void setMouseCaptured(bool captured);
+        bool isMouseCaptured() const;
 
     public:
 
         void init(GLFWwindow* window);
         void pollEvents();
-        void clearEvents();
+        void clearFrameState();
 
     private:
 
         std::map<Key, InputState> m_keys_inputs;
         std::map<MouseButton, InputState> m_mouse_inputs;
 
-        void onKeyPressed(OnKeyPressedEvent& event);
-        void onMouseKeyPressed(OnMouseKeyPressedEvent& event);
+        void onKeyInput(OnKeyPressedEvent& event);
+        void onMouseButtonInput(OnMouseKeyPressedEvent& event);
         void onMouseMoved(OnMouseMoveEvent& event);
-        void OnMouseScrollCallback(OnMouseScrollEvent& event);
+        void onMouseScrolled(OnMouseScrollEvent& event);
 
         PressedType convertToAction(int code);
 
         GLFWwindow* m_window = nullptr;
-        vec2 m_mousePosition;
-        vec2 m_mouseScrollBack;
-        vec2 m_mouseDelta;
-        bool m_mouseCentred;
+
+        vec2 m_mousePosition = {};
+        vec2 m_mouseScrollDelta = {};
+        vec2 m_mouseDelta = {};
+
+        bool m_mouseCaptured = false;
     };
 
 }

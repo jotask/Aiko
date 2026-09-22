@@ -69,12 +69,10 @@ namespace aiko
 
             if (m_inputSystem->isKeyJustPressed(Key::KEY_F1))
             {
-                m_inputSystem->setIsMouseCentred(
-                    !m_inputSystem->getIsMouseCentred()
-                );
+                m_inputSystem->setMouseCaptured(!m_inputSystem->isMouseCaptured());
             }
 
-            if (m_inputSystem->getIsMouseCentred() == true)
+            if (m_inputSystem->isMouseCaptured() == true)
             {
                 const vec2 mouseDelta =
                     m_inputSystem->getMouseDelta();
@@ -209,7 +207,7 @@ namespace aiko
 
             constexpr float epsilon = 1e-6f;
 
-            if (fabs(m_inputSystem->getMouseScrollBack().y) >
+            if (fabs(m_inputSystem->getMouseScrollDelta().y) >
                 epsilon)
             {
                 constexpr float zoomSpeed = 0.5f;
@@ -219,7 +217,7 @@ namespace aiko
                 );
 
                 const float amount =
-                    m_inputSystem->getMouseScrollBack().y *
+                    m_inputSystem->getMouseScrollDelta().y *
                     zoomSpeed;
 
                 camera.position += direction * amount;

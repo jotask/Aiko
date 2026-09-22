@@ -154,6 +154,7 @@ namespace aiko
     {
         PressedType type = PressedType::RELEASE;
         bool justPressed = false;
+        bool justReleased = false;
     };
 
 }

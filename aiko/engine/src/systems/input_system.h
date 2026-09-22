@@ -1,9 +1,6 @@
 #pragma once
 
-#include <memory>
-
 #include "systems/base_system.h"
-#include "models/camera.h"
 #include "input/inputs_types.h"
 
 namespace aiko
@@ -14,20 +11,24 @@ namespace aiko
     class InputSystem : public BaseSystem
     {
     public:
-    
-        using CameraPtr = std::shared_ptr<Camera>;
 
         InputSystem() = default;
         virtual ~InputSystem() = default;
 
-        void setIsMouseCentred(bool centred) const;
-        bool getIsMouseCentred() const;
-        bool isKeyPressed(Key) const;
-        bool isKeyJustPressed(Key) const;
+        void setMouseCaptured(bool captured) const;
+        bool isMouseCaptured() const;
+
+        bool isKeyPressed(Key key) const;
+        bool isKeyJustPressed(Key key) const;
+        bool isKeyJustReleased(Key key) const;
+
         vec2 getMousePosition() const;
         vec2 getMouseDelta() const;
-        vec2 getMouseScrollBack() const;
+        vec2 getMouseScrollDelta() const;
+
         bool isMouseButtonPressed(MouseButton button) const;
+        bool isMouseButtonJustPressed(MouseButton button) const;
+        bool isMouseButtonJustReleased(MouseButton button) const;
 
     protected:
         virtual SystemUpdatePhase updatePhase() const override { return SystemUpdatePhase::Input; }

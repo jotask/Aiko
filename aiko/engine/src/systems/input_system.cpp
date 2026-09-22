@@ -13,14 +13,14 @@ namespace aiko
         BIND_MODULE_REQUIRED(InputModule, moduleConnector, m_inputModule)
     }
 
-    void InputSystem::setIsMouseCentred(bool centred) const
+    void InputSystem::setMouseCaptured(bool captured) const
     {
-        m_inputModule->input().setCentredToScreen(centred);
+        m_inputModule->input().setMouseCaptured(captured);
     }
 
-    bool InputSystem::getIsMouseCentred() const
+    bool InputSystem::isMouseCaptured() const
     {
-        return m_inputModule->input().getCentredToScreen();
+        return m_inputModule->input().isMouseCaptured();
     }
 
     bool InputSystem::isKeyPressed(Key key) const
@@ -33,6 +33,11 @@ namespace aiko
         return m_inputModule->input().isKeyJustPressed(key);
     }
 
+    bool InputSystem::isKeyJustReleased(Key key) const
+    {
+        return m_inputModule->input().isKeyJustReleased(key);
+    }
+
     vec2 InputSystem::getMousePosition() const
     {
         return m_inputModule->input().getMousePosition();
@@ -43,14 +48,24 @@ namespace aiko
         return m_inputModule->input().getMouseDelta();
     }
 
-    vec2 InputSystem::getMouseScrollBack() const
+    vec2 InputSystem::getMouseScrollDelta() const
     {
-        return m_inputModule->input().getMouseScrollBack();
+        return m_inputModule->input().getMouseScrollDelta();
     }
 
     bool InputSystem::isMouseButtonPressed(MouseButton button) const
     {
         return m_inputModule->input().isMouseButtonPressed(button);
+    }
+
+    bool InputSystem::isMouseButtonJustPressed(MouseButton button) const
+    {
+        return m_inputModule->input().isMouseButtonJustPressed(button);
+    }
+
+    bool InputSystem::isMouseButtonJustReleased(MouseButton button) const
+    {
+        return m_inputModule->input().isMouseButtonJustReleased(button);
     }
 
 }
