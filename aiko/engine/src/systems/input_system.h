@@ -30,7 +30,7 @@ namespace aiko
         bool isMouseButtonPressed(MouseButton button) const;
 
     protected:
-    
+        virtual SystemUpdatePhase updatePhase() const override { return SystemUpdatePhase::Input; }
         virtual void connect(ModuleConnector*, SystemConnector*) override;
 
     private:

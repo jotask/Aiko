@@ -44,6 +44,9 @@ namespace aiko
         void render();
         void dispose();
 
+        void runUpdatePhase(SystemUpdatePhase phase);
+        void runRenderPhase(SystemRenderPhase phase);
+
         bool m_shouldStop;
 
          Modules m_modules;

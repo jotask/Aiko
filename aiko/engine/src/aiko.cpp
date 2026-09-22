@@ -18,6 +18,7 @@
 #include "modules/input_module.h"
 
 // Systems
+#include "magic_enum/magic_enum_utility.hpp"
 #include "modules/assets_manager_module.h"
 #include "systems/asset_binding_system.h"
 #include "systems/asset_system.h"
@@ -124,7 +125,9 @@ namespace aiko
         AIKO_FUNCTION_PROFILE
         for (auto&& module : m_modules) module->preUpdate();
         for (auto&& module : m_modules) module->update();
-        for (auto&& system : m_systems) system->update();
+        magic_enum::enum_for_each<SystemUpdatePhase>([&](SystemUpdatePhase phase) {
+            runUpdatePhase(phase);
+        });
         m_application->update();
         for (auto&& module : m_modules) module->postUpdate();
     }
@@ -135,7 +138,9 @@ namespace aiko
         for (auto&& module : m_modules) module->beginFrame();
         for (auto&& module : m_modules) module->preRender();
         for (auto&& module : m_modules) module->render();
-        for (auto&& system : m_systems) system->render();
+        magic_enum::enum_for_each<SystemRenderPhase>([&](SystemRenderPhase phase) {
+            runRenderPhase(phase);
+        });
         m_application->render();
         for (auto&& module : m_modules) module->postRender();
         for (auto&& module : m_modules) module->endFrame();
@@ -149,4 +154,25 @@ namespace aiko
         for (auto&& module : m_modules) module->dispose();
     }
 
+    void Aiko::runUpdatePhase(SystemUpdatePhase phase)
+    {
+        for (auto&& system : m_systems)
+        {
+            if (system->updatePhase() == phase)
+            {
+                system->update();
+            }
+        }
+    }
+
+    void Aiko::runRenderPhase(SystemRenderPhase phase)
+    {
+        for (auto&& system : m_systems)
+        {
+            if (system->renderPhase() == phase)
+            {
+                system->render();
+            }
+        }
+    }
 }

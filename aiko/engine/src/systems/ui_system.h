@@ -35,7 +35,8 @@ namespace aiko
         UIRect resolveRect(const RectTransformComponent& rectTransform, const UIRect& parentRect) const;
 
     protected:
-
+        SystemUpdatePhase updatePhase() const override { return SystemUpdatePhase::UIInteraction; }
+        SystemRenderPhase renderPhase() const override { return SystemRenderPhase::UI; }
         void connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector) override;
         void render() override;
 

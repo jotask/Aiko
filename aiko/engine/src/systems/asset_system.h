@@ -76,7 +76,7 @@ namespace aiko
         void invalidateShader(const AssetId& id);
 
     protected:
-
+        SystemUpdatePhase updatePhase() const override { return SystemUpdatePhase::EarlyUpdate; }
         virtual void connect(ModuleConnector*, SystemConnector*) override;
         virtual void update() override;
 

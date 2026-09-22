@@ -32,6 +32,7 @@ namespace aiko
         JobStats stats() const;
 
     protected:
+        SystemUpdatePhase updatePhase() const override { return SystemUpdatePhase::EarlyUpdate; }
         virtual void init() override;
         virtual void update() override;
         virtual void dispose() override;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "systems/system_phase.h"
+
 namespace aiko
 {
 
@@ -11,6 +13,9 @@ namespace aiko
     {
         friend class Aiko;
     protected:
+
+        virtual SystemUpdatePhase updatePhase() const { return SystemUpdatePhase::Gameplay; }
+        virtual SystemRenderPhase renderPhase() const { return SystemRenderPhase::RenderPreparation; }
 
         virtual void connect(ModuleConnector*c, SystemConnector*) = 0;
         
