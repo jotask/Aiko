@@ -37,7 +37,7 @@ namespace aiko
 
         for (ComputeShaderComponent* component : liveComponents)
         {
-            if (component == nullptr)
+            if (component == nullptr || component->isActiveAndEnabled() == false)
             {
                 continue;
             }
@@ -55,7 +55,7 @@ namespace aiko
     {
         for (ComputeShaderComponent* component : m_sceneSystem->getScene().components<ComputeShaderComponent>())
         {
-            if (component == nullptr)
+            if (component == nullptr || component->isActiveAndEnabled() == false)
             {
                 continue;
             }
@@ -82,8 +82,6 @@ namespace aiko
     void ComputeSystem::updateComponent(GameObject* obj, ComputeShaderComponent& cmp)
     {
         AIKO_UNUSED(obj);
-
-        // TODO only enabled components
 
         const AssetId& shaderId = cmp.getShaderId();
         if (shaderId == InvalidAssetId)

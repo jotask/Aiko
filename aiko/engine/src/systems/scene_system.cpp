@@ -40,28 +40,64 @@ namespace aiko
             m_renderModule->submitLights(view.ambientLight, view.lights);
         }
 
-        for (MeshComponent* component : m_scene.components<MeshComponent>())
+        for (MeshComponent* component :
+             m_scene.components<MeshComponent>())
         {
-            GameObject* gameObject = component->getGameObject();
-            AIKO_ASSERT(gameObject != nullptr, "MeshComponent is not attached to a GameObject");
+            if (component == nullptr ||
+                component->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
 
-            m_renderSystem->render(gameObject->transform(), *component);
+            GameObject* gameObject = component->getGameObject();
+
+            AIKO_ASSERT(
+                gameObject != nullptr,
+                "MeshComponent is not attached to a GameObject");
+
+            m_renderSystem->render(
+                gameObject->transform(),
+                *component);
         }
 
-        for (ModelComponent* component : m_scene.components<ModelComponent>())
+        for (ModelComponent* component :
+             m_scene.components<ModelComponent>())
         {
-            GameObject* gameObject = component->getGameObject();
-            AIKO_ASSERT(gameObject != nullptr, "ModelComponent is not attached to a GameObject");
+            if (component == nullptr ||
+                component->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
 
-            m_renderSystem->render(gameObject->transform(), *component);
+            GameObject* gameObject = component->getGameObject();
+
+            AIKO_ASSERT(
+                gameObject != nullptr,
+                "ModelComponent is not attached to a GameObject");
+
+            m_renderSystem->render(
+                gameObject->transform(),
+                *component);
         }
 
-        for (SpriteComponent* component : m_scene.components<SpriteComponent>())
+        for (SpriteComponent* component :
+             m_scene.components<SpriteComponent>())
         {
-            GameObject* gameObject = component->getGameObject();
-            AIKO_ASSERT(gameObject != nullptr, "SpriteComponent is not attached to a GameObject");
+            if (component == nullptr ||
+                component->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
 
-            m_renderSystem->render(gameObject->transform(), *component);
+            GameObject* gameObject = component->getGameObject();
+
+            AIKO_ASSERT(
+                gameObject != nullptr,
+                "SpriteComponent is not attached to a GameObject");
+
+            m_renderSystem->render(
+                gameObject->transform(),
+                *component);
         }
     }
 
@@ -97,22 +133,34 @@ namespace aiko
 
     Camera* SceneSystem::getMainCamera()
     {
-        const auto cameras = m_scene.components<CameraComponent>();
-        if (cameras.empty())
+        for (CameraComponent* component :
+         m_scene.components<CameraComponent>())
         {
-            return nullptr;
+            if (component == nullptr ||
+                component->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
+
+            return &component->getCamera();
         }
-        return &cameras.front()->getCamera();
+
+        return nullptr;
     }
 
     const Camera* SceneSystem::getMainCamera() const
     {
-        const auto cameras = m_scene.components<CameraComponent>();
-        if (cameras.empty())
+        for (const CameraComponent* component : m_scene.components<CameraComponent>())
         {
-            return nullptr;
+            if (component == nullptr || component->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
+
+            return &component->getCamera();
         }
-        return &cameras.front()->getCamera();
+
+        return nullptr;
     }
 
     void SceneSystem::setActiveCamera(GameObject* obj)

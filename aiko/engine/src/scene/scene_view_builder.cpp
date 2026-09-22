@@ -22,26 +22,43 @@ namespace aiko
     {
         if (GameObject* active = scene.getActiveCamera())
         {
-            CameraComponent* component = active->getComponent<CameraComponent>();
-            AIKO_ASSERT(component != nullptr, "Active camera GameObject has no CameraComponent");
-            if (component != nullptr)
+            if (active->isActiveInHierarchy())
             {
-                return &component->getCamera();
+                CameraComponent* component =
+                    active->getComponent<CameraComponent>();
+
+                AIKO_ASSERT(
+                    component != nullptr,
+                    "Active camera GameObject has no CameraComponent");
+
+                if (component != nullptr &&
+                    component->isEnabled())
+                {
+                    return &component->getCamera();
+                }
             }
         }
-        const auto cameras = scene.components<CameraComponent>();
-        if (cameras.empty())
+
+        for (CameraComponent* component :
+             scene.components<CameraComponent>())
         {
-            return nullptr;
+            if (component == nullptr ||
+                component->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
+
+            return &component->getCamera();
         }
-        return &cameras.front()->getCamera();
+
+        return nullptr;
     }
 
     void SceneViewBuilder::gatherLights(Scene& scene, SceneView& out)
     {
         for (LightComponent* component : scene.components<LightComponent>())
         {
-            if (component == nullptr)
+            if (component == nullptr || component->isActiveAndEnabled() == false)
             {
                 continue;
             }

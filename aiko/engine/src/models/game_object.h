@@ -51,8 +51,27 @@ namespace aiko
 
         bool removeComponent(Component*);
 
-        string getName() const { return name; }
-        void setName( string newName ) { name = newName; }
+        string getName() const
+        {
+            return name;
+        }
+
+        void setName(string newName)
+        {
+            name = std::move(newName);
+        }
+
+        void setActive(bool active)
+        {
+            m_activeSelf = active;
+        }
+
+        bool isActiveSelf() const
+        {
+            return m_activeSelf;
+        }
+
+        bool isActiveInHierarchy() const;
 
         Transform& transform();
         const Transform& transform() const;
@@ -71,6 +90,7 @@ namespace aiko
         uuid::Uuid m_uuid;
 
         string name;
+        bool m_activeSelf = true;
 
         using ComponentBucket = vector<Component*>;
 

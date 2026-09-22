@@ -37,7 +37,7 @@ namespace aiko
         removeStaleStates(emitters);
         for (ParticleEmitterComponent* emitter : emitters)
         {
-            if (emitter == nullptr)
+            if (emitter == nullptr || emitter->isActiveAndEnabled() == false)
             {
                 continue;
             }
@@ -50,7 +50,7 @@ namespace aiko
     {
         for (ParticleEmitterComponent* emitter : m_sceneSystem->getScene().components<ParticleEmitterComponent>())
         {
-            if (emitter == nullptr)
+            if (emitter == nullptr || emitter->isActiveAndEnabled() == false)
             {
                 continue;
             }

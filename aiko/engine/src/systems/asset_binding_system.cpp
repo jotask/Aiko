@@ -5,6 +5,7 @@
 #include "systems/scene_system.h"
 #include "systems/system_connector.h"
 #include "assets/asset_binding.h"
+#include "models/component.h"
 
 namespace aiko
 {
@@ -19,8 +20,23 @@ namespace aiko
         BaseSystem::update();
         AssetBindingContext context(*m_assetSystem);
         Scene& scene = m_sceneSystem->getScene();
-        for (IAssetBinding* binding : scene.components<IAssetBinding>())
+        for (IAssetBinding* binding :
+             scene.components<IAssetBinding>())
         {
+            if (binding == nullptr)
+            {
+                continue;
+            }
+
+            if (Component* component =
+                    dynamic_cast<Component*>(binding))
+            {
+                if (component->isActiveAndEnabled() == false)
+                {
+                    continue;
+                }
+            }
+
             binding->resolveAssetBinding(context);
         }
     }

@@ -59,6 +59,10 @@ namespace aiko
 
         for (CanvasComponent* canvas : canvases)
         {
+            if (canvas == nullptr || canvas->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
             renderCanvas(*canvas, surfaceSize);
         }
     }
@@ -143,9 +147,17 @@ namespace aiko
 
     void UISystem::renderObject(GameObject& object, const UIRect& parentRect, float canvasScale, const UITheme& theme)
     {
-        if (object.hasComponent<CanvasComponent>())
+        if (object.isActiveInHierarchy() == false)
         {
             return;
+        }
+
+        if (CanvasComponent* canvas = object.getComponent<CanvasComponent>())
+        {
+            if (canvas->isEnabled())
+            {
+                return;
+            }
         }
 
         RectTransformComponent* rectTransform =
@@ -153,7 +165,7 @@ namespace aiko
 
         UIRect resolvedRect = parentRect;
 
-        if (rectTransform != nullptr)
+        if (rectTransform != nullptr && rectTransform->isEnabled())
         {
             resolvedRect = resolveRect(*rectTransform, parentRect);
 
@@ -169,13 +181,19 @@ namespace aiko
 
     void UISystem::renderResolvedObject(GameObject& object, const UIRect& resolvedRect, float canvasScale, const UITheme& theme)
     {
-        if (ImageComponent* image = object.getComponent<ImageComponent>())
+
+        if (object.isActiveInHierarchy() == false)
+        {
+            return;
+        }
+
+        if (ImageComponent* image = object.getComponent<ImageComponent>(); image != nullptr && image->isEnabled())
         {
             RectTransformComponent* rectTransform = object.getComponent<RectTransformComponent>();
 
             AIKO_ASSERT(rectTransform != nullptr, "ImageComponent requires a RectTransformComponent");
 
-            if (rectTransform != nullptr)
+            if (rectTransform != nullptr && rectTransform->isEnabled())
             {
                 UIImageAppearance appearance = theme.image.appearance;
 
@@ -207,7 +225,7 @@ namespace aiko
             }
         }
 
-        if (HorizontalLayoutComponent* layout = object.getComponent<HorizontalLayoutComponent>())
+        if (HorizontalLayoutComponent* layout = object.getComponent<HorizontalLayoutComponent>(); layout != nullptr && layout->isEnabled())
         {
             renderLinearLayout(
                 object,
@@ -222,7 +240,7 @@ namespace aiko
             return;
         }
 
-        if (VerticalLayoutComponent* layout = object.getComponent<VerticalLayoutComponent>())
+        if (VerticalLayoutComponent* layout = object.getComponent<VerticalLayoutComponent>(); layout != nullptr && layout->isEnabled())
         {
             renderLinearLayout(
                 object,
@@ -247,7 +265,18 @@ namespace aiko
     {
         const vector<GameObject*> children = object.getChildren();
 
-        if (children.empty())
+        vector<GameObject*> activeChildren;
+        activeChildren.reserve(children.size());
+
+        for (GameObject* child : children)
+        {
+            if (child != nullptr && child->isActiveInHierarchy())
+            {
+                activeChildren.push_back(child);
+            }
+        }
+
+        if (activeChildren.empty())
         {
             return;
         }
@@ -282,8 +311,7 @@ namespace aiko
                 0.0f,
                 resolvedCrossSize - crossStartPadding - crossEndPadding);
 
-        const float totalSpacing =
-            spacing * static_cast<float>(children.size() - 1);
+        const float totalSpacing = spacing * static_cast<float>(activeChildren.size() - 1);
 
         const float availableMainSize =
             std::max(0.0f, innerMainSize - totalSpacing);
@@ -292,12 +320,11 @@ namespace aiko
         float totalPreferredMainSize = 0.0f;
         float totalFlexibleWeight = 0.0f;
 
-        for (GameObject* child : children)
+        for (GameObject* child : activeChildren)
         {
-            const LayoutElementComponent* element =
-                child->getComponent<LayoutElementComponent>();
+            const LayoutElementComponent* element = child->getComponent<LayoutElementComponent>();
 
-            if (element == nullptr)
+            if (element == nullptr || element->isEnabled() == false)
             {
                 continue;
             }
@@ -361,16 +388,15 @@ namespace aiko
                 : resolvedRect.position.x) +
             crossStartPadding;
 
-        for (GameObject* child : children)
+        for (GameObject* child : activeChildren)
         {
-            const LayoutElementComponent* element =
-                child->getComponent<LayoutElementComponent>();
+            const LayoutElementComponent* element = child->getComponent<LayoutElementComponent>();
 
             vec2 minSize = {0.0f, 0.0f};
             vec2 preferredSize = {0.0f, 0.0f};
             vec2 flexibleWeight = {0.0f, 0.0f};
 
-            if (element != nullptr)
+            if (element != nullptr && element->isEnabled())
             {
                 minSize = element->getMinSize();
                 preferredSize = element->getPreferredSize();

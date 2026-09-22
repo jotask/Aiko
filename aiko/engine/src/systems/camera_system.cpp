@@ -25,10 +25,11 @@ namespace aiko
 
         for (CameraComponent* component : scene.components<CameraComponent>())
         {
-            if (component != nullptr)
+            if (component == nullptr || component->isActiveAndEnabled() == false)
             {
-                updateCamera(*component);
+                continue;
             }
+            updateCamera(*component);
         }
     }
 

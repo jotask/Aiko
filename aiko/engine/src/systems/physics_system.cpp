@@ -37,6 +37,35 @@ namespace aiko
         vector<RigidBodyComponent*> rigidBodies = scene.components<RigidBodyComponent>();
         vector<PlayerControllerComponent*> playerControllers = scene.components<PlayerControllerComponent>();
 
+        for (RigidBodyComponent* body : rigidBodies)
+        {
+            if (body == nullptr)
+            {
+                continue;
+            }
+
+            if (body->isActiveAndEnabled() == false &&
+                body->isPhysicsInitialized())
+            {
+                body->physicsShutdown(m_physics);
+            }
+        }
+
+        for (PlayerControllerComponent* controller :
+             playerControllers)
+        {
+            if (controller == nullptr)
+            {
+                continue;
+            }
+
+            if (controller->isActiveAndEnabled() == false &&
+                controller->isPhysicsInitialized())
+            {
+                controller->physicsShutdown();
+            }
+        }
+
         m_physicsAccumulator += Time::it().getDeltaTime();
         constexpr int kMaxSubSteps = 4;
 
@@ -45,7 +74,9 @@ namespace aiko
         {
             for (RigidBodyComponent* body : rigidBodies)
             {
-                if (body != nullptr)
+                if (body != nullptr &&
+    body->isActiveAndEnabled())
+
                 {
                     body->ensurePhysicsInitialized(m_physics);
                 }
@@ -53,7 +84,8 @@ namespace aiko
 
             for (PlayerControllerComponent* controller : playerControllers)
             {
-                if (controller != nullptr)
+                if (controller != nullptr &&
+    controller->isActiveAndEnabled())
                 {
                     controller->ensurePhysicsInitialized(m_physics);
                 }
@@ -61,7 +93,8 @@ namespace aiko
 
             for (PlayerControllerComponent* controller : playerControllers)
             {
-                if (controller != nullptr)
+                if (controller != nullptr &&
+    controller->isActiveAndEnabled())
                 {
                     controller->fixedUpdate(physics::kPhysicsDeltaTime);
                 }
@@ -77,7 +110,8 @@ namespace aiko
 
             for (RigidBodyComponent* body : rigidBodies)
             {
-                if (body != nullptr)
+                if (body != nullptr &&
+    body->isActiveAndEnabled())
                 {
                     body->syncFromPhysics(m_physics);
                 }
@@ -89,12 +123,21 @@ namespace aiko
 
         for (RigidBodyComponent* body : rigidBodies)
         {
-            ensureDebugMesh(body);
+            if (body != nullptr &&
+                body->isActiveAndEnabled())
+            {
+                ensureDebugMesh(body);
+            }
         }
 
-        for (PlayerControllerComponent* controller : playerControllers)
+        for (PlayerControllerComponent* controller :
+             playerControllers)
         {
-            ensureDebugMesh(controller);
+            if (controller != nullptr &&
+                controller->isActiveAndEnabled())
+            {
+                ensureDebugMesh(controller);
+            }
         }
 
         const vector<physics::PhysicsEvent> events = m_physics.drainEvents();
@@ -129,7 +172,7 @@ namespace aiko
 
         for (RigidBodyComponent* body : rigidBodies)
         {
-            if (body != nullptr && body->debug().enabled && body->debug().built)
+            if (body != nullptr && body->isActiveAndEnabled() && body->debug().enabled && body->debug().built)
             {
                 Transform debugTransform = body->getWorldTransform();
                 debugTransform.scale *= 1.01f;
@@ -139,7 +182,7 @@ namespace aiko
 
         for (PlayerControllerComponent* controller : playerControllers)
         {
-            if (controller != nullptr && controller->debug().enabled && controller->debug().built)
+            if (controller != nullptr && controller->isActiveAndEnabled() && controller->debug().enabled && controller->debug().built)
             {
                 Transform debugTransform = controller->getWorldTransform();
                 debugTransform.scale *= 1.01f;

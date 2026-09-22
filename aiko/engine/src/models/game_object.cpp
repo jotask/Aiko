@@ -13,6 +13,23 @@ namespace aiko
         addComponent<TransformComponent>();
     }
 
+    bool GameObject::isActiveInHierarchy() const
+    {
+        if (m_activeSelf == false)
+        {
+            return false;
+        }
+
+        const GameObject* parent = getParent();
+
+        if (parent == nullptr)
+        {
+            return true;
+        }
+
+        return parent->isActiveInHierarchy();
+    }
+
     Transform& GameObject::transform()
     {
         return getComponent<TransformComponent>()->transform;
