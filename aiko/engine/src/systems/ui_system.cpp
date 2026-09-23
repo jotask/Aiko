@@ -1,6 +1,7 @@
 #include "ui_system.h"
 
 #include <cmath>
+#include <algorithm>
 
 #include "system_connector.h"
 #include "components/canvas_component.h"
@@ -9,7 +10,8 @@
 #include "modules/display_module.h"
 #include "modules/module_connector.h"
 #include "systems/render_system.h"
-#include <algorithm>
+#include "systems/input_system.h"
+#include "ui/ui_raycast.h"
 
 #include "components/image_component.h"
 #include "models/game_object.h"
@@ -28,6 +30,24 @@ namespace aiko
         BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule);
         BIND_SYSTEM_REQUIRED(RenderSystem, systemConnector, m_renderSystem);
         BIND_SYSTEM_REQUIRED(SceneSystem, systemConnector, m_sceneSystem);
+        BIND_SYSTEM_REQUIRED(InputSystem, systemConnector, m_inputSystem);
+    }
+
+    void UISystem::update()
+    {
+        m_pointerTargetId.reset();
+
+        if (m_inputSystem->isMouseCaptured())
+        {
+            return;
+        }
+
+        GameObject* target = hitTest(m_inputSystem->getMouseFramebufferPosition());
+
+        if (target != nullptr)
+        {
+            m_pointerTargetId = target->uuid();
+        }
     }
 
     void UISystem::render()
@@ -195,6 +215,11 @@ namespace aiko
             return;
         }
 
+        if (object.hasComponent<CanvasComponent>())
+        {
+            return;
+        }
+
         if (ImageComponent* image = object.getComponent<ImageComponent>(); image != nullptr && image->isEnabled())
         {
             RectTransformComponent* rectTransform = object.getComponent<RectTransformComponent>();
@@ -269,16 +294,21 @@ namespace aiko
         }
     }
 
-    void UISystem::renderLinearLayout(GameObject& object, const UIRect& resolvedRect, const UIPadding& padding, float spacing, UICrossAxisAlignment childAlignment, LayoutAxis axis, float canvasScale, const UITheme& theme)
+    vector<UISystem::ResolvedChild> UISystem::resolveLinearLayoutChildren(GameObject& object, const UIRect& resolvedRect, const UIPadding& padding, float spacing, UICrossAxisAlignment childAlignment, LayoutAxis axis) const
     {
-        const vector<GameObject*> children = object.getChildren();
+        vector<ResolvedChild> result;
+
+        const vector<GameObject*> children =
+            object.getChildren();
 
         vector<GameObject*> activeChildren;
+
         activeChildren.reserve(children.size());
 
         for (GameObject* child : children)
         {
-            if (child != nullptr && child->isActiveInHierarchy())
+            if (child != nullptr &&
+                child->isActiveInHierarchy())
             {
                 activeChildren.push_back(child);
             }
@@ -286,10 +316,13 @@ namespace aiko
 
         if (activeChildren.empty())
         {
-            return;
+            return result;
         }
 
-        const bool horizontal = axis == LayoutAxis::Horizontal;
+        result.reserve(activeChildren.size());
+
+        const bool horizontal =
+            axis == LayoutAxis::Horizontal;
 
         const float mainStartPadding =
             horizontal ? padding.left : padding.top;
@@ -304,25 +337,38 @@ namespace aiko
             horizontal ? padding.bottom : padding.right;
 
         const float resolvedMainSize =
-            horizontal ? resolvedRect.size.x : resolvedRect.size.y;
+            horizontal
+                ? resolvedRect.size.x
+                : resolvedRect.size.y;
 
         const float resolvedCrossSize =
-            horizontal ? resolvedRect.size.y : resolvedRect.size.x;
+            horizontal
+                ? resolvedRect.size.y
+                : resolvedRect.size.x;
 
         const float innerMainSize =
             std::max(
                 0.0f,
-                resolvedMainSize - mainStartPadding - mainEndPadding);
+                resolvedMainSize -
+                    mainStartPadding -
+                    mainEndPadding);
 
         const float innerCrossSize =
             std::max(
                 0.0f,
-                resolvedCrossSize - crossStartPadding - crossEndPadding);
+                resolvedCrossSize -
+                    crossStartPadding -
+                    crossEndPadding);
 
-        const float totalSpacing = spacing * static_cast<float>(activeChildren.size() - 1);
+        const float totalSpacing =
+            spacing *
+            static_cast<float>(
+                activeChildren.size() - 1);
 
         const float availableMainSize =
-            std::max(0.0f, innerMainSize - totalSpacing);
+            std::max(
+                0.0f,
+                innerMainSize - totalSpacing);
 
         float totalMinMainSize = 0.0f;
         float totalPreferredMainSize = 0.0f;
@@ -330,48 +376,68 @@ namespace aiko
 
         for (GameObject* child : activeChildren)
         {
-            const LayoutElementComponent* element = child->getComponent<LayoutElementComponent>();
+            const LayoutElementComponent* element =
+                child->getComponent<LayoutElementComponent>();
 
-            if (element == nullptr || element->isEnabled() == false)
+            if (element == nullptr ||
+                element->isEnabled() == false)
             {
                 continue;
             }
 
-            const vec2& minSize = element->getMinSize();
-            const vec2& preferredSize = element->getPreferredSize();
-            const vec2& flexibleWeight = element->getFlexibleWeight();
+            const vec2& minSize =
+                element->getMinSize();
+
+            const vec2& preferredSize =
+                element->getPreferredSize();
+
+            const vec2& flexibleWeight =
+                element->getFlexibleWeight();
 
             const float minMainSize =
-                horizontal ? minSize.x : minSize.y;
+                horizontal
+                    ? minSize.x
+                    : minSize.y;
 
             const float preferredMainSize =
                 std::max(
                     minMainSize,
-                    horizontal ? preferredSize.x : preferredSize.y);
+                    horizontal
+                        ? preferredSize.x
+                        : preferredSize.y);
 
             const float flexibleMainWeight =
-                horizontal ? flexibleWeight.x : flexibleWeight.y;
+                horizontal
+                    ? flexibleWeight.x
+                    : flexibleWeight.y;
 
             totalMinMainSize += minMainSize;
-            totalPreferredMainSize += preferredMainSize;
-            totalFlexibleWeight += flexibleMainWeight;
+            totalPreferredMainSize +=
+                preferredMainSize;
+
+            totalFlexibleWeight +=
+                flexibleMainWeight;
         }
 
         float interpolation = 1.0f;
         float surplus = 0.0f;
 
-        if (availableMainSize < totalPreferredMainSize)
+        if (availableMainSize <
+            totalPreferredMainSize)
         {
             const float preferredRange =
-                totalPreferredMainSize - totalMinMainSize;
+                totalPreferredMainSize -
+                totalMinMainSize;
 
             if (preferredRange > 0.0f)
             {
-                interpolation = std::clamp(
-                    (availableMainSize - totalMinMainSize) /
-                        preferredRange,
-                    0.0f,
-                    1.0f);
+                interpolation =
+                    std::clamp(
+                        (availableMainSize -
+                         totalMinMainSize) /
+                            preferredRange,
+                        0.0f,
+                        1.0f);
             }
             else
             {
@@ -381,7 +447,8 @@ namespace aiko
         else
         {
             surplus =
-                availableMainSize - totalPreferredMainSize;
+                availableMainSize -
+                totalPreferredMainSize;
         }
 
         float cursor =
@@ -398,33 +465,48 @@ namespace aiko
 
         for (GameObject* child : activeChildren)
         {
-            const LayoutElementComponent* element = child->getComponent<LayoutElementComponent>();
+            const LayoutElementComponent* element =
+                child->getComponent<LayoutElementComponent>();
 
             vec2 minSize = {0.0f, 0.0f};
             vec2 preferredSize = {0.0f, 0.0f};
             vec2 flexibleWeight = {0.0f, 0.0f};
 
-            if (element != nullptr && element->isEnabled())
+            if (element != nullptr &&
+                element->isEnabled())
             {
-                minSize = element->getMinSize();
-                preferredSize = element->getPreferredSize();
-                flexibleWeight = element->getFlexibleWeight();
+                minSize =
+                    element->getMinSize();
+
+                preferredSize =
+                    element->getPreferredSize();
+
+                flexibleWeight =
+                    element->getFlexibleWeight();
             }
 
             const float minMainSize =
-                horizontal ? minSize.x : minSize.y;
+                horizontal
+                    ? minSize.x
+                    : minSize.y;
 
             const float preferredMainSize =
                 std::max(
                     minMainSize,
-                    horizontal ? preferredSize.x : preferredSize.y);
+                    horizontal
+                        ? preferredSize.x
+                        : preferredSize.y);
 
             const float flexibleMainWeight =
-                horizontal ? flexibleWeight.x : flexibleWeight.y;
+                horizontal
+                    ? flexibleWeight.x
+                    : flexibleWeight.y;
 
             float allocatedMainSize =
                 minMainSize +
-                (preferredMainSize - minMainSize) * interpolation;
+                (preferredMainSize -
+                 minMainSize) *
+                    interpolation;
 
             if (surplus > 0.0f &&
                 totalFlexibleWeight > 0.0f &&
@@ -432,21 +514,29 @@ namespace aiko
             {
                 allocatedMainSize +=
                     surplus *
-                    (flexibleMainWeight / totalFlexibleWeight);
+                    (flexibleMainWeight /
+                     totalFlexibleWeight);
             }
 
             const float minCrossSize =
-                horizontal ? minSize.y : minSize.x;
+                horizontal
+                    ? minSize.y
+                    : minSize.x;
 
             const float preferredCrossSize =
                 std::max(
                     minCrossSize,
-                    horizontal ? preferredSize.y : preferredSize.x);
+                    horizontal
+                        ? preferredSize.y
+                        : preferredSize.x);
 
             const float allocatedCrossSize =
-                std::min(innerCrossSize, preferredCrossSize);
+                std::min(
+                    innerCrossSize,
+                    preferredCrossSize);
 
-            float crossPosition = crossStart;
+            float crossPosition =
+                crossStart;
 
             switch (childAlignment)
             {
@@ -455,12 +545,15 @@ namespace aiko
 
                 case UICrossAxisAlignment::Center:
                     crossPosition +=
-                        (innerCrossSize - allocatedCrossSize) * 0.5f;
+                        (innerCrossSize -
+                         allocatedCrossSize) *
+                        0.5f;
                     break;
 
                 case UICrossAxisAlignment::End:
                     crossPosition +=
-                        innerCrossSize - allocatedCrossSize;
+                        innerCrossSize -
+                        allocatedCrossSize;
                     break;
             }
 
@@ -470,27 +563,385 @@ namespace aiko
             {
                 childRect =
                 {
-                    .position = {cursor, crossPosition},
-                    .size = {allocatedMainSize, allocatedCrossSize}
+                    .position =
+                    {
+                        cursor,
+                        crossPosition
+                    },
+                    .size =
+                    {
+                        allocatedMainSize,
+                        allocatedCrossSize
+                    }
                 };
             }
             else
             {
                 childRect =
                 {
-                    .position = {crossPosition, cursor},
-                    .size = {allocatedCrossSize, allocatedMainSize}
+                    .position =
+                    {
+                        crossPosition,
+                        cursor
+                    },
+                    .size =
+                    {
+                        allocatedCrossSize,
+                        allocatedMainSize
+                    }
                 };
             }
 
-            renderResolvedObject(
-                *child,
-                childRect,
-                canvasScale,
-                theme);
+            result.push_back(
+            {
+                .object = child,
+                .rect = childRect
+            });
 
-            cursor += allocatedMainSize + spacing;
+            cursor +=
+                allocatedMainSize +
+                spacing;
         }
+
+        return result;
+    }
+
+    void UISystem::renderLinearLayout(GameObject& object, const UIRect& resolvedRect, const UIPadding& padding, float spacing, UICrossAxisAlignment childAlignment, LayoutAxis axis, float canvasScale, const UITheme& theme)
+    {
+        const vector<ResolvedChild> children = resolveLinearLayoutChildren(object, resolvedRect, padding, spacing, childAlignment, axis);
+
+        for (const ResolvedChild& child : children)
+        {
+            if (child.object == nullptr)
+            {
+                continue;
+            }
+
+            renderResolvedObject(*child.object, child.rect, canvasScale, theme);
+        }
+    }
+
+    GameObject* UISystem::getPointerTarget()
+    {
+        if (m_pointerTargetId.has_value() == false)
+        {
+            return nullptr;
+        }
+
+        for (GameObject* object : m_sceneSystem->getScene().getObjects())
+        {
+            if (object != nullptr && object->uuid() == *m_pointerTargetId)
+            {
+                return object;
+            }
+        }
+
+        return nullptr;
+    }
+
+    const GameObject* UISystem::getPointerTarget() const
+    {
+        if (m_pointerTargetId.has_value() == false)
+        {
+            return nullptr;
+        }
+
+        const Scene& scene = m_sceneSystem->getScene();
+
+        for (const GameObject* object : scene.getObjects())
+        {
+            if (object != nullptr && object->uuid() == *m_pointerTargetId)
+            {
+                return object;
+            }
+        }
+
+        return nullptr;
+    }
+
+    bool UISystem::isRaycastTarget(const GameObject& object) const
+    {
+        for (const Component* component : object.getComponents())
+        {
+            if (component == nullptr || component->isEnabled() == false)
+            {
+                continue;
+            }
+
+            const UIRaycastTarget* raycastTarget = dynamic_cast<const UIRaycastTarget*>(component);
+            if (raycastTarget != nullptr && raycastTarget->isRaycastTarget())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool UISystem::containsPoint(const UIRect& rect, const vec2& point) const
+    {
+        if (rect.size.x <= 0.0f ||
+            rect.size.y <= 0.0f)
+        {
+            return false;
+        }
+
+        return
+            point.x >= rect.position.x &&
+            point.y >= rect.position.y &&
+            point.x < rect.position.x + rect.size.x &&
+            point.y < rect.position.y + rect.size.y;
+    }
+
+    GameObject* UISystem::hitTest(const vec2& framebufferPosition)
+    {
+        const ivec2 size =
+            m_displayModule->getFramebufferSize();
+
+        if (size.x <= 0 || size.y <= 0)
+        {
+            return nullptr;
+        }
+
+        const vec2 framebufferSize =
+        {
+            static_cast<float>(size.x),
+            static_cast<float>(size.y)
+        };
+
+        vector<CanvasComponent*> canvases = m_sceneSystem->getScene().components<CanvasComponent>();
+
+        std::stable_sort(
+            canvases.begin(),
+            canvases.end(),
+            [](const CanvasComponent* lhs, const CanvasComponent* rhs)
+            {
+                return
+                    lhs->getSortingOrder() <
+                    rhs->getSortingOrder();
+            });
+
+        for (auto it = canvases.rbegin(); it != canvases.rend(); ++it)
+        {
+            CanvasComponent* canvas = *it;
+
+            if (canvas == nullptr || canvas->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
+
+            GameObject* hit = hitTestCanvas(*canvas, framebufferSize, framebufferPosition);
+
+            if (hit != nullptr)
+            {
+                return hit;
+            }
+        }
+
+        return nullptr;
+    }
+
+    GameObject* UISystem::hitTestCanvas(CanvasComponent& canvas, const vec2& framebufferSize, const vec2& framebufferPosition)
+    {
+        GameObject* canvasObject = canvas.getGameObject();
+
+        if (canvasObject == nullptr)
+        {
+            return nullptr;
+        }
+
+        const float scale = resolveCanvasScale(canvas, framebufferSize);
+
+        if (scale <= 0.0f)
+        {
+            return nullptr;
+        }
+
+        const UIRect canvasRect =
+        {
+            .position = {0.0f, 0.0f},
+            .size = framebufferSize / scale
+        };
+
+        const vec2 pointerPosition = framebufferToCanvasPosition(canvas, framebufferSize, framebufferPosition);
+
+        vector<GameObject*> children = canvasObject->getChildren();
+
+        for (auto it = children.rbegin(); it != children.rend(); ++it)
+        {
+            GameObject* child = *it;
+
+            if (child == nullptr)
+            {
+                continue;
+            }
+
+            GameObject* hit = hitTestObject(*child, canvasRect, pointerPosition);
+
+            if (hit != nullptr)
+            {
+                return hit;
+            }
+        }
+
+        return nullptr;
+    }
+
+    GameObject* UISystem::hitTestObject(GameObject& object, const UIRect& parentRect, const vec2& pointerPosition)
+    {
+        if (object.isActiveInHierarchy() == false)
+        {
+            return nullptr;
+        }
+
+        if (object.hasComponent<CanvasComponent>())
+        {
+            return nullptr;
+        }
+
+        RectTransformComponent* rectTransform = object.getComponent<RectTransformComponent>();
+
+        UIRect resolvedRect = parentRect;
+
+        if (rectTransform != nullptr)
+        {
+            resolvedRect = resolveRect(*rectTransform, parentRect);
+
+            if (resolvedRect.size.x < 0.0f || resolvedRect.size.y < 0.0f)
+            {
+                return nullptr;
+            }
+        }
+
+        return hitTestResolvedObject(object, resolvedRect, pointerPosition);
+    }
+
+    GameObject* UISystem::hitTestResolvedObject(GameObject& object, const UIRect& resolvedRect, const vec2& pointerPosition)
+    {
+        if (object.isActiveInHierarchy() == false)
+        {
+            return nullptr;
+        }
+
+        if (object.hasComponent<CanvasComponent>())
+        {
+            return nullptr;
+        }
+
+        if (HorizontalLayoutComponent* layout =
+                object.getComponent<
+                    HorizontalLayoutComponent>();
+            layout != nullptr &&
+            layout->isEnabled())
+        {
+            const vector<ResolvedChild> children =
+                resolveLinearLayoutChildren(
+                    object,
+                    resolvedRect,
+                    layout->getPadding(),
+                    layout->getSpacing(),
+                    layout->getChildAlignment(),
+                    LayoutAxis::Horizontal);
+
+            for (auto it = children.rbegin();
+                 it != children.rend();
+                 ++it)
+            {
+                if (it->object == nullptr)
+                {
+                    continue;
+                }
+
+                GameObject* hit =
+                    hitTestResolvedObject(
+                        *it->object,
+                        it->rect,
+                        pointerPosition);
+
+                if (hit != nullptr)
+                {
+                    return hit;
+                }
+            }
+        }
+        else if (VerticalLayoutComponent* layout =
+                     object.getComponent<
+                         VerticalLayoutComponent>();
+                 layout != nullptr &&
+                 layout->isEnabled())
+        {
+            const vector<ResolvedChild> children =
+                resolveLinearLayoutChildren(
+                    object,
+                    resolvedRect,
+                    layout->getPadding(),
+                    layout->getSpacing(),
+                    layout->getChildAlignment(),
+                    LayoutAxis::Vertical);
+
+            for (auto it = children.rbegin();
+                 it != children.rend();
+                 ++it)
+            {
+                if (it->object == nullptr)
+                {
+                    continue;
+                }
+
+                GameObject* hit =
+                    hitTestResolvedObject(
+                        *it->object,
+                        it->rect,
+                        pointerPosition);
+
+                if (hit != nullptr)
+                {
+                    return hit;
+                }
+            }
+        }
+        else
+        {
+            vector<GameObject*> children =
+                object.getChildren();
+
+            for (auto it = children.rbegin();
+                 it != children.rend();
+                 ++it)
+            {
+                GameObject* child = *it;
+
+                if (child == nullptr)
+                {
+                    continue;
+                }
+
+                GameObject* hit =
+                    hitTestObject(
+                        *child,
+                        resolvedRect,
+                        pointerPosition);
+
+                if (hit != nullptr)
+                {
+                    return hit;
+                }
+            }
+        }
+
+        if (isRaycastTarget(object) == false)
+        {
+            return nullptr;
+        }
+
+        if (containsPoint(
+                resolvedRect,
+                pointerPosition) == false)
+        {
+            return nullptr;
+        }
+
+        return &object;
     }
 
 }

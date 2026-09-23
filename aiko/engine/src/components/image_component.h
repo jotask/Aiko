@@ -9,11 +9,12 @@
 #include <types/color.h>
 
 #include "models/component.h"
+#include "ui/ui_raycast.h"
 
 namespace aiko
 {
 
-    class ImageComponent : public Component, public IAssetBinding
+    class ImageComponent : public Component, public IAssetBinding, public UIRaycastTarget
     {
     public:
 
