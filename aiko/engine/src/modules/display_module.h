@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math/math.h>
+
 #include "base_module.h"
 
 #include <display/display_manager.h>
@@ -16,6 +18,12 @@ namespace aiko
         virtual ~DisplayModule() = default;
 
         ivec2 getDisplaySize() const;
+
+        ivec2 getWindowSize() const;
+        ivec2 getFramebufferSize() const;
+
+        vec2 windowToFramebuffer(const vec2& position) const;
+
         void* getNativeWindow() const;
 
     protected:

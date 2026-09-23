@@ -4,6 +4,7 @@
 
 #include "modules/module_connector.h"
 #include "modules/input_module.h"
+#include "modules/display_module.h"
 
 namespace aiko
 {
@@ -11,6 +12,7 @@ namespace aiko
     void InputSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(InputModule, moduleConnector, m_inputModule)
+        BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule)
     }
 
     void InputSystem::setMouseCaptured(bool captured) const
@@ -38,9 +40,14 @@ namespace aiko
         return m_inputModule->input().isKeyJustReleased(key);
     }
 
-    vec2 InputSystem::getMousePosition() const
+    vec2 InputSystem::getMouseWindowPosition() const
     {
-        return m_inputModule->input().getMousePosition();
+        return  m_inputModule->input().getMouseWindowPosition();
+    }
+
+    vec2 InputSystem::getMouseFramebufferPosition() const
+    {
+        return m_displayModule->windowToFramebuffer(getMouseWindowPosition());
     }
 
     vec2 InputSystem::getMouseDelta() const

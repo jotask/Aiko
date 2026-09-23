@@ -51,9 +51,9 @@ namespace aiko
         return it->second.justReleased;
     }
 
-    vec2 AikoInput::getMousePosition() const
+    vec2 AikoInput::getMouseWindowPosition() const
     {
-        return m_mousePosition;
+        return m_mouseWindowPosition ;
     }
 
     vec2 AikoInput::getMouseDelta() const
@@ -119,7 +119,7 @@ namespace aiko
 
         glfwGetCursorPos(m_window, &x, &y);
 
-        m_mousePosition =
+        m_mouseWindowPosition  =
         {
             static_cast<float>(x),
             static_cast<float>(y)
@@ -244,8 +244,8 @@ namespace aiko
             event.y
         };
 
-        m_mouseDelta += newMousePosition - m_mousePosition;
-        m_mousePosition = newMousePosition;
+        m_mouseDelta += newMousePosition - m_mouseWindowPosition ;
+        m_mouseWindowPosition  = newMousePosition;
     }
 
     void AikoInput::onMouseScrolled(OnMouseScrollEvent& event)

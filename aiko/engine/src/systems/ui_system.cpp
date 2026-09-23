@@ -32,7 +32,7 @@ namespace aiko
 
     void UISystem::render()
     {
-        const ivec2 displaySize = m_displayModule->getDisplaySize();
+        const ivec2 displaySize = m_displayModule->getFramebufferSize();
 
         if (displaySize.x <= 0 || displaySize.y <= 0)
         {
@@ -90,6 +90,17 @@ namespace aiko
         }
 
         return scale * canvas.getScaleFactor();
+    }
+
+    vec2 UISystem::framebufferToCanvasPosition(const CanvasComponent& canvas, const vec2& framebufferSize, const vec2& framebufferPosition) const
+    {
+        const float scale = resolveCanvasScale(canvas, framebufferSize);
+        AIKO_ASSERT(scale > 0.0f, "Canvas resolved scale must be greater than zero");
+        if (scale <= 0.0f)
+        {
+            return {};
+        }
+        return framebufferPosition / scale;
     }
 
     UIRect UISystem::resolveRect(const RectTransformComponent& rectTransform, const UIRect& parentRect) const
@@ -154,10 +165,7 @@ namespace aiko
 
         if (CanvasComponent* canvas = object.getComponent<CanvasComponent>())
         {
-            if (canvas->isEnabled())
-            {
-                return;
-            }
+            return;
         }
 
         RectTransformComponent* rectTransform =
@@ -165,7 +173,7 @@ namespace aiko
 
         UIRect resolvedRect = parentRect;
 
-        if (rectTransform != nullptr && rectTransform->isEnabled())
+        if (rectTransform != nullptr)
         {
             resolvedRect = resolveRect(*rectTransform, parentRect);
 
@@ -193,7 +201,7 @@ namespace aiko
 
             AIKO_ASSERT(rectTransform != nullptr, "ImageComponent requires a RectTransformComponent");
 
-            if (rectTransform != nullptr && rectTransform->isEnabled())
+            if (rectTransform != nullptr)
             {
                 UIImageAppearance appearance = theme.image.appearance;
 

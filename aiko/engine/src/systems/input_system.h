@@ -7,6 +7,7 @@ namespace aiko
 {
 
     class InputModule;
+    class DisplayModule;
 
     class InputSystem : public BaseSystem
     {
@@ -22,7 +23,8 @@ namespace aiko
         bool isKeyJustPressed(Key key) const;
         bool isKeyJustReleased(Key key) const;
 
-        vec2 getMousePosition() const;
+        vec2 getMouseWindowPosition() const;
+        vec2 getMouseFramebufferPosition() const;
         vec2 getMouseDelta() const;
         vec2 getMouseScrollDelta() const;
 
@@ -37,6 +39,7 @@ namespace aiko
     private:
 
         InputModule* m_inputModule = nullptr;
+        DisplayModule* m_displayModule = nullptr;
 
     };
 

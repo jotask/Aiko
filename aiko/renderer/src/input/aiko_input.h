@@ -20,7 +20,7 @@ namespace aiko
         bool isKeyJustPressed(Key key) const;
         bool isKeyJustReleased(Key key) const;
 
-        vec2 getMousePosition() const;
+        vec2 getMouseWindowPosition() const;
         vec2 getMouseDelta() const;
         vec2 getMouseScrollDelta() const;
 
@@ -51,7 +51,7 @@ namespace aiko
 
         GLFWwindow* m_window = nullptr;
 
-        vec2 m_mousePosition = {};
+        vec2 m_mouseWindowPosition  = {};
         vec2 m_mouseScrollDelta = {};
         vec2 m_mouseDelta = {};
 

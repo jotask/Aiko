@@ -43,10 +43,12 @@ namespace aiko
         glfwGetVersion(&glfw_major, &glfw_minor, &glfw_patch);
         logger::Log::info() << "GLFW Version: " << glfw_major << "." << glfw_minor << "." << glfw_patch;
 
-        m_display.setWindowTitle(title);
-        m_display.setWindowSize(width, height);
-
         m_native = window;
+
+        const ivec2 framebufferSize = getFramebufferSize();
+
+        m_display.setWindowTitle(title);
+        m_display.setWindowSize(framebufferSize.x, framebufferSize.y);
 
         EventSystem::it().bind<OnKeyPressedEvent>(this, &DisplayManager::onKeyPressed);
         EventSystem::it().bind<WindowResizeEvent>(this, &DisplayManager::onWindowResize);
@@ -77,6 +79,44 @@ namespace aiko
     GLFWwindow * DisplayManager::getNativeWindow() const
     {
         return m_native;
+    }
+
+    ivec2 DisplayManager::getWindowSize() const
+    {
+        if (m_native == nullptr)
+        {
+            return {};
+        }
+
+        int width = 0;
+        int height = 0;
+
+        glfwGetWindowSize(
+            m_native,
+            &width,
+            &height
+        );
+
+        return
+        {
+            width,
+            height
+        };
+    }
+
+    ivec2 DisplayManager::getFramebufferSize() const
+    {
+        if (m_native == nullptr)
+        {
+            return {};
+        }
+
+        int width = 0;
+        int height = 0;
+
+        glfwGetFramebufferSize(m_native, &width, &height);
+
+        return { width, height };
     }
 
     bool DisplayManager::centerWindow(GLFWwindow* window)

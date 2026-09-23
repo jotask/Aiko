@@ -169,7 +169,7 @@ namespace aiko
 
         AssetManager* assetManager = m_assetManager->getManager();
 
-        const ivec2 size = m_displayModule->getDisplaySize();
+        const ivec2 size = m_displayModule->getFramebufferSize();
         const RenderSurfaceDesc surface =
         {
             .nativeWindowHandle = m_displayModule->getNativeWindow(),

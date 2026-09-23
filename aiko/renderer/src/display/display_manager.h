@@ -26,11 +26,13 @@ namespace aiko
         Display* getDisplay();
         const Display* getDisplay() const;
         GLFWwindow* getNativeWindow() const;
+        ivec2 getWindowSize() const;
+        ivec2 getFramebufferSize() const;
 
     private:
 
         Display m_display;
-        GLFWwindow* m_native;
+        GLFWwindow* m_native = nullptr;
 
         bool centerWindow(GLFWwindow* window);
         void setupWindowCallbacks(GLFWwindow* window);

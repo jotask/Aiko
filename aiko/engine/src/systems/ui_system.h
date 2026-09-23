@@ -32,6 +32,8 @@ namespace aiko
 
         float resolveCanvasScale(const CanvasComponent& canvas, const vec2& surfaceSize) const;
 
+        vec2 framebufferToCanvasPosition(const CanvasComponent& canvas, const vec2& framebufferSize, const vec2& framebufferPosition) const;
+
         UIRect resolveRect(const RectTransformComponent& rectTransform, const UIRect& parentRect) const;
 
     protected:

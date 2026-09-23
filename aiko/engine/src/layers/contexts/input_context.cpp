@@ -29,9 +29,14 @@ namespace aiko
         return m_inputSystem->isKeyJustReleased(key);
     }
 
-    vec2 InputContext::getMousePosition() const
+    vec2 InputContext::getMouseWindowPosition() const
     {
-        return m_inputSystem->getMousePosition();
+        return m_inputSystem->getMouseWindowPosition();
+    }
+
+    vec2 InputContext::getMouseFramebufferPosition() const
+    {
+        return m_inputSystem->getMouseFramebufferPosition();
     }
 
     vec2 InputContext::getMouseDelta() const
