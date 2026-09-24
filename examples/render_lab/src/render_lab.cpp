@@ -1217,10 +1217,16 @@ namespace aiko::lab
         CanvasComponent* overlayCanvas = overlayCanvasObject->addComponent<CanvasComponent>();
 
         UITheme& overlayTheme = overlayCanvas->getTheme();
+
         overlayTheme.selectable.normal.color = WHITE;
         overlayTheme.selectable.hovered.color = YELLOW;
         overlayTheme.selectable.pressed.color = RED;
         overlayTheme.selectable.disabled.color = GRAY;
+
+        overlayTheme.button.selectable.normal.color = LIGHTGRAY;
+        overlayTheme.button.selectable.hovered.color = GREEN;
+        overlayTheme.button.selectable.pressed.color = BLUE;
+        overlayTheme.button.selectable.disabled.color = DARKGRAY;
 
         overlayCanvas->setScaleMode(CanvasScaleMode::ScaleWithScreenSize);
         overlayCanvas->setReferenceResolution({1920.0f, 1080.0f});

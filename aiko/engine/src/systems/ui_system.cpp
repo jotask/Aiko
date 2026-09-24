@@ -20,6 +20,7 @@
 #include "components/vertical_layout_component.h"
 #include "components/layout_element_component.h"
 #include "components/selectable_component.h"
+#include "components/button_component.h"
 
 namespace aiko
 {
@@ -349,7 +350,15 @@ namespace aiko
 
                 if (SelectableComponent* selectable = object.getComponent<SelectableComponent>(); selectable != nullptr)
                 {
-                    const UISelectableStyle& selectableStyle = selectable->resolveStyle(theme.selectable);
+                    const UISelectableStyle* themeStyle = &theme.selectable;
+
+                    if (object.getComponent<ButtonComponent>() != nullptr)
+                    {
+                        themeStyle = &theme.button.selectable;
+                    }
+
+                    const UISelectableStyle& selectableStyle = selectable->resolveStyle(*themeStyle);
+
                     appearance = selectable->resolveAppearance(selectableStyle);
                 }
 

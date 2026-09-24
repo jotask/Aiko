@@ -23,10 +23,18 @@ namespace aiko
         UIImageAppearance disabled;
     };
 
+    struct UIButtonStyle
+    {
+        UISelectableStyle selectable;
+    };
+
     struct UITheme
     {
         UIImageStyle image;
+
         UISelectableStyle selectable;
+
+        UIButtonStyle button;
     };
 
 }
