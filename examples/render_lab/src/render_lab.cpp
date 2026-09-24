@@ -6,8 +6,9 @@
 #include "components/mesh_component.h"
 #include "components/model_component.h"
 #include "components/particle_emitter_component.h"
-#include "components/selectable_component.h"
 #include "components/sprite_component.h"
+#include "components/selectable_component.h"
+#include "components/button_component.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/render_context.h"
 #include "layers/contexts/scene_context.h"
@@ -1241,6 +1242,19 @@ namespace aiko::lab
         overlayImage->load("texel_checker.png");
 
         overlayPanel->addComponent<SelectableComponent>();
+
+        ButtonComponent* overlayButton = overlayPanel->addComponent<ButtonComponent>();
+
+        overlayButton->setOnClick([overlayRect]()
+        {
+            static bool toggled = false;
+            toggled = !toggled;
+
+            overlayRect->setAnchoredPosition(
+                toggled
+                    ? vec2{300.0f, 100.0f}
+                    : vec2{180.0f, 100.0f});
+        });
     }
 
     // --------------------------------------------------
