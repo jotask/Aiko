@@ -1236,40 +1236,46 @@ namespace aiko::lab
         GameObject* overlayPanel = scene().Instantiate(overlayCanvasObject, "Overlay Panel");
 
         RectTransformComponent* overlayRect = overlayPanel->addComponent<RectTransformComponent>();
-
         overlayRect->setAnchors({0.5f, 0.5f}, {0.5f, 0.5f});
-
         overlayRect->setPivot({0.5f, 0.5f});
         overlayRect->setAnchoredPosition({180.0f, 100.0f});
         overlayRect->setSizeDelta({180.0f, 180.0f});
 
         ImageComponent* overlayImage = overlayPanel->addComponent<ImageComponent>();
-
         overlayImage->load("texel_checker.png");
+        overlayImage->setColor(WHITE);
 
-        SelectableComponent* overlaySelectable = overlayPanel->addComponent<SelectableComponent>();
+        // --------------------------------------------------
+        // Button test
+        //
+        // Separate from the plain overlay image so the
+        // interactive control is visually distinguishable.
+        // --------------------------------------------------
 
-        UISelectableStyle buttonStyle;
+        GameObject* buttonObject = scene().Instantiate(overlayCanvasObject, "Button Test");
 
-        buttonStyle.normal.color = LIGHTGRAY;
-        buttonStyle.hovered.color = GREEN;
-        buttonStyle.pressed.color = BLUE;
-        buttonStyle.disabled.color = DARKGRAY;
+        RectTransformComponent* buttonRect = buttonObject->addComponent<RectTransformComponent>();
+        buttonRect->setAnchors({0.5f, 0.5f}, {0.5f, 0.5f});
+        buttonRect->setPivot({0.5f, 0.5f});
+        buttonRect->setAnchoredPosition({-180.0f, 100.0f});
+        buttonRect->setSizeDelta({180.0f, 100.0f});
 
-        overlaySelectable->setStyle(buttonStyle);
+        buttonObject->addComponent<ImageComponent>();
+        buttonObject->addComponent<SelectableComponent>();
 
-        ButtonComponent* overlayButton = overlayPanel->addComponent<ButtonComponent>();
-
-        overlayButton->setOnClick([overlayRect]()
+        ButtonComponent* button = buttonObject->addComponent<ButtonComponent>();
+        button->setOnClick(
+        [buttonRect]()
         {
             static bool toggled = false;
             toggled = !toggled;
 
-            overlayRect->setAnchoredPosition(
+            buttonRect->setSizeDelta(
                 toggled
-                    ? vec2{300.0f, 100.0f}
+                    ? vec2{220.0f, 120.0f}
                     : vec2{180.0f, 100.0f});
         });
+
     }
 
     // --------------------------------------------------
