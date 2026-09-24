@@ -349,7 +349,8 @@ namespace aiko
 
                 if (SelectableComponent* selectable = object.getComponent<SelectableComponent>(); selectable != nullptr)
                 {
-                    appearance = selectable->resolveAppearance(theme.selectable);
+                    const UISelectableStyle& selectableStyle = selectable->resolveStyle(theme.selectable);
+                    appearance = selectable->resolveAppearance(selectableStyle);
                 }
 
                 if (image->hasColorOverride())

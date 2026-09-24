@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "models/component.h"
 #include "ui/ui_pointer_event.h"
 #include "ui/ui_style.h"
@@ -28,10 +30,19 @@ namespace aiko
 
         UIEventPropagation onPointerEvent(const UIPointerEvent& event) override;
 
+        void setStyle(const UISelectableStyle& style);
+        void clearStyle();
+
+        bool hasStyleOverride() const;
+
+        const UISelectableStyle& resolveStyle(const UISelectableStyle& themeStyle) const;
+
     private:
 
         bool m_pointerInside = false;
         bool m_pressed = false;
+
+        std::optional<UISelectableStyle> m_styleOverride;
     };
 
 }

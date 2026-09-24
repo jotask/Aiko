@@ -1241,7 +1241,16 @@ namespace aiko::lab
 
         overlayImage->load("texel_checker.png");
 
-        overlayPanel->addComponent<SelectableComponent>();
+        SelectableComponent* overlaySelectable = overlayPanel->addComponent<SelectableComponent>();
+
+        UISelectableStyle buttonStyle;
+
+        buttonStyle.normal.color = LIGHTGRAY;
+        buttonStyle.hovered.color = GREEN;
+        buttonStyle.pressed.color = BLUE;
+        buttonStyle.disabled.color = DARKGRAY;
+
+        overlaySelectable->setStyle(buttonStyle);
 
         ButtonComponent* overlayButton = overlayPanel->addComponent<ButtonComponent>();
 

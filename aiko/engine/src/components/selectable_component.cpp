@@ -67,4 +67,29 @@ namespace aiko
         return UIEventPropagation::Continue;
     }
 
+    void SelectableComponent::setStyle(const UISelectableStyle& style)
+    {
+        m_styleOverride = style;
+    }
+
+    void SelectableComponent::clearStyle()
+    {
+        m_styleOverride.reset();
+    }
+
+    bool SelectableComponent::hasStyleOverride() const
+    {
+        return m_styleOverride.has_value();
+    }
+
+    const UISelectableStyle& SelectableComponent::resolveStyle(const UISelectableStyle& themeStyle) const
+    {
+        if (m_styleOverride.has_value())
+        {
+            return *m_styleOverride;
+        }
+
+        return themeStyle;
+    }
+
 }
