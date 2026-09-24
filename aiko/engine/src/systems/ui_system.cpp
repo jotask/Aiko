@@ -24,6 +24,12 @@
 namespace aiko
 {
 
+    namespace
+    {
+        constexpr bool DebugUIPointer = false;
+        constexpr bool DebugUISelectableBounds = false;
+    }
+
     UISystem::UISystem() = default;
 
     void UISystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
@@ -163,20 +169,23 @@ namespace aiko
             renderCanvas(*canvas, surfaceSize);
         }
 
-        if (m_inputSystem->isMouseCaptured() == false)
+        if constexpr (DebugUIPointer)
         {
-            const vec2 pointer =
-                m_inputSystem->getMouseFramebufferPosition();
+            if (m_inputSystem->isMouseCaptured() == false)
+            {
+                const vec2 pointer =
+                    m_inputSystem->getMouseFramebufferPosition();
 
-            constexpr float size = 8.0f;
+                constexpr float size = 8.0f;
 
-            m_renderSystem->drawUiRect(
-                {
-                    pointer.x - size * 0.5f,
-                    pointer.y - size * 0.5f
-                },
-                {size, size},
-                MAGENTA);
+                m_renderSystem->drawUiRect(
+                    {
+                        pointer.x - size * 0.5f,
+                        pointer.y - size * 0.5f
+                    },
+                    {size, size},
+                    MAGENTA);
+        }
         }
     }
 
@@ -354,45 +363,50 @@ namespace aiko
                     }
                 }
 
-                if (object.getComponent<SelectableComponent>() != nullptr)
+                if constexpr (DebugUISelectableBounds)
                 {
-                    const vec2 debugPosition =
-                        resolvedRect.position * canvasScale;
 
-                    const vec2 debugSize =
-                        resolvedRect.size * canvasScale;
+                    if (object.getComponent<SelectableComponent>() != nullptr)
+                    {
+                        const vec2 debugPosition =
+                            resolvedRect.position * canvasScale;
 
-                    constexpr float thickness = 2.0f;
+                        const vec2 debugSize =
+                            resolvedRect.size * canvasScale;
 
-                    // Top
-                    m_renderSystem->drawUiRect(
-                        debugPosition,
-                        {debugSize.x, thickness},
-                        CYAN);
+                        constexpr float thickness = 2.0f;
 
-                    // Bottom
-                    m_renderSystem->drawUiRect(
-                        {
-                            debugPosition.x,
-                            debugPosition.y + debugSize.y - thickness
-                        },
-                        {debugSize.x, thickness},
-                        CYAN);
+                        // Top
+                        m_renderSystem->drawUiRect(
+                            debugPosition,
+                            {debugSize.x, thickness},
+                            CYAN);
 
-                    // Left
-                    m_renderSystem->drawUiRect(
-                        debugPosition,
-                        {thickness, debugSize.y},
-                        CYAN);
+                        // Bottom
+                        m_renderSystem->drawUiRect(
+                            {
+                                debugPosition.x,
+                                debugPosition.y + debugSize.y - thickness
+                            },
+                            {debugSize.x, thickness},
+                            CYAN);
 
-                    // Right
-                    m_renderSystem->drawUiRect(
-                        {
-                            debugPosition.x + debugSize.x - thickness,
-                            debugPosition.y
-                        },
-                        {thickness, debugSize.y},
-                        CYAN);
+                        // Left
+                        m_renderSystem->drawUiRect(
+                            debugPosition,
+                            {thickness, debugSize.y},
+                            CYAN);
+
+                        // Right
+                        m_renderSystem->drawUiRect(
+                            {
+                                debugPosition.x + debugSize.x - thickness,
+                                debugPosition.y
+                            },
+                            {thickness, debugSize.y},
+                            CYAN);
+                    }
+
                 }
 
             }
