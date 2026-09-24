@@ -8,6 +8,7 @@
 #include "ui/ui_style.h"
 #include "ui/ui_layout.h"
 #include "core/uuid.h"
+#include "ui/ui_pointer_event.h"
 
 namespace aiko
 {
@@ -76,6 +77,10 @@ namespace aiko
         bool containsPoint(const UIRect& rect, const vec2& point) const;
         bool isRaycastTarget(const GameObject& object) const;
         vector<ResolvedChild> resolveLinearLayoutChildren(GameObject& object, const UIRect& resolvedRect, const UIPadding& padding, float spacing, UICrossAxisAlignment childAlignment, LayoutAxis axis) const;
+
+        GameObject* findCommonAncestor(GameObject* first, GameObject* second) const;
+        void routePointerEvent(GameObject& target, const UIPointerEvent& event, const GameObject* stopBefore);
+
     };
 
 }

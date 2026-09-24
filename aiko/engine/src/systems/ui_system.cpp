@@ -19,6 +19,7 @@
 #include "components/horizontal_layout_component.h"
 #include "components/vertical_layout_component.h"
 #include "components/layout_element_component.h"
+#include "components/selectable_component.h"
 
 namespace aiko
 {
@@ -35,18 +36,53 @@ namespace aiko
 
     void UISystem::update()
     {
-        m_pointerTargetId.reset();
+        GameObject* previousTarget = getPointerTarget();
 
-        if (m_inputSystem->isMouseCaptured())
+        GameObject* nextTarget = nullptr;
+
+        const vec2 framebufferPosition = m_inputSystem->getMouseFramebufferPosition();
+
+        if (m_inputSystem->isMouseCaptured() == false)
         {
-            return;
+            nextTarget = hitTest(framebufferPosition);
         }
 
-        GameObject* target = hitTest(m_inputSystem->getMouseFramebufferPosition());
+        GameObject* commonAncestor = findCommonAncestor(previousTarget, nextTarget);
 
-        if (target != nullptr)
+        if (previousTarget != nextTarget)
         {
-            m_pointerTargetId = target->uuid();
+            if (previousTarget != nullptr)
+            {
+                const UIPointerEvent exitEvent =
+                {
+                    .type = UIPointerEventType::Exit,
+                    .target = previousTarget,
+                    .framebufferPosition = framebufferPosition
+                };
+
+                routePointerEvent(*previousTarget, exitEvent, commonAncestor);
+            }
+
+            if (nextTarget != nullptr)
+            {
+                const UIPointerEvent enterEvent =
+                {
+                    .type = UIPointerEventType::Enter,
+                    .target = nextTarget,
+                    .framebufferPosition = framebufferPosition
+                };
+
+                routePointerEvent(*nextTarget, enterEvent, commonAncestor);
+            }
+        }
+
+        if (nextTarget != nullptr)
+        {
+            m_pointerTargetId = nextTarget->uuid();
+        }
+        else
+        {
+            m_pointerTargetId.reset();
         }
     }
 
@@ -84,6 +120,22 @@ namespace aiko
                 continue;
             }
             renderCanvas(*canvas, surfaceSize);
+        }
+
+        if (m_inputSystem->isMouseCaptured() == false)
+        {
+            const vec2 pointer =
+                m_inputSystem->getMouseFramebufferPosition();
+
+            constexpr float size = 8.0f;
+
+            m_renderSystem->drawUiRect(
+                {
+                    pointer.x - size * 0.5f,
+                    pointer.y - size * 0.5f
+                },
+                {size, size},
+                MAGENTA);
         }
     }
 
@@ -230,6 +282,11 @@ namespace aiko
             {
                 UIImageAppearance appearance = theme.image.appearance;
 
+                if (SelectableComponent* selectable = object.getComponent<SelectableComponent>(); selectable != nullptr)
+                {
+                    appearance = selectable->resolveAppearance(theme.selectable);
+                }
+
                 if (image->hasColorOverride())
                 {
                     appearance.color = image->getColorOverride();
@@ -255,6 +312,48 @@ namespace aiko
                         }
                     }
                 }
+
+                if (object.getComponent<SelectableComponent>() != nullptr)
+                {
+                    const vec2 debugPosition =
+                        resolvedRect.position * canvasScale;
+
+                    const vec2 debugSize =
+                        resolvedRect.size * canvasScale;
+
+                    constexpr float thickness = 2.0f;
+
+                    // Top
+                    m_renderSystem->drawUiRect(
+                        debugPosition,
+                        {debugSize.x, thickness},
+                        CYAN);
+
+                    // Bottom
+                    m_renderSystem->drawUiRect(
+                        {
+                            debugPosition.x,
+                            debugPosition.y + debugSize.y - thickness
+                        },
+                        {debugSize.x, thickness},
+                        CYAN);
+
+                    // Left
+                    m_renderSystem->drawUiRect(
+                        debugPosition,
+                        {thickness, debugSize.y},
+                        CYAN);
+
+                    // Right
+                    m_renderSystem->drawUiRect(
+                        {
+                            debugPosition.x + debugSize.x - thickness,
+                            debugPosition.y
+                        },
+                        {thickness, debugSize.y},
+                        CYAN);
+                }
+
             }
         }
 
@@ -618,6 +717,72 @@ namespace aiko
             }
 
             renderResolvedObject(*child.object, child.rect, canvasScale, theme);
+        }
+    }
+
+    GameObject* UISystem::findCommonAncestor(GameObject* first, GameObject* second) const
+    {
+        if (first == nullptr || second == nullptr)
+        {
+            return nullptr;
+        }
+
+        for (GameObject* firstCurrent = first; firstCurrent != nullptr; firstCurrent = firstCurrent->getParent())
+        {
+            for (GameObject* secondCurrent = second; secondCurrent != nullptr; secondCurrent = secondCurrent->getParent())
+            {
+                if (firstCurrent == secondCurrent)
+                {
+                    return firstCurrent;
+                }
+
+                if (secondCurrent->hasComponent<CanvasComponent>())
+                {
+                    break;
+                }
+            }
+
+            if (firstCurrent->hasComponent<CanvasComponent>())
+            {
+                break;
+            }
+        }
+
+        return nullptr;
+    }
+
+    void UISystem::routePointerEvent(GameObject& target, const UIPointerEvent& event, const GameObject* stopBefore)
+    {
+        GameObject* current = &target;
+
+        while (current != nullptr && current != stopBefore)
+        {
+            for (Component* component : current->getComponents())
+            {
+                if (component == nullptr || component->isActiveAndEnabled() == false)
+                {
+                    continue;
+                }
+
+                UIPointerEventHandler* handler = dynamic_cast<UIPointerEventHandler*>(component);
+
+                if (handler == nullptr)
+                {
+                    continue;
+                }
+
+                if (handler->onPointerEvent(event) == UIEventPropagation::Stop)
+                {
+                    return;
+                }
+            }
+
+            if (current->hasComponent<CanvasComponent>())
+            {
+                return;
+            }
+
+            current = current->getParent();
         }
     }
 

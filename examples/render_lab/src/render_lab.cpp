@@ -6,6 +6,7 @@
 #include "components/mesh_component.h"
 #include "components/model_component.h"
 #include "components/particle_emitter_component.h"
+#include "components/selectable_component.h"
 #include "components/sprite_component.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/render_context.h"
@@ -1214,6 +1215,12 @@ namespace aiko::lab
 
         CanvasComponent* overlayCanvas = overlayCanvasObject->addComponent<CanvasComponent>();
 
+        UITheme& overlayTheme = overlayCanvas->getTheme();
+        overlayTheme.selectable.normal.color = WHITE;
+        overlayTheme.selectable.hovered.color = YELLOW;
+        overlayTheme.selectable.pressed.color = RED;
+        overlayTheme.selectable.disabled.color = GRAY;
+
         overlayCanvas->setScaleMode(CanvasScaleMode::ScaleWithScreenSize);
         overlayCanvas->setReferenceResolution({1920.0f, 1080.0f});
         overlayCanvas->setMatchWidthOrHeight(0.5f);
@@ -1232,7 +1239,8 @@ namespace aiko::lab
         ImageComponent* overlayImage = overlayPanel->addComponent<ImageComponent>();
 
         overlayImage->load("texel_checker.png");
-        overlayImage->setColor(WHITE);
+
+        overlayPanel->addComponent<SelectableComponent>();
     }
 
     // --------------------------------------------------
