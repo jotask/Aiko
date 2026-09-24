@@ -17,6 +17,11 @@ namespace aiko
 
     }
 
+    AikoInput::~AikoInput()
+    {
+        EventSystem::it().unbindAll(this);
+    }
+
     bool AikoInput::isKeyPressed(Key key) const
     {
         if (m_keys_inputs.find(key) != m_keys_inputs.end())
@@ -167,7 +172,7 @@ namespace aiko
         m_mouseScrollDelta = {};
     }
 
-    void AikoInput::onKeyInput(OnKeyPressedEvent& event)
+    void AikoInput::onKeyInput(const OnKeyPressedEvent& event)
     {
         const Key key = static_cast<Key>(event.key);
         const PressedType action = convertToAction(event.action);
@@ -201,7 +206,7 @@ namespace aiko
 
     }
 
-    void AikoInput::onMouseButtonInput(OnMouseKeyPressedEvent& event)
+    void AikoInput::onMouseButtonInput(const OnMouseKeyPressedEvent& event)
     {
 
         const MouseButton key = static_cast<MouseButton>(event.button);
@@ -236,7 +241,7 @@ namespace aiko
 
     }
 
-    void AikoInput::onMouseMoved(OnMouseMoveEvent& event)
+    void AikoInput::onMouseMoved(const OnMouseMoveEvent& event)
     {
         const vec2 newMousePosition =
         {
@@ -248,7 +253,7 @@ namespace aiko
         m_mouseWindowPosition  = newMousePosition;
     }
 
-    void AikoInput::onMouseScrolled(OnMouseScrollEvent& event)
+    void AikoInput::onMouseScrolled(const OnMouseScrollEvent& event)
     {
         m_mouseScrollDelta += vec2
         {

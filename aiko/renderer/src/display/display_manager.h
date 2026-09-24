@@ -15,8 +15,8 @@ namespace aiko
 
     public:
 
-        DisplayManager() = default;
-        ~DisplayManager() = default;
+        DisplayManager();
+        ~DisplayManager();
 
         void init(string title, const uint width, uint height);
         void update();
@@ -37,8 +37,8 @@ namespace aiko
         bool centerWindow(GLFWwindow* window);
         void setupWindowCallbacks(GLFWwindow* window);
 
-        void onKeyPressed(OnKeyPressedEvent& event);
-        void onWindowResize(WindowResizeEvent& event);
+        void onKeyPressed(const OnKeyPressedEvent& event);
+        void onWindowResize(const WindowResizeEvent& event);
 
     };
 

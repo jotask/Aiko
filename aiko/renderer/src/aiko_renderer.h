@@ -47,7 +47,7 @@ namespace aiko
     public:
 
         AikoRenderer(IAssetProvider& assets);
-        ~AikoRenderer() = default;
+        ~AikoRenderer();
 
         void init(const RendererConfig& config, const RenderSurfaceDesc& surface);
         void beginFrame();
@@ -96,7 +96,7 @@ namespace aiko
 
         const Texture* m_debugTexture = nullptr;
 
-        void onWindowResize(WindowResizeEvent&);
+        void onWindowResize(const WindowResizeEvent&);
 
         RenderResourceManager m_resources;
         AikoPtr<renderer::IRenderDevice> m_renderer;

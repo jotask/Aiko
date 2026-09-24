@@ -88,10 +88,6 @@ namespace aiko
         for (auto it = m_layers->rbegin(); it != m_layers->rend(); ++it)
         {
             (*it)->onEvent(e);
-            if (e.handled == true)
-            {
-                break;
-            }
         }
     }
 }

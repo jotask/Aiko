@@ -37,7 +37,7 @@ namespace aiko
 
         void run();
 
-        void onWindowClose(WindowCloseEvent&);
+        void onWindowClose(const WindowCloseEvent&);
 
         void init();
         void update();

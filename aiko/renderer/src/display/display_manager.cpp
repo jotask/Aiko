@@ -14,6 +14,13 @@
 namespace aiko
 {
 
+    DisplayManager::DisplayManager() = default;
+
+    DisplayManager::~DisplayManager()
+    {
+        EventSystem::it().unbindAll(this);
+    }
+
     void DisplayManager::init(string title, const uint width, uint height)
     {
 
@@ -225,13 +232,13 @@ namespace aiko
 
     }
 
-    void DisplayManager::onKeyPressed(OnKeyPressedEvent& event)
+    void DisplayManager::onKeyPressed(const OnKeyPressedEvent& event)
     {
         const Key key = static_cast<Key>(event.key);
         glfwSetWindowShouldClose(m_native, key == Key::KEY_ESCAPE);
     }
 
-    void DisplayManager::onWindowResize(WindowResizeEvent& event)
+    void DisplayManager::onWindowResize(const WindowResizeEvent& event)
     {
         m_display.setWindowSize(event.width, event.height);
     }

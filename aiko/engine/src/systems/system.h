@@ -12,6 +12,9 @@ namespace aiko
     class System
     {
         friend class Aiko;
+    public:
+        virtual ~System() = default;
+
     protected:
 
         virtual SystemUpdatePhase updatePhase() const { return SystemUpdatePhase::Gameplay; }

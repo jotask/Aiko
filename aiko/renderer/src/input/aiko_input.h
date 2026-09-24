@@ -14,7 +14,7 @@ namespace aiko
     public:
 
         AikoInput();
-        ~AikoInput() = default;
+        ~AikoInput();
 
         bool isKeyPressed(Key key) const;
         bool isKeyJustPressed(Key key) const;
@@ -42,10 +42,10 @@ namespace aiko
         std::map<Key, InputState> m_keys_inputs;
         std::map<MouseButton, InputState> m_mouse_inputs;
 
-        void onKeyInput(OnKeyPressedEvent& event);
-        void onMouseButtonInput(OnMouseKeyPressedEvent& event);
-        void onMouseMoved(OnMouseMoveEvent& event);
-        void onMouseScrolled(OnMouseScrollEvent& event);
+        void onKeyInput(const OnKeyPressedEvent& event);
+        void onMouseButtonInput(const OnMouseKeyPressedEvent& event);
+        void onMouseMoved(const OnMouseMoveEvent& event);
+        void onMouseScrolled(const OnMouseScrollEvent& event);
 
         PressedType convertToAction(int code);
 

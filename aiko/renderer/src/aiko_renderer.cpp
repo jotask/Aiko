@@ -28,6 +28,11 @@ namespace aiko
 
     }
 
+    AikoRenderer::~AikoRenderer()
+    {
+        EventSystem::it().unbindAll(this);
+    }
+
     void AikoRenderer::init(const RendererConfig& config, const RenderSurfaceDesc& surface)
     {
 
@@ -300,7 +305,7 @@ namespace aiko
         m_uiDrawList.popClipRect();
     }
 
-    void AikoRenderer::onWindowResize(WindowResizeEvent& event)
+    void AikoRenderer::onWindowResize(const WindowResizeEvent& event)
     {
         if (event.width <= 0 || event.height <= 0)
         {

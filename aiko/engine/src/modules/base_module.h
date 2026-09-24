@@ -12,7 +12,7 @@ namespace aiko
         BaseModule(Aiko* aiko) : Module(aiko) { };
 
         BaseModule() = default;
-        virtual ~BaseModule() = default;
+        virtual ~BaseModule() override = default;
     
     // protected:
     

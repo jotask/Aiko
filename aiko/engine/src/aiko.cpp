@@ -49,9 +49,10 @@ namespace aiko
 
     Aiko::~Aiko()
     {
+        EventSystem::it().unbindAll(this);
     }
 
-    void Aiko::onWindowClose(WindowCloseEvent& event)
+    void Aiko::onWindowClose(const WindowCloseEvent& event)
     {
         m_shouldStop = true;
     }
