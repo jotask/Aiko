@@ -84,6 +84,10 @@ namespace aiko
 
         GameObject* getPointerCapture();
 
+        GameObject* findPointerEventHandlerOwner(GameObject* target) const;
+
+        bool isDescendantOrSelf(const GameObject* object, const GameObject* ancestor) const;
+
     };
 
 }

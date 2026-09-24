@@ -95,19 +95,21 @@ namespace aiko
 
         if (m_inputSystem->isMouseCaptured() == false && m_inputSystem->isMouseButtonJustPressed(PrimaryButton))
         {
-            if (nextTarget != nullptr)
+            GameObject* captureTarget = findPointerEventHandlerOwner(nextTarget);
+
+            if (captureTarget != nullptr)
             {
-                m_pointerCaptureId = nextTarget->uuid();
+                m_pointerCaptureId = captureTarget->uuid();
 
                 const UIPointerEvent downEvent =
                 {
                     .type = UIPointerEventType::Down,
-                    .target = nextTarget,
+                    .target = captureTarget,
                     .framebufferPosition = framebufferPosition,
                     .button = PrimaryButton
                 };
 
-                routePointerEvent(*nextTarget, downEvent, nullptr);
+                routePointerEvent(*captureTarget, downEvent, nullptr);
             }
         }
 
@@ -126,6 +128,19 @@ namespace aiko
                 };
 
                 routePointerEvent(*capturedTarget, upEvent, nullptr);
+
+                if (isDescendantOrSelf(nextTarget, capturedTarget))
+                {
+                    const UIPointerEvent clickEvent =
+                    {
+                        .type = UIPointerEventType::Click,
+                        .target = capturedTarget,
+                        .framebufferPosition = framebufferPosition,
+                        .button = PrimaryButton
+                    };
+
+                    routePointerEvent(*capturedTarget, clickEvent, nullptr);
+                }
             }
 
             m_pointerCaptureId.reset();
@@ -826,7 +841,11 @@ namespace aiko
                     continue;
                 }
 
-                if (handler->onPointerEvent(event) == UIEventPropagation::Stop)
+                const UIEventPropagation propagation = handler->onPointerEvent(event);
+
+                const bool canStop = event.type != UIPointerEventType::Enter && event.type != UIPointerEventType::Exit;
+
+                if (canStop && propagation == UIEventPropagation::Stop)
                 {
                     return;
                 }
@@ -1137,6 +1156,55 @@ namespace aiko
         }
 
         return nullptr;
+    }
+
+    GameObject* UISystem::findPointerEventHandlerOwner(GameObject* target) const
+    {
+        for (GameObject* current = target; current != nullptr; current = current->getParent())
+        {
+            for (Component* component : current->getComponents())
+            {
+                if (component == nullptr || component->isActiveAndEnabled() == false)
+                {
+                    continue;
+                }
+
+                if (dynamic_cast<UIPointerEventHandler*>(component) != nullptr)
+                {
+                    return current;
+                }
+            }
+
+            if (current->hasComponent<CanvasComponent>())
+            {
+                break;
+            }
+        }
+
+        return nullptr;
+    }
+
+    bool UISystem::isDescendantOrSelf(const GameObject* object, const GameObject* ancestor) const
+    {
+        if (object == nullptr || ancestor == nullptr)
+        {
+            return false;
+        }
+
+        for (const GameObject* current = object; current != nullptr; current = current->getParent())
+        {
+            if (current == ancestor)
+            {
+                return true;
+            }
+
+            if (current->hasComponent<CanvasComponent>())
+            {
+                break;
+            }
+        }
+
+        return false;
     }
 
 }
