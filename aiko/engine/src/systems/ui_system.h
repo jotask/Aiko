@@ -63,6 +63,7 @@ namespace aiko
         InputSystem* m_inputSystem = nullptr;
 
         std::optional<uuid::Uuid> m_pointerTargetId;
+        std::optional<uuid::Uuid> m_pointerCaptureId;
 
         void renderCanvas(CanvasComponent& canvas, const vec2& surfaceSize);
         void renderObject(GameObject& object, const UIRect& parentRect, float canvasScale, const UITheme& theme);
@@ -80,6 +81,8 @@ namespace aiko
 
         GameObject* findCommonAncestor(GameObject* first, GameObject* second) const;
         void routePointerEvent(GameObject& target, const UIPointerEvent& event, const GameObject* stopBefore);
+
+        GameObject* getPointerCapture();
 
     };
 

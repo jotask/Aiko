@@ -15,7 +15,7 @@ namespace aiko
             return UISelectableState::Disabled;
         }
 
-        if (m_pressed)
+        if (m_pressed && m_pointerInside)
         {
             return UISelectableState::Pressed;
         }
@@ -50,7 +50,6 @@ namespace aiko
 
             case UIPointerEventType::Exit:
                 m_pointerInside = false;
-                m_pressed = false;
                 break;
 
             case UIPointerEventType::Down:

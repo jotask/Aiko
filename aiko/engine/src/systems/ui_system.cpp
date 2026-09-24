@@ -84,6 +84,47 @@ namespace aiko
         {
             m_pointerTargetId.reset();
         }
+
+        constexpr MouseButton PrimaryButton = MouseButton::MOUSE_BUTTON_LEFT;
+
+        if (m_inputSystem->isMouseCaptured() == false && m_inputSystem->isMouseButtonJustPressed(PrimaryButton))
+        {
+            if (nextTarget != nullptr)
+            {
+                m_pointerCaptureId = nextTarget->uuid();
+
+                const UIPointerEvent downEvent =
+                {
+                    .type = UIPointerEventType::Down,
+                    .target = nextTarget,
+                    .framebufferPosition = framebufferPosition,
+                    .button = PrimaryButton
+                };
+
+                routePointerEvent(*nextTarget, downEvent, nullptr);
+            }
+        }
+
+        if (m_inputSystem->isMouseButtonJustReleased(PrimaryButton))
+        {
+            GameObject* capturedTarget = getPointerCapture();
+
+            if (capturedTarget != nullptr)
+            {
+                const UIPointerEvent upEvent =
+                {
+                    .type = UIPointerEventType::Up,
+                    .target = capturedTarget,
+                    .framebufferPosition = framebufferPosition,
+                    .button = PrimaryButton
+                };
+
+                routePointerEvent(*capturedTarget, upEvent, nullptr);
+            }
+
+            m_pointerCaptureId.reset();
+        }
+
     }
 
     void UISystem::render()
@@ -993,35 +1034,18 @@ namespace aiko
             return nullptr;
         }
 
-        if (HorizontalLayoutComponent* layout =
-                object.getComponent<
-                    HorizontalLayoutComponent>();
-            layout != nullptr &&
-            layout->isEnabled())
+        if (HorizontalLayoutComponent* layout = object.getComponent<HorizontalLayoutComponent>(); layout != nullptr && layout->isEnabled())
         {
-            const vector<ResolvedChild> children =
-                resolveLinearLayoutChildren(
-                    object,
-                    resolvedRect,
-                    layout->getPadding(),
-                    layout->getSpacing(),
-                    layout->getChildAlignment(),
-                    LayoutAxis::Horizontal);
+            const vector<ResolvedChild> children = resolveLinearLayoutChildren(object, resolvedRect, layout->getPadding(), layout->getSpacing(), layout->getChildAlignment(), LayoutAxis::Horizontal);
 
-            for (auto it = children.rbegin();
-                 it != children.rend();
-                 ++it)
+            for (auto it = children.rbegin(); it != children.rend(); ++it)
             {
                 if (it->object == nullptr)
                 {
                     continue;
                 }
 
-                GameObject* hit =
-                    hitTestResolvedObject(
-                        *it->object,
-                        it->rect,
-                        pointerPosition);
+                GameObject* hit = hitTestResolvedObject(*it->object, it->rect, pointerPosition);
 
                 if (hit != nullptr)
                 {
@@ -1029,35 +1053,18 @@ namespace aiko
                 }
             }
         }
-        else if (VerticalLayoutComponent* layout =
-                     object.getComponent<
-                         VerticalLayoutComponent>();
-                 layout != nullptr &&
-                 layout->isEnabled())
+        else if (VerticalLayoutComponent* layout = object.getComponent<VerticalLayoutComponent>(); layout != nullptr && layout->isEnabled())
         {
-            const vector<ResolvedChild> children =
-                resolveLinearLayoutChildren(
-                    object,
-                    resolvedRect,
-                    layout->getPadding(),
-                    layout->getSpacing(),
-                    layout->getChildAlignment(),
-                    LayoutAxis::Vertical);
+            const vector<ResolvedChild> children = resolveLinearLayoutChildren(object, resolvedRect, layout->getPadding(), layout->getSpacing(), layout->getChildAlignment(), LayoutAxis::Vertical);
 
-            for (auto it = children.rbegin();
-                 it != children.rend();
-                 ++it)
+            for (auto it = children.rbegin(); it != children.rend(); ++it)
             {
                 if (it->object == nullptr)
                 {
                     continue;
                 }
 
-                GameObject* hit =
-                    hitTestResolvedObject(
-                        *it->object,
-                        it->rect,
-                        pointerPosition);
+                GameObject* hit = hitTestResolvedObject(*it->object, it->rect, pointerPosition);
 
                 if (hit != nullptr)
                 {
@@ -1067,12 +1074,9 @@ namespace aiko
         }
         else
         {
-            vector<GameObject*> children =
-                object.getChildren();
+            vector<GameObject*> children = object.getChildren();
 
-            for (auto it = children.rbegin();
-                 it != children.rend();
-                 ++it)
+            for (auto it = children.rbegin(); it != children.rend(); ++it)
             {
                 GameObject* child = *it;
 
@@ -1081,11 +1085,7 @@ namespace aiko
                     continue;
                 }
 
-                GameObject* hit =
-                    hitTestObject(
-                        *child,
-                        resolvedRect,
-                        pointerPosition);
+                GameObject* hit = hitTestObject( *child, resolvedRect, pointerPosition);
 
                 if (hit != nullptr)
                 {
@@ -1099,14 +1099,30 @@ namespace aiko
             return nullptr;
         }
 
-        if (containsPoint(
-                resolvedRect,
-                pointerPosition) == false)
+        if (containsPoint(resolvedRect, pointerPosition) == false)
         {
             return nullptr;
         }
 
         return &object;
+    }
+
+    GameObject* UISystem::getPointerCapture()
+    {
+        if (m_pointerCaptureId.has_value() == false)
+        {
+            return nullptr;
+        }
+
+        for (GameObject* object : m_sceneSystem->getScene().getObjects())
+        {
+            if (object != nullptr && object->uuid() == *m_pointerCaptureId)
+            {
+                return object;
+            }
+        }
+
+        return nullptr;
     }
 
 }
