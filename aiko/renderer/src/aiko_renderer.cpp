@@ -572,8 +572,8 @@ namespace aiko
             .projection = math::ortho(
                 0.0f,
                 width,
-                height,
                 0.0f,
+                height,
                 -1.0f,
                 1.0f),
         };
