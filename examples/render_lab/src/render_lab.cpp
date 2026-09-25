@@ -48,6 +48,7 @@ namespace aiko::lab
         constexpr bool EnableGpuVertexTests = true;
         constexpr bool EnableRenderTargetTests = true;
         constexpr bool EnableUI = true;
+        constexpr bool EnableTextTests = true;
         constexpr bool EnableRenderTargetResizeStress = true;
     }
 
@@ -63,6 +64,11 @@ namespace aiko::lab
         scene().ambientLight().intensity = 0.15f;
 
         initCamera();
+
+        if constexpr (EnableUI || EnableTextTests)
+        {
+            m_debugFont = assets().loadFont("fonts/RobotoMono-Regular.ttf", 48.0f);
+        }
 
         if constexpr (EnableModelTests)
         {
@@ -194,6 +200,11 @@ namespace aiko::lab
         if constexpr (EnableUI)
         {
             renderUI();
+        }
+
+        if constexpr (EnableTextTests)
+        {
+            renderTextTests();
         }
 
     }
@@ -789,8 +800,6 @@ namespace aiko::lab
 
     void RenderLab::initUI()
     {
-
-        m_debugFont = assets().loadFont("fonts/RobotoMono-Regular.ttf", 48.0f);
 
        // --------------------------------------------------
         // Canvas 0 - main retained UI
@@ -1771,4 +1780,17 @@ namespace aiko::lab
 
         ui().popClipRect();
     }
+
+    void RenderLab::renderTextTests()
+    {
+        Transform textTransform;
+        textTransform.position =
+        {
+            0.0f,
+            3.0f,
+            0.0f
+        };
+        renderer().drawText(m_debugFont, "Aiko World Text", textTransform, 0.5f, WHITE);
+    }
+
 }

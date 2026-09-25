@@ -1,5 +1,7 @@
 #include "render_system.h"
 
+#include <limits>
+
 #include <aiko_types.h>
 
 #include "modules/module_connector.h"
@@ -60,7 +62,7 @@ namespace aiko
 
     void RenderSystem::clearCaches()
     {
-
+        m_worldTextMaterials.clear();
     }
 
     ImguiTextureId RenderSystem::getTargetTextureId() const
@@ -97,6 +99,82 @@ namespace aiko
             region.max = glyph.uvMax;
             drawUiImage(font.atlasTexture(), region, position + glyph.position, glyph.size, color);
         }
+    }
+
+    void RenderSystem::drawText(const Font& font, string_view text, const Transform& transform, float fontSize, Color color)
+    {
+        if (font.isValid() == false || text.empty() || fontSize <= 0.0f)
+        {
+            return;
+        }
+
+        const TextLayoutResult layout = layoutText(font, text, fontSize);
+
+        if (layout.glyphs.empty())
+        {
+            return;
+        }
+
+        MeshAsset mesh;
+        mesh.m_vertices.reserve(layout.glyphs.size() * 4);
+        mesh.m_textCoord.reserve(layout.glyphs.size() * 4);
+        mesh.m_normals.reserve(layout.glyphs.size() * 4);
+        mesh.m_colors.reserve(layout.glyphs.size() * 4);
+        mesh.m_indices.reserve(layout.glyphs.size() * 6);
+
+        for (const TextGlyphQuad& glyph : layout.glyphs)
+        {
+            AIKO_ASSERT(mesh.m_vertices.size() <= std::numeric_limits<uint16_t>::max() - 4, "World text exceeded the 16-bit vertex limit");
+
+            const uint16_t base = static_cast<uint16_t>(mesh.m_vertices.size());
+
+            const float left = glyph.position.x;
+            const float right = glyph.position.x + glyph.size.x;
+            const float top = -glyph.position.y;
+            const float bottom = -(glyph.position.y + glyph.size.y);
+
+            mesh.m_vertices.push_back({left, top, 0.0f});
+            mesh.m_vertices.push_back({right, top, 0.0f});
+            mesh.m_vertices.push_back({left, bottom, 0.0f});
+            mesh.m_vertices.push_back({right, bottom, 0.0f});
+            mesh.m_textCoord.push_back({glyph.uvMin.x, glyph.uvMin.y});
+            mesh.m_textCoord.push_back({glyph.uvMax.x, glyph.uvMin.y});
+            mesh.m_textCoord.push_back({glyph.uvMin.x, glyph.uvMax.y});
+            mesh.m_textCoord.push_back({glyph.uvMax.x, glyph.uvMax.y});
+
+            for (int i = 0; i < 4; ++i)
+            {
+                mesh.m_normals.push_back({0.0f, 0.0f, 1.0f});
+                mesh.m_colors.push_back(color);
+            }
+
+            mesh.m_indices.push_back(base + 0);
+            mesh.m_indices.push_back(base + 2);
+            mesh.m_indices.push_back(base + 1);
+
+            mesh.m_indices.push_back(base + 1);
+            mesh.m_indices.push_back(base + 2);
+            mesh.m_indices.push_back(base + 3);
+        }
+
+        auto [materialIt, inserted] = m_worldTextMaterials.try_emplace(font.atlasTexture());
+
+        Material& material = materialIt->second;
+
+        if (inserted)
+        {
+            material.m_shaderId = m_materialPrimitives.m_shaderId;
+            material.m_baseColor = WHITE;
+            material.m_useVertexColor = true;
+            material.m_lit = false;
+            material.m_renderState.cullMode = CullMode::None;
+            material.m_renderState.depthTest = true;
+            material.m_renderState.depthWrite = false;
+            material.m_renderState.blend = true;
+            material.setTexture("u_texture", font.atlasTexture());
+        }
+
+        m_renderModule->submitTransient(transform, material, mesh, TransientTopology::Triangles);
     }
 
     void RenderSystem::pushUiClipRect(const vec2& position, const vec2& size)
