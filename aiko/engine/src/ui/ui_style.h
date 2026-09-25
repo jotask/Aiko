@@ -1,5 +1,9 @@
 #pragma once
 
+#include <optional>
+
+#include "assets/asset_id.h"
+#include "models/texture_region.h"
 #include <types/color.h>
 
 namespace aiko
@@ -8,6 +12,8 @@ namespace aiko
     struct UIImageAppearance
     {
         Color color = WHITE;
+        std::optional<AssetId> texture;
+        std::optional<TextureRegion> textureRegion;
     };
 
     struct UIImageStyle

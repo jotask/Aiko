@@ -362,6 +362,20 @@ namespace aiko
                     appearance = selectable->resolveAppearance(selectableStyle);
                 }
 
+                AssetId textureId = image->getTextureId();
+
+                TextureRegion textureRegion = image->getTextureRegion();
+
+                if (appearance.texture.has_value())
+                {
+                    textureId = *appearance.texture;
+                }
+
+                if (appearance.textureRegion.has_value())
+                {
+                    textureRegion = *appearance.textureRegion;
+                }
+
                 if (image->hasColorOverride())
                 {
                     appearance.color = image->getColorOverride();
@@ -373,18 +387,13 @@ namespace aiko
 
                 if (physicalSize.x > 0.0f && physicalSize.y > 0.0f)
                 {
-                    if (image->hasTexture() == false)
+                    if (textureId == InvalidAssetId)
                     {
                         m_renderSystem->drawUiRect(physicalPosition, physicalSize, appearance.color);
                     }
                     else
                     {
-                        const AssetId& textureId = image->getTextureId();
-
-                        if (textureId != InvalidAssetId)
-                        {
-                            m_renderSystem->drawUiImage(textureId, image->getTextureRegion(), physicalPosition, physicalSize, appearance.color);
-                        }
+                        m_renderSystem->drawUiImage(textureId, textureRegion, physicalPosition, physicalSize, appearance.color);
                     }
                 }
 

@@ -13,6 +13,7 @@ namespace aiko
     {
     public:
         AssetId loadShader(string_view source);
+        AssetId loadTexture(string_view source);
     private:
         friend class LayerContext;
 

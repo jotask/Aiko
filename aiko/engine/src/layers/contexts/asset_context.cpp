@@ -19,4 +19,11 @@ namespace aiko
         return id;
     }
 
+    AssetId AssetContext::loadTexture(string_view source)
+    {
+        const AssetId id = m_assetSystem->registerAsset<TextureAsset>(source);
+        m_assetSystem->loadAsset<TextureAsset>(id);
+        return id;
+    }
+
 }

@@ -1276,6 +1276,16 @@ namespace aiko::lab
                     : vec2{180.0f, 100.0f});
         });
 
+        const AssetId buttonHoverTexture = assets().loadTexture("texel_checker.png");
+
+        overlayTheme.button.selectable.normal.color = LIGHTGRAY;
+
+        overlayTheme.button.selectable.hovered.color = WHITE;
+        overlayTheme.button.selectable.hovered.texture = buttonHoverTexture;
+
+        overlayTheme.button.selectable.pressed.color = BLUE;
+        overlayTheme.button.selectable.disabled.color = DARKGRAY;
+
     }
 
     // --------------------------------------------------
