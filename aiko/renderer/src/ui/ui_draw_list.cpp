@@ -14,21 +14,21 @@ namespace aiko
         m_clipStack.clear();
     }
 
-    void UIDrawList::addRect(const UIRect& rect, Color color)
+    void UIDrawList::addRect(const UIRect& rect, Color color, float cornerRadius, float borderThickness, Color borderColor)
     {
-        addQuad(rect, color, InvalidAssetId, TextureRegion::full());
+        addQuad(rect, color, InvalidAssetId, TextureRegion::full(), cornerRadius, borderThickness, borderColor);
     }
 
-    void UIDrawList::addImage(const UIRect& rect, AssetId textureId, Color tint)
+    void UIDrawList::addImage(const UIRect& rect, AssetId textureId, Color tint, float cornerRadius, float borderThickness, Color borderColor)
     {
         AIKO_ASSERT(textureId != InvalidAssetId, "UI image requires a valid texture asset");
-        addImage(rect, textureId, TextureRegion::full(), tint);
+        addImage(rect, textureId, TextureRegion::full(), tint, cornerRadius, borderThickness, borderColor);
     }
 
-    void UIDrawList::addImage(const UIRect& rect, AssetId textureId, const TextureRegion& region, Color tint)
+    void UIDrawList::addImage(const UIRect& rect, AssetId textureId, const TextureRegion& region, Color tint, float cornerRadius, float borderThickness, Color borderColor)
     {
         AIKO_ASSERT(textureId != InvalidAssetId, "UI image requires a valid texture asset");
-        addQuad(rect, tint, textureId, region);
+        addQuad(rect, tint, textureId, region, cornerRadius, borderThickness, borderColor);
     }
 
     void UIDrawList::pushClipRect(const UIRect& rect)
@@ -69,7 +69,7 @@ namespace aiko
         m_clipStack.pop_back();
     }
 
-    void UIDrawList::addQuad(const UIRect& rect, Color color, AssetId textureId, const TextureRegion& region)
+    void UIDrawList::addQuad(const UIRect& rect, Color color, AssetId textureId, const TextureRegion& region, float cornerRadius, float borderThickness, Color borderColor)
     {
         AIKO_ASSERT(m_vertices.size() <= std::numeric_limits<uint16_t>::max() - 4, "UIDrawList exceeded the 16-bit vertex limit");
 
@@ -124,7 +124,11 @@ namespace aiko
         {
             .indexOffset = indexOffset,
             .indexCount = 6,
-            .textureId = textureId
+            .textureId = textureId,
+            .rect = rect,
+            .cornerRadius = cornerRadius,
+            .borderThickness = borderThickness,
+            .borderColor = borderColor
         };
 
         if (m_clipStack.empty() == false)

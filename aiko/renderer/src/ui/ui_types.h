@@ -22,6 +22,12 @@ namespace aiko
 
         AssetId textureId = InvalidAssetId;
 
+        UIRect rect;
+
+        float cornerRadius = 0.0f;
+        float borderThickness = 0.0f;
+        Color borderColor = WHITE;
+
         std::optional<UIRect> clipRect;
     };
 

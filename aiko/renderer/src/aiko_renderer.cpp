@@ -258,37 +258,46 @@ namespace aiko
         return m_imgui.textureId(texture);
     }
 
-    void AikoRenderer::drawUiRect(const vec2& position, const vec2& size, Color color)
+    void AikoRenderer::drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius, float borderThickness, Color borderColor)
     {
         m_uiDrawList.addRect(
-        {
-            .position = position,
-            .size = size
-        },
-        color);
+            {
+                .position = position,
+                .size = size
+            },
+            color,
+            cornerRadius,
+            borderThickness,
+            borderColor);
     }
 
-    void AikoRenderer::drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint)
+    void AikoRenderer::drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
     {
         m_uiDrawList.addImage(
-        {
-            .position = position,
-            .size = size
-        },
-        textureId,
-        tint);
+            {
+                .position = position,
+                .size = size
+            },
+            textureId,
+            tint,
+            cornerRadius,
+            borderThickness,
+            borderColor);
     }
 
-    void AikoRenderer::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint)
+    void AikoRenderer::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
     {
         m_uiDrawList.addImage(
-        {
-            .position = position,
-            .size = size
-        },
-        textureId,
-        region,
-        tint);
+            {
+                .position = position,
+                .size = size
+            },
+            textureId,
+            region,
+            tint,
+            cornerRadius,
+            borderThickness,
+            borderColor);
     }
 
     void AikoRenderer::pushUiClipRect(const vec2& position, const vec2& size)

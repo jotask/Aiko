@@ -1298,6 +1298,10 @@ namespace aiko::lab
         overlayTheme.button.selectable.disabled.border.thickness = 2.0f;
         overlayTheme.button.selectable.disabled.border.color = DARKGRAY;
 
+        overlayTheme.button.selectable.normal.cornerRadius = 12.0f;
+        overlayTheme.button.selectable.hovered.cornerRadius = 24.0f;
+        overlayTheme.button.selectable.pressed.cornerRadius = 40.0f;
+
     }
 
     // --------------------------------------------------

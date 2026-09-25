@@ -66,19 +66,19 @@ namespace aiko
         return m_renderModule->getTargetTextureId();
     }
 
-    void RenderSystem::drawUiRect(const vec2& position, const vec2& size, Color color)
+    void RenderSystem::drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius, float borderThickness, Color borderColor)
     {
-        m_renderModule->drawUiRect(position, size, color);
+        m_renderModule->drawUiRect(position, size, color, cornerRadius, borderThickness, borderColor);
     }
 
-    void RenderSystem::drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint)
+    void RenderSystem::drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
     {
-        m_renderModule->drawUiImage(textureId, position, size, tint);
+        m_renderModule->drawUiImage(textureId, position, size, tint, cornerRadius, borderThickness, borderColor);
     }
 
-    void RenderSystem::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint)
+    void RenderSystem::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
     {
-        m_renderModule->drawUiImage(textureId, region, position, size, tint);
+        m_renderModule->drawUiImage(textureId, region, position, size, tint, cornerRadius, borderThickness, borderColor);
     }
 
     void RenderSystem::pushUiClipRect(const vec2& position, const vec2& size)

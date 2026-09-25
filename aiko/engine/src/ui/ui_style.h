@@ -21,6 +21,7 @@ namespace aiko
         std::optional<AssetId> texture;
         std::optional<TextureRegion> textureRegion;
         UIBorder border;
+        float cornerRadius = 0.0f;
     };
 
     struct UIImageStyle

@@ -71,6 +71,10 @@ namespace aiko
                 material.setTexture("u_texture", command.textureId);
             }
 
+            material.setVec4("u_uiRect", command.rect.position.x, command.rect.position.y, command.rect.size.x, command.rect.size.y);
+            material.setVec4("u_uiStyle", command.cornerRadius, command.borderThickness, 0.0f, 0.0f);
+            material.setVec4("u_uiBorderColor", command.borderColor.toVec4());
+
             TransientDrawDesc draw;
 
             draw.mtx = mat4(1.0f);

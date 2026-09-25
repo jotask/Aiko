@@ -85,9 +85,9 @@ namespace aiko
 
         ImguiTextureId imguiTextureId(const Texture& texture);
 
-        void drawUiRect(const vec2& position, const vec2& size, Color color);
-        void drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint);
-        void drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint);
+        void drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
+        void drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
+        void drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
 
         void pushUiClipRect(const vec2& position, const vec2& size);
         void popUiClipRect();
