@@ -6,6 +6,7 @@
 #include "models/mesh.h"
 #include "models/texture.h"
 #include "models/compute_buffer.h"
+#include "models/font.h"
 #include "models/render_target.h"
 #include "models/camera.h"
 
@@ -153,6 +154,7 @@ namespace aiko::lab
         Mesh m_renderTargetMesh;
         Material m_renderTargetMaterial;
 
+        Font m_debugFont;
         SpriteComponent* m_uiTestSprite = nullptr;
 
     };

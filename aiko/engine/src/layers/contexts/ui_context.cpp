@@ -27,6 +27,11 @@ namespace aiko
         m_renderSystem->drawUiImage(textureId, region, position, size, tint);
     }
 
+    void UIContext::text(const Font& font, string_view text, const vec2& position, float fontSize, Color color)
+    {
+        m_renderSystem->drawUiText(font, text, position, fontSize, color);
+    }
+
     void UIContext::pushClipRect(const vec2& position, const vec2& size)
     {
         m_renderSystem->pushUiClipRect(position, size);

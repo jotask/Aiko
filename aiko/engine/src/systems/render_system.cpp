@@ -12,6 +12,8 @@
 #include "components/model_component.h"
 #include "assets/types/mesh_asset.h"
 #include "types/builtin_shaders.h"
+#include "models/font.h"
+#include "ui/text_layout.h"
 #include <intrumentor/profiler.h>
 
 namespace aiko
@@ -79,6 +81,22 @@ namespace aiko
     void RenderSystem::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
     {
         m_renderModule->drawUiImage(textureId, region, position, size, tint, cornerRadius, borderThickness, borderColor);
+    }
+
+    void RenderSystem::drawUiText(const Font& font, string_view text, const vec2& position, float fontSize, Color color)
+    {
+        if (font.isValid() == false)
+        {
+            return;
+        }
+        const TextLayoutResult layout = layoutText(font, text, fontSize);
+        for (const TextGlyphQuad& glyph : layout.glyphs)
+        {
+            TextureRegion region;
+            region.min = glyph.uvMin;
+            region.max = glyph.uvMax;
+            drawUiImage(font.atlasTexture(), region, position + glyph.position, glyph.size, color);
+        }
     }
 
     void RenderSystem::pushUiClipRect(const vec2& position, const vec2& size)

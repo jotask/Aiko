@@ -22,6 +22,7 @@ namespace aiko
     class RenderModule;
     class AssetSystem;
     class RenderTarget;
+    class Font;
 
     class RenderSystem : public BaseSystem
     {
@@ -67,6 +68,7 @@ namespace aiko
         void drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
         void drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
         void drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
+        void drawUiText(const Font& font, string_view text, const vec2& position, float fontSize, Color color = WHITE);
 
         void pushUiClipRect(const vec2& position, const vec2& size);
         void popUiClipRect();

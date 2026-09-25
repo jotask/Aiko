@@ -789,6 +789,9 @@ namespace aiko::lab
 
     void RenderLab::initUI()
     {
+
+        m_debugFont = assets().loadFont("fonts/RobotoMono-Regular.ttf", 48.0f);
+
        // --------------------------------------------------
         // Canvas 0 - main retained UI
         // --------------------------------------------------
@@ -1733,11 +1736,9 @@ namespace aiko::lab
 
     void RenderLab::renderUI()
     {
-        // Immediate UIContext test.
-        //
-        // UISystem has already submitted the retained UI by the
-        // time Application::render() reaches here, so these should
-        // appear above the retained UI.
+
+        ui().text(m_debugFont, "Hello Aiko!", {20.0f, 220.0f}, 32.0f, WHITE);
+        ui().text(m_debugFont, "Immediate UI / debug text\nSecond line", {20.0f, 260.0f}, 24.0f, YELLOW);
 
         ui().rect(
             {20.0f, 20.0f},
