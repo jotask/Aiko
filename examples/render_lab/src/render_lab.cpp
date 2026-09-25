@@ -1,22 +1,24 @@
 #include "render_lab.h"
 
+#include "components/button_component.h"
 #include "components/camera_component.h"
 #include "components/compute_shader_component.h"
 #include "components/light_component.h"
 #include "components/mesh_component.h"
 #include "components/model_component.h"
 #include "components/particle_emitter_component.h"
-#include "components/sprite_component.h"
 #include "components/selectable_component.h"
-#include "components/button_component.h"
+#include "components/sprite_component.h"
+#include "components/text_component.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/render_context.h"
 #include "layers/contexts/scene_context.h"
+#include "layers/contexts/ui_context.h"
 #include "models/camera.h"
 #include "models/game_object.h"
 #include "models/mesh_factory.h"
-#include "models/texture_factory.h"
 #include "models/sprite_sheet.h"
+#include "models/texture_factory.h"
 #include "systems/render_system.h"
 #include "systems/system_connector.h"
 #include "types/builtin_shaders.h"
@@ -25,11 +27,9 @@
 
 #include <core/random.h>
 
-#include <chrono>
 #include <array>
+#include <chrono>
 #include <cmath>
-
-#include "layers/contexts/ui_context.h"
 
 namespace aiko::lab
 {
@@ -1278,6 +1278,20 @@ namespace aiko::lab
                     ? vec2{220.0f, 120.0f}
                     : vec2{180.0f, 100.0f});
         });
+
+        GameObject* buttonLabel = Instantiate(buttonObject, "Button Label");
+
+        RectTransformComponent* labelRect = buttonLabel->addComponent<RectTransformComponent>();
+        labelRect->setAnchors({0.0f, 0.0f}, {1.0f, 1.0f});
+        labelRect->setPivot({0.0f, 0.0f});
+        labelRect->setAnchoredPosition({12.0f, 12.0f});
+        labelRect->setSizeDelta({-24.0f, -24.0f});
+
+        TextComponent* label = buttonLabel->addComponent<TextComponent>();
+        label->setFont(m_debugFont);
+        label->setText("Button");
+        label->setFontSize(24.0f);
+        label->setColor(WHITE);
 
         const AssetId buttonHoverTexture = assets().loadTexture("texel_checker.png");
 

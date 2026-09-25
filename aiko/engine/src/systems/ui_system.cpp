@@ -455,6 +455,22 @@ namespace aiko
             }
         }
 
+        if (TextComponent* text = object.getComponent<TextComponent>(); text != nullptr && text->isEnabled())
+        {
+            RectTransformComponent* rectTransform = object.getComponent<RectTransformComponent>();
+
+            AIKO_ASSERT(rectTransform != nullptr, "TextComponent requires a RectTransformComponent");
+
+            if (rectTransform != nullptr && text->getFont().isValid() && text->getText().empty() == false)
+            {
+                const vec2 physicalPosition = resolvedRect.position * canvasScale;
+
+                const float physicalFontSize = text->getFontSize() * canvasScale;
+
+                m_renderSystem->drawUiText(text->getFont(), text->getText(), physicalPosition, physicalFontSize, text->getColor());
+            }
+        }
+
         if (HorizontalLayoutComponent* layout = object.getComponent<HorizontalLayoutComponent>(); layout != nullptr && layout->isEnabled())
         {
             renderLinearLayout(

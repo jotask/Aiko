@@ -9,6 +9,7 @@
 #include "ui/ui_layout.h"
 #include "core/uuid.h"
 #include "ui/ui_pointer_event.h"
+#include "components/text_component.h"
 
 namespace aiko
 {
