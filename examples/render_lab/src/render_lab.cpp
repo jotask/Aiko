@@ -1286,6 +1286,18 @@ namespace aiko::lab
         overlayTheme.button.selectable.pressed.color = BLUE;
         overlayTheme.button.selectable.disabled.color = DARKGRAY;
 
+        overlayTheme.button.selectable.normal.border.thickness = 2.0f;
+        overlayTheme.button.selectable.normal.border.color = GRAY;
+
+        overlayTheme.button.selectable.hovered.border.thickness = 4.0f;
+        overlayTheme.button.selectable.hovered.border.color = YELLOW;
+
+        overlayTheme.button.selectable.pressed.border.thickness = 6.0f;
+        overlayTheme.button.selectable.pressed.border.color = RED;
+
+        overlayTheme.button.selectable.disabled.border.thickness = 2.0f;
+        overlayTheme.button.selectable.disabled.border.color = DARKGRAY;
+
     }
 
     // --------------------------------------------------

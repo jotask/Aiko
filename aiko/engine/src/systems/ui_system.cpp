@@ -402,6 +402,59 @@ namespace aiko
                     {
                         m_renderSystem->drawUiImage(textureId, textureRegion, physicalPosition, physicalSize, appearance.color);
                     }
+
+                    const float borderThickness = std::min(appearance.border.thickness * canvasScale, std::min(physicalSize.x * 0.5f, physicalSize.y * 0.5f));
+
+                    if (borderThickness > 0.0f)
+                    {
+                        const Color borderColor = appearance.border.color;
+
+                        // Top
+                        m_renderSystem->drawUiRect(
+                            physicalPosition,
+                            {
+                                physicalSize.x,
+                                borderThickness
+                            },
+                            borderColor);
+
+                        // Bottom
+                        m_renderSystem->drawUiRect(
+                            {
+                                physicalPosition.x,
+                                physicalPosition.y + physicalSize.y -borderThickness
+                            },
+                            {
+                                physicalSize.x,
+                                borderThickness
+                            },
+                            borderColor);
+
+                        // Left
+                        m_renderSystem->drawUiRect(
+                            {
+                                physicalPosition.x,
+                                physicalPosition.y + borderThickness
+                            },
+                            {
+                                borderThickness,
+                                std::max(0.0f, physicalSize.y - borderThickness * 2.0f)
+                            },
+                            borderColor);
+
+                        // Right
+                        m_renderSystem->drawUiRect(
+                            {
+                                physicalPosition.x + physicalSize.x - borderThickness,
+                                physicalPosition.y + borderThickness
+                            },
+                            {
+                                borderThickness,
+                                std::max(0.0f, physicalSize.y - borderThickness * 2.0f)
+                            },
+                            borderColor);
+                    }
+
                 }
 
                 if constexpr (DebugUISelectableBounds)

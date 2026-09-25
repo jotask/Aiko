@@ -9,11 +9,18 @@
 namespace aiko
 {
 
+    struct UIBorder
+    {
+        float thickness = 0.0f;
+        Color color = WHITE;
+    };
+
     struct UIImageAppearance
     {
         Color color = WHITE;
         std::optional<AssetId> texture;
         std::optional<TextureRegion> textureRegion;
+        UIBorder border;
     };
 
     struct UIImageStyle
