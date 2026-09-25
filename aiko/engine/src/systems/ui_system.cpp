@@ -11,6 +11,7 @@
 #include "modules/module_connector.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
+#include "systems/asset_system.h"
 #include "ui/ui_raycast.h"
 
 #include "components/image_component.h"
@@ -39,6 +40,7 @@ namespace aiko
         BIND_SYSTEM_REQUIRED(RenderSystem, systemConnector, m_renderSystem);
         BIND_SYSTEM_REQUIRED(SceneSystem, systemConnector, m_sceneSystem);
         BIND_SYSTEM_REQUIRED(InputSystem, systemConnector, m_inputSystem);
+        BIND_SYSTEM_REQUIRED(AssetSystem, systemConnector, m_assetSystem);
     }
 
     void UISystem::update()
@@ -368,7 +370,12 @@ namespace aiko
 
                 if (appearance.texture.has_value())
                 {
-                    textureId = *appearance.texture;
+                    const AssetId& styleTexture = *appearance.texture;
+
+                    if (styleTexture != InvalidAssetId && m_assetSystem->isLoaded<TextureAsset>(styleTexture))
+                    {
+                        textureId = styleTexture;
+                    }
                 }
 
                 if (appearance.textureRegion.has_value())

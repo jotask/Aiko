@@ -20,6 +20,7 @@ namespace aiko
     class RenderSystem;
     class GameObject;
     class InputSystem;
+    class AssetSystem;
 
     class UISystem : public BaseSystem
     {
@@ -61,6 +62,7 @@ namespace aiko
         RenderSystem* m_renderSystem = nullptr;
         SceneSystem* m_sceneSystem = nullptr;
         InputSystem* m_inputSystem = nullptr;
+        AssetSystem* m_assetSystem = nullptr;
 
         std::optional<uuid::Uuid> m_pointerTargetId;
         std::optional<uuid::Uuid> m_pointerCaptureId;
