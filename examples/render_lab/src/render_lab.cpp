@@ -1302,6 +1302,8 @@ namespace aiko::lab
         overlayTheme.button.selectable.hovered.cornerRadius = 24.0f;
         overlayTheme.button.selectable.pressed.cornerRadius = 40.0f;
 
+        overlayTheme.button.selectable.transitionDuration = 0.25f;
+
     }
 
     // --------------------------------------------------

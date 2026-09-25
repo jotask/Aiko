@@ -35,6 +35,7 @@ namespace aiko
         UIImageAppearance hovered;
         UIImageAppearance pressed;
         UIImageAppearance disabled;
+        float transitionDuration = 0.0f;
     };
 
     struct UIButtonStyle

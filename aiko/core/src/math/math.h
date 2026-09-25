@@ -43,6 +43,12 @@ namespace aiko
             return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
         }
 
+        template<class T>
+        constexpr T lerp(const T& from, const T& to, float t)
+        {
+            return from + (to - from) * t;
+        }
+
     }
 
 }

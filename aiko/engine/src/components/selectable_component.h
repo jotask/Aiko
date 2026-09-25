@@ -26,7 +26,7 @@ namespace aiko
 
         UISelectableState getState() const;
 
-        const UIImageAppearance& resolveAppearance(const UISelectableStyle& style) const;
+        UIImageAppearance resolveAppearance(const UISelectableStyle& style, float deltaTime);
 
         UIEventPropagation onPointerEvent(const UIPointerEvent& event) override;
 
@@ -43,6 +43,14 @@ namespace aiko
         bool m_pressed = false;
 
         std::optional<UISelectableStyle> m_styleOverride;
+
+        UISelectableState m_visualState = UISelectableState::Normal;
+
+        UIImageAppearance m_transitionSource;
+
+        float m_transitionElapsed = 0.0f;
+
+        bool m_transitionInitialized = false;
     };
 
 }

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <algorithm>
 
+#include <time/time.h>
 #include "system_connector.h"
 #include "components/canvas_component.h"
 #include "components/rect_transform_component.h"
@@ -361,7 +362,7 @@ namespace aiko
 
                     const UISelectableStyle& selectableStyle = selectable->resolveStyle(*themeStyle);
 
-                    appearance = selectable->resolveAppearance(selectableStyle);
+                    appearance = selectable->resolveAppearance(selectableStyle, Time::it().getDeltaTime());
                 }
 
                 AssetId textureId = image->getTextureId();
