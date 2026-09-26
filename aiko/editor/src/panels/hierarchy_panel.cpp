@@ -1,41 +1,34 @@
-#include "hirearchy_window.h"
+#include "hierarchy_panel.h"
 
-#include "window.h"
-#include "aiko_editor.h"
+#include "core/editor_context.h"
+#include "core/imgui_helper.h"
 
-#include <aiko_includes.h>
 #include <systems/scene_system.h>
 
-#include <imgui.h>
-
+#include <aiko_includes.h>
 #include <algorithm>
 #include <cfloat>
-
-#include "core/imgui_helper.h"
+#include <imgui.h>
 
 namespace aiko
 {
     namespace editor
     {
 
-        HirearchyWindow::HirearchyWindow(AikoEditor* editor)
-            : Window(editor, "HirearchyWindow")
+        HierarchyPanel::HierarchyPanel()
+            : EditorPanel("Hierarchy")
         {
         }
 
-        void HirearchyWindow::init()
+        void HierarchyPanel::render(EditorContext& context)
         {
-        }
-
-        void HirearchyWindow::render()
-        {
-            auto* ecs = getEditor()->sceneSystem();
-            if (ImGui::Begin("Hirearchy"))
+            SceneSystem& sceneSystem = context.sceneSystem();
+            if (ImGui::Begin("Hierarchy"))
             {
                 ImGui::SetNextItemOpen(true, ImGuiCond_Once);
                 if (ImGui::TreeNode("Scene"))
                 {
-                    Scene& scene = ecs->getScene();
+                    Scene& scene = sceneSystem.getScene();
                     for (GameObject* child : scene.getObjects())
                     {
                         if (child == nullptr)
@@ -45,7 +38,7 @@ namespace aiko
 
                         if (child->transform().getParent() == nullptr)
                         {
-                            renderGameObject(scene, child);
+                            renderGameObject(scene, child, context);
                         }
                     }
                     ImGui::TreePop();
@@ -73,8 +66,8 @@ namespace aiko
                 {
                     if (ImGui::MenuItem("Create GameObject"))
                     {
-                        GameObject* go = ecs->createGameObject();
-                        context().setSelectedGameObject(go);
+                        GameObject* go = sceneSystem.createGameObject();
+                        context.select(go);
                     }
                     ImGui::EndPopup();
                 }
@@ -84,14 +77,14 @@ namespace aiko
                     && ImGui::IsAnyItemHovered() == false
                     && ImGui::IsMouseClicked(ImGuiMouseButton_Left) ==  true)
                 {
-                    context().setSelectedGameObject(nullptr);
+                    context.select(nullptr);
                 }
 
             }
             ImGui::End();
         }
 
-        void HirearchyWindow::renderGameObject(Scene& scene, GameObject* obj)
+        void HierarchyPanel::renderGameObject(Scene& scene, GameObject* obj, EditorContext& context)
         {
             if (obj == nullptr)
             {
@@ -100,7 +93,7 @@ namespace aiko
 
             ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen;
 
-            if (context().getSelectedGameObject() == obj)
+            if (context.selectedGameObject() == obj)
             {
                 flags |= ImGuiTreeNodeFlags_Selected;
             }
@@ -145,7 +138,7 @@ namespace aiko
             {
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
                 {
-                    context().setSelectedGameObject(obj);
+                    context.select(obj);
                 }
 
                 if (ImGui::BeginDragDropSource())
@@ -173,15 +166,12 @@ namespace aiko
 
                 if (ImGui::BeginPopupContextItem())
                 {
-                    context().setSelectedGameObject(obj);
+                    context.select(obj);
 
                     if (ImGui::MenuItem("Create Child GameObject"))
                     {
-                        auto* ecs = getEditor()->sceneSystem();
-                        GameObject* go = ecs->createGameObject();
-
-                        attachChild(obj, go);
-                        context().setSelectedGameObject(go);
+                        GameObject* go = context.sceneSystem().createGameObject(obj);
+                        context.select(go);
 
                         ImGui::EndPopup();
 
@@ -211,9 +201,9 @@ namespace aiko
                     {
                         scene.remove(obj);
 
-                        if (context().getSelectedGameObject() == obj)
+                        if (context.selectedGameObject() == obj)
                         {
-                            context().setSelectedGameObject(nullptr);
+                            context.clearSelection();
                         }
 
                         ImGui::EndPopup();
@@ -231,45 +221,15 @@ namespace aiko
 
             if (opened == true)
             {
-                for (Transform* childTransform : obj->transform().getChildren())
+                for (GameObject* child : obj->getChildren())
                 {
-                    if (childTransform == nullptr)
-                    {
-                        continue;
-                    }
-
-                    GameObject* childObject = findGameObjectByTransform(scene, childTransform);
-                    renderGameObject(scene, childObject);
+                    renderGameObject(scene, child, context);
                 }
-
                 ImGui::TreePop();
             }
         }
 
-        GameObject* HirearchyWindow::findGameObjectByTransform(Scene& scene, Transform* transform)
-        {
-            if (transform == nullptr)
-            {
-                return nullptr;
-            }
-
-            for (GameObject* obj : scene.getObjects())
-            {
-                if (obj == nullptr)
-                {
-                    continue;
-                }
-
-                if (&obj->transform() == transform)
-                {
-                    return obj;
-                }
-            }
-
-            return nullptr;
-        }
-
-        void HirearchyWindow::attachChild(GameObject* parent, GameObject* child)
+        void HierarchyPanel::attachChild(GameObject* parent, GameObject* child)
         {
             if (parent == nullptr || child == nullptr)
             {
@@ -294,7 +254,7 @@ namespace aiko
             childTransform.setParent(&parentTransform);
         }
 
-        bool HirearchyWindow::canAttachChild(GameObject* parent, GameObject* child) const
+        bool HierarchyPanel::canAttachChild(GameObject* parent, GameObject* child) const
         {
             if (parent == nullptr || child == nullptr)
             {
@@ -318,7 +278,7 @@ namespace aiko
             return true;
         }
 
-        void HirearchyWindow::detachFromParent(GameObject* child)
+        void HierarchyPanel::detachFromParent(GameObject* child)
         {
             if (child == nullptr)
             {

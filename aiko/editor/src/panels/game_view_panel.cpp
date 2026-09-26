@@ -1,12 +1,9 @@
-#include "game_window.h"
+#include "game_view_panel.h"
 
-#include "aiko_editor.h"
-#include "aiko.h"
 #include "systems/render_system.h"
+#include "core/editor_context.h"
 
 #include <aiko_includes.h>
-
-#include "window.h"
 
 #include <imgui.h>
 
@@ -15,24 +12,19 @@ namespace aiko
     namespace editor
     {
 
-        GameWindow::GameWindow(AikoEditor* editor)
-            : Window(editor, "GameWindow")
-        {
-
-        }
-
-        void GameWindow::init()
+        GameViewPanel::GameViewPanel()
+            : EditorPanel("Game")
         {
         }
 
-        void GameWindow::render()
+        void GameViewPanel::render(EditorContext& context)
         {
 
-            auto* renderSystem = getEditor()->renderSystem();
+            RenderSystem& renderSystem = context.renderSystem();
             if(ImGui::Begin("Game"))
             {
 
-                const FrameBuffer& aikoTarget = renderSystem->getTargetTexture();
+                const FrameBuffer& aikoTarget = renderSystem.getTargetTexture();
 
                 const Texture& texture = aikoTarget.getColorTexture();
                 // Using a Child allow to fill all the space of the window.
@@ -77,7 +69,7 @@ namespace aiko
                 // and here we can add our created texture as image to ImGui
                 // unfortunately we need to use the cast to void* or I didn't find another way tbh
                 ImGui::GetWindowDrawList()->AddImage(
-                    (ImTextureID)renderSystem->getTargetTextureId(),
+                    (ImTextureID)renderSystem.getTargetTextureId(),
                     ImVec2(pos.x, pos.y),
                     ImVec2(pos.x + imageWidth, pos.y + imageHeight),
                     ImVec2(0, 1),

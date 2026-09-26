@@ -1,13 +1,11 @@
-#include "component_window.h"
+#include "inspector_panel.h"
 
-#include "window.h"
+#include "core/editor_context.h"
+#include "core/imgui_helper.h"
+#include "registry/components_functionality.h"
+#include "registry/components_render.h"
 
 #include <aiko_includes.h>
-#include "registry/components_render.h"
-#include "registry/components_functionality.h"
-#include "aiko_editor.h"
-#include "core/imgui_helper.h"
-
 #include <imgui.h>
 
 namespace aiko
@@ -15,20 +13,16 @@ namespace aiko
     namespace editor
     {
 
-        ComponentWindow::ComponentWindow(AikoEditor* editor)
-            : Window(editor, "ComponentWindow")
+        InspectorPanel::InspectorPanel()
+            : EditorPanel("Inspector")
         {
         }
 
-        void ComponentWindow::init()
+        void InspectorPanel::render(EditorContext& context)
         {
-        }
-
-        void ComponentWindow::render()
-        {
-            GameObject* selectedGameObject = context().getSelectedGameObject();
+            GameObject* selectedGameObject = context.selectedGameObject();
             vector<Component*> componentsToRemove;
-            if (ImGui::Begin("Components"))
+            if (ImGui::Begin("Inspector"))
             {
                 if (selectedGameObject != nullptr)
                 {
