@@ -20,25 +20,11 @@ namespace aiko::editor
     public:
         AikoEditor() = default;
 
-        EditorContext& context()
-        {
-            return m_context;
-        }
+        EditorContext& context() { return m_context; }
+        const EditorContext& context() const { return m_context; }
 
-        const EditorContext& context() const
-        {
-            return m_context;
-        }
-
-        EditorWorkspace& workspace()
-        {
-            return m_workspace;
-        }
-
-        const EditorWorkspace& workspace() const
-        {
-            return m_workspace;
-        }
+        EditorWorkspace& workspace() { return m_workspace; }
+        const EditorWorkspace& workspace() const { return m_workspace; }
 
     protected:
         void connect(SystemConnector& connector) override;

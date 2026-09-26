@@ -123,6 +123,7 @@ namespace aiko
         void submitScenePass(const renderer::FrameData& frameData, const PreparedScenePass& passData, const RenderTarget& target);
         void submitPresentPass(const Texture& texture);
         void submitUiPass();
+        void submitImguiPass();
 
         static_assert(COMPUTE_VIEW < SCENE_VIEW, "Compute View MUST be less than Scene View");
 

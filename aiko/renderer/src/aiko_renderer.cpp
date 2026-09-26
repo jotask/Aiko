@@ -221,7 +221,7 @@ namespace aiko
 
         submitUiPass();
 
-        m_imgui.endFrame(m_renderSurface.x, m_renderSurface.y);
+        submitImguiPass();
 
     }
 
@@ -596,6 +596,21 @@ namespace aiko
 
         m_renderer->endPass();
 
+    }
+
+    void AikoRenderer::submitImguiPass()
+    {
+        const renderer::PassDescription imguiPass =
+        {
+            .width = static_cast<u32>(m_renderSurface.x),
+            .height = static_cast<u32>(m_renderSurface.y),
+            .colorLoadOp = renderer::AttachmentLoadOp::Load,
+            .depthLoadOp = renderer::AttachmentLoadOp::DontCare,
+        };
+
+        m_renderer->beginPass(IMGUI_VIEW, imguiPass, nullptr);
+        m_imgui.endFrame(m_renderSurface.x, m_renderSurface.y);
+        m_renderer->endPass();
     }
 
     Material& AikoRenderer::stageMaterial(const MaterialAsset& materialAsset, const MaterialInstance& materialInstance)
