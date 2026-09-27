@@ -82,22 +82,36 @@ namespace aiko::editor
     {
         const EditorViewSettings& settings = m_context.viewSettings();
 
-        if (settings.showLightGizmos == false)
-        {
-            return;
-        }
-
         Scene& scene = m_context.sceneSystem().getScene();
 
-        for (LightComponent* light : scene.components<LightComponent>())
+        if (settings.showLightGizmos)
         {
-            if (light == nullptr || light->isActiveAndEnabled() == false)
+            for (LightComponent* light : scene.components<LightComponent>())
             {
-                continue;
+                if (light == nullptr || light->isActiveAndEnabled() == false)
+                {
+                    continue;
+                }
+
+                GameObject* object = light->getGameObject();
+
+                AIKO_ASSERT(object != nullptr, "LightComponent is not attached to a GameObject");
+
+                m_context.renderSystem().renderLightGizmo(object->transform().position, vec3(0.15f), light->color);
             }
-            GameObject* object = light->getGameObject();
-            AIKO_ASSERT(object != nullptr, "LightComponent is not attached to a GameObject");
-            m_context.renderSystem().renderLightGizmo(object->transform().position, vec3(0.15f), light->color);
+        }
+
+        if (settings.showCameraGizmos)
+        {
+            for (CameraComponent* cameraComponent : scene.components<CameraComponent>())
+            {
+                if (cameraComponent == nullptr || cameraComponent->isActiveAndEnabled() == false)
+                {
+                    continue;
+                }
+
+                m_context.renderSystem().renderCameraGizmo(cameraComponent->getCamera(), Color(0.9f, 0.9f, 0.25f, 1.0f));
+            }
         }
     }
 

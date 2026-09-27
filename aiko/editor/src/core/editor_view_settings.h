@@ -7,6 +7,7 @@ namespace aiko::editor
     struct EditorViewSettings
     {
         bool showLightGizmos = true;
+        bool showCameraGizmos = true;
         bool showGrid = true;
 
         bool overrideClearColor = false;

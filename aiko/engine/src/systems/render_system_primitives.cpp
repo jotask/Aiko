@@ -14,30 +14,6 @@ namespace aiko
         return (material == nullptr) ? m_materialPrimitives : *material;
     }
 
-    Material& RenderSystem::resolveLightGizmoMaterial(Color color)
-    {
-        const u32 key = color.rgba();
-
-        auto [it, inserted] = m_lightGizmoMaterials.try_emplace(key);
-
-        if (inserted)
-        {
-            Material& material = it->second;
-            material.m_shaderId = m_materialPrimitives.m_shaderId;
-            material.m_baseColor = color;
-            material.m_lit = false;
-            material.m_useVertexColor = false;
-        }
-
-        return it->second;
-    }
-
-    void RenderSystem::renderLightGizmo(vec3 position, vec3 size, Color color)
-    {
-        Material& material = resolveLightGizmoMaterial(color);
-        renderSphere(position, size, 16, &material);
-    }
-
     void RenderSystem::renderPoint(vec3 pos, Material* material)
     {
         Transform t;

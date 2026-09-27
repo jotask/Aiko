@@ -64,6 +64,7 @@ namespace aiko
     void RenderSystem::clearCaches()
     {
         m_worldTextMaterials.clear();
+        m_gizmoMaterials.clear();
     }
 
     ImguiTextureId RenderSystem::getTargetTextureId() const
