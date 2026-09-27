@@ -1,15 +1,27 @@
 #include "simulation.h"
 
-#include "time/time.h"
+#include <time/time.h>
+#include <core/random.h>
 
 namespace sph
 {
 
     void Simulation::init()
     {
-
         constexpr int columns = 32;
-        constexpr float spacing = 0.12f;
+        constexpr int rows = static_cast<int>(N_PARTICLES) / columns;
+
+        const float radius = m_parameters.particleRadius;
+
+        const aiko::vec3 halfSize = m_bounds.size * 0.5f;
+
+        const float left = m_bounds.position.x - halfSize.x + radius;
+        const float right = m_bounds.position.x + halfSize.x - radius;
+        const float bottom = m_bounds.position.y - halfSize.y + radius;
+        const float top = m_bounds.position.y + halfSize.y - radius;
+
+        const float spacingX = (right - left) / static_cast<float>(columns - 1);
+        const float spacingY = (top - bottom) / static_cast<float>(rows - 1);
 
         for (size_t i = 0; i < m_particles.size(); ++i)
         {
@@ -20,19 +32,35 @@ namespace sph
 
             particle.position =
             {
-                -2.0f + static_cast<float>(x) * spacing,
-                2.0f - static_cast<float>(y) * spacing,
+                left + static_cast<float>(x) * spacingX,
+                top - static_cast<float>(y) * spacingY,
+                0.0f
+            };
+
+            particle.velocity =
+            {
+                aiko::utils::getRandomValue(-1.0f, 1.0f) * 0.25f,
+                aiko::utils::getRandomValue(-1.0f, 1.0f) * 0.25f,
                 0.0f
             };
 
             particle.prevPosition = particle.position;
             particle.color = aiko::BLUE;
+
         }
     }
 
     void Simulation::update()
     {
+        const float dt = aiko::Time::it().getDeltaTime();
+        if (dt <= 0.0f)
+        {
+            return;
+        }
+        predictPositions(dt);
+        computeNextVelocity(dt);
 
+        worldBoundary();
     }
 
     void Simulation::predictPositions(float dt)
@@ -52,6 +80,43 @@ namespace sph
             SPHParticle& p = m_particles[i];
             aiko::vec3 direction = p.position - p.prevPosition;
             p.velocity = direction * ( 1.0f / dt );
+        }
+    }
+
+    void Simulation::worldBoundary()
+    {
+        const aiko::vec3 halfSize = m_bounds.size * 0.5f;
+
+        const float radius = m_parameters.particleRadius;
+
+        const float left = m_bounds.position.x - halfSize.x + radius;
+        const float right = m_bounds.position.x + halfSize.x - radius;
+        const float bottom = m_bounds.position.y - halfSize.y + radius;
+        const float top = m_bounds.position.y + halfSize.y - radius;
+
+        for (SPHParticle& particle : m_particles)
+        {
+            if (particle.position.x < left)
+            {
+                particle.position.x = left;
+                particle.velocity.x *= -BoundaryDamping;
+            }
+            else if (particle.position.x > right)
+            {
+                particle.position.x = right;
+                particle.velocity.x *= -BoundaryDamping;
+            }
+
+            if (particle.position.y < bottom)
+            {
+                particle.position.y = bottom;
+                particle.velocity.y *= -BoundaryDamping;
+            }
+            else if (particle.position.y > top)
+            {
+                particle.position.y = top;
+                particle.velocity.y *= -BoundaryDamping;
+            }
         }
     }
 }

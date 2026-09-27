@@ -11,6 +11,7 @@
 namespace aiko
 {
     class RenderContext;
+    class RenderSystem;
 }
 
 namespace sph
@@ -25,7 +26,7 @@ namespace sph
 
         void init(const aiko::AssetId& shaderId);
         void update();
-        void render(aiko::RenderContext& renderer);
+        void render(aiko::RenderContext& renderer, aiko::RenderSystem& renderSystem);
 
     private:
 

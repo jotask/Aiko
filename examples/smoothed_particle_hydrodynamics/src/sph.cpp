@@ -29,7 +29,7 @@ namespace sph
 
         // Init camera
         aiko::GameObject* camera = Instantiate("Camera");
-        aiko::CameraComponent* cameraComponent = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
+        aiko::CameraComponent* cameraComponent = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Drag);
         camera->transform().position = { 0.0f, 2.5f, 8.0f };
         cameraComponent->setCameraType(aiko::Camera::CameraType::Orthographic);
         cameraComponent->getCamera().position = camera->transform().position;
@@ -45,7 +45,7 @@ namespace sph
 
     void SPHFluidSimulation::render()
     {
-        m_playground.render(renderer());
+        m_playground.render(renderer(), *m_renderSystem);
     }
 
 }
