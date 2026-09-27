@@ -2,6 +2,7 @@
 
 #include "commands/editor_command_stack.h"
 #include "core/editor_view_settings.h"
+#include "core/editor_document.h"
 
 namespace aiko
 {
@@ -36,11 +37,15 @@ namespace aiko::editor
         EditorViewSettings& viewSettings() { return m_viewSettings; }
         const EditorViewSettings& viewSettings() const { return m_viewSettings; }
 
+        EditorDocument& document() { return m_document; }
+        const EditorDocument& document() const { return m_document; }
+
     private:
 
         EditorCommandStack m_commands;
 
         EditorViewSettings m_viewSettings;
+        EditorDocument m_document;
 
         RenderSystem* m_renderSystem = nullptr;
         SceneSystem* m_sceneSystem = nullptr;

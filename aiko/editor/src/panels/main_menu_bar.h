@@ -18,6 +18,8 @@ namespace aiko
             void setWorkspace(EditorWorkspace* workspace);
 
         private:
+            void openSaveDialog(EditorContext& context);
+
             EditorWorkspace* m_workspace = nullptr;
         };
 
