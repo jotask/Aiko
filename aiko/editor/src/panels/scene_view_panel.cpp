@@ -1,10 +1,12 @@
 #include "scene_view_panel.h"
 
+#include "camera/camera_controller.h"
+#include "commands/transform/transform_command.h"
 #include "core/editor_context.h"
-
 #include "models/game_object.h"
 #include "systems/render_system.h"
-#include "camera/camera_controller.h"
+
+#include <math/math.h>
 
 #include <imgui.h>
 #include <ImGuizmo.h>
@@ -126,7 +128,59 @@ namespace aiko::editor
 
                     mat4 model = transform.getWorldMatrix();
 
-                    ImGuizmo::Manipulate(view.data(), projection.data(), ImGuizmo::TRANSLATE, ImGuizmo::WORLD, model.data());
+                    const bool manipulated = ImGuizmo::Manipulate(view.data(), projection.data(), ImGuizmo::TRANSLATE, ImGuizmo::WORLD, model.data());
+
+                    const bool usingGizmo = ImGuizmo::IsUsing();
+
+                    if (usingGizmo && !m_wasUsingGizmo)
+                    {
+                        m_gizmoStartTransform = captureTransform(transform);
+                    }
+
+                    if (manipulated)
+                    {
+                        mat4 localMatrix = model;
+
+                        if (Transform* parent = transform.getParent())
+                        {
+                            localMatrix = math::inverse(parent->getWorldMatrix()) * model;
+                        }
+
+                        float translation[3];
+                        float rotation[3];
+                        float scale[3];
+
+                        ImGuizmo::DecomposeMatrixToComponents(localMatrix.data(), translation, rotation, scale);
+
+                        transform.position =
+                        {
+                            translation[0],
+                            translation[1],
+                            translation[2]
+                        };
+
+                        transform.rotation =
+                        {
+                            rotation[0],
+                            rotation[1],
+                            rotation[2]
+                        };
+
+                        transform.scale =
+                        {
+                            scale[0],
+                            scale[1],
+                            scale[2]
+                        };
+                    }
+
+                    if (!usingGizmo && m_wasUsingGizmo)
+                    {
+                        const TransformState finalTransform = captureTransform(transform);
+                        context.commands().pushExecuted<TransformCommand>(context.sceneSystem(), selected->uuid(), m_gizmoStartTransform, finalTransform);
+                    }
+
+                    m_wasUsingGizmo = usingGizmo;
                 }
             }
         }

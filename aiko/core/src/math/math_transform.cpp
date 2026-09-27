@@ -149,6 +149,11 @@ namespace aiko
             return toAiko(mat);
         }
 
+        mat4 inverse(const mat4& matrix)
+        {
+            return toAiko(glm::inverse(toGlm(matrix)));
+        }
+
         mat4 perspective(float angle, float aspectRatio, float znear, float zfar)
         {
             glm::mat4 projection = glm::perspective(radians(angle), aspectRatio, znear, zfar);

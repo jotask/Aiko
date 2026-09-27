@@ -37,6 +37,7 @@ namespace aiko
         mat4 rotate(mat4, float, vec3);
         vec3 rotate(vec3, float, vec3);
         mat4 lookAt(vec3, vec3, vec3);
+        mat4 inverse(const mat4& matrix);
 
         mat4 perspective(float, float, float, float);
         mat4 ortho(float, float, float, float, float, float);

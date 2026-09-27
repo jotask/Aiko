@@ -16,6 +16,7 @@
 #include <events/events.hpp>
 
 #include <imgui.h>
+#include <ImGuizmo.h>
 
 namespace aiko::editor
 {
@@ -57,6 +58,7 @@ namespace aiko::editor
 
     void AikoEditor::render()
     {
+        ImGuizmo::BeginFrame();
         ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::DockSpaceOverViewport(viewport->ID);
         applyViewSettings();

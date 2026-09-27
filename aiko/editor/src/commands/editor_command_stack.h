@@ -25,7 +25,18 @@ namespace aiko::editor
             return result;
         }
 
+        template<class T, class... Args>
+        T& pushExecuted(Args&&... args)
+        {
+            static_assert(std::is_base_of_v<EditorCommand, T>, "EditorCommandStack::pushExecuted requires an EditorCommand type");
+            auto command = std::make_unique<T>(std::forward<Args>(args)...);
+            T& result = *command;
+            pushExecuted(std::move(command));
+            return result;
+        }
+
         void execute(AikoUPtr<EditorCommand> command);
+        void pushExecuted(AikoUPtr<EditorCommand> command);
 
         bool canUndo() const;
         bool canRedo() const;

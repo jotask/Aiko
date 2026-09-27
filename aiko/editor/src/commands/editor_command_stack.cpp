@@ -16,6 +16,16 @@ namespace aiko::editor
         m_redoStack.clear();
     }
 
+    void EditorCommandStack::pushExecuted(AikoUPtr<EditorCommand> command)
+    {
+        if (command == nullptr)
+        {
+            return;
+        }
+        m_undoStack.emplace_back(std::move(command));
+        m_redoStack.clear();
+    }
+
     bool EditorCommandStack::canUndo() const
     {
         return m_undoStack.empty() == false;
