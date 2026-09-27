@@ -8,9 +8,6 @@
 
 #include <math/math.h>
 
-#include <imgui.h>
-#include <ImGuizmo.h>
-
 namespace aiko::editor
 {
 
@@ -80,7 +77,7 @@ namespace aiko::editor
 
                 const bool sceneHovered = ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(imagePosition, imageEnd);
 
-                if (sceneHovered)
+                if (sceneHovered && !ImGuizmo::IsUsing())
                 {
                     const ImGuiIO& io = ImGui::GetIO();
 
@@ -106,6 +103,29 @@ namespace aiko::editor
                     camera::updateDrag(m_camera, input);
                 }
 
+                if (sceneHovered && !ImGuizmo::IsUsing())
+                {
+                    if (ImGui::IsKeyPressed(ImGuiKey_W))
+                    {
+                        m_gizmoOperation = ImGuizmo::TRANSLATE;
+                    }
+
+                    if (ImGui::IsKeyPressed(ImGuiKey_E))
+                    {
+                        m_gizmoOperation = ImGuizmo::ROTATE;
+                    }
+
+                    if (ImGui::IsKeyPressed(ImGuiKey_R))
+                    {
+                        m_gizmoOperation = ImGuizmo::SCALE;
+                    }
+
+                    if (ImGui::IsKeyPressed(ImGuiKey_X))
+                    {
+                        m_gizmoMode = m_gizmoMode == ImGuizmo::WORLD ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
+                    }
+                }
+
                 GameObject* selected = context.selectedGameObject();
 
                 if (selected != nullptr)
@@ -126,15 +146,27 @@ namespace aiko::editor
 
                     Transform& transform = selected->transform();
 
-                    mat4 model = transform.getWorldMatrix();
+                    mat4 model = m_wasUsingGizmo ? m_gizmoMatrix : transform.getWorldMatrix();
 
-                    const bool manipulated = ImGuizmo::Manipulate(view.data(), projection.data(), ImGuizmo::TRANSLATE, ImGuizmo::WORLD, model.data());
+                    const ImGuizmo::MODE gizmoMode = m_gizmoOperation == ImGuizmo::SCALE ? ImGuizmo::LOCAL : m_gizmoMode;
+
+                    const bool manipulated = ImGuizmo::Manipulate(view.data(), projection.data(), m_gizmoOperation, gizmoMode, model.data());
 
                     const bool usingGizmo = ImGuizmo::IsUsing();
 
                     if (usingGizmo && !m_wasUsingGizmo)
                     {
                         m_gizmoStartTransform = captureTransform(transform);
+                    }
+
+                    if (usingGizmo)
+                    {
+                        m_gizmoMatrix = model;
+                    }
+
+                    if (manipulated)
+                    {
+                        // existing local matrix decomposition + switch
                     }
 
                     if (manipulated)
@@ -152,26 +184,44 @@ namespace aiko::editor
 
                         ImGuizmo::DecomposeMatrixToComponents(localMatrix.data(), translation, rotation, scale);
 
-                        transform.position =
+                        switch (m_gizmoOperation)
                         {
-                            translation[0],
-                            translation[1],
-                            translation[2]
-                        };
+                            case ImGuizmo::TRANSLATE:
+                            {
+                                transform.position =
+                                {
+                                    translation[0],
+                                    translation[1],
+                                    translation[2]
+                                };
+                            }
+                            break;
 
-                        transform.rotation =
-                        {
-                            rotation[0],
-                            rotation[1],
-                            rotation[2]
-                        };
+                            case ImGuizmo::ROTATE:
+                            {
+                                transform.rotation =
+                                {
+                                    rotation[0],
+                                    rotation[1],
+                                    rotation[2]
+                                };
+                            }
+                            break;
 
-                        transform.scale =
-                        {
-                            scale[0],
-                            scale[1],
-                            scale[2]
-                        };
+                            case ImGuizmo::SCALE:
+                            {
+                                transform.scale =
+                                {
+                                    scale[0],
+                                    scale[1],
+                                    scale[2]
+                                };
+                            }
+                            break;
+
+                            default:
+                                break;
+                        }
                     }
 
                     if (!usingGizmo && m_wasUsingGizmo)
