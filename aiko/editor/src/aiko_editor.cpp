@@ -97,12 +97,18 @@ namespace aiko::editor
 
                 AIKO_ASSERT(object != nullptr, "LightComponent is not attached to a GameObject");
 
-                m_context.renderSystem().renderLightGizmo(object->transform().position, vec3(0.15f), light->color);
+                const bool selectedLight = object == m_context.selectedGameObject();
+
+                const Color color = selectedLight ? Color(1.0f, 0.6f, 0.1f, 1.0f) : light->color;
+
+                m_context.renderSystem().renderLightGizmo(object->transform().position, vec3(0.15f), color);
             }
         }
 
         if (settings.showCameraGizmos)
         {
+            GameObject* selected = m_context.selectedGameObject();
+
             for (CameraComponent* cameraComponent : scene.components<CameraComponent>())
             {
                 if (cameraComponent == nullptr || cameraComponent->isActiveAndEnabled() == false)
@@ -110,7 +116,15 @@ namespace aiko::editor
                     continue;
                 }
 
-                m_context.renderSystem().renderCameraGizmo(cameraComponent->getCamera(), Color(0.9f, 0.9f, 0.25f, 1.0f));
+                GameObject* object = cameraComponent->getGameObject();
+
+                AIKO_ASSERT(object != nullptr, "CameraComponent is not attached to a GameObject");
+
+                const bool selectedCamera = object == selected;
+
+                const Color color = selectedCamera ? Color(1.0f, 0.6f, 0.1f, 1.0f) : Color(0.9f, 0.9f, 0.25f, 1.0f);
+
+                m_context.renderSystem().renderCameraGizmo(cameraComponent->getCamera(), color);
             }
         }
     }
