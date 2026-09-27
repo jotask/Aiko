@@ -60,9 +60,9 @@ namespace aiko::camera
 
             const vec3 right = math::normalize(math::cross(camera.getCameraDirection(), camera.getUp()));
 
-            const vec3 upMove = camera.getUp() * (-mouseDelta.y * panSpeed);
+            const vec3 upMove = camera.getUp() * (mouseDelta.y * panSpeed);
 
-            const vec3 rightMove = right * (mouseDelta.x * panSpeed);
+            const vec3 rightMove = right * (-mouseDelta.x * panSpeed);
 
             camera.position += rightMove + upMove;
             camera.target += rightMove + upMove;
