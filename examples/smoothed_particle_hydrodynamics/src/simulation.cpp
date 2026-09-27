@@ -12,6 +12,10 @@ namespace sph
 
     void Simulation::init()
     {
+
+        m_particles.reserve(N_PARTICLES + 1024);
+        m_particles.resize(N_PARTICLES);
+
         constexpr int columns = 32;
         constexpr float spacing = 0.10f;
 
@@ -48,6 +52,19 @@ namespace sph
         }
 
         m_hashGrid.init(this, m_parameters.smoothingRadius);
+
+        const EmitterSettings emitter
+        {
+            .position = {0.0f, 2.0f, 0.0f},
+            .direction = {0.0f, -1.0f, 0.0f},
+            .size = 1.0f,
+            .spawnInterval = 1.0f,
+            .amount = 20,
+            .velocity = 0.2f,
+            .angularVelocity = 0.1f,
+        };
+        createParticleEmitter(emitter);
+
     }
 
     void Simulation::update()
@@ -57,6 +74,13 @@ namespace sph
         {
             return;
         }
+
+        for (ParticleEmitter& emitter : m_emitters)
+        {
+            emitter.spawn(dt);
+            emitter.rotate(dt);
+        }
+
         applyGravity(dt);
         m_hashGrid.clearGrid();
         m_hashGrid.mapParticlesToCell();
@@ -228,6 +252,12 @@ namespace sph
         }
         m_particles[closestParticleIdx].color = aiko::RED;
 
+    }
+    ParticleEmitter* Simulation::createParticleEmitter(const EmitterSettings settings)
+    {
+        ParticleEmitter& emitter = m_emitters.emplace_back();
+        emitter.init(this, settings);
+        return &emitter;
     }
 
     void Simulation::worldBoundary()

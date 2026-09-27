@@ -37,7 +37,7 @@ namespace sph
         aiko::Mesh m_particleMesh;
         aiko::Material m_particleMaterial;
 
-        std::array<aiko::InstanceData, Simulation::N_PARTICLES> m_particleInstances;
+        aiko::vector<aiko::InstanceData> m_particleInstances;
 
     };
 

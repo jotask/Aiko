@@ -34,6 +34,8 @@ namespace sph
         // Particles
         const auto& particles = m_simulation.particles();
 
+        m_particleInstances.resize(particles.size());
+
         const float diameter = m_simulation.parameters().particleRadius * 2.0f;
 
         for (size_t i = 0; i < particles.size(); ++i)
@@ -55,6 +57,21 @@ namespace sph
         }
 
         renderer.drawMeshInstanced(m_particleMesh, m_particleMaterial, m_particleInstances.data(), static_cast<aiko::u32>(m_particleInstances.size()));
+
+        // Emitters
+        const auto& emitters = m_simulation.emitters();
+        for (size_t i = 0; i < emitters.size(); ++i)
+        {
+            const ParticleEmitter& emitter = emitters[i];
+            const EmitterSettings& settings = emitter.settings();
+            const aiko::vec3 direction = settings.direction;
+            const aiko::vec3 normalizedDirection = aiko::math::normalize(direction);
+            const aiko::vec3 normal = { -normalizedDirection.y, normalizedDirection.x, 0.0f };
+            const aiko::vec3 halfPlane = normal * (settings.size * 0.5f);
+            const aiko::vec3 planeStart = settings.position - halfPlane;
+            const aiko::vec3 planeEnd = settings.position + halfPlane;
+            renderSystem.renderLine(planeStart, planeEnd);
+        }
 
         // Bounding box
         const WorldBounds& bounds = m_simulation.bounds();

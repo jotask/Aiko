@@ -2,9 +2,8 @@
 
 #include "aiko_types.h"
 #include "fluid_hash_grid.h"
+#include "particle_emitter.h"
 #include "sph_types.h"
-
-#include <array>
 
 namespace sph
 {
@@ -18,21 +17,22 @@ namespace sph
         void init();
         void update();
 
-        const std::array<SPHParticle, N_PARTICLES>& particles() const
-        {
-            return m_particles;
-        }
+        aiko::vector<SPHParticle>& particles() { return m_particles; }
+        const aiko::vector<SPHParticle>& particles() const { return m_particles; }
+        const aiko::vector<ParticleEmitter>& emitters() const { return m_emitters; }
 
         const SPHParameters& parameters() const { return m_parameters; }
         const WorldBounds& bounds() const { return m_bounds; }
 
         void neighboursSearch(const aiko::vec3& mousePosition);
 
+        ParticleEmitter* createParticleEmitter(const EmitterSettings);
+
     private:
 
         static constexpr float VelocityDamping = 1.0f;
 
-        std::array<SPHParticle, N_PARTICLES> m_particles;
+        aiko::vector<SPHParticle> m_particles;
 
         const WorldBounds m_bounds
         {
@@ -42,6 +42,8 @@ namespace sph
 
         SPHParameters m_parameters;
         FluidHashGrid m_hashGrid;
+
+        aiko::vector<ParticleEmitter> m_emitters;
 
         void predictPositions(float dt);
         void computeNextVelocity(float dt);
