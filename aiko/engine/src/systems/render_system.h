@@ -5,6 +5,7 @@
 
 #include <aiko_types.h>
 #include <aiko_renderer.h>
+#include <math/math_bounds.h>
 
 #include "components/compute_shader_component.h"
 #include "components/mesh_component.h"
@@ -116,6 +117,7 @@ namespace aiko
 
         void renderLightGizmo(vec3 position, vec3 size, Color color);
         void renderCameraGizmo(const Camera& camera, Color color);
+        void renderBoundsGizmo(const Bounds& bounds, Color color);
 
     };
 

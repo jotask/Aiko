@@ -129,6 +129,7 @@ namespace aiko::editor
                 ImGui::MenuItem("Light Gizmos", nullptr, &settings.showLightGizmos);
                 ImGui::MenuItem("Camera Gizmos", nullptr, &settings.showCameraGizmos);
                 ImGui::MenuItem("Show Grid", nullptr, &settings.showGrid);
+                ImGui::MenuItem("Show Bounds", nullptr, &settings.showBounds);
 
                 ImGui::Separator();
 

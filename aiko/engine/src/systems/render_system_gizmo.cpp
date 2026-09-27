@@ -67,4 +67,92 @@ namespace aiko
         renderLine(bottomLeft, topLeft, &material);
     }
 
+    void RenderSystem::renderBoundsGizmo(const Bounds& bounds, Color color)
+    {
+        Material& material = resolveGizmoMaterial(color);
+
+        const vec3 p000 =
+        {
+            bounds.min.x,
+            bounds.min.y,
+            bounds.min.z
+        };
+
+        const vec3 p100 =
+        {
+            bounds.max.x,
+            bounds.min.y,
+            bounds.min.z
+        };
+
+        const vec3 p010 =
+        {
+            bounds.min.x,
+            bounds.max.y,
+            bounds.min.z
+        };
+
+        const vec3 p110 =
+        {
+            bounds.max.x,
+            bounds.max.y,
+            bounds.min.z
+        };
+
+        const vec3 p001 =
+        {
+            bounds.min.x,
+            bounds.min.y,
+            bounds.max.z
+        };
+
+        const vec3 p101 =
+        {
+            bounds.max.x,
+            bounds.min.y,
+            bounds.max.z
+        };
+
+        const vec3 p011 =
+        {
+            bounds.min.x,
+            bounds.max.y,
+            bounds.max.z
+        };
+
+        const vec3 p111 =
+        {
+            bounds.max.x,
+            bounds.max.y,
+            bounds.max.z
+        };
+
+        //
+        // Bottom
+        //
+
+        renderLine(p000, p100, &material);
+        renderLine(p100, p101, &material);
+        renderLine(p101, p001, &material);
+        renderLine(p001, p000, &material);
+
+        //
+        // Top
+        //
+
+        renderLine(p010, p110, &material);
+        renderLine(p110, p111, &material);
+        renderLine(p111, p011, &material);
+        renderLine(p011, p010, &material);
+
+        //
+        // Verticals
+        //
+
+        renderLine(p000, p010, &material);
+        renderLine(p100, p110, &material);
+        renderLine(p101, p111, &material);
+        renderLine(p001, p011, &material);
+    }
+
 }

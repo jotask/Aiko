@@ -1,5 +1,7 @@
 #include "math_transform.h"
 
+#include <cmath>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -152,6 +154,61 @@ namespace aiko
         mat4 inverse(const mat4& matrix)
         {
             return toAiko(glm::inverse(toGlm(matrix)));
+        }
+
+        vec4 transform(const mat4& matrix, const vec4& vector)
+        {
+            return
+            {
+                matrix(0, 0) * vector.x +
+                matrix(0, 1) * vector.y +
+                matrix(0, 2) * vector.z +
+                matrix(0, 3) * vector.w,
+
+                matrix(1, 0) * vector.x +
+                matrix(1, 1) * vector.y +
+                matrix(1, 2) * vector.z +
+                matrix(1, 3) * vector.w,
+
+                matrix(2, 0) * vector.x +
+                matrix(2, 1) * vector.y +
+                matrix(2, 2) * vector.z +
+                matrix(2, 3) * vector.w,
+
+                matrix(3, 0) * vector.x +
+                matrix(3, 1) * vector.y +
+                matrix(3, 2) * vector.z +
+                matrix(3, 3) * vector.w
+            };
+        }
+
+        vec3 transformPoint(const mat4& matrix, const vec3& point)
+        {
+            const vec4 result = transform(
+                    matrix,
+                    {
+                        point.x,
+                        point.y,
+                        point.z,
+                        1.0f
+                    });
+
+            if (std::fabs(result.w) < 1e-6f)
+            {
+                return
+                {
+                    result.x,
+                    result.y,
+                    result.z
+                };
+            }
+
+            return
+            {
+                result.x / result.w,
+                result.y / result.w,
+                result.z / result.w
+            };
         }
 
         mat4 perspective(float angle, float aspectRatio, float znear, float zfar)

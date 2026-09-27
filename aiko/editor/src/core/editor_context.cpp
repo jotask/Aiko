@@ -6,10 +6,11 @@
 namespace aiko::editor
 {
 
-    void EditorContext::connect(RenderSystem& renderSystem, SceneSystem& sceneSystem)
+    void EditorContext::connect(RenderSystem& renderSystem, SceneSystem& sceneSystem, AssetSystem& assetSystem)
     {
         m_renderSystem = &renderSystem;
         m_sceneSystem = &sceneSystem;
+        m_assetSystem = &assetSystem;
     }
 
     RenderSystem& EditorContext::renderSystem()
@@ -34,6 +35,18 @@ namespace aiko::editor
     {
         AIKO_ASSERT(m_sceneSystem != nullptr, "EditorContext has no SceneSystem");
         return *m_sceneSystem;
+    }
+
+    AssetSystem& EditorContext::assetSystem()
+    {
+        AIKO_ASSERT(m_assetSystem != nullptr, "EditorContext has no AssetSystem");
+        return *m_assetSystem;
+    }
+
+    const AssetSystem& EditorContext::assetSystem() const
+    {
+        AIKO_ASSERT(m_assetSystem != nullptr, "EditorContext has no AssetSystem");
+        return *m_assetSystem;
     }
 
 }

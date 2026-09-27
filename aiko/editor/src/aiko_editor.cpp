@@ -8,6 +8,8 @@
 #include "panels/inspector_panel.h"
 #include "panels/main_menu_bar.h"
 #include "panels/scene_view_panel.h"
+#include "scene/scene_bounds.h"
+#include "systems/asset_system.h"
 #include "systems/render_system.h"
 #include "systems/scene_system.h"
 #include "systems/system_connector.h"
@@ -25,14 +27,16 @@ namespace aiko::editor
     {
         BIND_SYSTEM_REQUIRED_REF(RenderSystem, connector, m_renderSystem);
         BIND_SYSTEM_REQUIRED_REF(SceneSystem, connector, m_sceneSystem);
+        BIND_SYSTEM_REQUIRED_REF(AssetSystem, connector, m_assetSystem);
     }
 
     void AikoEditor::init()
     {
         AIKO_ASSERT(m_renderSystem != nullptr, "Editor requires RenderSystem");
         AIKO_ASSERT(m_sceneSystem != nullptr, "Editor requires SceneSystem");
+        AIKO_ASSERT(m_assetSystem != nullptr, "Editor requires AssetSystem");
 
-        m_context.connect(*m_renderSystem, *m_sceneSystem);
+        m_context.connect(*m_renderSystem, *m_sceneSystem, *m_assetSystem);
 
         if (m_sceneSystem->getMainCamera() == nullptr)
         {
@@ -127,6 +131,34 @@ namespace aiko::editor
                 m_context.renderSystem().renderCameraGizmo(cameraComponent->getCamera(), color);
             }
         }
+
+        if (settings.showBounds)
+        {
+            for (GameObject* object : scene.getObjects())
+            {
+                if (object == nullptr || !object->isActiveInHierarchy())
+                {
+                    continue;
+                }
+
+                Bounds bounds;
+
+                if (!calculateSceneObjectBounds(m_context, *object, bounds))
+                {
+                    continue;
+                }
+
+                const bool selected = object == m_context.selectedGameObject();
+
+                const Color color =
+                    selected
+                        ? Color(1.0f, 0.6f, 0.1f, 1.0f)
+                        : Color(0.2f, 0.8f, 1.0f, 1.0f);
+
+                m_context.renderSystem().renderBoundsGizmo(bounds, color);
+            }
+        }
+
     }
 
 }

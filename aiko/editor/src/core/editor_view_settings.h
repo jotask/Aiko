@@ -9,6 +9,7 @@ namespace aiko::editor
         bool showLightGizmos = true;
         bool showCameraGizmos = true;
         bool showGrid = true;
+        bool showBounds = false;
 
         bool overrideClearColor = false;
         Color clearColor = Color(0.15f, 0.15f, 0.15f, 1.0f);

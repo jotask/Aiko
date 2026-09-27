@@ -9,6 +9,7 @@ namespace aiko
 {
     class RenderSystem;
     class SceneSystem;
+    class AssetSystem;
     class SystemConnector;
 }
 
@@ -38,6 +39,7 @@ namespace aiko::editor
 
         RenderSystem* m_renderSystem = nullptr;
         SceneSystem* m_sceneSystem = nullptr;
+        AssetSystem* m_assetSystem = nullptr;
 
         EditorContext m_context;
         EditorWorkspace m_workspace;

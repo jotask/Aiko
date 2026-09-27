@@ -9,6 +9,7 @@ namespace aiko
     class GameObject;
     class RenderSystem;
     class SceneSystem;
+    class AssetSystem;
 }
 
 namespace aiko::editor
@@ -19,7 +20,7 @@ namespace aiko::editor
     public:
         EditorContext() = default;
 
-        void connect(RenderSystem& renderSystem, SceneSystem& sceneSystem);
+        void connect(RenderSystem& renderSystem, SceneSystem& sceneSystem, AssetSystem& assetSystem);
 
         EditorCommandStack& commands() { return m_commands; }
         const EditorCommandStack& commands() const { return m_commands; }
@@ -29,6 +30,9 @@ namespace aiko::editor
 
         SceneSystem& sceneSystem();
         const SceneSystem& sceneSystem() const;
+
+        AssetSystem& assetSystem();
+        const AssetSystem& assetSystem() const;
 
         GameObject* selectedGameObject() const { return m_selectedGameObject; }
         void select(GameObject* object) { m_selectedGameObject = object; }
@@ -49,6 +53,7 @@ namespace aiko::editor
 
         RenderSystem* m_renderSystem = nullptr;
         SceneSystem* m_sceneSystem = nullptr;
+        AssetSystem* m_assetSystem = nullptr;
 
         GameObject* m_selectedGameObject = nullptr;
     };

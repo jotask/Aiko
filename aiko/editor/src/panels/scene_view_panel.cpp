@@ -6,7 +6,10 @@
 #include "models/game_object.h"
 #include "systems/render_system.h"
 
+#include "scene/scene_picking.h"
+
 #include <math/math.h>
+#include <math/math_bounds.h>
 
 namespace aiko::editor
 {
@@ -419,6 +422,35 @@ namespace aiko::editor
                 {
                     m_wasUsingGizmo = false;
                 }
+
+                //
+                // Scene picking
+                //
+
+                if (sceneHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::GetIO().KeyAlt && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver())
+                {
+                    const ImVec2 mousePosition = ImGui::GetMousePos();
+
+                    const vec2 viewportPosition =
+                    {
+                        (mousePosition.x - imagePosition.x) / imageWidth,
+                        (mousePosition.y - imagePosition.y) / imageHeight
+                    };
+
+                    const Ray ray = math::unprojectRay(viewportPosition, view, projection);
+
+                    const ScenePickResult pick = pickScene(context, ray);
+
+                    if (pick)
+                    {
+                        context.select(pick.object);
+                    }
+                    else
+                    {
+                        context.clearSelection();
+                    }
+                }
+
             }
         }
 
