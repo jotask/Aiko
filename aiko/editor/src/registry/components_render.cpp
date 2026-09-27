@@ -198,8 +198,6 @@ namespace aiko::editor
         {
             ImGui::PushID(light);
 
-            ImGui::Checkbox("Show Gizmo", &light->showGizmo);
-
             ImGui::Spacing();
 
             if (ImGui::BeginCombo("Type", magic_enum::enum_name(light->type).data()))

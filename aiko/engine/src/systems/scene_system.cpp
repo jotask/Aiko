@@ -1,7 +1,6 @@
 #include "scene_system.h"
 
 #include "components/camera_component.h"
-#include "components/light_component.h"
 #include "display/display_manager.h"
 #include "models/game_object.h"
 #include "modules/module_connector.h"
@@ -77,17 +76,6 @@ namespace aiko
             GameObject* gameObject = component->getGameObject();
             AIKO_ASSERT(gameObject != nullptr, "SpriteComponent is not attached to a GameObject");
             m_renderSystem->render(gameObject->transform(), *component);
-        }
-
-        for (LightComponent* component : m_scene.components<LightComponent>())
-        {
-            if (component == nullptr || component->isActiveAndEnabled() == false || component->showGizmo == false)
-            {
-                continue;
-            }
-            GameObject* gameObject = component->getGameObject();
-            AIKO_ASSERT(gameObject != nullptr, "LightComponent is not attached to a GameObject");
-            m_renderSystem->renderLightGizmo(gameObject->transform().position, vec3(0.15f), component->color);
         }
     }
 

@@ -1,21 +1,20 @@
 #include "aiko_editor.h"
 
-#include <imgui.h>
-
-#include <display/display_events.hpp>
-#include <events/events.hpp>
-
+#include "components/camera_component.h"
+#include "components/light_component.h"
 #include "core/editor_style.h"
-
 #include "panels/game_view_panel.h"
 #include "panels/hierarchy_panel.h"
 #include "panels/inspector_panel.h"
 #include "panels/main_menu_bar.h"
-
 #include "systems/render_system.h"
 #include "systems/scene_system.h"
 #include "systems/system_connector.h"
-#include "components/camera_component.h"
+
+#include <display/display_events.hpp>
+#include <events/events.hpp>
+
+#include <imgui.h>
 
 namespace aiko::editor
 {
@@ -60,7 +59,32 @@ namespace aiko::editor
 
         ImGui::DockSpaceOverViewport(viewport->ID);
 
+        renderSceneGizmos();
+
         m_workspace.render(m_context);
+    }
+
+    void AikoEditor::renderSceneGizmos()
+    {
+        const EditorViewSettings& settings = m_context.viewSettings();
+
+        if (settings.showLightGizmos == false)
+        {
+            return;
+        }
+
+        Scene& scene = m_context.sceneSystem().getScene();
+
+        for (LightComponent* light : scene.components<LightComponent>())
+        {
+            if (light == nullptr || light->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
+            GameObject* object = light->getGameObject();
+            AIKO_ASSERT(object != nullptr, "LightComponent is not attached to a GameObject");
+            m_context.renderSystem().renderLightGizmo(object->transform().position, vec3(0.15f), light->color);
+        }
     }
 
 }

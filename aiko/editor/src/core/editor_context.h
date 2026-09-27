@@ -1,6 +1,7 @@
 #pragma once
 
 #include "commands/editor_command_stack.h"
+#include "core/editor_view_settings.h"
 
 namespace aiko
 {
@@ -28,24 +29,18 @@ namespace aiko::editor
         SceneSystem& sceneSystem();
         const SceneSystem& sceneSystem() const;
 
-        GameObject* selectedGameObject() const
-        {
-            return m_selectedGameObject;
-        }
+        GameObject* selectedGameObject() const { return m_selectedGameObject; }
+        void select(GameObject* object) { m_selectedGameObject = object; }
+        void clearSelection() { m_selectedGameObject = nullptr; }
 
-        void select(GameObject* object)
-        {
-            m_selectedGameObject = object;
-        }
-
-        void clearSelection()
-        {
-            m_selectedGameObject = nullptr;
-        }
+        EditorViewSettings& viewSettings() { return m_viewSettings; }
+        const EditorViewSettings& viewSettings() const { return m_viewSettings; }
 
     private:
 
         EditorCommandStack m_commands;
+
+        EditorViewSettings m_viewSettings;
 
         RenderSystem* m_renderSystem = nullptr;
         SceneSystem* m_sceneSystem = nullptr;

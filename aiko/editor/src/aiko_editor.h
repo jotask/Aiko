@@ -32,6 +32,9 @@ namespace aiko::editor
         void render() override;
 
     private:
+
+        void renderSceneGizmos();
+
         RenderSystem* m_renderSystem = nullptr;
         SceneSystem* m_sceneSystem = nullptr;
 

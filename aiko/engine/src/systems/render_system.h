@@ -89,8 +89,10 @@ namespace aiko
         PrimitiveMeshCache m_primitiveMeshCache;
         TransientTopology m_defaultTransientTopology = TransientTopology::Triangles;
         Material m_materialPrimitives;
-        Material m_lightGizmoMaterial;
+        std::unordered_map<u32, Material> m_lightGizmoMaterials;
+
         Material& resolvePrimitiveMaterial(Material* material);
+        Material& resolveLightGizmoMaterial(Color color);
 
     public:
 
