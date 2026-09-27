@@ -47,7 +47,8 @@ namespace aiko
                     ImGui::TreePop();
                 }
 
-                // Empty-space drop target: dropping here makes the object a root object.
+                // Empty-space target: dropping here makes the object a root object.
+                // It also owns the hierarchy background context menu.
                 ImVec2 avail = ImGui::GetContentRegionAvail();
                 if (avail.y > 0.0f)
                 {
@@ -58,21 +59,23 @@ namespace aiko
                         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_GAMEOBJECT"))
                         {
                             GameObject* draggedObject = *static_cast<GameObject* const*>(payload->Data);
+
                             detachFromParent(context, draggedObject);
                         }
 
                         ImGui::EndDragDropTarget();
                     }
-                }
 
-                if (ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
-                {
-                    if (ImGui::MenuItem("Create GameObject"))
+                    if (ImGui::BeginPopupContextItem())
                     {
-                        CreateGameObjectCommand& command = context.commands().execute<CreateGameObjectCommand>(sceneSystem);
-                        context.select(command.createdObject());
+                        if (ImGui::MenuItem("Create GameObject"))
+                        {
+                            CreateGameObjectCommand& command = context.commands().execute<CreateGameObjectCommand>(sceneSystem);
+                            context.select(command.createdObject());
+                        }
+
+                        ImGui::EndPopup();
                     }
-                    ImGui::EndPopup();
                 }
 
                 // Check for left-click on the background of the window
