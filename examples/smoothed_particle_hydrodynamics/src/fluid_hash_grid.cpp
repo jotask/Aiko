@@ -43,6 +43,38 @@ namespace sph
         return (x << 32) | y;
     }
 
+    aiko::vector<size_t> FluidHashGrid::getNeighbourOfParticlesIdx(size_t idx)
+    {
+        aiko::vector<size_t> neighbours;
+        aiko::vec3 position = m_simulation->particles()[idx].position;
+
+        const auto gridId = getGridIdFromPosition(position);
+
+        constexpr int NEIGHBOURS = 1;
+        for (int y = -NEIGHBOURS ; y <= NEIGHBOURS; y++)
+        {
+            for (int x = -NEIGHBOURS ; x <= NEIGHBOURS; x++)
+            {
+                const aiko::ivec3 grid =
+                {
+                    static_cast<int>(gridId.x + x),
+                    static_cast<int>(gridId.y + y),
+                    0
+                };
+                auto hashId = cellIndexToHash(grid);
+                auto content = getContentOfCell(hashId);
+                if (content != nullptr)
+                {
+                    for (size_t i = 0 ; i < content->size() ; ++i)
+                    {
+                        neighbours.emplace_back((*content)[i]);
+                    }
+                }
+            }
+        }
+        return neighbours;
+    }
+
     void FluidHashGrid::mapParticlesToCell()
     {
         const auto& particles = m_simulation->particles();

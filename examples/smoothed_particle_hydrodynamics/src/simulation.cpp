@@ -1,7 +1,11 @@
 #include "simulation.h"
 
-#include <time/time.h>
+#include "math/math.h"
+
 #include <core/random.h>
+#include <time/time.h>
+
+#include <limits>
 
 namespace sph
 {
@@ -91,21 +95,39 @@ namespace sph
         m_hashGrid.clearGrid();
         m_hashGrid.mapParticlesToCell();
 
-        auto gridHashGrid = m_hashGrid.getGridHashFromPosition(mousePosition);
-        auto* contentOffCell = m_hashGrid.getContentOfCell(gridHashGrid);
+        size_t closestParticleIdx = 0;
+        float closestDistance = std::numeric_limits<float>::max();
 
-        for (SPHParticle& particle : m_particles)
+        for (size_t i = 0; i < m_particles.size(); ++i)
         {
+            SPHParticle& particle = m_particles[i];
             particle.color = aiko::BLUE;
-        }
 
-        if (contentOffCell != nullptr)
-        {
-            for (const size_t particleIndex : *contentOffCell)
+            const float distance = aiko::math::length(particle.position - mousePosition);
+
+            if (distance < closestDistance)
             {
-                m_particles[particleIndex].color = aiko::YELLOW;
+                closestDistance = distance;
+                closestParticleIdx = i;
             }
         }
+
+        const auto neighbours = m_hashGrid.getNeighbourOfParticlesIdx(closestParticleIdx);
+
+        const SPHParticle& selected = m_particles[closestParticleIdx];
+
+        for (const size_t particleIndex : neighbours)
+        {
+            SPHParticle& particle = m_particles[particleIndex];
+            const aiko::vec3 direction = particle.position - selected.position;
+            const float distanceSquared = direction.x * direction.x + direction.y * direction.y;
+            const float smoothingRadiusSquared = m_parameters.smoothingRadius * m_parameters.smoothingRadius;
+            if (distanceSquared < smoothingRadiusSquared)
+            {
+                particle.color = aiko::YELLOW;
+            }
+        }
+        m_particles[closestParticleIdx].color = aiko::RED;
 
     }
 

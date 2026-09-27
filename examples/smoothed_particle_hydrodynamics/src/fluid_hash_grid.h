@@ -27,6 +27,8 @@ namespace sph
         aiko::ivec3 getGridIdFromPosition(const aiko::vec3 position);
         aiko::u64 cellIndexToHash(const aiko::ivec3 position);
 
+        aiko::vector<size_t> getNeighbourOfParticlesIdx(size_t idx);
+
     private:
 
         float m_cellSize = 1.0f;

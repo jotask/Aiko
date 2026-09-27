@@ -47,7 +47,7 @@ namespace sph
 
         const aiko::vec2 mouse = input().getMouseFramebufferPosition();
 
-        const aiko::TextureInfo targetInfo = m_renderSystem->getTargetTexture().getColorTexture() .getInfo();
+        const aiko::TextureInfo targetInfo = m_renderSystem->getTargetTexture().getColorTexture().getInfo();
 
         const aiko::ivec2 framebufferSize =
         {
