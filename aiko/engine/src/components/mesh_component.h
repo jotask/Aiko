@@ -23,6 +23,7 @@ namespace aiko
         void load(MeshAsset mesh);
 
         const AssetId& getMeshId() const;
+        const string& getAssetSource() const { return m_mesh.source(); }
 
         Material& getMaterial() { return m_material; }
         const Material& getMaterial() const { return m_material; }

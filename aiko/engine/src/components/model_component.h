@@ -19,6 +19,7 @@ namespace aiko
         void load(string path);
 
         const AssetId& getModelId() const;
+        const string& getAssetSource() const { return m_model.source(); }
 
     private:
 

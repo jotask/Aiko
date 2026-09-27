@@ -4,6 +4,7 @@
 #include <components/camera_component.h>
 #include <components/light_component.h>
 #include <components/mesh_component.h>
+#include <components/model_component.h>
 #include <components/sprite_component.h>
 
 #include "models/component.h"
@@ -99,6 +100,7 @@ namespace aiko::editor::component
             makeComponentEntry<CameraComponent>("Camera", "CameraComponent", drawCamera,serializeCamera,deserializeCamera),
             makeComponentEntry<LightComponent>("Light", "LightComponent", drawLight, serializeLight, deserializeLight),
             makeComponentEntry<MeshComponent>("Mesh", "MeshComponent", drawMesh, serializeMesh, deserializeMesh),
+            makeComponentEntry<ModelComponent>("Model", "ModelComponent", drawModel, serializeModel, deserializeModel),
             makeComponentEntry<SpriteComponent>("Sprite", "SpriteComponent", drawSprite, serializeSprite, deserializeSprite),
         };
 

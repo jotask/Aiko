@@ -1,7 +1,7 @@
 #include "components_serializer.h"
 
 #include "core/imgui_helper.h"
-
+#include "components/model_component.h"
 #include "registry/component_registry.h"
 #include "serializer/nodes/core_nodes_ymal.h"
 #include "serializer/nodes/render_nodes_ymal.h"
@@ -31,6 +31,13 @@ namespace aiko::editor
         {
             YAML::Node node;
             node["meshId"] = c->getMeshId();
+            return node;
+        }
+
+        YAML::Node serializeModel(const ModelComponent* component)
+        {
+            YAML::Node node(YAML::NodeType::Map);
+            node["source"] = component->getAssetSource();
             return node;
         }
 

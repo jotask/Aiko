@@ -5,6 +5,8 @@
 #include "registry/component_registry.h"
 #include "core/imgui_helper.h"
 
+#include "components/model_component.h"
+
 #include <imgui.h>
 #include <magic_enum/magic_enum.hpp>
 
@@ -14,6 +16,26 @@ namespace aiko::editor
     {
 
         constexpr const float IMGUI_VELOCITY = .25f;
+
+        template<class T>
+        void drawAssetSource(T* component, const char* label, const char* buttonLabel)
+        {
+            static T* currentComponent = nullptr;
+            static string source;
+
+            if (currentComponent != component)
+            {
+                currentComponent = component;
+                source = component->getAssetSource();
+            }
+
+            imgui::InputText(label, &source);
+
+            if (ImGui::Button(buttonLabel) && source.empty() == false)
+            {
+                component->load(source);
+            }
+        }
 
         void drawComponent(Component* component)
         {
@@ -48,6 +70,10 @@ namespace aiko::editor
         void drawSprite(aiko::SpriteComponent* sprite)
         {
             ImGui::PushID(sprite);
+
+            drawAssetSource(sprite, "Texture", "Load Texture");
+
+            ImGui::Spacing();
 
             vec2 size = sprite->getSize();
             if (ImGui::DragFloat2("Size", &size.x, IMGUI_VELOCITY, 0.01f))
@@ -92,6 +118,10 @@ namespace aiko::editor
         {
             ImGui::PushID(mesh);
 
+            drawAssetSource(mesh, "Mesh", "Load Mesh");
+
+            ImGui::Spacing();
+
             Material& material = mesh->getMaterial();
 
             float color[4] =
@@ -117,6 +147,13 @@ namespace aiko::editor
 
             ImGui::Checkbox("Use Vertex Color", &material.m_useVertexColor);
 
+            ImGui::PopID();
+        }
+
+        void drawModel(ModelComponent* model)
+        {
+            ImGui::PushID(model);
+            drawAssetSource(model, "Model", "Load Model");
             ImGui::PopID();
         }
 

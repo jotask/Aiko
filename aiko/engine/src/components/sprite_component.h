@@ -37,6 +37,7 @@ namespace aiko
         const Material& getMaterial() const { return m_material; }
 
         const AssetId& getTextureId() const;
+        const string& getAssetSource() const { return m_texture.source(); }
 
         void setTextureRegion(const TextureRegion& region) { m_textureRegion = region; }
         const TextureRegion& getTextureRegion() const { return m_textureRegion; }

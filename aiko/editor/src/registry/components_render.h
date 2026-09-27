@@ -9,6 +9,7 @@ namespace aiko
     class MeshComponent;
     class LightComponent;
     class CameraComponent;
+    class ModelComponent;
 }
 
 namespace aiko::editor::component
@@ -19,6 +20,7 @@ namespace aiko::editor::component
     void drawTransform(TransformComponent*);
     void drawSprite(SpriteComponent*);
     void drawMesh(MeshComponent*);
+    void drawModel(ModelComponent*);
     void drawLight(LightComponent*);
     void drawCamera(CameraComponent*);
 
