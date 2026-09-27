@@ -45,6 +45,7 @@ namespace sph
 
         void predictPositions(float dt);
         void computeNextVelocity(float dt);
+        void viscosity(float dt);
         void doubleDensityRelaxation(float dt);
         void applyGravity(float dt);
 

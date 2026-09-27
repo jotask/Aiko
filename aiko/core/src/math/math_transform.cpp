@@ -109,6 +109,14 @@ namespace aiko
             return toAiko(n);
         }
 
+
+        float dot(vec3 a, vec3 b)
+        {
+            const glm::vec3 va = toGlm(a);
+            const glm::vec3 vb = toGlm(b);
+            return glm::dot(va, vb);
+        }
+
         mat4 scale(mat4 mat, vec3 scale)
         {
             glm::mat4 m = toGlm(mat);

@@ -29,6 +29,9 @@ namespace sph
         float pressureStiffness = 0.005f;
         float nearPressureStiffness = 0.03f;
 
+        float sigma = 0.5f;
+        float beta = 0.0f;
+
         float gravity = 0.01f;
         aiko::vec3 gravityDirection = { 0.0f, -1.0f, 0.0f};
 

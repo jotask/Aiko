@@ -58,9 +58,10 @@ namespace sph
             return;
         }
         applyGravity(dt);
-        predictPositions(dt);
         m_hashGrid.clearGrid();
         m_hashGrid.mapParticlesToCell();
+        viscosity(dt);
+        predictPositions(dt);
         doubleDensityRelaxation(dt);
         worldBoundary();
         computeNextVelocity(dt);
@@ -83,6 +84,45 @@ namespace sph
             SPHParticle& p = m_particles[i];
             aiko::vec3 direction = p.position - p.prevPosition;
             p.velocity = direction * ( 1.0f / dt );
+        }
+    }
+
+    void Simulation::viscosity(float dt)
+    {
+        for (size_t i = 0 ; i < m_particles.size(); ++i)
+        {
+            aiko::vector<size_t> neighbours = m_hashGrid.getNeighbourOfParticlesIdx(i);
+            SPHParticle& particleA = m_particles[i];
+            for (size_t j = 0 ; j < neighbours.size(); ++j)
+            {
+                if (i == neighbours[j])
+                {
+                    continue;
+                }
+                SPHParticle& particleB = m_particles[neighbours[j]];
+                const aiko::vec3 directionNeighbour = particleB.position - particleA.position;
+
+                const aiko::vec3 velocityA = particleA.velocity;
+                const aiko::vec3 velocityB = particleB.velocity;
+
+                const float distance = aiko::math::length(directionNeighbour);
+                const float q = distance / m_parameters.smoothingRadius;
+
+                if (q < 1.0f)
+                {
+                    const aiko::vec3 normalizedDir = aiko::math::normalize(directionNeighbour);
+                    const float u = aiko::math::dot(velocityA - velocityB, normalizedDir);
+                    if (u > 0)
+                    {
+                        auto term = dt * ( 1 - q) * ( m_parameters.sigma * u + m_parameters.beta * u * u );
+                        auto I = term * normalizedDir;
+
+                        particleA.velocity -= I * 0.5f;
+                        particleB.velocity += I * 0.5f;
+                    }
+                }
+
+            }
         }
     }
 
