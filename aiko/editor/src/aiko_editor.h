@@ -33,6 +33,7 @@ namespace aiko::editor
 
     private:
 
+        void applyViewSettings();
         void renderSceneGizmos();
 
         RenderSystem* m_renderSystem = nullptr;

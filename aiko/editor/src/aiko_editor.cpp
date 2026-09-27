@@ -56,12 +56,22 @@ namespace aiko::editor
     void AikoEditor::render()
     {
         ImGuiViewport* viewport = ImGui::GetMainViewport();
-
         ImGui::DockSpaceOverViewport(viewport->ID);
-
+        applyViewSettings();
         renderSceneGizmos();
-
         m_workspace.render(m_context);
+    }
+
+    void AikoEditor::applyViewSettings()
+    {
+        const EditorViewSettings& settings = m_context.viewSettings();
+        if (settings.overrideClearColor)
+        {
+            m_context.renderSystem().setClearColor(settings.clearColor);
+            return;
+        }
+        const Scene& scene = m_context.sceneSystem().getScene();
+        m_context.renderSystem().setClearColor(scene.clearColor());
     }
 
     void AikoEditor::renderSceneGizmos()

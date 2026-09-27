@@ -164,5 +164,4 @@ namespace aiko
         MeshAsset& mesh = m_primitiveMeshCache.getKnotMesh();
         m_renderModule->submitTransient(t, resolvePrimitiveMaterial(material), mesh, m_defaultTransientTopology);
     }
-
 }

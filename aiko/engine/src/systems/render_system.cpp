@@ -377,4 +377,9 @@ namespace aiko
     {
         return m_sceneSystem->getMainCamera();
     }
+
+    void RenderSystem::setClearColor(Color color)
+    {
+        m_renderModule->setClearColor(color);
+    }
 }

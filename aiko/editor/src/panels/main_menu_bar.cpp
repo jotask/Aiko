@@ -94,6 +94,38 @@ namespace aiko::editor
                     }
                 }
 
+                ImGui::Separator();
+
+                EditorViewSettings& settings = context.viewSettings();
+
+                ImGui::MenuItem("Light Gizmos", nullptr, &settings.showLightGizmos);
+
+                ImGui::Separator();
+
+                ImGui::MenuItem("Override Background", nullptr, &settings.overrideClearColor);
+
+                if (settings.overrideClearColor)
+                {
+                    float color[4] =
+                    {
+                        settings.clearColor.r,
+                        settings.clearColor.g,
+                        settings.clearColor.b,
+                        settings.clearColor.a
+                    };
+
+                    if (ImGui::ColorEdit4("Background Color", color))
+                    {
+                        settings.clearColor =
+                        {
+                            color[0],
+                            color[1],
+                            color[2],
+                            color[3]
+                        };
+                    }
+                }
+
                 ImGui::EndMenu();
             }
 

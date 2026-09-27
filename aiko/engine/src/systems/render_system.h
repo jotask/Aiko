@@ -111,6 +111,8 @@ namespace aiko
         void renderTorus(vec3 pos, vec3 size, Material* material = nullptr);
         void renderKnot(vec3 pos, vec3 size, Material* material = nullptr);
 
+        void setClearColor(Color color);
+
         void renderLightGizmo(vec3 position, vec3 size, Color color);
 
     };
