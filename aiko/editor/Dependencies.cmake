@@ -45,3 +45,15 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(imguifiledialog)
 
 #----------------------------------------------------------------------
+
+FetchContent_Declare(
+        imguizmo
+        GIT_REPOSITORY https://github.com/CedricGuillemet/ImGuizmo.git
+        GIT_TAG master
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+)
+
+FetchContent_MakeAvailable(imguizmo)
+
+#----------------------------------------------------------------------

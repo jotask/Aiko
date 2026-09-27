@@ -54,6 +54,7 @@ namespace aiko
         void unloadShader(const AssetId& id);
 
         ImguiTextureId getTargetTextureId() const;
+        ImguiTextureId getTextureId(const Texture& texture) const;
 
         void setUiShader(AssetId shaderId);
 

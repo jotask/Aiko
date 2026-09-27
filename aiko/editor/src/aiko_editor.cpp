@@ -7,6 +7,7 @@
 #include "panels/hierarchy_panel.h"
 #include "panels/inspector_panel.h"
 #include "panels/main_menu_bar.h"
+#include "panels/scene_view_panel.h"
 #include "systems/render_system.h"
 #include "systems/scene_system.h"
 #include "systems/system_connector.h"
@@ -45,6 +46,7 @@ namespace aiko::editor
         applyEditorStyle();
 
         MainMenuBar& menuBar = m_workspace.addPanel<MainMenuBar>();
+        m_workspace.addPanel<SceneViewPanel>();
         m_workspace.addPanel<GameViewPanel>();
         m_workspace.addPanel<HierarchyPanel>();
         m_workspace.addPanel<InspectorPanel>();
