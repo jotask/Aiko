@@ -26,6 +26,7 @@ namespace sph
         float viscosity = 0.1f;
 
         float gravity = 9.81f;
+        aiko::vec3 gravityDirection = { 0.0f, -1.0f, 0.0f};
 
         float fixedDeltaTime = 1.0f / 120.0f;
     };

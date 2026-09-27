@@ -64,6 +64,9 @@ namespace sph
         {
             return;
         }
+
+        applyGravity(dt);
+
         predictPositions(dt);
         computeNextVelocity(dt);
 
@@ -87,6 +90,15 @@ namespace sph
             SPHParticle& p = m_particles[i];
             aiko::vec3 direction = p.position - p.prevPosition;
             p.velocity = direction * ( 1.0f / dt );
+        }
+    }
+
+    void Simulation::applyGravity(float dt)
+    {
+        for (size_t i = 0 ; i < m_particles.size(); ++i)
+        {
+            SPHParticle& p = m_particles[i];
+            p.velocity += m_parameters.gravityDirection * (m_parameters.gravity * dt);
         }
     }
 

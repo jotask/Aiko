@@ -46,6 +46,7 @@ namespace sph
 
         void predictPositions(float dt);
         void computeNextVelocity(float dt);
+        void applyGravity(float dt);
 
         void worldBoundary();
 
