@@ -1,5 +1,7 @@
 #pragma once
 
+#include "commands/editor_command_stack.h"
+
 namespace aiko
 {
     class GameObject;
@@ -16,6 +18,9 @@ namespace aiko::editor
         EditorContext() = default;
 
         void connect(RenderSystem& renderSystem, SceneSystem& sceneSystem);
+
+        EditorCommandStack& commands() { return m_commands; }
+        const EditorCommandStack& commands() const { return m_commands; }
 
         RenderSystem& renderSystem();
         const RenderSystem& renderSystem() const;
@@ -39,6 +44,9 @@ namespace aiko::editor
         }
 
     private:
+
+        EditorCommandStack m_commands;
+
         RenderSystem* m_renderSystem = nullptr;
         SceneSystem* m_sceneSystem = nullptr;
 

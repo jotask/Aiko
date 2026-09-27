@@ -23,6 +23,12 @@ namespace aiko
         GameObject* create(string name);
         GameObject* create(GameObject* parent, string name);
 
+        GameObject* create(const uuid::Uuid& id, string name);
+        GameObject* create(const uuid::Uuid& id, GameObject* parent, string name);
+
+        GameObject* find(const uuid::Uuid& id);
+        const GameObject* find(const uuid::Uuid& id) const;
+
         bool remove(const GameObject* obj);
 
         void clear();

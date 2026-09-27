@@ -20,17 +20,41 @@ namespace aiko::editor
             return result;
         }
 
-        void addComponent(string name, GameObject* obj)
+        void addComponent(EditorContext& context, string name, GameObject& object)
         {
             for (const auto& entry : s_componentEntries)
             {
                 if (entry.name == name)
                 {
-                    entry.add(obj);
+                    entry.add(context, object);
                     return;
                 }
             }
             AIKO_ASSERT(false, "ERROR :: Component is not supported by the editor");
+        }
+
+        bool serializeComponent(const Component& component, YAML::Node& node)
+        {
+            for (const auto& entry : s_componentEntries)
+            {
+                if (entry.serialize(&component, node))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        bool deserializeComponent(const YAML::Node& node, GameObject& object)
+        {
+            for (const auto& entry : s_componentEntries)
+            {
+                if (entry.deserialize(node, object))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
     }

@@ -11,6 +11,10 @@
 #include "registry/components_functionality.h"
 #include "registry/components_render.h"
 
+#include "core/editor_context.h"
+
+#include "commands/component/add_component_command.h"
+
 namespace aiko::editor::component
 {
 
@@ -36,7 +40,7 @@ namespace aiko::editor::component
         {
             "TransformComponent",
             [](GameObject* go) { return go->hasComponent<TransformComponent>(); },
-            [](GameObject* go) { go->getComponent<TransformComponent>(); },
+            [](EditorContext&, GameObject& go) { go.getComponent<TransformComponent>(); },
             [](Component* c) -> bool { RENDER_COMPONENT(TransformComponent, drawTransform) },
             [](const Component* c, YAML::Node& node) -> bool { SERIALIZE_COMPONENT(TransformComponent, serializeTransform) },
             [](const YAML::Node& node, GameObject& obj) -> bool
@@ -56,7 +60,7 @@ namespace aiko::editor::component
          {
             "Camera",
             [](GameObject* go) { return go->hasComponent<CameraComponent>(); },
-            [](GameObject* go) { go->addComponent<CameraComponent>(); },
+             [](EditorContext& context, GameObject& go) { context.commands().execute<AddComponentCommand<CameraComponent>>(context.sceneSystem(),go); },
             [](Component* c) -> bool { RENDER_COMPONENT(CameraComponent, drawCamera) },
             [](const Component* c, YAML::Node& node) -> bool { SERIALIZE_COMPONENT(CameraComponent, serializeCamera) },
             [](const YAML::Node& node, GameObject& obj) -> bool
@@ -75,7 +79,7 @@ namespace aiko::editor::component
         {
             "Light",
             [](GameObject* go) { return go->hasComponent<LightComponent>(); },
-            [](GameObject* go) { go->addComponent<LightComponent>(); },
+            [](EditorContext& context, GameObject& go) { context.commands().execute<AddComponentCommand<LightComponent>>(context.sceneSystem(), go); },
             [](Component* c) -> bool { RENDER_COMPONENT(LightComponent, drawLight) },
             [](const Component* c, YAML::Node& node) -> bool { SERIALIZE_COMPONENT(LightComponent, serializeLight) },
             [](const YAML::Node& node, GameObject& obj) -> bool
@@ -87,7 +91,7 @@ namespace aiko::editor::component
         {
             "Mesh",
             [](GameObject* go) { return go->hasComponent<MeshComponent>(); },
-            [](GameObject* go) { go->addComponent<MeshComponent>(); },
+            [](EditorContext& context, GameObject& go) { context.commands().execute<AddComponentCommand<MeshComponent>>( context.sceneSystem(), go); },
             [](Component* c) -> bool { RENDER_COMPONENT(MeshComponent, drawMesh) },
             [](const Component* c, YAML::Node& node) -> bool { SERIALIZE_COMPONENT(MeshComponent, serializeMesh) },
             [](const YAML::Node& node, GameObject& obj) -> bool
@@ -106,7 +110,7 @@ namespace aiko::editor::component
         {
             "Sprite",
             [](GameObject* go) { return go->hasComponent<SpriteComponent>(); },
-            [](GameObject* go) { go->addComponent<SpriteComponent>(); },
+            [](EditorContext& context, GameObject& go) { context.commands().execute<AddComponentCommand<SpriteComponent>>( context.sceneSystem(), go); },
             [](Component* c) -> bool { RENDER_COMPONENT(SpriteComponent, drawSprite) },
             [](const Component* c, YAML::Node& node) -> bool { SERIALIZE_COMPONENT(SpriteComponent, serializeSprite) },
             [](const YAML::Node& node, GameObject& obj) -> bool

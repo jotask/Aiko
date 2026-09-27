@@ -1,5 +1,8 @@
 #include "hierarchy_panel.h"
 
+#include "commands/game_object/create_game_object_command.h"
+#include "commands/game_object/reparent_game_object_command.h"
+#include "commands/game_object/rename_game_object_command.h"
 #include "core/editor_context.h"
 #include "core/imgui_helper.h"
 
@@ -55,7 +58,7 @@ namespace aiko
                         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_GAMEOBJECT"))
                         {
                             GameObject* draggedObject = *static_cast<GameObject* const*>(payload->Data);
-                            detachFromParent(draggedObject);
+                            detachFromParent(context, draggedObject);
                         }
 
                         ImGui::EndDragDropTarget();
@@ -66,8 +69,8 @@ namespace aiko
                 {
                     if (ImGui::MenuItem("Create GameObject"))
                     {
-                        GameObject* go = sceneSystem.createGameObject();
-                        context.select(go);
+                        CreateGameObjectCommand& command = context.commands().execute<CreateGameObjectCommand>(sceneSystem);
+                        context.select(command.createdObject());
                     }
                     ImGui::EndPopup();
                 }
@@ -122,9 +125,9 @@ namespace aiko
 
                 if (ImGui::IsItemDeactivatedAfterEdit())
                 {
-                    if (!m_renameBuffer.empty())
+                    if (!m_renameBuffer.empty() && m_renameBuffer != obj->getName())
                     {
-                        obj->setName(m_renameBuffer);
+                        context.commands().execute<RenameGameObjectCommand>(context.sceneSystem(), *obj, m_renameBuffer);
                     }
                     m_renameTarget = nullptr;
                 }
@@ -157,7 +160,7 @@ namespace aiko
 
                         if (canAttachChild(obj, draggedObject))
                         {
-                            attachChild(obj, draggedObject);
+                            attachChild(context, obj, draggedObject);
                         }
                     }
 
@@ -170,8 +173,8 @@ namespace aiko
 
                     if (ImGui::MenuItem("Create Child GameObject"))
                     {
-                        GameObject* go = context.sceneSystem().createGameObject(obj);
-                        context.select(go);
+                        CreateGameObjectCommand& command = context.commands().execute<CreateGameObjectCommand>(context.sceneSystem(), obj);
+                        context.select(command.createdObject());
 
                         ImGui::EndPopup();
 
@@ -229,29 +232,19 @@ namespace aiko
             }
         }
 
-        void HierarchyPanel::attachChild(GameObject* parent, GameObject* child)
+        void HierarchyPanel::attachChild(EditorContext& context, GameObject* parent, GameObject* child)
         {
             if (parent == nullptr || child == nullptr)
             {
                 return;
             }
 
-            Transform& parentTransform = parent->transform();
-            Transform& childTransform = child->transform();
-
-            if (childTransform.getParent() == &parentTransform)
+            if (child->transform().getParent() == &parent->transform())
             {
                 return;
             }
 
-            if (childTransform.getParent() != nullptr)
-            {
-                // FIXME
-                // auto& siblings = childTransform.getParent()->getChildren();
-                // siblings.erase(std::remove(siblings.begin(), siblings.end(), &childTransform), siblings.end());
-            }
-
-            childTransform.setParent(&parentTransform);
+            context.commands().execute<ReparentGameObjectCommand>(context.sceneSystem(), *child, parent);
         }
 
         bool HierarchyPanel::canAttachChild(GameObject* parent, GameObject* child) const
@@ -278,22 +271,19 @@ namespace aiko
             return true;
         }
 
-        void HierarchyPanel::detachFromParent(GameObject* child)
+        void HierarchyPanel::detachFromParent(EditorContext& context, GameObject* child)
         {
             if (child == nullptr)
             {
                 return;
             }
 
-            Transform& childTransform = child->transform();
-
-            if (childTransform.getParent() != nullptr)
+            if (child->transform().getParent() == nullptr)
             {
-                // FIXME
-                // auto& siblings = childTransform.getParent()->getChildren();
-                // siblings.erase(std::remove(siblings.begin(), siblings.end(), &childTransform), siblings.end());
-                childTransform.setParent(nullptr);
+                return;
             }
+
+            context.commands().execute<ReparentGameObjectCommand>(context.sceneSystem(), *child, nullptr);
         }
     }
 }

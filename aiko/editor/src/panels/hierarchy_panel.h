@@ -23,11 +23,11 @@ namespace aiko::editor
     private:
         void renderGameObject(Scene& scene, GameObject* object, EditorContext& context);
 
-        void attachChild(GameObject* parent, GameObject* child);
+        void attachChild(EditorContext& context, GameObject* parent, GameObject* child);
 
         bool canAttachChild( GameObject* parent,GameObject* child) const;
 
-        void detachFromParent(GameObject* child);
+        void detachFromParent(EditorContext& context, GameObject* child);
 
         GameObject* m_renameTarget = nullptr;
         GameObject* m_renameJustStarted = nullptr;

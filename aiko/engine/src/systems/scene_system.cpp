@@ -40,64 +40,43 @@ namespace aiko
             m_renderModule->submitLights(view.ambientLight, view.lights);
         }
 
-        for (MeshComponent* component :
-             m_scene.components<MeshComponent>())
+        for (MeshComponent* component : m_scene.components<MeshComponent>())
         {
-            if (component == nullptr ||
-                component->isActiveAndEnabled() == false)
+            if (component == nullptr || component->isActiveAndEnabled() == false)
             {
                 continue;
             }
 
             GameObject* gameObject = component->getGameObject();
 
-            AIKO_ASSERT(
-                gameObject != nullptr,
-                "MeshComponent is not attached to a GameObject");
+            AIKO_ASSERT(gameObject != nullptr, "MeshComponent is not attached to a GameObject");
 
-            m_renderSystem->render(
-                gameObject->transform(),
-                *component);
+            m_renderSystem->render(gameObject->transform(), *component);
         }
 
-        for (ModelComponent* component :
-             m_scene.components<ModelComponent>())
+        for (ModelComponent* component : m_scene.components<ModelComponent>())
         {
-            if (component == nullptr ||
-                component->isActiveAndEnabled() == false)
+            if (component == nullptr || component->isActiveAndEnabled() == false)
             {
                 continue;
             }
 
             GameObject* gameObject = component->getGameObject();
 
-            AIKO_ASSERT(
-                gameObject != nullptr,
-                "ModelComponent is not attached to a GameObject");
+            AIKO_ASSERT(gameObject != nullptr, "ModelComponent is not attached to a GameObject");
 
-            m_renderSystem->render(
-                gameObject->transform(),
-                *component);
+            m_renderSystem->render(gameObject->transform(), *component);
         }
 
-        for (SpriteComponent* component :
-             m_scene.components<SpriteComponent>())
+        for (SpriteComponent* component : m_scene.components<SpriteComponent>())
         {
-            if (component == nullptr ||
-                component->isActiveAndEnabled() == false)
+            if (component == nullptr || component->isActiveAndEnabled() == false)
             {
                 continue;
             }
-
             GameObject* gameObject = component->getGameObject();
-
-            AIKO_ASSERT(
-                gameObject != nullptr,
-                "SpriteComponent is not attached to a GameObject");
-
-            m_renderSystem->render(
-                gameObject->transform(),
-                *component);
+            AIKO_ASSERT(gameObject != nullptr, "SpriteComponent is not attached to a GameObject");
+            m_renderSystem->render(gameObject->transform(), *component);
         }
     }
 
@@ -114,6 +93,26 @@ namespace aiko
     GameObject* SceneSystem::createGameObject(GameObject* parent, string name)
     {
         return m_scene.create(parent, name);
+    }
+
+    GameObject* SceneSystem::createGameObject(const uuid::Uuid& id, string name)
+    {
+        return m_scene.create(id, std::move(name));
+    }
+
+    GameObject* SceneSystem::createGameObject(const uuid::Uuid& id, GameObject* parent, string name)
+    {
+        return m_scene.create(id, parent, std::move(name));
+    }
+
+    GameObject* SceneSystem::findGameObject(const uuid::Uuid& id)
+    {
+        return m_scene.find(id);
+    }
+
+    const GameObject* SceneSystem::findGameObject(const uuid::Uuid& id) const
+    {
+        return m_scene.find(id);
     }
 
     void SceneSystem::destroyGameObject(const GameObject* obj)
@@ -133,11 +132,9 @@ namespace aiko
 
     Camera* SceneSystem::getMainCamera()
     {
-        for (CameraComponent* component :
-         m_scene.components<CameraComponent>())
+        for (CameraComponent* component : m_scene.components<CameraComponent>())
         {
-            if (component == nullptr ||
-                component->isActiveAndEnabled() == false)
+            if (component == nullptr || component->isActiveAndEnabled() == false)
             {
                 continue;
             }

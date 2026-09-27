@@ -7,6 +7,10 @@
 
 #include <functional>
 
+namespace aiko::editor
+{
+    class EditorContext;
+}
 
 namespace aiko::editor::component
 {
@@ -15,7 +19,7 @@ namespace aiko::editor::component
     {
         std::string name;
         std::function<bool(GameObject*)> has;
-        std::function<void(GameObject*)> add;
+        std::function<void(EditorContext&, GameObject&)> add;
         std::function<bool(Component*)> render;
         std::function<bool(const Component* c, YAML::Node& node)> serialize;
         std::function<bool(const YAML::Node& node, GameObject& obj)> deserialize;

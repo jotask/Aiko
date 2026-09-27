@@ -2,6 +2,7 @@
 
 #include "models/game_object.h"
 
+#include <utility>
 #include <algorithm>
 
 namespace aiko
@@ -12,8 +13,15 @@ namespace aiko
 
     GameObject* Scene::create(string name)
     {
+        return create(uuid::Uuid{}, std::move(name));
+    }
+
+    GameObject* Scene::create(const uuid::Uuid& id, string name)
+    {
+        AIKO_ASSERT(find(id) == nullptr, "Scene already contains a GameObject with this UUID");
         auto object = std::make_unique<GameObject>();
-        object->setName(name);
+        object->m_uuid = id;
+        object->setName(std::move(name));
         GameObject* result = object.get();
         result->m_scene = this;
         registerObjectComponents(*result);
@@ -23,7 +31,12 @@ namespace aiko
 
     GameObject* Scene::create(GameObject* parent, string name)
     {
-        GameObject* object = create(name);
+        return create(uuid::Uuid{}, parent, std::move(name));
+    }
+
+    GameObject* Scene::create(const uuid::Uuid& id, GameObject* parent, string name)
+    {
+        GameObject* object = create(id, std::move(name));
         if (parent != nullptr)
         {
             AIKO_ASSERT(parent->m_scene == this, "Parent GameObject belongs to another Scene");
@@ -33,6 +46,30 @@ namespace aiko
             }
         }
         return object;
+    }
+
+    GameObject* Scene::find(const uuid::Uuid& id)
+    {
+        for (const auto& object : m_objects)
+        {
+            if (object != nullptr && object->uuid() == id)
+            {
+                return object.get();
+            }
+        }
+        return nullptr;
+    }
+
+    const GameObject* Scene::find(const uuid::Uuid& id) const
+    {
+        for (const auto& object : m_objects)
+        {
+            if (object != nullptr && object->uuid() == id)
+            {
+                return object.get();
+            }
+        }
+        return nullptr;
     }
 
     bool Scene::remove(const GameObject* obj)

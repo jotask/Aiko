@@ -39,11 +39,7 @@ namespace aiko::editor
                     config.path = global::GLOBAL_SCENE_FILES_PATH;
                     config.fileName = "editor.scene";
 
-                    ImGuiFileDialog::Instance()->OpenDialog(
-                        "loadFileDlgKey",
-                        "Choose File",
-                        ".scene",
-                        config);
+                    ImGuiFileDialog::Instance()->OpenDialog("loadFileDlgKey", "Choose File", ".scene", config);
                 }
 
                 if (ImGui::MenuItem("Save", "Ctrl+S"))
@@ -52,11 +48,7 @@ namespace aiko::editor
                     config.path = global::GLOBAL_SCENE_FILES_PATH;
                     config.fileName = "editor.scene";
 
-                    ImGuiFileDialog::Instance()->OpenDialog(
-                        "saveChooseFileDlgKey",
-                        "Choose File",
-                        ".scene",
-                        config);
+                    ImGuiFileDialog::Instance()->OpenDialog("saveChooseFileDlgKey", "Choose File", ".scene", config);
                 }
 
                 ImGui::Separator();
@@ -65,6 +57,23 @@ namespace aiko::editor
                 {
                     WindowCloseEvent event;
                     EventSystem::it().sendEvent(event);
+                }
+
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Edit"))
+            {
+                if (ImGui::MenuItem("Undo", "Ctrl+Z", false, context.commands().canUndo()))
+                {
+                    context.clearSelection();
+                    context.commands().undo();
+                }
+
+                if (ImGui::MenuItem("Redo", "Ctrl+Shift+Z", false, context.commands().canRedo()))
+                {
+                    context.clearSelection();
+                    context.commands().redo();
                 }
 
                 ImGui::EndMenu();
@@ -81,10 +90,7 @@ namespace aiko::editor
                             continue;
                         }
 
-                        ImGui::MenuItem(
-                            panel->name().c_str(),
-                            nullptr,
-                            &panel->openState());
+                        ImGui::MenuItem(panel->name().c_str(), nullptr, &panel->openState());
                     }
                 }
 
@@ -98,15 +104,9 @@ namespace aiko::editor
         {
             if (ImGuiFileDialog::Instance()->IsOk())
             {
-                const string filePathName =
-                    ImGuiFileDialog::Instance()->GetFilePathName();
-
-                const Scene& scene =
-                    context.sceneSystem().getScene();
-
-                SceneSerializerYAML::serializeScene(
-                    scene,
-                    filePathName);
+                const string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                const Scene& scene = context.sceneSystem().getScene();
+                SceneSerializerYAML::serializeScene(scene, filePathName);
             }
 
             ImGuiFileDialog::Instance()->Close();
@@ -116,17 +116,13 @@ namespace aiko::editor
         {
             if (ImGuiFileDialog::Instance()->IsOk())
             {
-                const string filePathName =
-                    ImGuiFileDialog::Instance()->GetFilePathName();
+                const string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
 
                 context.clearSelection();
+                context.commands().clear();
 
-                Scene& scene =
-                    context.sceneSystem().getScene();
-
-                SceneSerializerYAML::deserializeScene(
-                    scene,
-                    filePathName);
+                Scene& scene = context.sceneSystem().getScene();
+                SceneSerializerYAML::deserializeScene(scene, filePathName);
             }
 
             ImGuiFileDialog::Instance()->Close();

@@ -73,7 +73,7 @@ namespace aiko
                             {
                                 if (ImGui::Selectable(component.c_str()) == true)
                                 {
-                                    component::addComponent(component, selectedGameObject);
+                                    component::addComponent(context, component, *selectedGameObject);
                                 }
                             }
                         }
