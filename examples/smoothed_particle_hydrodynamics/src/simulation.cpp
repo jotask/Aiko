@@ -13,19 +13,13 @@ namespace sph
     void Simulation::init()
     {
         constexpr int columns = 32;
-        constexpr int rows = static_cast<int>(N_PARTICLES) / columns;
-
-        const float radius = m_parameters.particleRadius;
+        constexpr float spacing = 0.10f;
 
         const aiko::vec3 halfSize = m_bounds.size * 0.5f;
+        const float radius = m_parameters.particleRadius;
 
-        const float left = m_bounds.position.x - halfSize.x + radius;
-        const float right = m_bounds.position.x + halfSize.x - radius;
-        const float bottom = m_bounds.position.y - halfSize.y + radius;
-        const float top = m_bounds.position.y + halfSize.y - radius;
-
-        const float spacingX = (right - left) / static_cast<float>(columns - 1);
-        const float spacingY = (top - bottom) / static_cast<float>(rows - 1);
+        const float left = m_bounds.position.x - halfSize.x + radius + 0.25f;
+        const float top = m_bounds.position.y + halfSize.y - radius - 0.25f;
 
         for (size_t i = 0; i < m_particles.size(); ++i)
         {
@@ -36,46 +30,40 @@ namespace sph
 
             particle.position =
             {
-                left + static_cast<float>(x) * spacingX,
-                top - static_cast<float>(y) * spacingY,
-                0.0f
-            };
-
-            particle.velocity =
-            {
-                aiko::utils::getRandomValue(-1.0f, 1.0f) * 0.25f,
-                aiko::utils::getRandomValue(-1.0f, 1.0f) * 0.25f,
+                left + static_cast<float>(x) * spacing,
+                top - static_cast<float>(y) * spacing,
                 0.0f
             };
 
             particle.prevPosition = particle.position;
-            particle.color = aiko::BLUE;
 
+            particle.velocity =
+            {
+                0.0f,
+                0.0f,
+                0.0f
+            };
+
+            particle.color = aiko::BLUE;
         }
 
         m_hashGrid.init(this, m_parameters.smoothingRadius);
-
     }
 
     void Simulation::update()
     {
-        const float dt = aiko::Time::it().getDeltaTime();
+        const float dt = m_parameters.fixedDeltaTime;
         if (dt <= 0.0f)
         {
             return;
         }
-
         applyGravity(dt);
-
         predictPositions(dt);
-
         m_hashGrid.clearGrid();
         m_hashGrid.mapParticlesToCell();
-
         doubleDensityRelaxation(dt);
-        computeNextVelocity(dt);
-
         worldBoundary();
+        computeNextVelocity(dt);
     }
 
     void Simulation::predictPositions(float dt)
@@ -207,7 +195,6 @@ namespace sph
         const aiko::vec3 halfSize = m_bounds.size * 0.5f;
 
         const float radius = m_parameters.particleRadius;
-
         const float left = m_bounds.position.x - halfSize.x + radius;
         const float right = m_bounds.position.x + halfSize.x - radius;
         const float bottom = m_bounds.position.y - halfSize.y + radius;
@@ -218,23 +205,25 @@ namespace sph
             if (particle.position.x < left)
             {
                 particle.position.x = left;
-                particle.velocity.x *= -BoundaryDamping;
+                particle.prevPosition.x = left;
             }
-            else if (particle.position.x > right)
+
+            if (particle.position.x > right)
             {
                 particle.position.x = right;
-                particle.velocity.x *= -BoundaryDamping;
+                particle.prevPosition.x = right;
             }
 
             if (particle.position.y < bottom)
             {
                 particle.position.y = bottom;
-                particle.velocity.y *= -BoundaryDamping;
+                particle.prevPosition.y = bottom;
             }
-            else if (particle.position.y > top)
+
+            if (particle.position.y > top)
             {
                 particle.position.y = top;
-                particle.velocity.y *= -BoundaryDamping;
+                particle.prevPosition.y = top;
             }
         }
     }

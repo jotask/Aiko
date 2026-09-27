@@ -31,14 +31,13 @@ namespace sph
     private:
 
         static constexpr float VelocityDamping = 1.0f;
-        static constexpr float BoundaryDamping = 0.8f;
 
         std::array<SPHParticle, N_PARTICLES> m_particles;
 
         const WorldBounds m_bounds
         {
             .position = {0.0f, 0.0f, 0.0f},
-            .size = {5.0f, 5.0f, 0.0f}
+            .size = {8.0f, 6.0f, 0.0f}
         };
 
         SPHParameters m_parameters;
