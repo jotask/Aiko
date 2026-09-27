@@ -57,8 +57,49 @@ namespace aiko::editor
     void SceneSerializerYAML::deserializeScene(Scene& scene, const string& path)
     {
         const string content = files::readFileContent(path.c_str());
-        YAML::Node root = YAML::Load(content);
-        AIKO_NOT_IMPLEMENTED;
+
+        const YAML::Node root = YAML::Load(content);
+
+        AIKO_ASSERT(root.IsSequence(), "Scene root must be a sequence");
+
+        if (root.IsSequence() == false)
+        {
+            return;
+        }
+
+        scene.clear();
+
+        for (const YAML::Node& objectNode : root)
+        {
+            if (!objectNode["uuid"] || !objectNode["name"])
+            {
+                continue;
+            }
+
+            const uuid::Uuid id = objectNode["uuid"].as<uuid::Uuid>();
+            const string name = objectNode["name"].as<string>();
+
+            GameObject* object = scene.create(id, name);
+
+            AIKO_ASSERT(object != nullptr, "Failed to create GameObject while loading scene");
+
+            if (object == nullptr)
+            {
+                continue;
+            }
+
+            const YAML::Node components = objectNode["components"];
+
+            if (!components || components.IsSequence() == false)
+            {
+                continue;
+            }
+
+            for (const YAML::Node& componentNode : components)
+            {
+                component::deserializeComponent(componentNode, *object);
+            }
+        }
     }
 
 }

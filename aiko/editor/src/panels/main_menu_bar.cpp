@@ -178,13 +178,17 @@ namespace aiko::editor
         {
             if (ImGuiFileDialog::Instance()->IsOk())
             {
-                const string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                const string path = ImGuiFileDialog::Instance()->GetFilePathName();
 
                 context.clearSelection();
                 context.commands().clear();
 
                 Scene& scene = context.sceneSystem().getScene();
-                SceneSerializerYAML::deserializeScene(scene, filePathName);
+
+                SceneSerializerYAML::deserializeScene(scene, path);
+
+                context.document().setPath(path);
+                context.document().markSaved();
             }
 
             ImGuiFileDialog::Instance()->Close();
