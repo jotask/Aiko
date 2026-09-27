@@ -35,6 +35,8 @@ namespace aiko::editor
         Camera m_camera;
         RenderTarget m_renderTarget;
 
+        float m_flySpeed = 5.0f;
+
         TransformState m_gizmoStartTransform;
         bool m_wasUsingGizmo = false;
 

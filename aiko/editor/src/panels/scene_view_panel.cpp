@@ -114,40 +114,126 @@ namespace aiko::editor
                 // Editor camera
                 //
 
-                if (sceneHovered &&!ImGuizmo::IsUsing())
+                if (sceneHovered && !ImGuizmo::IsUsing())
                 {
                     const ImGuiIO& io = ImGui::GetIO();
 
-                    camera::DragInput input;
+                    const bool rightMouse = ImGui::IsMouseDown(ImGuiMouseButton_Right);
 
-                    input.mouseDelta =
+                    if (rightMouse)
                     {
-                        -io.MouseDelta.x,
-                        -io.MouseDelta.y
-                    };
+                        //
+                        // Unity-style fly camera
+                        //
 
-                    input.scrollDelta =
+                        const float targetDistance = math::length(m_camera.target - m_camera.position);
+
+                        vec3 forward = math::normalize(m_camera.target - m_camera.position);
+                        vec3 right = math::normalize(math::cross(forward,m_camera.getUp()));
+
+                        const vec2 mouseDelta =
+                        {
+                            -io.MouseDelta.x,
+                            -io.MouseDelta.y
+                        };
+
+                        constexpr float lookSensitivity = 0.15f;
+                        const float yaw = mouseDelta.x * lookSensitivity;
+                        const float pitch = mouseDelta.y * lookSensitivity;
+
+                        forward = math::rotate(forward, pitch, right);
+                        forward = math::rotate(forward, yaw, m_camera.getUp());
+                        forward = math::normalize(forward);
+                        right = math::normalize(math::cross(forward, m_camera.getUp()));
+
+                        vec3 movement = {};
+
+                        if (ImGui::IsKeyDown(ImGuiKey_W))
+                        {
+                            movement += forward;
+                        }
+
+                        if (ImGui::IsKeyDown(ImGuiKey_S))
+                        {
+                            movement -= forward;
+                        }
+
+                        if (ImGui::IsKeyDown(ImGuiKey_A))
+                        {
+                            movement -= right;
+                        }
+
+                        if (ImGui::IsKeyDown(ImGuiKey_D))
+                        {
+                            movement += right;
+                        }
+
+                        if (ImGui::IsKeyDown(ImGuiKey_Q))
+                        {
+                            movement -= m_camera.getUp();
+                        }
+
+                        if (ImGui::IsKeyDown(ImGuiKey_E))
+                        {
+                            movement += m_camera.getUp();
+                        }
+
+                        float speed = m_flySpeed;
+
+                        if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+                        {
+                            speed *= 2.0f;
+                        }
+
+                        if (math::length(movement) > 0.0f)
+                        {
+                            movement = math::normalize(movement);
+                        }
+
+                        const vec3 displacement = movement * speed * io.DeltaTime;
+
+                        m_camera.position += displacement;
+
+                        //
+                        // Preserve the current orbit/focus distance.
+                        //
+
+                        m_camera.target = m_camera.position + forward * targetDistance;
+                    }
+                    else
                     {
-                        -io.MouseWheelH,
-                        -io.MouseWheel
-                    };
+                        //
+                        // Existing orbit / pan / zoom controls
+                        //
 
-                    input.leftMouse = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+                        camera::DragInput input;
 
-                    input.rightMouse = ImGui::IsMouseDown(ImGuiMouseButton_Right);
+                        input.mouseDelta =
+                        {
+                            -io.MouseDelta.x,
+                            -io.MouseDelta.y
+                        };
 
-                    input.middleMouse = ImGui::IsMouseDown(ImGuiMouseButton_Middle);
+                        input.scrollDelta =
+                        {
+                            -io.MouseWheelH,
+                            -io.MouseWheel
+                        };
 
-                    input.alt = io.KeyAlt;
+                        input.leftMouse = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+                        input.rightMouse = false;
+                        input.middleMouse = ImGui::IsMouseDown(ImGuiMouseButton_Middle);
+                        input.alt = io.KeyAlt;
 
-                    camera::updateDrag(m_camera, input);
+                        camera::updateDrag(m_camera, input);
+                    }
                 }
 
                 //
                 // Scene shortcuts
                 //
 
-                if (sceneHovered && !ImGuizmo::IsUsing())
+                if (sceneHovered && !ImGuizmo::IsUsing() && !ImGui::IsMouseDown(ImGuiMouseButton_Right))
                 {
                     if (ImGui::IsKeyPressed(ImGuiKey_W))
                     {
