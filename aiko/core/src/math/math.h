@@ -32,9 +32,19 @@ namespace aiko
             return std::sqrt(v);
         }
 
+        inline float pow(float raise, float power)
+        {
+            return std::pow(raise, power);
+        }
+
+        inline float lengthSquared(const vec3& v)
+        {
+            return v.x * v.x + v.y * v.y + v.z * v.z;
+        }
+
         inline float length(const vec3& v)
         {
-            return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+            return sqrt(lengthSquared(v));
         }
 
         template<class T>

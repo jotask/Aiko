@@ -68,6 +68,11 @@ namespace sph
         applyGravity(dt);
 
         predictPositions(dt);
+
+        m_hashGrid.clearGrid();
+        m_hashGrid.mapParticlesToCell();
+
+        doubleDensityRelaxation(dt);
         computeNextVelocity(dt);
 
         worldBoundary();
@@ -93,6 +98,60 @@ namespace sph
         }
     }
 
+    void Simulation::doubleDensityRelaxation(float dt)
+    {
+        for (size_t i = 0 ; i < m_particles.size(); ++i)
+        {
+            float density = 0.0f;
+            float densityNear = 0.0f;
+            aiko::vector<size_t> neighbours = m_hashGrid.getNeighbourOfParticlesIdx(i);
+            SPHParticle& particleA = m_particles[i];
+            for (size_t j = 0 ; j < neighbours.size(); ++j)
+            {
+                if (i == neighbours[j])
+                {
+                    continue;
+                }
+                const SPHParticle& particleB = m_particles[neighbours[j]];
+                const aiko::vec3 directionNeighbour = particleB.position - particleA.position;
+                const float distance = aiko::math::length(directionNeighbour);
+                const float q = distance / m_parameters.smoothingRadius;
+                if (q < 1.0f)
+                {
+                    density += aiko::math::pow( 1.0f - q, 2);
+                    densityNear += aiko::math::pow( 1.0f - q, 3);
+                }
+            }
+
+            const float pressure = m_parameters.pressureStiffness * (density - m_parameters.restDensity);
+            const float pressureNear = m_parameters.nearPressureStiffness * densityNear;
+
+            aiko::vec3 particleADisplacement{0.0f};
+
+            for (size_t j = 0 ; j < neighbours.size(); ++j)
+            {
+                if (i == neighbours[j])
+                {
+                    continue;
+                }
+                SPHParticle& particleB = m_particles[neighbours[j]];
+                const aiko::vec3 directionNeighbour = particleB.position - particleA.position;
+                const float distance = aiko::math::length(directionNeighbour);
+                const float q = distance / m_parameters.smoothingRadius;
+                if (q < 1.0f && distance > 1e-6f)
+                {
+                    const aiko::vec3 normalizedDirection = aiko::math::normalize(directionNeighbour);
+                    const float displacementTerm = aiko::math::pow(dt, 2) * ( pressure * (1 - q) + pressureNear * aiko::math::pow(1 - q, 2));
+                    const aiko::vec3 displacement = normalizedDirection * displacementTerm;
+                    particleB.position += displacement * 0.5f;
+                    particleADisplacement -= displacement * 0.5f;
+                }
+            }
+
+            particleA.position += particleADisplacement;
+        }
+    }
+
     void Simulation::applyGravity(float dt)
     {
         for (size_t i = 0 ; i < m_particles.size(); ++i)
@@ -115,7 +174,7 @@ namespace sph
             SPHParticle& particle = m_particles[i];
             particle.color = aiko::BLUE;
 
-            const float distance = aiko::math::length(particle.position - mousePosition);
+            const float distance = aiko::math::lengthSquared(particle.position - mousePosition);
 
             if (distance < closestDistance)
             {
@@ -132,7 +191,7 @@ namespace sph
         {
             SPHParticle& particle = m_particles[particleIndex];
             const aiko::vec3 direction = particle.position - selected.position;
-            const float distanceSquared = direction.x * direction.x + direction.y * direction.y;
+            const float distanceSquared = aiko::math::lengthSquared(direction);
             const float smoothingRadiusSquared = m_parameters.smoothingRadius * m_parameters.smoothingRadius;
             if (distanceSquared < smoothingRadiusSquared)
             {

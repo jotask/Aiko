@@ -21,9 +21,12 @@ namespace sph
         float particleRadius = 0.05f;
         float smoothingRadius = 0.2f;
 
-        float restDensity = 1000.0f;
+        float restDensity = 5.0f;
         float gasConstant = 2000.0f;
         float viscosity = 0.1f;
+
+        float pressureStiffness = 0.02f;
+        float nearPressureStiffness = 0.01f;
 
         float gravity = 9.81f;
         aiko::vec3 gravityDirection = { 0.0f, -1.0f, 0.0f};
