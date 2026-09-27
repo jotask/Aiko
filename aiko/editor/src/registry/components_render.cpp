@@ -1,14 +1,17 @@
 #include "components_render.h"
 
-#include <algorithm>
-
-#include "registry/component_registry.h"
-#include "core/imgui_helper.h"
-
+#include "ImGuiFileDialog.h"
+#include "ImGuiFileDialogConfig.h"
 #include "components/model_component.h"
+#include "constants.h"
+#include "core/imgui_helper.h"
+#include "registry/component_registry.h"
 
-#include <imgui.h>
 #include <magic_enum/magic_enum.hpp>
+
+#include <algorithm>
+#include <filesystem>
+#include <imgui.h>
 
 namespace aiko::editor
 {
@@ -18,22 +21,54 @@ namespace aiko::editor
         constexpr const float IMGUI_VELOCITY = .25f;
 
         template<class T>
-        void drawAssetSource(T* component, const char* label, const char* buttonLabel)
+        void drawAssetSource(T* component, const char* label, const char* dialogKey, const char* filter)
         {
-            static T* currentComponent = nullptr;
-            static string source;
+            AIKO_ASSERT(component != nullptr, "Cannot draw asset source for null component");
 
-            if (currentComponent != component)
+            if (component == nullptr)
             {
-                currentComponent = component;
-                source = component->getAssetSource();
+                return;
             }
 
-            imgui::InputText(label, &source);
+            const string& source = component->getAssetSource();
 
-            if (ImGui::Button(buttonLabel) && source.empty() == false)
+            ImGui::Text("%s: %s", label, source.empty() ? "<None>" : source.c_str());
+
+            if (ImGui::Button("Select Asset"))
             {
-                component->load(source);
+                IGFD::FileDialogConfig config;
+                config.path = global::GLOBAL_ASSET_PATH;
+
+                ImGuiFileDialog::Instance()->OpenDialog(dialogKey, "Choose Asset", filter, config);
+            }
+
+            if (ImGuiFileDialog::Instance()->Display(dialogKey))
+            {
+                if (ImGuiFileDialog::Instance()->IsOk())
+                {
+                    const std::filesystem::path selectedPath = ImGuiFileDialog::Instance()->GetFilePathName();
+
+                    const std::filesystem::path assetRoot = global::GLOBAL_ASSET_PATH;
+
+                    std::error_code error;
+
+                    const std::filesystem::path relativePath = std::filesystem::relative(selectedPath, assetRoot, error);
+
+                    AIKO_ASSERT(error.value() == 0, "Failed to make selected asset path relative");
+
+                    if (error.value() == 0)
+                    {
+                        const std::filesystem::path normalizedPath = relativePath.lexically_normal();
+                        const bool outsideAssetRoot = normalizedPath.empty() == false && *normalizedPath.begin() == "..";
+                        AIKO_ASSERT(outsideAssetRoot == false, "Selected file must be inside the asset directory");
+                        if (outsideAssetRoot == false)
+                        {
+                            component->load(normalizedPath.generic_string());
+                        }
+                    }
+                }
+
+                ImGuiFileDialog::Instance()->Close();
             }
         }
 
@@ -71,7 +106,7 @@ namespace aiko::editor
         {
             ImGui::PushID(sprite);
 
-            drawAssetSource(sprite, "Texture", "Load Texture");
+            drawAssetSource(sprite, "Texture", "SpriteTextureDialog", "Image files{.png,.jpg,.jpeg,.bmp,.tga}");
 
             ImGui::Spacing();
 
@@ -116,44 +151,44 @@ namespace aiko::editor
 
         void drawMesh(MeshComponent* mesh)
         {
-            ImGui::PushID(mesh);
+            const MeshComponent::MeshPrimitive primitive = mesh->getPrimitive();
 
-            drawAssetSource(mesh, "Mesh", "Load Mesh");
+            const char* preview = primitive == MeshComponent::MeshPrimitive::None ? "None" : magic_enum::enum_name(primitive).data();
 
-            ImGui::Spacing();
-
-            Material& material = mesh->getMaterial();
-
-            float color[4] =
+            if (ImGui::BeginCombo("Mesh##Primitive", preview))
             {
-                material.m_baseColor.r,
-                material.m_baseColor.g,
-                material.m_baseColor.b,
-                material.m_baseColor.a
-            };
-
-            if (ImGui::ColorEdit4("Base Color", color))
-            {
-                material.m_baseColor =
+                for (const MeshComponent::MeshPrimitive current : magic_enum::enum_values<MeshComponent::MeshPrimitive>())
                 {
-                    color[0],
-                    color[1],
-                    color[2],
-                    color[3]
-                };
+                    if (current == MeshComponent::MeshPrimitive::None)
+                    {
+                        continue;
+                    }
+
+                    const bool selected = current == primitive;
+
+                    if (ImGui::Selectable(magic_enum::enum_name(current).data(), selected))
+                    {
+                        mesh->loadPrimitive(current);
+                        Material& material = mesh->getMaterial();
+                        material.m_baseColor = YELLOW;
+                        material.m_lit = false;
+                        material.m_useVertexColor = false;
+                    }
+
+                    if (selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+
+                ImGui::EndCombo();
             }
-
-            ImGui::Checkbox("Lit", &material.m_lit);
-
-            ImGui::Checkbox("Use Vertex Color", &material.m_useVertexColor);
-
-            ImGui::PopID();
         }
 
         void drawModel(ModelComponent* model)
         {
             ImGui::PushID(model);
-            drawAssetSource(model, "Model", "Load Model");
+            drawAssetSource(model, "Model", "ModelAssetDialog", "Model files{.obj,.fbx,.gltf,.glb}");
             ImGui::PopID();
         }
 

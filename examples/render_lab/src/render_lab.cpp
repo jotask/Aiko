@@ -242,17 +242,17 @@ namespace aiko::lab
         GameObject* church = Instantiate(root, "Church");
         church->transform().position = {-modelOffset, 0.0f, -28.0f};
         ModelComponent* churchModel = church->addComponent<ModelComponent>();
-        churchModel->load("church.obj");
+        churchModel->load("models/church.obj");
 
         GameObject* barracks = Instantiate(root, "Barracks");
         barracks->transform().position = {0.0f, 0.0f, -28.0f};
         ModelComponent* barracksModel = barracks->addComponent<ModelComponent>();
-        barracksModel->load("barracks.obj");
+        barracksModel->load("models/barracks.obj");
 
         GameObject* watermill = Instantiate(root, "Watermill");
         watermill->transform().position = {modelOffset, 0.0f, -28.0f};
         ModelComponent* watermillModel = watermill->addComponent<ModelComponent>();
-        watermillModel->load("watermill.obj");
+        watermillModel->load("models/watermill.obj");
 
         GameObject* robot = Instantiate(root, "Robot");
         robot->transform().position = {0.0f, 0.0f, -10.0f};
@@ -267,7 +267,7 @@ namespace aiko::lab
         };
 
         ModelComponent* robotModel = robot->addComponent<ModelComponent>();
-        robotModel->load("robot.glb");
+        robotModel->load("models/robot.glb");
     }
 
     // --------------------------------------------------

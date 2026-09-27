@@ -143,8 +143,7 @@ namespace aiko
     ImportedModel AssetImporter::loadModel(const string& filePath)
     {
 
-        string path = string("models/") + filePath;
-        auto finalFilePath = global::getAssetPath(path.c_str());
+        const string finalFilePath = global::getAssetPath(filePath.c_str());
 
         Assimp::Importer importer;
 

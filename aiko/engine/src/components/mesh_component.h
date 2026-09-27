@@ -16,11 +16,29 @@ namespace aiko
     {
     public:
 
+        enum class MeshPrimitive
+        {
+            None,
+            Cube,
+            Pyramid,
+            Sphere,
+            Cylinder,
+            Plane,
+            Torus,
+            Knot,
+            Quad,
+            Triangle,
+            Circle
+        };
+
         MeshComponent();
         virtual ~MeshComponent() = default;
 
         void load(string path);
         void load(MeshAsset mesh);
+
+        void loadPrimitive(MeshPrimitive primitive);
+        MeshPrimitive getPrimitive() const { return m_primitive; }
 
         const AssetId& getMeshId() const;
         const string& getAssetSource() const { return m_mesh.source(); }
@@ -32,6 +50,8 @@ namespace aiko
     private:
 
         void resolveAssetBinding(AssetBindingContext& context) override;
+
+        MeshPrimitive m_primitive = MeshPrimitive::None;
 
         AssetReference<MeshAsset> m_mesh;
         Material m_material;
