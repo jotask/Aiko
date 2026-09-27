@@ -1,10 +1,10 @@
 #pragma once
 
+#include <yaml-cpp/yaml.h>
+
 namespace aiko
 {
-    class GameObject;
-    class Component;
-    class TransforComponent;
+    class TransformComponent;
     class SpriteComponent;
     class MeshComponent;
     class LightComponent;
@@ -13,13 +13,10 @@ namespace aiko
 
 namespace aiko::editor::component
 {
-
-    void deserializeComponent(Component*);
-
-    void deserializeTransform(TransforComponent*);
-    void deserializeSprite(SpriteComponent*);
-    void deserializeMesh(MeshComponent*);
-    void deserializeLight(LightComponent*);
-    void deserializeCamera(CameraComponent*);
+    bool deserializeTransform(const YAML::Node& node,TransformComponent* component);
+    bool deserializeSprite(const YAML::Node& node,SpriteComponent* component);
+    bool deserializeMesh(const YAML::Node& node, MeshComponent* component);
+    bool deserializeLight(const YAML::Node& node,LightComponent* component);
+    bool deserializeCamera(const YAML::Node& node, CameraComponent* component);
 
 }

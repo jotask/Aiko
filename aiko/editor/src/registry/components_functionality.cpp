@@ -7,54 +7,93 @@ namespace aiko::editor
     namespace component
     {
 
-        vector<string> getMissingComponents(GameObject* obj)
+        vector<string> getMissingComponents(GameObject* object)
         {
             vector<string> result;
-            for (const auto& entry : s_componentEntries)
+
+            AIKO_ASSERT(object != nullptr, "Cannot query components for null GameObject");
+
+            if (object == nullptr)
             {
-                if (entry.has(obj) == false)
+                return result;
+            }
+
+            for (const ComponentEditorEntry& entry : componentEntries())
+            {
+                if (entry.addable && entry.has(*object) == false)
                 {
                     result.push_back(entry.name);
                 }
             }
+
             return result;
         }
 
         void addComponent(EditorContext& context, string name, GameObject& object)
         {
-            for (const auto& entry : s_componentEntries)
+            const ComponentEditorEntry* entry = findComponentEntryByName(name);
+
+            AIKO_ASSERT(entry != nullptr, "Component is not supported by the editor");
+
+            if (entry == nullptr)
             {
-                if (entry.name == name)
-                {
-                    entry.add(context, object);
-                    return;
-                }
+                return;
             }
-            AIKO_ASSERT(false, "ERROR :: Component is not supported by the editor");
+
+            AIKO_ASSERT(entry->addable, "Component cannot be added");
+
+            if (entry->addable == false)
+            {
+                return;
+            }
+
+            const bool hasComponent = entry->has(object);
+
+            AIKO_ASSERT(hasComponent == false, "GameObject already has this component");
+
+            if (hasComponent)
+            {
+                return;
+            }
+
+            entry->add(context, object);
         }
 
         bool serializeComponent(const Component& component, YAML::Node& node)
         {
-            for (const auto& entry : s_componentEntries)
+            const ComponentEditorEntry* entry = findComponentEntry(component);
+
+            if (entry == nullptr)
             {
-                if (entry.serialize(&component, node))
-                {
-                    return true;
-                }
+                return false;
             }
-            return false;
+
+            node = YAML::Node(YAML::NodeType::Map);
+
+            node["type"] = entry->serializedName;
+
+            node["data"] = entry->serialize(component);
+
+            return true;
         }
 
         bool deserializeComponent(const YAML::Node& node, GameObject& object)
         {
-            for (const auto& entry : s_componentEntries)
+            if (!node["type"])
             {
-                if (entry.deserialize(node, object))
-                {
-                    return true;
-                }
+                return false;
             }
-            return false;
+
+            const string serializedName = node["type"].as<string>();
+
+            const ComponentEditorEntry* entry = findComponentEntryBySerializedName(serializedName);
+
+            if (entry == nullptr)
+            {
+                return false;
+            }
+
+            return entry->deserialize(node["data"], object);
         }
 
     }

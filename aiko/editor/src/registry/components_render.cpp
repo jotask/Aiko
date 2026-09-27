@@ -15,16 +15,25 @@ namespace aiko::editor
 
         constexpr const float IMGUI_VELOCITY = .25f;
 
-        void drawComponent(Component* compt)
+        void drawComponent(Component* component)
         {
-            for (const auto& entry : s_componentEntries)
+            AIKO_ASSERT(component != nullptr, "Cannot render null component");
+
+            if (component == nullptr)
             {
-                if (entry.render(compt) == true)
-                {
-                    return;
-                }
+                return;
             }
-            AIKO_ASSERT(false, "ERROR :: Component is not supported by the editor");
+
+            const ComponentEditorEntry* entry = findComponentEntry(*component);
+
+            AIKO_ASSERT(entry != nullptr, "Component is not supported by the editor");
+
+            if (entry == nullptr)
+            {
+                return;
+            }
+
+            entry->render(*component);
         }
 
         void drawTransform(TransformComponent* t)
@@ -240,7 +249,7 @@ namespace aiko::editor
                 break;
             case aiko::camera::CameraController::Fly:
                 ImGui::Text("Fly");
-                ImGui::DragFloat("Radius", &camera->speed(), IMGUI_VELOCITY);
+                ImGui::DragFloat("Speed", &camera->speed(), IMGUI_VELOCITY);
                 break;
             }
 

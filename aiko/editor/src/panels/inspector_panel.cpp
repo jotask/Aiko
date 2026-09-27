@@ -1,5 +1,6 @@
 #include "inspector_panel.h"
 
+#include "registry/component_registry.h"
 #include "core/editor_context.h"
 #include "core/imgui_helper.h"
 #include "registry/components_functionality.h"
@@ -38,8 +39,11 @@ namespace aiko
                     {
                         if (ImGui::CollapsingHeader(comp->getName(), ImGuiTreeNodeFlags_DefaultOpen))
                         {
+                            const component::ComponentEditorEntry* entry = component::findComponentEntry(*comp);
+                            const bool removable = entry != nullptr && entry->removable;
                             ImGui::PushID(comp);
-                            if (ImGui::Button("Remove") == true)
+
+                            if (removable && ImGui::Button("Remove"))
                             {
                                 componentsToRemove.push_back(comp);
                                 ImGui::PopID();

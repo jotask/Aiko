@@ -14,7 +14,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "component_serializer.h"
+#include "registry/components_functionality.h"
 #include "models/game_object.h"
 
 namespace aiko::editor
@@ -31,9 +31,18 @@ namespace aiko::editor
             out << YAML::Key << "name" << YAML::Value << obj->getName();
             out << YAML::Key << "components" << YAML::Value;
             out << YAML::BeginSeq;
-            for (const Component* component : obj->getComponents())
+            for (const Component* sceneComponent : obj->getComponents())
             {
-                out << serializer::serializeComponent(component);
+                YAML::Node componentNode;
+
+                const bool serialized = component::serializeComponent(*sceneComponent, componentNode);
+
+                AIKO_ASSERT(serialized, "Component is not supported by the editor serializer");
+
+                if (serialized)
+                {
+                    out << componentNode;
+                }
             }
             out << YAML::EndSeq;
             out << YAML::EndMap;

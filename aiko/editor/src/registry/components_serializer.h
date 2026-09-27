@@ -4,8 +4,6 @@
 
 namespace aiko
 {
-    class GameObject;
-    class Component;
     class TransformComponent;
     class SpriteComponent;
     class MeshComponent;
@@ -15,8 +13,6 @@ namespace aiko
 
 namespace aiko::editor::component
 {
-
-    void serializeComponent(Component*);
 
     YAML::Node serializeTransform(const TransformComponent*);
     YAML::Node serializeSprite(const SpriteComponent*);
