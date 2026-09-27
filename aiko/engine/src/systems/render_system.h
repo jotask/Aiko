@@ -89,6 +89,7 @@ namespace aiko
         PrimitiveMeshCache m_primitiveMeshCache;
         TransientTopology m_defaultTransientTopology = TransientTopology::Triangles;
         Material m_materialPrimitives;
+        Material m_lightGizmoMaterial;
         Material& resolvePrimitiveMaterial(Material* material);
 
     public:
@@ -108,6 +109,7 @@ namespace aiko
         void renderTorus(vec3 pos, vec3 size, Material* material = nullptr);
         void renderKnot(vec3 pos, vec3 size, Material* material = nullptr);
 
+        void renderLightGizmo(vec3 position, vec3 size, Color color);
 
     };
 

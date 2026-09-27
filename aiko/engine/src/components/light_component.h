@@ -17,6 +17,8 @@ namespace aiko
         Color color;
         float intensity;
 
+        bool showGizmo = true;
+
         LightType type = LightType::Point;
         vec3 direction = vec3(0.0f, -1.0f, 0.0f);
         float range = 10.0f;

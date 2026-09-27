@@ -5,6 +5,7 @@
 #include "components/model_component.h"
 #include "constants.h"
 #include "core/imgui_helper.h"
+#include "registry/material_render.h"
 #include "registry/component_registry.h"
 
 #include <magic_enum/magic_enum.hpp>
@@ -169,10 +170,6 @@ namespace aiko::editor
                     if (ImGui::Selectable(magic_enum::enum_name(current).data(), selected))
                     {
                         mesh->loadPrimitive(current);
-                        Material& material = mesh->getMaterial();
-                        material.m_baseColor = YELLOW;
-                        material.m_lit = false;
-                        material.m_useVertexColor = false;
                     }
 
                     if (selected)
@@ -183,6 +180,11 @@ namespace aiko::editor
 
                 ImGui::EndCombo();
             }
+
+            ImGui::Spacing();
+            ImGui::SeparatorText("Material");
+
+            drawMaterial(mesh->getMaterial());
         }
 
         void drawModel(ModelComponent* model)
@@ -195,6 +197,10 @@ namespace aiko::editor
         void drawLight(LightComponent* light)
         {
             ImGui::PushID(light);
+
+            ImGui::Checkbox("Show Gizmo", &light->showGizmo);
+
+            ImGui::Spacing();
 
             if (ImGui::BeginCombo("Type", magic_enum::enum_name(light->type).data()))
             {

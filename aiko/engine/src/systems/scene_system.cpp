@@ -1,16 +1,16 @@
 #include "scene_system.h"
 
 #include "components/camera_component.h"
+#include "components/light_component.h"
 #include "display/display_manager.h"
-#include <intrumentor/profiler.h>
-#include "modules/render_module.h"
-
+#include "models/game_object.h"
 #include "modules/module_connector.h"
+#include "modules/render_module.h"
+#include "scene/scene.h"
 #include "systems/render_system.h"
 #include "systems/system_connector.h"
 
-#include "scene/scene.h"
-#include "models/game_object.h"
+#include <intrumentor/profiler.h>
 
 namespace aiko
 {
@@ -77,6 +77,17 @@ namespace aiko
             GameObject* gameObject = component->getGameObject();
             AIKO_ASSERT(gameObject != nullptr, "SpriteComponent is not attached to a GameObject");
             m_renderSystem->render(gameObject->transform(), *component);
+        }
+
+        for (LightComponent* component : m_scene.components<LightComponent>())
+        {
+            if (component == nullptr || component->isActiveAndEnabled() == false || component->showGizmo == false)
+            {
+                continue;
+            }
+            GameObject* gameObject = component->getGameObject();
+            AIKO_ASSERT(gameObject != nullptr, "LightComponent is not attached to a GameObject");
+            m_renderSystem->renderLightGizmo(gameObject->transform().position, vec3(0.15f), component->color);
         }
     }
 

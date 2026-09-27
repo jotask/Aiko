@@ -28,7 +28,13 @@ namespace aiko
     void RenderSystem::init()
     {
         m_materialPrimitives.m_shaderId = m_assetSystem->registerAsset<ShaderAsset>(renderer::BuiltinShader::Model);
+
         m_assetSystem->loadAsset<ShaderAsset>(m_materialPrimitives.m_shaderId);
+
+        m_lightGizmoMaterial.m_shaderId = m_materialPrimitives.m_shaderId;
+
+        m_lightGizmoMaterial.m_lit = false;
+        m_lightGizmoMaterial.m_useVertexColor = false;
 
         const AssetId uiShader = m_assetSystem->registerAsset<ShaderAsset>(renderer::BuiltinShader::UI);
 
@@ -376,4 +382,11 @@ namespace aiko
     {
         return m_sceneSystem->getMainCamera();
     }
+
+    void RenderSystem::renderLightGizmo(vec3 position, vec3 size, Color color)
+    {
+        m_lightGizmoMaterial.m_baseColor = color;
+        renderSphere(position, size, 16, &m_lightGizmoMaterial);
+    }
+
 }
