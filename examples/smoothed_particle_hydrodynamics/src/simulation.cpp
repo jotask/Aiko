@@ -48,6 +48,9 @@ namespace sph
             particle.color = aiko::BLUE;
 
         }
+
+        m_hashGrid.init(this, m_parameters.smoothingRadius);
+
     }
 
     void Simulation::update()
@@ -81,6 +84,29 @@ namespace sph
             aiko::vec3 direction = p.position - p.prevPosition;
             p.velocity = direction * ( 1.0f / dt );
         }
+    }
+
+    void Simulation::neighboursSearch(const aiko::vec3& mousePosition)
+    {
+        m_hashGrid.clearGrid();
+        m_hashGrid.mapParticlesToCell();
+
+        auto gridHashGrid = m_hashGrid.getGridHashFromPosition(mousePosition);
+        auto* contentOffCell = m_hashGrid.getContentOfCell(gridHashGrid);
+
+        for (SPHParticle& particle : m_particles)
+        {
+            particle.color = aiko::BLUE;
+        }
+
+        if (contentOffCell != nullptr)
+        {
+            for (const size_t particleIndex : *contentOffCell)
+            {
+                m_particles[particleIndex].color = aiko::YELLOW;
+            }
+        }
+
     }
 
     void Simulation::worldBoundary()

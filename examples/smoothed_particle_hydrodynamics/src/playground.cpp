@@ -95,4 +95,9 @@ namespace sph
         renderSystem.renderLine(topLeft, bottomLeft);
     }
 
+    void Playground::setMousePosition(const aiko::vec3& position)
+    {
+        m_simulation.neighboursSearch(position);
+    }
+
 }

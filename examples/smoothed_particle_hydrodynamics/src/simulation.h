@@ -1,6 +1,7 @@
 #pragma once
 
 #include "aiko_types.h"
+#include "fluid_hash_grid.h"
 #include "sph_types.h"
 
 #include <array>
@@ -25,8 +26,9 @@ namespace sph
         const SPHParameters& parameters() const { return m_parameters; }
         const WorldBounds& bounds() const { return m_bounds; }
 
-    private:
+        void neighboursSearch(const aiko::vec3& mousePosition);
 
+    private:
 
         static constexpr float VelocityDamping = 1.0f;
         static constexpr float BoundaryDamping = 0.8f;
@@ -40,6 +42,7 @@ namespace sph
         };
 
         SPHParameters m_parameters;
+        FluidHashGrid m_hashGrid;
 
         void predictPositions(float dt);
         void computeNextVelocity(float dt);

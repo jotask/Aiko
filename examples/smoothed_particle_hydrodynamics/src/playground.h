@@ -28,6 +28,8 @@ namespace sph
         void update();
         void render(aiko::RenderContext& renderer, aiko::RenderSystem& renderSystem);
 
+        void setMousePosition(const aiko::vec3& position);
+
     private:
 
         Simulation m_simulation;

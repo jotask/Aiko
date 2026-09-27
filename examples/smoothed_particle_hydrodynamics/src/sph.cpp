@@ -1,10 +1,14 @@
 #include "sph.h"
 
 #include "layers/contexts/asset_context.h"
+#include "layers/contexts/input_context.h"
 #include "layers/contexts/scene_context.h"
 #include "systems/render_system.h"
 #include "systems/system_connector.h"
 
+#include <models/frame_buffer.h>
+#include <models/texture.h>
+#include <math/math_bounds.h>
 #include <core/random.h>
 
 #include <array>
@@ -29,10 +33,10 @@ namespace sph
 
         // Init camera
         aiko::GameObject* camera = Instantiate("Camera");
-        aiko::CameraComponent* cameraComponent = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Drag);
+        m_cameraComponent = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Drag);
         camera->transform().position = { 0.0f, 2.5f, 8.0f };
-        cameraComponent->setCameraType(aiko::Camera::CameraType::Orthographic);
-        cameraComponent->getCamera().position = camera->transform().position;
+        m_cameraComponent->setCameraType(aiko::Camera::CameraType::Orthographic);
+        m_cameraComponent->getCamera().position = camera->transform().position;
 
         m_playground.init(assets().loadShader("model"));
 
@@ -40,6 +44,35 @@ namespace sph
 
     void SPHFluidSimulation::update()
     {
+
+        const aiko::vec2 mouse = input().getMouseFramebufferPosition();
+
+        const aiko::TextureInfo targetInfo = m_renderSystem->getTargetTexture().getColorTexture() .getInfo();
+
+        const aiko::ivec2 framebufferSize =
+        {
+            static_cast<int>(targetInfo.width),
+            static_cast<int>(targetInfo.height)
+        };
+
+        const aiko::Camera& camera = m_cameraComponent->getCamera();
+
+        const aiko::vec2 viewportPosition =
+        {
+            mouse.x / static_cast<float>(framebufferSize.x),
+            mouse.y / static_cast<float>(framebufferSize.y)
+        };
+
+        const aiko::Ray ray = aiko::math::unprojectRay(viewportPosition, camera.getViewMatrix(), camera.getProjectionMatrix(framebufferSize));
+
+        if (std::fabs(ray.direction.z) > 1e-6f)
+        {
+            const float t = -ray.origin.z / ray.direction.z;
+            const aiko::vec3 mouseWorld = ray.origin + ray.direction * t;
+            m_playground.setMousePosition(mouseWorld);
+        }
+
+
         m_playground.update();
     }
 

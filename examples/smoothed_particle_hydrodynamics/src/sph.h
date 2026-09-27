@@ -34,7 +34,7 @@ namespace sph
 
     private:
         aiko::RenderSystem* m_renderSystem = nullptr;
-
+        aiko::CameraComponent* m_cameraComponent = nullptr;
         Playground m_playground;
     };
 }
