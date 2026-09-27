@@ -127,6 +127,7 @@ namespace aiko::editor
                 EditorViewSettings& settings = context.viewSettings();
 
                 ImGui::MenuItem("Light Gizmos", nullptr, &settings.showLightGizmos);
+                ImGui::MenuItem("Show Grid", nullptr, &settings.showGrid);
 
                 ImGui::Separator();
 

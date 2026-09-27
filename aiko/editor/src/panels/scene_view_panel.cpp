@@ -37,27 +37,66 @@ namespace aiko::editor
     {
         if (ImGui::Begin("Scene"))
         {
+            const bool translateActive = m_gizmoOperation == ImGuizmo::TRANSLATE;
+            const bool rotateActive = m_gizmoOperation == ImGuizmo::ROTATE;
+            const bool scaleActive = m_gizmoOperation == ImGuizmo::SCALE;
+
+            ImGui::BeginDisabled(translateActive);
+            if (ImGui::Button("W"))
+            {
+                m_gizmoOperation = ImGuizmo::TRANSLATE;
+            }
+            ImGui::EndDisabled();
+
+            ImGui::SameLine();
+
+            ImGui::BeginDisabled(rotateActive);
+            if (ImGui::Button("E"))
+            {
+                m_gizmoOperation = ImGuizmo::ROTATE;
+            }
+            ImGui::EndDisabled();
+
+            ImGui::SameLine();
+
+            ImGui::BeginDisabled(scaleActive);
+            if (ImGui::Button("R"))
+            {
+                m_gizmoOperation = ImGuizmo::SCALE;
+            }
+            ImGui::EndDisabled();
+
+            ImGui::SameLine();
+
+            ImGui::BeginDisabled(scaleActive);
+
+            const char* modeLabel = m_gizmoMode == ImGuizmo::WORLD ? "World" : "Local";
+
+            if (ImGui::Button(modeLabel))
+            {
+                m_gizmoMode = m_gizmoMode == ImGuizmo::WORLD ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
+            }
+
+            ImGui::EndDisabled();
+
             RenderSystem& renderSystem = context.renderSystem();
 
             const ImVec2 availableSpace = ImGui::GetContentRegionAvail();
 
-            float imageWidth = availableSpace.x;
-            float imageHeight = availableSpace.y;
+            const float imageWidth = availableSpace.x;
+            const float imageHeight = availableSpace.y;
 
             if (imageWidth > 0.0f && imageHeight > 0.0f)
             {
                 const u32 targetWidth = static_cast<u32>(imageWidth);
-
                 const u32 targetHeight = static_cast<u32>(imageHeight);
 
                 const ivec2 currentSize = m_renderTarget.size();
 
-                if (currentSize.x != static_cast<int>(targetWidth) || currentSize.y != static_cast<int>(targetHeight))
+                if (currentSize.x != static_cast<int>(targetWidth) ||currentSize.y != static_cast<int>(targetHeight))
                 {
                     m_renderTarget.resize(targetWidth, targetHeight);
                 }
-
-                renderSystem.renderToTarget(m_camera, m_renderTarget);
 
                 const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
 
@@ -67,17 +106,15 @@ namespace aiko::editor
                     imagePosition.y + imageHeight
                 };
 
-                ImGui::GetWindowDrawList()->AddImage(
-                    (ImTextureID)renderSystem.getTextureId(
-                        m_renderTarget.colorTexture()),
-                    imagePosition,
-                    imageEnd,
-                    {0, 1},
-                    {1, 0});
-
                 const bool sceneHovered = ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(imagePosition, imageEnd);
 
-                if (sceneHovered && !ImGuizmo::IsUsing())
+                GameObject* selected = context.selectedGameObject();
+
+                //
+                // Editor camera
+                //
+
+                if (sceneHovered &&!ImGuizmo::IsUsing())
                 {
                     const ImGuiIO& io = ImGui::GetIO();
 
@@ -96,12 +133,19 @@ namespace aiko::editor
                     };
 
                     input.leftMouse = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+
                     input.rightMouse = ImGui::IsMouseDown(ImGuiMouseButton_Right);
+
                     input.middleMouse = ImGui::IsMouseDown(ImGuiMouseButton_Middle);
+
                     input.alt = io.KeyAlt;
 
                     camera::updateDrag(m_camera, input);
                 }
+
+                //
+                // Scene shortcuts
+                //
 
                 if (sceneHovered && !ImGuizmo::IsUsing())
                 {
@@ -124,26 +168,78 @@ namespace aiko::editor
                     {
                         m_gizmoMode = m_gizmoMode == ImGuizmo::WORLD ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
                     }
+
+                    if (ImGui::IsKeyPressed(ImGuiKey_F) && selected != nullptr)
+                    {
+                        const mat4 world =
+                            selected->transform().getWorldMatrix();
+
+                        const vec3 worldPosition =
+                        {
+                            world(0, 3),
+                            world(1, 3),
+                            world(2, 3)
+                        };
+
+                        const vec3 offset = m_camera.position - m_camera.target;
+
+                        m_camera.target = worldPosition;
+
+                        m_camera.position = worldPosition + offset;
+                    }
                 }
 
-                GameObject* selected = context.selectedGameObject();
+                //
+                // Render Scene View using the updated editor camera
+                //
+
+                renderSystem.renderToTarget(m_camera, m_renderTarget);
+
+                ImGui::Image(
+                    (ImTextureID)renderSystem.getTextureId(
+                        m_renderTarget.colorTexture()),
+                    {
+                        imageWidth,
+                        imageHeight
+                    },
+                    {0, 1},
+                    {1, 0});
+
+                //
+                // ImGuizmo viewport
+                //
+
+                ImGuizmo::SetOrthographic(m_camera.getCameraType() == Camera::CameraType::Orthographic);
+
+                ImGuizmo::SetDrawlist();
+
+                ImGuizmo::SetRect(imagePosition.x, imagePosition.y, imageWidth, imageHeight);
+
+                const mat4 view = m_camera.getViewMatrix();
+
+                const mat4 projection =
+                    m_camera.getProjectionMatrix(
+                        {
+                            static_cast<int>(imageWidth),
+                            static_cast<int>(imageHeight)
+                        });
+
+                //
+                // Grid
+                //
+
+                if (context.viewSettings().showGrid)
+                {
+                    const mat4 gridMatrix(1.0f);
+                    ImGuizmo::DrawGrid(view.data(), projection.data(), gridMatrix.data(), 100.0f);
+                }
+
+                //
+                // Selected object transform gizmo
+                //
 
                 if (selected != nullptr)
                 {
-                    ImGuizmo::SetOrthographic(m_camera.getCameraType() == Camera::CameraType::Orthographic);
-
-                    ImGuizmo::SetDrawlist();
-
-                    ImGuizmo::SetRect(imagePosition.x, imagePosition.y, imageWidth, imageHeight);
-
-                    const mat4 view =m_camera.getViewMatrix();
-
-                    const mat4 projection =m_camera.getProjectionMatrix(
-                            {
-                                static_cast<int>(imageWidth),
-                                static_cast<int>(imageHeight)
-                            });
-
                     Transform& transform = selected->transform();
 
                     mat4 model = m_wasUsingGizmo ? m_gizmoMatrix : transform.getWorldMatrix();
@@ -162,11 +258,6 @@ namespace aiko::editor
                     if (usingGizmo)
                     {
                         m_gizmoMatrix = model;
-                    }
-
-                    if (manipulated)
-                    {
-                        // existing local matrix decomposition + switch
                     }
 
                     if (manipulated)
@@ -227,10 +318,20 @@ namespace aiko::editor
                     if (!usingGizmo && m_wasUsingGizmo)
                     {
                         const TransformState finalTransform = captureTransform(transform);
-                        context.commands().pushExecuted<TransformCommand>(context.sceneSystem(), selected->uuid(), m_gizmoStartTransform, finalTransform);
+
+                        context.commands()
+                            .pushExecuted<TransformCommand>(
+                                context.sceneSystem(),
+                                selected->uuid(),
+                                m_gizmoStartTransform,
+                                finalTransform);
                     }
 
                     m_wasUsingGizmo = usingGizmo;
+                }
+                else
+                {
+                    m_wasUsingGizmo = false;
                 }
             }
         }
