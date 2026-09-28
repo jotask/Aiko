@@ -2,8 +2,11 @@
 
 #include "aiko_types.h"
 #include "fluid_hash_grid.h"
+#include "spring.h"
 #include "particle_emitter.h"
 #include "sph_types.h"
+
+#include <unordered_map>
 
 namespace sph
 {
@@ -43,11 +46,15 @@ namespace sph
         SPHParameters m_parameters;
         FluidHashGrid m_hashGrid;
 
+        std::unordered_map<aiko::u64, Spring> m_springs;
+
         aiko::vector<ParticleEmitter> m_emitters;
 
         void predictPositions(float dt);
         void computeNextVelocity(float dt);
         void viscosity(float dt);
+        void adjustSpring(float dt);
+        void springDisplacement(float dt);
         void doubleDensityRelaxation(float dt);
         void applyGravity(float dt);
 
