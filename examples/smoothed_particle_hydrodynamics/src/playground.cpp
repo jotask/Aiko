@@ -15,6 +15,19 @@ namespace sph
     {
         m_simulation.init();
 
+        const auto& shapes = m_simulation.shapes();
+        m_shapeRenderData.resize(shapes.size());
+        for (size_t i = 0; i < shapes.size(); ++i)
+        {
+            const Shape& shape = shapes[i];
+            ShapeRenderData& renderData = m_shapeRenderData[i];
+            renderData.mesh.upload(shape.asset());
+            renderData.material.m_shaderId = shaderId;
+            renderData.material.m_useVertexColor = false;
+            renderData.material.m_lit = false;
+            renderData.material.m_baseColor = shape.color();
+        }
+
         m_particleMesh.upload(aiko::mesh::factory::generateCircle(12));
 
         m_particleMaterial.m_shaderId = shaderId;
@@ -23,9 +36,39 @@ namespace sph
         m_particleMaterial.m_baseColor = aiko::WHITE;
     }
 
-    void Playground::update()
+    void Playground::update(const aiko::InputContext& input, const aiko::vec3& mousePosition)
     {
         m_simulation.update();
+        m_simulation.neighboursSearch(mousePosition);
+
+        if (input.isMouseButtonJustPressed(aiko::MouseButton::MOUSE_BUTTON_LEFT))
+        {
+            const aiko::vector<Shape>& shapes = m_simulation.shapes();
+            m_selectedShape = std::nullopt;
+            for (size_t i = 0; i < shapes.size(); ++i)
+            {
+                if (shapes[i].isPointInside(mousePosition))
+                {
+                    m_selectedShape = i;
+                    break;
+                }
+            }
+            m_previousMousePosition = mousePosition;
+        }
+
+        if (input.isMouseButtonPressed(aiko::MouseButton::MOUSE_BUTTON_LEFT) && m_selectedShape.has_value())
+        {
+            aiko::vector<Shape>& shapes = m_simulation.shapes();
+            Shape& shape = shapes[m_selectedShape.value()];
+            const aiko::vec3 offset = mousePosition - m_previousMousePosition;
+            shape.moveBy(offset);
+            m_previousMousePosition = mousePosition;
+        }
+
+        if (input.isMouseButtonJustReleased(aiko::MouseButton::MOUSE_BUTTON_LEFT))
+        {
+            m_selectedShape = std::nullopt;
+        }
     }
 
     void Playground::render(aiko::RenderContext& renderer, aiko::RenderSystem& renderSystem)
@@ -110,11 +153,19 @@ namespace sph
         renderSystem.renderLine(bottomRight, topRight);
         renderSystem.renderLine(topRight, topLeft);
         renderSystem.renderLine(topLeft, bottomLeft);
-    }
 
-    void Playground::setMousePosition(const aiko::vec3& position)
-    {
-        m_simulation.neighboursSearch(position);
-    }
+        // Shapes
+        const auto& shapes = m_simulation.shapes();
 
+        for (size_t i = 0; i < shapes.size(); ++i)
+        {
+            const Shape& shape = shapes[i];
+            const ShapeRenderData& renderData = m_shapeRenderData[i];
+
+            aiko::Transform transform;
+            transform.position = shape.position();
+
+            renderer.drawMesh(transform, renderData.mesh, renderData.material);
+        }
+    }
 }

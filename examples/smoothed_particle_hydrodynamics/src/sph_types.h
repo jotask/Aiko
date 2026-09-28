@@ -12,7 +12,7 @@ namespace sph
         aiko::vec3 prevPosition = {};
         aiko::vec3 velocity = {};
         aiko::vec3 acceleration = {};
-        aiko::Color color = aiko::RED;
+        aiko::Color color = aiko::BLUE;
         float density = 0.0f;
         float pressure = 0.0f;
     };

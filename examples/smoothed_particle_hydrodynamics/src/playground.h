@@ -1,12 +1,14 @@
 #pragma once
 
-#include "simulation.h"
-
+#include "layers/contexts/input_context.h"
 #include "models/material.h"
 #include "models/mesh.h"
+#include "simulation.h"
 #include "types/draw_types.h"
 
 #include <array>
+#include <deque>
+#include <optional>
 
 namespace aiko
 {
@@ -25,10 +27,8 @@ namespace sph
         ~Playground();
 
         void init(const aiko::AssetId& shaderId);
-        void update();
+        void update(const aiko::InputContext& input, const aiko::vec3& mousePosition);
         void render(aiko::RenderContext& renderer, aiko::RenderSystem& renderSystem);
-
-        void setMousePosition(const aiko::vec3& position);
 
     private:
 
@@ -37,7 +37,18 @@ namespace sph
         aiko::Mesh m_particleMesh;
         aiko::Material m_particleMaterial;
 
+        struct ShapeRenderData
+        {
+            aiko::Mesh mesh;
+            aiko::Material material;
+        };
+
+        std::deque<ShapeRenderData> m_shapeRenderData;
+
         aiko::vector<aiko::InstanceData> m_particleInstances;
+
+        std::optional<size_t> m_selectedShape = std::nullopt;
+        aiko::vec3 m_previousMousePosition = {};
 
     };
 

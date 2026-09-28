@@ -3,6 +3,7 @@
 #include "aiko_types.h"
 #include "fluid_hash_grid.h"
 #include "spring.h"
+#include "shapes/shape.h"
 #include "particle_emitter.h"
 #include "sph_types.h"
 
@@ -27,6 +28,9 @@ namespace sph
         const SPHParameters& parameters() const { return m_parameters; }
         const WorldBounds& bounds() const { return m_bounds; }
 
+        const aiko::vector<Shape>& shapes() const { return m_shapes; }
+        aiko::vector<Shape>& shapes() { return m_shapes; }
+
         void neighboursSearch(const aiko::vec3& mousePosition);
 
         ParticleEmitter* createParticleEmitter(const EmitterSettings);
@@ -49,6 +53,7 @@ namespace sph
         std::unordered_map<aiko::u64, Spring> m_springs;
 
         aiko::vector<ParticleEmitter> m_emitters;
+        aiko::vector<Shape> m_shapes;
 
         void predictPositions(float dt);
         void computeNextVelocity(float dt);

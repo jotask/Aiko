@@ -65,15 +65,16 @@ namespace sph
 
         const aiko::Ray ray = aiko::math::unprojectRay(viewportPosition, camera.getViewMatrix(), camera.getProjectionMatrix(framebufferSize));
 
+        aiko::vec3 mouseWorld = {};
+
         if (std::fabs(ray.direction.z) > 1e-6f)
         {
             const float t = -ray.origin.z / ray.direction.z;
-            const aiko::vec3 mouseWorld = ray.origin + ray.direction * t;
-            m_playground.setMousePosition(mouseWorld);
+            mouseWorld = ray.origin + ray.direction * t;
         }
 
 
-        m_playground.update();
+        m_playground.update(input(), mouseWorld);
     }
 
     void SPHFluidSimulation::render()

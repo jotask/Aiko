@@ -1,6 +1,7 @@
 #include "simulation.h"
 
 #include "math/math.h"
+#include "models/mesh_factory.h"
 
 #include <core/random.h>
 #include <time/time.h>
@@ -64,6 +65,9 @@ namespace sph
             .angularVelocity = 0.1f,
         };
         createParticleEmitter(emitter);
+
+        m_shapes.emplace_back(aiko::vec3{0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateCircle(12), aiko::MAGENTA);
+        m_shapes.emplace_back(aiko::vec3{0.25f, 0.25f, 0.0f}, aiko::mesh::factory::generateTriangle(), aiko::MAGENTA);
 
     }
 
