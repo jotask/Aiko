@@ -93,6 +93,7 @@ namespace sph
         adjustSpring(dt);
         springDisplacement(dt);
         doubleDensityRelaxation(dt);
+        handleOneWayCoupling();
         worldBoundary();
         computeNextVelocity(dt);
     }
@@ -315,6 +316,21 @@ namespace sph
         {
             SPHParticle& p = m_particles[i];
             p.velocity += m_parameters.gravityDirection * (m_parameters.gravity * dt);
+        }
+    }
+
+    void Simulation::handleOneWayCoupling()
+    {
+        for (SPHParticle& particle : m_particles)
+        {
+            for (const Shape& shape : m_shapes)
+            {
+                aiko::vec3 directionOut = {};
+                if (shape.getDirectionOut(particle.position, m_parameters.particleRadius, directionOut))
+                {
+                    particle.position += directionOut;
+                }
+            }
         }
     }
 

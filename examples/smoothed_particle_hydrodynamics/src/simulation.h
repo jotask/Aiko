@@ -2,10 +2,10 @@
 
 #include "aiko_types.h"
 #include "fluid_hash_grid.h"
-#include "spring.h"
-#include "shapes/shape.h"
 #include "particle_emitter.h"
+#include "shape.h"
 #include "sph_types.h"
+#include "spring.h"
 
 #include <unordered_map>
 
@@ -62,6 +62,8 @@ namespace sph
         void springDisplacement(float dt);
         void doubleDensityRelaxation(float dt);
         void applyGravity(float dt);
+
+        void handleOneWayCoupling();
 
         void worldBoundary();
 
