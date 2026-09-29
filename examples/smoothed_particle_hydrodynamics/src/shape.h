@@ -27,6 +27,7 @@ namespace sph
 
         bool getNearestVector(const aiko::vec3& worldPoint, const float affectDistance, aiko::vec3& out) const;
 
+        const aiko::vector<ShapeEdge>& boundaryEdges() const { return m_boundaryEdges; }
         const aiko::vec3& position() const { return m_position; }
         const aiko::MeshAsset& asset() const { return m_asset; }
         const aiko::Color& color() const { return m_color; }

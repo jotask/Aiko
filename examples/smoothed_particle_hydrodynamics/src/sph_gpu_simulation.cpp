@@ -218,9 +218,38 @@ namespace sph
 
         static_assert(sizeof(SPHSpringDisplacementPushConstants) == 32);
 
+        struct GpuShapeEdge
+        {
+            alignas(16) aiko::vec4 a = {};
+            alignas(16) aiko::vec4 b = {};
+        };
+
+        static_assert(sizeof(GpuShapeEdge) == 32);
+
+        struct GpuShape
+        {
+            uint32_t edgeStart = 0;
+            uint32_t edgeCount = 0;
+            uint32_t padding0 = 0;
+            uint32_t padding1 = 0;
+        };
+
+        static_assert(sizeof(GpuShape) == 16);
+
+        struct SPHShapeCollisionPushConstants
+        {
+            float particleRadius = 0.0f;
+            uint32_t particleCount = 0;
+            uint32_t shapeCount = 0;
+            uint32_t padding = 0;
+        };
+
+        static_assert(sizeof(SPHShapeCollisionPushConstants) == 16);
+
+
     }
 
-    void SPHGpuSimulation::init(aiko::AssetSystem& assetSystem, const aiko::vector<SPHParticle>& particles)
+    void SPHGpuSimulation::init(aiko::AssetSystem& assetSystem, const aiko::vector<SPHParticle>& particles, const aiko::vector<Shape>& shapes)
     {
 
         m_particleCount = static_cast<uint32_t>(particles.size());
@@ -286,6 +315,71 @@ namespace sph
         m_cellKeyBuffer.create(uintBufferDesc, nullptr);
         m_particleIndexBuffer.create(uintBufferDesc, nullptr);
 
+        // Shapes
+        aiko::vector<GpuShape> gpuShapes;
+        aiko::vector<GpuShapeEdge> gpuEdges;
+
+        gpuShapes.reserve(shapes.size());
+
+        for (const Shape& shape : shapes)
+        {
+            const uint32_t edgeStart = static_cast<uint32_t>(gpuEdges.size());
+
+            for (const ShapeEdge& edge : shape.boundaryEdges())
+            {
+                const aiko::vec3 worldA = shape.asset().m_vertices[edge.a] + shape.position();
+
+                const aiko::vec3 worldB = shape.asset().m_vertices[edge.b] + shape.position();
+
+                gpuEdges.push_back(
+                {
+                    .a =
+                    {
+                        worldA.x,
+                        worldA.y,
+                        worldA.z,
+                        0.0f
+                    },
+
+                    .b =
+                    {
+                        worldB.x,
+                        worldB.y,
+                        worldB.z,
+                        0.0f
+                    }
+                });
+            }
+
+            gpuShapes.push_back(
+            {
+                .edgeStart = edgeStart,
+                .edgeCount = static_cast<uint32_t>(shape.boundaryEdges().size())
+            });
+        }
+
+        m_shapeCount = static_cast<uint32_t>(gpuShapes.size());
+        m_shapeEdgeCount = static_cast<uint32_t>(gpuEdges.size());
+
+        const aiko::ComputeBufferDesc shapeEdgeBufferDesc
+        {
+            .format = aiko::ComputeBufferFormat::Structured,
+            .count = m_shapeEdgeCount,
+            .stride = sizeof(GpuShapeEdge),
+            .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferDst
+        };
+
+        const aiko::ComputeBufferDesc shapeBufferDesc
+        {
+            .format = aiko::ComputeBufferFormat::Structured,
+            .count = m_shapeCount,
+            .stride = sizeof(GpuShape),
+            .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferDst
+        };
+
+        m_shapeEdgeBuffer.create(shapeEdgeBufferDesc, gpuEdges.data());
+        m_shapeBuffer.create(shapeBufferDesc, gpuShapes.data());
+
         m_gravityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_gravity");
         m_predictShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_predict");
         m_boundaryShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_boundary");
@@ -303,6 +397,8 @@ namespace sph
         m_generateSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_generate_springs");
         m_springPlasticityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_spring_plasticity");
         m_springDisplacementShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_spring_displacement");
+
+        m_shapeCollisionShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_shape_collision");
     }
 
     void SPHGpuSimulation::update(aiko::RenderSystem& renderSystem, const SPHParameters& parameters, const WorldBounds& bounds)
@@ -678,98 +774,115 @@ namespace sph
         };
 
         aiko::ComputePass deltaPass{};
+        deltaPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
+        deltaPass.buffers.push_back({1, &m_positionDeltaBuffer, aiko::ComputeAccess::Read});
 
-        deltaPass.buffers.push_back(
-            {0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
+        deltaPass.setPushConstants(deltaConstants);
 
-        deltaPass.buffers.push_back(
-            {1, &m_positionDeltaBuffer, aiko::ComputeAccess::Read});
+        deltaPass.dispatch.groupsX = (m_particleCount + 63) / 64;
 
-        deltaPass.setPushConstants(
-            deltaConstants);
+        renderSystem.dispatch(deltaPass, m_applyPositionDeltaShaderId);
 
-        deltaPass.dispatch.groupsX =
-            (m_particleCount + 63) / 64;
+        // Shape collision
+        const SPHShapeCollisionPushConstants shapeCollisionConstants
+        {
+            .particleRadius = parameters.particleRadius,
+            .particleCount = m_particleCount,
+            .shapeCount = m_shapeCount,
+            .padding = 0
+        };
 
-        renderSystem.dispatch(
-            deltaPass,
-            m_applyPositionDeltaShaderId);
+        aiko::ComputePass shapeCollisionPass{};
+
+        shapeCollisionPass.buffers.push_back({ 0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite });
+        shapeCollisionPass.buffers.push_back({ 1, &m_shapeEdgeBuffer, aiko::ComputeAccess::Read });
+        shapeCollisionPass.buffers.push_back({ 2, &m_shapeBuffer, aiko::ComputeAccess::Read});
+
+        shapeCollisionPass.setPushConstants(shapeCollisionConstants);
+
+        shapeCollisionPass.dispatch.groupsX = (m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(shapeCollisionPass, m_shapeCollisionShaderId);
 
         // boundary
         const SPHBoundaryPushConstants boundaryConstants
         {
-            .particleRadius =
-                parameters.particleRadius,
-
-            .particleCount =
-                m_particleCount,
-
-            .boundsPosition =
-            {
-                bounds.position.x,
-                bounds.position.y,
-                bounds.position.z,
-                0.0f
-            },
-
-            .boundsSize =
-            {
-                bounds.size.x,
-                bounds.size.y,
-                bounds.size.z,
-                0.0f
-            }
+            .particleRadius = parameters.particleRadius,
+            .particleCount = m_particleCount,
+            .boundsPosition = { bounds.position.x, bounds.position.y, bounds.position.z, 0.0f},
+            .boundsSize = { bounds.size.x, bounds.size.y, bounds.size.z, 0.0f }
         };
 
         aiko::ComputePass boundaryPass{};
+        boundaryPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
+        boundaryPass.buffers.push_back({1, &m_prevPositionBuffer, aiko::ComputeAccess::ReadWrite});
 
-        boundaryPass.buffers.push_back(
-            {0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
+        boundaryPass.setPushConstants(boundaryConstants);
 
-        boundaryPass.buffers.push_back(
-            {1, &m_prevPositionBuffer, aiko::ComputeAccess::ReadWrite});
+        boundaryPass.dispatch.groupsX = (m_particleCount + 63) / 64;
 
-        boundaryPass.setPushConstants(
-            boundaryConstants);
-
-        boundaryPass.dispatch.groupsX =
-            (m_particleCount + 63) / 64;
-
-        renderSystem.dispatch(
-            boundaryPass,
-            m_boundaryShaderId);
+        renderSystem.dispatch(boundaryPass, m_boundaryShaderId);
 
         // velocity
         const SPHComputeVelocityPushConstants velocityConstants
         {
-            .dt =
-                parameters.fixedDeltaTime,
-
-            .particleCount =
-                m_particleCount
+            .dt = parameters.fixedDeltaTime,
+            .particleCount = m_particleCount
         };
 
         aiko::ComputePass velocityPass{};
 
-        velocityPass.buffers.push_back(
-            {0, &m_positionBuffer, aiko::ComputeAccess::Read});
+        velocityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
+        velocityPass.buffers.push_back({1, &m_prevPositionBuffer, aiko::ComputeAccess::Read});
+        velocityPass.buffers.push_back({2, &m_velocityBuffer, aiko::ComputeAccess::Write});
 
-        velocityPass.buffers.push_back(
-            {1, &m_prevPositionBuffer, aiko::ComputeAccess::Read});
+        velocityPass.setPushConstants(velocityConstants);
 
-        velocityPass.buffers.push_back(
-            {2, &m_velocityBuffer, aiko::ComputeAccess::Write});
+        velocityPass.dispatch.groupsX = (m_particleCount + 63) / 64;
 
-        velocityPass.setPushConstants(
-            velocityConstants);
+        renderSystem.dispatch(velocityPass, m_computeVelocityShaderId);
 
-        velocityPass.dispatch.groupsX =
-            (m_particleCount + 63) / 64;
+    }
 
-        renderSystem.dispatch(
-            velocityPass,
-            m_computeVelocityShaderId);
+    void SPHGpuSimulation::updateShapes(const aiko::vector<Shape>& shapes)
+    {
+        AIKO_ASSERT(shapes.size() == m_shapeCount, "GPU SPH shape count changed after initialization");
 
+        aiko::vector<GpuShapeEdge> gpuEdges;
+        gpuEdges.reserve(m_shapeEdgeCount);
+
+        for (const Shape& shape : shapes)
+        {
+            for (const ShapeEdge& edge : shape.boundaryEdges())
+            {
+                const aiko::vec3 worldA = shape.asset().m_vertices[edge.a] + shape.position();
+
+                const aiko::vec3 worldB = shape.asset().m_vertices[edge.b] + shape.position();
+
+                gpuEdges.push_back(
+                {
+                    .a =
+                    {
+                        worldA.x,
+                        worldA.y,
+                        worldA.z,
+                        0.0f
+                    },
+
+                    .b =
+                    {
+                        worldB.x,
+                        worldB.y,
+                        worldB.z,
+                        0.0f
+                    }
+                });
+            }
+        }
+
+        AIKO_ASSERT(gpuEdges.size() == m_shapeEdgeCount, "GPU SPH shape topology changed after initialization");
+
+        m_shapeEdgeBuffer.update(0, m_shapeEdgeCount, gpuEdges.data());
     }
 
 }

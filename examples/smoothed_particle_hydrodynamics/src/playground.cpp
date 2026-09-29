@@ -21,7 +21,7 @@ namespace sph
     void Playground::init(const aiko::AssetId& shaderId, const aiko::AssetId& gpuShaderId, aiko::AssetSystem& assetSystem)
     {
         m_simulation.init();
-        m_gpuSimulation.init(assetSystem, m_simulation.particles());
+        m_gpuSimulation.init(assetSystem, m_simulation.particles(), m_simulation.shapes());
 
         const auto& shapes = m_simulation.shapes();
         m_shapeRenderData.resize(shapes.size());
@@ -128,6 +128,7 @@ namespace sph
         else
         {
 
+            m_gpuSimulation.updateShapes(m_simulation.shapes());
             m_gpuSimulation.update(renderSystem, m_simulation.parameters(), m_simulation.bounds());
 
             aiko::GpuInstanceDrawDesc draw{};

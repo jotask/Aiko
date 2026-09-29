@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shape.h"
 #include "sph_types.h"
 
 #include <models/compute_buffer.h>
@@ -17,9 +18,11 @@ namespace sph
     class SPHGpuSimulation
     {
     public:
-        void init(aiko::AssetSystem& assetSystem, const aiko::vector<SPHParticle>& particles);
+        void init(aiko::AssetSystem& assetSystem, const aiko::vector<SPHParticle>& particles, const aiko::vector<Shape>& shapes);
 
         void update(aiko::RenderSystem& renderSystem, const SPHParameters& parameters, const WorldBounds& bounds);
+
+        void updateShapes(const aiko::vector<Shape>& shapes);
 
         const aiko::ComputeBuffer& positionBuffer() const { return m_positionBuffer; }
         uint32_t particleCount() const { return m_particleCount; }
@@ -42,6 +45,9 @@ namespace sph
         aiko::ComputeBuffer m_cellStartBuffer;
         aiko::ComputeBuffer m_cellEndBuffer;
 
+        aiko::ComputeBuffer m_shapeEdgeBuffer;
+        aiko::ComputeBuffer m_shapeBuffer;
+
         aiko::AssetId m_gravityShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_predictShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_boundaryShaderId = aiko::InvalidAssetId;
@@ -60,12 +66,18 @@ namespace sph
         aiko::AssetId m_springPlasticityShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_springDisplacementShaderId = aiko::InvalidAssetId;
 
+        aiko::AssetId m_shapeCollisionShaderId = aiko::InvalidAssetId;
+
         uint32_t m_particleCount = 0;
 
         bool m_gridInitialized = false;
         uint32_t m_gridWidth = 0;
         uint32_t m_gridHeight = 0;
         uint32_t m_cellCount = 0;
+
+        uint32_t m_shapeCount = 0;
+        uint32_t m_shapeEdgeCount = 0;
+
     };
 
 }
