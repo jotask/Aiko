@@ -557,7 +557,7 @@ namespace sph
                 sortPass.buffers.push_back({ 1, &m_particleIndexBuffer, aiko::ComputeAccess::ReadWrite});
 
                 sortPass.setPushConstants(sortConstants);
-                sortPass.dispatch.groupsX = (m_particleCount + 63) / 64;
+                sortPass.dispatch.groupsX = (sortParticleCount + 63) / 64;
 
                 renderSystem.dispatch( sortPass, m_sortShaderId);
             }
@@ -939,6 +939,40 @@ namespace sph
 
         renderSystem.dispatch(velocityPass, m_computeVelocityShaderId);
 
+    }
+
+    void SPHGpuSimulation::spawnParticles(const aiko::vector<SPHParticle>& particles)
+    {
+        if (particles.empty())
+        {
+            return;
+        }
+
+        const uint32_t spawnCount = static_cast<uint32_t>(particles.size());
+
+        AIKO_ASSERT(m_particleCount + spawnCount <= MaxGpuParticles, "GPU SPH particle capacity exceeded");
+        AIKO_ASSERT(m_particleCount + spawnCount <= MaxPackedParticleCount, "Packed GPU spring keys support at most 65536 particles");
+
+        aiko::vector<aiko::vec4> positions;
+        aiko::vector<aiko::vec4> previousPositions;
+        aiko::vector<aiko::vec4> velocities;
+
+        positions.reserve(spawnCount);
+        previousPositions.reserve(spawnCount);
+        velocities.reserve(spawnCount);
+
+        for (const SPHParticle& particle : particles)
+        {
+            positions.emplace_back(particle.position.x, particle.position.y, particle.position.z, 0.0f);
+            previousPositions.emplace_back(particle.prevPosition.x, particle.prevPosition.y, particle.prevPosition.z, 0.0f);
+            velocities.emplace_back(particle.velocity.x, particle.velocity.y, particle.velocity.z, 0.0f);
+        }
+
+        m_positionBuffer.update(m_particleCount, spawnCount, positions.data());
+        m_prevPositionBuffer.update(m_particleCount, spawnCount, previousPositions.data());
+        m_velocityBuffer.update(m_particleCount, spawnCount, velocities.data());
+
+        m_particleCount += spawnCount;
     }
 
     void SPHGpuSimulation::updateShapes(const aiko::vector<Shape>& shapes)

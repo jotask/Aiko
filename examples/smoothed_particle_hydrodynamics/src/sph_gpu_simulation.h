@@ -22,6 +22,8 @@ namespace sph
 
         void update(aiko::RenderSystem& renderSystem, const SPHParameters& parameters, const WorldBounds& bounds);
 
+        void spawnParticles(const aiko::vector<SPHParticle>& particles);
+
         void updateShapes(const aiko::vector<Shape>& shapes);
 
         const aiko::ComputeBuffer& positionBuffer() const { return m_positionBuffer; }

@@ -20,6 +20,8 @@ namespace sph
         void init();
         void update();
 
+        void updateEmitters(float dt, aiko::vector<SPHParticle>& spawnedParticles);
+
         aiko::vector<SPHParticle>& particles() { return m_particles; }
         const aiko::vector<SPHParticle>& particles() const { return m_particles; }
         const aiko::vector<ParticleEmitter>& emitters() const { return m_emitters; }

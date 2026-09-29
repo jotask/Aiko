@@ -1,25 +1,17 @@
 #include "particle_emitter.h"
 
 #include "math/math_transform.h"
-#include "simulation.h"
 #include "sph_types.h"
 
 namespace sph
 {
 
-    void ParticleEmitter::init(Simulation* simulation, const EmitterSettings settings)
+    void ParticleEmitter::init(const EmitterSettings settings)
     {
-        AIKO_ASSERT(simulation != nullptr, "Particle Emitter needs a valid simulation");
-        m_simulation = simulation;
         m_settings = settings;
     }
 
-    void ParticleEmitter::update()
-    {
-
-    }
-
-    void ParticleEmitter::spawn(float dt)
+    void ParticleEmitter::spawn(float dt, aiko::vector<SPHParticle>& spawnedParticles)
     {
         const float spacing = m_settings.amount > 1 ? m_settings.size / static_cast<float>(m_settings.amount - 1) : 0.0f;
 
@@ -53,7 +45,7 @@ namespace sph
                     .velocity = normalizedDirection * m_settings.velocity
                 };
 
-                m_simulation->particles().emplace_back(particle);
+                spawnedParticles.emplace_back(particle);
             }
         }
     }

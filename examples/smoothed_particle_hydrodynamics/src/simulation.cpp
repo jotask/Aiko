@@ -83,11 +83,9 @@ namespace sph
             return;
         }
 
-        for (ParticleEmitter& emitter : m_emitters)
-        {
-            emitter.spawn(dt);
-            emitter.rotate(dt);
-        }
+        aiko::vector<SPHParticle> spawnedParticles;
+        updateEmitters(dt, spawnedParticles);
+        m_particles.insert(m_particles.end(), spawnedParticles.begin(), spawnedParticles.end());
 
         applyGravity(dt);
         m_hashGrid.clearGrid();
@@ -101,6 +99,15 @@ namespace sph
         handleOneWayCoupling();
         worldBoundary();
         computeNextVelocity(dt);
+    }
+
+    void Simulation::updateEmitters(float dt, aiko::vector<SPHParticle>& spawnedParticles)
+    {
+        for (ParticleEmitter& emitter : m_emitters)
+        {
+            emitter.spawn(dt, spawnedParticles);
+            emitter.rotate(dt);
+        }
     }
 
     void Simulation::predictPositions(float dt)
@@ -571,7 +578,7 @@ namespace sph
     ParticleEmitter* Simulation::createParticleEmitter(const EmitterSettings settings)
     {
         ParticleEmitter& emitter = m_emitters.emplace_back();
-        emitter.init(this, settings);
+        emitter.init(settings);
         return &emitter;
     }
 
