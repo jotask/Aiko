@@ -211,12 +211,14 @@ namespace sph
             uint32_t particleCount = 0;
 
             uint32_t maxSprings = 0;
-            uint32_t padding0 = 0;
-            uint32_t padding1 = 0;
-            uint32_t padding2 = 0;
+            uint32_t gridWidth = 0;
+            uint32_t gridHeight = 0;
+            uint32_t padding = 0;
+
+            alignas(16) aiko::vec4 boundsMin = {};
         };
 
-        static_assert(sizeof(SPHSpringDisplacementPushConstants) == 32);
+        static_assert(sizeof(SPHSpringDisplacementPushConstants) == 48);
 
         struct GpuShapeEdge
         {
@@ -684,13 +686,27 @@ namespace sph
             .springStiffness = parameters.springStiffness,
             .particleCount = m_particleCount,
 
-            .maxSprings = MaxSprings
+            .maxSprings = MaxSprings,
+            .gridWidth = m_gridWidth,
+            .gridHeight = m_gridHeight,
+            .padding = 0,
+
+            .boundsMin =
+            {
+                left,
+                bottom,
+                0.0f,
+                0.0f
+            }
         };
 
         aiko::ComputePass springDisplacementPass{};
         springDisplacementPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         springDisplacementPass.buffers.push_back({1, &m_springBuffer, aiko::ComputeAccess::Read});
-        springDisplacementPass.buffers.push_back({2, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
+        springDisplacementPass.buffers.push_back({2, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
+        springDisplacementPass.buffers.push_back({3, &m_cellStartBuffer, aiko::ComputeAccess::Read});
+        springDisplacementPass.buffers.push_back({4, &m_cellEndBuffer, aiko::ComputeAccess::Read});
+        springDisplacementPass.buffers.push_back({5, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
 
         springDisplacementPass.setPushConstants(springDisplacementConstants);
 

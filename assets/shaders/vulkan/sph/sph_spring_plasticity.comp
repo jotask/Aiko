@@ -1,16 +1,8 @@
 #version 450
 
+#include "sph/sph_spring_common.glsl"
+
 layout(local_size_x = 64) in;
-
-const uint EMPTY_SPRING_KEY = 0xFFFFFFFFu;
-
-struct Spring
-{
-    uint pairKey;
-    float restLength;
-    uint enabled;
-    uint padding;
-};
 
 layout(std430, binding = 0)
 readonly buffer Positions
@@ -37,16 +29,6 @@ uniform PushConstants
     uint padding1;
     uint padding2;
 } pc;
-
-uint getParticleA(uint pairKey)
-{
-    return pairKey >> 16;
-}
-
-uint getParticleB(uint pairKey)
-{
-    return pairKey & 0xFFFFu;
-}
 
 void main()
 {

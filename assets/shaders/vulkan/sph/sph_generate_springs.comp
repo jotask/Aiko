@@ -1,16 +1,8 @@
 #version 450
 
+#include "sph/sph_spring_common.glsl"
+
 layout(local_size_x = 64) in;
-
-const uint EMPTY_SPRING_KEY = 0xFFFFFFFFu;
-
-struct Spring
-{
-    uint pairKey;
-    float restLength;
-    uint enabled;
-    uint padding;
-};
 
 layout(std430, binding = 0)
 readonly buffer Positions
@@ -57,22 +49,6 @@ uniform PushConstants
 
     vec4 boundsMin;
 } pc;
-
-uint makePairKey(uint particleA, uint particleB)
-{
-    return (particleA << 16) | particleB;
-}
-
-uint hashPairKey(uint key)
-{
-    key ^= key >> 16;
-    key *= 0x7feb352du;
-    key ^= key >> 15;
-    key *= 0x846ca68bu;
-    key ^= key >> 16;
-
-    return key;
-}
 
 void insertSpring(uint pairKey, float initialRestLength)
 {

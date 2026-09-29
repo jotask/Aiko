@@ -1,16 +1,8 @@
 #version 450
 
+#include "sph/sph_spring_common.glsl"
+
 layout(local_size_x = 64) in;
-
-const uint EMPTY_SPRING_KEY = 0xFFFFFFFFu;
-
-struct Spring
-{
-    uint pairKey;
-    float restLength;
-    uint enabled;
-    uint padding;
-};
 
 layout(std430, binding = 0)
 readonly buffer Positions
@@ -25,6 +17,24 @@ readonly buffer Springs
 };
 
 layout(std430, binding = 2)
+readonly buffer ParticleIndices
+{
+    uint particleIndices[];
+};
+
+layout(std430, binding = 3)
+readonly buffer CellStarts
+{
+    uint cellStarts[];
+};
+
+layout(std430, binding = 4)
+readonly buffer CellEnds
+{
+    uint cellEnds[];
+};
+
+layout(std430, binding = 5)
 writeonly buffer PositionDeltas
 {
     vec4 positionDeltas[];
@@ -39,19 +49,45 @@ uniform PushConstants
     uint particleCount;
 
     uint maxSprings;
-    uint padding0;
-    uint padding1;
-    uint padding2;
+    uint gridWidth;
+    uint gridHeight;
+    uint padding;
+
+    vec4 boundsMin;
 } pc;
 
-uint getParticleA(uint pairKey)
+int findSpring(uint pairKey)
 {
-    return pairKey >> 16;
-}
+    uint mask = pc.maxSprings - 1u;
 
-uint getParticleB(uint pairKey)
-{
-    return pairKey & 0xFFFFu;
+    uint slot =
+    hashPairKey(pairKey) &
+    mask;
+
+    for (
+    uint probe = 0;
+    probe < pc.maxSprings;
+    ++probe)
+    {
+        uint currentKey =
+        springs[slot].pairKey;
+
+        if (currentKey == pairKey)
+        {
+            return int(slot);
+        }
+
+        if (currentKey == EMPTY_SPRING_KEY)
+        {
+            return -1;
+        }
+
+        slot =
+        (slot + 1u) &
+        mask;
+    }
+
+    return -1;
 }
 
 void main()
@@ -63,56 +99,78 @@ void main()
         return;
     }
 
+    vec3 positionA = positions[i].xyz;
+
+    ivec2 cell = ivec2(floor((positionA.xy - pc.boundsMin.xy) / pc.smoothingRadius));
+
     vec3 delta = vec3(0.0);
 
-    for (uint springIndex = 0; springIndex < pc.maxSprings;  ++springIndex)
+    for (int y = -1; y <= 1; ++y)
     {
-        Spring spring = springs[springIndex];
-
-        if (spring.pairKey == EMPTY_SPRING_KEY || spring.enabled == 0u)
+        for (int x = -1; x <= 1; ++x)
         {
-            continue;
-        }
+            ivec2 neighbourCell = cell + ivec2(x, y);
 
-        uint particleA = getParticleA(spring.pairKey);
+            if (neighbourCell.x < 0 || neighbourCell.y < 0 || neighbourCell.x >= int(pc.gridWidth) || neighbourCell.y >= int(pc.gridHeight))
+            {
+                continue;
+            }
 
-        uint particleB = getParticleB(spring.pairKey);
+            uint cellKey = uint(neighbourCell.y) * pc.gridWidth + uint(neighbourCell.x);
 
-        bool isParticleA = particleA == i;
+            uint start = cellStarts[cellKey];
 
-        bool isParticleB = particleB == i;
+            uint end = cellEnds[cellKey];
 
-        if (isParticleA == false && isParticleB == false)
-        {
-            continue;
-        }
+            if (start == 0xFFFFFFFFu || end == 0xFFFFFFFFu)
+            {
+                continue;
+            }
 
-        vec3 positionA = positions[particleA].xyz;
+            for (uint sortedIndex = start; sortedIndex < end;  ++sortedIndex)
+            {
+                uint j = particleIndices[sortedIndex];
 
-        vec3 positionB = positions[particleB].xyz;
+                if (j == i)
+                {
+                    continue;
+                }
 
-        vec3 direction = positionB - positionA;
+                uint pairKey = makePairKey(i, j);
 
-        float distance = length(direction);
+                int springIndex = findSpring(pairKey);
 
-        if (distance <= 0.000001)
-        {
-            continue;
-        }
+                if (springIndex < 0)
+                {
+                    continue;
+                }
 
-        vec3 normalizedDirection = direction / distance;
+                Spring spring = springs[uint(springIndex)];
 
-        float displacementTerm = pc.dt * pc.dt * pc.springStiffness * (1.0 - spring.restLength / pc.smoothingRadius) * (spring.restLength - distance);
+                if (spring.enabled == 0u)
+                {
+                    continue;
+                }
 
-        vec3 displacement = normalizedDirection * displacementTerm * 0.5;
+                vec3 positionB = positions[j].xyz;
 
-        if (isParticleA)
-        {
-            delta -= displacement;
-        }
-        else
-        {
-            delta += displacement;
+                vec3 direction = positionB - positionA;
+
+                float distance = length(direction);
+
+                if (distance <= 0.000001)
+                {
+                    continue;
+                }
+
+                vec3 normalizedDirection = direction / distance;
+
+                float displacementTerm = pc.dt * pc.dt * pc.springStiffness * (1.0 - spring.restLength / pc.smoothingRadius) * (spring.restLength - distance);
+
+                vec3 displacement = normalizedDirection * displacementTerm * 0.5;
+
+                delta -= displacement;
+            }
         }
     }
 
