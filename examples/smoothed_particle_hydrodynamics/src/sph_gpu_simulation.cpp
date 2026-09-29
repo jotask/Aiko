@@ -380,25 +380,25 @@ namespace sph
         m_shapeEdgeBuffer.create(shapeEdgeBufferDesc, gpuEdges.data());
         m_shapeBuffer.create(shapeBufferDesc, gpuShapes.data());
 
-        m_gravityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_gravity");
-        m_predictShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_predict");
-        m_boundaryShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_boundary");
-        m_computeVelocityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_compute_velocity");
-        m_hashShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_hash");
-        m_sortShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_sort");
-        m_cellRangeShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_cell_ranges");
-        m_clearCellsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_clear_cells");
-        m_viscosityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_viscosity");
-        m_applyViscosityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_apply_viscosity");
-        m_densityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_density");
-        m_relaxationShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_relaxation");
-        m_applyPositionDeltaShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_apply_position_delta");
+        m_gravityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_gravity");
+        m_predictShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_predict");
+        m_boundaryShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_boundary");
+        m_computeVelocityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_compute_velocity");
+        m_hashShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_hash");
+        m_sortShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_sort");
+        m_cellRangeShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_cell_ranges");
+        m_clearCellsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_clear_cells");
+        m_viscosityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_viscosity");
+        m_applyViscosityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_apply_viscosity");
+        m_densityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_density");
+        m_relaxationShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_relaxation");
+        m_applyPositionDeltaShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_apply_position_delta");
 
-        m_generateSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_generate_springs");
-        m_springPlasticityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_spring_plasticity");
-        m_springDisplacementShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_spring_displacement");
+        m_generateSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_generate_springs");
+        m_springPlasticityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_spring_plasticity");
+        m_springDisplacementShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_spring_displacement");
 
-        m_shapeCollisionShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_shape_collision");
+        m_shapeCollisionShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_shape_collision");
     }
 
     void SPHGpuSimulation::update(aiko::RenderSystem& renderSystem, const SPHParameters& parameters, const WorldBounds& bounds)
