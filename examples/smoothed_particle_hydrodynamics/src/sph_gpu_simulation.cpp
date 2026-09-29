@@ -260,6 +260,21 @@ namespace sph
 
         static_assert(sizeof(SPHClearSpringsPushConstants) == 4);
 
+        struct SPHStickinessPushConstants
+        {
+            float dt = 0.0f;
+            float maxStickiness = 0.0f;
+            float kStick = 0.0f;
+            uint32_t particleCount = 0;
+
+            uint32_t shapeCount = 0;
+            uint32_t padding0 = 0;
+            uint32_t padding1 = 0;
+            uint32_t padding2 = 0;
+        };
+
+        static_assert(sizeof(SPHStickinessPushConstants) == 32);
+
         uint32_t nextPowerOfTwo(uint32_t value)
         {
             if (value <= 1)
@@ -435,6 +450,7 @@ namespace sph
         m_generateSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_generate_springs");
         m_springPlasticityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_spring_plasticity");
         m_springDisplacementShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_spring_displacement");
+        m_stickinessShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_stickiness");
 
         m_shapeCollisionShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_shape_collision");
     }
@@ -879,6 +895,31 @@ namespace sph
         deltaPass.dispatch.groupsX = (m_particleCount + 63) / 64;
 
         renderSystem.dispatch(deltaPass, m_applyPositionDeltaShaderId);
+
+        // Stickiness
+        const SPHStickinessPushConstants stickinessConstants
+        {
+            .dt = parameters.fixedDeltaTime,
+            .maxStickiness = parameters.maxStickiness,
+            .kStick = parameters.kStick,
+            .particleCount = m_particleCount,
+
+            .shapeCount = m_shapeCount,
+            .padding0 = 0,
+            .padding1 = 0,
+            .padding2 = 0
+        };
+
+        aiko::ComputePass stickinessPass{};
+        stickinessPass.buffers.push_back({ 0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite });
+        stickinessPass.buffers.push_back({ 1, &m_shapeEdgeBuffer, aiko::ComputeAccess::Read });
+        stickinessPass.buffers.push_back({ 2, &m_shapeBuffer, aiko::ComputeAccess::Read });
+
+        stickinessPass.setPushConstants(stickinessConstants);
+
+        stickinessPass.dispatch.groupsX = (m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(stickinessPass, m_stickinessShaderId);
 
         // Shape collision
         const SPHShapeCollisionPushConstants shapeCollisionConstants
