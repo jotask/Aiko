@@ -40,7 +40,7 @@ namespace sph
         m_cameraComponent->setCameraType(aiko::Camera::CameraType::Orthographic);
         m_cameraComponent->getCamera().position = camera->transform().position;
 
-        m_playground.init(assets().loadShader("model"), assets().loadShader("sph_gpuinst.vs", "model.fs"), *m_assetSystem);
+        m_playground.init(assets().loadShader("model"), assets().loadShader("sph/sph_gpuinst.vs", "model.fs"), *m_assetSystem);
 
     }
 

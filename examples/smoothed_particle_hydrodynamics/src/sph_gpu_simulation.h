@@ -27,6 +27,9 @@ namespace sph
         void updateShapes(const aiko::vector<Shape>& shapes);
 
         const aiko::ComputeBuffer& positionBuffer() const { return m_positionBuffer; }
+        const aiko::ComputeBuffer& velocityBuffer() const { return m_velocityBuffer; }
+        const aiko::ComputeBuffer& pressureBuffer() const { return m_pressureBuffer; }
+
         uint32_t particleCount() const { return m_particleCount; }
 
     private:

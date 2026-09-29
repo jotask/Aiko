@@ -34,6 +34,13 @@ namespace sph
 
     private:
 
+        enum class ParticleColorMode : uint32_t
+        {
+            Constant = 0,
+            Velocity = 1,
+            Pressure = 2,
+        };
+
         Simulation m_simulation;
         SPHGpuSimulation m_gpuSimulation;
 
@@ -53,6 +60,8 @@ namespace sph
 
         std::optional<size_t> m_selectedShape = std::nullopt;
         aiko::vec3 m_previousMousePosition = {};
+
+        ParticleColorMode m_particleColorMode = ParticleColorMode::Velocity;
 
     };
 

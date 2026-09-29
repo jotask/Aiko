@@ -39,16 +39,19 @@ namespace sph
         m_particleMesh.upload(aiko::mesh::factory::generateCircle(12));
 
         m_particleMaterial.m_shaderId = shaderId;
+        m_particleMaterial.m_baseColor = aiko::WHITE;
         m_particleMaterial.m_useVertexColor = true;
         m_particleMaterial.m_lit = false;
-        m_particleMaterial.m_baseColor = aiko::WHITE;
 
         m_gpuParticleMaterial.m_shaderId = gpuShaderId;
-        m_gpuParticleMaterial.m_baseColor = aiko::BLUE;
-        m_gpuParticleMaterial.m_useVertexColor = false;
+        m_gpuParticleMaterial.m_baseColor = aiko::WHITE;
+        m_gpuParticleMaterial.m_useVertexColor = true;
         m_gpuParticleMaterial.m_lit = false;
 
         m_gpuParticleMaterial.setFloat("u_particleDiameter", m_simulation.parameters().particleRadius * 2.0f);
+        m_gpuParticleMaterial.setUInt("u_particleColorMode", static_cast<uint32_t>(m_particleColorMode));
+        m_gpuParticleMaterial.setFloat("u_velocityColorScale", 0.5f);
+        m_gpuParticleMaterial.setFloat("u_pressureColorScale", 0.05f);
 
     }
 
@@ -141,7 +144,11 @@ namespace sph
             draw.mesh = &m_particleMesh;
             draw.material = &m_gpuParticleMaterial;
             draw.readBuffers.push_back({7, &m_gpuSimulation.positionBuffer()});
+            draw.readBuffers.push_back({8, &m_gpuSimulation.velocityBuffer()});
+            draw.readBuffers.push_back({9, &m_gpuSimulation.pressureBuffer()});
             draw.instanceCount = m_gpuSimulation.particleCount();
+
+            m_gpuParticleMaterial.setUInt("u_particleColorMode",static_cast<uint32_t>(m_particleColorMode));
 
             renderer.drawMeshInstancedGpu(draw);
         }
