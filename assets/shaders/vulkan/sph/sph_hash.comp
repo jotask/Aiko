@@ -25,8 +25,13 @@ uniform PushConstants
 {
     float smoothingRadius;
     uint particleCount;
+    uint sortParticleCount;
     uint gridWidth;
+
     uint gridHeight;
+    uint padding0;
+    uint padding1;
+    uint padding2;
 
     vec4 boundsMin;
 } pc;
@@ -35,8 +40,15 @@ void main()
 {
     uint i = gl_GlobalInvocationID.x;
 
+    if (i >= pc.sortParticleCount)
+    {
+        return;
+    }
+
     if (i >= pc.particleCount)
     {
+        cellKeys[i] = 0xFFFFFFFFu;
+        particleIndices[i] = i;
         return;
     }
 

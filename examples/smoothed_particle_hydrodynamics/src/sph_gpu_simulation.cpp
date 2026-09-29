@@ -16,13 +16,18 @@ namespace sph
         {
             float smoothingRadius = 0.0f;
             uint32_t particleCount = 0;
+            uint32_t sortParticleCount = 0;
             uint32_t gridWidth = 0;
+
             uint32_t gridHeight = 0;
+            uint32_t padding0 = 0;
+            uint32_t padding1 = 0;
+            uint32_t padding2 = 0;
 
             alignas(16) aiko::vec4 boundsMin = {};
         };
 
-        static_assert(sizeof(SPHHashPushConstants) == 32);
+        static_assert(sizeof(SPHHashPushConstants) == 48);
 
         struct SPHSortPushConstants
         {
@@ -255,6 +260,24 @@ namespace sph
 
         static_assert(sizeof(SPHClearSpringsPushConstants) == 4);
 
+        uint32_t nextPowerOfTwo(uint32_t value)
+        {
+            if (value <= 1)
+            {
+                return 1;
+            }
+
+            --value;
+
+            value |= value >> 1;
+            value |= value >> 2;
+            value |= value >> 4;
+            value |= value >> 8;
+            value |= value >> 16;
+
+            return value + 1;
+        }
+
     }
 
     void SPHGpuSimulation::init(aiko::AssetSystem& assetSystem, const aiko::vector<SPHParticle>& particles, const aiko::vector<Shape>& shapes)
@@ -282,21 +305,21 @@ namespace sph
         const aiko::ComputeBufferDesc positionBufferDesc
         {
             .format = aiko::ComputeBufferFormat::Vec4f,
-            .count = m_particleCount,
+            .count = MaxGpuParticles,
             .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc | aiko::ComputeBufferUsage::TransferDst | aiko::ComputeBufferUsage::Vertex
         };
 
         const aiko::ComputeBufferDesc velocityBufferDesc
         {
             .format = aiko::ComputeBufferFormat::Vec4f,
-            .count = m_particleCount,
+            .count = MaxGpuParticles,
             .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc | aiko::ComputeBufferUsage::TransferDst
         };
 
         const aiko::ComputeBufferDesc uintBufferDesc
         {
             .format = aiko::ComputeBufferFormat::Uint32,
-            .count = m_particleCount,
+            .count = MaxGpuParticles,
             .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc
         };
 
@@ -308,10 +331,14 @@ namespace sph
             .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc | aiko::ComputeBufferUsage::TransferDst
         };
 
-        m_positionBuffer.create(positionBufferDesc, positions.data());
-        m_prevPositionBuffer.create(positionBufferDesc, previousPositions.data());
-        m_velocityBuffer.create(velocityBufferDesc, velocities.data());
+        m_positionBuffer.create(positionBufferDesc, nullptr);
+        m_prevPositionBuffer.create(positionBufferDesc, nullptr);
+        m_velocityBuffer.create(velocityBufferDesc, nullptr);
         m_velocityDeltaBuffer.create(velocityBufferDesc, nullptr);
+
+        m_positionBuffer.update(0, m_particleCount, positions.data());
+        m_prevPositionBuffer.update(0, m_particleCount, previousPositions.data());
+        m_velocityBuffer.update(0, m_particleCount, velocities.data());
 
         m_densityBuffer.create(velocityBufferDesc, nullptr);
         m_pressureBuffer.create(velocityBufferDesc, nullptr);
@@ -419,6 +446,9 @@ namespace sph
             return;
         }
 
+        const uint32_t sortParticleCount = nextPowerOfTwo(m_particleCount);
+        AIKO_ASSERT(sortParticleCount <= MaxGpuParticles, "GPU SPH sort count exceeds particle capacity");
+
         // gravity
         const SPHGravityPushConstants gravityConstants
         {
@@ -477,8 +507,14 @@ namespace sph
         {
             .smoothingRadius = parameters.smoothingRadius,
             .particleCount = m_particleCount,
+            .sortParticleCount = sortParticleCount,
             .gridWidth = gridWidth,
+
             .gridHeight = gridHeight,
+            .padding0 = 0,
+            .padding1 = 0,
+            .padding2 = 0,
+
             .boundsMin =
             {
                 left,
@@ -496,20 +532,20 @@ namespace sph
 
         hashPass.setPushConstants(hashConstants);
 
-        hashPass.dispatch.groupsX = (m_particleCount + 63) / 64;
+        hashPass.dispatch.groupsX = (sortParticleCount + 63) / 64;
         hashPass.dispatch.groupsY = 1;
         hashPass.dispatch.groupsZ = 1;
 
         renderSystem.dispatch(hashPass, m_hashShaderId);
 
         // Sort
-        for (uint32_t k = 2; k <= m_particleCount; k <<= 1)
+        for (uint32_t k = 2; k <= sortParticleCount; k <<= 1)
         {
             for (uint32_t j = k >> 1; j > 0; j >>= 1)
             {
                 const SPHSortPushConstants sortConstants
                 {
-                    .particleCount = m_particleCount,
+                    .particleCount = sortParticleCount,
                     .k = k,
                     .j = j,
                     .padding = 0

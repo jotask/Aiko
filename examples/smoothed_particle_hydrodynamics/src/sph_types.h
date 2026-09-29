@@ -6,6 +6,7 @@
 namespace sph
 {
 
+    static constexpr uint32_t MaxGpuParticles = 65536;
     static constexpr aiko::u64 N_PARTICLES = 1024;
     static constexpr uint32_t MaxSprings = 65536;
 
