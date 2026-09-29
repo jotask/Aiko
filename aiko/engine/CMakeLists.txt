@@ -20,13 +20,13 @@ target_link_libraries(Aiko
         assimp
         stb
         nlohmann_json::nlohmann_json
-        AikoCore
         AikoRenderer
         AikoPhysics
         magic_enum
         imgui
 
         PUBLIC
+        AikoCore
         AikoPublicHeaders
 )
 
