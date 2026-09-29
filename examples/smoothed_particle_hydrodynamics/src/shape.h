@@ -25,6 +25,8 @@ namespace sph
         bool getDirectionOut(const aiko::vec3& worldPoint, float radius, aiko::vec3& out) const;
         void moveBy(const aiko::vec3& offset);
 
+        bool getNearestVector(const aiko::vec3& worldPoint, const float affectDistance, aiko::vec3& out) const;
+
         const aiko::vec3& position() const { return m_position; }
         const aiko::MeshAsset& asset() const { return m_asset; }
         const aiko::Color& color() const { return m_color; }

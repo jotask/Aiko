@@ -97,6 +97,41 @@ namespace sph
         m_position += offset;
     }
 
+    bool Shape::getNearestVector(const aiko::vec3& worldPoint, const float affectDistance, aiko::vec3& out) const
+    {
+        const aiko::vec3 localPoint = worldPoint - m_position;
+        float closestDistanceSquared = std::numeric_limits<float>::max();
+
+        aiko::vec3 closestPoint = {};
+
+        for (const ShapeEdge& edge : m_boundaryEdges)
+        {
+            const aiko::vec3& a = m_asset.m_vertices[edge.a];
+            const aiko::vec3& b = m_asset.m_vertices[edge.b];
+
+            const aiko::vec3 pointOnEdge = closestPointOnSegment(localPoint, a, b);
+
+            const aiko::vec3 direction = pointOnEdge - localPoint;
+            const float distanceSquared = aiko::math::lengthSquared(direction);
+
+            if (distanceSquared < closestDistanceSquared)
+            {
+                closestDistanceSquared = distanceSquared;
+                closestPoint = pointOnEdge;
+            }
+        }
+
+        if (closestDistanceSquared > affectDistance * affectDistance)
+        {
+            out = {};
+            return false;
+        }
+
+        out = closestPoint - localPoint;
+
+        return true;
+    }
+
     bool Shape::getDirectionOut(const aiko::vec3& worldPoint, float radius, aiko::vec3& out) const
     {
         const aiko::vec3 localPoint = worldPoint - m_position;

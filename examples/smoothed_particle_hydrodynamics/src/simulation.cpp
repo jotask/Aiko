@@ -93,6 +93,7 @@ namespace sph
         adjustSpring(dt);
         springDisplacement(dt);
         doubleDensityRelaxation(dt);
+        handleStickiness(dt);
         handleOneWayCoupling();
         worldBoundary();
         computeNextVelocity(dt);
@@ -321,15 +322,44 @@ namespace sph
 
     void Simulation::handleOneWayCoupling()
     {
-        for (SPHParticle& particle : m_particles)
+        for (SPHParticle& particle: m_particles)
         {
-            for (const Shape& shape : m_shapes)
+            for (const Shape& shape: m_shapes)
             {
                 aiko::vec3 directionOut = {};
                 if (shape.getDirectionOut(particle.position, m_parameters.particleRadius, directionOut))
                 {
                     particle.position += directionOut;
                 }
+            }
+        }
+    }
+
+    void Simulation::handleStickiness(float dt)
+    {
+        for (SPHParticle& particle : m_particles)
+        {
+            for (const Shape& shape : m_shapes)
+            {
+                aiko::vec3 nearestVector = {};
+
+                if (!shape.getNearestVector(particle.position, m_parameters.maxStickiness, nearestVector))
+                {
+                    continue;
+                }
+
+                const float distance = aiko::math::length(nearestVector);
+
+                if (distance <= 1e-6f)
+                {
+                    continue;
+                }
+
+                const aiko::vec3 direction = nearestVector / distance;
+
+                const float stickyTerm = dt * m_parameters.kStick * distance * (1.0f - distance / m_parameters.maxStickiness);
+
+                particle.position += direction * stickyTerm;
             }
         }
     }

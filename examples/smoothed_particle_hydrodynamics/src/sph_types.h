@@ -38,6 +38,10 @@ namespace sph
         float plasticity = 1.0f;
         float springStiffness = 0.9f;
 
+        // sticky parameters
+        float maxStickiness = smoothingRadius;
+        float kStick = 0.1f;
+
         float gravity = 0.01f;
         aiko::vec3 gravityDirection = { 0.0f, -1.0f, 0.0f};
 

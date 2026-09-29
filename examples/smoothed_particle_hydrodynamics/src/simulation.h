@@ -64,6 +64,7 @@ namespace sph
         void applyGravity(float dt);
 
         void handleOneWayCoupling();
+        void handleStickiness(float dt);
 
         void worldBoundary();
 
