@@ -9,20 +9,19 @@ buffer Positions
 };
 
 layout(std430, binding = 1)
-buffer Velocities
+buffer PreviousPositions
 {
-    vec4 velocities[];
+    vec4 previousPositions[];
 };
 
 layout(push_constant)
 uniform PushConstants
 {
-    float dt;
-    float gravity;
     float particleRadius;
     uint particleCount;
+    uint padding0;
+    uint padding1;
 
-    vec4 gravityDirection;
     vec4 boundsPosition;
     vec4 boundsSize;
 } pc;
@@ -36,45 +35,45 @@ void main()
         return;
     }
 
-    vec3 velocity = velocities[i].xyz;
+    vec3 position = positions[i].xyz;
 
-    vec3 position =  positions[i].xyz;
+    vec3 previousPosition = previousPositions[i].xyz;
 
-    velocity += pc.gravityDirection.xyz * pc.gravity * pc.dt;
+    vec2 halfSize = pc.boundsSize.xy * 0.5;
 
-    position += velocity * pc.dt;
-
-    vec2 halfSize =  pc.boundsSize.xy * 0.5;
     float left = pc.boundsPosition.x - halfSize.x + pc.particleRadius;
+
     float right = pc.boundsPosition.x + halfSize.x - pc.particleRadius;
+
     float bottom = pc.boundsPosition.y - halfSize.y + pc.particleRadius;
+
     float top = pc.boundsPosition.y + halfSize.y - pc.particleRadius;
 
     if (position.x < left)
     {
         position.x = left;
-        velocity.x = 0.0;
+        previousPosition.x = left;
     }
 
     if (position.x > right)
     {
         position.x = right;
-        velocity.x = 0.0;
+        previousPosition.x = right;
     }
 
     if (position.y < bottom)
     {
         position.y = bottom;
-        velocity.y = 0.0;
+        previousPosition.y = bottom;
     }
 
     if (position.y > top)
     {
         position.y = top;
-        velocity.y = 0.0;
+        previousPosition.y = top;
     }
 
-    velocities[i] = vec4(velocity, 0.0);
     positions[i] = vec4(position, 0.0);
 
+    previousPositions[i] = vec4(previousPosition, 0.0);
 }

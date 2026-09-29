@@ -12,20 +12,6 @@ namespace sph
     namespace
     {
 
-        struct SPHIntegratePushConstants
-        {
-            float dt = 0.0f;
-            float gravity = 0.0f;
-            float particleRadius = 0.0f;
-            uint32_t particleCount = 0;
-
-            alignas(16) aiko::vec4 gravityDirection = {};
-            alignas(16) aiko::vec4 boundsPosition = {};
-            alignas(16) aiko::vec4 boundsSize = {};
-        };
-
-        static_assert(sizeof(SPHIntegratePushConstants) == 64);
-
         struct SPHHashPushConstants
         {
             float smoothingRadius = 0.0f;
@@ -85,6 +71,92 @@ namespace sph
 
         static_assert(sizeof(SPHApplyViscosityPushConstants) == 4);
 
+        struct SPHDensityPushConstants
+        {
+            float smoothingRadius = 0.0f;
+            float restDensity = 0.0f;
+            float pressureStiffness = 0.0f;
+            float nearPressureStiffness = 0.0f;
+
+            uint32_t particleCount = 0;
+            uint32_t gridWidth = 0;
+            uint32_t gridHeight = 0;
+            uint32_t padding = 0;
+
+            alignas(16) aiko::vec4 boundsMin = {};
+        };
+
+        static_assert(sizeof(SPHDensityPushConstants) == 48);
+
+        struct SPHRelaxationPushConstants
+        {
+            float dt = 0.0f;
+            float smoothingRadius = 0.0f;
+            uint32_t particleCount = 0;
+            uint32_t gridWidth = 0;
+
+            uint32_t gridHeight = 0;
+            uint32_t padding0 = 0;
+            uint32_t padding1 = 0;
+            uint32_t padding2 = 0;
+
+            alignas(16) aiko::vec4 boundsMin = {};
+        };
+
+        static_assert(sizeof(SPHRelaxationPushConstants) == 48);
+
+        struct SPHApplyPositionDeltaPushConstants
+        {
+            uint32_t particleCount = 0;
+        };
+
+        static_assert(sizeof(SPHApplyPositionDeltaPushConstants) == 4);
+
+        struct SPHGravityPushConstants
+        {
+            float dt = 0.0f;
+            float gravity = 0.0f;
+            uint32_t particleCount = 0;
+            uint32_t padding = 0;
+
+            alignas(16) aiko::vec4 gravityDirection = {};
+        };
+
+        static_assert(sizeof(SPHGravityPushConstants) == 32);
+
+        struct SPHPredictPushConstants
+        {
+            float dt = 0.0f;
+            uint32_t particleCount = 0;
+            uint32_t padding0 = 0;
+            uint32_t padding1 = 0;
+        };
+
+        static_assert(sizeof(SPHPredictPushConstants) == 16);
+
+        struct SPHBoundaryPushConstants
+        {
+            float particleRadius = 0.0f;
+            uint32_t particleCount = 0;
+            uint32_t padding0 = 0;
+            uint32_t padding1 = 0;
+
+            alignas(16) aiko::vec4 boundsPosition = {};
+            alignas(16) aiko::vec4 boundsSize = {};
+        };
+
+        static_assert(sizeof(SPHBoundaryPushConstants) == 48);
+
+        struct SPHComputeVelocityPushConstants
+        {
+            float dt = 0.0f;
+            uint32_t particleCount = 0;
+            uint32_t padding0 = 0;
+            uint32_t padding1 = 0;
+        };
+
+        static_assert(sizeof(SPHComputeVelocityPushConstants) == 16);
+
     }
 
     void SPHGpuSimulation::init(aiko::AssetSystem& assetSystem, const aiko::vector<SPHParticle>& particles)
@@ -92,14 +164,17 @@ namespace sph
         m_particleCount = static_cast<uint32_t>(particles.size());
 
         aiko::vector<aiko::vec4> positions;
+        aiko::vector<aiko::vec4> previousPositions;
         aiko::vector<aiko::vec4> velocities;
 
         positions.reserve(m_particleCount);
+        previousPositions.reserve(m_particleCount);
         velocities.reserve(m_particleCount);
 
         for (const SPHParticle& particle : particles)
         {
             positions.emplace_back(particle.position.x, particle.position.y, particle.position.z, 0.0f);
+            previousPositions.emplace_back(particle.prevPosition.x, particle.prevPosition.y, particle.prevPosition.z, 0.0f);
             velocities.emplace_back(particle.velocity.x, particle.velocity.y, particle.velocity.z, 0.0f);
         }
 
@@ -124,20 +199,31 @@ namespace sph
             .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc
         };
 
-        m_cellKeyBuffer.create(uintBufferDesc, nullptr);
-        m_particleIndexBuffer.create(uintBufferDesc, nullptr);
-
         m_positionBuffer.create(positionBufferDesc, positions.data());
+        m_prevPositionBuffer.create(positionBufferDesc, previousPositions.data());
         m_velocityBuffer.create(velocityBufferDesc, velocities.data());
         m_velocityDeltaBuffer.create(velocityBufferDesc, nullptr);
 
-        m_updateShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_integrate");
+        m_densityBuffer.create(velocityBufferDesc, nullptr);
+        m_pressureBuffer.create(velocityBufferDesc, nullptr);
+        m_positionDeltaBuffer.create(velocityBufferDesc, nullptr);
+
+        m_cellKeyBuffer.create(uintBufferDesc, nullptr);
+        m_particleIndexBuffer.create(uintBufferDesc, nullptr);
+
+        m_gravityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_gravity");
+        m_predictShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_predict");
+        m_boundaryShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_boundary");
+        m_computeVelocityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_compute_velocity");
         m_hashShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_hash");
         m_sortShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_sort");
         m_cellRangeShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_cell_ranges");
         m_clearCellsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_clear_cells");
         m_viscosityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_viscosity");
         m_applyViscosityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_apply_viscosity");
+        m_densityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_density");
+        m_relaxationShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_relaxation");
+        m_applyPositionDeltaShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_apply_position_delta");
     }
 
     void SPHGpuSimulation::update(aiko::RenderSystem& renderSystem, const SPHParameters& parameters, const WorldBounds& bounds)
@@ -147,18 +233,31 @@ namespace sph
             return;
         }
 
-        // Settings
-        const SPHIntegratePushConstants constants
+        // gravity
+        const SPHGravityPushConstants gravityConstants
         {
             .dt = parameters.fixedDeltaTime,
             .gravity = parameters.gravity,
-            .particleRadius = parameters.particleRadius,
             .particleCount = m_particleCount,
+            .padding = 0,
 
-            .gravityDirection = { parameters.gravityDirection.x, parameters.gravityDirection.y, parameters.gravityDirection.z, 0.0f},
-            .boundsPosition = { bounds.position.x, bounds.position.y, bounds.position.z, 0.0f },
-            .boundsSize = { bounds.size.x, bounds.size.y, bounds.size.z, 0.0f }
+            .gravityDirection =
+            {
+                parameters.gravityDirection.x,
+                parameters.gravityDirection.y,
+                parameters.gravityDirection.z,
+                0.0f
+            }
         };
+
+        aiko::ComputePass gravityPass{};
+        gravityPass.buffers.push_back({0, &m_velocityBuffer, aiko::ComputeAccess::ReadWrite});
+
+        gravityPass.setPushConstants(gravityConstants);
+
+        gravityPass.dispatch.groupsX = (m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(gravityPass, m_gravityShaderId);
 
         // Hash
         const aiko::vec3 halfSize = bounds.size * 0.5f;
@@ -332,17 +431,246 @@ namespace sph
 
         renderSystem.dispatch(applyPass, m_applyViscosityShaderId);
 
-        // Integration
-        aiko::ComputePass integratePass{};
+        const SPHPredictPushConstants predictConstants
+        {
+            .dt = parameters.fixedDeltaTime,
+            .particleCount = m_particleCount
+        };
 
-        integratePass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
-        integratePass.buffers.push_back({1, &m_velocityBuffer, aiko::ComputeAccess::ReadWrite});
+        // Prediction
+        aiko::ComputePass predictPass{};
+        predictPass.buffers.push_back({ 0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
+        predictPass.buffers.push_back({ 1, &m_prevPositionBuffer, aiko::ComputeAccess::Write});
+        predictPass.buffers.push_back({ 2, &m_velocityBuffer, aiko::ComputeAccess::Read});
 
-        integratePass.setPushConstants(constants);
+        predictPass.setPushConstants(predictConstants);
 
-        integratePass.dispatch.groupsX = (m_particleCount + 63) / 64;
+        predictPass.dispatch.groupsX = (m_particleCount + 63) / 64;
 
-        renderSystem.dispatch(integratePass, m_updateShaderId);
+        renderSystem.dispatch(predictPass, m_predictShaderId);
+
+        // density
+        const SPHDensityPushConstants densityConstants
+        {
+            .smoothingRadius =
+                parameters.smoothingRadius,
+
+            .restDensity =
+                parameters.restDensity,
+
+            .pressureStiffness =
+                parameters.pressureStiffness,
+
+            .nearPressureStiffness =
+                parameters.nearPressureStiffness,
+
+            .particleCount =
+                m_particleCount,
+
+            .gridWidth =
+                m_gridWidth,
+
+            .gridHeight =
+                m_gridHeight,
+
+            .padding =
+                0,
+
+            .boundsMin =
+            {
+                left,
+                bottom,
+                0.0f,
+                0.0f
+            }
+        };
+
+        aiko::ComputePass densityPass{};
+
+        densityPass.buffers.push_back(
+            {0, &m_positionBuffer, aiko::ComputeAccess::Read});
+
+        densityPass.buffers.push_back(
+            {1, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
+
+        densityPass.buffers.push_back(
+            {2, &m_cellStartBuffer, aiko::ComputeAccess::Read});
+
+        densityPass.buffers.push_back(
+            {3, &m_cellEndBuffer, aiko::ComputeAccess::Read});
+
+        densityPass.buffers.push_back(
+            {4, &m_densityBuffer, aiko::ComputeAccess::Write});
+
+        densityPass.buffers.push_back(
+            {5, &m_pressureBuffer, aiko::ComputeAccess::Write});
+
+        densityPass.setPushConstants(
+            densityConstants);
+
+        densityPass.dispatch.groupsX =
+            (m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(
+            densityPass,
+            m_densityShaderId);
+
+        // relaxation
+        const SPHRelaxationPushConstants relaxationConstants
+        {
+            .dt =
+                parameters.fixedDeltaTime,
+
+            .smoothingRadius =
+                parameters.smoothingRadius,
+
+            .particleCount =
+                m_particleCount,
+
+            .gridWidth =
+                m_gridWidth,
+
+            .gridHeight =
+                m_gridHeight,
+
+            .boundsMin =
+            {
+                left,
+                bottom,
+                0.0f,
+                0.0f
+            }
+        };
+
+        aiko::ComputePass relaxationPass{};
+
+        relaxationPass.buffers.push_back(
+            {0, &m_positionBuffer, aiko::ComputeAccess::Read});
+
+        relaxationPass.buffers.push_back(
+            {1, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
+
+        relaxationPass.buffers.push_back(
+            {2, &m_cellStartBuffer, aiko::ComputeAccess::Read});
+
+        relaxationPass.buffers.push_back(
+            {3, &m_cellEndBuffer, aiko::ComputeAccess::Read});
+
+        relaxationPass.buffers.push_back(
+            {4, &m_pressureBuffer, aiko::ComputeAccess::Read});
+
+        relaxationPass.buffers.push_back(
+            {5, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
+
+        relaxationPass.setPushConstants(
+            relaxationConstants);
+
+        relaxationPass.dispatch.groupsX =
+            (m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(
+            relaxationPass,
+            m_relaxationShaderId);
+
+        // apply
+        const SPHApplyPositionDeltaPushConstants deltaConstants
+        {
+            .particleCount =
+                m_particleCount
+        };
+
+        aiko::ComputePass deltaPass{};
+
+        deltaPass.buffers.push_back(
+            {0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
+
+        deltaPass.buffers.push_back(
+            {1, &m_positionDeltaBuffer, aiko::ComputeAccess::Read});
+
+        deltaPass.setPushConstants(
+            deltaConstants);
+
+        deltaPass.dispatch.groupsX =
+            (m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(
+            deltaPass,
+            m_applyPositionDeltaShaderId);
+
+        // boundary
+        const SPHBoundaryPushConstants boundaryConstants
+        {
+            .particleRadius =
+                parameters.particleRadius,
+
+            .particleCount =
+                m_particleCount,
+
+            .boundsPosition =
+            {
+                bounds.position.x,
+                bounds.position.y,
+                bounds.position.z,
+                0.0f
+            },
+
+            .boundsSize =
+            {
+                bounds.size.x,
+                bounds.size.y,
+                bounds.size.z,
+                0.0f
+            }
+        };
+
+        aiko::ComputePass boundaryPass{};
+
+        boundaryPass.buffers.push_back(
+            {0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
+
+        boundaryPass.buffers.push_back(
+            {1, &m_prevPositionBuffer, aiko::ComputeAccess::ReadWrite});
+
+        boundaryPass.setPushConstants(
+            boundaryConstants);
+
+        boundaryPass.dispatch.groupsX =
+            (m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(
+            boundaryPass,
+            m_boundaryShaderId);
+
+        // velocity
+        const SPHComputeVelocityPushConstants velocityConstants
+        {
+            .dt =
+                parameters.fixedDeltaTime,
+
+            .particleCount =
+                m_particleCount
+        };
+
+        aiko::ComputePass velocityPass{};
+
+        velocityPass.buffers.push_back(
+            {0, &m_positionBuffer, aiko::ComputeAccess::Read});
+
+        velocityPass.buffers.push_back(
+            {1, &m_prevPositionBuffer, aiko::ComputeAccess::Read});
+
+        velocityPass.buffers.push_back(
+            {2, &m_velocityBuffer, aiko::ComputeAccess::Write});
+
+        velocityPass.setPushConstants(
+            velocityConstants);
+
+        velocityPass.dispatch.groupsX =
+            (m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(
+            velocityPass,
+            m_computeVelocityShaderId);
 
     }
 
