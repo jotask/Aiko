@@ -16,7 +16,6 @@ namespace sph
     {
 
     public:
-        static constexpr aiko::u64 N_PARTICLES = 1024;
 
         void init();
         void update();

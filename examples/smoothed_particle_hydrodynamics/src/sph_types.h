@@ -6,6 +6,8 @@
 namespace sph
 {
 
+    static constexpr aiko::u64 N_PARTICLES = 1024;
+
     struct SPHParticle
     {
         aiko::vec3 position = {};
