@@ -1,11 +1,9 @@
 #pragma once
 
-#include "math/math_vector.h"
+#include "sph_types.h"
 
 namespace sph
 {
-
-    class Simulation;
 
     struct EmitterSettings
     {
@@ -21,17 +19,15 @@ namespace sph
     class ParticleEmitter
     {
     public:
-        void init(Simulation*, const EmitterSettings);
-        void update();
+        void init(const EmitterSettings settings);
 
-        void spawn(float dt);
+        void spawn(float dt, aiko::vector<SPHParticle>& spawnedParticles);
         void rotate(float dt);
         void move(float dt);
 
         const EmitterSettings& settings() const { return m_settings; }
 
     private:
-        Simulation* m_simulation = nullptr;
         EmitterSettings m_settings = {};
         float m_time = 0.0f;
     };
