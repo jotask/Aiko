@@ -61,6 +61,30 @@ namespace sph
             uint32_t padding1 = 0;
         };
 
+        struct SPHViscosityPushConstants
+        {
+            float dt = 0.0f;
+            float smoothingRadius = 0.0f;
+            float sigma = 0.0f;
+            float beta = 0.0f;
+
+            uint32_t particleCount = 0;
+            uint32_t gridWidth = 0;
+            uint32_t gridHeight = 0;
+            uint32_t padding = 0;
+
+            alignas(16) aiko::vec4 boundsMin = {};
+        };
+
+        static_assert(sizeof(SPHViscosityPushConstants) == 48);
+
+        struct SPHApplyViscosityPushConstants
+        {
+            uint32_t particleCount = 0;
+        };
+
+        static_assert(sizeof(SPHApplyViscosityPushConstants) == 4);
+
     }
 
     void SPHGpuSimulation::init(aiko::AssetSystem& assetSystem, const aiko::vector<SPHParticle>& particles)
@@ -105,12 +129,15 @@ namespace sph
 
         m_positionBuffer.create(positionBufferDesc, positions.data());
         m_velocityBuffer.create(velocityBufferDesc, velocities.data());
+        m_velocityDeltaBuffer.create(velocityBufferDesc, nullptr);
 
         m_updateShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_integrate");
         m_hashShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_hash");
         m_sortShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_sort");
         m_cellRangeShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_cell_ranges");
         m_clearCellsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_clear_cells");
+        m_viscosityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_viscosity");
+        m_applyViscosityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_apply_viscosity");
     }
 
     void SPHGpuSimulation::update(aiko::RenderSystem& renderSystem, const SPHParameters& parameters, const WorldBounds& bounds)
@@ -132,19 +159,6 @@ namespace sph
             .boundsPosition = { bounds.position.x, bounds.position.y, bounds.position.z, 0.0f },
             .boundsSize = { bounds.size.x, bounds.size.y, bounds.size.z, 0.0f }
         };
-
-        aiko::ComputePass pass{};
-
-        pass.buffers.push_back({ 0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
-        pass.buffers.push_back({ 1, &m_velocityBuffer, aiko::ComputeAccess::ReadWrite});
-
-        pass.setPushConstants(constants);
-
-        pass.dispatch.groupsX = (m_particleCount + 63) / 64;
-        pass.dispatch.groupsY = 1;
-        pass.dispatch.groupsZ = 1;
-
-        renderSystem.dispatch(pass, m_updateShaderId);
 
         // Hash
         const aiko::vec3 halfSize = bounds.size * 0.5f;
@@ -252,6 +266,7 @@ namespace sph
             .cellCount = m_cellCount
         };
 
+        // Range builder
         aiko::ComputePass rangePass{};
 
         rangePass.buffers.push_back({0, &m_cellKeyBuffer, aiko::ComputeAccess::Read});
@@ -263,6 +278,71 @@ namespace sph
         rangePass.dispatch.groupsX = (m_particleCount + 63) / 64;
 
         renderSystem.dispatch(rangePass, m_cellRangeShaderId);
+
+        const SPHViscosityPushConstants viscosityConstants
+        {
+            .dt = parameters.fixedDeltaTime,
+            .smoothingRadius = parameters.smoothingRadius,
+            .sigma = parameters.sigma,
+            .beta = parameters.beta,
+
+            .particleCount = m_particleCount,
+            .gridWidth = m_gridWidth,
+            .gridHeight = m_gridHeight,
+            .padding = 0,
+
+            .boundsMin =
+            {
+                left,
+                bottom,
+                0.0f,
+                0.0f
+            }
+        };
+
+        aiko::ComputePass viscosityPass{};
+
+        viscosityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
+        viscosityPass.buffers.push_back({ 1, &m_velocityBuffer, aiko::ComputeAccess::Read});
+        viscosityPass.buffers.push_back({2, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
+        viscosityPass.buffers.push_back({3, &m_cellStartBuffer, aiko::ComputeAccess::Read});
+        viscosityPass.buffers.push_back({4, &m_cellEndBuffer, aiko::ComputeAccess::Read});
+        viscosityPass.buffers.push_back({ 5, &m_velocityDeltaBuffer, aiko::ComputeAccess::Write});
+
+        viscosityPass.setPushConstants(viscosityConstants);
+
+        viscosityPass.dispatch.groupsX =(m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(viscosityPass, m_viscosityShaderId);
+
+        // Apply viscocity
+        const SPHApplyViscosityPushConstants applyConstants
+        {
+            .particleCount = m_particleCount
+        };
+
+        aiko::ComputePass applyPass{};
+
+        applyPass.buffers.push_back({0, &m_velocityBuffer, aiko::ComputeAccess::ReadWrite});
+        applyPass.buffers.push_back({1, &m_velocityDeltaBuffer, aiko::ComputeAccess::Read});
+
+        applyPass.setPushConstants(applyConstants);
+
+        applyPass.dispatch.groupsX = (m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(applyPass, m_applyViscosityShaderId);
+
+        // Integration
+        aiko::ComputePass integratePass{};
+
+        integratePass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
+        integratePass.buffers.push_back({1, &m_velocityBuffer, aiko::ComputeAccess::ReadWrite});
+
+        integratePass.setPushConstants(constants);
+
+        integratePass.dispatch.groupsX = (m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(integratePass, m_updateShaderId);
 
     }
 

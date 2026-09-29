@@ -27,6 +27,7 @@ namespace sph
     private:
         aiko::ComputeBuffer m_positionBuffer;
         aiko::ComputeBuffer m_velocityBuffer;
+        aiko::ComputeBuffer m_velocityDeltaBuffer;
 
         aiko::ComputeBuffer m_cellKeyBuffer;
         aiko::ComputeBuffer m_particleIndexBuffer;
@@ -39,6 +40,8 @@ namespace sph
         aiko::AssetId m_sortShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_cellRangeShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_clearCellsShaderId = aiko::InvalidAssetId;
+        aiko::AssetId m_viscosityShaderId = aiko::InvalidAssetId;
+        aiko::AssetId m_applyViscosityShaderId = aiko::InvalidAssetId;
 
         uint32_t m_particleCount = 0;
 
