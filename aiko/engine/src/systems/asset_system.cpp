@@ -62,6 +62,11 @@ namespace aiko
 
     }
 
+    AssetId AssetSystem::registerShader(string_view vertexSource, string_view fragmentSource)
+    {
+        return m_assetModule->getManager()->registerShader(vertexSource, fragmentSource);
+    }
+
     void AssetSystem::connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector)
     {
         BIND_MODULE_REQUIRED(RenderModule, moduleConnector, m_renderModule);

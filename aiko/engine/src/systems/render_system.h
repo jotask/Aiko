@@ -50,6 +50,7 @@ namespace aiko
 
         void renderInstanced( const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
+        void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
 
         void dispatch(const ComputePass& pass, const AssetId& shaderId);
         void dispatch(const ComputePass& pass, const ComputeShaderComponent& component);

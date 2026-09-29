@@ -16,6 +16,7 @@ namespace aiko
     class Camera;
     class RenderTarget;
     class Font;
+    struct GpuInstanceDrawDesc;
 
     class RenderContext
     {
@@ -24,6 +25,7 @@ namespace aiko
         void drawMesh(const Transform& transform, const Mesh& mesh, const Material& material);
         void drawMeshInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
+        void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
         void renderToTarget(const Camera& camera, RenderTarget& target);
         void drawText(const Font& font, string_view text, const Transform& transform, float fontSize, Color color = WHITE);
 

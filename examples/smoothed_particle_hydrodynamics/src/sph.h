@@ -16,6 +16,7 @@ namespace aiko
 {
     class SystemConnector;
     class RenderSystem;
+    class AssetSystem;
 };
 
 namespace sph
@@ -34,6 +35,7 @@ namespace sph
 
     private:
         aiko::RenderSystem* m_renderSystem = nullptr;
+        aiko::AssetSystem* m_assetSystem = nullptr;
         aiko::CameraComponent* m_cameraComponent = nullptr;
         Playground m_playground;
     };

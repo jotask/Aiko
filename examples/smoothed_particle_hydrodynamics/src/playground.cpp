@@ -5,16 +5,23 @@
 #include "layers/contexts/render_context.h"
 #include "models/mesh_factory.h"
 #include "systems/render_system.h"
+#include "systems/asset_system.h"
 
 namespace sph
 {
 
+    namespace
+    {
+        constexpr bool EnableGpuSimulation = true;
+    }
+
     Playground::Playground() = default;
     Playground::~Playground() = default;
 
-    void Playground::init(const aiko::AssetId& shaderId)
+    void Playground::init(const aiko::AssetId& shaderId, const aiko::AssetId& gpuShaderId, aiko::AssetSystem& assetSystem)
     {
         m_simulation.init();
+        m_gpuSimulation.init(assetSystem, m_simulation.particles());
 
         const auto& shapes = m_simulation.shapes();
         m_shapeRenderData.resize(shapes.size());
@@ -35,13 +42,25 @@ namespace sph
         m_particleMaterial.m_useVertexColor = true;
         m_particleMaterial.m_lit = false;
         m_particleMaterial.m_baseColor = aiko::WHITE;
+
+        m_gpuParticleMaterial.m_shaderId = gpuShaderId;
+        m_gpuParticleMaterial.m_baseColor = aiko::BLUE;
+        m_gpuParticleMaterial.m_useVertexColor = false;
+        m_gpuParticleMaterial.m_lit = false;
+
+        m_gpuParticleMaterial.setFloat("u_particleDiameter", m_simulation.parameters().particleRadius * 2.0f);
+
     }
 
     void Playground::update(const aiko::InputContext& input, const aiko::vec3& mousePosition)
     {
         AIKO_FUNCTION_PROFILE
-        m_simulation.update();
-        m_simulation.neighboursSearch(mousePosition);
+
+        if constexpr (EnableGpuSimulation == false)
+        {
+            m_simulation.update();
+            m_simulation.neighboursSearch(mousePosition);
+        }
 
         if (input.isMouseButtonJustPressed(aiko::MouseButton::MOUSE_BUTTON_LEFT))
         {
@@ -77,31 +96,48 @@ namespace sph
     {
         AIKO_FUNCTION_PROFILE
         // Particles
-        const auto& particles = m_simulation.particles();
 
-        m_particleInstances.resize(particles.size());
-
-        const float diameter = m_simulation.parameters().particleRadius * 2.0f;
-
-        for (size_t i = 0; i < particles.size(); ++i)
+        if constexpr (EnableGpuSimulation == false)
         {
-            const SPHParticle& particle = particles[i];
+            const auto& particles = m_simulation.particles();
 
-            m_particleInstances[i] =
+            m_particleInstances.resize(particles.size());
+
+            const float diameter = m_simulation.parameters().particleRadius * 2.0f;
+
+            for (size_t i = 0; i < particles.size(); ++i)
             {
-                .position = particle.position,
-                .rotation = {0.0f, 0.0f, 0.0f},
-                .scale =
-                {
-                    diameter,
-                    diameter,
-                    diameter
-                },
-                .color = particle.color
-            };
-        }
+                const SPHParticle& particle = particles[i];
 
-        renderer.drawMeshInstanced(m_particleMesh, m_particleMaterial, m_particleInstances.data(), static_cast<aiko::u32>(m_particleInstances.size()));
+                m_particleInstances[i] =
+                {
+                    .position = particle.position,
+                    .rotation = {0.0f, 0.0f, 0.0f},
+                    .scale =
+                    {
+                        diameter,
+                        diameter,
+                        diameter
+                    },
+                    .color = particle.color
+                };
+            }
+
+            renderer.drawMeshInstanced(m_particleMesh, m_particleMaterial, m_particleInstances.data(), static_cast<aiko::u32>(m_particleInstances.size()));
+        }
+        else
+        {
+
+            m_gpuSimulation.update(renderSystem, m_simulation.parameters(), m_simulation.bounds());
+
+            aiko::GpuInstanceDrawDesc draw{};
+            draw.mesh = &m_particleMesh;
+            draw.material = &m_gpuParticleMaterial;
+            draw.readBuffers.push_back({7, &m_gpuSimulation.positionBuffer()});
+            draw.instanceCount = m_gpuSimulation.particleCount();
+
+            renderer.drawMeshInstancedGpu(draw);
+        }
 
         // Emitters
         const auto& emitters = m_simulation.emitters();

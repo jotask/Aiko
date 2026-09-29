@@ -4,6 +4,7 @@
 #include "layers/contexts/input_context.h"
 #include "layers/contexts/scene_context.h"
 #include "systems/render_system.h"
+#include "systems/asset_system.h"
 #include "systems/system_connector.h"
 
 #include <models/frame_buffer.h>
@@ -21,6 +22,7 @@ namespace sph
     void SPHFluidSimulation::connect(aiko::SystemConnector& systemConnector)
     {
         BIND_SYSTEM_REQUIRED_REF(aiko::RenderSystem, systemConnector, m_renderSystem);
+        BIND_SYSTEM_REQUIRED_REF(aiko::AssetSystem, systemConnector, m_assetSystem);
     }
 
     void SPHFluidSimulation::init()
@@ -38,7 +40,7 @@ namespace sph
         m_cameraComponent->setCameraType(aiko::Camera::CameraType::Orthographic);
         m_cameraComponent->getCamera().position = camera->transform().position;
 
-        m_playground.init(assets().loadShader("model"));
+        m_playground.init(assets().loadShader("model"), assets().loadShader("sph_gpuinst.vs", "model.fs"), *m_assetSystem);
 
     }
 
@@ -72,7 +74,6 @@ namespace sph
             const float t = -ray.origin.z / ray.direction.z;
             mouseWorld = ray.origin + ray.direction * t;
         }
-
 
         m_playground.update(input(), mouseWorld);
     }

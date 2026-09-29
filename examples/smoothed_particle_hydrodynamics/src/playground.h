@@ -4,6 +4,7 @@
 #include "models/material.h"
 #include "models/mesh.h"
 #include "simulation.h"
+#include "sph_gpu_simulation.h"
 #include "types/draw_types.h"
 
 #include <array>
@@ -12,6 +13,7 @@
 
 namespace aiko
 {
+    class AssetSystem;
     class RenderContext;
     class RenderSystem;
 }
@@ -26,16 +28,18 @@ namespace sph
         Playground();
         ~Playground();
 
-        void init(const aiko::AssetId& shaderId);
+        void init(const aiko::AssetId& shaderId, const aiko::AssetId& gpuShaderId, aiko::AssetSystem& assetSystem);
         void update(const aiko::InputContext& input, const aiko::vec3& mousePosition);
         void render(aiko::RenderContext& renderer, aiko::RenderSystem& renderSystem);
 
     private:
 
         Simulation m_simulation;
+        SPHGpuSimulation m_gpuSimulation;
 
         aiko::Mesh m_particleMesh;
         aiko::Material m_particleMaterial;
+        aiko::Material m_gpuParticleMaterial;
 
         struct ShapeRenderData
         {

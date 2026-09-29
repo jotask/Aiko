@@ -27,6 +27,9 @@ namespace aiko
         AssetSystem();
         virtual ~AssetSystem() = default;
 
+
+        AssetId registerShader(string_view vertexSource, string_view fragmentSource);
+
         template<typename T>
         AssetId registerAsset(string_view source)
         {
