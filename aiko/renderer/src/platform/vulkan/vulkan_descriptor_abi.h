@@ -19,7 +19,7 @@ namespace aiko::renderer::vulkan::abi
 
     static constexpr uint32_t ComputeSet = 0;
 
-    static constexpr uint32_t MaxComputeBufferBindings = 4;
+    static constexpr uint32_t MaxComputeBufferBindings = 8;
     static constexpr uint32_t MaxComputeImageBindings = 8;
 
     static constexpr uint32_t ComputeBufferBindingBase = 0;
