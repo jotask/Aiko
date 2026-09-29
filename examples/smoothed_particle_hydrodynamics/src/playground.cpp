@@ -1,6 +1,7 @@
 #include "playground.h"
 
 #include "assets/types/mesh_asset.h"
+#include "intrumentor/profiler.h"
 #include "layers/contexts/render_context.h"
 #include "models/mesh_factory.h"
 #include "systems/render_system.h"
@@ -38,6 +39,7 @@ namespace sph
 
     void Playground::update(const aiko::InputContext& input, const aiko::vec3& mousePosition)
     {
+        AIKO_FUNCTION_PROFILE
         m_simulation.update();
         m_simulation.neighboursSearch(mousePosition);
 
@@ -73,7 +75,7 @@ namespace sph
 
     void Playground::render(aiko::RenderContext& renderer, aiko::RenderSystem& renderSystem)
     {
-
+        AIKO_FUNCTION_PROFILE
         // Particles
         const auto& particles = m_simulation.particles();
 

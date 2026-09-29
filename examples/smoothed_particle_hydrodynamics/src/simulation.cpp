@@ -1,5 +1,6 @@
 #include "simulation.h"
 
+#include "intrumentor/profiler.h"
 #include "math/math.h"
 #include "models/mesh_factory.h"
 
@@ -13,7 +14,7 @@ namespace sph
 
     void Simulation::init()
     {
-
+        AIKO_FUNCTION_PROFILE
         m_particles.reserve(N_PARTICLES + 1024);
         m_particles.resize(N_PARTICLES);
 
@@ -73,6 +74,9 @@ namespace sph
 
     void Simulation::update()
     {
+        AIKO_FUNCTION_PROFILE
+        AIKO_PLOT("SPH Particles", static_cast<double>(m_particles.size()));
+        AIKO_PLOT("SPH Springs", static_cast<double>(m_springs.size()));
         const float dt = m_parameters.fixedDeltaTime;
         if (dt <= 0.0f)
         {
@@ -101,6 +105,7 @@ namespace sph
 
     void Simulation::predictPositions(float dt)
     {
+        AIKO_FUNCTION_PROFILE
         for (size_t i = 0 ; i < m_particles.size(); ++i)
         {
             SPHParticle& p = m_particles[i];
@@ -111,6 +116,7 @@ namespace sph
 
     void Simulation::computeNextVelocity(float dt)
     {
+        AIKO_FUNCTION_PROFILE
         for (size_t i = 0 ; i < m_particles.size(); ++i)
         {
             SPHParticle& p = m_particles[i];
@@ -121,6 +127,7 @@ namespace sph
 
     void Simulation::viscosity(float dt)
     {
+        AIKO_FUNCTION_PROFILE
         for (size_t i = 0 ; i < m_particles.size(); ++i)
         {
             aiko::vector<size_t> neighbours = m_hashGrid.getNeighbourOfParticlesIdx(i);
@@ -160,6 +167,7 @@ namespace sph
 
     void Simulation::adjustSpring(float dt)
     {
+        AIKO_FUNCTION_PROFILE
         for (size_t i = 0 ; i < m_particles.size() ; ++i)
         {
             auto neighbours = m_hashGrid.getNeighbourOfParticlesIdx(i);
@@ -235,6 +243,7 @@ namespace sph
 
     void Simulation::springDisplacement(float dt)
     {
+        AIKO_FUNCTION_PROFILE
         for (auto& [key, spring] : m_springs)
         {
             SPHParticle& particleA = m_particles[spring.particleA];
@@ -259,6 +268,7 @@ namespace sph
 
     void Simulation::doubleDensityRelaxation(float dt)
     {
+        AIKO_FUNCTION_PROFILE
         for (size_t i = 0 ; i < m_particles.size(); ++i)
         {
             float density = 0.0f;
@@ -313,6 +323,7 @@ namespace sph
 
     void Simulation::applyGravity(float dt)
     {
+        AIKO_FUNCTION_PROFILE
         for (size_t i = 0 ; i < m_particles.size(); ++i)
         {
             SPHParticle& p = m_particles[i];
@@ -322,6 +333,7 @@ namespace sph
 
     void Simulation::handleOneWayCoupling()
     {
+        AIKO_FUNCTION_PROFILE
         for (SPHParticle& particle: m_particles)
         {
             for (const Shape& shape: m_shapes)
@@ -337,6 +349,7 @@ namespace sph
 
     void Simulation::handleStickiness(float dt)
     {
+        AIKO_FUNCTION_PROFILE
         for (SPHParticle& particle : m_particles)
         {
             for (const Shape& shape : m_shapes)
@@ -366,6 +379,7 @@ namespace sph
 
     void Simulation::neighboursSearch(const aiko::vec3& mousePosition)
     {
+        AIKO_FUNCTION_PROFILE
         m_hashGrid.clearGrid();
         m_hashGrid.mapParticlesToCell();
 
@@ -413,6 +427,7 @@ namespace sph
 
     void Simulation::worldBoundary()
     {
+        AIKO_FUNCTION_PROFILE
         const aiko::vec3 halfSize = m_bounds.size * 0.5f;
 
         const float radius = m_parameters.particleRadius;

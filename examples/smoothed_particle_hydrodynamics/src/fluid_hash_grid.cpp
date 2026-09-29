@@ -1,5 +1,6 @@
 #include "fluid_hash_grid.h"
 
+#include "intrumentor/profiler.h"
 #include "simulation.h"
 
 #include <cmath>
@@ -20,6 +21,7 @@ namespace sph
 
     void FluidHashGrid::clearGrid()
     {
+        AIKO_FUNCTION_PROFILE
         m_hashMap = {};
     }
 
@@ -77,6 +79,7 @@ namespace sph
 
     void FluidHashGrid::mapParticlesToCell()
     {
+        AIKO_FUNCTION_PROFILE
         const auto& particles = m_simulation->particles();
 
         for (size_t i = 0; i < particles.size(); ++i)
