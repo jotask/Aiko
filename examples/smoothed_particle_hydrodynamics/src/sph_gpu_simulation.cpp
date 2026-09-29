@@ -157,15 +157,19 @@ namespace sph
 
         static_assert(sizeof(SPHComputeVelocityPushConstants) == 16);
 
+        static constexpr uint32_t EmptySpringKey = 0xFFFFFFFFu;
+        static constexpr uint32_t MaxPackedParticleCount = 1u << 16;
+
         struct GpuSpring
         {
-            uint32_t particleA = 0;
-            uint32_t particleB = 0;
+            uint32_t pairKey = EmptySpringKey;
             float restLength = 0.0f;
             uint32_t enabled = 0;
+            uint32_t padding = 0;
         };
 
         static_assert(sizeof(GpuSpring) == 16);
+        static_assert((MaxSprings & (MaxSprings - 1)) == 0);
 
         struct SPHGenerateSpringsPushConstants
         {
@@ -218,7 +222,10 @@ namespace sph
 
     void SPHGpuSimulation::init(aiko::AssetSystem& assetSystem, const aiko::vector<SPHParticle>& particles)
     {
+
         m_particleCount = static_cast<uint32_t>(particles.size());
+
+        AIKO_ASSERT(m_particleCount <= MaxPackedParticleCount, "Packed GPU spring keys support at most 65536 particles");
 
         aiko::vector<aiko::vec4> positions;
         aiko::vector<aiko::vec4> previousPositions;
@@ -264,15 +271,6 @@ namespace sph
             .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc | aiko::ComputeBufferUsage::TransferDst
         };
 
-        const uint32_t initialSpringCount = 0;
-
-        const aiko::ComputeBufferDesc springCountBufferDesc
-        {
-            .format = aiko::ComputeBufferFormat::Uint32,
-            .count = 1,
-            .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc | aiko::ComputeBufferUsage::TransferDst
-        };
-
         m_positionBuffer.create(positionBufferDesc, positions.data());
         m_prevPositionBuffer.create(positionBufferDesc, previousPositions.data());
         m_velocityBuffer.create(velocityBufferDesc, velocities.data());
@@ -282,8 +280,8 @@ namespace sph
         m_pressureBuffer.create(velocityBufferDesc, nullptr);
         m_positionDeltaBuffer.create(velocityBufferDesc, nullptr);
 
-        m_springBuffer.create(springBufferDesc, nullptr);
-        m_springCountBuffer.create(springCountBufferDesc, &initialSpringCount);
+        aiko::vector<GpuSpring> initialSprings(MaxSprings);
+        m_springBuffer.create(springBufferDesc, initialSprings.data());
 
         m_cellKeyBuffer.create(uintBufferDesc, nullptr);
         m_particleIndexBuffer.create(uintBufferDesc, nullptr);
@@ -302,7 +300,6 @@ namespace sph
         m_relaxationShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_relaxation");
         m_applyPositionDeltaShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_apply_position_delta");
 
-        m_clearSpringCountShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_clear_spring_count");
         m_generateSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_generate_springs");
         m_springPlasticityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_spring_plasticity");
         m_springDisplacementShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_spring_displacement");
@@ -532,16 +529,6 @@ namespace sph
 
         renderSystem.dispatch(predictPass, m_predictShaderId);
 
-        // Clear spring count
-        aiko::ComputePass clearSpringCountPass{};
-        clearSpringCountPass.buffers.push_back({ 0, &m_springCountBuffer, aiko::ComputeAccess::Write});
-
-        clearSpringCountPass.dispatch.groupsX = 1;
-        clearSpringCountPass.dispatch.groupsY = 1;
-        clearSpringCountPass.dispatch.groupsZ = 1;
-
-        renderSystem.dispatch(clearSpringCountPass,m_clearSpringCountShaderId);
-
         // Generate springs
         const SPHGenerateSpringsPushConstants springConstants
         {
@@ -562,8 +549,7 @@ namespace sph
         springPass.buffers.push_back({ 1, &m_particleIndexBuffer, aiko::ComputeAccess::Read });
         springPass.buffers.push_back({ 2, &m_cellStartBuffer, aiko::ComputeAccess::Read });
         springPass.buffers.push_back({ 3, &m_cellEndBuffer, aiko::ComputeAccess::Read });
-        springPass.buffers.push_back({ 4, &m_springBuffer, aiko::ComputeAccess::Write });
-        springPass.buffers.push_back({ 5, &m_springCountBuffer, aiko::ComputeAccess::ReadWrite });
+        springPass.buffers.push_back({4, &m_springBuffer, aiko::ComputeAccess::ReadWrite});
 
         springPass.setPushConstants(springConstants);
 
@@ -587,7 +573,6 @@ namespace sph
         aiko::ComputePass springPlasticityPass{};
         springPlasticityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         springPlasticityPass.buffers.push_back({1, &m_springBuffer, aiko::ComputeAccess::ReadWrite});
-        springPlasticityPass.buffers.push_back({2, &m_springCountBuffer, aiko::ComputeAccess::Read});
 
         springPlasticityPass.setPushConstants(springPlasticityConstants);
 
@@ -609,8 +594,7 @@ namespace sph
         aiko::ComputePass springDisplacementPass{};
         springDisplacementPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         springDisplacementPass.buffers.push_back({1, &m_springBuffer, aiko::ComputeAccess::Read});
-        springDisplacementPass.buffers.push_back({2, &m_springCountBuffer, aiko::ComputeAccess::Read});
-        springDisplacementPass.buffers.push_back({3, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
+        springDisplacementPass.buffers.push_back({2, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
 
         springDisplacementPass.setPushConstants(springDisplacementConstants);
 

@@ -2,12 +2,14 @@
 
 layout(local_size_x = 64) in;
 
+const uint EMPTY_SPRING_KEY = 0xFFFFFFFFu;
+
 struct Spring
 {
-    uint particleA;
-    uint particleB;
+    uint pairKey;
     float restLength;
     uint enabled;
+    uint padding;
 };
 
 layout(std430, binding = 0)
@@ -20,12 +22,6 @@ layout(std430, binding = 1)
 buffer Springs
 {
     Spring springs[];
-};
-
-layout(std430, binding = 2)
-readonly buffer SpringCount
-{
-    uint springCount[];
 };
 
 layout(push_constant)
@@ -42,27 +38,37 @@ uniform PushConstants
     uint padding2;
 } pc;
 
+uint getParticleA(uint pairKey)
+{
+    return pairKey >> 16;
+}
+
+uint getParticleB(uint pairKey)
+{
+    return pairKey & 0xFFFFu;
+}
+
 void main()
 {
     uint springIndex = gl_GlobalInvocationID.x;
 
-    uint count = min(springCount[0], pc.maxSprings);
-
-    if (springIndex >= count)
+    if (springIndex >= pc.maxSprings)
     {
         return;
     }
 
     Spring spring = springs[springIndex];
 
-    if (spring.enabled == 0)
+    if (spring.pairKey == EMPTY_SPRING_KEY || spring.enabled == 0u)
     {
         return;
     }
 
-    vec3 positionA = positions[spring.particleA].xyz;
+    uint particleA = getParticleA(spring.pairKey);
+    uint particleB = getParticleB(spring.pairKey);
 
-    vec3 positionB = positions[spring.particleB].xyz;
+    vec3 positionA = positions[particleA].xyz;
+    vec3 positionB = positions[particleB].xyz;
 
     float distance = length(positionA - positionB);
 
