@@ -59,6 +59,8 @@ namespace sph
 
         aiko::AssetId m_clearSpringCountShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_generateSpringsShaderId = aiko::InvalidAssetId;
+        aiko::AssetId m_springPlasticityShaderId = aiko::InvalidAssetId;
+        aiko::AssetId m_springDisplacementShaderId = aiko::InvalidAssetId;
 
         uint32_t m_particleCount = 0;
 

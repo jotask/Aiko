@@ -1,0 +1,86 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+struct Spring
+{
+    uint particleA;
+    uint particleB;
+    float restLength;
+    uint enabled;
+};
+
+layout(std430, binding = 0)
+readonly buffer Positions
+{
+    vec4 positions[];
+};
+
+layout(std430, binding = 1)
+buffer Springs
+{
+    Spring springs[];
+};
+
+layout(std430, binding = 2)
+readonly buffer SpringCount
+{
+    uint springCount[];
+};
+
+layout(push_constant)
+uniform PushConstants
+{
+    float dt;
+    float gamma;
+    float plasticity;
+    float smoothingRadius;
+
+    uint maxSprings;
+    uint padding0;
+    uint padding1;
+    uint padding2;
+} pc;
+
+void main()
+{
+    uint springIndex = gl_GlobalInvocationID.x;
+
+    uint count = min(springCount[0], pc.maxSprings);
+
+    if (springIndex >= count)
+    {
+        return;
+    }
+
+    Spring spring = springs[springIndex];
+
+    if (spring.enabled == 0)
+    {
+        return;
+    }
+
+    vec3 positionA = positions[spring.particleA].xyz;
+
+    vec3 positionB = positions[spring.particleB].xyz;
+
+    float distance = length(positionA - positionB);
+
+    float deformation = pc.gamma * spring.restLength;
+
+    if (distance > spring.restLength + deformation)
+    {
+        spring.restLength += pc.dt * pc.plasticity * (distance - spring.restLength - deformation);
+    }
+    else if (distance < spring.restLength - deformation)
+    {
+        spring.restLength -= pc.dt * pc.plasticity * ( spring.restLength - deformation - distance );
+    }
+
+    if (spring.restLength > pc.smoothingRadius)
+    {
+        spring.enabled = 0;
+    }
+
+    springs[springIndex] = spring;
+}

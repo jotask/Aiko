@@ -184,6 +184,36 @@ namespace sph
 
         static_assert(sizeof(SPHGenerateSpringsPushConstants) == 48);
 
+        struct SPHSpringPlasticityPushConstants
+        {
+            float dt = 0.0f;
+            float gamma = 0.0f;
+            float plasticity = 0.0f;
+            float smoothingRadius = 0.0f;
+
+            uint32_t maxSprings = 0;
+            uint32_t padding0 = 0;
+            uint32_t padding1 = 0;
+            uint32_t padding2 = 0;
+        };
+
+        static_assert(sizeof(SPHSpringPlasticityPushConstants) == 32);
+
+        struct SPHSpringDisplacementPushConstants
+        {
+            float dt = 0.0f;
+            float smoothingRadius = 0.0f;
+            float springStiffness = 0.0f;
+            uint32_t particleCount = 0;
+
+            uint32_t maxSprings = 0;
+            uint32_t padding0 = 0;
+            uint32_t padding1 = 0;
+            uint32_t padding2 = 0;
+        };
+
+        static_assert(sizeof(SPHSpringDisplacementPushConstants) == 32);
+
     }
 
     void SPHGpuSimulation::init(aiko::AssetSystem& assetSystem, const aiko::vector<SPHParticle>& particles)
@@ -274,6 +304,8 @@ namespace sph
 
         m_clearSpringCountShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_clear_spring_count");
         m_generateSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_generate_springs");
+        m_springPlasticityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_spring_plasticity");
+        m_springDisplacementShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_spring_displacement");
     }
 
     void SPHGpuSimulation::update(aiko::RenderSystem& renderSystem, const SPHParameters& parameters, const WorldBounds& bounds)
@@ -542,6 +574,66 @@ namespace sph
 
         renderSystem.dispatch(springPass, m_generateSpringsShaderId);
 
+        // Spring plasticity
+        const SPHSpringPlasticityPushConstants springPlasticityConstants
+        {
+            .dt = parameters.fixedDeltaTime,
+            .gamma = parameters.gamma,
+            .plasticity = parameters.plasticity,
+            .smoothingRadius = parameters.smoothingRadius,
+            .maxSprings = MaxSprings
+        };
+
+        aiko::ComputePass springPlasticityPass{};
+        springPlasticityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
+        springPlasticityPass.buffers.push_back({1, &m_springBuffer, aiko::ComputeAccess::ReadWrite});
+        springPlasticityPass.buffers.push_back({2, &m_springCountBuffer, aiko::ComputeAccess::Read});
+
+        springPlasticityPass.setPushConstants(springPlasticityConstants);
+
+        springPlasticityPass.dispatch.groupsX =(MaxSprings + 63) / 64;
+
+        renderSystem.dispatch(springPlasticityPass, m_springPlasticityShaderId);
+
+        // Spring displacement
+        const SPHSpringDisplacementPushConstants springDisplacementConstants
+        {
+            .dt = parameters.fixedDeltaTime,
+            .smoothingRadius = parameters.smoothingRadius,
+            .springStiffness = parameters.springStiffness,
+            .particleCount = m_particleCount,
+
+            .maxSprings = MaxSprings
+        };
+
+        aiko::ComputePass springDisplacementPass{};
+        springDisplacementPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
+        springDisplacementPass.buffers.push_back({1, &m_springBuffer, aiko::ComputeAccess::Read});
+        springDisplacementPass.buffers.push_back({2, &m_springCountBuffer, aiko::ComputeAccess::Read});
+        springDisplacementPass.buffers.push_back({3, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
+
+        springDisplacementPass.setPushConstants(springDisplacementConstants);
+
+        springDisplacementPass.dispatch.groupsX = (m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(springDisplacementPass, m_springDisplacementShaderId);
+
+        // apply-position-delta
+        const SPHApplyPositionDeltaPushConstants springDeltaConstants
+        {
+            .particleCount = m_particleCount
+        };
+
+        aiko::ComputePass applySpringDeltaPass{};
+        applySpringDeltaPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
+        applySpringDeltaPass.buffers.push_back({1, &m_positionDeltaBuffer, aiko::ComputeAccess::Read});
+
+        applySpringDeltaPass.setPushConstants(springDeltaConstants);
+
+        applySpringDeltaPass.dispatch.groupsX = (m_particleCount + 63) / 64;
+
+        renderSystem.dispatch(applySpringDeltaPass, m_applyPositionDeltaShaderId);
+
         // density
         const SPHDensityPushConstants densityConstants
         {
@@ -573,65 +665,32 @@ namespace sph
         // relaxation
         const SPHRelaxationPushConstants relaxationConstants
         {
-            .dt =
-                parameters.fixedDeltaTime,
-
-            .smoothingRadius =
-                parameters.smoothingRadius,
-
-            .particleCount =
-                m_particleCount,
-
-            .gridWidth =
-                m_gridWidth,
-
-            .gridHeight =
-                m_gridHeight,
-
-            .boundsMin =
-            {
-                left,
-                bottom,
-                0.0f,
-                0.0f
-            }
+            .dt = parameters.fixedDeltaTime,
+            .smoothingRadius = parameters.smoothingRadius,
+            .particleCount = m_particleCount,
+            .gridWidth = m_gridWidth,
+            .gridHeight = m_gridHeight,
+            .boundsMin ={ left, bottom, 0.0f, 0.0f}
         };
 
         aiko::ComputePass relaxationPass{};
+        relaxationPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
+        relaxationPass.buffers.push_back({1, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
+        relaxationPass.buffers.push_back({2, &m_cellStartBuffer, aiko::ComputeAccess::Read});
+        relaxationPass.buffers.push_back({3, &m_cellEndBuffer, aiko::ComputeAccess::Read});
+        relaxationPass.buffers.push_back({4, &m_pressureBuffer, aiko::ComputeAccess::Read});
+        relaxationPass.buffers.push_back({5, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
 
-        relaxationPass.buffers.push_back(
-            {0, &m_positionBuffer, aiko::ComputeAccess::Read});
+        relaxationPass.setPushConstants(relaxationConstants);
 
-        relaxationPass.buffers.push_back(
-            {1, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
+        relaxationPass.dispatch.groupsX = (m_particleCount + 63) / 64;
 
-        relaxationPass.buffers.push_back(
-            {2, &m_cellStartBuffer, aiko::ComputeAccess::Read});
-
-        relaxationPass.buffers.push_back(
-            {3, &m_cellEndBuffer, aiko::ComputeAccess::Read});
-
-        relaxationPass.buffers.push_back(
-            {4, &m_pressureBuffer, aiko::ComputeAccess::Read});
-
-        relaxationPass.buffers.push_back(
-            {5, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
-
-        relaxationPass.setPushConstants(
-            relaxationConstants);
-
-        relaxationPass.dispatch.groupsX =
-            (m_particleCount + 63) / 64;
-
-        renderSystem.dispatch(
-            relaxationPass,
-            m_relaxationShaderId);
+        renderSystem.dispatch(relaxationPass, m_relaxationShaderId);
 
         // apply
         const SPHApplyPositionDeltaPushConstants deltaConstants
         {
-            .particleCount =
-                m_particleCount
+            .particleCount = m_particleCount
         };
 
         aiko::ComputePass deltaPass{};

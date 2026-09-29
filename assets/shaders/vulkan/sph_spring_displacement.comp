@@ -1,0 +1,112 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+struct Spring
+{
+    uint particleA;
+    uint particleB;
+    float restLength;
+    uint enabled;
+};
+
+layout(std430, binding = 0)
+readonly buffer Positions
+{
+    vec4 positions[];
+};
+
+layout(std430, binding = 1)
+readonly buffer Springs
+{
+    Spring springs[];
+};
+
+layout(std430, binding = 2)
+readonly buffer SpringCount
+{
+    uint springCount[];
+};
+
+layout(std430, binding = 3)
+writeonly buffer PositionDeltas
+{
+    vec4 positionDeltas[];
+};
+
+layout(push_constant)
+uniform PushConstants
+{
+    float dt;
+    float smoothingRadius;
+    float springStiffness;
+    uint particleCount;
+
+    uint maxSprings;
+    uint padding0;
+    uint padding1;
+    uint padding2;
+} pc;
+
+void main()
+{
+    uint i = gl_GlobalInvocationID.x;
+
+    if (i >= pc.particleCount)
+    {
+        return;
+    }
+
+    uint count = min(springCount[0], pc.maxSprings);
+
+    vec3 delta = vec3(0.0);
+
+    for (uint springIndex = 0; springIndex < count;  ++springIndex)
+    {
+        Spring spring = springs[springIndex];
+
+        if (spring.enabled == 0)
+        {
+            continue;
+        }
+
+        bool isParticleA = spring.particleA == i;
+
+        bool isParticleB = spring.particleB == i;
+
+        if (isParticleA == false && isParticleB == false)
+        {
+            continue;
+        }
+
+        vec3 positionA = positions[spring.particleA].xyz;
+
+        vec3 positionB = positions[spring.particleB].xyz;
+
+        vec3 direction = positionB - positionA;
+
+        float distance = length(direction);
+
+        if (distance <= 0.000001)
+        {
+            continue;
+        }
+
+        vec3 normalizedDirection = direction / distance;
+
+        float displacementTerm = pc.dt * pc.dt * pc.springStiffness * (1.0 - spring.restLength / pc.smoothingRadius) * (spring.restLength - distance);
+
+        vec3 displacement = normalizedDirection * displacementTerm * 0.5;
+
+        if (isParticleA)
+        {
+            delta -= displacement;
+        }
+        else
+        {
+            delta += displacement;
+        }
+    }
+
+    positionDeltas[i] = vec4(delta, 0.0);
+}
