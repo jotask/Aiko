@@ -34,6 +34,9 @@ namespace sph
         aiko::ComputeBuffer m_pressureBuffer;
         aiko::ComputeBuffer m_positionDeltaBuffer;
 
+        aiko::ComputeBuffer m_springBuffer;
+        aiko::ComputeBuffer m_springCountBuffer;
+
         aiko::ComputeBuffer m_cellKeyBuffer;
         aiko::ComputeBuffer m_particleIndexBuffer;
 
@@ -53,6 +56,9 @@ namespace sph
         aiko::AssetId m_densityShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_relaxationShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_applyPositionDeltaShaderId = aiko::InvalidAssetId;
+
+        aiko::AssetId m_clearSpringCountShaderId = aiko::InvalidAssetId;
+        aiko::AssetId m_generateSpringsShaderId = aiko::InvalidAssetId;
 
         uint32_t m_particleCount = 0;
 

@@ -40,12 +40,13 @@ namespace aiko
 
     enum class ComputeBufferFormat
     {
-        Vec4f,   // float4
-        Uint32,  // uint
+        Vec4f,
+        Uint32,
+        Structured,
         // TODO:
         Vec2f,
         Vec3f,
-        Mat4f,   // 4x vec4
+        Mat4f,
     };
 
     enum class ComputeBufferUsage : uint32_t
@@ -78,6 +79,7 @@ namespace aiko
     {
         ComputeBufferFormat format = ComputeBufferFormat::Vec4f;
         uint32_t count = 0;
+        uint32_t stride = 0;
         ComputeBufferUsage usage = ComputeBufferUsage::Storage | ComputeBufferUsage::TransferSrc | ComputeBufferUsage::TransferDst;
     };
 

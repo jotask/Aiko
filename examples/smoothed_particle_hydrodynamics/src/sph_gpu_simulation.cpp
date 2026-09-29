@@ -157,6 +157,33 @@ namespace sph
 
         static_assert(sizeof(SPHComputeVelocityPushConstants) == 16);
 
+        struct GpuSpring
+        {
+            uint32_t particleA = 0;
+            uint32_t particleB = 0;
+            float restLength = 0.0f;
+            uint32_t enabled = 0;
+        };
+
+        static_assert(sizeof(GpuSpring) == 16);
+
+        struct SPHGenerateSpringsPushConstants
+        {
+            float smoothingRadius = 0.0f;
+            uint32_t particleCount = 0;
+            uint32_t gridWidth = 0;
+            uint32_t gridHeight = 0;
+
+            uint32_t maxSprings = 0;
+            uint32_t padding0 = 0;
+            uint32_t padding1 = 0;
+            uint32_t padding2 = 0;
+
+            alignas(16) aiko::vec4 boundsMin = {};
+        };
+
+        static_assert(sizeof(SPHGenerateSpringsPushConstants) == 48);
+
     }
 
     void SPHGpuSimulation::init(aiko::AssetSystem& assetSystem, const aiko::vector<SPHParticle>& particles)
@@ -199,6 +226,23 @@ namespace sph
             .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc
         };
 
+        const aiko::ComputeBufferDesc springBufferDesc
+        {
+            .format = aiko::ComputeBufferFormat::Structured,
+            .count = MaxSprings,
+            .stride = sizeof(GpuSpring),
+            .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc | aiko::ComputeBufferUsage::TransferDst
+        };
+
+        const uint32_t initialSpringCount = 0;
+
+        const aiko::ComputeBufferDesc springCountBufferDesc
+        {
+            .format = aiko::ComputeBufferFormat::Uint32,
+            .count = 1,
+            .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc | aiko::ComputeBufferUsage::TransferDst
+        };
+
         m_positionBuffer.create(positionBufferDesc, positions.data());
         m_prevPositionBuffer.create(positionBufferDesc, previousPositions.data());
         m_velocityBuffer.create(velocityBufferDesc, velocities.data());
@@ -207,6 +251,9 @@ namespace sph
         m_densityBuffer.create(velocityBufferDesc, nullptr);
         m_pressureBuffer.create(velocityBufferDesc, nullptr);
         m_positionDeltaBuffer.create(velocityBufferDesc, nullptr);
+
+        m_springBuffer.create(springBufferDesc, nullptr);
+        m_springCountBuffer.create(springCountBufferDesc, &initialSpringCount);
 
         m_cellKeyBuffer.create(uintBufferDesc, nullptr);
         m_particleIndexBuffer.create(uintBufferDesc, nullptr);
@@ -224,6 +271,9 @@ namespace sph
         m_densityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_density");
         m_relaxationShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_relaxation");
         m_applyPositionDeltaShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_apply_position_delta");
+
+        m_clearSpringCountShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_clear_spring_count");
+        m_generateSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph_generate_springs");
     }
 
     void SPHGpuSimulation::update(aiko::RenderSystem& renderSystem, const SPHParameters& parameters, const WorldBounds& bounds)
@@ -378,6 +428,7 @@ namespace sph
 
         renderSystem.dispatch(rangePass, m_cellRangeShaderId);
 
+        // viscosity
         const SPHViscosityPushConstants viscosityConstants
         {
             .dt = parameters.fixedDeltaTime,
@@ -414,7 +465,7 @@ namespace sph
 
         renderSystem.dispatch(viscosityPass, m_viscosityShaderId);
 
-        // Apply viscocity
+        // Apply viscosity
         const SPHApplyViscosityPushConstants applyConstants
         {
             .particleCount = m_particleCount
@@ -449,71 +500,75 @@ namespace sph
 
         renderSystem.dispatch(predictPass, m_predictShaderId);
 
+        // Clear spring count
+        aiko::ComputePass clearSpringCountPass{};
+        clearSpringCountPass.buffers.push_back({ 0, &m_springCountBuffer, aiko::ComputeAccess::Write});
+
+        clearSpringCountPass.dispatch.groupsX = 1;
+        clearSpringCountPass.dispatch.groupsY = 1;
+        clearSpringCountPass.dispatch.groupsZ = 1;
+
+        renderSystem.dispatch(clearSpringCountPass,m_clearSpringCountShaderId);
+
+        // Generate springs
+        const SPHGenerateSpringsPushConstants springConstants
+        {
+            .smoothingRadius = parameters.smoothingRadius,
+            .particleCount = m_particleCount,
+            .gridWidth = m_gridWidth,
+            .gridHeight = m_gridHeight,
+
+            .maxSprings = MaxSprings,
+            .padding0 = 0,
+            .padding1 = 0,
+            .padding2 = 0,
+            .boundsMin ={ left, bottom, 0.0f, 0.0f}
+        };
+
+        aiko::ComputePass springPass{};
+        springPass.buffers.push_back({ 0, &m_positionBuffer, aiko::ComputeAccess::Read });
+        springPass.buffers.push_back({ 1, &m_particleIndexBuffer, aiko::ComputeAccess::Read });
+        springPass.buffers.push_back({ 2, &m_cellStartBuffer, aiko::ComputeAccess::Read });
+        springPass.buffers.push_back({ 3, &m_cellEndBuffer, aiko::ComputeAccess::Read });
+        springPass.buffers.push_back({ 4, &m_springBuffer, aiko::ComputeAccess::Write });
+        springPass.buffers.push_back({ 5, &m_springCountBuffer, aiko::ComputeAccess::ReadWrite });
+
+        springPass.setPushConstants(springConstants);
+
+        springPass.dispatch.groupsX =(m_particleCount + 63) / 64;
+
+        springPass.dispatch.groupsY = 1;
+        springPass.dispatch.groupsZ = 1;
+
+        renderSystem.dispatch(springPass, m_generateSpringsShaderId);
+
         // density
         const SPHDensityPushConstants densityConstants
         {
-            .smoothingRadius =
-                parameters.smoothingRadius,
-
-            .restDensity =
-                parameters.restDensity,
-
-            .pressureStiffness =
-                parameters.pressureStiffness,
-
-            .nearPressureStiffness =
-                parameters.nearPressureStiffness,
-
-            .particleCount =
-                m_particleCount,
-
-            .gridWidth =
-                m_gridWidth,
-
-            .gridHeight =
-                m_gridHeight,
-
-            .padding =
-                0,
-
-            .boundsMin =
-            {
-                left,
-                bottom,
-                0.0f,
-                0.0f
-            }
+            .smoothingRadius = parameters.smoothingRadius,
+            .restDensity = parameters.restDensity,
+            .pressureStiffness = parameters.pressureStiffness,
+            .nearPressureStiffness = parameters.nearPressureStiffness,
+            .particleCount = m_particleCount,
+            .gridWidth = m_gridWidth,
+            .gridHeight = m_gridHeight,
+            .padding = 0,
+            .boundsMin ={ left, bottom, 0.0f, 0.0f}
         };
 
         aiko::ComputePass densityPass{};
+        densityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
+        densityPass.buffers.push_back({1, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
+        densityPass.buffers.push_back({2, &m_cellStartBuffer, aiko::ComputeAccess::Read});
+        densityPass.buffers.push_back({3, &m_cellEndBuffer, aiko::ComputeAccess::Read});
+        densityPass.buffers.push_back({4, &m_densityBuffer, aiko::ComputeAccess::Write});
+        densityPass.buffers.push_back({5, &m_pressureBuffer, aiko::ComputeAccess::Write});
 
-        densityPass.buffers.push_back(
-            {0, &m_positionBuffer, aiko::ComputeAccess::Read});
+        densityPass.setPushConstants(densityConstants);
 
-        densityPass.buffers.push_back(
-            {1, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
+        densityPass.dispatch.groupsX = (m_particleCount + 63) / 64;
 
-        densityPass.buffers.push_back(
-            {2, &m_cellStartBuffer, aiko::ComputeAccess::Read});
-
-        densityPass.buffers.push_back(
-            {3, &m_cellEndBuffer, aiko::ComputeAccess::Read});
-
-        densityPass.buffers.push_back(
-            {4, &m_densityBuffer, aiko::ComputeAccess::Write});
-
-        densityPass.buffers.push_back(
-            {5, &m_pressureBuffer, aiko::ComputeAccess::Write});
-
-        densityPass.setPushConstants(
-            densityConstants);
-
-        densityPass.dispatch.groupsX =
-            (m_particleCount + 63) / 64;
-
-        renderSystem.dispatch(
-            densityPass,
-            m_densityShaderId);
+        renderSystem.dispatch(densityPass, m_densityShaderId);
 
         // relaxation
         const SPHRelaxationPushConstants relaxationConstants

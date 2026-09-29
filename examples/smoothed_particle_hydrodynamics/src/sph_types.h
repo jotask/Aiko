@@ -7,6 +7,7 @@ namespace sph
 {
 
     static constexpr aiko::u64 N_PARTICLES = 1024;
+    static constexpr uint32_t MaxSprings = 65536;
 
     struct SPHParticle
     {

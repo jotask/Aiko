@@ -1,0 +1,133 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+struct Spring
+{
+    uint particleA;
+    uint particleB;
+    float restLength;
+    uint enabled;
+};
+
+layout(std430, binding = 0)
+readonly buffer Positions
+{
+    vec4 positions[];
+};
+
+layout(std430, binding = 1)
+readonly buffer ParticleIndices
+{
+    uint particleIndices[];
+};
+
+layout(std430, binding = 2)
+readonly buffer CellStarts
+{
+    uint cellStarts[];
+};
+
+layout(std430, binding = 3)
+readonly buffer CellEnds
+{
+    uint cellEnds[];
+};
+
+layout(std430, binding = 4)
+buffer Springs
+{
+    Spring springs[];
+};
+
+layout(std430, binding = 5)
+buffer SpringCount
+{
+    uint springCount[];
+};
+
+layout(push_constant)
+uniform PushConstants
+{
+    float smoothingRadius;
+    uint particleCount;
+    uint gridWidth;
+    uint gridHeight;
+
+    uint maxSprings;
+    uint padding0;
+    uint padding1;
+    uint padding2;
+
+    vec4 boundsMin;
+} pc;
+
+void main()
+{
+    uint i = gl_GlobalInvocationID.x;
+
+    if (i >= pc.particleCount)
+    {
+        return;
+    }
+
+    vec3 positionA = positions[i].xyz;
+
+    ivec2 cell = ivec2(floor((positionA.xy - pc.boundsMin.xy) / pc.smoothingRadius));
+
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            ivec2 neighbourCell = cell + ivec2(x, y);
+
+            if (neighbourCell.x < 0 || neighbourCell.y < 0 || neighbourCell.x >= int(pc.gridWidth) || neighbourCell.y >= int(pc.gridHeight))
+            {
+                continue;
+            }
+
+            uint cellKey = uint(neighbourCell.y) * pc.gridWidth + uint(neighbourCell.x);
+
+            uint start = cellStarts[cellKey];
+
+            uint end = cellEnds[cellKey];
+
+            if (start == 0xFFFFFFFFu || end == 0xFFFFFFFFu)
+            {
+                continue;
+            }
+
+            for (uint sortedIndex = start; sortedIndex < end;  ++sortedIndex)
+            {
+                uint j = particleIndices[sortedIndex];
+
+                // Canonical pair only.
+                if (j <= i)
+                {
+                    continue;
+                }
+
+                vec3 direction = positions[j].xyz - positionA;
+
+                float distance = length(direction);
+
+                if (distance >= pc.smoothingRadius)
+                {
+                    continue;
+                }
+
+                uint springIndex = atomicAdd(springCount[0], 1);
+
+                if (springIndex >= pc.maxSprings)
+                {
+                    continue;
+                }
+
+                springs[springIndex].particleA = i;
+                springs[springIndex].particleB = j;
+                springs[springIndex].restLength = pc.smoothingRadius;
+                springs[springIndex].enabled = 1;
+            }
+        }
+    }
+}
