@@ -56,7 +56,7 @@ void insertSpring(uint pairKey, float initialRestLength)
 
     uint slot = hashPairKey(pairKey) & mask;
 
-    for (uint probe = 0; probe < pc.maxSprings; ++probe)
+    for (uint probe = 0; probe < MAX_SPRING_PROBES; ++probe)
     {
         uint currentKey = springs[slot].pairKey;
 

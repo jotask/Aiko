@@ -1,6 +1,8 @@
 #ifndef SPH_SPRING_COMMON_GLSL
 #define SPH_SPRING_COMMON_GLSL
 
+const uint MAX_SPRING_PROBES = 128u;
+
 const uint EMPTY_SPRING_KEY = 0xFFFFFFFFu;
 
 struct Spring
