@@ -60,17 +60,11 @@ int findSpring(uint pairKey)
 {
     uint mask = pc.maxSprings - 1u;
 
-    uint slot =
-    hashPairKey(pairKey) &
-    mask;
+    uint slot = hashPairKey(pairKey) & mask;
 
-    for (
-    uint probe = 0;
-    probe < pc.maxSprings;
-    ++probe)
+    for (uint probe = 0;probe < pc.maxSprings; ++probe)
     {
-        uint currentKey =
-        springs[slot].pairKey;
+        uint currentKey = springs[slot].pairKey;
 
         if (currentKey == pairKey)
         {
@@ -82,9 +76,7 @@ int findSpring(uint pairKey)
             return -1;
         }
 
-        slot =
-        (slot + 1u) &
-        mask;
+        slot = (slot + 1u) & mask;
     }
 
     return -1;

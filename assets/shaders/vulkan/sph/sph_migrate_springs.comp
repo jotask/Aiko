@@ -1,0 +1,84 @@
+#version 450
+
+#include "sph/sph_spring_common.glsl"
+
+layout(local_size_x = 64) in;
+
+layout(std430, binding = 0)
+readonly buffer PreviousSprings
+{
+    Spring previousSprings[];
+};
+
+layout(std430, binding = 1)
+buffer CurrentSprings
+{
+    Spring currentSprings[];
+};
+
+layout(push_constant)
+uniform PushConstants
+{
+    uint maxSprings;
+} pc;
+
+void insertSpring(Spring spring)
+{
+    uint mask =
+    pc.maxSprings - 1u;
+
+    uint slot =
+    hashPairKey(spring.pairKey) &
+    mask;
+
+    for (
+    uint probe = 0;
+    probe < pc.maxSprings;
+    ++probe)
+    {
+        uint previousKey =
+        atomicCompSwap(
+            currentSprings[slot].pairKey,
+            EMPTY_SPRING_KEY,
+            spring.pairKey);
+
+        if (
+        previousKey == EMPTY_SPRING_KEY ||
+        previousKey == spring.pairKey)
+        {
+            currentSprings[slot].restLength =
+            spring.restLength;
+
+            currentSprings[slot].enabled =
+            spring.enabled;
+
+            currentSprings[slot].padding =
+            0u;
+
+            return;
+        }
+
+        slot =
+        (slot + 1u) &
+        mask;
+    }
+}
+
+void main()
+{
+    uint springIndex = gl_GlobalInvocationID.x;
+
+    if (springIndex >= pc.maxSprings)
+    {
+        return;
+    }
+
+    Spring spring = previousSprings[springIndex];
+
+    if (spring.pairKey == EMPTY_SPRING_KEY || spring.enabled == 0u)
+    {
+        return;
+    }
+
+    insertSpring(spring);
+}

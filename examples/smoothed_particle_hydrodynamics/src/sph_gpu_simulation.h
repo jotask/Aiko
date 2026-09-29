@@ -38,6 +38,7 @@ namespace sph
         aiko::ComputeBuffer m_positionDeltaBuffer;
 
         aiko::ComputeBuffer m_springBuffer;
+        aiko::ComputeBuffer m_previousSpringBuffer;
 
         aiko::ComputeBuffer m_cellKeyBuffer;
         aiko::ComputeBuffer m_particleIndexBuffer;
@@ -62,6 +63,8 @@ namespace sph
         aiko::AssetId m_relaxationShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_applyPositionDeltaShaderId = aiko::InvalidAssetId;
 
+        aiko::AssetId m_clearSpringsShaderId = aiko::InvalidAssetId;
+        aiko::AssetId m_migrateSpringsShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_generateSpringsShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_springPlasticityShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_springDisplacementShaderId = aiko::InvalidAssetId;
@@ -77,6 +80,8 @@ namespace sph
 
         uint32_t m_shapeCount = 0;
         uint32_t m_shapeEdgeCount = 0;
+
+        bool m_springBuffersFlipped = false;
 
     };
 

@@ -67,7 +67,7 @@ void main()
 
     if (spring.restLength > pc.smoothingRadius)
     {
-        spring.enabled = 0;
+        spring.enabled = 0u;
     }
 
     springs[springIndex] = spring;

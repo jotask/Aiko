@@ -3,8 +3,6 @@
 
 const uint EMPTY_SPRING_KEY = 0xFFFFFFFFu;
 
-const uint TOMBSTONE_SPRING_KEY = 0xFFFFFFFEu;
-
 struct Spring
 {
     uint pairKey;

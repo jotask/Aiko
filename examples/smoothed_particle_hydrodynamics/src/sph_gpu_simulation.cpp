@@ -248,6 +248,12 @@ namespace sph
 
         static_assert(sizeof(SPHShapeCollisionPushConstants) == 16);
 
+        struct SPHClearSpringsPushConstants
+        {
+            uint32_t maxSprings = 0;
+        };
+
+        static_assert(sizeof(SPHClearSpringsPushConstants) == 4);
 
     }
 
@@ -313,6 +319,7 @@ namespace sph
 
         aiko::vector<GpuSpring> initialSprings(MaxSprings);
         m_springBuffer.create(springBufferDesc, initialSprings.data());
+        m_previousSpringBuffer.create(springBufferDesc, initialSprings.data());
 
         m_cellKeyBuffer.create(uintBufferDesc, nullptr);
         m_particleIndexBuffer.create(uintBufferDesc, nullptr);
@@ -396,6 +403,8 @@ namespace sph
         m_relaxationShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_relaxation");
         m_applyPositionDeltaShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_apply_position_delta");
 
+        m_clearSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_clear_springs");
+        m_migrateSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_migrate_springs");
         m_generateSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_generate_springs");
         m_springPlasticityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_spring_plasticity");
         m_springDisplacementShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_spring_displacement");
@@ -627,6 +636,40 @@ namespace sph
 
         renderSystem.dispatch(predictPass, m_predictShaderId);
 
+        aiko::ComputeBuffer* currentSpringBuffer = m_springBuffersFlipped ? &m_previousSpringBuffer : &m_springBuffer;
+        aiko::ComputeBuffer* previousSpringBuffer = m_springBuffersFlipped ? &m_springBuffer : &m_previousSpringBuffer;
+
+        // Clear current spring table
+        const SPHClearSpringsPushConstants clearSpringsConstants
+        {
+            .maxSprings = MaxSprings
+        };
+
+        aiko::ComputePass clearSpringsPass{};
+        clearSpringsPass.buffers.push_back({ 0, currentSpringBuffer, aiko::ComputeAccess::Write });
+
+        clearSpringsPass.setPushConstants(clearSpringsConstants);
+
+        clearSpringsPass.dispatch.groupsX = (MaxSprings + 63) / 64;
+
+        renderSystem.dispatch(clearSpringsPass, m_clearSpringsShaderId);
+
+        // Migrate persistent springs
+        const SPHClearSpringsPushConstants migrateSpringsConstants
+        {
+            .maxSprings = MaxSprings
+        };
+
+        aiko::ComputePass migrateSpringsPass{};
+        migrateSpringsPass.buffers.push_back( { 0, previousSpringBuffer, aiko::ComputeAccess::Read });
+        migrateSpringsPass.buffers.push_back({ 1, currentSpringBuffer, aiko::ComputeAccess::ReadWrite });
+
+        migrateSpringsPass.setPushConstants(migrateSpringsConstants);
+
+        migrateSpringsPass.dispatch.groupsX = (MaxSprings + 63) / 64;
+
+        renderSystem.dispatch(migrateSpringsPass, m_migrateSpringsShaderId);
+
         // Generate springs
         const SPHGenerateSpringsPushConstants springConstants
         {
@@ -647,7 +690,7 @@ namespace sph
         springPass.buffers.push_back({ 1, &m_particleIndexBuffer, aiko::ComputeAccess::Read });
         springPass.buffers.push_back({ 2, &m_cellStartBuffer, aiko::ComputeAccess::Read });
         springPass.buffers.push_back({ 3, &m_cellEndBuffer, aiko::ComputeAccess::Read });
-        springPass.buffers.push_back({4, &m_springBuffer, aiko::ComputeAccess::ReadWrite});
+        springPass.buffers.push_back({4, currentSpringBuffer, aiko::ComputeAccess::ReadWrite});
 
         springPass.setPushConstants(springConstants);
 
@@ -670,7 +713,7 @@ namespace sph
 
         aiko::ComputePass springPlasticityPass{};
         springPlasticityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
-        springPlasticityPass.buffers.push_back({1, &m_springBuffer, aiko::ComputeAccess::ReadWrite});
+        springPlasticityPass.buffers.push_back({1, currentSpringBuffer, aiko::ComputeAccess::ReadWrite});
 
         springPlasticityPass.setPushConstants(springPlasticityConstants);
 
@@ -702,7 +745,7 @@ namespace sph
 
         aiko::ComputePass springDisplacementPass{};
         springDisplacementPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
-        springDisplacementPass.buffers.push_back({1, &m_springBuffer, aiko::ComputeAccess::Read});
+        springDisplacementPass.buffers.push_back({1, currentSpringBuffer, aiko::ComputeAccess::Read});
         springDisplacementPass.buffers.push_back({2, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
         springDisplacementPass.buffers.push_back({3, &m_cellStartBuffer, aiko::ComputeAccess::Read});
         springDisplacementPass.buffers.push_back({4, &m_cellEndBuffer, aiko::ComputeAccess::Read});
@@ -729,6 +772,8 @@ namespace sph
         applySpringDeltaPass.dispatch.groupsX = (m_particleCount + 63) / 64;
 
         renderSystem.dispatch(applySpringDeltaPass, m_applyPositionDeltaShaderId);
+
+        m_springBuffersFlipped = !m_springBuffersFlipped;
 
         // density
         const SPHDensityPushConstants densityConstants

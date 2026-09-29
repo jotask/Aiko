@@ -1,0 +1,32 @@
+#version 450
+
+#include "sph/sph_spring_common.glsl"
+
+layout(local_size_x = 64) in;
+
+layout(std430, binding = 0)
+buffer Springs
+{
+    Spring springs[];
+};
+
+layout(push_constant)
+uniform PushConstants
+{
+    uint maxSprings;
+} pc;
+
+void main()
+{
+    uint springIndex = gl_GlobalInvocationID.x;
+
+    if (springIndex >= pc.maxSprings)
+    {
+        return;
+    }
+
+    springs[springIndex].pairKey = EMPTY_SPRING_KEY;
+    springs[springIndex].restLength = 0.0;
+    springs[springIndex].enabled = 0u;
+    springs[springIndex].padding = 0u;
+}

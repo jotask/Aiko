@@ -56,20 +56,12 @@ void insertSpring(uint pairKey, float initialRestLength)
 
     uint slot = hashPairKey(pairKey) & mask;
 
-    for (uint probe = 0; probe < pc.maxSprings;  ++probe)
+    for (uint probe = 0; probe < pc.maxSprings; ++probe)
     {
         uint currentKey = springs[slot].pairKey;
 
-        // Spring already exists from a previous frame.
         if (currentKey == pairKey)
         {
-            if (springs[slot].enabled == 0u)
-            {
-                springs[slot].restLength = initialRestLength;
-
-                springs[slot].enabled = 1u;
-            }
-
             return;
         }
 
@@ -80,14 +72,12 @@ void insertSpring(uint pairKey, float initialRestLength)
             if (previousKey == EMPTY_SPRING_KEY)
             {
                 springs[slot].restLength = initialRestLength;
-
                 springs[slot].enabled = 1u;
                 springs[slot].padding = 0u;
 
                 return;
             }
 
-            // Another pair claimed this slot.
             if (previousKey == pairKey)
             {
                 return;
