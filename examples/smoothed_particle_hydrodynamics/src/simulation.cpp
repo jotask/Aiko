@@ -157,44 +157,28 @@ namespace sph
                         continue;
                     }
 
-                    SPHParticle& particleB =
-                        m_particles[neighbours[j]];
+                    SPHParticle& particleB = m_particles[neighbours[j]];
 
-                    const aiko::vec3 directionNeighbour =
-                        particleB.position - particleA.position;
+                    const aiko::vec3 directionNeighbour = particleB.position - particleA.position;
 
-                    const aiko::vec3 velocityA =
-                        particleA.velocity;
+                    const aiko::vec3 velocityA = particleA.velocity;
+                    const aiko::vec3 velocityB = particleB.velocity;
 
-                    const aiko::vec3 velocityB =
-                        particleB.velocity;
+                    const float distance = aiko::math::length(directionNeighbour);
 
-                    const float distance =
-                        aiko::math::length(directionNeighbour);
-
-                    const float q =
-                        distance / m_parameters.smoothingRadius;
+                    const float q = distance / m_parameters.smoothingRadius;
 
                     if (q < 1.0f)
                     {
-                        const aiko::vec3 normalizedDir =
-                            aiko::math::normalize(directionNeighbour);
+                        const aiko::vec3 normalizedDir = aiko::math::normalize(directionNeighbour);
 
-                        const float u =
-                            aiko::math::dot(
-                                velocityA - velocityB,
-                                normalizedDir);
+                        const float u = aiko::math::dot(velocityA - velocityB, normalizedDir);
 
                         if (u > 0)
                         {
-                            const float term =
-                                dt *
-                                (1.0f - q) *
-                                (m_parameters.sigma * u +
-                                 m_parameters.beta * u * u);
+                            const float term = dt * (1.0f - q) * (m_parameters.sigma * u + m_parameters.beta * u * u);
 
-                            const aiko::vec3 I =
-                                term * normalizedDir;
+                            const aiko::vec3 I = term * normalizedDir;
 
                             particleA.velocity -= I * 0.5f;
                             particleB.velocity += I * 0.5f;
@@ -230,49 +214,34 @@ namespace sph
                         continue;
                     }
 
-                    SPHParticle& particleB =
-                        m_particles[neighbours[j]];
+                    SPHParticle& particleB = m_particles[neighbours[j]];
 
-                    const size_t neighbourIdx =
-                        neighbours[j];
+                    const size_t neighbourIdx = neighbours[j];
 
-                    const aiko::u64 particleAIdx =
-                        static_cast<aiko::u64>(
-                            std::min(i, neighbourIdx));
+                    const aiko::u64 particleAIdx = static_cast<aiko::u64>(std::min(i, neighbourIdx));
 
-                    const aiko::u64 particleBIdx =
-                        static_cast<aiko::u64>(
-                            std::max(i, neighbourIdx));
+                    const aiko::u64 particleBIdx = static_cast<aiko::u64>(std::max(i, neighbourIdx));
 
-                    const aiko::u64 springId =
-                        (particleAIdx << 32) | particleBIdx;
+                    const aiko::u64 springId = (particleAIdx << 32) | particleBIdx;
 
                     if (m_springs.contains(springId))
                     {
                         continue;
                     }
 
-                    const aiko::vec3 directionNeighbour =
-                        particleB.position - particleA.position;
+                    const aiko::vec3 directionNeighbour = particleB.position - particleA.position;
 
-                    const float distance =
-                        aiko::math::length(directionNeighbour);
+                    const float distance = aiko::math::length(directionNeighbour);
 
-                    const float q =
-                        distance / m_parameters.smoothingRadius;
+                    const float q = distance / m_parameters.smoothingRadius;
 
                     if (q < 1.0f)
                     {
                         const Spring spring
                         {
-                            .particleA =
-                                static_cast<size_t>(particleAIdx),
-
-                            .particleB =
-                                static_cast<size_t>(particleBIdx),
-
-                            .length =
-                                m_parameters.smoothingRadius
+                            .particleA = static_cast<size_t>(particleAIdx),
+                            .particleB = static_cast<size_t>(particleBIdx),
+                            .length = m_parameters.smoothingRadius
                         };
 
                         m_springs.emplace(springId, spring);
@@ -288,42 +257,23 @@ namespace sph
 
             for (auto& [key, spring] : m_springs)
             {
-                const SPHParticle& particleA =
-                    m_particles[spring.particleA];
+                const SPHParticle& particleA = m_particles[spring.particleA];
+                const SPHParticle& particleB = m_particles[spring.particleB];
 
-                const SPHParticle& particleB =
-                    m_particles[spring.particleB];
-
-                const aiko::vec3 direction =
-                    particleA.position - particleB.position;
-
-                const float distance =
-                    aiko::math::length(direction);
-
-                const float deformation =
-                    m_parameters.gamma * spring.length;
+                const aiko::vec3 direction = particleA.position - particleB.position;
+                const float distance = aiko::math::length(direction);
+                const float deformation = m_parameters.gamma * spring.length;
 
                 if (distance > spring.length + deformation)
                 {
-                    spring.length +=
-                        dt *
-                        m_parameters.plasticity *
-                        (distance -
-                         spring.length -
-                         deformation);
+                    spring.length += dt * m_parameters.plasticity * (distance - spring.length - deformation);
                 }
                 else if (distance < spring.length - deformation)
                 {
-                    spring.length -=
-                        dt *
-                        m_parameters.plasticity *
-                        (spring.length -
-                         deformation -
-                         distance);
+                    spring.length -= dt * m_parameters.plasticity * (spring.length - deformation - distance);
                 }
 
-                if (spring.length >
-                    m_parameters.smoothingRadius)
+                if (spring.length > m_parameters.smoothingRadius)
                 {
                     springsToErase.emplace_back(key);
                 }
@@ -393,36 +343,25 @@ namespace sph
                         continue;
                     }
 
-                    const SPHParticle& particleB =
-                        m_particles[neighbours[j]];
+                    const SPHParticle& particleB = m_particles[neighbours[j]];
 
-                    const aiko::vec3 directionNeighbour =
-                        particleB.position - particleA.position;
+                    const aiko::vec3 directionNeighbour = particleB.position - particleA.position;
 
-                    const float distance =
-                        aiko::math::length(directionNeighbour);
+                    const float distance = aiko::math::length(directionNeighbour);
 
-                    const float q =
-                        distance / m_parameters.smoothingRadius;
+                    const float q = distance / m_parameters.smoothingRadius;
 
                     if (q < 1.0f)
                     {
-                        density +=
-                            aiko::math::pow(1.0f - q, 2);
-
-                        densityNear +=
-                            aiko::math::pow(1.0f - q, 3);
+                        density += aiko::math::pow(1.0f - q, 2);
+                        densityNear += aiko::math::pow(1.0f - q, 3);
                     }
                 }
             }
 
-            const float pressure =
-                m_parameters.pressureStiffness *
-                (density - m_parameters.restDensity);
+            const float pressure = m_parameters.pressureStiffness * (density - m_parameters.restDensity);
 
-            const float pressureNear =
-                m_parameters.nearPressureStiffness *
-                densityNear;
+            const float pressureNear = m_parameters.nearPressureStiffness * densityNear;
 
             aiko::vec3 particleADisplacement{0.0f};
 
@@ -436,40 +375,25 @@ namespace sph
                         continue;
                     }
 
-                    SPHParticle& particleB =
-                        m_particles[neighbours[j]];
+                    SPHParticle& particleB = m_particles[neighbours[j]];
 
-                    const aiko::vec3 directionNeighbour =
-                        particleB.position - particleA.position;
+                    const aiko::vec3 directionNeighbour = particleB.position - particleA.position;
 
-                    const float distance =
-                        aiko::math::length(directionNeighbour);
+                    const float distance = aiko::math::length(directionNeighbour);
 
-                    const float q =
-                        distance / m_parameters.smoothingRadius;
+                    const float q = distance / m_parameters.smoothingRadius;
 
                     if (q < 1.0f && distance > 1e-6f)
                     {
-                        const aiko::vec3 normalizedDirection =
-                            aiko::math::normalize(directionNeighbour);
+                        const aiko::vec3 normalizedDirection = aiko::math::normalize(directionNeighbour);
 
-                        const float displacementTerm =
-                            aiko::math::pow(dt, 2) *
-                            (
-                                pressure * (1.0f - q) +
-                                pressureNear *
-                                aiko::math::pow(1.0f - q, 2)
-                            );
+                        const float displacementTerm = aiko::math::pow(dt, 2) * ( pressure * (1.0f - q) + pressureNear * aiko::math::pow(1.0f - q, 2) );
 
-                        const aiko::vec3 displacement =
-                            normalizedDirection *
-                            displacementTerm;
+                        const aiko::vec3 displacement = normalizedDirection * displacementTerm;
 
-                        particleB.position +=
-                            displacement * 0.5f;
+                        particleB.position += displacement * 0.5f;
 
-                        particleADisplacement -=
-                            displacement * 0.5f;
+                        particleADisplacement -= displacement * 0.5f;
                     }
                 }
             }

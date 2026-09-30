@@ -33,9 +33,7 @@ namespace sph
                 const size_t minIndex = std::min(a, b);
                 const size_t maxIndex = std::max(a, b);
 
-                const aiko::u64 key =
-                    (static_cast<aiko::u64>(minIndex) << 32) |
-                    static_cast<aiko::u64>(maxIndex);
+                const aiko::u64 key = (static_cast<aiko::u64>(minIndex) << 32) | static_cast<aiko::u64>(maxIndex);
 
                 auto& edge = edges[key];
 
@@ -197,11 +195,7 @@ namespace sph
             return a;
         }
 
-        const float t =
-            aiko::math::clamp(
-                aiko::math::dot(point - a, ab) / lengthSquared,
-                0.0f,
-                1.0f);
+        const float t = aiko::math::clamp(aiko::math::dot(point - a, ab) / lengthSquared, 0.0f, 1.0f);
 
         return a + ab * t;
     }
