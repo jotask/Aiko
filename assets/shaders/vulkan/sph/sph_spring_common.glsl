@@ -1,10 +1,6 @@
 #ifndef SPH_SPRING_COMMON_GLSL
 #define SPH_SPRING_COMMON_GLSL
 
-const uint MAX_SPRING_PROBES = 128u;
-
-const uint EMPTY_SPRING_KEY = 0xFFFFFFFFu;
-
 const uint INVALID_SPRING_INDEX = 0xFFFFFFFFu;
 
 struct Spring
@@ -13,6 +9,7 @@ struct Spring
     float restLength;
     uint nextA;
     uint nextB;
+    uint nextLookup;
 };
 
 uint makePairKey(uint particleA, uint particleB)
@@ -30,17 +27,6 @@ uint getParticleA(uint pairKey)
 uint getParticleB(uint pairKey)
 {
     return pairKey & 0xFFFFu;
-}
-
-uint hashPairKey(uint key)
-{
-    key ^= key >> 16;
-    key *= 0x7feb352du;
-    key ^= key >> 15;
-    key *= 0x846ca68bu;
-    key ^= key >> 16;
-
-    return key;
 }
 
 #endif

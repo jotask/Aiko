@@ -23,15 +23,33 @@ readonly buffer ParticleNext
 };
 
 layout(std430, binding = 3)
-buffer Springs
+readonly buffer PreviousSprings
 {
-    Spring springs[];
+    Spring previousSprings[];
 };
 
 layout(std430, binding = 4)
-buffer SpringHeads
+readonly buffer PreviousSpringLookupHeads
 {
-    uint springHeads[];
+    uint previousSpringLookupHeads[];
+};
+
+layout(std430, binding = 5)
+buffer CurrentSprings
+{
+    Spring currentSprings[];
+};
+
+layout(std430, binding = 6)
+buffer CurrentSpringHeads
+{
+    uint currentSpringHeads[];
+};
+
+layout(std430, binding = 7)
+buffer CurrentSpringLookupHeads
+{
+    uint currentSpringLookupHeads[];
 };
 
 layout(push_constant)
@@ -47,57 +65,52 @@ uniform PushConstants
     uint gridHeight;
     uint maxSprings;
 
+    uint springCounterIndex;
+
     vec4 boundsMin;
 } pc;
 
-void linkSpring(uint springIndex, uint pairKey)
+bool findPreviousSpring(uint particle, uint pairKey, out float restLength)
 {
+    uint springIndex = previousSpringLookupHeads[particle];
+
+    while (springIndex != INVALID_SPRING_INDEX)
+    {
+        Spring spring = previousSprings[springIndex];
+
+        if (spring.pairKey == pairKey)
+        {
+            restLength = spring.restLength;
+            return true;
+        }
+
+        springIndex = spring.nextLookup;
+    }
+
+    return false;
+}
+
+void appendSpring(uint pairKey, float restLength)
+{
+    uint springIndex = atomicAdd(currentSpringLookupHeads[pc.springCounterIndex], 1u);
+
+    if (springIndex >= pc.maxSprings)
+    {
+        return;
+    }
+
     uint particleA = getParticleA(pairKey);
     uint particleB = getParticleB(pairKey);
 
-    uint previousHeadA = atomicExchange(springHeads[particleA], springIndex);
-    uint previousHeadB = atomicExchange(springHeads[particleB], springIndex);
+    uint previousHeadA = atomicExchange(currentSpringHeads[particleA], springIndex);
+    uint previousHeadB = atomicExchange(currentSpringHeads[particleB], springIndex);
+    uint previousLookupHead = atomicExchange(currentSpringLookupHeads[particleA], springIndex);
 
-    springs[springIndex].nextA = previousHeadA;
-    springs[springIndex].nextB = previousHeadB;
-}
-
-void insertSpring(uint pairKey, float initialRestLength)
-{
-    uint mask = pc.maxSprings - 1u;
-
-    uint slot = hashPairKey(pairKey) & mask;
-
-    for (uint probe = 0; probe < MAX_SPRING_PROBES; ++probe)
-    {
-        uint currentKey = springs[slot].pairKey;
-
-        if (currentKey == pairKey)
-        {
-            return;
-        }
-
-        if (currentKey == EMPTY_SPRING_KEY)
-        {
-            uint previousKey = atomicCompSwap(springs[slot].pairKey, EMPTY_SPRING_KEY, pairKey);
-
-            if (previousKey == EMPTY_SPRING_KEY)
-            {
-                springs[slot].restLength = initialRestLength;
-
-                linkSpring(slot, pairKey);
-
-                return;
-            }
-
-            if (previousKey == pairKey)
-            {
-                return;
-            }
-        }
-
-        slot = (slot + 1u) & mask;
-    }
+    currentSprings[springIndex].pairKey = pairKey;
+    currentSprings[springIndex].restLength = restLength;
+    currentSprings[springIndex].nextA = previousHeadA;
+    currentSprings[springIndex].nextB = previousHeadB;
+    currentSprings[springIndex].nextLookup = previousLookupHead;
 }
 
 void main()
@@ -111,7 +124,7 @@ void main()
 
     vec3 positionA = positions[i].xyz;
 
-    ivec2 cell = ivec2(floor((positionA.xy - pc.boundsMin.xy) /pc.smoothingRadius));
+    ivec2 cell = ivec2(floor((positionA.xy - pc.boundsMin.xy) / pc.smoothingRadius));
 
     for (int y = -1; y <= 1; ++y)
     {
@@ -119,7 +132,7 @@ void main()
         {
             ivec2 neighbourCell = cell + ivec2(x, y);
 
-            if ( neighbourCell.x < 0 || neighbourCell.y < 0 || neighbourCell.x >= int(pc.gridWidth) || neighbourCell.y >= int(pc.gridHeight))
+            if (neighbourCell.x < 0 || neighbourCell.y < 0 || neighbourCell.x >= int(pc.gridWidth) || neighbourCell.y >= int(pc.gridHeight))
             {
                 continue;
             }
@@ -142,16 +155,41 @@ void main()
                     {
                         uint pairKey = makePairKey(i, j);
 
-                        float restLength = pc.smoothingRadius;
+                        float restLength = 0.0;
 
-                        float deformation = pc.gamma * restLength;
+                        bool existed = findPreviousSpring(i, pairKey, restLength);
 
-                        if (distance < restLength - deformation)
+                        if (existed)
                         {
-                            restLength -= pc.dt * pc.plasticity * (restLength - deformation - distance);
-                        }
+                            float deformation = pc.gamma * restLength;
 
-                        insertSpring(pairKey, restLength);
+                            if (distance > restLength + deformation)
+                            {
+                                restLength += pc.dt * pc.plasticity * (distance - restLength - deformation);
+                            }
+                            else if (distance < restLength - deformation)
+                            {
+                                restLength -= pc.dt * pc.plasticity * (restLength - deformation - distance);
+                            }
+
+                            if (restLength <= pc.smoothingRadius)
+                            {
+                                appendSpring(pairKey, restLength);
+                            }
+                        }
+                        else
+                        {
+                            restLength = pc.smoothingRadius;
+
+                            float deformation = pc.gamma * restLength;
+
+                            if (distance < restLength - deformation)
+                            {
+                                restLength -= pc.dt * pc.plasticity * (restLength - deformation - distance);
+                            }
+
+                            appendSpring(pairKey, restLength);
+                        }
                     }
                 }
 

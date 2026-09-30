@@ -44,7 +44,12 @@ namespace sph
 
         aiko::ComputeBuffer m_springBuffer;
         aiko::ComputeBuffer m_previousSpringBuffer;
+
         aiko::ComputeBuffer m_springHeadBuffer;
+        aiko::ComputeBuffer m_previousSpringHeadBuffer;
+
+        aiko::ComputeBuffer m_springLookupHeadBuffer;
+        aiko::ComputeBuffer m_previousSpringLookupHeadBuffer;
 
         aiko::ComputeBuffer m_cellHeadBuffer;
         aiko::ComputeBuffer m_particleNextBuffer;
@@ -65,7 +70,6 @@ namespace sph
         aiko::AssetId m_applyPositionDeltaShaderId = aiko::InvalidAssetId;
 
         aiko::AssetId m_clearSpringsShaderId = aiko::InvalidAssetId;
-        aiko::AssetId m_migrateSpringsShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_generateSpringsShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_springDisplacementShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_stickinessShaderId = aiko::InvalidAssetId;
