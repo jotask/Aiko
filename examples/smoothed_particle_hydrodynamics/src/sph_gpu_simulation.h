@@ -45,11 +45,11 @@ namespace sph
         aiko::ComputeBuffer m_springBuffer;
         aiko::ComputeBuffer m_previousSpringBuffer;
 
-        aiko::ComputeBuffer m_springHeadBuffer;
-        aiko::ComputeBuffer m_previousSpringHeadBuffer;
+        aiko::ComputeBuffer m_springAHeadBuffer;
+        aiko::ComputeBuffer m_previousSpringAHeadBuffer;
 
-        aiko::ComputeBuffer m_springLookupHeadBuffer;
-        aiko::ComputeBuffer m_previousSpringLookupHeadBuffer;
+        aiko::ComputeBuffer m_springBHeadBuffer;
+        aiko::ComputeBuffer m_previousSpringBHeadBuffer;
 
         aiko::ComputeBuffer m_cellHeadBuffer;
         aiko::ComputeBuffer m_particleNextBuffer;

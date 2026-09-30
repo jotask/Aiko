@@ -148,10 +148,9 @@ namespace sph
             float restLength = 0.0f;
             uint32_t nextA = InvalidSpringIndex;
             uint32_t nextB = InvalidSpringIndex;
-            uint32_t nextLookup = InvalidSpringIndex;
         };
 
-        static_assert(sizeof(GpuSpring) == 20);
+        static_assert(sizeof(GpuSpring) == 16);
 
         struct SPHGenerateSpringsPushConstants
         {
@@ -302,23 +301,26 @@ namespace sph
         m_springBuffer.create(springBufferDesc, nullptr);
         m_previousSpringBuffer.create(springBufferDesc, nullptr);
 
-        aiko::vector<uint32_t> initialSpringHeads(MaxGpuParticles,InvalidSpringIndex);
+        aiko::vector<uint32_t> initialSpringAHeads(
+            MaxGpuParticles + 1,
+            InvalidSpringIndex);
 
-        m_springHeadBuffer.create(uintBufferDesc, initialSpringHeads.data());
-        m_previousSpringHeadBuffer.create(uintBufferDesc, initialSpringHeads.data());
-        aiko::vector<uint32_t> initialSpringLookupHeads(MaxGpuParticles + 1, InvalidSpringIndex);
+        initialSpringAHeads[MaxGpuParticles] = 0;
 
-        initialSpringLookupHeads[MaxGpuParticles] = 0;
-
-        const aiko::ComputeBufferDesc springLookupHeadBufferDesc
+        const aiko::ComputeBufferDesc springAHeadBufferDesc
         {
             .format = aiko::ComputeBufferFormat::Uint32,
             .count = MaxGpuParticles + 1,
             .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc | aiko::ComputeBufferUsage::TransferDst
         };
 
-        m_springLookupHeadBuffer.create(springLookupHeadBufferDesc, initialSpringLookupHeads.data());
-        m_previousSpringLookupHeadBuffer.create(springLookupHeadBufferDesc, initialSpringLookupHeads.data());
+        m_springAHeadBuffer.create(springAHeadBufferDesc, initialSpringAHeads.data());
+        m_previousSpringAHeadBuffer.create(springAHeadBufferDesc, initialSpringAHeads.data());
+
+        aiko::vector<uint32_t> initialSpringBHeads(MaxGpuParticles, InvalidSpringIndex);
+
+        m_springBHeadBuffer.create(uintBufferDesc, initialSpringBHeads.data());
+        m_previousSpringBHeadBuffer.create(uintBufferDesc, initialSpringBHeads.data());
 
         m_particleNextBuffer.create(uintBufferDesc, nullptr);
 
@@ -593,10 +595,9 @@ namespace sph
         aiko::ComputeBuffer* currentSpringBuffer = m_springBuffersFlipped ? &m_previousSpringBuffer : &m_springBuffer;
         aiko::ComputeBuffer* previousSpringBuffer = m_springBuffersFlipped ? &m_springBuffer : &m_previousSpringBuffer;
 
-        aiko::ComputeBuffer* currentSpringHeadBuffer = m_springBuffersFlipped ? &m_previousSpringHeadBuffer : &m_springHeadBuffer;
-
-        aiko::ComputeBuffer* currentSpringLookupHeadBuffer = m_springBuffersFlipped ? &m_previousSpringLookupHeadBuffer : &m_springLookupHeadBuffer;
-        aiko::ComputeBuffer* previousSpringLookupHeadBuffer = m_springBuffersFlipped ? &m_springLookupHeadBuffer : &m_previousSpringLookupHeadBuffer;
+        aiko::ComputeBuffer* currentSpringAHeadBuffer = m_springBuffersFlipped ? &m_previousSpringAHeadBuffer : &m_springAHeadBuffer;
+        aiko::ComputeBuffer* previousSpringAHeadBuffer = m_springBuffersFlipped ? &m_springAHeadBuffer : &m_previousSpringAHeadBuffer;
+        aiko::ComputeBuffer* currentSpringBHeadBuffer = m_springBuffersFlipped ? &m_previousSpringBHeadBuffer : &m_springBHeadBuffer;
 
         // Clear current spring table
         const SPHClearSpringsPushConstants clearSpringsConstants
@@ -608,8 +609,8 @@ namespace sph
         aiko::ComputePass clearSpringsPass{};
         clearSpringsPass.name = "SPH SpringClear";
 
-        clearSpringsPass.buffers.push_back({0, currentSpringHeadBuffer, aiko::ComputeAccess::Write});
-        clearSpringsPass.buffers.push_back({1, currentSpringLookupHeadBuffer, aiko::ComputeAccess::ReadWrite});
+        clearSpringsPass.buffers.push_back({0, currentSpringAHeadBuffer, aiko::ComputeAccess::ReadWrite});
+        clearSpringsPass.buffers.push_back({1, currentSpringBHeadBuffer, aiko::ComputeAccess::Write});
 
         clearSpringsPass.setPushConstants(clearSpringsConstants);
 
@@ -648,10 +649,10 @@ namespace sph
         springPass.buffers.push_back({1, &m_cellHeadBuffer, aiko::ComputeAccess::Read});
         springPass.buffers.push_back({2, &m_particleNextBuffer, aiko::ComputeAccess::Read});
         springPass.buffers.push_back({3, previousSpringBuffer, aiko::ComputeAccess::Read});
-        springPass.buffers.push_back({4, previousSpringLookupHeadBuffer, aiko::ComputeAccess::Read});
+        springPass.buffers.push_back({4, previousSpringAHeadBuffer, aiko::ComputeAccess::Read});
         springPass.buffers.push_back({5, currentSpringBuffer, aiko::ComputeAccess::Write});
-        springPass.buffers.push_back({6, currentSpringHeadBuffer, aiko::ComputeAccess::ReadWrite});
-        springPass.buffers.push_back({7, currentSpringLookupHeadBuffer, aiko::ComputeAccess::ReadWrite});
+        springPass.buffers.push_back({6, currentSpringAHeadBuffer, aiko::ComputeAccess::ReadWrite});
+        springPass.buffers.push_back({7, currentSpringBHeadBuffer, aiko::ComputeAccess::ReadWrite});
 
         springPass.setPushConstants(springConstants);
 
@@ -676,8 +677,9 @@ namespace sph
 
         springDisplacementPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         springDisplacementPass.buffers.push_back({1, currentSpringBuffer, aiko::ComputeAccess::Read});
-        springDisplacementPass.buffers.push_back({ 2, currentSpringHeadBuffer, aiko::ComputeAccess::Read});
-        springDisplacementPass.buffers.push_back({3, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
+        springDisplacementPass.buffers.push_back({2, currentSpringAHeadBuffer, aiko::ComputeAccess::Read});
+        springDisplacementPass.buffers.push_back({3, currentSpringBHeadBuffer, aiko::ComputeAccess::Read});
+        springDisplacementPass.buffers.push_back({4, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
 
         springDisplacementPass.setPushConstants(springDisplacementConstants);
 

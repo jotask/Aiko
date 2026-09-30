@@ -9,7 +9,6 @@ struct Spring
     float restLength;
     uint nextA;
     uint nextB;
-    uint nextLookup;
 };
 
 uint makePairKey(uint particleA, uint particleB)

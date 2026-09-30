@@ -5,15 +5,15 @@
 layout(local_size_x = 64) in;
 
 layout(std430, binding = 0)
-writeonly buffer SpringHeads
+buffer SpringAHeads
 {
-    uint springHeads[];
+    uint springAHeads[];
 };
 
 layout(std430, binding = 1)
-buffer SpringLookupHeads
+writeonly buffer SpringBHeads
 {
-    uint springLookupHeads[];
+    uint springBHeads[];
 };
 
 layout(push_constant)
@@ -29,12 +29,12 @@ void main()
 
     if (i < pc.particleCount)
     {
-        springHeads[i] = INVALID_SPRING_INDEX;
-        springLookupHeads[i] = INVALID_SPRING_INDEX;
+        springAHeads[i] = INVALID_SPRING_INDEX;
+        springBHeads[i] = INVALID_SPRING_INDEX;
     }
 
     if (i == 0u)
     {
-        springLookupHeads[pc.springCounterIndex] = 0u;
+        springAHeads[pc.springCounterIndex] = 0u;
     }
 }

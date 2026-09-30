@@ -17,12 +17,18 @@ readonly buffer Springs
 };
 
 layout(std430, binding = 2)
-readonly buffer SpringHeads
+readonly buffer SpringAHeads
 {
-    uint springHeads[];
+    uint springAHeads[];
 };
 
 layout(std430, binding = 3)
+readonly buffer SpringBHeads
+{
+    uint springBHeads[];
+};
+
+layout(std430, binding = 4)
 writeonly buffer PositionDeltas
 {
     vec4 positionDeltas[];
@@ -37,6 +43,28 @@ uniform PushConstants
     uint particleCount;
 } pc;
 
+void accumulateSpring(Spring spring, uint otherParticle, vec3 position, inout vec3 delta)
+{
+    vec3 otherPosition = positions[otherParticle].xyz;
+
+    vec3 direction = otherPosition - position;
+
+    float distance = length(direction);
+
+    if (distance <= 0.000001)
+    {
+        return;
+    }
+
+    vec3 normalizedDirection = direction / distance;
+
+    float displacementTerm = pc.dt * pc.dt * pc.springStiffness * (1.0 - spring.restLength / pc.smoothingRadius) * (spring.restLength - distance);
+
+    vec3 displacement = normalizedDirection * displacementTerm * 0.5;
+
+    delta -= displacement;
+}
+
 void main()
 {
     uint i = gl_GlobalInvocationID.x;
@@ -46,59 +74,34 @@ void main()
         return;
     }
 
-    vec3 positionA = positions[i].xyz;
+    vec3 position = positions[i].xyz;
 
     vec3 delta = vec3(0.0);
 
-    uint springIndex = springHeads[i];
+    uint springIndex = springAHeads[i];
+
+    while (springIndex != INVALID_SPRING_INDEX)
+    {
+        Spring spring = springs[springIndex];
+
+        uint particleB = getParticleB(spring.pairKey);
+
+        springIndex = spring.nextA;
+
+        accumulateSpring(spring, particleB, position, delta);
+    }
+
+    springIndex = springBHeads[i];
 
     while (springIndex != INVALID_SPRING_INDEX)
     {
         Spring spring = springs[springIndex];
 
         uint particleA = getParticleA(spring.pairKey);
-        uint particleB = getParticleB(spring.pairKey);
 
-        uint j;
-        uint nextSpringIndex;
+        springIndex = spring.nextB;
 
-        if (particleA == i)
-        {
-            j = particleB;
-            nextSpringIndex = spring.nextA;
-        }
-        else if (particleB == i)
-        {
-            j = particleA;
-            nextSpringIndex = spring.nextB;
-        }
-        else
-        {
-            // Corrupted adjacency list.
-            break;
-        }
-
-        // Advance before any early continue.
-        springIndex = nextSpringIndex;
-
-        vec3 positionB = positions[j].xyz;
-
-        vec3 direction = positionB - positionA;
-
-        float distance = length(direction);
-
-        if (distance <= 0.000001)
-        {
-            continue;
-        }
-
-        vec3 normalizedDirection = direction / distance;
-
-        float displacementTerm = pc.dt * pc.dt * pc.springStiffness * (1.0 - spring.restLength / pc.smoothingRadius) * (spring.restLength - distance);
-
-        vec3 displacement = normalizedDirection * displacementTerm * 0.5;
-
-        delta -= displacement;
+        accumulateSpring(spring, particleA, position, delta);
     }
 
     positionDeltas[i] = vec4(delta, 0.0);

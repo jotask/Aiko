@@ -29,9 +29,9 @@ readonly buffer PreviousSprings
 };
 
 layout(std430, binding = 4)
-readonly buffer PreviousSpringLookupHeads
+readonly buffer PreviousSpringAHeads
 {
-    uint previousSpringLookupHeads[];
+    uint previousSpringAHeads[];
 };
 
 layout(std430, binding = 5)
@@ -41,15 +41,15 @@ buffer CurrentSprings
 };
 
 layout(std430, binding = 6)
-buffer CurrentSpringHeads
+buffer CurrentSpringAHeads
 {
-    uint currentSpringHeads[];
+    uint currentSpringAHeads[];
 };
 
 layout(std430, binding = 7)
-buffer CurrentSpringLookupHeads
+buffer CurrentSpringBHeads
 {
-    uint currentSpringLookupHeads[];
+    uint currentSpringBHeads[];
 };
 
 layout(push_constant)
@@ -72,7 +72,7 @@ uniform PushConstants
 
 bool findPreviousSpring(uint particle, uint pairKey, out float restLength)
 {
-    uint springIndex = previousSpringLookupHeads[particle];
+    uint springIndex = previousSpringAHeads[particle];
 
     while (springIndex != INVALID_SPRING_INDEX)
     {
@@ -84,36 +84,32 @@ bool findPreviousSpring(uint particle, uint pairKey, out float restLength)
             return true;
         }
 
-        springIndex = spring.nextLookup;
+        springIndex = spring.nextA;
     }
 
     return false;
 }
 
-void appendSpring(uint pairKey, float restLength, inout uint lookupHead)
+void appendSpring(uint pairKey, float restLength, inout uint springAHead)
 {
-    uint springIndex = atomicAdd(currentSpringLookupHeads[pc.springCounterIndex], 1u);
+    uint springIndex = atomicAdd(currentSpringAHeads[pc.springCounterIndex], 1u);
 
     if (springIndex >= pc.maxSprings)
     {
         return;
     }
 
-    uint particleA = getParticleA(pairKey);
     uint particleB = getParticleB(pairKey);
 
-    uint previousHeadA = atomicExchange(currentSpringHeads[particleA], springIndex);
+    uint previousHeadA = springAHead;
+    springAHead = springIndex;
 
-    uint previousHeadB = atomicExchange(currentSpringHeads[particleB], springIndex);
-
-    uint previousLookupHead = lookupHead;
-    lookupHead = springIndex;
+    uint previousHeadB = atomicExchange(currentSpringBHeads[particleB], springIndex);
 
     currentSprings[springIndex].pairKey = pairKey;
     currentSprings[springIndex].restLength = restLength;
     currentSprings[springIndex].nextA = previousHeadA;
     currentSprings[springIndex].nextB = previousHeadB;
-    currentSprings[springIndex].nextLookup = previousLookupHead;
 }
 
 void main()
@@ -126,7 +122,7 @@ void main()
     }
 
     vec3 positionA = positions[i].xyz;
-    uint lookupHead = INVALID_SPRING_INDEX;
+    uint springAHead = INVALID_SPRING_INDEX;
 
     ivec2 cell = ivec2(floor((positionA.xy - pc.boundsMin.xy) / pc.smoothingRadius));
 
@@ -145,7 +141,7 @@ void main()
 
             uint j = cellHeads[cellKey];
 
-            while (j != 0xFFFFFFFFu)
+            while (j != INVALID_SPRING_INDEX)
             {
                 uint nextParticle = particleNext[j];
 
@@ -178,7 +174,7 @@ void main()
 
                             if (restLength <= pc.smoothingRadius)
                             {
-                                appendSpring(pairKey, restLength, lookupHead);
+                                appendSpring(pairKey, restLength, springAHead);
                             }
                         }
                         else
@@ -192,7 +188,7 @@ void main()
                                 restLength -= pc.dt * pc.plasticity * (restLength - deformation - distance);
                             }
 
-                            appendSpring(pairKey, restLength, lookupHead);
+                            appendSpring(pairKey, restLength, springAHead);
                         }
                     }
                 }
@@ -201,5 +197,6 @@ void main()
             }
         }
     }
-    currentSpringLookupHeads[i] = lookupHead;
+
+    currentSpringAHeads[i] = springAHead;
 }
