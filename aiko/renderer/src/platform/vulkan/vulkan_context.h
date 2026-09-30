@@ -8,6 +8,7 @@
 #include <array>
 #include <optional>
 #include <limits>
+#include <string_view>
 
 class GLFWwindow;
 
@@ -47,6 +48,10 @@ namespace aiko::renderer::vulkan
         double graphicsGpuMs() const { return m_gpuProfiler.graphicsGpuMs(); }
         void beginGraphicsGpuPass() { m_gpuProfiler.beginGraphicsPass(m_activeCommandBuffer, m_currentFrame); }
         void endGraphicsGpuPass() { m_gpuProfiler.endGraphicsPass(m_activeCommandBuffer, m_currentFrame); }
+        void beginComputeGpuFrame(VkCommandBuffer commandBuffer) { m_gpuProfiler.beginComputeFrame(commandBuffer, m_currentFrame);}
+        void endComputeGpuFrame(VkCommandBuffer commandBuffer) { m_gpuProfiler.endComputeFrame(commandBuffer, m_currentFrame); }
+        void beginComputeGpuPass(VkCommandBuffer commandBuffer, std::string_view name) { m_gpuProfiler.beginComputePass(commandBuffer, m_currentFrame, name); }
+        void endComputeGpuPass(VkCommandBuffer commandBuffer) { m_gpuProfiler.endComputePass(commandBuffer, m_currentFrame);}
 
         const VulkanDeviceCapabilities& capabilities() const { return m_capabilities; }
 

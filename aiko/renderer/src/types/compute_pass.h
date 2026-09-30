@@ -109,6 +109,7 @@ namespace aiko
 
     struct ComputePass
     {
+        string name;
         ComputeShader* shader = nullptr;
         vector<ComputeImageBinding> images;
         ComputeDispatch dispatch;

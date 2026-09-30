@@ -483,6 +483,7 @@ namespace sph
         };
 
         aiko::ComputePass gravityPass{};
+        gravityPass.name = "SPH Gravity";
         gravityPass.buffers.push_back({0, &m_velocityBuffer, aiko::ComputeAccess::ReadWrite});
 
         gravityPass.setPushConstants(gravityConstants);
@@ -541,6 +542,7 @@ namespace sph
         };
 
         aiko::ComputePass hashPass{};
+        hashPass.name = "SPH Hash";
 
         hashPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         hashPass.buffers.push_back({ 1, &m_cellKeyBuffer, aiko::ComputeAccess::Write});
@@ -568,6 +570,7 @@ namespace sph
                 };
 
                 aiko::ComputePass sortPass{};
+                sortPass.name = "SPH Sort";
 
                 sortPass.buffers.push_back({0,&m_cellKeyBuffer,aiko::ComputeAccess::ReadWrite});
                 sortPass.buffers.push_back({ 1, &m_particleIndexBuffer, aiko::ComputeAccess::ReadWrite});
@@ -586,6 +589,7 @@ namespace sph
         };
 
         aiko::ComputePass clearPass{};
+        clearPass.name = "SPH CellClear";
 
         clearPass.buffers.push_back({0,&m_cellStartBuffer,aiko::ComputeAccess::Write});
         clearPass.buffers.push_back({ 1, &m_cellEndBuffer, aiko::ComputeAccess::Write});
@@ -605,6 +609,7 @@ namespace sph
 
         // Range builder
         aiko::ComputePass rangePass{};
+        rangePass.name = "SPH CellRanges";
 
         rangePass.buffers.push_back({0, &m_cellKeyBuffer, aiko::ComputeAccess::Read});
         rangePass.buffers.push_back({1, &m_cellStartBuffer, aiko::ComputeAccess::Write});
@@ -639,6 +644,7 @@ namespace sph
         };
 
         aiko::ComputePass viscosityPass{};
+        viscosityPass.name = "SPH Viscosity";
 
         viscosityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         viscosityPass.buffers.push_back({ 1, &m_velocityBuffer, aiko::ComputeAccess::Read});
@@ -660,6 +666,7 @@ namespace sph
         };
 
         aiko::ComputePass applyPass{};
+        applyPass.name = "SPH ApplyViscosity";
 
         applyPass.buffers.push_back({0, &m_velocityBuffer, aiko::ComputeAccess::ReadWrite});
         applyPass.buffers.push_back({1, &m_velocityDeltaBuffer, aiko::ComputeAccess::Read});
@@ -678,6 +685,8 @@ namespace sph
 
         // Prediction
         aiko::ComputePass predictPass{};
+        predictPass.name = "SPH Predict";
+
         predictPass.buffers.push_back({ 0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
         predictPass.buffers.push_back({ 1, &m_prevPositionBuffer, aiko::ComputeAccess::Write});
         predictPass.buffers.push_back({ 2, &m_velocityBuffer, aiko::ComputeAccess::Read});
@@ -698,6 +707,8 @@ namespace sph
         };
 
         aiko::ComputePass clearSpringsPass{};
+        clearSpringsPass.name = "SPH SpringClear";
+
         clearSpringsPass.buffers.push_back({ 0, currentSpringBuffer, aiko::ComputeAccess::Write });
 
         clearSpringsPass.setPushConstants(clearSpringsConstants);
@@ -713,6 +724,8 @@ namespace sph
         };
 
         aiko::ComputePass migrateSpringsPass{};
+        migrateSpringsPass.name = "SPH SpringMigrate";
+
         migrateSpringsPass.buffers.push_back( { 0, previousSpringBuffer, aiko::ComputeAccess::Read });
         migrateSpringsPass.buffers.push_back({ 1, currentSpringBuffer, aiko::ComputeAccess::ReadWrite });
 
@@ -738,6 +751,8 @@ namespace sph
         };
 
         aiko::ComputePass springPass{};
+        springPass.name = "SPH SpringGenerate";
+
         springPass.buffers.push_back({ 0, &m_positionBuffer, aiko::ComputeAccess::Read });
         springPass.buffers.push_back({ 1, &m_particleIndexBuffer, aiko::ComputeAccess::Read });
         springPass.buffers.push_back({ 2, &m_cellStartBuffer, aiko::ComputeAccess::Read });
@@ -764,6 +779,8 @@ namespace sph
         };
 
         aiko::ComputePass springPlasticityPass{};
+        springPlasticityPass.name = "SPH SpringPlasticity";
+
         springPlasticityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         springPlasticityPass.buffers.push_back({1, currentSpringBuffer, aiko::ComputeAccess::ReadWrite});
 
@@ -796,6 +813,8 @@ namespace sph
         };
 
         aiko::ComputePass springDisplacementPass{};
+        springDisplacementPass.name = "SPH SpringDisplacement";
+
         springDisplacementPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         springDisplacementPass.buffers.push_back({1, currentSpringBuffer, aiko::ComputeAccess::Read});
         springDisplacementPass.buffers.push_back({2, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
@@ -816,6 +835,8 @@ namespace sph
         };
 
         aiko::ComputePass applySpringDeltaPass{};
+        applySpringDeltaPass.name = "SPH SpringApply";
+
         applySpringDeltaPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
         applySpringDeltaPass.buffers.push_back({1, &m_positionDeltaBuffer, aiko::ComputeAccess::Read});
 
@@ -842,6 +863,8 @@ namespace sph
         };
 
         aiko::ComputePass densityPass{};
+        densityPass.name = "SPH Density";
+
         densityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         densityPass.buffers.push_back({1, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
         densityPass.buffers.push_back({2, &m_cellStartBuffer, aiko::ComputeAccess::Read});
@@ -867,6 +890,8 @@ namespace sph
         };
 
         aiko::ComputePass relaxationPass{};
+        relaxationPass.name = "SPH Relaxation";
+
         relaxationPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         relaxationPass.buffers.push_back({1, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
         relaxationPass.buffers.push_back({2, &m_cellStartBuffer, aiko::ComputeAccess::Read});
@@ -887,6 +912,8 @@ namespace sph
         };
 
         aiko::ComputePass deltaPass{};
+        deltaPass.name = "SPH RelaxationApply";
+
         deltaPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
         deltaPass.buffers.push_back({1, &m_positionDeltaBuffer, aiko::ComputeAccess::Read});
 
@@ -911,6 +938,8 @@ namespace sph
         };
 
         aiko::ComputePass stickinessPass{};
+        stickinessPass.name = "SPH Stickiness";
+
         stickinessPass.buffers.push_back({ 0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite });
         stickinessPass.buffers.push_back({ 1, &m_shapeEdgeBuffer, aiko::ComputeAccess::Read });
         stickinessPass.buffers.push_back({ 2, &m_shapeBuffer, aiko::ComputeAccess::Read });
@@ -931,6 +960,7 @@ namespace sph
         };
 
         aiko::ComputePass shapeCollisionPass{};
+        shapeCollisionPass.name = "SPH ShapeCollision";
 
         shapeCollisionPass.buffers.push_back({ 0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite });
         shapeCollisionPass.buffers.push_back({ 1, &m_shapeEdgeBuffer, aiko::ComputeAccess::Read });
@@ -952,6 +982,8 @@ namespace sph
         };
 
         aiko::ComputePass boundaryPass{};
+        boundaryPass.name = "SPH Boundary";
+
         boundaryPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::ReadWrite});
         boundaryPass.buffers.push_back({1, &m_prevPositionBuffer, aiko::ComputeAccess::ReadWrite});
 
@@ -969,6 +1001,7 @@ namespace sph
         };
 
         aiko::ComputePass velocityPass{};
+        velocityPass.name = "SPH Velocity";
 
         velocityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         velocityPass.buffers.push_back({1, &m_prevPositionBuffer, aiko::ComputeAccess::Read});

@@ -44,7 +44,7 @@ namespace aiko::renderer::vulkan
         createSurface();
         pickPhysicalDevice();
         createLogicalDevice();
-        m_gpuProfiler.create(m_physicalDevice, m_device, m_graphicsQueueFamily, MAX_FRAMES_IN_FLIGHT);
+        m_gpuProfiler.create(m_physicalDevice, m_device, m_graphicsQueueFamily, m_computeQueueFamily, MAX_FRAMES_IN_FLIGHT);
         createSwapChain();
         createImageViews();
         m_clearRenderPass = createRenderPass(VK_ATTACHMENT_LOAD_OP_CLEAR);
@@ -782,6 +782,7 @@ namespace aiko::renderer::vulkan
         }
 
         m_gpuProfiler.resolveGraphicsFrame(m_currentFrame);
+        m_gpuProfiler.resolveComputeFrame(m_currentFrame);
 
         destroyRetiredResourcesForFrame(m_currentFrame);
         uint32_t imageIndex = 0;

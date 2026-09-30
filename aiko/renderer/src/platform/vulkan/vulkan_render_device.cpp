@@ -505,7 +505,14 @@ namespace aiko::renderer::vulkan
         {
             AIKO_ASSERT(m_renderPassActive == false, "Compute pass cannot begin inside a graphics render pass");
             AIKO_ASSERT(m_computePassActive == false, "Compute pass is already active");
+
             m_computePassActive = true;
+
+            VkCommandBuffer commandBuffer = m_context.hasDedicatedComputeQueue() ? m_context.computeCommandBuffer() : m_context.activeCommandBuffer();
+            AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Compute pass requires a valid command buffer");
+
+            m_context.beginComputeGpuFrame(commandBuffer);
+
             return;
         }
 
@@ -661,6 +668,9 @@ namespace aiko::renderer::vulkan
         AIKO_FUNCTION_PROFILE
         if (m_computePassActive)
         {
+            VkCommandBuffer commandBuffer = m_context.hasDedicatedComputeQueue() ? m_context.computeCommandBuffer() : m_context.activeCommandBuffer();
+            AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Compute pass requires a valid command buffer");
+            m_context.endComputeGpuFrame(commandBuffer);
             m_computePassActive = false;
             return;
         }
@@ -1159,6 +1169,11 @@ namespace aiko::renderer::vulkan
             vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, static_cast<uint32_t>( pass.pushConstants.size()), pass.pushConstants.data());
         }
 
+        if (pass.name.empty() == false)
+        {
+            m_context.beginComputeGpuPass(commandBuffer, pass.name);
+        }
+
         if (indirectBufferImpl != nullptr)
         {
             vkCmdDispatchIndirect(commandBuffer, indirectBufferImpl->buffer(), pass.dispatch.indirectOffset);
@@ -1166,6 +1181,11 @@ namespace aiko::renderer::vulkan
         else
         {
             vkCmdDispatch(commandBuffer, pass.dispatch.groupsX, pass.dispatch.groupsY, pass.dispatch.groupsZ);
+        }
+
+        if (pass.name.empty() == false)
+        {
+            m_context.endComputeGpuPass(commandBuffer);
         }
 
     }
