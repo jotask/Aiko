@@ -47,7 +47,7 @@ namespace sph
         const WorldBounds m_bounds
         {
             .position = {0.0f, 0.0f, 0.0f},
-            .size = {8.0f, 6.0f, 0.0f}
+            .size = {32.0f, 32.0f, 0.0f}
         };
 
         SPHParameters m_parameters;

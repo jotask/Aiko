@@ -36,7 +36,7 @@ namespace sph
         // Init camera
         aiko::GameObject* camera = Instantiate("Camera");
         m_cameraComponent = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Drag);
-        camera->transform().position = { 0.0f, 2.5f, 8.0f };
+        camera->transform().position = { 0.0f, 2.5f, 42.0f };
         m_cameraComponent->setCameraType(aiko::Camera::CameraType::Orthographic);
         m_cameraComponent->getCamera().position = camera->transform().position;
 

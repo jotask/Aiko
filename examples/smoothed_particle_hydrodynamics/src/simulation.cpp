@@ -18,7 +18,7 @@ namespace sph
         m_particles.reserve(N_PARTICLES + 1024);
         m_particles.resize(N_PARTICLES);
 
-        constexpr int columns = 32;
+        constexpr int columns = 256;
         constexpr float spacing = 0.10f;
 
         const aiko::vec3 halfSize = m_bounds.size * 0.5f;

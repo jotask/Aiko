@@ -72,9 +72,9 @@ namespace sph
         }
         else
         {
-            aiko::vector<SPHParticle> spawnedParticles;
-            m_simulation.updateEmitters(m_simulation.parameters().fixedDeltaTime, spawnedParticles);
-            m_gpuSimulation.spawnParticles(spawnedParticles);
+            // aiko::vector<SPHParticle> spawnedParticles;
+            // m_simulation.updateEmitters(m_simulation.parameters().fixedDeltaTime, spawnedParticles);
+            // m_gpuSimulation.spawnParticles(spawnedParticles);
         }
 
         if (input.isMouseButtonJustPressed(aiko::MouseButton::MOUSE_BUTTON_LEFT))
