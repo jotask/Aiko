@@ -113,7 +113,7 @@ if (AIKO_PROFILER)
             input=\"$1\"
             output=\"$2\"
 
-            \"${TRACY_CSVEXPORT_BIN}\" -u \"$input\" > \"$output\"
+            \"${TRACY_CSVEXPORT_BIN}\" -u -p \"$input\" > \"$output\"
             echo \"Wrote $output\"
             ")
 
