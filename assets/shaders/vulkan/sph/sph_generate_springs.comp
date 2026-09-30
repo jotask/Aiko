@@ -90,7 +90,7 @@ bool findPreviousSpring(uint particle, uint pairKey, out float restLength)
     return false;
 }
 
-void appendSpring(uint pairKey, float restLength)
+void appendSpring(uint pairKey, float restLength, inout uint lookupHead)
 {
     uint springIndex = atomicAdd(currentSpringLookupHeads[pc.springCounterIndex], 1u);
 
@@ -103,8 +103,11 @@ void appendSpring(uint pairKey, float restLength)
     uint particleB = getParticleB(pairKey);
 
     uint previousHeadA = atomicExchange(currentSpringHeads[particleA], springIndex);
+
     uint previousHeadB = atomicExchange(currentSpringHeads[particleB], springIndex);
-    uint previousLookupHead = atomicExchange(currentSpringLookupHeads[particleA], springIndex);
+
+    uint previousLookupHead = lookupHead;
+    lookupHead = springIndex;
 
     currentSprings[springIndex].pairKey = pairKey;
     currentSprings[springIndex].restLength = restLength;
@@ -123,6 +126,7 @@ void main()
     }
 
     vec3 positionA = positions[i].xyz;
+    uint lookupHead = INVALID_SPRING_INDEX;
 
     ivec2 cell = ivec2(floor((positionA.xy - pc.boundsMin.xy) / pc.smoothingRadius));
 
@@ -174,7 +178,7 @@ void main()
 
                             if (restLength <= pc.smoothingRadius)
                             {
-                                appendSpring(pairKey, restLength);
+                                appendSpring(pairKey, restLength, lookupHead);
                             }
                         }
                         else
@@ -188,7 +192,7 @@ void main()
                                 restLength -= pc.dt * pc.plasticity * (restLength - deformation - distance);
                             }
 
-                            appendSpring(pairKey, restLength);
+                            appendSpring(pairKey, restLength, lookupHead);
                         }
                     }
                 }
@@ -197,4 +201,5 @@ void main()
             }
         }
     }
+    currentSpringLookupHeads[i] = lookupHead;
 }
