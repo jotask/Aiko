@@ -179,21 +179,21 @@ namespace sph
         struct SPHGenerateSpringsPushConstants
         {
             float smoothingRadius = 0.0f;
+            float dt = 0.0f;
+            float gamma = 0.0f;
+            float plasticity = 0.0f;
+
             uint32_t particleCount = 0;
             uint32_t gridWidth = 0;
             uint32_t gridHeight = 0;
-
             uint32_t maxSprings = 0;
-            uint32_t padding0 = 0;
-            uint32_t padding1 = 0;
-            uint32_t padding2 = 0;
 
             alignas(16) aiko::vec4 boundsMin = {};
         };
 
         static_assert(sizeof(SPHGenerateSpringsPushConstants) == 48);
 
-        struct SPHSpringPlasticityPushConstants
+        struct SPHMigrateSpringsPushConstants
         {
             float dt = 0.0f;
             float gamma = 0.0f;
@@ -206,7 +206,7 @@ namespace sph
             uint32_t padding2 = 0;
         };
 
-        static_assert(sizeof(SPHSpringPlasticityPushConstants) == 32);
+        static_assert(sizeof(SPHMigrateSpringsPushConstants) == 32);
 
         struct SPHSpringDisplacementPushConstants
         {
@@ -448,7 +448,6 @@ namespace sph
         m_clearSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_clear_springs");
         m_migrateSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_migrate_springs");
         m_generateSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_generate_springs");
-        m_springPlasticityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_spring_plasticity");
         m_springDisplacementShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_spring_displacement");
         m_stickinessShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_stickiness");
 
@@ -718,16 +717,25 @@ namespace sph
         renderSystem.dispatch(clearSpringsPass, m_clearSpringsShaderId);
 
         // Migrate persistent springs
-        const SPHClearSpringsPushConstants migrateSpringsConstants
+        const SPHMigrateSpringsPushConstants migrateSpringsConstants
         {
-            .maxSprings = MaxSprings
+            .dt = parameters.fixedDeltaTime,
+            .gamma = parameters.gamma,
+            .plasticity = parameters.plasticity,
+            .smoothingRadius = parameters.smoothingRadius,
+
+            .maxSprings = MaxSprings,
+            .padding0 = 0,
+            .padding1 = 0,
+            .padding2 = 0
         };
 
         aiko::ComputePass migrateSpringsPass{};
         migrateSpringsPass.name = "SPH SpringMigrate";
 
-        migrateSpringsPass.buffers.push_back( { 0, previousSpringBuffer, aiko::ComputeAccess::Read });
-        migrateSpringsPass.buffers.push_back({ 1, currentSpringBuffer, aiko::ComputeAccess::ReadWrite });
+        migrateSpringsPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
+        migrateSpringsPass.buffers.push_back({1, previousSpringBuffer, aiko::ComputeAccess::Read});
+        migrateSpringsPass.buffers.push_back({2, currentSpringBuffer, aiko::ComputeAccess::ReadWrite});
 
         migrateSpringsPass.setPushConstants(migrateSpringsConstants);
 
@@ -739,15 +747,22 @@ namespace sph
         const SPHGenerateSpringsPushConstants springConstants
         {
             .smoothingRadius = parameters.smoothingRadius,
+            .dt = parameters.fixedDeltaTime,
+            .gamma = parameters.gamma,
+            .plasticity = parameters.plasticity,
+
             .particleCount = m_particleCount,
             .gridWidth = m_gridWidth,
             .gridHeight = m_gridHeight,
-
             .maxSprings = MaxSprings,
-            .padding0 = 0,
-            .padding1 = 0,
-            .padding2 = 0,
-            .boundsMin ={ left, bottom, 0.0f, 0.0f}
+
+            .boundsMin =
+            {
+                left,
+                bottom,
+                0.0f,
+                0.0f
+            }
         };
 
         aiko::ComputePass springPass{};
@@ -767,28 +782,6 @@ namespace sph
         springPass.dispatch.groupsZ = 1;
 
         renderSystem.dispatch(springPass, m_generateSpringsShaderId);
-
-        // Spring plasticity
-        const SPHSpringPlasticityPushConstants springPlasticityConstants
-        {
-            .dt = parameters.fixedDeltaTime,
-            .gamma = parameters.gamma,
-            .plasticity = parameters.plasticity,
-            .smoothingRadius = parameters.smoothingRadius,
-            .maxSprings = MaxSprings
-        };
-
-        aiko::ComputePass springPlasticityPass{};
-        springPlasticityPass.name = "SPH SpringPlasticity";
-
-        springPlasticityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
-        springPlasticityPass.buffers.push_back({1, currentSpringBuffer, aiko::ComputeAccess::ReadWrite});
-
-        springPlasticityPass.setPushConstants(springPlasticityConstants);
-
-        springPlasticityPass.dispatch.groupsX =(MaxSprings + 63) / 64;
-
-        renderSystem.dispatch(springPlasticityPass, m_springPlasticityShaderId);
 
         // Spring displacement
         const SPHSpringDisplacementPushConstants springDisplacementConstants

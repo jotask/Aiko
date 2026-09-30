@@ -71,7 +71,6 @@ namespace sph
         aiko::AssetId m_clearSpringsShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_migrateSpringsShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_generateSpringsShaderId = aiko::InvalidAssetId;
-        aiko::AssetId m_springPlasticityShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_springDisplacementShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_stickinessShaderId = aiko::InvalidAssetId;
 
