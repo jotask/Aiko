@@ -17,24 +17,12 @@ readonly buffer Springs
 };
 
 layout(std430, binding = 2)
-readonly buffer ParticleIndices
+readonly buffer SpringHeads
 {
-    uint particleIndices[];
+    uint springHeads[];
 };
 
 layout(std430, binding = 3)
-readonly buffer CellStarts
-{
-    uint cellStarts[];
-};
-
-layout(std430, binding = 4)
-readonly buffer CellEnds
-{
-    uint cellEnds[];
-};
-
-layout(std430, binding = 5)
 writeonly buffer PositionDeltas
 {
     vec4 positionDeltas[];
@@ -47,40 +35,7 @@ uniform PushConstants
     float smoothingRadius;
     float springStiffness;
     uint particleCount;
-
-    uint maxSprings;
-    uint gridWidth;
-    uint gridHeight;
-    uint padding;
-
-    vec4 boundsMin;
 } pc;
-
-int findSpring(uint pairKey)
-{
-    uint mask = pc.maxSprings - 1u;
-
-    uint slot = hashPairKey(pairKey) & mask;
-
-    for (uint probe = 0; probe < MAX_SPRING_PROBES; ++probe)
-    {
-        uint currentKey = springs[slot].pairKey;
-
-        if (currentKey == pairKey)
-        {
-            return int(slot);
-        }
-
-        if (currentKey == EMPTY_SPRING_KEY)
-        {
-            return -1;
-        }
-
-        slot = (slot + 1u) & mask;
-    }
-
-    return -1;
-}
 
 void main()
 {
@@ -93,77 +48,57 @@ void main()
 
     vec3 positionA = positions[i].xyz;
 
-    ivec2 cell = ivec2(floor((positionA.xy - pc.boundsMin.xy) / pc.smoothingRadius));
-
     vec3 delta = vec3(0.0);
 
-    for (int y = -1; y <= 1; ++y)
+    uint springIndex = springHeads[i];
+
+    while (springIndex != INVALID_SPRING_INDEX)
     {
-        for (int x = -1; x <= 1; ++x)
+        Spring spring = springs[springIndex];
+
+        uint particleA = getParticleA(spring.pairKey);
+        uint particleB = getParticleB(spring.pairKey);
+
+        uint j;
+        uint nextSpringIndex;
+
+        if (particleA == i)
         {
-            ivec2 neighbourCell = cell + ivec2(x, y);
-
-            if (neighbourCell.x < 0 || neighbourCell.y < 0 || neighbourCell.x >= int(pc.gridWidth) || neighbourCell.y >= int(pc.gridHeight))
-            {
-                continue;
-            }
-
-            uint cellKey = uint(neighbourCell.y) * pc.gridWidth + uint(neighbourCell.x);
-
-            uint start = cellStarts[cellKey];
-
-            uint end = cellEnds[cellKey];
-
-            if (start == 0xFFFFFFFFu || end == 0xFFFFFFFFu)
-            {
-                continue;
-            }
-
-            for (uint sortedIndex = start; sortedIndex < end;  ++sortedIndex)
-            {
-                uint j = particleIndices[sortedIndex];
-
-                if (j == i)
-                {
-                    continue;
-                }
-
-                uint pairKey = makePairKey(i, j);
-
-                int springIndex = findSpring(pairKey);
-
-                if (springIndex < 0)
-                {
-                    continue;
-                }
-
-                Spring spring = springs[uint(springIndex)];
-
-                if (spring.enabled == 0u)
-                {
-                    continue;
-                }
-
-                vec3 positionB = positions[j].xyz;
-
-                vec3 direction = positionB - positionA;
-
-                float distance = length(direction);
-
-                if (distance <= 0.000001)
-                {
-                    continue;
-                }
-
-                vec3 normalizedDirection = direction / distance;
-
-                float displacementTerm = pc.dt * pc.dt * pc.springStiffness * (1.0 - spring.restLength / pc.smoothingRadius) * (spring.restLength - distance);
-
-                vec3 displacement = normalizedDirection * displacementTerm * 0.5;
-
-                delta -= displacement;
-            }
+            j = particleB;
+            nextSpringIndex = spring.nextA;
         }
+        else if (particleB == i)
+        {
+            j = particleA;
+            nextSpringIndex = spring.nextB;
+        }
+        else
+        {
+            // Corrupted adjacency list.
+            break;
+        }
+
+        // Advance before any early continue.
+        springIndex = nextSpringIndex;
+
+        vec3 positionB = positions[j].xyz;
+
+        vec3 direction = positionB - positionA;
+
+        float distance = length(direction);
+
+        if (distance <= 0.000001)
+        {
+            continue;
+        }
+
+        vec3 normalizedDirection = direction / distance;
+
+        float displacementTerm = pc.dt * pc.dt * pc.springStiffness * (1.0 - spring.restLength / pc.smoothingRadius) * (spring.restLength - distance);
+
+        vec3 displacement = normalizedDirection * displacementTerm * 0.5;
+
+        delta -= displacement;
     }
 
     positionDeltas[i] = vec4(delta, 0.0);

@@ -5,12 +5,14 @@ const uint MAX_SPRING_PROBES = 128u;
 
 const uint EMPTY_SPRING_KEY = 0xFFFFFFFFu;
 
+const uint INVALID_SPRING_INDEX = 0xFFFFFFFFu;
+
 struct Spring
 {
     uint pairKey;
     float restLength;
-    uint enabled;
-    uint padding;
+    uint nextA;
+    uint nextB;
 };
 
 uint makePairKey(uint particleA, uint particleB)

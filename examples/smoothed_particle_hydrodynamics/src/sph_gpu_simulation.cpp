@@ -169,8 +169,8 @@ namespace sph
         {
             uint32_t pairKey = EmptySpringKey;
             float restLength = 0.0f;
-            uint32_t enabled = 0;
-            uint32_t padding = 0;
+            uint32_t nextA = EmptySpringKey;
+            uint32_t nextB = EmptySpringKey;
         };
 
         static_assert(sizeof(GpuSpring) == 16);
@@ -214,16 +214,9 @@ namespace sph
             float smoothingRadius = 0.0f;
             float springStiffness = 0.0f;
             uint32_t particleCount = 0;
-
-            uint32_t maxSprings = 0;
-            uint32_t gridWidth = 0;
-            uint32_t gridHeight = 0;
-            uint32_t padding = 0;
-
-            alignas(16) aiko::vec4 boundsMin = {};
         };
 
-        static_assert(sizeof(SPHSpringDisplacementPushConstants) == 48);
+        static_assert(sizeof(SPHSpringDisplacementPushConstants) == 16);
 
         struct GpuShapeEdge
         {
@@ -256,9 +249,10 @@ namespace sph
         struct SPHClearSpringsPushConstants
         {
             uint32_t maxSprings = 0;
+            uint32_t particleCount = 0;
         };
 
-        static_assert(sizeof(SPHClearSpringsPushConstants) == 4);
+        static_assert(sizeof(SPHClearSpringsPushConstants) == 8);
 
         struct SPHStickinessPushConstants
         {
@@ -365,6 +359,7 @@ namespace sph
 
         m_cellKeyBuffer.create(uintBufferDesc, nullptr);
         m_particleIndexBuffer.create(uintBufferDesc, nullptr);
+        m_springHeadBuffer.create(uintBufferDesc, nullptr);
 
         // Shapes
         aiko::vector<GpuShape> gpuShapes;
@@ -702,13 +697,15 @@ namespace sph
         // Clear current spring table
         const SPHClearSpringsPushConstants clearSpringsConstants
         {
-            .maxSprings = MaxSprings
+            .maxSprings = MaxSprings,
+            .particleCount = m_particleCount
         };
 
         aiko::ComputePass clearSpringsPass{};
         clearSpringsPass.name = "SPH SpringClear";
 
-        clearSpringsPass.buffers.push_back({ 0, currentSpringBuffer, aiko::ComputeAccess::Write });
+        clearSpringsPass.buffers.push_back({0, currentSpringBuffer, aiko::ComputeAccess::Write});
+        clearSpringsPass.buffers.push_back({1, &m_springHeadBuffer, aiko::ComputeAccess::Write});
 
         clearSpringsPass.setPushConstants(clearSpringsConstants);
 
@@ -736,6 +733,7 @@ namespace sph
         migrateSpringsPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         migrateSpringsPass.buffers.push_back({1, previousSpringBuffer, aiko::ComputeAccess::Read});
         migrateSpringsPass.buffers.push_back({2, currentSpringBuffer, aiko::ComputeAccess::ReadWrite});
+        migrateSpringsPass.buffers.push_back({3, &m_springHeadBuffer, aiko::ComputeAccess::ReadWrite});
 
         migrateSpringsPass.setPushConstants(migrateSpringsConstants);
 
@@ -773,6 +771,7 @@ namespace sph
         springPass.buffers.push_back({ 2, &m_cellStartBuffer, aiko::ComputeAccess::Read });
         springPass.buffers.push_back({ 3, &m_cellEndBuffer, aiko::ComputeAccess::Read });
         springPass.buffers.push_back({4, currentSpringBuffer, aiko::ComputeAccess::ReadWrite});
+        springPass.buffers.push_back({5, &m_springHeadBuffer, aiko::ComputeAccess::ReadWrite});
 
         springPass.setPushConstants(springConstants);
 
@@ -789,20 +788,7 @@ namespace sph
             .dt = parameters.fixedDeltaTime,
             .smoothingRadius = parameters.smoothingRadius,
             .springStiffness = parameters.springStiffness,
-            .particleCount = m_particleCount,
-
-            .maxSprings = MaxSprings,
-            .gridWidth = m_gridWidth,
-            .gridHeight = m_gridHeight,
-            .padding = 0,
-
-            .boundsMin =
-            {
-                left,
-                bottom,
-                0.0f,
-                0.0f
-            }
+            .particleCount = m_particleCount
         };
 
         aiko::ComputePass springDisplacementPass{};
@@ -810,10 +796,8 @@ namespace sph
 
         springDisplacementPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         springDisplacementPass.buffers.push_back({1, currentSpringBuffer, aiko::ComputeAccess::Read});
-        springDisplacementPass.buffers.push_back({2, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
-        springDisplacementPass.buffers.push_back({3, &m_cellStartBuffer, aiko::ComputeAccess::Read});
-        springDisplacementPass.buffers.push_back({4, &m_cellEndBuffer, aiko::ComputeAccess::Read});
-        springDisplacementPass.buffers.push_back({5, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
+        springDisplacementPass.buffers.push_back({2, &m_springHeadBuffer, aiko::ComputeAccess::Read});
+        springDisplacementPass.buffers.push_back({3, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
 
         springDisplacementPass.setPushConstants(springDisplacementConstants);
 

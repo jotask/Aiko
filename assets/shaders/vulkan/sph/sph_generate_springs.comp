@@ -34,6 +34,12 @@ buffer Springs
     Spring springs[];
 };
 
+layout(std430, binding = 5)
+buffer SpringHeads
+{
+    uint springHeads[];
+};
+
 layout(push_constant)
 uniform PushConstants
 {
@@ -49,6 +55,18 @@ uniform PushConstants
 
     vec4 boundsMin;
 } pc;
+
+void linkSpring(uint springIndex, uint pairKey)
+{
+    uint particleA = getParticleA(pairKey);
+    uint particleB = getParticleB(pairKey);
+
+    uint previousHeadA = atomicExchange(springHeads[particleA], springIndex);
+    uint previousHeadB = atomicExchange(springHeads[particleB], springIndex);
+
+    springs[springIndex].nextA = previousHeadA;
+    springs[springIndex].nextB = previousHeadB;
+}
 
 void insertSpring(uint pairKey, float initialRestLength)
 {
@@ -72,8 +90,8 @@ void insertSpring(uint pairKey, float initialRestLength)
             if (previousKey == EMPTY_SPRING_KEY)
             {
                 springs[slot].restLength = initialRestLength;
-                springs[slot].enabled = 1u;
-                springs[slot].padding = 0u;
+
+                linkSpring(slot, pairKey);
 
                 return;
             }

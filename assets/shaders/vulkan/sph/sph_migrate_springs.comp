@@ -22,6 +22,12 @@ buffer CurrentSprings
     Spring currentSprings[];
 };
 
+layout(std430, binding = 3)
+buffer SpringHeads
+{
+    uint springHeads[];
+};
+
 layout(push_constant)
 uniform PushConstants
 {
@@ -36,35 +42,43 @@ uniform PushConstants
     uint padding2;
 } pc;
 
+void linkSpring(uint springIndex, uint pairKey)
+{
+    uint particleA = getParticleA(pairKey);
+    uint particleB = getParticleB(pairKey);
+
+    uint previousHeadA = atomicExchange(springHeads[particleA], springIndex);
+    uint previousHeadB = atomicExchange(springHeads[particleB], springIndex);
+
+    currentSprings[springIndex].nextA = previousHeadA;
+    currentSprings[springIndex].nextB = previousHeadB;
+}
+
 void insertSpring(Spring spring)
 {
     uint mask = pc.maxSprings - 1u;
 
     uint slot = hashPairKey(spring.pairKey) & mask;
 
-    for (uint probe = 0; probe < MAX_SPRING_PROBES;  ++probe)
+    for (uint probe = 0; probe < MAX_SPRING_PROBES; ++probe)
     {
         uint previousKey = atomicCompSwap(currentSprings[slot].pairKey, EMPTY_SPRING_KEY, spring.pairKey);
 
-        if (
-        previousKey == EMPTY_SPRING_KEY ||
-        previousKey == spring.pairKey)
+        if (previousKey == EMPTY_SPRING_KEY)
         {
-            currentSprings[slot].restLength =
-            spring.restLength;
+            currentSprings[slot].restLength = spring.restLength;
 
-            currentSprings[slot].enabled =
-            spring.enabled;
-
-            currentSprings[slot].padding =
-            0u;
+            linkSpring(slot, spring.pairKey);
 
             return;
         }
 
-        slot =
-        (slot + 1u) &
-        mask;
+        if (previousKey == spring.pairKey)
+        {
+            return;
+        }
+
+        slot = (slot + 1u) & mask;
     }
 }
 
@@ -79,7 +93,7 @@ void main()
 
     Spring spring = previousSprings[springIndex];
 
-    if (spring.pairKey == EMPTY_SPRING_KEY || spring.enabled == 0u)
+    if (spring.pairKey == EMPTY_SPRING_KEY)
     {
         return;
     }

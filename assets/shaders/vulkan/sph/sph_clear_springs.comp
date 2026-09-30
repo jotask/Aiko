@@ -10,23 +10,30 @@ buffer Springs
     Spring springs[];
 };
 
+layout(std430, binding = 1)
+buffer SpringHeads
+{
+    uint springHeads[];
+};
+
 layout(push_constant)
 uniform PushConstants
 {
     uint maxSprings;
+    uint particleCount;
 } pc;
 
 void main()
 {
-    uint springIndex = gl_GlobalInvocationID.x;
+    uint index = gl_GlobalInvocationID.x;
 
-    if (springIndex >= pc.maxSprings)
+    if (index < pc.maxSprings)
     {
-        return;
+        springs[index].pairKey = EMPTY_SPRING_KEY;
     }
 
-    springs[springIndex].pairKey = EMPTY_SPRING_KEY;
-    springs[springIndex].restLength = 0.0;
-    springs[springIndex].enabled = 0u;
-    springs[springIndex].padding = 0u;
+    if (index < pc.particleCount)
+    {
+        springHeads[index] = INVALID_SPRING_INDEX;
+    }
 }
