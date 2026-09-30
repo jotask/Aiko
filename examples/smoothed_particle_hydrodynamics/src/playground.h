@@ -41,18 +41,20 @@ namespace sph
             Pressure = 2,
         };
 
+        struct ShapeRenderData
+        {
+            aiko::Mesh mesh;
+            aiko::Material material;
+        };
+
+        void renderGui();
+
         Simulation m_simulation;
         SPHGpuSimulation m_gpuSimulation;
 
         aiko::Mesh m_particleMesh;
         aiko::Material m_particleMaterial;
         aiko::Material m_gpuParticleMaterial;
-
-        struct ShapeRenderData
-        {
-            aiko::Mesh mesh;
-            aiko::Material material;
-        };
 
         std::deque<ShapeRenderData> m_shapeRenderData;
 
@@ -62,6 +64,9 @@ namespace sph
         aiko::vec3 m_previousMousePosition = {};
 
         ParticleColorMode m_particleColorMode = ParticleColorMode::Velocity;
+
+        float m_velocityColorScale = 0.5f;
+        float m_pressureColorScale = 0.05f;
 
     };
 

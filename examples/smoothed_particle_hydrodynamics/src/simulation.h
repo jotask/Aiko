@@ -27,6 +27,8 @@ namespace sph
         const aiko::vector<ParticleEmitter>& emitters() const { return m_emitters; }
 
         const SPHParameters& parameters() const { return m_parameters; }
+        SPHParameters& parameters() { return m_parameters; }
+
         const WorldBounds& bounds() const { return m_bounds; }
 
         const aiko::vector<Shape>& shapes() const { return m_shapes; }

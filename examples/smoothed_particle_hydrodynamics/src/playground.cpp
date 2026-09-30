@@ -7,6 +7,9 @@
 #include "systems/render_system.h"
 #include "systems/asset_system.h"
 
+#include <magic_enum/magic_enum.hpp>
+#include <imgui.h>
+
 namespace sph
 {
 
@@ -49,7 +52,10 @@ namespace sph
         m_gpuParticleMaterial.m_lit = false;
 
         m_gpuParticleMaterial.setFloat("u_particleDiameter", m_simulation.parameters().particleRadius * 2.0f);
+        m_gpuParticleMaterial.setFloat("u_particleDiameter", m_simulation.parameters().particleRadius * 2.0f);
         m_gpuParticleMaterial.setUInt("u_particleColorMode", static_cast<uint32_t>(m_particleColorMode));
+        m_gpuParticleMaterial.setFloat("u_velocityColorScale", m_velocityColorScale);
+        m_gpuParticleMaterial.setFloat("u_pressureColorScale", m_pressureColorScale);
         m_gpuParticleMaterial.setFloat("u_velocityColorScale", 0.5f);
         m_gpuParticleMaterial.setFloat("u_pressureColorScale", 0.05f);
 
@@ -219,5 +225,89 @@ namespace sph
 
             renderer.drawMesh(transform, renderData.mesh, renderData.material);
         }
+
+        renderGui();
+
+    }
+
+    void Playground::renderGui()
+    {
+        if (ImGui::Begin("SPH Simulation"))
+        {
+            SPHParameters& parameters = m_simulation.parameters();
+
+            ImGui::Text("Particles: %u", m_gpuSimulation.particleCount());
+
+            ImGui::SeparatorText("Fluid");
+
+            ImGui::DragFloat("Particle Radius", &parameters.particleRadius, 0.001f, 0.001f, 1.0f);
+
+            ImGui::BeginDisabled();
+            ImGui::DragFloat("Smoothing Radius", &parameters.smoothingRadius, 0.001f, 0.001f, 2.0f);
+            ImGui::EndDisabled();
+
+            ImGui::DragFloat("Rest Density", &parameters.restDensity, 0.1f, 0.0f, 100.0f);
+
+            ImGui::DragFloat("Pressure Stiffness", &parameters.pressureStiffness, 0.0001f, 0.0f, 1.0f);
+
+            ImGui::DragFloat( "Near Pressure Stiffness", &parameters.nearPressureStiffness, 0.0001f, 0.0f, 1.0f);
+
+            ImGui::SeparatorText("Viscosity");
+
+            ImGui::DragFloat("Sigma", &parameters.sigma, 0.01f, 0.0f, 10.0f);
+
+            ImGui::DragFloat("Beta", &parameters.beta, 0.01f, 0.0f, 10.0f);
+
+            ImGui::SeparatorText("Springs");
+
+            ImGui::DragFloat("Gamma", &parameters.gamma, 0.01f, 0.0f, 10.0f);
+
+            ImGui::DragFloat("Plasticity", &parameters.plasticity, 0.01f, 0.0f, 10.0f);
+
+            ImGui::DragFloat("Spring Stiffness", &parameters.springStiffness, 0.01f, 0.0f, 10.0f);
+
+            ImGui::SeparatorText("Stickiness");
+
+            ImGui::DragFloat("Max Stickiness", &parameters.maxStickiness, 0.001f, 0.0f, 2.0f);
+
+            ImGui::DragFloat("Stickiness Strength", &parameters.kStick, 0.01f, 0.0f, 10.0f);
+
+            ImGui::SeparatorText("Gravity");
+
+            ImGui::DragFloat("Gravity", &parameters.gravity, 0.001f, 0.0f, 10.0f);
+
+            ImGui::DragFloat3("Gravity Direction", &parameters.gravityDirection.x, 0.01f, -1.0f, 1.0f);
+
+            ImGui::SeparatorText("Simulation");
+
+            ImGui::DragFloat("Fixed Delta Time", &parameters.fixedDeltaTime, 0.01f, 0.001f, 1.0f);
+
+            ImGui::SeparatorText("Rendering");
+
+            const std::string_view currentName = magic_enum::enum_name(m_particleColorMode);
+            if (ImGui::BeginCombo("Particle Color", currentName.data()))
+            {
+                for (ParticleColorMode mode : magic_enum::enum_values<ParticleColorMode>())
+                {
+                    const std::string_view name = magic_enum::enum_name(mode);
+                    const bool selected = mode == m_particleColorMode;
+                    if (ImGui::Selectable(name.data(), selected))
+                    {
+                        m_particleColorMode = mode;
+                    }
+                    if (selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            ImGui::DragFloat("Velocity Color Scale", &m_velocityColorScale, 0.01f, 0.001f, 10.0f);
+
+            ImGui::DragFloat("Pressure Color Scale", &m_pressureColorScale, 0.001f, 0.001f, 10.0f);
+        }
+
+        ImGui::End();
     }
 }
