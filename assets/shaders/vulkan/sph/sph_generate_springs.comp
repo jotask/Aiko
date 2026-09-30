@@ -11,30 +11,24 @@ readonly buffer Positions
 };
 
 layout(std430, binding = 1)
-readonly buffer ParticleIndices
+readonly buffer CellHeads
 {
-    uint particleIndices[];
+    uint cellHeads[];
 };
 
 layout(std430, binding = 2)
-readonly buffer CellStarts
+readonly buffer ParticleNext
 {
-    uint cellStarts[];
+    uint particleNext[];
 };
 
 layout(std430, binding = 3)
-readonly buffer CellEnds
-{
-    uint cellEnds[];
-};
-
-layout(std430, binding = 4)
 buffer Springs
 {
     Spring springs[];
 };
 
-layout(std430, binding = 5)
+layout(std430, binding = 4)
 buffer SpringHeads
 {
     uint springHeads[];
@@ -132,45 +126,36 @@ void main()
 
             uint cellKey = uint(neighbourCell.y) * pc.gridWidth + uint(neighbourCell.x);
 
-            uint start = cellStarts[cellKey];
+            uint j = cellHeads[cellKey];
 
-            uint end = cellEnds[cellKey];
-
-            if (start == 0xFFFFFFFFu || end == 0xFFFFFFFFu)
+            while (j != 0xFFFFFFFFu)
             {
-                continue;
-            }
+                uint nextParticle = particleNext[j];
 
-            for (uint sortedIndex = start; sortedIndex < end;  ++sortedIndex)
-            {
-                uint j = particleIndices[sortedIndex];
-
-                if (j <= i)
+                if (j > i)
                 {
-                    continue;
+                    vec3 direction = positions[j].xyz - positionA;
+
+                    float distance = length(direction);
+
+                    if (distance < pc.smoothingRadius)
+                    {
+                        uint pairKey = makePairKey(i, j);
+
+                        float restLength = pc.smoothingRadius;
+
+                        float deformation = pc.gamma * restLength;
+
+                        if (distance < restLength - deformation)
+                        {
+                            restLength -= pc.dt * pc.plasticity * (restLength - deformation - distance);
+                        }
+
+                        insertSpring(pairKey, restLength);
+                    }
                 }
 
-                vec3 direction = positions[j].xyz - positionA;
-
-                float distance = length(direction);
-
-                if (distance >= pc.smoothingRadius)
-                {
-                    continue;
-                }
-
-                uint pairKey = makePairKey(i, j);
-
-                float restLength = pc.smoothingRadius;
-
-                float deformation = pc.gamma * restLength;
-
-                if (distance < restLength - deformation)
-                {
-                    restLength -= pc.dt * pc.plasticity * (restLength - deformation - distance);
-                }
-
-                insertSpring(pairKey, restLength);
+                j = nextParticle;
             }
         }
     }

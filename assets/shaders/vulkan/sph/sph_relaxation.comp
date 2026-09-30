@@ -9,30 +9,24 @@ readonly buffer Positions
 };
 
 layout(std430, binding = 1)
-readonly buffer ParticleIndices
+readonly buffer CellHeads
 {
-    uint particleIndices[];
+    uint cellHeads[];
 };
 
 layout(std430, binding = 2)
-readonly buffer CellStarts
+readonly buffer ParticleNext
 {
-    uint cellStarts[];
+    uint particleNext[];
 };
 
 layout(std430, binding = 3)
-readonly buffer CellEnds
-{
-    uint cellEnds[];
-};
-
-layout(std430, binding = 4)
 readonly buffer Pressures
 {
     vec4 pressures[];
 };
 
-layout(std430, binding = 5)
+layout(std430, binding = 4)
 writeonly buffer PositionDeltas
 {
     vec4 positionDeltas[];
@@ -84,46 +78,37 @@ void main()
 
             uint key = uint(neighbourCell.y) * pc.gridWidth + uint(neighbourCell.x);
 
-            uint start = cellStarts[key];
+            uint j = cellHeads[key];
 
-            uint end = cellEnds[key];
-
-            if (start == 0xFFFFFFFFu || end == 0xFFFFFFFFu)
+            while (j != 0xFFFFFFFFu)
             {
-                continue;
-            }
+                uint nextParticle = particleNext[j];
 
-            for (uint sortedIndex = start; sortedIndex < end; ++sortedIndex)
-            {
-                uint j = particleIndices[sortedIndex];
-
-                if (j == i)
+                if (j != i)
                 {
-                    continue;
+                    vec3 direction = positions[j].xyz - positionA;
+
+                    float distance = length(direction);
+
+                    if (distance > 0.000001 && distance < pc.smoothingRadius)
+                    {
+                        float q = distance / pc.smoothingRadius;
+
+                        float oneMinusQ = 1.0 - q;
+
+                        vec3 normalizedDirection = direction / distance;
+
+                        vec2 pressureB = pressures[j].xy;
+
+                        float displacementTermA = pc.dt * pc.dt * (pressureA.x * oneMinusQ + pressureA.y * oneMinusQ * oneMinusQ);
+
+                        float displacementTermB = pc.dt * pc.dt * (pressureB.x * oneMinusQ + pressureB.y * oneMinusQ * oneMinusQ);
+
+                        delta -= normalizedDirection * (displacementTermA + displacementTermB) * 0.5;
+                    }
                 }
 
-                vec3 direction = positions[j].xyz - positionA;
-
-                float distance = length(direction);
-
-                if (distance <= 0.000001 || distance >= pc.smoothingRadius)
-                {
-                    continue;
-                }
-
-                float q = distance / pc.smoothingRadius;
-
-                float oneMinusQ = 1.0 - q;
-
-                vec3 normalizedDirection = direction / distance;
-
-                vec2 pressureB = pressures[j].xy;
-
-                float displacementTermA = pc.dt * pc.dt * (pressureA.x * oneMinusQ + pressureA.y * oneMinusQ * oneMinusQ);
-
-                float displacementTermB = pc.dt * pc.dt * (pressureB.x * oneMinusQ + pressureB.y * oneMinusQ * oneMinusQ);
-
-                delta -= normalizedDirection * (displacementTermA + displacementTermB) * 0.5;
+                j = nextParticle;
             }
         }
     }

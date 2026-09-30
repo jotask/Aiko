@@ -16,40 +16,17 @@ namespace sph
         {
             float smoothingRadius = 0.0f;
             uint32_t particleCount = 0;
-            uint32_t sortParticleCount = 0;
             uint32_t gridWidth = 0;
-
             uint32_t gridHeight = 0;
-            uint32_t padding0 = 0;
-            uint32_t padding1 = 0;
-            uint32_t padding2 = 0;
 
             alignas(16) aiko::vec4 boundsMin = {};
         };
 
-        static_assert(sizeof(SPHHashPushConstants) == 48);
-
-        struct SPHSortPushConstants
-        {
-            uint32_t particleCount = 0;
-            uint32_t k = 0;
-            uint32_t j = 0;
-            uint32_t padding = 0;
-        };
-
-        static_assert(sizeof(SPHSortPushConstants) == 16);
+        static_assert(sizeof(SPHHashPushConstants) == 32);
 
         struct SPHClearCellsPushConstants
         {
             uint32_t cellCount = 0;
-        };
-
-        struct SPHCellRangePushConstants
-        {
-            uint32_t particleCount = 0;
-            uint32_t cellCount = 0;
-            uint32_t padding0 = 0;
-            uint32_t padding1 = 0;
         };
 
         struct SPHViscosityPushConstants
@@ -269,24 +246,6 @@ namespace sph
 
         static_assert(sizeof(SPHStickinessPushConstants) == 32);
 
-        uint32_t nextPowerOfTwo(uint32_t value)
-        {
-            if (value <= 1)
-            {
-                return 1;
-            }
-
-            --value;
-
-            value |= value >> 1;
-            value |= value >> 2;
-            value |= value >> 4;
-            value |= value >> 8;
-            value |= value >> 16;
-
-            return value + 1;
-        }
-
     }
 
     void SPHGpuSimulation::init(aiko::AssetSystem& assetSystem, const aiko::vector<SPHParticle>& particles, const aiko::vector<Shape>& shapes)
@@ -357,8 +316,7 @@ namespace sph
         m_springBuffer.create(springBufferDesc, initialSprings.data());
         m_previousSpringBuffer.create(springBufferDesc, initialSprings.data());
 
-        m_cellKeyBuffer.create(uintBufferDesc, nullptr);
-        m_particleIndexBuffer.create(uintBufferDesc, nullptr);
+        m_particleNextBuffer.create(uintBufferDesc, nullptr);
         m_springHeadBuffer.create(uintBufferDesc, nullptr);
 
         // Shapes
@@ -431,8 +389,6 @@ namespace sph
         m_boundaryShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_boundary");
         m_computeVelocityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_compute_velocity");
         m_hashShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_hash");
-        m_sortShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_sort");
-        m_cellRangeShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_cell_ranges");
         m_clearCellsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_clear_cells");
         m_viscosityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_viscosity");
         m_applyViscosityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_apply_viscosity");
@@ -455,9 +411,6 @@ namespace sph
         {
             return;
         }
-
-        const uint32_t sortParticleCount = nextPowerOfTwo(m_particleCount);
-        AIKO_ASSERT(sortParticleCount <= MaxGpuParticles, "GPU SPH sort count exceeds particle capacity");
 
         // gravity
         const SPHGravityPushConstants gravityConstants
@@ -501,30 +454,42 @@ namespace sph
             m_gridHeight = gridHeight;
             m_cellCount = m_gridWidth * m_gridHeight;
 
-            const aiko::ComputeBufferDesc cellRangeDesc
+            const aiko::ComputeBufferDesc cellBufferDesc
             {
                 .format = aiko::ComputeBufferFormat::Uint32,
                 .count = m_cellCount,
-                .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc | aiko::ComputeBufferUsage::TransferDst
+                .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc
             };
 
-            m_cellStartBuffer.create(cellRangeDesc, nullptr);
-            m_cellEndBuffer.create(cellRangeDesc, nullptr);
+            m_cellHeadBuffer.create(cellBufferDesc, nullptr);
 
             m_gridInitialized = true;
         }
 
+        // Clear
+        const SPHClearCellsPushConstants clearConstants
+        {
+            .cellCount = m_cellCount
+        };
+
+        aiko::ComputePass clearPass{};
+        clearPass.name = "SPH CellClear";
+
+        clearPass.buffers.push_back({0, &m_cellHeadBuffer, aiko::ComputeAccess::Write});
+
+        clearPass.setPushConstants(clearConstants);
+
+        clearPass.dispatch.groupsX = (m_cellCount + 63) / 64;
+
+        renderSystem.dispatch(clearPass, m_clearCellsShaderId);
+
+        // hash
         const SPHHashPushConstants hashConstants
         {
             .smoothingRadius = parameters.smoothingRadius,
             .particleCount = m_particleCount,
-            .sortParticleCount = sortParticleCount,
-            .gridWidth = gridWidth,
-
-            .gridHeight = gridHeight,
-            .padding0 = 0,
-            .padding1 = 0,
-            .padding2 = 0,
+            .gridWidth = m_gridWidth,
+            .gridHeight = m_gridHeight,
 
             .boundsMin =
             {
@@ -539,81 +504,14 @@ namespace sph
         hashPass.name = "SPH Hash";
 
         hashPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
-        hashPass.buffers.push_back({ 1, &m_cellKeyBuffer, aiko::ComputeAccess::Write});
-        hashPass.buffers.push_back({ 2, &m_particleIndexBuffer, aiko::ComputeAccess::Write});
+        hashPass.buffers.push_back({1, &m_cellHeadBuffer, aiko::ComputeAccess::ReadWrite});
+        hashPass.buffers.push_back({2, &m_particleNextBuffer, aiko::ComputeAccess::Write});
 
         hashPass.setPushConstants(hashConstants);
 
-        hashPass.dispatch.groupsX = (sortParticleCount + 63) / 64;
-        hashPass.dispatch.groupsY = 1;
-        hashPass.dispatch.groupsZ = 1;
+        hashPass.dispatch.groupsX = (m_particleCount + 63) / 64;
 
         renderSystem.dispatch(hashPass, m_hashShaderId);
-
-        // Sort
-        for (uint32_t k = 2; k <= sortParticleCount; k <<= 1)
-        {
-            for (uint32_t j = k >> 1; j > 0; j >>= 1)
-            {
-                const SPHSortPushConstants sortConstants
-                {
-                    .particleCount = sortParticleCount,
-                    .k = k,
-                    .j = j,
-                    .padding = 0
-                };
-
-                aiko::ComputePass sortPass{};
-                sortPass.name = "SPH Sort";
-
-                sortPass.buffers.push_back({0,&m_cellKeyBuffer,aiko::ComputeAccess::ReadWrite});
-                sortPass.buffers.push_back({ 1, &m_particleIndexBuffer, aiko::ComputeAccess::ReadWrite});
-
-                sortPass.setPushConstants(sortConstants);
-                sortPass.dispatch.groupsX = (sortParticleCount + 63) / 64;
-
-                renderSystem.dispatch( sortPass, m_sortShaderId);
-            }
-        }
-
-        // Clear Cells
-        const SPHClearCellsPushConstants clearConstants
-        {
-            .cellCount = m_cellCount
-        };
-
-        aiko::ComputePass clearPass{};
-        clearPass.name = "SPH CellClear";
-
-        clearPass.buffers.push_back({0,&m_cellStartBuffer,aiko::ComputeAccess::Write});
-        clearPass.buffers.push_back({ 1, &m_cellEndBuffer, aiko::ComputeAccess::Write});
-
-        clearPass.setPushConstants(clearConstants);
-
-        clearPass.dispatch.groupsX = (m_cellCount + 63) / 64;
-
-        renderSystem.dispatch(clearPass, m_clearCellsShaderId);
-
-        // Range builder
-        const SPHCellRangePushConstants rangeConstants
-        {
-            .particleCount = m_particleCount,
-            .cellCount = m_cellCount
-        };
-
-        // Range builder
-        aiko::ComputePass rangePass{};
-        rangePass.name = "SPH CellRanges";
-
-        rangePass.buffers.push_back({0, &m_cellKeyBuffer, aiko::ComputeAccess::Read});
-        rangePass.buffers.push_back({1, &m_cellStartBuffer, aiko::ComputeAccess::Write});
-        rangePass.buffers.push_back({2, &m_cellEndBuffer, aiko::ComputeAccess::Write});
-
-        rangePass.setPushConstants(rangeConstants);
-
-        rangePass.dispatch.groupsX = (m_particleCount + 63) / 64;
-
-        renderSystem.dispatch(rangePass, m_cellRangeShaderId);
 
         // viscosity
         const SPHViscosityPushConstants viscosityConstants
@@ -641,11 +539,10 @@ namespace sph
         viscosityPass.name = "SPH Viscosity";
 
         viscosityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
-        viscosityPass.buffers.push_back({ 1, &m_velocityBuffer, aiko::ComputeAccess::Read});
-        viscosityPass.buffers.push_back({2, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
-        viscosityPass.buffers.push_back({3, &m_cellStartBuffer, aiko::ComputeAccess::Read});
-        viscosityPass.buffers.push_back({4, &m_cellEndBuffer, aiko::ComputeAccess::Read});
-        viscosityPass.buffers.push_back({ 5, &m_velocityDeltaBuffer, aiko::ComputeAccess::Write});
+        viscosityPass.buffers.push_back({1, &m_velocityBuffer, aiko::ComputeAccess::Read});
+        viscosityPass.buffers.push_back({2, &m_cellHeadBuffer, aiko::ComputeAccess::Read});
+        viscosityPass.buffers.push_back({3, &m_particleNextBuffer, aiko::ComputeAccess::Read});
+        viscosityPass.buffers.push_back({4, &m_velocityDeltaBuffer, aiko::ComputeAccess::Write});
 
         viscosityPass.setPushConstants(viscosityConstants);
 
@@ -766,12 +663,11 @@ namespace sph
         aiko::ComputePass springPass{};
         springPass.name = "SPH SpringGenerate";
 
-        springPass.buffers.push_back({ 0, &m_positionBuffer, aiko::ComputeAccess::Read });
-        springPass.buffers.push_back({ 1, &m_particleIndexBuffer, aiko::ComputeAccess::Read });
-        springPass.buffers.push_back({ 2, &m_cellStartBuffer, aiko::ComputeAccess::Read });
-        springPass.buffers.push_back({ 3, &m_cellEndBuffer, aiko::ComputeAccess::Read });
-        springPass.buffers.push_back({4, currentSpringBuffer, aiko::ComputeAccess::ReadWrite});
-        springPass.buffers.push_back({5, &m_springHeadBuffer, aiko::ComputeAccess::ReadWrite});
+        springPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
+        springPass.buffers.push_back({1, &m_cellHeadBuffer, aiko::ComputeAccess::Read});
+        springPass.buffers.push_back({2, &m_particleNextBuffer, aiko::ComputeAccess::Read});
+        springPass.buffers.push_back({3, currentSpringBuffer, aiko::ComputeAccess::ReadWrite});
+        springPass.buffers.push_back({4, &m_springHeadBuffer, aiko::ComputeAccess::ReadWrite});
 
         springPass.setPushConstants(springConstants);
 
@@ -843,11 +739,10 @@ namespace sph
         densityPass.name = "SPH Density";
 
         densityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
-        densityPass.buffers.push_back({1, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
-        densityPass.buffers.push_back({2, &m_cellStartBuffer, aiko::ComputeAccess::Read});
-        densityPass.buffers.push_back({3, &m_cellEndBuffer, aiko::ComputeAccess::Read});
-        densityPass.buffers.push_back({4, &m_densityBuffer, aiko::ComputeAccess::Write});
-        densityPass.buffers.push_back({5, &m_pressureBuffer, aiko::ComputeAccess::Write});
+        densityPass.buffers.push_back({1, &m_cellHeadBuffer, aiko::ComputeAccess::Read});
+        densityPass.buffers.push_back({2, &m_particleNextBuffer, aiko::ComputeAccess::Read});
+        densityPass.buffers.push_back({3, &m_densityBuffer, aiko::ComputeAccess::Write});
+        densityPass.buffers.push_back({4, &m_pressureBuffer, aiko::ComputeAccess::Write});
 
         densityPass.setPushConstants(densityConstants);
 
@@ -870,11 +765,10 @@ namespace sph
         relaxationPass.name = "SPH Relaxation";
 
         relaxationPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
-        relaxationPass.buffers.push_back({1, &m_particleIndexBuffer, aiko::ComputeAccess::Read});
-        relaxationPass.buffers.push_back({2, &m_cellStartBuffer, aiko::ComputeAccess::Read});
-        relaxationPass.buffers.push_back({3, &m_cellEndBuffer, aiko::ComputeAccess::Read});
-        relaxationPass.buffers.push_back({4, &m_pressureBuffer, aiko::ComputeAccess::Read});
-        relaxationPass.buffers.push_back({5, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
+        relaxationPass.buffers.push_back({1, &m_cellHeadBuffer, aiko::ComputeAccess::Read});
+        relaxationPass.buffers.push_back({2, &m_particleNextBuffer, aiko::ComputeAccess::Read});
+        relaxationPass.buffers.push_back({3, &m_pressureBuffer, aiko::ComputeAccess::Read});
+        relaxationPass.buffers.push_back({4, &m_positionDeltaBuffer, aiko::ComputeAccess::Write});
 
         relaxationPass.setPushConstants(relaxationConstants);
 

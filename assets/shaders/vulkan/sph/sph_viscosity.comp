@@ -15,24 +15,18 @@ readonly buffer Velocities
 };
 
 layout(std430, binding = 2)
-readonly buffer ParticleIndices
+readonly buffer CellHeads
 {
-    uint particleIndices[];
+    uint cellHeads[];
 };
 
 layout(std430, binding = 3)
-readonly buffer CellStarts
+readonly buffer ParticleNext
 {
-    uint cellStarts[];
+    uint particleNext[];
 };
 
 layout(std430, binding = 4)
-readonly buffer CellEnds
-{
-    uint cellEnds[];
-};
-
-layout(std430, binding = 5)
 writeonly buffer VelocityDeltas
 {
     vec4 velocityDeltas[];
@@ -86,47 +80,36 @@ void main()
 
             uint cellKey = uint(neighbourCell.y) * pc.gridWidth + uint(neighbourCell.x);
 
-            uint start = cellStarts[cellKey];
+            uint j = cellHeads[cellKey];
 
-            uint end = cellEnds[cellKey];
-
-            if (start == 0xFFFFFFFFu || end == 0xFFFFFFFFu)
+            while (j != 0xFFFFFFFFu)
             {
-                continue;
-            }
+                uint nextParticle = particleNext[j];
 
-            for (uint sortedIndex = start; sortedIndex < end;  ++sortedIndex)
-            {
-                uint j = particleIndices[sortedIndex];
-
-                if (j == i)
+                if (j != i)
                 {
-                    continue;
+                    vec3 direction = positions[j].xyz - positionA;
+
+                    float distance = length(direction);
+
+                    if (distance > 0.000001 && distance < pc.smoothingRadius)
+                    {
+                        float q = distance / pc.smoothingRadius;
+
+                        vec3 normalizedDirection = direction / distance;
+
+                        float u = dot(velocityA - velocities[j].xyz,  normalizedDirection);
+
+                        if (u > 0.0)
+                        {
+                            float term = pc.dt * (1.0 - q) * (pc.sigma * u + pc.beta * u * u);
+
+                            velocityDelta -= normalizedDirection * term * 0.5;
+                        }
+                    }
                 }
 
-                vec3 direction = positions[j].xyz - positionA;
-
-                float distance = length(direction);
-
-                if (distance <= 0.000001 || distance >= pc.smoothingRadius)
-                {
-                    continue;
-                }
-
-                float q = distance / pc.smoothingRadius;
-
-                vec3 normalizedDirection = direction / distance;
-
-                float u = dot(velocityA - velocities[j].xyz, normalizedDirection);
-
-                if (u <= 0.0)
-                {
-                    continue;
-                }
-
-                float term = pc.dt * (1.0 - q) * (pc.sigma * u + pc.beta * u * u);
-
-                velocityDelta -= normalizedDirection * term * 0.5;
+                j = nextParticle;
             }
         }
     }

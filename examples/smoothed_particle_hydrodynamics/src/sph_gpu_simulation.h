@@ -46,11 +46,8 @@ namespace sph
         aiko::ComputeBuffer m_previousSpringBuffer;
         aiko::ComputeBuffer m_springHeadBuffer;
 
-        aiko::ComputeBuffer m_cellKeyBuffer;
-        aiko::ComputeBuffer m_particleIndexBuffer;
-
-        aiko::ComputeBuffer m_cellStartBuffer;
-        aiko::ComputeBuffer m_cellEndBuffer;
+        aiko::ComputeBuffer m_cellHeadBuffer;
+        aiko::ComputeBuffer m_particleNextBuffer;
 
         aiko::ComputeBuffer m_shapeEdgeBuffer;
         aiko::ComputeBuffer m_shapeBuffer;
@@ -60,8 +57,6 @@ namespace sph
         aiko::AssetId m_boundaryShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_computeVelocityShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_hashShaderId = aiko::InvalidAssetId;
-        aiko::AssetId m_sortShaderId = aiko::InvalidAssetId;
-        aiko::AssetId m_cellRangeShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_clearCellsShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_viscosityShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_applyViscosityShaderId = aiko::InvalidAssetId;

@@ -9,15 +9,15 @@ readonly buffer Positions
 };
 
 layout(std430, binding = 1)
-writeonly buffer CellKeys
+buffer CellHeads
 {
-    uint cellKeys[];
+    uint cellHeads[];
 };
 
 layout(std430, binding = 2)
-writeonly buffer ParticleIndices
+writeonly buffer ParticleNext
 {
-    uint particleIndices[];
+    uint particleNext[];
 };
 
 layout(push_constant)
@@ -25,13 +25,8 @@ uniform PushConstants
 {
     float smoothingRadius;
     uint particleCount;
-    uint sortParticleCount;
     uint gridWidth;
-
     uint gridHeight;
-    uint padding0;
-    uint padding1;
-    uint padding2;
 
     vec4 boundsMin;
 } pc;
@@ -40,15 +35,8 @@ void main()
 {
     uint i = gl_GlobalInvocationID.x;
 
-    if (i >= pc.sortParticleCount)
-    {
-        return;
-    }
-
     if (i >= pc.particleCount)
     {
-        cellKeys[i] = 0xFFFFFFFFu;
-        particleIndices[i] = i;
         return;
     }
 
@@ -58,11 +46,12 @@ void main()
     ivec2 cell = ivec2(floor(localPosition / pc.smoothingRadius));
 
     cell.x = clamp(cell.x, 0, int(pc.gridWidth) - 1);
+
     cell.y = clamp(cell.y, 0, int(pc.gridHeight) - 1);
 
     uint cellKey = uint(cell.y) * pc.gridWidth + uint(cell.x);
 
-    cellKeys[i] = cellKey;
+    uint previousHead = atomicExchange(cellHeads[cellKey], i);
 
-    particleIndices[i] = i;
+    particleNext[i] = previousHead;
 }
