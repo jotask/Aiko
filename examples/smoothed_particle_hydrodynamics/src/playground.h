@@ -84,6 +84,8 @@ namespace sph
         float m_simulationAccumulator = 0.0f;
         uint32_t m_lastSimulationSubsteps = 0;
 
+        bool m_shapesDirty = false;
+
     };
 
 }

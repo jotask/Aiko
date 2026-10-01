@@ -52,14 +52,7 @@ namespace sph
 
         m_shapeShaderId = shaderId;
 
-        const auto& shapes = m_simulation.shapes();
-
-        m_shapeRenderData.clear();
-
-        for (const Shape& shape : shapes)
-        {
-            addShapeRenderData(shape);
-        }
+        rebuildShapeRenderData();
 
         m_particleMesh.upload(aiko::mesh::factory::generateCircle(12));
 
@@ -74,12 +67,6 @@ namespace sph
         m_gpuParticleMaterial.m_lit = false;
 
         m_gpuParticleMaterial.setFloat("u_particleDiameter", m_simulation.parameters().particleRadius * 2.0f);
-        m_gpuParticleMaterial.setFloat("u_particleDiameter", m_simulation.parameters().particleRadius * 2.0f);
-        m_gpuParticleMaterial.setUInt("u_particleColorMode", static_cast<uint32_t>(m_particleColorMode));
-        m_gpuParticleMaterial.setFloat("u_velocityColorScale", m_velocityColorScale);
-        m_gpuParticleMaterial.setFloat("u_pressureColorScale", m_pressureColorScale);
-        m_gpuParticleMaterial.setFloat("u_velocityColorScale", 0.5f);
-        m_gpuParticleMaterial.setFloat("u_pressureColorScale", 0.05f);
 
     }
 
@@ -122,6 +109,9 @@ namespace sph
             Shape& shape = shapes[m_selectedShape.value()];
             const aiko::vec3 offset = mousePosition - m_previousMousePosition;
             shape.moveBy(offset);
+
+            m_shapesDirty = true;
+
             m_previousMousePosition = mousePosition;
         }
 
@@ -175,12 +165,16 @@ namespace sph
 
             m_lastSimulationSubsteps = 0;
 
-            m_gpuSimulation.updateShapes(m_simulation.shapes());
-
             aiko::vector<SPHParticle> spawnedParticles;
 
-            while (m_simulationAccumulator >= simulationStepTime &&m_lastSimulationSubsteps < MaxSimulationSubsteps)
+            while (m_simulationAccumulator >= simulationStepTime && m_lastSimulationSubsteps < MaxSimulationSubsteps)
             {
+                if (m_shapesDirty)
+                {
+                    m_gpuSimulation.updateShapes(m_simulation.shapes());
+                    m_shapesDirty = false;
+                }
+
                 spawnedParticles.clear();
 
                 m_simulation.updateEmitters(simulationStepTime, spawnedParticles);
@@ -488,6 +482,8 @@ namespace sph
 
                 addShapeRenderData(m_simulation.shapes().back());
 
+                m_shapesDirty = true;
+
                 m_selectedShape = m_simulation.shapes().size() - 1;
             }
 
@@ -499,6 +495,8 @@ namespace sph
 
                 addShapeRenderData(m_simulation.shapes().back());
 
+                m_shapesDirty = true;
+
                 m_selectedShape = m_simulation.shapes().size() - 1;
             }
 
@@ -509,6 +507,8 @@ namespace sph
                 m_simulation.createShape( {0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateQuad(), aiko::ORANGE);
 
                 addShapeRenderData(m_simulation.shapes().back());
+
+                m_shapesDirty = true;
 
                 m_selectedShape = m_simulation.shapes().size() - 1;
             }
@@ -545,6 +545,8 @@ namespace sph
                 if (ImGui::DragFloat2("Shape Position", &shapePosition.x, 0.05f, -16.0f, 16.0f, "%.2f"))
                 {
                     shape.setPosition(shapePosition);
+
+                    m_shapesDirty = true;
                 }
 
                 aiko::vec3 shapeScale = shape.scale();
@@ -556,6 +558,8 @@ namespace sph
                     shapeScale.z = 1.0f;
 
                     shape.setScale(shapeScale);
+
+                    m_shapesDirty = true;
                 }
 
                 aiko::Color shapeColor = shape.color();
@@ -572,6 +576,8 @@ namespace sph
                     m_simulation.removeShape(shapeIndex);
 
                     rebuildShapeRenderData();
+
+                    m_shapesDirty = true;
 
                     m_selectedShape.reset();
                 }

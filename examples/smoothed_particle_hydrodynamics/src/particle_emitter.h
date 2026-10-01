@@ -23,7 +23,6 @@ namespace sph
 
         void spawn(float dt, aiko::vector<SPHParticle>& spawnedParticles);
         void rotate(float dt);
-        void move(float dt);
 
         const EmitterSettings& settings() const { return m_settings; }
         EmitterSettings& settings() { return m_settings; }
