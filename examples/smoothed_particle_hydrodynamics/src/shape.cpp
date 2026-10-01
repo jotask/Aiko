@@ -68,6 +68,13 @@ namespace sph
         }
     }
 
+    aiko::vec3 Shape::scaledVertex(size_t index) const
+    {
+        const aiko::vec3& vertex = m_asset.m_vertices[index];
+
+        return { vertex.x * m_scale.x, vertex.y * m_scale.y, vertex.z * m_scale.z };
+    }
+
     bool Shape::isPointInside(const aiko::vec3& worldPoint) const
     {
         const aiko::vec3 point = worldPoint - m_position;
@@ -76,8 +83,9 @@ namespace sph
 
         for (const ShapeEdge& edge : m_boundaryEdges)
         {
-            const aiko::vec3& a = m_asset.m_vertices[edge.a];
-            const aiko::vec3& b = m_asset.m_vertices[edge.b];
+            const aiko::vec3 a = scaledVertex(edge.a);
+
+            const aiko::vec3 b = scaledVertex(edge.b);
 
             const bool intersects = ((a.y > point.y) != (b.y > point.y)) && (point.x < (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x);
 
@@ -104,8 +112,9 @@ namespace sph
 
         for (const ShapeEdge& edge : m_boundaryEdges)
         {
-            const aiko::vec3& a = m_asset.m_vertices[edge.a];
-            const aiko::vec3& b = m_asset.m_vertices[edge.b];
+            const aiko::vec3 a = scaledVertex(edge.a);
+
+            const aiko::vec3 b = scaledVertex(edge.b);
 
             const aiko::vec3 pointOnEdge = closestPointOnSegment(localPoint, a, b);
 
@@ -139,8 +148,9 @@ namespace sph
 
         for (const ShapeEdge& edge : m_boundaryEdges)
         {
-            const aiko::vec3& a = m_asset.m_vertices[edge.a];
-            const aiko::vec3& b = m_asset.m_vertices[edge.b];
+            const aiko::vec3 a = scaledVertex(edge.a);
+
+            const aiko::vec3 b = scaledVertex(edge.b);
 
             const aiko::vec3 pointOnEdge = closestPointOnSegment(localPoint, a, b);
             const aiko::vec3 direction = pointOnEdge - localPoint;

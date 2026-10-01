@@ -11,6 +11,8 @@
 #include <magic_enum/magic_enum.hpp>
 #include <imgui.h>
 
+#include <algorithm>
+
 namespace sph
 {
 
@@ -286,6 +288,7 @@ namespace sph
 
             aiko::Transform transform;
             transform.position = shape.position();
+            transform.scale = shape.scale();
 
             renderer.drawMesh(transform, renderData.mesh, renderData.material);
         }
@@ -533,6 +536,17 @@ namespace sph
                 if (ImGui::DragFloat2("Shape Position", &shapePosition.x, 0.05f, -16.0f, 16.0f, "%.2f"))
                 {
                     shape.setPosition(shapePosition);
+                }
+
+                aiko::vec3 shapeScale = shape.scale();
+
+                if (ImGui::DragFloat2("Shape Size", &shapeScale.x, 0.05f, 0.10f, 10.0f, "%.2f"))
+                {
+                    shapeScale.x = std::max(shapeScale.x, 0.10f);
+                    shapeScale.y = std::max(shapeScale.y, 0.10f);
+                    shapeScale.z = 1.0f;
+
+                    shape.setScale(shapeScale);
                 }
 
                 aiko::Color shapeColor = shape.color();

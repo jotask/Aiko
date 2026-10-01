@@ -388,9 +388,27 @@ namespace sph
 
             for (const ShapeEdge& edge : shape.boundaryEdges())
             {
-                const aiko::vec3 worldA = shape.asset().m_vertices[edge.a] + shape.position();
+                const aiko::vec3& localA = shape.asset().m_vertices[edge.a];
 
-                const aiko::vec3 worldB = shape.asset().m_vertices[edge.b] + shape.position();
+                const aiko::vec3& localB = shape.asset().m_vertices[edge.b];
+
+                const aiko::vec3 scaledA =
+                {
+                    localA.x * shape.scale().x,
+                    localA.y * shape.scale().y,
+                    localA.z * shape.scale().z
+                };
+
+                const aiko::vec3 scaledB =
+                {
+                    localB.x * shape.scale().x,
+                    localB.y * shape.scale().y,
+                    localB.z * shape.scale().z
+                };
+
+                const aiko::vec3 worldA = scaledA + shape.position();
+
+                const aiko::vec3 worldB = scaledB + shape.position();
 
                 gpuEdges.push_back(
                 {
@@ -1089,9 +1107,27 @@ namespace sph
 
             for (const ShapeEdge& edge : shape.boundaryEdges())
             {
-                const aiko::vec3 worldA = shape.asset().m_vertices[edge.a] + shape.position();
+                const aiko::vec3& localA = shape.asset().m_vertices[edge.a];
 
-                const aiko::vec3 worldB = shape.asset().m_vertices[edge.b] + shape.position();
+                const aiko::vec3& localB = shape.asset().m_vertices[edge.b];
+
+                const aiko::vec3 scaledA =
+                {
+                    localA.x * shape.scale().x,
+                    localA.y * shape.scale().y,
+                    localA.z * shape.scale().z
+                };
+
+                const aiko::vec3 scaledB =
+                {
+                    localB.x * shape.scale().x,
+                    localB.y * shape.scale().y,
+                    localB.z * shape.scale().z
+                };
+
+                const aiko::vec3 worldA = scaledA + shape.position();
+
+                const aiko::vec3 worldB = scaledB + shape.position();
 
                 gpuEdges.push_back(
                 {
