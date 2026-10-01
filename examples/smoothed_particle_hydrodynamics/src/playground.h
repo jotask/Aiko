@@ -68,6 +68,12 @@ namespace sph
         float m_velocityColorScale = 0.5f;
         float m_pressureColorScale = 0.05f;
 
+        aiko::Color m_particleColor = aiko::BLUE;
+        aiko::Color m_velocityStartColor = aiko::BLUE;
+        aiko::Color m_velocityEndColor = aiko::RED;
+        aiko::Color m_pressureStartColor = aiko::BLUE;
+        aiko::Color m_pressureEndColor = aiko::RED;
+
         float m_simulationAccumulator = 0.0f;
         uint32_t m_lastSimulationSubsteps = 0;
 

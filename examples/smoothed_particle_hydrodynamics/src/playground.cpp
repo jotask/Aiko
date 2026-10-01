@@ -179,7 +179,14 @@ namespace sph
             draw.readBuffers.push_back({9, &m_gpuSimulation.pressureBuffer()});
             draw.instanceCount = m_gpuSimulation.particleCount();
 
-            m_gpuParticleMaterial.setUInt("u_particleColorMode",static_cast<uint32_t>(m_particleColorMode));
+            m_gpuParticleMaterial.setUInt("u_particleColorMode", static_cast<uint32_t>(m_particleColorMode));
+            m_gpuParticleMaterial.setFloat("u_velocityColorScale", m_velocityColorScale);
+            m_gpuParticleMaterial.setFloat("u_pressureColorScale", m_pressureColorScale);
+            m_gpuParticleMaterial.setVec4("u_particleColor", m_particleColor.toVec4());
+            m_gpuParticleMaterial.setVec4("u_velocityStartColor", m_velocityStartColor.toVec4());
+            m_gpuParticleMaterial.setVec4("u_velocityEndColor", m_velocityEndColor.toVec4());
+            m_gpuParticleMaterial.setVec4("u_pressureStartColor", m_pressureStartColor.toVec4());
+            m_gpuParticleMaterial.setVec4("u_pressureEndColor", m_pressureEndColor.toVec4());
 
             renderer.drawMeshInstancedGpu(draw);
         }
@@ -338,27 +345,53 @@ namespace sph
             ImGui::SeparatorText("Rendering");
 
             const std::string_view currentName = magic_enum::enum_name(m_particleColorMode);
-            if (ImGui::BeginCombo("Particle Color", currentName.data()))
+
+            if (ImGui::BeginCombo("Particle Color Mode", currentName.data()))
             {
                 for (ParticleColorMode mode : magic_enum::enum_values<ParticleColorMode>())
                 {
                     const std::string_view name = magic_enum::enum_name(mode);
+
                     const bool selected = mode == m_particleColorMode;
+
                     if (ImGui::Selectable(name.data(), selected))
                     {
                         m_particleColorMode = mode;
                     }
+
                     if (selected)
                     {
                         ImGui::SetItemDefaultFocus();
                     }
                 }
+
                 ImGui::EndCombo();
             }
 
-            ImGui::DragFloat("Velocity Color Scale", &m_velocityColorScale, 0.01f, 0.001f, 10.0f);
+            switch (m_particleColorMode)
+            {
+                case ParticleColorMode::Constant:
+                {
+                    ImGui::ColorEdit4("Particle Color", &m_particleColor.r);
+                    break;
+                }
 
-            ImGui::DragFloat("Pressure Color Scale", &m_pressureColorScale, 0.001f, 0.001f, 10.0f);
+                case ParticleColorMode::Velocity:
+                {
+                    ImGui::ColorEdit4("Velocity Start Color", &m_velocityStartColor.r);
+                    ImGui::ColorEdit4("Velocity End Color", &m_velocityEndColor.r);
+                    ImGui::DragFloat("Velocity Color Scale", &m_velocityColorScale, 0.01f, 0.001f, 10.0f, "%.3f");
+                    break;
+                }
+
+                case ParticleColorMode::Pressure:
+                {
+                    ImGui::ColorEdit4("Pressure Start Color", &m_pressureStartColor.r);
+                    ImGui::ColorEdit4("Pressure End Color", &m_pressureEndColor.r);
+                    ImGui::DragFloat("Pressure Color Scale", &m_pressureColorScale, 0.001f, 0.001f, 10.0f, "%.3f");
+                    break;
+                }
+            }
         }
 
         ImGui::End();
