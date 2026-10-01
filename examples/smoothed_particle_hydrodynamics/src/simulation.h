@@ -40,6 +40,10 @@ namespace sph
         ParticleEmitter* createParticleEmitter(const EmitterSettings);
         void removeParticleEmitter(size_t index);
 
+        Shape* createShape(aiko::vec3 position, aiko::MeshAsset asset, aiko::Color color);
+
+        void removeShape(size_t index);
+
     private:
 
         aiko::vector<SPHParticle> m_particles;

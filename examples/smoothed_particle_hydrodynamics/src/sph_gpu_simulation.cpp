@@ -144,6 +144,9 @@ namespace sph
         static constexpr uint32_t MaxPackedParticleCount = 1u << 16;
         static constexpr uint32_t SpringCounterIndex = MaxGpuParticles;
 
+        static constexpr uint32_t MaxGpuShapes = 64;
+        static constexpr uint32_t MaxGpuShapeEdges = 4096;
+
         static constexpr uint32_t SpringLookupCapacity = MaxSprings * 2;
         static constexpr uint32_t SpringLookupMask = SpringLookupCapacity - 1;
 
@@ -417,26 +420,46 @@ namespace sph
         }
 
         m_shapeCount = static_cast<uint32_t>(gpuShapes.size());
+
         m_shapeEdgeCount = static_cast<uint32_t>(gpuEdges.size());
+
+        AIKO_ASSERT(m_shapeCount <= MaxGpuShapes, "GPU SPH shape capacity exceeded");
+
+        AIKO_ASSERT(m_shapeEdgeCount <= MaxGpuShapeEdges, "GPU SPH shape edge capacity exceeded");
 
         const aiko::ComputeBufferDesc shapeEdgeBufferDesc
         {
             .format = aiko::ComputeBufferFormat::Structured,
-            .count = m_shapeEdgeCount,
+            .count = MaxGpuShapeEdges,
             .stride = sizeof(GpuShapeEdge),
-            .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferDst
+            .usage =
+                aiko::ComputeBufferUsage::Storage |
+                aiko::ComputeBufferUsage::TransferDst
         };
 
         const aiko::ComputeBufferDesc shapeBufferDesc
         {
             .format = aiko::ComputeBufferFormat::Structured,
-            .count = m_shapeCount,
+            .count = MaxGpuShapes,
             .stride = sizeof(GpuShape),
-            .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferDst
+            .usage =
+                aiko::ComputeBufferUsage::Storage |
+                aiko::ComputeBufferUsage::TransferDst
         };
 
-        m_shapeEdgeBuffer.create(shapeEdgeBufferDesc, gpuEdges.data());
-        m_shapeBuffer.create(shapeBufferDesc, gpuShapes.data());
+        m_shapeEdgeBuffer.create(shapeEdgeBufferDesc, nullptr);
+
+        m_shapeBuffer.create(shapeBufferDesc, nullptr);
+
+        if (m_shapeEdgeCount > 0)
+        {
+            m_shapeEdgeBuffer.update(0, m_shapeEdgeCount, gpuEdges.data());
+        }
+
+        if (m_shapeCount > 0)
+        {
+            m_shapeBuffer.update(0, m_shapeCount, gpuShapes.data());
+        }
 
         m_gravityShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_gravity");
         m_predictShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_predict");
@@ -1053,13 +1076,17 @@ namespace sph
 
     void SPHGpuSimulation::updateShapes(const aiko::vector<Shape>& shapes)
     {
-        AIKO_ASSERT(shapes.size() == m_shapeCount, "GPU SPH shape count changed after initialization");
+        AIKO_ASSERT(shapes.size() <= MaxGpuShapes, "GPU SPH shape capacity exceeded");
 
+        aiko::vector<GpuShape> gpuShapes;
         aiko::vector<GpuShapeEdge> gpuEdges;
-        gpuEdges.reserve(m_shapeEdgeCount);
+
+        gpuShapes.reserve(shapes.size());
 
         for (const Shape& shape : shapes)
         {
+            const uint32_t edgeStart = static_cast<uint32_t>(gpuEdges.size());
+
             for (const ShapeEdge& edge : shape.boundaryEdges())
             {
                 const aiko::vec3 worldA = shape.asset().m_vertices[edge.a] + shape.position();
@@ -1073,11 +1100,29 @@ namespace sph
                     }
                 });
             }
+
+            AIKO_ASSERT(gpuEdges.size() <= MaxGpuShapeEdges, "GPU SPH shape edge capacity exceeded");
+
+            gpuShapes.push_back(
+            {
+                .edgeStart = edgeStart,
+                .edgeCount = static_cast<uint32_t>(shape.boundaryEdges().size())
+            });
         }
 
-        AIKO_ASSERT(gpuEdges.size() == m_shapeEdgeCount, "GPU SPH shape topology changed after initialization");
+        m_shapeCount = static_cast<uint32_t>( gpuShapes.size());
 
-        m_shapeEdgeBuffer.update(0, m_shapeEdgeCount, gpuEdges.data());
+        m_shapeEdgeCount = static_cast<uint32_t>(gpuEdges.size());
+
+        if (m_shapeEdgeCount > 0)
+        {
+            m_shapeEdgeBuffer.update(0, m_shapeEdgeCount, gpuEdges.data());
+        }
+
+        if (m_shapeCount > 0)
+        {
+            m_shapeBuffer.update(0, m_shapeCount, gpuShapes.data());
+        }
     }
 
 }

@@ -23,22 +23,35 @@ namespace sph
     Playground::Playground() = default;
     Playground::~Playground() = default;
 
+    void Playground::addShapeRenderData(const Shape& shape)
+    {
+        ShapeRenderData& renderData = m_shapeRenderData.emplace_back();
+        renderData.mesh.upload(shape.asset());
+        renderData.material.m_shaderId = m_shapeShaderId;
+        renderData.material.m_useVertexColor = false;
+        renderData.material.m_lit = false;
+        renderData.material.m_baseColor = shape.color();
+    }
+
+    void Playground::rebuildShapeRenderData()
+    {
+        rebuildShapeRenderData();
+    }
+
     void Playground::init(const aiko::AssetId& shaderId, const aiko::AssetId& gpuShaderId, aiko::AssetSystem& assetSystem)
     {
         m_simulation.init();
         m_gpuSimulation.init(assetSystem, m_simulation.particles(), m_simulation.shapes());
 
+        m_shapeShaderId = shaderId;
+
         const auto& shapes = m_simulation.shapes();
-        m_shapeRenderData.resize(shapes.size());
-        for (size_t i = 0; i < shapes.size(); ++i)
+
+        m_shapeRenderData.clear();
+
+        for (const Shape& shape : shapes)
         {
-            const Shape& shape = shapes[i];
-            ShapeRenderData& renderData = m_shapeRenderData[i];
-            renderData.mesh.upload(shape.asset());
-            renderData.material.m_shaderId = shaderId;
-            renderData.material.m_useVertexColor = false;
-            renderData.material.m_lit = false;
-            renderData.material.m_baseColor = shape.color();
+            addShapeRenderData(shape);
         }
 
         m_particleMesh.upload(aiko::mesh::factory::generateCircle(12));
@@ -72,7 +85,7 @@ namespace sph
             m_simulation.update();
             m_simulation.neighboursSearch(mousePosition);
         }
-        if (input.isMouseButtonJustPressed(aiko::MouseButton::MOUSE_BUTTON_LEFT))
+        if (input.isMouseButtonJustPressed(aiko::MouseButton::MOUSE_BUTTON_LEFT) && ImGui::GetIO().WantCaptureMouse == false)
         {
             const aiko::vector<Shape>& shapes = m_simulation.shapes();
             m_selectedShape = std::nullopt;
@@ -96,10 +109,6 @@ namespace sph
             m_previousMousePosition = mousePosition;
         }
 
-        if (input.isMouseButtonJustReleased(aiko::MouseButton::MOUSE_BUTTON_LEFT))
-        {
-            m_selectedShape = std::nullopt;
-        }
     }
 
     void Playground::render(aiko::RenderContext& renderer, aiko::RenderSystem& renderSystem)
@@ -449,6 +458,94 @@ namespace sph
                     m_simulation.removeParticleEmitter(emitterIndex);
 
                     m_selectedEmitter.reset();
+                }
+            }
+
+            ImGui::SeparatorText("Shapes");
+
+            ImGui::Text("Shapes: %zu", m_simulation.shapes().size());
+
+            if (ImGui::Button("Add Circle"))
+            {
+                m_simulation.createShape({0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateCircle(24), aiko::MAGENTA);
+
+                addShapeRenderData(m_simulation.shapes().back());
+
+                m_selectedShape = m_simulation.shapes().size() - 1;
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Add Triangle"))
+            {
+                m_simulation.createShape({0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateTriangle(), aiko::MAGENTA);
+
+                addShapeRenderData(m_simulation.shapes().back());
+
+                m_selectedShape = m_simulation.shapes().size() - 1;
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Add Rectangle"))
+            {
+                m_simulation.createShape( {0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateQuad(), aiko::MAGENTA);
+
+                addShapeRenderData(m_simulation.shapes().back());
+
+                m_selectedShape = m_simulation.shapes().size() - 1;
+            }
+
+            if (m_simulation.shapes().empty() == false)
+            {
+                ImGui::BeginChild( "ShapeList", ImVec2(0.0f, 110.0f), ImGuiChildFlags_Borders);
+
+                for (size_t i = 0; i < m_simulation.shapes().size(); ++i)
+                {
+                    const bool selected = m_selectedShape.has_value() && m_selectedShape.value() == i;
+
+                    const std::string label = "Shape " + std::to_string(i);
+
+                    if (ImGui::Selectable(label.c_str(), selected))
+                    {
+                        m_selectedShape = i;
+                    }
+                }
+
+                ImGui::EndChild();
+            }
+
+            if (m_selectedShape.has_value() && m_selectedShape.value() < m_simulation.shapes().size())
+            {
+                const size_t shapeIndex = m_selectedShape.value();
+
+                Shape& shape = m_simulation.shapes()[shapeIndex];
+
+                ImGui::SeparatorText("Selected Shape");
+
+                aiko::vec3 shapePosition = shape.position();
+
+                if (ImGui::DragFloat2("Shape Position", &shapePosition.x, 0.05f, -16.0f, 16.0f, "%.2f"))
+                {
+                    shape.setPosition(shapePosition);
+                }
+
+                aiko::Color shapeColor = shape.color();
+
+                if (ImGui::ColorEdit4("Shape Color", &shapeColor.r))
+                {
+                    shape.setColor(shapeColor);
+
+                    m_shapeRenderData[shapeIndex].material.m_baseColor = shapeColor;
+                }
+
+                if (ImGui::Button("Delete Shape"))
+                {
+                    m_simulation.removeShape(shapeIndex);
+
+                    rebuildShapeRenderData();
+
+                    m_selectedShape.reset();
                 }
             }
 

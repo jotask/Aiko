@@ -8,6 +8,7 @@
 #include <time/time.h>
 
 #include <limits>
+#include <utility>
 
 namespace sph
 {
@@ -67,8 +68,9 @@ namespace sph
         };
         createParticleEmitter(emitter);
 
-        m_shapes.emplace_back(aiko::vec3{0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateCircle(12), aiko::MAGENTA);
-        m_shapes.emplace_back(aiko::vec3{0.25f, 0.25f, 0.0f}, aiko::mesh::factory::generateTriangle(), aiko::MAGENTA);
+        createShape({0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateCircle(12), aiko::MAGENTA);
+
+        createShape({0.25f, 0.25f, 0.0f}, aiko::mesh::factory::generateTriangle(), aiko::MAGENTA);
 
     }
 
@@ -527,6 +529,19 @@ namespace sph
     {
         AIKO_ASSERT(index < m_emitters.size(), "Particle emitter index out of range");
         m_emitters.erase(m_emitters.begin() + static_cast<std::ptrdiff_t>(index));
+    }
+
+    Shape* Simulation::createShape(aiko::vec3 position, aiko::MeshAsset asset, aiko::Color color)
+    {
+        Shape& shape = m_shapes.emplace_back(position, std::move(asset), color);
+        return &shape;
+    }
+
+    void Simulation::removeShape(size_t index)
+    {
+        AIKO_ASSERT(index < m_shapes.size(), "Shape index out of range");
+
+        m_shapes.erase(m_shapes.begin() + static_cast<std::ptrdiff_t>(index));
     }
 
     void Simulation::worldBoundary()

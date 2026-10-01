@@ -49,6 +49,9 @@ namespace sph
 
         void renderGui();
 
+        void addShapeRenderData(const Shape& shape);
+        void rebuildShapeRenderData();
+
         Simulation m_simulation;
         SPHGpuSimulation m_gpuSimulation;
 
@@ -57,6 +60,8 @@ namespace sph
         aiko::Material m_gpuParticleMaterial;
 
         std::deque<ShapeRenderData> m_shapeRenderData;
+
+        aiko::AssetId m_shapeShaderId = aiko::InvalidAssetId;
 
         aiko::vector<aiko::InstanceData> m_particleInstances;
 
