@@ -38,7 +38,6 @@ namespace sph
         aiko::ComputeBuffer m_velocityBuffer;
         aiko::ComputeBuffer m_velocityDeltaBuffer;
 
-        aiko::ComputeBuffer m_densityBuffer;
         aiko::ComputeBuffer m_pressureBuffer;
         aiko::ComputeBuffer m_positionDeltaBuffer;
 

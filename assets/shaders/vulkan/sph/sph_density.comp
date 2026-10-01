@@ -21,12 +21,6 @@ readonly buffer ParticleNext
 };
 
 layout(std430, binding = 3)
-writeonly buffer Densities
-{
-    vec4 densities[];
-};
-
-layout(std430, binding = 4)
 writeonly buffer Pressures
 {
     vec4 pressures[];
@@ -64,6 +58,12 @@ void main()
     float density = 0.0;
     float densityNear = 0.0;
 
+    float smoothingRadiusSquared =
+        pc.smoothingRadius * pc.smoothingRadius;
+
+    float inverseSmoothingRadius =
+        1.0 / pc.smoothingRadius;
+
     for (int y = -1; y <= 1; ++y)
     {
         for (int x = -1; x <= 1; ++x)
@@ -87,17 +87,24 @@ void main()
                 {
                     vec3 direction = positions[j].xyz - positionA;
 
-                    float distance = length(direction);
+                    float distanceSquared =
+                        dot(direction, direction);
 
-                    float q = distance / pc.smoothingRadius;
-
-                    if (q < 1.0)
+                    if (distanceSquared < smoothingRadiusSquared)
                     {
+                        float distance =
+                            sqrt(distanceSquared);
+
+                        float q =
+                            distance * inverseSmoothingRadius;
+
                         float oneMinusQ = 1.0 - q;
-                        float oneMinusQ2 = oneMinusQ * oneMinusQ;
+                        float oneMinusQ2 =
+                            oneMinusQ * oneMinusQ;
 
                         density += oneMinusQ2;
-                        densityNear += oneMinusQ2 * oneMinusQ;
+                        densityNear +=
+                            oneMinusQ2 * oneMinusQ;
                     }
                 }
 
@@ -109,7 +116,9 @@ void main()
     float pressure = pc.pressureStiffness * (density - pc.restDensity);
     float pressureNear = pc.nearPressureStiffness * densityNear;
 
-    densities[i] = vec4(density, densityNear, 0.0, 0.0);
-
-    pressures[i] = vec4(pressure, pressureNear, 0.0, 0.0);
+    pressures[i] = vec4(
+        pressure,
+        pressureNear,
+        0.0,
+        0.0);
 }

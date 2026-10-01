@@ -65,6 +65,15 @@ void main()
 
     vec3 delta = vec3(0.0);
 
+    float smoothingRadiusSquared =
+        pc.smoothingRadius * pc.smoothingRadius;
+
+    float inverseSmoothingRadius =
+        1.0 / pc.smoothingRadius;
+
+    float dtSquared =
+        pc.dt * pc.dt;
+
     for (int y = -1; y <= 1; ++y)
     {
         for (int x = -1; x <= 1; ++x)
@@ -88,23 +97,55 @@ void main()
                 {
                     vec3 direction = positions[j].xyz - positionA;
 
-                    float distance = length(direction);
+                    float distanceSquared =
+                        dot(direction, direction);
 
-                    if (distance > 0.000001 && distance < pc.smoothingRadius)
+                    if (
+                        distanceSquared > 0.000000000001 &&
+                        distanceSquared < smoothingRadiusSquared)
                     {
-                        float q = distance / pc.smoothingRadius;
+                        float distance =
+                            sqrt(distanceSquared);
 
-                        float oneMinusQ = 1.0 - q;
+                        float inverseDistance =
+                            1.0 / distance;
 
-                        vec3 normalizedDirection = direction / distance;
+                        float q =
+                            distance * inverseSmoothingRadius;
 
-                        vec2 pressureB = pressures[j].xy;
+                        float oneMinusQ =
+                            1.0 - q;
 
-                        float displacementTermA = pc.dt * pc.dt * (pressureA.x * oneMinusQ + pressureA.y * oneMinusQ * oneMinusQ);
+                        float oneMinusQSquared =
+                            oneMinusQ * oneMinusQ;
 
-                        float displacementTermB = pc.dt * pc.dt * (pressureB.x * oneMinusQ + pressureB.y * oneMinusQ * oneMinusQ);
+                        vec3 normalizedDirection =
+                            direction * inverseDistance;
 
-                        delta -= normalizedDirection * (displacementTermA + displacementTermB) * 0.5;
+                        vec2 pressureB =
+                            pressures[j].xy;
+
+                        float displacementTermA =
+                            dtSquared *
+                            (
+                                pressureA.x * oneMinusQ +
+                                pressureA.y * oneMinusQSquared
+                            );
+
+                        float displacementTermB =
+                            dtSquared *
+                            (
+                                pressureB.x * oneMinusQ +
+                                pressureB.y * oneMinusQSquared
+                            );
+
+                        delta -=
+                            normalizedDirection *
+                            (
+                                displacementTermA +
+                                displacementTermB
+                            ) *
+                            0.5;
                     }
                 }
 

@@ -326,7 +326,6 @@ namespace sph
         m_prevPositionBuffer.update(0, m_particleCount, previousPositions.data());
         m_velocityBuffer.update(0, m_particleCount, velocities.data());
 
-        m_densityBuffer.create(velocityBufferDesc, nullptr);
         m_pressureBuffer.create(velocityBufferDesc, nullptr);
         m_positionDeltaBuffer.create(velocityBufferDesc, nullptr);
 
@@ -808,8 +807,7 @@ namespace sph
         densityPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         densityPass.buffers.push_back({1, &m_cellHeadBuffer, aiko::ComputeAccess::Read});
         densityPass.buffers.push_back({2, &m_particleNextBuffer, aiko::ComputeAccess::Read});
-        densityPass.buffers.push_back({3, &m_densityBuffer, aiko::ComputeAccess::Write});
-        densityPass.buffers.push_back({4, &m_pressureBuffer, aiko::ComputeAccess::Write});
+        densityPass.buffers.push_back({3, &m_pressureBuffer, aiko::ComputeAccess::Write});
 
         densityPass.setPushConstants(densityConstants);
 
