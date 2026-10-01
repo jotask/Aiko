@@ -35,7 +35,12 @@ namespace sph
 
     void Playground::rebuildShapeRenderData()
     {
-        rebuildShapeRenderData();
+        m_shapeRenderData.clear();
+
+        for (const Shape& shape : m_simulation.shapes())
+        {
+            addShapeRenderData(shape);
+        }
     }
 
     void Playground::init(const aiko::AssetId& shaderId, const aiko::AssetId& gpuShaderId, aiko::AssetSystem& assetSystem)
