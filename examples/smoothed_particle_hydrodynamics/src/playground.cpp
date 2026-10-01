@@ -159,9 +159,7 @@ namespace sph
 
             m_gpuSimulation.updateShapes(m_simulation.shapes());
 
-            while (
-                m_simulationAccumulator >= simulationStepTime &&
-                m_lastSimulationSubsteps < MaxSimulationSubsteps)
+            while (m_simulationAccumulator >= simulationStepTime && m_lastSimulationSubsteps < MaxSimulationSubsteps)
             {
                 m_gpuSimulation.update(renderSystem, parameters, m_simulation.bounds());
                 m_simulationAccumulator -= simulationStepTime;

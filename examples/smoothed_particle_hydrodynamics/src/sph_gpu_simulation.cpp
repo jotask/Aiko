@@ -332,9 +332,7 @@ namespace sph
         m_springBuffer.create(springBufferDesc, nullptr);
         m_previousSpringBuffer.create(springBufferDesc, nullptr);
 
-        aiko::vector<uint32_t> initialSpringAHeads(
-            MaxGpuParticles + 1,
-            InvalidSpringIndex);
+        aiko::vector<uint32_t> initialSpringAHeads(MaxGpuParticles + 1, InvalidSpringIndex);
 
         initialSpringAHeads[SpringCounterIndex] = 0;
 
