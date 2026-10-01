@@ -263,49 +263,61 @@ namespace sph
 
             ImGui::Text("Particles: %u", m_gpuSimulation.particleCount());
 
+            if (ImGui::Button("Reset Parameters"))
+            {
+                parameters = SPHParameters{};
+            }
+
+            ImGui::SameLine();
+            ImGui::TextDisabled("Tuned defaults");
+
             ImGui::SeparatorText("Fluid");
 
-            ImGui::DragFloat("Particle Radius", &parameters.particleRadius, 0.001f, 0.001f, 1.0f);
-
             ImGui::BeginDisabled();
-            ImGui::DragFloat("Smoothing Radius", &parameters.smoothingRadius, 0.001f, 0.001f, 2.0f);
+
+            ImGui::SliderFloat("Particle Radius", &parameters.particleRadius, 0.01f, 0.20f, "%.3f");
+
+            ImGui::SliderFloat("Smoothing Radius", &parameters.smoothingRadius, 0.05f, 1.0f, "%.3f");
+
             ImGui::EndDisabled();
 
-            ImGui::DragFloat("Rest Density", &parameters.restDensity, 0.1f, 0.0f, 100.0f);
+            ImGui::TextDisabled("Particle and smoothing radii are locked at runtime.");
 
-            ImGui::DragFloat("Pressure Stiffness", &parameters.pressureStiffness, 0.0001f, 0.0f, 1.0f);
+            ImGui::SliderFloat("Rest Density", &parameters.restDensity, 1.0f, 30.0f, "%.2f");
 
-            ImGui::DragFloat( "Near Pressure Stiffness", &parameters.nearPressureStiffness, 0.0001f, 0.0f, 1.0f);
+            ImGui::SliderFloat("Pressure Stiffness", &parameters.pressureStiffness, 0.0f, 0.02f, "%.5f");
+
+            ImGui::SliderFloat("Near Pressure Stiffness", &parameters.nearPressureStiffness, 0.0f, 0.10f, "%.4f");
 
             ImGui::SeparatorText("Viscosity");
 
-            ImGui::DragFloat("Sigma", &parameters.sigma, 0.01f, 0.0f, 10.0f);
+            ImGui::SliderFloat("Sigma", &parameters.sigma, 0.0f, 1.0f, "%.3f");
 
-            ImGui::DragFloat("Beta", &parameters.beta, 0.01f, 0.0f, 10.0f);
+            ImGui::SliderFloat("Beta", &parameters.beta, 0.0f, 0.5f, "%.3f");
 
-            ImGui::SliderFloat("Velocity Damping", &parameters.velocityDamping, 0.90f, 1.0f, "%.4f");
+            ImGui::SliderFloat("Velocity Damping", &parameters.velocityDamping, 0.98f, 1.0f, "%.4f");
 
-            ImGui::SliderFloat("Max Step Distance", &parameters.maxStepDisplacementRatio, 0.10f, 1.0f, "%.2f x smoothing radius");
+            ImGui::SliderFloat("Max Step Distance", &parameters.maxStepDisplacementRatio, 0.25f, 1.0f, "%.2f x smoothing radius");
 
             ImGui::SeparatorText("Springs");
 
-            ImGui::DragFloat("Gamma", &parameters.gamma, 0.01f, 0.0f, 10.0f);
+            ImGui::SliderFloat("Gamma", &parameters.gamma, 0.0f, 1.0f, "%.3f");
 
-            ImGui::DragFloat("Plasticity", &parameters.plasticity, 0.01f, 0.0f, 10.0f);
+            ImGui::SliderFloat("Plasticity", &parameters.plasticity, 0.0f, 2.0f, "%.3f");
 
-            ImGui::DragFloat("Spring Stiffness", &parameters.springStiffness, 0.01f, 0.0f, 10.0f);
+            ImGui::SliderFloat("Spring Stiffness", &parameters.springStiffness, 0.0f, 1.0f, "%.3f");
 
             ImGui::SeparatorText("Stickiness");
 
-            ImGui::DragFloat("Max Stickiness", &parameters.maxStickiness, 0.001f, 0.0f, 2.0f);
+            ImGui::SliderFloat("Max Stickiness", &parameters.maxStickiness, 0.0f, parameters.smoothingRadius, "%.3f");
 
-            ImGui::DragFloat("Stickiness Strength", &parameters.kStick, 0.01f, 0.0f, 10.0f);
+            ImGui::SliderFloat("Stickiness Strength", &parameters.kStick, 0.0f, 0.5f, "%.3f");
 
             ImGui::SeparatorText("Gravity");
 
-            ImGui::DragFloat("Gravity", &parameters.gravity, 0.001f, 0.0f, 10.0f);
+            ImGui::SliderFloat("Gravity", &parameters.gravity, 0.0f, 0.05f, "%.4f");
 
-            ImGui::DragFloat3("Gravity Direction", &parameters.gravityDirection.x, 0.01f, -1.0f, 1.0f);
+            ImGui::SliderFloat3("Gravity Direction", &parameters.gravityDirection.x, -1.0f, 1.0f, "%.2f");
 
             ImGui::SeparatorText("Simulation");
 
@@ -314,6 +326,8 @@ namespace sph
             ImGui::Text("Simulation Hz: %.1f", parameters.simulationStepTime > 0.0f ? 1.0f / parameters.simulationStepTime : 0.0f);
 
             ImGui::Text("Solver Delta Time: %.3f", parameters.solverDeltaTime);
+
+            ImGui::TextDisabled("Simulation timing is locked at runtime.");
 
             ImGui::Text("Substeps this frame: %u / %u", m_lastSimulationSubsteps, MaxSimulationSubsteps);
 
