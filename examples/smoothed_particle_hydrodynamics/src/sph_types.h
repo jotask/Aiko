@@ -49,7 +49,13 @@ namespace sph
         float gravity = 0.01f;
         aiko::vec3 gravityDirection = { 0.0f, -1.0f, 0.0f};
 
-        float fixedDeltaTime = 0.3f;
+        // Real-world cadence used by the accumulator.
+        float simulationStepTime = 1.0f / 60.0f;
+
+        // Integration scale used by the SPH solver itself.
+        //
+        // This preserves the behaviour of the previously tuned simulation.
+        float solverDeltaTime = 0.3f;
     };
 
     struct SimulationState

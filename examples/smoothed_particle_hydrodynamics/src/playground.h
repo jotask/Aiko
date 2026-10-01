@@ -68,6 +68,9 @@ namespace sph
         float m_velocityColorScale = 0.5f;
         float m_pressureColorScale = 0.05f;
 
+        float m_simulationAccumulator = 0.0f;
+        uint32_t m_lastSimulationSubsteps = 0;
+
     };
 
 }

@@ -77,7 +77,7 @@ namespace sph
         AIKO_FUNCTION_PROFILE
         AIKO_PLOT("SPH Particles", static_cast<double>(m_particles.size()));
         AIKO_PLOT("SPH Springs", static_cast<double>(m_springs.size()));
-        const float dt = m_parameters.fixedDeltaTime;
+        const float dt = m_parameters.solverDeltaTime;
         if (dt <= 0.0f)
         {
             return;

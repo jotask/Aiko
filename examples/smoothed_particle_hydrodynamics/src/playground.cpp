@@ -6,6 +6,7 @@
 #include "models/mesh_factory.h"
 #include "systems/render_system.h"
 #include "systems/asset_system.h"
+#include "time/time.h"
 
 #include <magic_enum/magic_enum.hpp>
 #include <imgui.h>
@@ -16,6 +17,7 @@ namespace sph
     namespace
     {
         constexpr bool EnableGpuSimulation = true;
+        constexpr uint32_t MaxSimulationSubsteps = 4;
     }
 
     Playground::Playground() = default;
@@ -73,7 +75,7 @@ namespace sph
         else
         {
             // aiko::vector<SPHParticle> spawnedParticles;
-            // m_simulation.updateEmitters(m_simulation.parameters().fixedDeltaTime, spawnedParticles);
+            // m_simulation.updateEmitters(m_simulation.parameters().solverDeltaTime, spawnedParticles);
             // m_gpuSimulation.spawnParticles(spawnedParticles);
         }
 
@@ -142,9 +144,34 @@ namespace sph
         }
         else
         {
+            SPHParameters& parameters = m_simulation.parameters();
+
+            const float simulationStepTime = parameters.simulationStepTime;
+
+            AIKO_ASSERT(simulationStepTime > 0.0f, "SPH simulation step time must be greater than zero");
+            AIKO_ASSERT(parameters.solverDeltaTime > 0.0f, "SPH solver delta time must be greater than zero");
+
+            const float frameDeltaTime = aiko::Time::it().getDeltaTime();
+
+            m_simulationAccumulator += frameDeltaTime;
+
+            m_lastSimulationSubsteps = 0;
 
             m_gpuSimulation.updateShapes(m_simulation.shapes());
-            m_gpuSimulation.update(renderSystem, m_simulation.parameters(), m_simulation.bounds());
+
+            while (
+                m_simulationAccumulator >= simulationStepTime &&
+                m_lastSimulationSubsteps < MaxSimulationSubsteps)
+            {
+                m_gpuSimulation.update(renderSystem, parameters, m_simulation.bounds());
+                m_simulationAccumulator -= simulationStepTime;
+                ++m_lastSimulationSubsteps;
+            }
+
+            if (m_lastSimulationSubsteps == MaxSimulationSubsteps && m_simulationAccumulator >= simulationStepTime)
+            {
+                m_simulationAccumulator = 0.0f;
+            }
 
             aiko::GpuInstanceDrawDesc draw{};
             draw.mesh = &m_particleMesh;
@@ -280,7 +307,17 @@ namespace sph
 
             ImGui::SeparatorText("Simulation");
 
-            ImGui::DragFloat("Fixed Delta Time", &parameters.fixedDeltaTime, 0.01f, 0.001f, 1.0f);
+            ImGui::DragFloat("Simulation Step Time", &parameters.simulationStepTime, 0.0001f, 0.001f, 1.0f);
+
+            ImGui::Text("Simulation Hz: %.1f", parameters.simulationStepTime > 0.0f ? 1.0f / parameters.simulationStepTime : 0.0f);
+
+            ImGui::DragFloat("Solver Delta Time", &parameters.solverDeltaTime, 0.01f, 0.001f, 1.0f);
+
+            ImGui::Text("Substeps this frame: %u / %u", m_lastSimulationSubsteps, MaxSimulationSubsteps);
+
+            ImGui::Text("Accumulator: %.3f ms", m_simulationAccumulator * 1000.0f);
+
+            ImGui::Text("Frame delta: %.3f ms", aiko::Time::it().getDeltaTime() * 1000.0f);
 
             ImGui::SeparatorText("Rendering");
 

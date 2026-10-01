@@ -462,7 +462,7 @@ namespace sph
         // gravity
         const SPHGravityPushConstants gravityConstants
         {
-            .dt = parameters.fixedDeltaTime,
+            .dt = parameters.solverDeltaTime,
             .gravity = parameters.gravity,
             .particleCount = m_particleCount,
             .padding = 0,
@@ -563,7 +563,7 @@ namespace sph
         // viscosity
         const SPHViscosityPushConstants viscosityConstants
         {
-            .dt = parameters.fixedDeltaTime,
+            .dt = parameters.solverDeltaTime,
             .smoothingRadius = parameters.smoothingRadius,
             .sigma = parameters.sigma,
             .beta = parameters.beta,
@@ -617,7 +617,7 @@ namespace sph
 
         const SPHPredictPushConstants predictConstants
         {
-            .dt = parameters.fixedDeltaTime,
+            .dt = parameters.solverDeltaTime,
             .particleCount = m_particleCount
         };
 
@@ -702,7 +702,7 @@ namespace sph
         const SPHGenerateSpringsPushConstants springConstants
         {
             .smoothingRadius = parameters.smoothingRadius,
-            .dt = parameters.fixedDeltaTime,
+            .dt = parameters.solverDeltaTime,
             .gamma = parameters.gamma,
             .plasticity = parameters.plasticity,
 
@@ -746,7 +746,7 @@ namespace sph
         // Spring displacement
         const SPHSpringDisplacementPushConstants springDisplacementConstants
         {
-            .dt = parameters.fixedDeltaTime,
+            .dt = parameters.solverDeltaTime,
             .smoothingRadius = parameters.smoothingRadius,
             .springStiffness = parameters.springStiffness,
             .particleCount = m_particleCount
@@ -818,7 +818,7 @@ namespace sph
         // relaxation
         const SPHRelaxationPushConstants relaxationConstants
         {
-            .dt = parameters.fixedDeltaTime,
+            .dt = parameters.solverDeltaTime,
             .smoothingRadius = parameters.smoothingRadius,
             .particleCount = m_particleCount,
             .gridWidth = m_gridWidth,
@@ -862,7 +862,7 @@ namespace sph
         // Stickiness
         const SPHStickinessPushConstants stickinessConstants
         {
-            .dt = parameters.fixedDeltaTime,
+            .dt = parameters.solverDeltaTime,
             .maxStickiness = parameters.maxStickiness,
             .kStick = parameters.kStick,
             .particleCount = m_particleCount,
@@ -932,7 +932,7 @@ namespace sph
         // velocity
         const SPHComputeVelocityPushConstants velocityConstants
         {
-            .dt = parameters.fixedDeltaTime,
+            .dt = parameters.solverDeltaTime,
             .particleCount = m_particleCount
         };
 
