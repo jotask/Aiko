@@ -141,6 +141,12 @@ namespace sph
 
         static constexpr uint32_t InvalidSpringIndex = 0xFFFFFFFFu;
         static constexpr uint32_t MaxPackedParticleCount = 1u << 16;
+        static constexpr uint32_t SpringCounterIndex = MaxGpuParticles;
+
+        static constexpr uint32_t SpringLookupCapacity = MaxSprings * 2;
+        static constexpr uint32_t SpringLookupMask = SpringLookupCapacity - 1;
+
+        static_assert((SpringLookupCapacity & (SpringLookupCapacity - 1)) == 0, "Spring lookup capacity must be a power of two");
 
         struct GpuSpring
         {
@@ -151,6 +157,31 @@ namespace sph
         };
 
         static_assert(sizeof(GpuSpring) == 16);
+
+        struct GpuSpringLookupEntry
+        {
+            uint32_t pairKey = InvalidSpringIndex;
+            uint32_t springIndex = InvalidSpringIndex;
+        };
+
+        static_assert(sizeof(GpuSpringLookupEntry) == 8);
+
+        struct SPHClearSpringLookupPushConstants
+        {
+            uint32_t lookupCapacity = 0;
+        };
+
+        static_assert(sizeof(SPHClearSpringLookupPushConstants) == 4);
+
+        struct SPHBuildSpringLookupPushConstants
+        {
+            uint32_t springCounterIndex = 0;
+            uint32_t maxSprings = 0;
+            uint32_t lookupMask = 0;
+            uint32_t padding = 0;
+        };
+
+        static_assert(sizeof(SPHBuildSpringLookupPushConstants) == 16);
 
         struct SPHGenerateSpringsPushConstants
         {
@@ -165,6 +196,7 @@ namespace sph
             uint32_t maxSprings = 0;
 
             uint32_t springCounterIndex = 0;
+            uint32_t springLookupMask = 0;
 
             alignas(16) aiko::vec4 boundsMin = {};
         };
@@ -305,7 +337,7 @@ namespace sph
             MaxGpuParticles + 1,
             InvalidSpringIndex);
 
-        initialSpringAHeads[MaxGpuParticles] = 0;
+        initialSpringAHeads[SpringCounterIndex] = 0;
 
         const aiko::ComputeBufferDesc springAHeadBufferDesc
         {
@@ -323,6 +355,16 @@ namespace sph
         m_previousSpringBHeadBuffer.create(uintBufferDesc, initialSpringBHeads.data());
 
         m_particleNextBuffer.create(uintBufferDesc, nullptr);
+
+        const aiko::ComputeBufferDesc springLookupBufferDesc
+        {
+            .format = aiko::ComputeBufferFormat::Structured,
+            .count = SpringLookupCapacity,
+            .stride = sizeof(GpuSpringLookupEntry),
+            .usage = aiko::ComputeBufferUsage::Storage | aiko::ComputeBufferUsage::TransferSrc | aiko::ComputeBufferUsage::TransferDst
+        };
+
+        m_springLookupBuffer.create(springLookupBufferDesc, nullptr);
 
         // Shapes
         aiko::vector<GpuShape> gpuShapes;
@@ -401,6 +443,8 @@ namespace sph
         m_relaxationShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_relaxation");
         m_applyPositionDeltaShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_apply_position_delta");
 
+        m_clearSpringLookupShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_clear_spring_lookup");
+        m_buildSpringLookupShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_build_spring_lookup");
         m_clearSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_clear_springs");
         m_generateSpringsShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_generate_springs");
         m_springDisplacementShaderId = assetSystem.registerAndLoadAsset<aiko::ComputeShaderAsset>("sph/sph_spring_displacement");
@@ -599,6 +643,43 @@ namespace sph
         aiko::ComputeBuffer* previousSpringAHeadBuffer = m_springBuffersFlipped ? &m_springAHeadBuffer : &m_previousSpringAHeadBuffer;
         aiko::ComputeBuffer* currentSpringBHeadBuffer = m_springBuffersFlipped ? &m_previousSpringBHeadBuffer : &m_springBHeadBuffer;
 
+        const SPHClearSpringLookupPushConstants clearSpringLookupConstants
+        {
+            .lookupCapacity = SpringLookupCapacity
+        };
+
+        aiko::ComputePass clearSpringLookupPass{};
+        clearSpringLookupPass.name = "SPH SpringLookupClear";
+
+        clearSpringLookupPass.buffers.push_back({0, &m_springLookupBuffer, aiko::ComputeAccess::Write});
+
+        clearSpringLookupPass.setPushConstants(clearSpringLookupConstants);
+
+        clearSpringLookupPass.dispatch.groupsX =(SpringLookupCapacity + 255) / 256;
+
+        renderSystem.dispatch(clearSpringLookupPass, m_clearSpringLookupShaderId);
+
+        const SPHBuildSpringLookupPushConstants buildSpringLookupConstants
+        {
+            .springCounterIndex = SpringCounterIndex,
+            .maxSprings = MaxSprings,
+            .lookupMask = SpringLookupMask,
+            .padding = 0
+        };
+
+        aiko::ComputePass buildSpringLookupPass{};
+        buildSpringLookupPass.name = "SPH SpringLookupBuild";
+
+        buildSpringLookupPass.buffers.push_back({0, previousSpringBuffer, aiko::ComputeAccess::Read});
+        buildSpringLookupPass.buffers.push_back({1, previousSpringAHeadBuffer, aiko::ComputeAccess::Read});
+        buildSpringLookupPass.buffers.push_back({2, &m_springLookupBuffer, aiko::ComputeAccess::ReadWrite});
+
+        buildSpringLookupPass.setPushConstants(buildSpringLookupConstants);
+
+        buildSpringLookupPass.dispatch.groupsX = (MaxSprings + 255) / 256;
+
+        renderSystem.dispatch(buildSpringLookupPass, m_buildSpringLookupShaderId);
+
         // Clear current spring table
         const SPHClearSpringsPushConstants clearSpringsConstants
         {
@@ -631,7 +712,8 @@ namespace sph
             .gridHeight = m_gridHeight,
             .maxSprings = MaxSprings,
 
-            .springCounterIndex = MaxGpuParticles,
+            .springCounterIndex = SpringCounterIndex,
+            .springLookupMask = SpringLookupMask,
 
             .boundsMin =
             {
@@ -649,7 +731,7 @@ namespace sph
         springPass.buffers.push_back({1, &m_cellHeadBuffer, aiko::ComputeAccess::Read});
         springPass.buffers.push_back({2, &m_particleNextBuffer, aiko::ComputeAccess::Read});
         springPass.buffers.push_back({3, previousSpringBuffer, aiko::ComputeAccess::Read});
-        springPass.buffers.push_back({4, previousSpringAHeadBuffer, aiko::ComputeAccess::Read});
+        springPass.buffers.push_back({4, &m_springLookupBuffer, aiko::ComputeAccess::Read});
         springPass.buffers.push_back({5, currentSpringBuffer, aiko::ComputeAccess::Write});
         springPass.buffers.push_back({6, currentSpringAHeadBuffer, aiko::ComputeAccess::ReadWrite});
         springPass.buffers.push_back({7, currentSpringBHeadBuffer, aiko::ComputeAccess::ReadWrite});

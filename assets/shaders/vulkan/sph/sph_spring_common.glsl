@@ -11,6 +11,12 @@ struct Spring
     uint nextB;
 };
 
+struct SpringLookupEntry
+{
+    uint pairKey;
+    uint springIndex;
+};
+
 uint makePairKey(uint particleA, uint particleB)
 {
     uint a = min(particleA, particleB);
@@ -26,6 +32,17 @@ uint getParticleA(uint pairKey)
 uint getParticleB(uint pairKey)
 {
     return pairKey & 0xFFFFu;
+}
+
+uint hashSpringPair(uint pairKey)
+{
+    pairKey ^= pairKey >> 16u;
+    pairKey *= 0x7FEB352Du;
+    pairKey ^= pairKey >> 15u;
+    pairKey *= 0x846CA68Bu;
+    pairKey ^= pairKey >> 16u;
+
+    return pairKey;
 }
 
 #endif

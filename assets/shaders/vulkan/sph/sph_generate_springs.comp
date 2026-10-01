@@ -29,9 +29,9 @@ readonly buffer PreviousSprings
 };
 
 layout(std430, binding = 4)
-readonly buffer PreviousSpringAHeads
+readonly buffer SpringLookup
 {
-    uint previousSpringAHeads[];
+    SpringLookupEntry springLookup[];
 };
 
 layout(std430, binding = 5)
@@ -66,25 +66,32 @@ uniform PushConstants
     uint maxSprings;
 
     uint springCounterIndex;
+    uint springLookupMask;
 
     vec4 boundsMin;
 } pc;
 
-bool findPreviousSpring(uint particle, uint pairKey, out float restLength)
+bool findPreviousSpring(uint pairKey, out float restLength)
 {
-    uint springIndex = previousSpringAHeads[particle];
+    uint slot = hashSpringPair(pairKey) & pc.springLookupMask;
 
-    while (springIndex != INVALID_SPRING_INDEX)
+    for (uint probe = 0u; probe <= pc.springLookupMask; ++probe)
     {
-        Spring spring = previousSprings[springIndex];
+        SpringLookupEntry entry = springLookup[slot];
 
-        if (spring.pairKey == pairKey)
+        if (entry.pairKey == pairKey)
         {
-            restLength = spring.restLength;
+            restLength = previousSprings[entry.springIndex].restLength;
+
             return true;
         }
 
-        springIndex = spring.nextA;
+        if (entry.pairKey == INVALID_SPRING_INDEX)
+        {
+            return false;
+        }
+
+        slot = (slot + 1u) & pc.springLookupMask;
     }
 
     return false;
@@ -157,7 +164,7 @@ void main()
 
                         float restLength = 0.0;
 
-                        bool existed = findPreviousSpring(i, pairKey, restLength);
+                        bool existed = findPreviousSpring(pairKey, restLength);
 
                         if (existed)
                         {

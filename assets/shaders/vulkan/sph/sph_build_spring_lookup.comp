@@ -1,0 +1,62 @@
+#version 450
+
+#include "sph/sph_spring_common.glsl"
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0)
+readonly buffer PreviousSprings
+{
+    Spring previousSprings[];
+};
+
+layout(std430, binding = 1)
+readonly buffer PreviousSpringAHeads
+{
+    uint previousSpringAHeads[];
+};
+
+layout(std430, binding = 2)
+buffer SpringLookup
+{
+    SpringLookupEntry springLookup[];
+};
+
+layout(push_constant)
+uniform PushConstants
+{
+    uint springCounterIndex;
+    uint maxSprings;
+    uint lookupMask;
+    uint padding;
+} pc;
+
+void main()
+{
+    uint springIndex = gl_GlobalInvocationID.x;
+
+    uint springCount = min(previousSpringAHeads[pc.springCounterIndex], pc.maxSprings);
+
+    if (springIndex >= springCount)
+    {
+        return;
+    }
+
+    uint pairKey = previousSprings[springIndex].pairKey;
+
+    uint slot = hashSpringPair(pairKey) & pc.lookupMask;
+
+    for (uint probe = 0u; probe <= pc.lookupMask; ++probe)
+    {
+        uint previousKey = atomicCompSwap(springLookup[slot].pairKey, INVALID_SPRING_INDEX, pairKey);
+
+        if (previousKey == INVALID_SPRING_INDEX || previousKey == pairKey)
+        {
+            springLookup[slot].springIndex = springIndex;
+
+            return;
+        }
+
+        slot = (slot + 1u) & pc.lookupMask;
+    }
+}
