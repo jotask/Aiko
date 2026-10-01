@@ -523,6 +523,12 @@ namespace sph
         return &emitter;
     }
 
+    void Simulation::removeParticleEmitter(size_t index)
+    {
+        AIKO_ASSERT(index < m_emitters.size(), "Particle emitter index out of range");
+        m_emitters.erase(m_emitters.begin() + static_cast<std::ptrdiff_t>(index));
+    }
+
     void Simulation::worldBoundary()
     {
         AIKO_FUNCTION_PROFILE

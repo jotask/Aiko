@@ -25,6 +25,7 @@ namespace sph
         aiko::vector<SPHParticle>& particles() { return m_particles; }
         const aiko::vector<SPHParticle>& particles() const { return m_particles; }
         const aiko::vector<ParticleEmitter>& emitters() const { return m_emitters; }
+        aiko::vector<ParticleEmitter>& emitters() { return m_emitters; }
 
         const SPHParameters& parameters() const { return m_parameters; }
         SPHParameters& parameters() { return m_parameters; }
@@ -37,6 +38,7 @@ namespace sph
         void neighboursSearch(const aiko::vec3& mousePosition);
 
         ParticleEmitter* createParticleEmitter(const EmitterSettings);
+        void removeParticleEmitter(size_t index);
 
     private:
 

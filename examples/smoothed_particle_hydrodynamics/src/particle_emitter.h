@@ -26,6 +26,7 @@ namespace sph
         void move(float dt);
 
         const EmitterSettings& settings() const { return m_settings; }
+        EmitterSettings& settings() { return m_settings; }
 
     private:
         EmitterSettings m_settings = {};

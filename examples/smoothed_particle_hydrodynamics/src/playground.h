@@ -61,6 +61,8 @@ namespace sph
         aiko::vector<aiko::InstanceData> m_particleInstances;
 
         std::optional<size_t> m_selectedShape = std::nullopt;
+        std::optional<size_t> m_selectedEmitter = std::nullopt;
+
         aiko::vec3 m_previousMousePosition = {};
 
         ParticleColorMode m_particleColorMode = ParticleColorMode::Velocity;

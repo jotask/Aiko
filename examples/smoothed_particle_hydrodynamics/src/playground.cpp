@@ -74,9 +74,9 @@ namespace sph
         }
         else
         {
-            // aiko::vector<SPHParticle> spawnedParticles;
-            // m_simulation.updateEmitters(m_simulation.parameters().solverDeltaTime, spawnedParticles);
-            // m_gpuSimulation.spawnParticles(spawnedParticles);
+            // GPU benchmark currently starts at MaxGpuParticles, so dynamic
+            // emitter spawning remains disabled until particle-capacity
+            // behaviour is defined explicitly.
         }
 
         if (input.isMouseButtonJustPressed(aiko::MouseButton::MOUSE_BUTTON_LEFT))
@@ -192,17 +192,34 @@ namespace sph
         }
 
         // Emitters
-        const auto& emitters = m_simulation.emitters();
+        const auto& emitters =
+            m_simulation.emitters();
+
         for (size_t i = 0; i < emitters.size(); ++i)
         {
             const ParticleEmitter& emitter = emitters[i];
+
             const EmitterSettings& settings = emitter.settings();
+
             const aiko::vec3 direction = settings.direction;
+
+            const float directionLengthSquared = aiko::math::dot(direction, direction);
+
+            if (directionLengthSquared <= 1e-6f)
+            {
+                continue;
+            }
+
             const aiko::vec3 normalizedDirection = aiko::math::normalize(direction);
-            const aiko::vec3 normal = { -normalizedDirection.y, normalizedDirection.x, 0.0f };
+
+            const aiko::vec3 normal = { -normalizedDirection.y, normalizedDirection.x, 0.0f};
+
             const aiko::vec3 halfPlane = normal * (settings.size * 0.5f);
+
             const aiko::vec3 planeStart = settings.position - halfPlane;
+
             const aiko::vec3 planeEnd = settings.position + halfPlane;
+
             renderSystem.renderLine(planeStart, planeEnd);
         }
 
@@ -341,6 +358,98 @@ namespace sph
             ImGui::Text("Accumulator: %.3f ms", m_simulationAccumulator * 1000.0f);
 
             ImGui::Text("Frame delta: %.3f ms", aiko::Time::it().getDeltaTime() * 1000.0f);
+
+            ImGui::SeparatorText("Emitters");
+
+            ImGui::Text("Emitters: %zu", m_simulation.emitters().size());
+
+            ImGui::TextDisabled("Emission is disabled while the benchmark starts at full GPU particle capacity.");
+
+            if (ImGui::Button("Add Emitter"))
+            {
+                const EmitterSettings settings
+                {
+                    .position ={ 0.0f, 5.0f, 0.0f},
+                    .direction ={ 0.0f, -1.0f, 0.0f},
+                    .size = 2.0f,
+                    .spawnInterval = 0.25f,
+                    .amount = 10,
+                    .velocity = 1.0f,
+                    .angularVelocity = 0.0f,
+                };
+
+                m_simulation.createParticleEmitter(settings);
+
+                m_selectedEmitter = m_simulation.emitters().size() - 1;
+            }
+
+            if (m_simulation.emitters().empty() == false)
+            {
+                ImGui::BeginChild("EmitterList", ImVec2(0.0f, 110.0f), ImGuiChildFlags_Borders);
+
+                for (size_t i = 0; i < m_simulation.emitters().size(); ++i)
+                {
+                    const bool selected = m_selectedEmitter.has_value() && m_selectedEmitter.value() == i;
+
+                    const std::string label = "Emitter " + std::to_string(i);
+
+                    if (ImGui::Selectable(label.c_str(), selected))
+                    {
+                        m_selectedEmitter = i;
+                    }
+                }
+
+                ImGui::EndChild();
+            }
+
+            if (m_selectedEmitter.has_value() && m_selectedEmitter.value() < m_simulation.emitters().size())
+            {
+                const size_t emitterIndex = m_selectedEmitter.value();
+
+                ParticleEmitter& emitter = m_simulation.emitters()[emitterIndex];
+
+                EmitterSettings& settings = emitter.settings();
+
+                ImGui::SeparatorText("Selected Emitter");
+
+                ImGui::DragFloat2("Position", &settings.position.x, 0.05f, -16.0f, 16.0f, "%.2f");
+
+                if (ImGui::SliderFloat2("Direction", &settings.direction.x, -1.0f, 1.0f, "%.2f"))
+                {
+                    const float directionLengthSquared = aiko::math::dot(settings.direction, settings.direction);
+
+                    if (directionLengthSquared <= 1e-6f)
+                    {
+                        settings.direction ={ 0.0f, -1.0f, 0.0f};
+                    }
+                    else
+                    {
+                        settings.direction = aiko::math::normalize(settings.direction);
+                    }
+                }
+
+                ImGui::SliderFloat("Emitter Size", &settings.size, 0.1f, 10.0f, "%.2f");
+
+                ImGui::SliderFloat( "Spawn Interval", &settings.spawnInterval, 0.01f, 5.0f, "%.2f s");
+
+                int amount = static_cast<int>(settings.amount);
+
+                if (ImGui::SliderInt("Particles Per Burst", &amount, 1, 128))
+                {
+                    settings.amount = static_cast<size_t>(amount);
+                }
+
+                ImGui::SliderFloat("Emitter Velocity", &settings.velocity, 0.0f, 10.0f, "%.2f");
+
+                ImGui::SliderFloat("Angular Velocity", &settings.angularVelocity, -5.0f, 5.0f, "%.2f");
+
+                if (ImGui::Button("Delete Emitter"))
+                {
+                    m_simulation.removeParticleEmitter(emitterIndex);
+
+                    m_selectedEmitter.reset();
+                }
+            }
 
             ImGui::SeparatorText("Rendering");
 
