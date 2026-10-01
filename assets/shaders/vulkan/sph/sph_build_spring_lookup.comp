@@ -22,13 +22,19 @@ buffer SpringLookup
     SpringLookupEntry springLookup[];
 };
 
+layout(std430, binding = 3)
+readonly buffer RecycledParticles
+{
+    uint recycledParticles[];
+};
+
 layout(push_constant)
 uniform PushConstants
 {
     uint springCounterIndex;
     uint maxSprings;
     uint lookupMask;
-    uint padding;
+    uint hasRecycledParticles;
 } pc;
 
 void main()
@@ -44,6 +50,18 @@ void main()
 
     uint pairKey = previousSprings[springIndex].pairKey;
 
+    if (pc.hasRecycledParticles != 0u)
+    {
+        uint particleA = getParticleA(pairKey);
+
+        uint particleB = getParticleB(pairKey);
+
+        if (recycledParticles[particleA] != 0u || recycledParticles[particleB] != 0u)
+        {
+            return;
+        }
+    }
+
     uint slot = hashSpringPair(pairKey) & pc.lookupMask;
 
     for (uint probe = 0u; probe <= pc.lookupMask; ++probe)
@@ -52,9 +70,7 @@ void main()
 
         if (previousKey == INVALID_SPRING_INDEX || previousKey == pairKey)
         {
-            springLookup[slot].restLength =
-                previousSprings[springIndex].restLength;
-
+            springLookup[slot].restLength = previousSprings[springIndex].restLength;
             return;
         }
 

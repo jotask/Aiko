@@ -53,6 +53,7 @@ namespace sph
 
         aiko::ComputeBuffer m_cellHeadBuffer;
         aiko::ComputeBuffer m_particleNextBuffer;
+        aiko::ComputeBuffer m_recycledParticleBuffer;
 
         aiko::ComputeBuffer m_shapeEdgeBuffer;
         aiko::ComputeBuffer m_shapeBuffer;
@@ -79,6 +80,9 @@ namespace sph
         aiko::AssetId m_shapeCollisionShaderId = aiko::InvalidAssetId;
 
         uint32_t m_particleCount = 0;
+        uint32_t m_nextParticleSlot = 0;
+
+        bool m_hasRecycledParticles = false;
 
         bool m_gridInitialized = false;
         uint32_t m_gridWidth = 0;

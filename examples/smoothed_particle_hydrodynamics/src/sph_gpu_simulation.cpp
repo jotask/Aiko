@@ -4,6 +4,7 @@
 #include "systems/asset_system.h"
 #include "systems/render_system.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace sph
@@ -178,7 +179,7 @@ namespace sph
             uint32_t springCounterIndex = 0;
             uint32_t maxSprings = 0;
             uint32_t lookupMask = 0;
-            uint32_t padding = 0;
+            uint32_t hasRecycledParticles = 0;
         };
 
         static_assert(sizeof(SPHBuildSpringLookupPushConstants) == 16);
@@ -245,9 +246,11 @@ namespace sph
         {
             uint32_t particleCount = 0;
             uint32_t springCounterIndex = 0;
+            uint32_t clearRecycledParticles = 0;
+            uint32_t padding = 0;
         };
 
-        static_assert(sizeof(SPHClearSpringsPushConstants) == 8);
+        static_assert(sizeof(SPHClearSpringsPushConstants) == 16);
 
         struct SPHStickinessPushConstants
         {
@@ -271,7 +274,10 @@ namespace sph
 
         m_particleCount = static_cast<uint32_t>(particles.size());
 
+        AIKO_ASSERT(m_particleCount <= MaxGpuParticles, "GPU SPH particle capacity exceeded");
         AIKO_ASSERT(m_particleCount <= MaxPackedParticleCount, "Packed GPU spring keys support at most 65536 particles");
+
+        m_nextParticleSlot = m_particleCount % MaxGpuParticles;
 
         aiko::vector<aiko::vec4> positions;
         aiko::vector<aiko::vec4> previousPositions;
@@ -352,6 +358,10 @@ namespace sph
         m_previousSpringBHeadBuffer.create(uintBufferDesc, initialSpringBHeads.data());
 
         m_particleNextBuffer.create(uintBufferDesc, nullptr);
+
+        const aiko::vector<uint32_t> initialRecycledParticles(MaxGpuParticles, 0u);
+
+        m_recycledParticleBuffer.create(uintBufferDesc, initialRecycledParticles.data());
 
         const aiko::ComputeBufferDesc springLookupBufferDesc
         {
@@ -656,12 +666,14 @@ namespace sph
 
         renderSystem.dispatch(clearSpringLookupPass, m_clearSpringLookupShaderId);
 
+        const uint32_t hasRecycledParticles = m_hasRecycledParticles ? 1u : 0u;
+
         const SPHBuildSpringLookupPushConstants buildSpringLookupConstants
         {
             .springCounterIndex = SpringCounterIndex,
             .maxSprings = MaxSprings,
             .lookupMask = SpringLookupMask,
-            .padding = 0
+            .hasRecycledParticles = hasRecycledParticles
         };
 
         aiko::ComputePass buildSpringLookupPass{};
@@ -670,6 +682,7 @@ namespace sph
         buildSpringLookupPass.buffers.push_back({0, previousSpringBuffer, aiko::ComputeAccess::Read});
         buildSpringLookupPass.buffers.push_back({1, previousSpringAHeadBuffer, aiko::ComputeAccess::Read});
         buildSpringLookupPass.buffers.push_back({2, &m_springLookupBuffer, aiko::ComputeAccess::ReadWrite});
+        buildSpringLookupPass.buffers.push_back({3, &m_recycledParticleBuffer, aiko::ComputeAccess::Read});
 
         buildSpringLookupPass.setPushConstants(buildSpringLookupConstants);
 
@@ -681,7 +694,9 @@ namespace sph
         const SPHClearSpringsPushConstants clearSpringsConstants
         {
             .particleCount = m_particleCount,
-            .springCounterIndex = MaxGpuParticles
+            .springCounterIndex = MaxGpuParticles,
+            .clearRecycledParticles = hasRecycledParticles,
+            .padding = 0
         };
 
         aiko::ComputePass clearSpringsPass{};
@@ -689,12 +704,15 @@ namespace sph
 
         clearSpringsPass.buffers.push_back({0, currentSpringAHeadBuffer, aiko::ComputeAccess::ReadWrite});
         clearSpringsPass.buffers.push_back({1, currentSpringBHeadBuffer, aiko::ComputeAccess::Write});
+        clearSpringsPass.buffers.push_back({2, &m_recycledParticleBuffer, aiko::ComputeAccess::Write});
 
         clearSpringsPass.setPushConstants(clearSpringsConstants);
 
         clearSpringsPass.dispatch.groupsX = (m_particleCount + 63) / 64;
 
         renderSystem.dispatch(clearSpringsPass, m_clearSpringsShaderId);
+
+        m_hasRecycledParticles = false;
 
         // Generate springs
         const SPHGenerateSpringsPushConstants springConstants
@@ -960,8 +978,7 @@ namespace sph
 
         const uint32_t spawnCount = static_cast<uint32_t>(particles.size());
 
-        AIKO_ASSERT(m_particleCount + spawnCount <= MaxGpuParticles, "GPU SPH particle capacity exceeded");
-        AIKO_ASSERT(m_particleCount + spawnCount <= MaxPackedParticleCount, "Packed GPU spring keys support at most 65536 particles");
+        AIKO_ASSERT(spawnCount <= MaxGpuParticles, "Cannot spawn more particles than the GPU particle pool capacity in one batch");
 
         aiko::vector<aiko::vec4> positions;
         aiko::vector<aiko::vec4> previousPositions;
@@ -978,11 +995,60 @@ namespace sph
             velocities.emplace_back(particle.velocity.x, particle.velocity.y, particle.velocity.z, 0.0f);
         }
 
-        m_positionBuffer.update(m_particleCount, spawnCount, positions.data());
-        m_prevPositionBuffer.update(m_particleCount, spawnCount, previousPositions.data());
-        m_velocityBuffer.update(m_particleCount, spawnCount, velocities.data());
+        const uint32_t previousParticleCount = m_particleCount;
 
-        m_particleCount += spawnCount;
+        const uint32_t startSlot = m_nextParticleSlot;
+
+        const uint32_t firstWriteCount = std::min(spawnCount, MaxGpuParticles - startSlot);
+
+        const uint32_t secondWriteCount = spawnCount - firstWriteCount;
+
+        if (firstWriteCount > 0)
+        {
+            m_positionBuffer.update(startSlot, firstWriteCount, positions.data());
+            m_prevPositionBuffer.update(startSlot, firstWriteCount, previousPositions.data());
+            m_velocityBuffer.update(startSlot, firstWriteCount, velocities.data());
+        }
+
+        if (secondWriteCount > 0)
+        {
+            m_positionBuffer.update(0, secondWriteCount, positions.data() + firstWriteCount);
+            m_prevPositionBuffer.update(0, secondWriteCount, previousPositions.data() + firstWriteCount);
+            m_velocityBuffer.update(0, secondWriteCount, velocities.data() + firstWriteCount);
+        }
+
+        const uint32_t availableSlots = previousParticleCount < MaxGpuParticles ? MaxGpuParticles - previousParticleCount : 0u;
+
+        const uint32_t appendedCount = std::min(spawnCount, availableSlots);
+
+        const uint32_t recycledCount = spawnCount - appendedCount;
+
+        if (recycledCount > 0)
+        {
+            aiko::vector<uint32_t> recycledFlags(recycledCount, 1u);
+
+            const uint32_t recycledStart = (startSlot + appendedCount) % MaxGpuParticles;
+
+            const uint32_t firstRecycleCount = std::min(recycledCount, MaxGpuParticles - recycledStart);
+
+            const uint32_t secondRecycleCount = recycledCount - firstRecycleCount;
+
+            if (firstRecycleCount > 0)
+            {
+                m_recycledParticleBuffer.update(recycledStart, firstRecycleCount, recycledFlags.data());
+            }
+
+            if (secondRecycleCount > 0)
+            {
+                m_recycledParticleBuffer.update(0, secondRecycleCount, recycledFlags.data() + firstRecycleCount);
+            }
+
+            m_hasRecycledParticles = true;
+        }
+
+        m_particleCount = std::min(MaxGpuParticles, previousParticleCount + spawnCount);
+
+        m_nextParticleSlot = (startSlot + spawnCount) % MaxGpuParticles;
     }
 
     void SPHGpuSimulation::updateShapes(const aiko::vector<Shape>& shapes)
@@ -1002,20 +1068,8 @@ namespace sph
 
                 gpuEdges.push_back(
                 {
-                    .a =
-                    {
-                        worldA.x,
-                        worldA.y,
-                        worldA.z,
-                        0.0f
-                    },
-
-                    .b =
-                    {
-                        worldB.x,
-                        worldB.y,
-                        worldB.z,
-                        0.0f
+                    .a = { worldA.x, worldA.y, worldA.z, 0.0f },
+                    .b = { worldB.x, worldB.y, worldB.z, 0.0f
                     }
                 });
             }

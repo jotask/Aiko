@@ -15,11 +15,16 @@ namespace sph
     {
         const float spacing = m_settings.amount > 1 ? m_settings.size / static_cast<float>(m_settings.amount - 1) : 0.0f;
 
+        if (m_settings.spawnInterval <= 0.0f)
+        {
+            return;
+        }
+
         m_time += dt;
 
-        if (m_time > m_settings.spawnInterval)
+        while (m_time >= m_settings.spawnInterval)
         {
-            m_time = 0.0f;
+            m_time -= m_settings.spawnInterval;
 
             for (size_t i = 0; i < m_settings.amount; ++i)
             {

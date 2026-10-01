@@ -72,13 +72,6 @@ namespace sph
             m_simulation.update();
             m_simulation.neighboursSearch(mousePosition);
         }
-        else
-        {
-            // GPU benchmark currently starts at MaxGpuParticles, so dynamic
-            // emitter spawning remains disabled until particle-capacity
-            // behaviour is defined explicitly.
-        }
-
         if (input.isMouseButtonJustPressed(aiko::MouseButton::MOUSE_BUTTON_LEFT))
         {
             const aiko::vector<Shape>& shapes = m_simulation.shapes();
@@ -159,9 +152,17 @@ namespace sph
 
             m_gpuSimulation.updateShapes(m_simulation.shapes());
 
-            while (m_simulationAccumulator >= simulationStepTime && m_lastSimulationSubsteps < MaxSimulationSubsteps)
+            aiko::vector<SPHParticle> spawnedParticles;
+
+            while (m_simulationAccumulator >= simulationStepTime &&m_lastSimulationSubsteps < MaxSimulationSubsteps)
             {
-                m_gpuSimulation.update(renderSystem, parameters, m_simulation.bounds());
+                spawnedParticles.clear();
+
+                m_simulation.updateEmitters(simulationStepTime, spawnedParticles);
+
+                m_gpuSimulation.spawnParticles(spawnedParticles);
+
+                m_gpuSimulation.update( renderSystem, parameters, m_simulation.bounds());
                 m_simulationAccumulator -= simulationStepTime;
                 ++m_lastSimulationSubsteps;
             }
@@ -363,7 +364,7 @@ namespace sph
 
             ImGui::Text("Emitters: %zu", m_simulation.emitters().size());
 
-            ImGui::TextDisabled("Emission is disabled while the benchmark starts at full GPU particle capacity.");
+            ImGui::TextDisabled("At GPU capacity, new particles recycle the oldest particle slots.");
 
             if (ImGui::Button("Add Emitter"))
             {

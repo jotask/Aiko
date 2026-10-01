@@ -16,11 +16,19 @@ writeonly buffer SpringBHeads
     uint springBHeads[];
 };
 
+layout(std430, binding = 2)
+writeonly buffer RecycledParticles
+{
+    uint recycledParticles[];
+};
+
 layout(push_constant)
 uniform PushConstants
 {
     uint particleCount;
     uint springCounterIndex;
+    uint clearRecycledParticles;
+    uint padding;
 } pc;
 
 void main()
@@ -30,7 +38,13 @@ void main()
     if (i < pc.particleCount)
     {
         springAHeads[i] = INVALID_SPRING_INDEX;
+
         springBHeads[i] = INVALID_SPRING_INDEX;
+
+        if (pc.clearRecycledParticles != 0u)
+        {
+            recycledParticles[i] = 0u;
+        }
     }
 
     if (i == 0u)
