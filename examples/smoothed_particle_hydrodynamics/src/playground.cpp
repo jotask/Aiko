@@ -92,7 +92,16 @@ namespace sph
             m_simulation.update();
             m_simulation.neighboursSearch(mousePosition);
         }
-        if (input.isMouseButtonJustPressed(aiko::MouseButton::MOUSE_BUTTON_LEFT) && ImGui::GetIO().WantCaptureMouse == false)
+
+        const ImGuiIO& io = ImGui::GetIO();
+
+        if (io.WantCaptureMouse || io.WantCaptureKeyboard)
+        {
+            m_previousMousePosition = mousePosition;
+            return;
+        }
+
+        if (input.isMouseButtonJustPressed(aiko::MouseButton::MOUSE_BUTTON_LEFT))
         {
             const aiko::vector<Shape>& shapes = m_simulation.shapes();
             m_selectedShape = std::nullopt;
