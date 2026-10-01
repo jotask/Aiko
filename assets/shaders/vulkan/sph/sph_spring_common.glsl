@@ -14,7 +14,7 @@ struct Spring
 struct SpringLookupEntry
 {
     uint pairKey;
-    uint springIndex;
+    float restLength;
 };
 
 uint makePairKey(uint particleA, uint particleB)

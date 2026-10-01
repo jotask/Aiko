@@ -161,7 +161,7 @@ namespace sph
         struct GpuSpringLookupEntry
         {
             uint32_t pairKey = InvalidSpringIndex;
-            uint32_t springIndex = InvalidSpringIndex;
+            float restLength = 0.0f;
         };
 
         static_assert(sizeof(GpuSpringLookupEntry) == 8);
@@ -730,11 +730,10 @@ namespace sph
         springPass.buffers.push_back({0, &m_positionBuffer, aiko::ComputeAccess::Read});
         springPass.buffers.push_back({1, &m_cellHeadBuffer, aiko::ComputeAccess::Read});
         springPass.buffers.push_back({2, &m_particleNextBuffer, aiko::ComputeAccess::Read});
-        springPass.buffers.push_back({3, previousSpringBuffer, aiko::ComputeAccess::Read});
-        springPass.buffers.push_back({4, &m_springLookupBuffer, aiko::ComputeAccess::Read});
-        springPass.buffers.push_back({5, currentSpringBuffer, aiko::ComputeAccess::Write});
-        springPass.buffers.push_back({6, currentSpringAHeadBuffer, aiko::ComputeAccess::ReadWrite});
-        springPass.buffers.push_back({7, currentSpringBHeadBuffer, aiko::ComputeAccess::ReadWrite});
+        springPass.buffers.push_back({3, &m_springLookupBuffer, aiko::ComputeAccess::Read});
+        springPass.buffers.push_back({4, currentSpringBuffer, aiko::ComputeAccess::Write});
+        springPass.buffers.push_back({5, currentSpringAHeadBuffer, aiko::ComputeAccess::ReadWrite});
+        springPass.buffers.push_back({6, currentSpringBHeadBuffer, aiko::ComputeAccess::ReadWrite});
 
         springPass.setPushConstants(springConstants);
 

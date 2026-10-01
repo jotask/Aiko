@@ -23,30 +23,24 @@ readonly buffer ParticleNext
 };
 
 layout(std430, binding = 3)
-readonly buffer PreviousSprings
-{
-    Spring previousSprings[];
-};
-
-layout(std430, binding = 4)
 readonly buffer SpringLookup
 {
     SpringLookupEntry springLookup[];
 };
 
-layout(std430, binding = 5)
+layout(std430, binding = 4)
 buffer CurrentSprings
 {
     Spring currentSprings[];
 };
 
-layout(std430, binding = 6)
+layout(std430, binding = 5)
 buffer CurrentSpringAHeads
 {
     uint currentSpringAHeads[];
 };
 
-layout(std430, binding = 7)
+layout(std430, binding = 6)
 buffer CurrentSpringBHeads
 {
     uint currentSpringBHeads[];
@@ -81,7 +75,7 @@ bool findPreviousSpring(uint pairKey, out float restLength)
 
         if (entry.pairKey == pairKey)
         {
-            restLength = previousSprings[entry.springIndex].restLength;
+            restLength = entry.restLength;
 
             return true;
         }
