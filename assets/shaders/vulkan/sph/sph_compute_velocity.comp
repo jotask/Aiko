@@ -24,9 +24,9 @@ layout(push_constant)
 uniform PushConstants
 {
     float dt;
+    float velocityDamping;
+    float maxVelocity;
     uint particleCount;
-    uint padding0;
-    uint padding1;
 } pc;
 
 void main()
@@ -39,6 +39,17 @@ void main()
     }
 
     vec3 velocity = (positions[i].xyz - previousPositions[i].xyz) / pc.dt;
+
+    velocity *= pc.velocityDamping;
+
+    float velocitySquared = dot(velocity, velocity);
+
+    float maxVelocitySquared = pc.maxVelocity * pc.maxVelocity;
+
+    if (velocitySquared > maxVelocitySquared)
+    {
+        velocity *= pc.maxVelocity / sqrt(velocitySquared);
+    }
 
     velocities[i] = vec4(velocity, 0.0);
 }

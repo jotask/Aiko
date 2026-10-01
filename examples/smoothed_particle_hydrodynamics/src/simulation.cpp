@@ -117,7 +117,7 @@ namespace sph
         {
             SPHParticle& p = m_particles[i];
             p.prevPosition = p.position;
-            p.position += p.velocity * (dt * VelocityDamping);
+            p.position += p.velocity * dt;
         }
     }
 
@@ -127,8 +127,25 @@ namespace sph
         for (size_t i = 0 ; i < m_particles.size(); ++i)
         {
             SPHParticle& p = m_particles[i];
-            aiko::vec3 direction = p.position - p.prevPosition;
-            p.velocity = direction * ( 1.0f / dt );
+            const aiko::vec3 direction = p.position - p.prevPosition;
+
+            p.velocity = direction * (1.0f / dt) * m_parameters.velocityDamping;
+
+            const float maxVelocity = (m_parameters.smoothingRadius * m_parameters.maxStepDisplacementRatio) / dt;
+
+            const float velocitySquared = aiko::math::lengthSquared(p.velocity);
+
+            const float maxVelocitySquared = maxVelocity * maxVelocity;
+
+            if (velocitySquared > maxVelocitySquared)
+            {
+                const float velocityLength = aiko::math::length(p.velocity);
+
+                if (velocityLength > 0.0f)
+                {
+                    p.velocity *= maxVelocity / velocityLength;
+                }
+            }
         }
     }
 

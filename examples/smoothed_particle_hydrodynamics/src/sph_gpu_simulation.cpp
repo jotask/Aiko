@@ -132,9 +132,9 @@ namespace sph
         struct SPHComputeVelocityPushConstants
         {
             float dt = 0.0f;
+            float velocityDamping = 1.0f;
+            float maxVelocity = 0.0f;
             uint32_t particleCount = 0;
-            uint32_t padding0 = 0;
-            uint32_t padding1 = 0;
         };
 
         static_assert(sizeof(SPHComputeVelocityPushConstants) == 16);
@@ -931,6 +931,8 @@ namespace sph
         const SPHComputeVelocityPushConstants velocityConstants
         {
             .dt = parameters.solverDeltaTime,
+            .velocityDamping = parameters.velocityDamping,
+            .maxVelocity = (parameters.smoothingRadius * parameters.maxStepDisplacementRatio) / parameters.solverDeltaTime,
             .particleCount = m_particleCount
         };
 

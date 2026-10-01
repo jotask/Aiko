@@ -40,8 +40,6 @@ namespace sph
 
     private:
 
-        static constexpr float VelocityDamping = 1.0f;
-
         aiko::vector<SPHParticle> m_particles;
 
         const WorldBounds m_bounds

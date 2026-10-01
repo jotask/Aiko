@@ -37,6 +37,20 @@ namespace sph
         float sigma = 0.5f;
         float beta = 0.0f;
 
+        // Global kinetic-energy damping applied after position-based
+        // constraints are converted back into velocity.
+        //
+        // 1.0 preserves all reconstructed velocity.
+        // Values slightly below 1.0 allow the fluid to settle.
+        float velocityDamping = 0.995f;
+
+        // Maximum distance represented by reconstructed velocity during one
+        // solver step, expressed as a fraction of the smoothing radius.
+        //
+        // This prevents large positional corrections from turning into
+        // explosive velocities on the following step.
+        float maxStepDisplacementRatio = 0.5f;
+
         // plasticity
         float gamma = 0.3f;
         float plasticity = 1.0f;

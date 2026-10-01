@@ -283,6 +283,10 @@ namespace sph
 
             ImGui::DragFloat("Beta", &parameters.beta, 0.01f, 0.0f, 10.0f);
 
+            ImGui::SliderFloat("Velocity Damping", &parameters.velocityDamping, 0.90f, 1.0f, "%.4f");
+
+            ImGui::SliderFloat("Max Step Distance", &parameters.maxStepDisplacementRatio, 0.10f, 1.0f, "%.2f x smoothing radius");
+
             ImGui::SeparatorText("Springs");
 
             ImGui::DragFloat("Gamma", &parameters.gamma, 0.01f, 0.0f, 10.0f);
@@ -305,11 +309,11 @@ namespace sph
 
             ImGui::SeparatorText("Simulation");
 
-            ImGui::DragFloat("Simulation Step Time", &parameters.simulationStepTime, 0.0001f, 0.001f, 1.0f);
+            ImGui::Text("Simulation Step Time: %.6f s", parameters.simulationStepTime);
 
             ImGui::Text("Simulation Hz: %.1f", parameters.simulationStepTime > 0.0f ? 1.0f / parameters.simulationStepTime : 0.0f);
 
-            ImGui::DragFloat("Solver Delta Time", &parameters.solverDeltaTime, 0.01f, 0.001f, 1.0f);
+            ImGui::Text("Solver Delta Time: %.3f", parameters.solverDeltaTime);
 
             ImGui::Text("Substeps this frame: %u / %u", m_lastSimulationSubsteps, MaxSimulationSubsteps);
 
