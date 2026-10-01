@@ -484,7 +484,7 @@ namespace sph
 
             if (ImGui::Button("Add Circle"))
             {
-                m_simulation.createShape({0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateCircle(24), aiko::MAGENTA);
+                m_simulation.createShape({0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateCircle(24), aiko::ORANGE);
 
                 addShapeRenderData(m_simulation.shapes().back());
 
@@ -495,7 +495,7 @@ namespace sph
 
             if (ImGui::Button("Add Triangle"))
             {
-                m_simulation.createShape({0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateTriangle(), aiko::MAGENTA);
+                m_simulation.createShape({0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateTriangle(), aiko::ORANGE);
 
                 addShapeRenderData(m_simulation.shapes().back());
 
@@ -506,7 +506,7 @@ namespace sph
 
             if (ImGui::Button("Add Rectangle"))
             {
-                m_simulation.createShape( {0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateQuad(), aiko::MAGENTA);
+                m_simulation.createShape( {0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateQuad(), aiko::ORANGE);
 
                 addShapeRenderData(m_simulation.shapes().back());
 

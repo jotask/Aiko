@@ -68,9 +68,9 @@ namespace sph
         };
         createParticleEmitter(emitter);
 
-        createShape({0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateCircle(12), aiko::MAGENTA);
+        createShape({0.0f, 0.0f, 0.0f}, aiko::mesh::factory::generateCircle(12), aiko::ORANGE);
 
-        createShape({0.25f, 0.25f, 0.0f}, aiko::mesh::factory::generateTriangle(), aiko::MAGENTA);
+        createShape({0.25f, 0.25f, 0.0f}, aiko::mesh::factory::generateTriangle(), aiko::ORANGE);
 
     }
 
