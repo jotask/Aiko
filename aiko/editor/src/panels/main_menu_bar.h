@@ -18,6 +18,11 @@ namespace aiko
             void setWorkspace(EditorWorkspace* workspace);
 
         private:
+            void handleShortcuts(EditorContext& context);
+
+            void newScene(EditorContext& context);
+            void openSceneDialog();
+            void saveScene(EditorContext& context);
             void openSaveDialog(EditorContext& context);
 
             EditorWorkspace* m_workspace = nullptr;

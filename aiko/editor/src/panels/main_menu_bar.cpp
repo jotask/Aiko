@@ -27,6 +27,35 @@ namespace aiko::editor
         m_workspace = workspace;
     }
 
+    void MainMenuBar::newScene(EditorContext& context)
+    {
+        context.clearSelection();
+        context.commands().clear();
+        Scene& scene = context.sceneSystem().getScene();
+        scene.clear();
+        context.document().reset();
+    }
+
+    void MainMenuBar::openSceneDialog()
+    {
+        IGFD::FileDialogConfig config;
+        config.path = global::GLOBAL_SCENE_FILES_PATH;
+        config.fileName = "editor.scene";
+        ImGuiFileDialog::Instance()->OpenDialog("loadFileDlgKey", "Choose File", ".scene", config);
+    }
+
+    void MainMenuBar::saveScene(EditorContext& context)
+    {
+        if (context.document().hasPath())
+        {
+            const Scene& scene = context.sceneSystem().getScene();
+            SceneSerializerYAML::serializeScene(scene, context.document().path());
+            context.document().markSaved();
+            return;
+        }
+        openSaveDialog(context);
+    }
+
     void MainMenuBar::openSaveDialog(EditorContext& context)
     {
         IGFD::FileDialogConfig config;
@@ -35,8 +64,55 @@ namespace aiko::editor
         ImGuiFileDialog::Instance()->OpenDialog("saveSceneDlg", "Save Scene", ".scene", config);
     }
 
+    void MainMenuBar::handleShortcuts(EditorContext& context)
+    {
+        const ImGuiIO& io = ImGui::GetIO();
+
+        if (io.WantTextInput)
+        {
+            return;
+        }
+
+        if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_N, false))
+        {
+            newScene(context);
+        }
+
+        if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O, false))
+        {
+            openSceneDialog();
+        }
+
+        if (io.KeyCtrl && io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_S, false))
+        {
+            openSaveDialog(context);
+        }
+        else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S, false))
+        {
+            saveScene(context);
+        }
+
+        if (io.KeyCtrl && io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_Z, false))
+        {
+            if (context.commands().canRedo())
+            {
+                context.clearSelection();
+                context.commands().redo();
+            }
+        }
+        else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Z, false))
+        {
+            if (context.commands().canUndo())
+            {
+                context.clearSelection();
+                context.commands().undo();
+            }
+        }
+    }
+
     void MainMenuBar::render(EditorContext& context)
     {
+        handleShortcuts(context);
         if (ImGui::BeginMainMenuBar())
         {
             if (ImGui::BeginMenu("File"))
@@ -44,34 +120,17 @@ namespace aiko::editor
 
                 if (ImGui::MenuItem("New Scene", "Ctrl+N"))
                 {
-                    context.clearSelection();
-                    context.commands().clear();
-                    Scene& scene = context.sceneSystem().getScene();
-                    scene.clear();
-                    context.document().reset();
+                    newScene(context);
                 }
 
                 if (ImGui::MenuItem("Open...", "Ctrl+O"))
                 {
-                    IGFD::FileDialogConfig config;
-                    config.path = global::GLOBAL_SCENE_FILES_PATH;
-                    config.fileName = "editor.scene";
-
-                    ImGuiFileDialog::Instance()->OpenDialog("loadFileDlgKey", "Choose File", ".scene", config);
+                    openSceneDialog();
                 }
 
                 if (ImGui::MenuItem("Save", "Ctrl+S"))
                 {
-                    if (context.document().hasPath())
-                    {
-                        const Scene& scene = context.sceneSystem().getScene();
-                        SceneSerializerYAML::serializeScene(scene, context.document().path());
-                        context.document().markSaved();
-                    }
-                    else
-                    {
-                        openSaveDialog(context);
-                    }
+                    saveScene(context);
                 }
 
                 if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
