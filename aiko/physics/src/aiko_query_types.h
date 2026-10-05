@@ -43,4 +43,17 @@ namespace aiko::physics
         BodyId bodyB = InvalidBodyId;
     };
 
+    struct SphereOverlapDesc
+    {
+        vec3 center = vec3(0.0f);
+        float radius = 0.5f;
+    };
+
+    struct BoxOverlapDesc
+    {
+        vec3 center = vec3(0.0f);
+        vec3 halfExtent = vec3(0.5f);
+        vec3 rotation = vec3(0.0f);
+    };
+
 }

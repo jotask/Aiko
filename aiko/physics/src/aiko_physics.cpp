@@ -18,6 +18,8 @@
 #include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/CollideShape.h>
+#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 
 namespace aiko::physics
 {
@@ -604,6 +606,96 @@ namespace aiko::physics
         }
 
         return true;
+    }
+
+    vector<BodyId> AikoPhysics::overlapSphere(const SphereOverlapDesc& desc) const
+    {
+        vector<BodyId> result;
+
+        if (m_impl == nullptr || m_impl->physicsSystem == nullptr)
+        {
+            return result;
+        }
+
+        if (desc.radius <= 0.0f)
+        {
+            return result;
+        }
+
+        const JPH::SphereShape shape(desc.radius);
+
+        const JPH::RMat44 transform = JPH::RMat44::sTranslation(convert::toJoltVec3(desc.center));
+
+        JPH::CollideShapeSettings settings;
+
+        JPH::AllHitCollisionCollector<JPH::CollideShapeCollector> collector;
+
+        m_impl->physicsSystem->GetNarrowPhaseQuery().CollideShape(
+            &shape,
+            JPH::Vec3::sReplicate(1.0f),
+            transform,
+            settings,
+            JPH::RVec3::sZero(),
+            collector
+        );
+
+        result.reserve(collector.mHits.size());
+
+        for (const JPH::CollideShapeResult& hit : collector.mHits)
+        {
+            result.push_back(convert::toAikoBodyId(hit.mBodyID2));
+        }
+
+        std::sort(result.begin(), result.end());
+        result.erase(std::unique(result.begin(), result.end()), result.end());
+
+        return result;
+    }
+
+    vector<BodyId> AikoPhysics::overlapBox(const BoxOverlapDesc& desc) const
+    {
+        vector<BodyId> result;
+
+        if (m_impl == nullptr || m_impl->physicsSystem == nullptr)
+        {
+            return result;
+        }
+
+        if (desc.halfExtent.x <= 0.0f || desc.halfExtent.y <= 0.0f || desc.halfExtent.z <= 0.0f)
+        {
+            return result;
+        }
+
+        const JPH::BoxShape shape(convert::toJoltVec3(desc.halfExtent));
+
+        const JPH::Quat rotation = convert::toJoltRotation(desc.rotation);
+
+        const JPH::RMat44 transform = JPH::RMat44::sRotationTranslation(rotation, convert::toJoltVec3(desc.center));
+
+        JPH::CollideShapeSettings settings;
+
+        JPH::AllHitCollisionCollector<JPH::CollideShapeCollector> collector;
+
+        m_impl->physicsSystem->GetNarrowPhaseQuery().CollideShape(
+            &shape,
+            JPH::Vec3::sReplicate(1.0f),
+            transform,
+            settings,
+            JPH::RVec3::sZero(),
+            collector
+        );
+
+        result.reserve(collector.mHits.size());
+
+        for (const JPH::CollideShapeResult& hit : collector.mHits)
+        {
+            result.push_back(convert::toAikoBodyId(hit.mBodyID2));
+        }
+
+        std::sort(result.begin(), result.end());
+        result.erase(std::unique(result.begin(), result.end()), result.end());
+
+        return result;
     }
 
     vector<PhysicsEvent> AikoPhysics::drainEvents()
