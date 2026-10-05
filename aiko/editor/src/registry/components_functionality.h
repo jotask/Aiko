@@ -25,6 +25,7 @@ namespace aiko::editor::component
 
     vector<string> getMissingComponents(GameObject*);
     void addComponent(EditorContext& context, string name, GameObject& object);
+    void removeComponent(EditorContext& context, Component& component);
 
     bool serializeComponent(const Component& component, YAML::Node& node);
     bool deserializeComponent(const YAML::Node& node, GameObject& object);

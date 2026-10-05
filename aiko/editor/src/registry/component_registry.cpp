@@ -17,6 +17,7 @@
 #include "core/editor_context.h"
 
 #include "commands/component/add_component_command.h"
+#include "commands/component/remove_component_command.h"
 
 #include <algorithm>
 #include <type_traits>
@@ -50,6 +51,11 @@ namespace aiko::editor::component
                 .add = [](EditorContext& context, GameObject& object)
                 {
                     context.commands().execute<AddComponentCommand<T>>(context.sceneSystem(),object);
+                },
+
+                .remove = [](EditorContext& context, GameObject& object)
+                {
+                    context.commands().execute<RemoveComponentCommand<T>>(context.sceneSystem(), object);
                 },
 
                 .render = [render](Component& component)

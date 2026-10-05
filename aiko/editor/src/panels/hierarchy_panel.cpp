@@ -4,6 +4,7 @@
 #include "commands/game_object/reparent_game_object_command.h"
 #include "commands/game_object/rename_game_object_command.h"
 #include "commands/game_object/duplicate_game_object_command.h"
+#include "commands/game_object/delete_game_object_command.h"
 #include "core/editor_context.h"
 #include "core/imgui_helper.h"
 
@@ -222,12 +223,12 @@ namespace aiko
 
                     if (ImGui::MenuItem("Delete"))
                     {
-                        scene.remove(obj);
-
                         if (context.selectedGameObject() == obj)
                         {
                             context.clearSelection();
                         }
+
+                        context.commands().execute<DeleteGameObjectCommand>(context.sceneSystem(), *obj);
 
                         ImGui::EndPopup();
 
@@ -235,6 +236,7 @@ namespace aiko
                         {
                             ImGui::TreePop();
                         }
+
                         return;
                     }
 

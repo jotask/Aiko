@@ -1,5 +1,7 @@
 #include "components_functionality.h"
 
+#include "models/component.h"
+#include "models/game_object.h"
 #include "registry/component_registry.h"
 
 namespace aiko::editor
@@ -57,6 +59,36 @@ namespace aiko::editor
             }
 
             entry->add(context, object);
+        }
+
+        void removeComponent(EditorContext& context, Component& component)
+        {
+            const ComponentEditorEntry* entry = findComponentEntry(component);
+
+            AIKO_ASSERT(entry != nullptr, "Component is not supported by the editor");
+
+            if (entry == nullptr)
+            {
+                return;
+            }
+
+            AIKO_ASSERT(entry->removable, "Component cannot be removed");
+
+            if (entry->removable == false)
+            {
+                return;
+            }
+
+            GameObject* object = component.getGameObject();
+
+            AIKO_ASSERT(object != nullptr, "Component is not attached to a GameObject");
+
+            if (object == nullptr)
+            {
+                return;
+            }
+
+            entry->remove(context, *object);
         }
 
         bool serializeComponent(const Component& component, YAML::Node& node)

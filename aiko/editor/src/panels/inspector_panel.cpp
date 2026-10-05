@@ -5,6 +5,7 @@
 #include "core/imgui_helper.h"
 #include "registry/components_functionality.h"
 #include "registry/components_render.h"
+#include "commands/game_object/rename_game_object_command.h"
 
 #include <aiko_includes.h>
 #include <imgui.h>
@@ -29,9 +30,15 @@ namespace aiko
                 {
                     ImGui::Text("Uuid: %s", selectedGameObject->uuid().get().c_str() );
                     string name = selectedGameObject->getName();
-                    if (imgui::InputText("Name", &name))
+
+                    imgui::InputText("Name", &name);
+
+                    if (ImGui::IsItemDeactivatedAfterEdit())
                     {
-                        selectedGameObject->setName(name);
+                        if (name.empty() == false && name != selectedGameObject->getName())
+                        {
+                            context.commands().execute<RenameGameObjectCommand>(context.sceneSystem(), *selectedGameObject, name);
+                        }
                     }
                     ImGui::Spacing();
                     ImGui::Spacing();
@@ -93,9 +100,12 @@ namespace aiko
 
             if (selectedGameObject != nullptr)
             {
-                for(Component* cmp : componentsToRemove)
+                for (Component* component : componentsToRemove)
                 {
-                    selectedGameObject->removeComponent(cmp);
+                    if (component != nullptr)
+                    {
+                        component::removeComponent(context, *component);
+                    }
                 }
             }
 
