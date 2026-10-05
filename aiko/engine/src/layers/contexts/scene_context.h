@@ -1,8 +1,9 @@
 #pragma once
 
-#include <aiko_types.h>
-
+#include "components/camera_component.h"
 #include "models/light.h"
+
+#include <aiko_types.h>
 
 namespace aiko
 {
@@ -17,6 +18,8 @@ namespace aiko
 
         GameObject* Instantiate(string name);
         GameObject* Instantiate(GameObject* parent, string name);
+
+        CameraComponent* createCamera(camera::CameraController controller = camera::CameraController::Static, Camera::CameraType type = Camera::CameraType::Perspective);
 
         Color& clearColor();
         const Color& clearColor() const;

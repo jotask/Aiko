@@ -11,15 +11,10 @@ namespace aiko::ca
     void CellularAutomaton::init()
     {
 
-        auto cameraObj = Instantiate("Camera");
-        auto camera = cameraObj->addComponent<CameraComponent>(camera::CameraController::Fly, Camera::CameraType::Perspective);
-        camera->getCamera().position.z = 50.0f;
-        camera->getCamera().position.y = 10.0f;
+        scene().clearColor() = aiko::SKYBLUE;
 
-        auto sprite = Instantiate("CellularAutomaton");
-        sprite->transform().position = { 0.0f, 0.0f, 0.0f };
-        sprite->transform().rotation = { 0.0f,  0.0f, 0.0f };
-        sprite->transform().scale = { 1.0f, 1.0f, 1.0f };
+        auto* camera = scene().createCamera(camera::CameraController::Drag, Camera::CameraType::Orthographic);
+        camera->getCamera().position.z = 100.0f;
 
         m_automaton = sprite->addComponent<CellularAutomatonComponent>();
 

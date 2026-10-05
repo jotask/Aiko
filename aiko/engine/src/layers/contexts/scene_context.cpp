@@ -23,6 +23,17 @@ namespace aiko
         return m_sceneSystem->createGameObject(parent, std::move(name));
     }
 
+    CameraComponent* SceneContext::createCamera(camera::CameraController controller, Camera::CameraType type)
+    {
+        GameObject* object = Instantiate("Camera");
+        CameraComponent* camera = object->addComponent<CameraComponent>(controller, type);
+        if (m_sceneSystem->getScene().getActiveCamera() == nullptr)
+        {
+            m_sceneSystem->setActiveCamera(object);
+        }
+        return camera;
+    }
+
     Color& SceneContext::clearColor()
     {
         return m_sceneSystem->getScene().clearColor();

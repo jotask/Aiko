@@ -1,6 +1,7 @@
 #include "scene.h"
 
 #include "models/game_object.h"
+#include "components/camera_component.h"
 
 #include <utility>
 #include <algorithm>
@@ -146,11 +147,20 @@ namespace aiko
             m_activeCamera = nullptr;
             return;
         }
-        bool exists = std::any_of(m_objects.begin(), m_objects.end(), [obj](const AikoUPtr<GameObject>& go) { return go != nullptr && go.get() == obj; });
-        if (exists)
-        {
-            m_activeCamera = obj;
-        }
+
+        const bool exists = std::any_of(
+            m_objects.begin(),
+            m_objects.end(),
+            [obj](const AikoUPtr<GameObject>& go)
+            {
+                return go != nullptr && go.get() == obj;
+            }
+        );
+
+        AIKO_ASSERT(exists, "Active camera GameObject does not belong to this Scene");
+        AIKO_ASSERT(obj->getComponent<CameraComponent>() != nullptr, "Active camera GameObject has no CameraComponent");
+
+        m_activeCamera = obj;
     }
 
     void Scene::destroyObject(GameObject& object)
