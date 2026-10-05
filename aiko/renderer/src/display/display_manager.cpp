@@ -29,7 +29,7 @@ namespace aiko
             logger::Log::error("GLFW error [%d]: %s", code, desc ? desc : "unknown");
         });
 
-        AIKO_ASSERT(glfwInit() == GLFW_TRUE, "Failed to init Window")
+        AIKO_ASSERT(glfwInit() == GLFW_TRUE, "Failed to init Window");
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // no OpenGL
         GLFWwindow* window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
@@ -37,7 +37,7 @@ namespace aiko
         {
             logger::Log::critical("Failed to create GLFW window");
             glfwTerminate();
-            AIKO_ASSERT(false, "Failed to create GLFW window")
+            AIKO_ASSERT(false, "Failed to create GLFW window");
         }
 
         centerWindow(window);

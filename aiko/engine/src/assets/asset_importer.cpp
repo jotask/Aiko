@@ -29,7 +29,7 @@ namespace aiko
 
         unsigned char* data = stbi_load(base.c_str(), &width, &height, &channels, 4); // force RGBA
 
-        AIKO_ASSERT(data, "Texture Failed to load texture.")
+        AIKO_ASSERT(data, "Texture Failed to load texture.");
 
         TextureAsset asset = {};
         asset.desc.type = TextureType::Sampled;

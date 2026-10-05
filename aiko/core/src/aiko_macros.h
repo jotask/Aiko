@@ -2,8 +2,10 @@
 
 #include "aiko_types.h"
 
+#include <cstdio>
+#include <cstdlib>
 #include <source_location>
-#include <format>
+#include <string_view>
 
 #if defined(__cplusplus)
 #define CLITERAL(type)      type
@@ -22,37 +24,72 @@ namespace aiko
     #define AIKO_DEBUG_BREAK ((void)0)
     #endif
 
+    namespace detail
+    {
+        [[noreturn]] inline void assertionFailed(const char* condition, std::string_view message, const std::source_location location = std::source_location::current())
+        {
+            std::fprintf(
+                stderr,
+                "[ASSERT] %.*s\n"
+                "  Condition: %s\n"
+                "  Location: %s:%u:%u\n"
+                "  Function: %s\n",
+                static_cast<int>(message.size()),
+                message.data(),
+                condition,
+                location.file_name(),
+                location.line(),
+                location.column(),
+                location.function_name()
+            );
+
+            std::fflush(stderr);
+            std::abort();
+        }
+
+        inline void todo(std::string_view message, const std::source_location location = std::source_location::current())
+        {
+            std::fprintf(
+                stderr,
+                "[TODO] %.*s\n"
+                "  Location: %s:%u:%u\n"
+                "  Function: %s\n",
+                static_cast<int>(message.size()),
+                message.data(),
+                location.file_name(),
+                location.line(),
+                location.column(),
+                location.function_name()
+            );
+
+            std::fflush(stderr);
+        }
+    }
+
     #define AIKO_ASSERT(cond, msg)                                                      \
-        do {                                                                            \
-            if (!(cond)) {                                                              \
-                const std::source_location loc = std::source_location::current();       \
-                const std::string str = std::format(                                    \
-                    "[ASSERT]::{}::{}::{}::{}",                                         \
-                    loc.file_name(),                                                    \
-                    loc.line(),                                                         \
-                    loc.column(),                                                       \
-                    loc.function_name()                                                 \
-                    );                                                                  \
-                assert(cond && str.c_str());                                            \
-            }                                                                           \
-        } while (false);
-
-    #define AIKO_ASSERTF(cond, fmt, ...)                                                \
-            do {                                                                        \
-                if (!(cond)) {                                                          \
-                    logger::Log::error(fmt, __VA_ARGS__);                               \
-                    assert(cond);                                                       \
-                }                                                                       \
-            } while (false);
-
-
-    // TODO the TODO
-    #define AIKO_TODO(msg)                                                              \
         do                                                                              \
         {                                                                               \
-            printf("%s::%d::%s::[TODO] %s\n", __FILE__, __LINE__, __FUNCTION__, msg);   \
-        }                                                                               \
-        while (false);                                                                      \
+            if (!(cond))                                                                \
+            {                                                                           \
+                ::aiko::detail::assertionFailed(#cond, (msg));                          \
+            }                                                                           \
+        } while (false)
+
+    #define AIKO_ASSERTF(cond, fmt, ...)                                                \
+            do                                                                          \
+            {                                                                           \
+                if (!(cond))                                                            \
+                {                                                                       \
+                    logger::Log::error(fmt __VA_OPT__(,) __VA_ARGS__);                  \
+                    ::aiko::detail::assertionFailed(                                    \
+                        #cond,                                                          \
+                        "Formatted assertion failed"                                    \
+                    );                                                                  \
+                }                                                                       \
+            } while (false)
+
+
+    #define AIKO_TODO(msg) ::aiko::detail::todo((msg))
 
     #define AIKO_STRICT_NOT_IMPLEMENTED false
 
@@ -63,7 +100,7 @@ namespace aiko
             do                                                                     \
             {                                                                      \
                 AIKO_TODO("NOT IMPLEMENTED");                                      \
-                AIKO_DEBUG_BREAK;                                                        \
+                AIKO_DEBUG_BREAK;                                                  \
             } while (0)
     #endif
 

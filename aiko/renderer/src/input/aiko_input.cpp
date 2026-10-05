@@ -277,7 +277,7 @@ namespace aiko
             return PressedType::REPEAT;
         }
         logger::Log::error("KEY :: ACTION :: Not Implemented");
-        AIKO_ASSERT(false, "UNKNOW")
+        AIKO_ASSERT(false, "UNKNOW");
     }
 
 }
