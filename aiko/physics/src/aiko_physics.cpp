@@ -113,6 +113,8 @@ namespace aiko::physics
         const JPH::EMotionType motionType = convert::toJoltMotionType(desc.motionType);
         const JPH::ObjectLayer layer = convert::toJoltLayer(desc.layer);
 
+        AIKO_ASSERT(desc.motionType != MotionType::Dynamic || desc.shape.type != ShapeType::TriangleMesh, "Dynamic triangle mesh bodies are not supported");
+
         JPH::RefConst<JPH::Shape> shape = createJoltShape(desc.shape);
         if (shape == nullptr)
         {
@@ -130,6 +132,13 @@ namespace aiko::physics
         settings.mRestitution = desc.restitution;
         settings.mFriction = desc.friction;
         settings.mIsSensor = desc.isSensor;
+
+        if (desc.motionType == MotionType::Dynamic)
+        {
+            AIKO_ASSERT(desc.mass > 0.0f, "Dynamic body mass must be greater than zero");
+            settings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
+            settings.mMassPropertiesOverride.mMass = desc.mass;
+        }
 
         const JPH::EActivation activation =
             (desc.activate && desc.motionType != MotionType::Static)
@@ -418,12 +427,12 @@ namespace aiko::physics
     {
         if (m_impl == nullptr || m_impl->physicsSystem == nullptr)
         {
-            return 1.0f;
+            return false;
         }
 
         if (id == InvalidBodyId)
         {
-            return 1.0f;
+            return false;
         }
 
         JPH::BodyInterface& bodyInterface = m_impl->physicsSystem->GetBodyInterface();
