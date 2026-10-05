@@ -110,4 +110,16 @@ namespace aiko
         return m_context->ui();
     }
 
+    RuntimeContext& Layer::runtime()
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->runtime();
+    }
+
+    const RuntimeContext& Layer::runtime() const
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->runtime();
+    }
+
 }

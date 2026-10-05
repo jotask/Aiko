@@ -4,13 +4,14 @@
 
 namespace aiko
 {
-    LayerContext::LayerContext(SystemConnector& connector)
+    LayerContext::LayerContext(Aiko& runtime, SystemConnector& connector)
         : m_input(connector)
         , m_render(connector)
         , m_scene(connector)
         , m_assets(connector)
         , m_jobs(connector)
         , m_ui(connector)
+        , m_runtime(runtime)
     {
 
     }

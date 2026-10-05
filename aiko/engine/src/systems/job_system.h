@@ -36,6 +36,7 @@ namespace aiko
         virtual void init() override;
         virtual void update() override;
         virtual void dispose() override;
+        bool updateWhenPaused() const override { return true; }
 
     private:
         void workerLoop(std::stop_token stopToken);

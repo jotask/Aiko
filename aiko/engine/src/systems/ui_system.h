@@ -56,6 +56,7 @@ namespace aiko
         void connect(ModuleConnector* moduleConnector, SystemConnector* systemConnector) override;
         void update() override;
         void render() override;
+        bool updateWhenPaused() const override { return true; }
 
     private:
 

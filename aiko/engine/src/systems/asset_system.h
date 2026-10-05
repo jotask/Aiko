@@ -82,6 +82,7 @@ namespace aiko
         SystemUpdatePhase updatePhase() const override { return SystemUpdatePhase::EarlyUpdate; }
         virtual void connect(ModuleConnector*, SystemConnector*) override;
         virtual void update() override;
+        bool updateWhenPaused() const override { return true; }
 
     private:
 

@@ -29,7 +29,9 @@ namespace aiko
         virtual void render() = 0;
     
         virtual void dispose() = 0;
-    
+
+        virtual bool updateWhenPaused() const { return false; }
+
     private:
     
     };

@@ -114,7 +114,7 @@ namespace aiko
         for (auto&& system : m_systems) system->connect(&moduleConnector, &systemConnector);
         for (auto&& system : m_systems) system->init();
 
-        m_layerContext = AikoUPtr<LayerContext>(new LayerContext(systemConnector));
+        m_layerContext = AikoUPtr<LayerContext>(new LayerContext(*this, systemConnector));
 
         m_application->connect(systemConnector, *m_layerContext);
         m_application->init();
@@ -126,10 +126,18 @@ namespace aiko
         AIKO_FUNCTION_PROFILE
         for (auto&& module : m_modules) module->preUpdate();
         for (auto&& module : m_modules) module->update();
-        magic_enum::enum_for_each<SystemUpdatePhase>([&](SystemUpdatePhase phase) {
-            runUpdatePhase(phase);
+
+        const bool runSimulation = m_simulationPaused == false || m_stepSimulation;
+
+        magic_enum::enum_for_each<SystemUpdatePhase>([&](SystemUpdatePhase phase)
+        {
+            runUpdatePhase(phase, runSimulation);
         });
-        m_application->update();
+        if (runSimulation == true)
+        {
+            m_application->update();
+        }
+        m_stepSimulation = false;
         for (auto&& module : m_modules) module->postUpdate();
     }
 
@@ -158,14 +166,21 @@ namespace aiko
         }
     }
 
-    void Aiko::runUpdatePhase(SystemUpdatePhase phase)
+    void Aiko::runUpdatePhase(SystemUpdatePhase phase, bool runSimulation)
     {
         for (auto&& system : m_systems)
         {
-            if (system->updatePhase() == phase)
+            if (system->updatePhase() != phase)
             {
-                system->update();
+                continue;
             }
+
+            if (runSimulation == false && system->updateWhenPaused() == false)
+            {
+                continue;
+            }
+
+            system->update();
         }
     }
 

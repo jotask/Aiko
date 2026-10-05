@@ -35,6 +35,7 @@ namespace aiko
     protected:
         virtual SystemUpdatePhase updatePhase() const override { return SystemUpdatePhase::Input; }
         virtual void connect(ModuleConnector*, SystemConnector*) override;
+        bool updateWhenPaused() const override { return true; }
 
     private:
 
