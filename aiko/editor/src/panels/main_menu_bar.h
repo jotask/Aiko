@@ -4,6 +4,9 @@
 
 namespace aiko
 {
+
+    class RuntimeContext;
+
     namespace editor
     {
         class EditorWorkspace;
@@ -16,6 +19,7 @@ namespace aiko
             void render(EditorContext& context) override;
 
             void setWorkspace(EditorWorkspace* workspace);
+            void setRuntime(RuntimeContext* runtime);
 
         private:
             void handleShortcuts(EditorContext& context);
@@ -27,6 +31,7 @@ namespace aiko
             void duplicateSelected(EditorContext& context);
 
             EditorWorkspace* m_workspace = nullptr;
+            RuntimeContext* m_runtime = nullptr;
         };
 
     }

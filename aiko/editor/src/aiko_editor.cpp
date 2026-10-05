@@ -56,7 +56,7 @@ namespace aiko::editor
         m_workspace.addPanel<HierarchyPanel>();
         m_workspace.addPanel<InspectorPanel>();
         menuBar.setWorkspace(&m_workspace);
-
+        menuBar.setRuntime(&runtime());
 
     }
 

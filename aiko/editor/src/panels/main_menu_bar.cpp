@@ -8,6 +8,7 @@
 #include "serializer/scene_serializer_YAML.h"
 #include "systems/scene_system.h"
 #include "commands/game_object/duplicate_game_object_command.h"
+#include <layers/contexts/runtime_context.h>
 
 #include <display/display_events.hpp>
 #include <events/events.hpp>
@@ -26,6 +27,11 @@ namespace aiko::editor
     void MainMenuBar::setWorkspace(EditorWorkspace* workspace)
     {
         m_workspace = workspace;
+    }
+
+    void MainMenuBar::setRuntime(RuntimeContext* runtime)
+    {
+        m_runtime = runtime;
     }
 
     void MainMenuBar::newScene(EditorContext& context)
@@ -125,6 +131,21 @@ namespace aiko::editor
         {
             duplicateSelected(context);
         }
+
+        if (m_runtime != nullptr)
+        {
+            if (ImGui::IsKeyPressed(ImGuiKey_F6, false))
+            {
+                m_runtime->setPaused(!m_runtime->isPaused());
+            }
+
+            if (m_runtime->isPaused() &&
+                ImGui::IsKeyPressed(ImGuiKey_F7, false))
+            {
+                m_runtime->step();
+            }
+        }
+
     }
 
     void MainMenuBar::render(EditorContext& context)
@@ -185,6 +206,40 @@ namespace aiko::editor
                 if (ImGui::MenuItem("Duplicate", "Ctrl+D", false, canDuplicate))
                 {
                     duplicateSelected(context);
+                }
+
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Simulation"))
+            {
+                AIKO_ASSERT(m_runtime != nullptr, "MainMenuBar has no RuntimeContext");
+
+                if (m_runtime != nullptr)
+                {
+                    const bool paused = m_runtime->isPaused();
+
+                    if (paused == false)
+                    {
+                        if (ImGui::MenuItem("Pause", "F6"))
+                        {
+                            m_runtime->setPaused(true);
+                        }
+                    }
+                    else
+                    {
+                        if (ImGui::MenuItem("Resume", "F6"))
+                        {
+                            m_runtime->setPaused(false);
+                        }
+                    }
+
+                    ImGui::Separator();
+
+                    if (ImGui::MenuItem("Step", "F7", false, paused))
+                    {
+                        m_runtime->step();
+                    }
                 }
 
                 ImGui::EndMenu();
