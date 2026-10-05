@@ -3,6 +3,7 @@
 #include "commands/game_object/create_game_object_command.h"
 #include "commands/game_object/reparent_game_object_command.h"
 #include "commands/game_object/rename_game_object_command.h"
+#include "commands/game_object/duplicate_game_object_command.h"
 #include "core/editor_context.h"
 #include "core/imgui_helper.h"
 
@@ -200,6 +201,22 @@ namespace aiko
                         {
                             ImGui::TreePop();
                         }
+                        return;
+                    }
+
+                    if (ImGui::MenuItem("Duplicate"))
+                    {
+                        DuplicateGameObjectCommand& command = context.commands().execute<DuplicateGameObjectCommand>(context.sceneSystem(), *obj);
+
+                        context.select(command.duplicatedObject());
+
+                        ImGui::EndPopup();
+
+                        if (opened)
+                        {
+                            ImGui::TreePop();
+                        }
+
                         return;
                     }
 

@@ -24,6 +24,7 @@ namespace aiko
             void openSceneDialog();
             void saveScene(EditorContext& context);
             void openSaveDialog(EditorContext& context);
+            void duplicateSelected(EditorContext& context);
 
             EditorWorkspace* m_workspace = nullptr;
         };

@@ -7,6 +7,7 @@
 #include "core/editor_workspace.h"
 #include "serializer/scene_serializer_YAML.h"
 #include "systems/scene_system.h"
+#include "commands/game_object/duplicate_game_object_command.h"
 
 #include <display/display_events.hpp>
 #include <events/events.hpp>
@@ -64,6 +65,17 @@ namespace aiko::editor
         ImGuiFileDialog::Instance()->OpenDialog("saveSceneDlg", "Save Scene", ".scene", config);
     }
 
+    void MainMenuBar::duplicateSelected(EditorContext& context)
+    {
+        GameObject* selected = context.selectedGameObject();
+        if (selected == nullptr)
+        {
+            return;
+        }
+        DuplicateGameObjectCommand& command = context.commands().execute<DuplicateGameObjectCommand>(context.sceneSystem(), *selected);
+        context.select(command.duplicatedObject());
+    }
+
     void MainMenuBar::handleShortcuts(EditorContext& context)
     {
         const ImGuiIO& io = ImGui::GetIO();
@@ -107,6 +119,11 @@ namespace aiko::editor
                 context.clearSelection();
                 context.commands().undo();
             }
+        }
+
+        if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_D, false))
+        {
+            duplicateSelected(context);
         }
     }
 
@@ -161,6 +178,13 @@ namespace aiko::editor
                 {
                     context.clearSelection();
                     context.commands().redo();
+                }
+
+                const bool canDuplicate = context.selectedGameObject() != nullptr;
+
+                if (ImGui::MenuItem("Duplicate", "Ctrl+D", false, canDuplicate))
+                {
+                    duplicateSelected(context);
                 }
 
                 ImGui::EndMenu();
