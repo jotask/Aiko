@@ -6,6 +6,11 @@
 #include "time/time.h"
 #include "asset_system.h"
 #include "scene_system.h"
+#include "events/physics_events.h"
+
+#include <events/events.hpp>
+
+#include <unordered_map>
 
 namespace aiko
 {
@@ -37,6 +42,16 @@ namespace aiko
         vector<RigidBodyComponent*> rigidBodies = scene.components<RigidBodyComponent>();
         vector<PlayerControllerComponent*> playerControllers = scene.components<PlayerControllerComponent>();
 
+        std::unordered_map<physics::BodyId, RigidBodyComponent*> bodyLookup;
+
+        for (RigidBodyComponent* body : rigidBodies)
+        {
+            if (body != nullptr && body->isPhysicsInitialized())
+            {
+                bodyLookup.emplace(body->getBodyId(), body);
+            }
+        }
+
         for (RigidBodyComponent* body : rigidBodies)
         {
             if (body == nullptr)
@@ -44,23 +59,20 @@ namespace aiko
                 continue;
             }
 
-            if (body->isActiveAndEnabled() == false &&
-                body->isPhysicsInitialized())
+            if (body->isActiveAndEnabled() == false && body->isPhysicsInitialized())
             {
                 body->physicsShutdown(m_physics);
             }
         }
 
-        for (PlayerControllerComponent* controller :
-             playerControllers)
+        for (PlayerControllerComponent* controller : playerControllers)
         {
             if (controller == nullptr)
             {
                 continue;
             }
 
-            if (controller->isActiveAndEnabled() == false &&
-                controller->isPhysicsInitialized())
+            if (controller->isActiveAndEnabled() == false && controller->isPhysicsInitialized())
             {
                 controller->physicsShutdown();
             }
@@ -74,18 +86,19 @@ namespace aiko
         {
             for (RigidBodyComponent* body : rigidBodies)
             {
-                if (body != nullptr &&
-    body->isActiveAndEnabled())
-
+                if (body != nullptr && body->isActiveAndEnabled())
                 {
                     body->ensurePhysicsInitialized(m_physics);
+                    if (body->isPhysicsInitialized())
+                    {
+                        bodyLookup[body->getBodyId()] = body;
+                    }
                 }
             }
 
             for (PlayerControllerComponent* controller : playerControllers)
             {
-                if (controller != nullptr &&
-    controller->isActiveAndEnabled())
+                if (controller != nullptr && controller->isActiveAndEnabled())
                 {
                     controller->ensurePhysicsInitialized(m_physics);
                 }
@@ -93,8 +106,7 @@ namespace aiko
 
             for (PlayerControllerComponent* controller : playerControllers)
             {
-                if (controller != nullptr &&
-    controller->isActiveAndEnabled())
+                if (controller != nullptr && controller->isActiveAndEnabled())
                 {
                     controller->fixedUpdate(physics::kPhysicsDeltaTime);
                 }
@@ -110,8 +122,7 @@ namespace aiko
 
             for (RigidBodyComponent* body : rigidBodies)
             {
-                if (body != nullptr &&
-    body->isActiveAndEnabled())
+                if (body != nullptr && body->isActiveAndEnabled())
                 {
                     body->syncFromPhysics(m_physics);
                 }
@@ -123,18 +134,15 @@ namespace aiko
 
         for (RigidBodyComponent* body : rigidBodies)
         {
-            if (body != nullptr &&
-                body->isActiveAndEnabled())
+            if (body != nullptr && body->isActiveAndEnabled())
             {
                 ensureDebugMesh(body);
             }
         }
 
-        for (PlayerControllerComponent* controller :
-             playerControllers)
+        for (PlayerControllerComponent* controller : playerControllers)
         {
-            if (controller != nullptr &&
-                controller->isActiveAndEnabled())
+            if (controller != nullptr && controller->isActiveAndEnabled())
             {
                 ensureDebugMesh(controller);
             }
@@ -146,16 +154,58 @@ namespace aiko
             switch (event.type)
             {
                 case physics::PhysicsEventType::BodyActivated:
-                    logger::Log::trace("Body activated: {}", event.bodyA);
+                    {
+                        logger::Log::trace("Body activated: {}", event.bodyA);
+                    }
                     break;
                 case physics::PhysicsEventType::BodyDeactivated:
-                    logger::Log::trace("Body deactivated: {}", event.bodyA);
+                    {
+                        logger::Log::trace("Body deactivated: {}", event.bodyA);
+                    }
                     break;
                 case physics::PhysicsEventType::ContactAdded:
-                    logger::Log::trace("Contact added: {} <-> {}", event.bodyA, event.bodyB);
+                    {
+                        const auto bodyAIt = bodyLookup.find(event.bodyA);
+                        const auto bodyBIt = bodyLookup.find(event.bodyB);
+
+                        if (bodyAIt == bodyLookup.end() || bodyBIt == bodyLookup.end())
+                        {
+                            break;
+                        }
+
+                        RigidBodyComponent* bodyA = bodyAIt->second;
+                        RigidBodyComponent* bodyB = bodyBIt->second;
+
+                        if (bodyA == nullptr || bodyB == nullptr)
+                        {
+                            break;
+                        }
+
+                        PhysicsContactStartedEvent contactEvent(bodyA->getGameObject(), bodyB->getGameObject(), bodyA, bodyB);
+                        EventSystem::it().sendEvent(contactEvent);
+                    }
                     break;
                 case physics::PhysicsEventType::ContactRemoved:
-                    logger::Log::trace("Contact removed: {} <-> {}", event.bodyA, event.bodyB);
+                    {
+                        const auto bodyAIt = bodyLookup.find(event.bodyA);
+                        const auto bodyBIt = bodyLookup.find(event.bodyB);
+
+                        if (bodyAIt == bodyLookup.end() || bodyBIt == bodyLookup.end())
+                        {
+                            break;
+                        }
+
+                        RigidBodyComponent* bodyA = bodyAIt->second;
+                        RigidBodyComponent* bodyB = bodyBIt->second;
+
+                        if (bodyA == nullptr || bodyB == nullptr)
+                        {
+                            break;
+                        }
+
+                        PhysicsContactEndedEvent contactEvent(bodyA->getGameObject(), bodyB->getGameObject(), bodyA, bodyB);
+                        EventSystem::it().sendEvent(contactEvent);
+                    }
                     break;
             }
         }
@@ -203,8 +253,7 @@ namespace aiko
             }
         }
 
-        for (PlayerControllerComponent* controller :
-             scene.components<PlayerControllerComponent>())
+        for (PlayerControllerComponent* controller : scene.components<PlayerControllerComponent>())
         {
             if (controller != nullptr)
             {
@@ -220,10 +269,7 @@ namespace aiko
     {
         MeshAsset asset{};
 
-        AIKO_ASSERT(
-            data.vertices.size() <= std::numeric_limits<uint16_t>::max(),
-            "Physics mesh is too large for MeshAsset uint16_t indices"
-        );
+        AIKO_ASSERT(data.vertices.size() <= std::numeric_limits<uint16_t>::max(), "Physics mesh is too large for MeshAsset uint16_t indices");
 
         asset.m_vertices = data.vertices;
         asset.m_textCoord.assign(data.vertices.size(), vec2(0.0f, 0.0f));
