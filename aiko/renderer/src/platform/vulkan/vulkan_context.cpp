@@ -1696,8 +1696,10 @@ namespace aiko::renderer::vulkan
             .commandBufferCount = 1,
         };
 
-        VkCommandBuffer commandBuffer;
-        vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+
+        const VkResult allocateResult = vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+        AIKO_ASSERT(allocateResult == VK_SUCCESS, "Failed to allocate single-time command buffer");
 
         const VkCommandBufferBeginInfo beginInfo =
         {
@@ -1705,20 +1707,16 @@ namespace aiko::renderer::vulkan
             .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
         };
 
-        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+        const VkResult beginResult = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+        AIKO_ASSERT(beginResult == VK_SUCCESS, "Failed to begin single-time command buffer");
 
         return commandBuffer;
     }
 
     void VulkanContext::endSingleTimeCommands(VkCommandBuffer commandBuffer)
     {
-        const VkResult result = vkEndCommandBuffer(commandBuffer);
-
-        if (result != VK_SUCCESS)
-        {
-            logger::Log::error("Failed to end single-time command buffer!");
-            std::exit(-1);
-        }
+        const VkResult endResult = vkEndCommandBuffer(commandBuffer);
+        AIKO_ASSERT(endResult == VK_SUCCESS, "Failed to end single-time command buffer");
 
         const VkSubmitInfo submitInfo =
         {
