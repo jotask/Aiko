@@ -152,7 +152,10 @@ namespace aiko
         for (auto&& module : m_modules) module->preDispose();
         m_application->dispose();
         for (auto&& system : m_systems) system->dispose();
-        for (auto&& module : m_modules) module->dispose();
+        for (auto it = m_modules.rbegin(); it != m_modules.rend(); ++it)
+        {
+            (*it)->dispose();
+        }
     }
 
     void Aiko::runUpdatePhase(SystemUpdatePhase phase)

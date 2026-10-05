@@ -27,10 +27,10 @@ namespace aiko
         void* getNativeWindow() const;
 
     protected:
-
         virtual void preInit() override;
         virtual void preUpdate() override;
         virtual void endFrame() override;
+        virtual void dispose() override;
 
     private:
         DisplayManager m_manager;

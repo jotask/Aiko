@@ -69,7 +69,16 @@ namespace aiko
 
     void DisplayManager::dispose()
     {
+        if (m_native == nullptr)
+        {
+            return;
+        }
+
+        EventSystem::it().unbindAll(this);
+
         glfwDestroyWindow(m_native);
+        m_native = nullptr;
+
         glfwTerminate();
     }
 

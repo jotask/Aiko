@@ -69,4 +69,9 @@ namespace aiko
         m_manager.swap();
     }
 
+    void DisplayModule::dispose()
+    {
+        m_manager.dispose();
+    }
+
 }
