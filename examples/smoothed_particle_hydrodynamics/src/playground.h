@@ -4,6 +4,7 @@
 #include "models/material.h"
 #include "models/mesh.h"
 #include "simulation.h"
+#include "sph_cpu_simulation.h"
 #include "sph_gpu_simulation.h"
 #include "types/draw_types.h"
 
@@ -53,6 +54,7 @@ namespace sph
         void rebuildShapeRenderData();
 
         Simulation m_simulation;
+        SPHCpuSimulation m_cpuSimulation;
         SPHGpuSimulation m_gpuSimulation;
 
         aiko::Mesh m_particleMesh;

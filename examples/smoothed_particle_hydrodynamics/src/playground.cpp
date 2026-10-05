@@ -18,7 +18,7 @@ namespace sph
 
     namespace
     {
-        constexpr bool EnableGpuSimulation = true;
+        constexpr bool EnableGpuSimulation = false;
         constexpr uint32_t MaxSimulationSubsteps = 4;
     }
 
@@ -47,8 +47,14 @@ namespace sph
 
     void Playground::init(const aiko::AssetId& shaderId, const aiko::AssetId& gpuShaderId, aiko::AssetSystem& assetSystem)
     {
-        m_simulation.init();
-        m_gpuSimulation.init(assetSystem, m_simulation.particles(), m_simulation.shapes());
+
+        constexpr uint32_t InitialParticleCount = EnableGpuSimulation ? MaxGpuParticles : MaxCpuParticles;
+
+        m_simulation.init(InitialParticleCount);
+
+        m_cpuSimulation.init(m_simulation.initialParticles(), m_simulation.parameters().smoothingRadius);
+
+        m_gpuSimulation.init(assetSystem, m_simulation.initialParticles(), m_simulation.shapes());
 
         m_shapeShaderId = shaderId;
 
@@ -76,8 +82,7 @@ namespace sph
 
         if constexpr (EnableGpuSimulation == false)
         {
-            m_simulation.update();
-            m_simulation.neighboursSearch(mousePosition);
+            m_cpuSimulation.neighboursSearch(mousePosition, m_simulation.parameters().smoothingRadius);
         }
 
         const ImGuiIO& io = ImGui::GetIO();
@@ -124,7 +129,43 @@ namespace sph
 
         if constexpr (EnableGpuSimulation == false)
         {
-            const auto& particles = m_simulation.particles();
+            SPHParameters& parameters = m_simulation.parameters();
+
+            const float simulationStepTime = parameters.simulationStepTime;
+
+            AIKO_ASSERT(simulationStepTime > 0.0f, "SPH simulation step time must be greater than zero");
+
+            AIKO_ASSERT(parameters.solverDeltaTime > 0.0f, "SPH solver delta time must be greater than zero");
+
+            const float frameDeltaTime = aiko::Time::it().getDeltaTime();
+
+            m_simulationAccumulator += frameDeltaTime;
+
+            m_lastSimulationSubsteps = 0;
+
+            aiko::vector<SPHParticle> spawnedParticles;
+
+            while (m_simulationAccumulator >= simulationStepTime && m_lastSimulationSubsteps < MaxSimulationSubsteps)
+            {
+                spawnedParticles.clear();
+
+                m_simulation.updateEmitters(simulationStepTime, spawnedParticles);
+
+                m_cpuSimulation.spawnParticles(spawnedParticles);
+
+                m_cpuSimulation.update(parameters, m_simulation.bounds(), m_simulation.shapes());
+
+                m_simulationAccumulator -= simulationStepTime;
+
+                ++m_lastSimulationSubsteps;
+            }
+
+            if (m_lastSimulationSubsteps == MaxSimulationSubsteps && m_simulationAccumulator >= simulationStepTime)
+            {
+                m_simulationAccumulator = 0.0f;
+            }
+
+            const auto& particles = m_cpuSimulation.particles();
 
             m_particleInstances.resize(particles.size());
 
@@ -306,7 +347,14 @@ namespace sph
         {
             SPHParameters& parameters = m_simulation.parameters();
 
-            ImGui::Text("Particles: %u", m_gpuSimulation.particleCount());
+            if constexpr (EnableGpuSimulation)
+            {
+                ImGui::Text("Particles: %u", m_gpuSimulation.particleCount());
+            }
+            else
+            {
+                ImGui::Text("Particles: %u", m_cpuSimulation.particleCount());
+            }
 
             if (ImGui::Button("Reset Parameters"))
             {
