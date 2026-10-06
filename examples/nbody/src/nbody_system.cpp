@@ -1,13 +1,14 @@
 #include "nbody_system.h"
 
+#include "models/mesh_factory.h"
 #include "nbody_component.h"
 
 #include <modules/assets_manager_module.h>
-#include <systems/scene_system.h>
-#include <systems/render_system.h>
 #include <modules/module_connector.h>
-#include <systems/system_connector.h>
 #include <systems/asset_system.h>
+#include <systems/render_system.h>
+#include <systems/scene_system.h>
+#include <systems/system_connector.h>
 
 namespace nbody
 {
@@ -27,10 +28,11 @@ namespace nbody
         {
             alignas(16) aiko::vec4 params;
             alignas(16) aiko::vec4 gravity;
+            alignas(16) aiko::vec4 origin;
         };
 
         static_assert(sizeof(NBodyInitPushConstants) == 64);
-        static_assert(sizeof(NBodyUpdatePushConstants) == 32);
+        static_assert(sizeof(NBodyUpdatePushConstants) == 48);
 
     }
 
@@ -147,10 +149,13 @@ namespace nbody
 
         if (state.renderInitialized == false)
         {
-            state.bodyMaterial.m_shaderId = m_assetManagerModule->getManager()->registerShader( "gpu_vertex.vs", "model.fs");
+            state.bodyMaterial.m_shaderId = m_assetManagerModule->getManager()->registerShader("nbody_gpuinst.vs", "model.fs");
             state.bodyMaterial.m_baseColor = aiko::RED;
-            state.bodyMaterial.m_lit = false;
+            state.bodyMaterial.m_lit = true;
             state.bodyMaterial.m_useVertexColor = false;
+
+            auto meshData = aiko::mesh::factory::generateMeshSphere(8, 8);
+            state.bodyMesh.upload(meshData);
 
             state.renderInitialized = true;
         }
@@ -250,7 +255,13 @@ namespace nbody
                 simulation.getGravitationalConstant().y,
                 simulation.getGravitationalConstant().z,
                 simulation.getCentralMass()
-            )
+            ),
+            .origin = aiko::vec4(
+                emitterPos.x,
+                emitterPos.y,
+                emitterPos.z,
+                0.0f
+            ),
         };
 
         updatePass.setPushConstants(updateConstants);
@@ -266,18 +277,13 @@ namespace nbody
         if (state->renderInitialized)
         {
 
-            const aiko::GpuVertexDrawDesc draw =
-            {
-                .material = &state->bodyMaterial,
-                .vertexBuffer = state->positionMassCurrent,
-                .vertexCount = count,
-                .indexBuffer = &state->indexBuffer,
-                .indexCount = count,
-                .indirectBuffer = &state->indirectBuffer,
-                .topology = aiko::TransientTopology::Points,
-            };
+            aiko::GpuInstanceDrawDesc draw;
+            draw.mesh = &state->bodyMesh;
+            draw.material = &state->bodyMaterial;
+            draw.readBuffers.push_back({ 7, state->positionMassCurrent });
+            draw.instanceCount = count;
 
-            m_renderSystem->drawVerticesGpu(draw);
+            m_renderSystem->drawMeshInstancedGpu(draw);
 
         }
 

@@ -43,9 +43,6 @@ namespace nbody
         float getInitialSpeed() const { return m_initialSpeed; }
         void setInitialSpeed(float value) { m_initialSpeed = value; }
 
-        float getRenderScale() const { return m_renderScale; }
-        void setRenderScale(float value) { m_renderScale = value; }
-
         bool isPlaying() const { return m_playing; }
         void setPlaying(bool value) { m_playing = value; }
 
@@ -67,7 +64,6 @@ namespace nbody
         float m_timeScale;
         float m_initialRadius;
         float m_initialSpeed;
-        float m_renderScale;
         bool m_playing;
         bool m_resetRequested;
 

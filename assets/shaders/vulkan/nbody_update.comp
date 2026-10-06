@@ -42,6 +42,7 @@ layout(push_constant) uniform NBodyUpdatePushConstants
 {
     vec4 u_params;
     vec4 u_gravity;
+    vec4 u_origin;
 };
 
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
@@ -89,7 +90,7 @@ void main()
 
     if (centralMass > 0.0)
     {
-        vec3 deltaCenter = -pos;
+        vec3 deltaCenter = u_origin.xyz - pos;
         float dist2Center = dot(deltaCenter, deltaCenter) + softening * softening;
         float invDistCenter = inversesqrt(dist2Center);
         float invDistCenter3 = invDistCenter * invDistCenter * invDistCenter;

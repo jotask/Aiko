@@ -99,8 +99,9 @@ void main()
         vec3 radial = normalize(pos - u_origin.xyz + vec3(1e-5));
         vec3 tangent = vec3(-radial.z, 0.0, radial.x);
 
-        float speed = initialSpeed / sqrt(max(r, 0.25));
-        vel = tangent * speed;
+        float gravitationalStrength = max(max(abs(u_gravity.x), abs(u_gravity.y)), abs(u_gravity.z));
+        float orbitalSpeed = sqrt(gravitationalStrength * u_gravity.w / max(r, 0.25));
+        vel = tangent * orbitalSpeed * initialSpeed;
     }
     else
     {
