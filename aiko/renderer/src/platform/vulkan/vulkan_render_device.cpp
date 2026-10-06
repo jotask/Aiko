@@ -554,6 +554,9 @@ namespace aiko::renderer::vulkan
         m_boundGraphicsPipeline = VK_NULL_HANDLE;
         m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
 
+        m_boundVertexBuffer = VK_NULL_HANDLE;
+        m_boundIndexBuffer = VK_NULL_HANDLE;
+
         AIKO_ASSERT(m_computePassActive == false, "Graphics pass cannot begin while compute pass is active");
 
         VkRenderPass renderPass;
@@ -965,6 +968,10 @@ namespace aiko::renderer::vulkan
 
         vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
         vkCmdBindIndexBuffer( commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+
+        m_boundVertexBuffer = meshImpl->vertexBuffer();
+        m_boundIndexBuffer = meshImpl->indexBuffer();
+
         vkCmdDrawIndexed( commandBuffer, meshImpl->indexCount(), instanceCount, 0, 0, 0);
     }
 
@@ -2010,11 +2017,25 @@ namespace aiko::renderer::vulkan
 
         vkCmdPushConstants(commandBuffer, m_modelPipelines.layout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
 
-        const VkBuffer vertexBuffers[] = { meshImpl->vertexBuffer() };
-        const VkDeviceSize offsets[] = { 0 };
+        const VkBuffer vertexBuffer = meshImpl->vertexBuffer();
 
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+        if (m_boundVertexBuffer != vertexBuffer)
+        {
+            const VkDeviceSize offset = 0;
+
+            vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, &offset);
+
+            m_boundVertexBuffer = vertexBuffer;
+        }
+
+        const VkBuffer indexBuffer = meshImpl->indexBuffer();
+
+        if (m_boundIndexBuffer != indexBuffer)
+        {
+            vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+            m_boundIndexBuffer = indexBuffer;
+        }
 
         vkCmdDrawIndexed(commandBuffer, meshImpl->indexCount(), 1, 0, 0, 0);
     }

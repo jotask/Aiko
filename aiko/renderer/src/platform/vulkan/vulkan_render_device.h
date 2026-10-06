@@ -108,6 +108,8 @@ namespace aiko::renderer::vulkan
         VulkanMaterialResources m_materialResources;
 
         VkPipeline m_boundGraphicsPipeline = VK_NULL_HANDLE;
+        VkBuffer m_boundVertexBuffer = VK_NULL_HANDLE;
+        VkBuffer m_boundIndexBuffer = VK_NULL_HANDLE;
         void bindGraphicsPipeline(VkPipeline pipeline);
 
         VkDescriptorSet m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
