@@ -22,7 +22,7 @@ namespace aiko::ca
 
     void CellCellularAutomaton::init()
     {
-        if (cellautomaton::RANDOM_CELL_INIT == true && state != CellState::DEBUG)
+        if (RANDOM_CELL_INIT == true && state != CellState::DEBUG)
         {
             bool rnd = utils::getRandomBool();
             if (rnd)
@@ -34,7 +34,6 @@ namespace aiko::ca
                 state = CellState::DEAD;
             }
         }
-        updateNeighbours();
         prev_state = state;
     }
 
@@ -88,11 +87,6 @@ namespace aiko::ca
     CellCellularAutomaton::CellState CellCellularAutomaton::getPrevState()
     {
         return prev_state;
-    }
-
-    std::vector<CellCellularAutomaton*> CellCellularAutomaton::getCache()
-    {
-        return cache_neighbours;
     }
 
     ChunkCellularAutomaton* CellCellularAutomaton::getChunk()

@@ -9,6 +9,7 @@ namespace aiko::ca
 
     class WorldCellularAutomaton;
     class ChunkCellularAutomaton;
+
     class CellCellularAutomaton
     {
     public:
@@ -36,7 +37,6 @@ namespace aiko::ca
         CellState getState();
         CellState getPrevState();
 
-        std::vector<CellCellularAutomaton*> getCache();
         ChunkCellularAutomaton* getChunk();
 
     private:
@@ -48,7 +48,6 @@ namespace aiko::ca
 
         CellState prev_state;
         CellState state;
-        CellState next_state;
 
     };
 

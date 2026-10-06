@@ -17,7 +17,10 @@ namespace aiko::ca
         virtual ~ChunkCellularAutomaton() = default;
 
         void init();
+        void preUpdate();
         void update();
+
+        void updateNeighbours();
 
         ivec2 getPosition() { return pos; };
 

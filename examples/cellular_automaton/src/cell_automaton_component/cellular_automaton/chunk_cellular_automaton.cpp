@@ -26,27 +26,27 @@ namespace aiko::ca
             {
                 return true;
             }
-            if (x == cellautomaton::SIZE_CHUNK.x - 1 && y == 0)
+            if (x == SIZE_CHUNK.x - 1 && y == 0)
             {
                 return true;
             }
-            if (x == 0 && y == cellautomaton::SIZE_CHUNK.y - 1)
+            if (x == 0 && y == SIZE_CHUNK.y - 1)
             {
                 return true;
             }
-            if (x == cellautomaton::SIZE_CHUNK.x - 1 && y == cellautomaton::SIZE_CHUNK.y - 1)
+            if (x == SIZE_CHUNK.x - 1 && y == SIZE_CHUNK.y - 1)
             {
                 return true;
             }
             return false;
         };
         cells.clear();
-        cells.reserve(cellautomaton::SIZE_CHUNK.product());
-        for (int y = 0 ; y < cellautomaton::SIZE_CHUNK.y; y++)
+        cells.reserve(SIZE_CHUNK.product());
+        for (int y = 0 ; y < SIZE_CHUNK.y; y++)
         {
-            for (int x = 0; x < cellautomaton::SIZE_CHUNK.x; x++)
+            for (int x = 0; x < SIZE_CHUNK.x; x++)
             {
-                if (cellautomaton::DEBUG_CHUNKS == true && isDebugCell(x, y) == true)
+                if (DEBUG_CHUNKS == true && isDebugCell(x, y) == true)
                 {
                     cells.push_back({ this, ivec2(x, y), CellCellularAutomaton::CellState::DEBUG });
                 }
@@ -59,32 +59,33 @@ namespace aiko::ca
         std::for_each(cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.init(); });
     }
 
+    void ChunkCellularAutomaton::preUpdate()
+    {
+        std::for_each(cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.preUpdate();} );
+    }
+
     void ChunkCellularAutomaton::update()
     {
-        if (cellautomaton::ASYNC_UPDATE_CELL == true)
-        {
-            std::for_each(std::execution::par, cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.preUpdate(); });
-            std::for_each(std::execution::par, cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.update(); });
-            return;
-        }
-        std::for_each(cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.preUpdate(); });
-        std::for_each(cells.begin(), cells.end(), [](CellCellularAutomaton& cell) { cell.update(); });
+        std::for_each(cells.begin(), cells.end(), [](CellCellularAutomaton& cell){cell.update(); });
     }
 
     CellCellularAutomaton* ChunkCellularAutomaton::getCell(const ivec2 pos)
     {
-        // FIXME instead of std::find, we can convert the cell index from 2D to 1D dimension array
-        auto found = std::find_if(cells.begin(), cells.end(), [pos](CellCellularAutomaton& cell) { return cell.getPosition() == pos; });
-        if (found != cells.end())
+        if (pos.x < 0 || pos.y < 0 || pos.x >= SIZE_CHUNK.x || pos.y >= SIZE_CHUNK.y)
         {
-            return &(*found);
+            return nullptr;
         }
-        return nullptr;
+        return &cells[getIndex(pos.x, pos.y, SIZE_CHUNK.x)];
     }
 
     WorldCellularAutomaton* ChunkCellularAutomaton::getWorld()
     {
         return world;
+    }
+
+    void ChunkCellularAutomaton::updateNeighbours()
+    {
+        std::for_each(cells.begin(), cells.end(), [](CellCellularAutomaton& cell){cell.updateNeighbours(); });
     }
 
 }
