@@ -5,7 +5,7 @@
 namespace sb
 {
     InsertionSort::InsertionSort(SortLab* lab)
-        : Sorter(lab, "SelectionSort")
+        : Sorter(lab, "Insertion Sort")
     {
     }
 

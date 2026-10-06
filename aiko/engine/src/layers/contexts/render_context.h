@@ -2,6 +2,7 @@
 
 #include <aiko_types.h>
 #include <math/math.h>
+#include <types/color.h>
 
 namespace aiko
 {

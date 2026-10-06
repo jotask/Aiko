@@ -1,12 +1,13 @@
 #pragma once
 
+#include "models/font.h"
 #include "sort_types.h"
 #include "sorter.h"
 
-#include <array>
+#include <layers/layer.h>
 
-#include "aiko_types.h"
-#include "application/application.h"
+#include <aiko_types.h>
+#include <array>
 
 namespace sb
 {
@@ -38,6 +39,8 @@ namespace sb
 
         uint16_t m_currentSorterIdx;
         float m_timer;
+
+        aiko::Font m_debugFont;
 
     };
 
