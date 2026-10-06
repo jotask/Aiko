@@ -7,19 +7,18 @@
 #include "components/model_component.h"
 #include "components/particle_emitter_component.h"
 #include "components/sprite_component.h"
+#include "layers/contexts/asset_context.h"
+#include "layers/contexts/render_context.h"
+#include "layers/contexts/scene_context.h"
 #include "models/camera.h"
 #include "models/game_object.h"
 #include "models/mesh_factory.h"
 #include "models/texture_factory.h"
 #include "systems/system_connector.h"
 #include "types/color.h"
-#include "layers/contexts/render_context.h"
-#include "layers/contexts/asset_context.h"
 
-#include <application/application.h>
 #include <core/random.h>
 
-#include <aiko_includes.h>
 #include <chrono>
 #include <cmath>
 
@@ -56,6 +55,11 @@ namespace sb
         if constexpr (s_enableInstancingTests == true)
         {
             initInstancing();
+        }
+
+        if constexpr (s_enableLightTests == true)
+        {
+            initLights();
         }
 
         if constexpr (s_enableParticleTests == true)
