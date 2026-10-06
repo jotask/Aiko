@@ -21,6 +21,13 @@ namespace aiko
         utils::hashCombine(std::hash<AssetId>{}(m_shaderId), seed);
         utils::hashCombine(std::hash<bool>{}(m_useVertexColor), seed);
         utils::hashCombine(std::hash<bool>{}(m_lit), seed);
+        utils::hashCombine(std::hash<u32>{}(m_baseColor.rgba()), seed);
+        utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(m_renderState.cullMode)), seed);
+        utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(m_renderState.fillMode)), seed);
+        utils::hashCombine(std::hash<bool>{}(m_renderState.depthTest), seed);
+        utils::hashCombine(std::hash<bool>{}(m_renderState.depthWrite), seed);
+        utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(m_renderState.depthCompare)), seed);
+        utils::hashCombine(std::hash<bool>{}(m_renderState.blend), seed);
         return static_cast<MaterialId>(seed);
     }
 
