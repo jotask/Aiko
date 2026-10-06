@@ -43,12 +43,13 @@ namespace vw
 
     void ChunkMeshGenerator::generateVoxel(const ChunkData& data, aiko::MeshAsset& mesh, const aiko::ivec3& current)
     {
+        const VoxelType voxelType = data[current.z][current.y][current.x];
         magic_enum::enum_for_each<FaceDirection>([&](auto val)
         {
             constexpr FaceDirection dir = val;
             if (isFaceVisible(data, dir, current ) == true)
             {
-                addFace(mesh, dir, current);
+                addFace(mesh, dir, current, voxelType);
             }
         });
     }
@@ -95,7 +96,7 @@ namespace vw
 
     }
 
-    void ChunkMeshGenerator::addFace(aiko::MeshAsset& mesh, FaceDirection dir, const aiko::ivec3& current)
+    void ChunkMeshGenerator::addFace(aiko::MeshAsset& mesh, FaceDirection dir, const aiko::ivec3& current, VoxelType voxelType)
     {
 
         // Add 4 vertices
@@ -112,11 +113,11 @@ namespace vw
         mesh.m_textCoord.push_back({0.0f, 1.0f});
 
         // colors
-        mesh.m_colors.push_back(aiko::WHITE);
-        mesh.m_colors.push_back(aiko::WHITE);
-        mesh.m_colors.push_back(aiko::WHITE);
-        mesh.m_colors.push_back(aiko::WHITE);
-
+        const aiko::Color color = colorFromVoxelType(voxelType, dir);
+        for (int i = 0; i < 4; ++i)
+        {
+            mesh.m_colors.push_back(color);
+        }
 
         // Add 6 triangles (2 triangles)
         mesh.m_indices.push_back(vertexOffset + 0);
@@ -202,6 +203,50 @@ namespace vw
             });
         }
 
+    }
+
+    aiko::Color ChunkMeshGenerator::colorFromVoxelType(VoxelType type, FaceDirection direction)
+    {
+        aiko::Color color = aiko::WHITE;
+
+        switch (type)
+        {
+            case VoxelType::DIRT:
+                color = aiko::Color::fromBytes(120, 80, 45, 255);
+                break;
+
+            default:
+            case VoxelType::AIR: return aiko::WHITE;
+        }
+
+        float shade = 1.0f;
+
+        switch (direction)
+        {
+            case FaceDirection::Top:
+                shade = 1.0f;
+                break;
+
+            case FaceDirection::Bottom:
+                shade = 0.55f;
+                break;
+
+            case FaceDirection::Left:
+            case FaceDirection::Right:
+                shade = 0.75f;
+                break;
+
+            case FaceDirection::Front:
+            case FaceDirection::Back:
+                shade = 0.85f;
+                break;
+        }
+
+        color.r *= shade;
+        color.g *= shade;
+        color.b *= shade;
+
+        return color;
     }
 
     aiko::ivec3 ChunkMeshGenerator::generateDirFromFaceDirection(FaceDirection dir)

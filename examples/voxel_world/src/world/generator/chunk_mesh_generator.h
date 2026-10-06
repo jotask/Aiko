@@ -3,6 +3,8 @@
 #include "assets/types/mesh_asset.h"
 #include "world/types/chunk_types.h"
 
+#include <types/color.h>
+
 namespace vw
 {
 
@@ -26,8 +28,10 @@ namespace vw
         static void generateVoxel(const ChunkData& data, aiko::MeshAsset& mesh, const aiko::ivec3& current);
 
         static bool isFaceVisible(const ChunkData& data, FaceDirection dir, const aiko::ivec3& current );
-        static void addFace(aiko::MeshAsset& mesh, FaceDirection dir, const aiko::ivec3& current);
+        static void addFace(aiko::MeshAsset& mesh, FaceDirection dir, const aiko::ivec3& current, VoxelType voxelType);
         static void addFaceDirection(aiko::MeshAsset& asset, FaceDirection dir, const aiko::ivec3& current);
+
+        static aiko::Color colorFromVoxelType(VoxelType type, FaceDirection direction);
 
         static aiko::ivec3 generateDirFromFaceDirection(FaceDirection dir);
 

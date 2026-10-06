@@ -1,7 +1,7 @@
 #pragma once
 
-#include "application/application.h"
-#include "components/light_component.h"
+#include <layers/layer.h>
+
 #include "world/world.h"
 
 namespace aiko
