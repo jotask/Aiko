@@ -171,6 +171,14 @@ namespace aiko::renderer::vulkan
 
         std::unordered_map<const Material*, VulkanMaterialBinding*> m_preparedMaterialBindings;
 
+        struct PreparedMaterialState
+        {
+            const Material* material = nullptr;
+            VulkanMaterialBinding* binding = nullptr;
+        };
+
+        std::unordered_map<MaterialId, std::vector<PreparedMaterialState>> m_preparedMaterialStates;
+
         const Texture* resolveTextureBinding(const TextureBinding& binding);
         void refreshMaterialTextureBindings(VulkanMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings);
 

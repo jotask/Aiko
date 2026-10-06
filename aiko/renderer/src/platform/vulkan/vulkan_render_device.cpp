@@ -376,6 +376,38 @@ namespace aiko::renderer::vulkan
             return descriptors;
         }
 
+        bool sameRenderState(const RenderState& a, const RenderState& b)
+        {
+            return
+                a.cullMode == b.cullMode &&
+                a.fillMode == b.fillMode &&
+                a.depthTest == b.depthTest &&
+                a.depthWrite == b.depthWrite &&
+                a.depthCompare == b.depthCompare &&
+                a.blend == b.blend;
+        }
+
+        bool sameUniformState(const Material& a, const Material& b)
+        {
+            if (a.uniforms().empty() && b.uniforms().empty())
+            {
+                return true;
+            }
+            return false;
+        }
+
+        bool sameMaterialState(const Material& a, const Material& b)
+        {
+            return
+                a.m_shaderId == b.m_shaderId &&
+                a.m_useVertexColor == b.m_useVertexColor &&
+                a.m_lit == b.m_lit &&
+                a.m_baseColor.rgba() == b.m_baseColor.rgba() &&
+                sameRenderState(a.m_renderState, b.m_renderState) &&
+                sameUniformState(a, b) &&
+                a.textureBindings() == b.textureBindings();
+        }
+
     }
 
     VulkanRenderDevice::VulkanRenderDevice(RenderResourceManager* resources)
@@ -454,6 +486,7 @@ namespace aiko::renderer::vulkan
     {
         AIKO_FUNCTION_PROFILE
         m_preparedMaterialBindings.clear();
+        m_preparedMaterialStates.clear();
         m_frameActive = m_context.beginFrame();
 
         if (m_frameActive == false)
@@ -1734,14 +1767,36 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::prepareMaterial(const Material& material)
     {
         AIKO_FUNCTION_PROFILE
+
         if (m_frameActive == false)
         {
             return;
         }
+
         if (m_preparedMaterialBindings.contains(&material))
         {
             return;
         }
+
+        const MaterialId materialId = material.id();
+
+        if (const auto stateIt = m_preparedMaterialStates.find(materialId); stateIt != m_preparedMaterialStates.end())
+        {
+            for (const PreparedMaterialState& prepared : stateIt->second)
+            {
+                AIKO_ASSERT(prepared.material != nullptr, "Prepared material state has null material");
+                AIKO_ASSERT(prepared.binding != nullptr, "Prepared material state has null binding");
+
+                if (sameMaterialState(material, *prepared.material))
+                {
+                    const auto [it, inserted] = m_preparedMaterialBindings.emplace(&material, prepared.binding);
+                    AIKO_UNUSED(it);
+                    AIKO_ASSERT(inserted, "Failed to cache equivalent Vulkan material binding");
+                    return;
+                }
+            }
+        }
+
         for (const auto& [name, textureBinding] : material.textureBindings())
         {
             AIKO_UNUSED(name);
@@ -1749,10 +1804,18 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
             prepareTextureForSampling(*texture);
         }
+
         VulkanMaterialBinding& binding = resolveMaterialBinding(material);
+
         const auto [it, inserted] = m_preparedMaterialBindings.emplace(&material, &binding);
         AIKO_UNUSED(it);
         AIKO_ASSERT(inserted, "Failed to cache prepared Vulkan material binding");
+
+        m_preparedMaterialStates[materialId].push_back(
+        {
+            .material = &material,
+            .binding = &binding,
+        });
     }
 
     VulkanMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
