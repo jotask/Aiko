@@ -52,18 +52,8 @@ namespace aiko::perf
 
     void PerformanceSmoke::initCamera()
     {
-        GameObject* camera = Instantiate("Camera");
-
-        CameraComponent* cameraComponent = camera->addComponent<CameraComponent>(camera::CameraController::Fly);
-
-        camera->transform().position =
-        {
-            0.0f,
-            18.0f,
-            35.0f
-        };
-
-        cameraComponent->getCamera().position = camera->transform().position;
+        aiko::CameraComponent* camera = scene().createCamera(camera::CameraController::Fly);
+        camera->getCamera().position = { 0.0f, 18.0f, 35.0f };
     }
 
     void PerformanceSmoke::initWorld()
