@@ -62,6 +62,7 @@ namespace aiko::renderer::vulkan
         virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) override;
         virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) override;
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) override;
+        virtual void drawFullscreen(ViewId viewId, const Material& material) override;
 
     public:
 

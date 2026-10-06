@@ -52,6 +52,9 @@ namespace aiko
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
         void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
 
+        void drawFullscreen(const Material& material);
+        ivec2 getRenderSize() const;
+
         void dispatch(const ComputePass& pass, const AssetId& shaderId);
         void dispatch(const ComputePass& pass, const ComputeShaderComponent& component);
 

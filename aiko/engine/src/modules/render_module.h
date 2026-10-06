@@ -35,6 +35,9 @@ namespace aiko
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
         void submitInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
 
+        void submitFullscreen(const Material& material);
+        ivec2 getRenderSize() const;
+
         void enqueueCompute(const ComputePass& pass);
 
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);

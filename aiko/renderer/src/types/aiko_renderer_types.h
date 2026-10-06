@@ -74,6 +74,8 @@ namespace aiko
 
     struct PreparedScenePass
     {
+        vector<const Material*> fullscreen;
+
         vector<const GpuInstanceDrawDesc*> gpuInstances;
         vector<const GpuBillboardDrawDesc*> gpuBillboards;
         vector<const GpuVertexDrawDesc*> gpuVertices;

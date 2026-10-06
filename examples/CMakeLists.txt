@@ -16,5 +16,9 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/life_particles")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/voxel_world")
 
 if(AIKO_RENDER STREQUAL "AIKO_NATIVE")
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/shader_toy")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/shader_toy_opengl")
+endif()
+
+if(AIKO_RENDER STREQUAL "AIKO_VULKAN")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/shader_toy_vulkan")
 endif()

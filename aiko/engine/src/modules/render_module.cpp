@@ -54,13 +54,17 @@ namespace aiko
 
     void RenderModule::submitInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount)
     {
-        m_renderer->submit(
-            mesh,
-            material,
-            instances,
-            instanceCount,
-            sizeof(InstanceData)
-        );
+        m_renderer->submit(mesh, material, instances, instanceCount, sizeof(InstanceData));
+    }
+
+    void RenderModule::submitFullscreen(const Material& material)
+    {
+        m_renderer->submitFullscreen(material);
+    }
+
+    ivec2 RenderModule::getRenderSize() const
+    {
+        return m_renderer->sceneRenderTarget().size();
     }
 
     void RenderModule::enqueueCompute(const ComputePass& pass)

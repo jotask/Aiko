@@ -1,20 +1,19 @@
-#include "shader_toy.h"
-
-#include <chrono>
-#include <cassert>
+#include "components/camera_component.h"
+#include "components/light_component.h"
+#include "components/mesh_component.h"
+#include "core/utils.h"
+#include "models/camera.h"
+#include "models/game_object.h"
+#include "native_shader_toy.h"
+#include "shared/math.h"
+#include "systems/render_system.h"
+#include "types/inputs.h"
 
 #include <math/math.h>
 
-#include "models/game_object.h"
-#include "components/camera_component.h"
-#include "components/mesh_component.h"
-#include "components/light_component.h"
-#include "systems/render_system.h"
-#include "core/utils.h"
-#include "types/inputs.h"
-#include "models/camera.h"
-#include "shared/math.h"
 #include <aiko_includes.h>
+#include <cassert>
+#include <chrono>
 
 namespace shadertoy
 {

@@ -1,6 +1,6 @@
-#include <stdlib.h>
+#include "native_shader_toy.h"
 
-#include "shader_toy.h"
+#include <stdlib.h>
 
 int main()
 {

@@ -150,6 +150,12 @@ namespace aiko
         submit(transform, mesh, stagedMaterial);
     }
 
+    void AikoRenderer::submitFullscreen(const Material& material)
+    {
+        AIKO_FUNCTION_PROFILE
+        m_renderQueue.submitFullscreen(material);
+    }
+
     void AikoRenderer::submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology)
     {
         AIKO_FUNCTION_PROFILE
@@ -384,6 +390,11 @@ namespace aiko
             }
         };
 
+        for (const Material* material : passData.fullscreen)
+        {
+            prepareMaterial(material);
+        }
+
         for (const GpuInstanceDrawDesc* desc : passData.gpuInstances)
         {
             if (desc == nullptr)
@@ -457,6 +468,14 @@ namespace aiko
 
         m_renderer->beginPass(SCENE_VIEW, pass, &frameBuffer);
         m_renderer->bindFrame(SCENE_VIEW, frameData);
+
+        {
+            for (const Material* material : passData.fullscreen)
+            {
+                AIKO_ASSERT(material != nullptr, "Prepared fullscreen draw has null material");
+                m_renderer->submitFullscreen(SCENE_VIEW, *material);
+            }
+        }
 
         {
             for (const GpuVertexDrawDesc* desc : passData.gpuVertices)

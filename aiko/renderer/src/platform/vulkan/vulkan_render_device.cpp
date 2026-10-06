@@ -1718,6 +1718,33 @@ namespace aiko::renderer::vulkan
 
     }
 
+    void VulkanRenderDevice::drawFullscreen(ViewId viewId, const Material& material)
+    {
+        AIKO_FUNCTION_PROFILE
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
+        if (viewId != SCENE_VIEW || m_renderPassActive == false)
+        {
+            return;
+        }
+
+        AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "Fullscreen material has invalid shader id");
+
+        const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, material.m_shaderId, material.m_renderState, false);
+        AIKO_ASSERT(pipeline != VK_NULL_HANDLE, "Fullscreen pipeline is invalid");
+
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+        AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Fullscreen draw requires an active command buffer");
+
+        bindGraphicsPipeline(pipeline);
+
+        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    }
+
     void VulkanRenderDevice::prepareTextureForSampling(const Texture& texture)
     {
         AIKO_FUNCTION_PROFILE

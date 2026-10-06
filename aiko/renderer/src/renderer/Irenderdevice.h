@@ -48,6 +48,7 @@ namespace aiko::renderer
         virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) = 0;
         virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) = 0;
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) = 0;
+        virtual void drawFullscreen(ViewId viewId, const Material& material) = 0;
 
     public:
 
@@ -63,6 +64,12 @@ namespace aiko::renderer
         virtual void drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc) = 0;
         virtual void drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc) = 0;
         virtual void drawVerticesGpu(ViewId viewId, const GpuVertexDrawDesc& desc) = 0;
+
+        void submitFullscreen(ViewId viewId, const Material& material)
+        {
+            bindMaterial(material);
+            drawFullscreen(viewId, material);
+        }
 
         void submitMesh(ViewId viewId, const MeshDrawPacket& packet)
         {

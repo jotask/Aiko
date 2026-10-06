@@ -32,6 +32,16 @@ namespace aiko
         m_renderSystem->drawVerticesGpu(desc);
     }
 
+    void RenderContext::drawFullscreen(const Material& material)
+    {
+        m_renderSystem->drawFullscreen(material);
+    }
+
+    ivec2 RenderContext::getRenderSize() const
+    {
+        return m_renderSystem->getRenderSize();
+    }
+
     void RenderContext::drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc)
     {
         m_renderSystem->drawMeshInstancedGpu(desc);

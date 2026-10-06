@@ -19,6 +19,7 @@ namespace aiko
         void submit(const Mesh& mesh, const Material& material, const mat4& transform);
         void submitInstanced(const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u16 stride);
         void submitTransient(TransientDrawDesc desc);
+        void submitFullscreen(const Material& material);
 
         void submitGpuInstances(const GpuInstanceDrawDesc& desc);
         void submitGpuBillboards(const GpuBillboardDrawDesc& desc);
@@ -39,5 +40,7 @@ namespace aiko
         std::vector<TransientDrawDesc> m_transientDraws;
 
         std::vector<u8> m_mergedInstanceData;
+
+        std::vector<const Material*> m_fullscreenDraws;
     };
 }
