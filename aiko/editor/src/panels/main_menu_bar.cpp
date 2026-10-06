@@ -51,16 +51,106 @@ namespace aiko::editor
         ImGuiFileDialog::Instance()->OpenDialog("loadFileDlgKey", "Choose File", ".scene", config);
     }
 
-    void MainMenuBar::saveScene(EditorContext& context)
+    void MainMenuBar::requestAction(EditorContext& context, PendingAction action)
+    {
+        if (context.document().isDirty() == false)
+        {
+            performAction(context, action);
+            return;
+        }
+        m_pendingAction = action;
+        ImGui::OpenPopup("Unsaved Changes");
+    }
+
+    void MainMenuBar::performAction(EditorContext& context, PendingAction action)
+    {
+        switch (action)
+        {
+            case PendingAction::None:
+                break;
+
+            case PendingAction::NewScene:
+                newScene(context);
+                break;
+
+            case PendingAction::OpenScene:
+                openSceneDialog();
+                break;
+
+            case PendingAction::Exit:
+            {
+                WindowCloseEvent event;
+                EventSystem::it().sendEvent(event);
+                break;
+            }
+        }
+    }
+
+    void MainMenuBar::renderUnsavedChangesPopup(EditorContext& context)
+    {
+        if (ImGui::BeginPopupModal("Unsaved Changes", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextUnformatted("The current scene has unsaved changes.");
+            ImGui::TextUnformatted("Do you want to save them before continuing?");
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            if (ImGui::Button("Save"))
+            {
+                if (saveScene(context))
+                {
+                    const PendingAction action = m_pendingAction;
+                    m_pendingAction = PendingAction::None;
+
+                    ImGui::CloseCurrentPopup();
+
+                    performAction(context, action);
+                }
+                else
+                {
+                    // Save As dialog is now open.
+                    // Keep m_pendingAction so it can continue after saving.
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Discard"))
+            {
+                const PendingAction action = m_pendingAction;
+                m_pendingAction = PendingAction::None;
+
+                ImGui::CloseCurrentPopup();
+
+                performAction(context, action);
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Cancel"))
+            {
+                m_pendingAction = PendingAction::None;
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
+    bool MainMenuBar::saveScene(EditorContext& context)
     {
         if (context.document().hasPath())
         {
             const Scene& scene = context.sceneSystem().getScene();
             SceneSerializerYAML::serializeScene(scene, context.document().path());
             context.document().markSaved();
-            return;
+            return true;
         }
         openSaveDialog(context);
+        return false;
     }
 
     void MainMenuBar::openSaveDialog(EditorContext& context)
@@ -93,12 +183,12 @@ namespace aiko::editor
 
         if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_N, false))
         {
-            newScene(context);
+            requestAction(context, PendingAction::NewScene);
         }
 
         if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O, false))
         {
-            openSceneDialog();
+            requestAction(context, PendingAction::OpenScene);
         }
 
         if (io.KeyCtrl && io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_S, false))
@@ -158,12 +248,12 @@ namespace aiko::editor
 
                 if (ImGui::MenuItem("New Scene", "Ctrl+N"))
                 {
-                    newScene(context);
+                    requestAction(context, PendingAction::NewScene);
                 }
 
                 if (ImGui::MenuItem("Open...", "Ctrl+O"))
                 {
-                    openSceneDialog();
+                    requestAction(context, PendingAction::OpenScene);
                 }
 
                 if (ImGui::MenuItem("Save", "Ctrl+S"))
@@ -180,8 +270,7 @@ namespace aiko::editor
 
                 if (ImGui::MenuItem("Exit", "Alt+F4"))
                 {
-                    WindowCloseEvent event;
-                    EventSystem::it().sendEvent(event);
+                    requestAction(context, PendingAction::Exit);
                 }
 
                 ImGui::EndMenu();
@@ -301,8 +390,11 @@ namespace aiko::editor
             ImGui::EndMainMenuBar();
         }
 
+        renderUnsavedChangesPopup(context);
+
         if (ImGuiFileDialog::Instance()->Display("saveSceneDlg"))
         {
+            PendingAction action = PendingAction::None;
             if (ImGuiFileDialog::Instance()->IsOk())
             {
                 const string path = ImGuiFileDialog::Instance()->GetFilePathName();
@@ -310,9 +402,14 @@ namespace aiko::editor
                 SceneSerializerYAML::serializeScene(scene, path);
                 context.document().setPath(path);
                 context.document().markSaved();
+                action = m_pendingAction;
             }
-
+            m_pendingAction = PendingAction::None;
             ImGuiFileDialog::Instance()->Close();
+            if (action != PendingAction::None)
+            {
+                performAction(context, action);
+            }
         }
 
         if (ImGuiFileDialog::Instance()->Display("loadFileDlgKey"))

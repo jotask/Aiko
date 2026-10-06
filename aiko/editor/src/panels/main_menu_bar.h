@@ -22,16 +22,31 @@ namespace aiko
             void setRuntime(RuntimeContext* runtime);
 
         private:
+
+            enum class PendingAction
+            {
+                None,
+                NewScene,
+                OpenScene,
+                Exit
+            };
+
             void handleShortcuts(EditorContext& context);
 
             void newScene(EditorContext& context);
             void openSceneDialog();
-            void saveScene(EditorContext& context);
+            void requestAction(EditorContext& context, PendingAction action);
+            void performAction(EditorContext& context, PendingAction action);
+            void renderUnsavedChangesPopup(EditorContext& context);
+
+            bool saveScene(EditorContext& context);
             void openSaveDialog(EditorContext& context);
             void duplicateSelected(EditorContext& context);
 
             EditorWorkspace* m_workspace = nullptr;
             RuntimeContext* m_runtime = nullptr;
+
+            PendingAction m_pendingAction = PendingAction::None;
         };
 
     }
