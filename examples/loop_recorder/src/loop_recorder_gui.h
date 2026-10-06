@@ -1,5 +1,7 @@
 #pragma once
 
+#include <layers/layer.h>
+
 #include "loop_recorder.h"
 #include "loop_visualizer.h"
 #include "loop_player.h"
