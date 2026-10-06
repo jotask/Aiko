@@ -2986,6 +2986,7 @@ namespace aiko::renderer::vulkan
     VkPipeline VulkanRenderDevice::getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced)
     {
         AIKO_FUNCTION_PROFILE
+
         AIKO_ASSERT(m_activeRenderPassCompatibility.colorFormat != VK_FORMAT_UNDEFINED, "Graphics pipeline requires an active render-pass compatibility key");
 
         const ModelPipelineKey key =
@@ -3002,16 +3003,37 @@ namespace aiko::renderer::vulkan
             .instanced = instanced,
         };
 
-        if (instanced)
+        if (m_cachedModelPipelineKey.has_value() && *m_cachedModelPipelineKey == key)
         {
-            return m_modelPipelines.getOrCreateInstanced(key, renderPass);
+            AIKO_ASSERT(m_cachedModelPipeline != VK_NULL_HANDLE, "Cached model pipeline is invalid");
+
+            return m_cachedModelPipeline;
         }
 
-        AIKO_ASSERT(shaderId != InvalidAssetId, "Model material has invalid shader id");
-        Shader& shader = getResources()->getShader(shaderId);
-        auto* shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
-        AIKO_ASSERT(shaderImpl != nullptr && shaderImpl->isValid(), "Invalid Vulkan material shader");
-        return m_modelPipelines.getOrCreate(key, renderPass, *shaderImpl);
+        VkPipeline pipeline = VK_NULL_HANDLE;
+
+        if (instanced)
+        {
+            pipeline = m_modelPipelines.getOrCreateInstanced(key, renderPass);
+        }
+        else
+        {
+            AIKO_ASSERT(shaderId != InvalidAssetId, "Model material has invalid shader id");
+
+            Shader& shader = getResources()->getShader(shaderId);
+
+            auto* shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
+            AIKO_ASSERT(shaderImpl != nullptr && shaderImpl->isValid(), "Invalid Vulkan material shader");
+
+            pipeline = m_modelPipelines.getOrCreate(key, renderPass, *shaderImpl);
+        }
+
+        AIKO_ASSERT(pipeline != VK_NULL_HANDLE, "Failed to resolve model pipeline");
+
+        m_cachedModelPipelineKey = key;
+        m_cachedModelPipeline = pipeline;
+
+        return pipeline;
     }
 
 }

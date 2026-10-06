@@ -115,6 +115,8 @@ namespace aiko::renderer::vulkan
         Texture m_whiteTexture;
 
         RenderPassCompatibilityKey m_activeRenderPassCompatibility{};
+        std::optional<ModelPipelineKey> m_cachedModelPipelineKey;
+        VkPipeline m_cachedModelPipeline = VK_NULL_HANDLE;
 
         VkPipeline getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced);
 
