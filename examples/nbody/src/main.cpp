@@ -1,6 +1,8 @@
-#include <stdlib.h>
-
 #include "nbody.h"
+
+#include <application/application.h>
+
+#include <stdlib.h>
 
 int main()
 {

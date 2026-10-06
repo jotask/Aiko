@@ -10,7 +10,6 @@
 
 namespace aiko
 {
-    class RenderModule;
     class AssetsManagerModule;
     class SceneSystem;
     class RenderSystem;
@@ -69,7 +68,6 @@ namespace nbody
         RuntimeState& getOrCreateState(const NBodyComponent* cmp);
         void destroyStates();
 
-        aiko::RenderModule* m_renderModule;
         aiko::AssetsManagerModule* m_assetManagerModule;
         aiko::RenderSystem* m_renderSystem;
         aiko::SceneSystem* m_sceneSystem;

@@ -2,7 +2,6 @@
 
 #include "nbody_component.h"
 
-#include <modules/render_module.h>
 #include <modules/assets_manager_module.h>
 #include <systems/scene_system.h>
 #include <systems/render_system.h>
@@ -37,7 +36,6 @@ namespace nbody
 
     void NBodySystem::connect(aiko::ModuleConnector* moduleConnector, aiko::SystemConnector* systemConnector)
     {
-        BIND_MODULE_REQUIRED(aiko::RenderModule, moduleConnector, m_renderModule);
         BIND_MODULE_REQUIRED(aiko::AssetsManagerModule, moduleConnector, m_assetManagerModule);
         BIND_SYSTEM_REQUIRED(aiko::RenderSystem, systemConnector, m_renderSystem);
         BIND_SYSTEM_REQUIRED(aiko::SceneSystem, systemConnector, m_sceneSystem);
@@ -279,7 +277,7 @@ namespace nbody
                 .topology = aiko::TransientTopology::Points,
             };
 
-            m_renderModule->getRenderer().drawVerticesGpu(draw);
+            m_renderSystem->drawVerticesGpu(draw);
 
         }
 
