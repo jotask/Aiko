@@ -1,6 +1,8 @@
 #include "loop_recorder_gui.h"
 
 #include <aiko_includes.h>
+#include <components/camera_component.h>
+#include <layers/contexts/scene_context.h>
 
 #include <imgui.h>
 #include <portaudio.h>
@@ -9,6 +11,8 @@ namespace aiko::recorder
 {
     void LoopRecorderGui::init()
     {
+        scene().createCamera(aiko::camera::CameraController::Static);
+
         m_loopRecorder.init();
         m_loopVisualizer.init();
         m_loopPlayer.init();

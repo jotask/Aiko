@@ -1,7 +1,5 @@
 #pragma once
 
-#include "application/application.h"
-
 #include "loop_recorder.h"
 #include "loop_visualizer.h"
 #include "loop_player.h"

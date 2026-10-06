@@ -1,5 +1,7 @@
 #include <stdlib.h>
 
+#include "application/application.h"
+
 #include "loop_recorder_gui.h"
 
 int main()
