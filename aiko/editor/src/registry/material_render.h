@@ -7,5 +7,5 @@ namespace aiko
 
 namespace aiko::editor::component
 {
-    void drawMaterial(Material& material);
+    bool drawMaterial(Material& material);
 }

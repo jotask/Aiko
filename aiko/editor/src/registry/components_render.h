@@ -15,13 +15,13 @@ namespace aiko
 namespace aiko::editor::component
 {
 
-    void drawComponent(Component*);
+    bool drawComponent(Component*);
 
-    void drawTransform(TransformComponent*);
-    void drawSprite(SpriteComponent*);
-    void drawMesh(MeshComponent*);
-    void drawModel(ModelComponent*);
-    void drawLight(LightComponent*);
-    void drawCamera(CameraComponent*);
+    bool drawTransform(TransformComponent*);
+    bool drawSprite(SpriteComponent*);
+    bool drawMesh(MeshComponent*);
+    bool drawModel(ModelComponent*);
+    bool drawLight(LightComponent*);
+    bool drawCamera(CameraComponent*);
 
 }

@@ -6,6 +6,11 @@
 namespace aiko::editor
 {
 
+    EditorContext::EditorContext()
+    {
+        m_commands.setMutationCallback([this]() { m_document.markDirty(); } );
+    }
+
     void EditorContext::connect(RenderSystem& renderSystem, SceneSystem& sceneSystem, AssetSystem& assetSystem)
     {
         m_renderSystem = &renderSystem;

@@ -10,8 +10,10 @@ namespace aiko::editor::component
     namespace
     {
         template<typename T>
-        void drawEnum(const char* label, T& value)
+        bool drawEnum(const char* label, T& value)
         {
+            bool changed = false;
+
             const auto preview = magic_enum::enum_name(value);
 
             if (ImGui::BeginCombo(label, preview.data()))
@@ -24,6 +26,7 @@ namespace aiko::editor::component
                     if (ImGui::Selectable(name.data(), selected))
                     {
                         value = current;
+                        changed = true;
                     }
 
                     if (selected)
@@ -34,11 +37,14 @@ namespace aiko::editor::component
 
                 ImGui::EndCombo();
             }
+            return changed;
         }
     }
 
-    void drawMaterial(Material& material)
+    bool drawMaterial(Material& material)
     {
+        bool changed = false;
+
         ImGui::PushID(&material);
 
         float baseColor[4] =
@@ -58,29 +64,31 @@ namespace aiko::editor::component
                 baseColor[2],
                 baseColor[3]
             };
+            changed = true;
         }
 
-        ImGui::Checkbox("Lit", &material.m_lit);
+        changed |= ImGui::Checkbox("Lit", &material.m_lit);
 
-        ImGui::Checkbox("Use Vertex Color", &material.m_useVertexColor);
+        changed |= ImGui::Checkbox("Use Vertex Color", &material.m_useVertexColor);
 
         ImGui::Spacing();
 
         if (ImGui::TreeNode("Render State"))
         {
             RenderState& state = material.m_renderState;
-            drawEnum( "Cull Mode", state.cullMode);
-            drawEnum("Fill Mode", state.fillMode);
-            ImGui::Checkbox("Depth Test", &state.depthTest);
-            ImGui::Checkbox("Depth Write", &state.depthWrite);
+            changed |= drawEnum( "Cull Mode", state.cullMode);
+            changed |= drawEnum("Fill Mode", state.fillMode);
+            changed |= ImGui::Checkbox("Depth Test", &state.depthTest);
+            changed |= ImGui::Checkbox("Depth Write", &state.depthWrite);
             if (state.depthTest)
             {
-                drawEnum("Depth Compare", state.depthCompare);
+                changed |= drawEnum("Depth Compare", state.depthCompare);
             }
-            ImGui::Checkbox("Blend", &state.blend);
+            changed |= ImGui::Checkbox("Blend", &state.blend);
             ImGui::TreePop();
         }
 
         ImGui::PopID();
+        return changed;
     }
 }

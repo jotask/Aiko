@@ -22,14 +22,16 @@ namespace aiko::editor
         constexpr const float IMGUI_VELOCITY = .25f;
 
         template<class T>
-        void drawAssetSource(T* component, const char* label, const char* dialogKey, const char* filter)
+        bool drawAssetSource(T* component, const char* label, const char* dialogKey, const char* filter)
         {
             AIKO_ASSERT(component != nullptr, "Cannot draw asset source for null component");
 
             if (component == nullptr)
             {
-                return;
+                return false;
             }
+
+            bool changed = false;
 
             const string& source = component->getAssetSource();
 
@@ -65,21 +67,23 @@ namespace aiko::editor
                         if (outsideAssetRoot == false)
                         {
                             component->load(normalizedPath.generic_string());
+                            changed = true;
                         }
                     }
                 }
 
                 ImGuiFileDialog::Instance()->Close();
             }
+            return changed;
         }
 
-        void drawComponent(Component* component)
+        bool drawComponent(Component* component)
         {
             AIKO_ASSERT(component != nullptr, "Cannot render null component");
 
             if (component == nullptr)
             {
-                return;
+                return false;
             }
 
             const ComponentEditorEntry* entry = findComponentEntry(*component);
@@ -88,26 +92,30 @@ namespace aiko::editor
 
             if (entry == nullptr)
             {
-                return;
+                return false;
             }
 
-            entry->render(*component);
+            return entry->render(*component);
         }
 
-        void drawTransform(TransformComponent* t)
+        bool drawTransform(TransformComponent* t)
         {
+            bool changed = false;
             ImGui::PushID(t);
-            ImGui::DragFloat3("Position", &t->transform.position.x, IMGUI_VELOCITY);
-            ImGui::DragFloat3("Rotation", &t->transform.rotation.x, IMGUI_VELOCITY);
-            ImGui::DragFloat3("Scale", &t->transform.scale.x, IMGUI_VELOCITY);
+            changed |= ImGui::DragFloat3("Position", &t->transform.position.x, IMGUI_VELOCITY);
+            changed |= ImGui::DragFloat3("Rotation", &t->transform.rotation.x, IMGUI_VELOCITY);
+            changed |= ImGui::DragFloat3("Scale", &t->transform.scale.x, IMGUI_VELOCITY);
             ImGui::PopID();
+            return changed;
         }
 
-        void drawSprite(aiko::SpriteComponent* sprite)
+        bool drawSprite(aiko::SpriteComponent* sprite)
         {
+            bool changed = false;
+
             ImGui::PushID(sprite);
 
-            drawAssetSource(sprite, "Texture", "SpriteTextureDialog", "Image files{.png,.jpg,.jpeg,.bmp,.tga}");
+            changed |= drawAssetSource(sprite, "Texture", "SpriteTextureDialog", "Image files{.png,.jpg,.jpeg,.bmp,.tga}");
 
             ImGui::Spacing();
 
@@ -118,6 +126,7 @@ namespace aiko::editor
                 size.y = std::max(size.y, 0.01f);
 
                 sprite->setSize(size);
+                changed = true;
             }
 
             vec2 pivot = sprite->getPivot();
@@ -127,18 +136,21 @@ namespace aiko::editor
                 pivot.y = std::clamp(pivot.y, 0.0f, 1.0f);
 
                 sprite->setPivot(pivot);
+                changed = true;
             }
 
             bool flipX = sprite->getFlipX();
             if (ImGui::Checkbox("Flip X", &flipX))
             {
                 sprite->setFlipX(flipX);
+                changed = true;
             }
 
             bool flipY = sprite->getFlipY();
             if (ImGui::Checkbox("Flip Y", &flipY))
             {
                 sprite->setFlipY(flipY);
+                changed = true;
             }
 
             ImGui::Spacing();
@@ -148,10 +160,13 @@ namespace aiko::editor
             ImGui::Text("Texture size: %zu x %zu", sprite->getWidth(), sprite->getHeight());
 
             ImGui::PopID();
+            return changed;
         }
 
-        void drawMesh(MeshComponent* mesh)
+        bool drawMesh(MeshComponent* mesh)
         {
+            bool changed = false;
+
             const MeshComponent::MeshPrimitive primitive = mesh->getPrimitive();
 
             const char* preview = primitive == MeshComponent::MeshPrimitive::None ? "None" : magic_enum::enum_name(primitive).data();
@@ -170,6 +185,7 @@ namespace aiko::editor
                     if (ImGui::Selectable(magic_enum::enum_name(current).data(), selected))
                     {
                         mesh->loadPrimitive(current);
+                        changed = true;
                     }
 
                     if (selected)
@@ -184,18 +200,23 @@ namespace aiko::editor
             ImGui::Spacing();
             ImGui::SeparatorText("Material");
 
-            drawMaterial(mesh->getMaterial());
+            changed |= drawMaterial(mesh->getMaterial());
+            return changed;
         }
 
-        void drawModel(ModelComponent* model)
+        bool drawModel(ModelComponent* model)
         {
+            bool changed = false;
             ImGui::PushID(model);
-            drawAssetSource(model, "Model", "ModelAssetDialog", "Model files{.obj,.fbx,.gltf,.glb}");
+            changed |= drawAssetSource(model, "Model", "ModelAssetDialog", "Model files{.obj,.fbx,.gltf,.glb}");
             ImGui::PopID();
+            return changed;
         }
 
-        void drawLight(LightComponent* light)
+        bool drawLight(LightComponent* light)
         {
+            bool changed = false;
+
             ImGui::PushID(light);
 
             ImGui::Spacing();
@@ -211,6 +232,7 @@ namespace aiko::editor
                     if (ImGui::Selectable(magic_enum::enum_name(current).data(), selected))
                     {
                         light->type = current;
+                        changed = true;
                     }
 
                     if (selected)
@@ -239,39 +261,42 @@ namespace aiko::editor
                     color[2],
                     color[3]
                 };
+                changed = true;
             }
 
-            ImGui::DragFloat("Intensity", &light->intensity, IMGUI_VELOCITY, 0.0f);
+            changed |= ImGui::DragFloat("Intensity", &light->intensity, IMGUI_VELOCITY, 0.0f);
 
             switch (light->type)
             {
             case LightType::Directional:
-                ImGui::DragFloat3("Direction", &light->direction.x, IMGUI_VELOCITY);
+                changed |= ImGui::DragFloat3("Direction", &light->direction.x, IMGUI_VELOCITY);
                 break;
 
             case LightType::Point:
-                ImGui::DragFloat("Range", &light->range, IMGUI_VELOCITY, 0.0f);
+                changed |= ImGui::DragFloat("Range", &light->range, IMGUI_VELOCITY, 0.0f);
                 break;
 
             case LightType::Spot:
-                ImGui::DragFloat3("Direction", &light->direction.x, IMGUI_VELOCITY);
-                ImGui::DragFloat("Range", &light->range, IMGUI_VELOCITY, 0.0f);
-                ImGui::DragFloat("Inner Cos", &light->innerCos, 0.01f, -1.0f, 1.0f);
-                ImGui::DragFloat("Outer Cos", &light->outerCos, 0.01f, -1.0f, 1.0f);
+                changed |= ImGui::DragFloat3("Direction", &light->direction.x, IMGUI_VELOCITY);
+                changed |= ImGui::DragFloat("Range", &light->range, IMGUI_VELOCITY, 0.0f);
+                changed |= ImGui::DragFloat("Inner Cos", &light->innerCos, 0.01f, -1.0f, 1.0f);
+                changed |= ImGui::DragFloat("Outer Cos", &light->outerCos, 0.01f, -1.0f, 1.0f);
                 break;
             }
 
             ImGui::PopID();
+            return changed;
         }
 
-        void drawCamera(CameraComponent* camera)
+        bool drawCamera(CameraComponent* camera)
         {
+            bool changed = false;
             ImGui::PushID(camera);
-            ImGui::DragFloat3("Position", camera->getCamera().position, IMGUI_VELOCITY);
-            ImGui::DragFloat3("Target", camera->getCamera().target, IMGUI_VELOCITY);
+            changed |= ImGui::DragFloat3("Position", camera->getCamera().position, IMGUI_VELOCITY);
+            changed |= ImGui::DragFloat3("Target", camera->getCamera().target, IMGUI_VELOCITY);
             ImGui::Spacing();
-            ImGui::DragFloat("Near", &camera->getCamera().m_near, IMGUI_VELOCITY);
-            ImGui::DragFloat("Far", &camera->getCamera().m_far, IMGUI_VELOCITY);
+            changed |= ImGui::DragFloat("Near", &camera->getCamera().m_near, IMGUI_VELOCITY);
+            changed |= ImGui::DragFloat("Far", &camera->getCamera().m_far, IMGUI_VELOCITY);
             ImGui::Spacing();
 
             if (ImGui::BeginCombo("##comboType", magic_enum::enum_name(camera->getCameraType()).data()))
@@ -283,6 +308,7 @@ namespace aiko::editor
                     if (ImGui::Selectable(magic_enum::enum_name(current).data(), is_selected))
                     {
                         camera->setCameraType(current);
+                        changed = true;
                     }
                     if (is_selected)
                     {
@@ -294,7 +320,7 @@ namespace aiko::editor
 
             if (camera->getCameraType() == Camera::CameraType::Orthographic)
             {
-                ImGui::DragFloat("OrthoHeight", &camera->getCamera().m_orthoHeight, IMGUI_VELOCITY);
+                changed |= ImGui::DragFloat("OrthoHeight", &camera->getCamera().m_orthoHeight, IMGUI_VELOCITY);
             }
 
             ImGui::Spacing();
@@ -308,6 +334,7 @@ namespace aiko::editor
                     if (ImGui::Selectable(magic_enum::enum_name(current).data(), is_selected))
                     {
                         camera->setCameraController(current);
+                        changed = true;
                     }
                     if (is_selected)
                     {
@@ -321,15 +348,16 @@ namespace aiko::editor
             {
             case aiko::camera::CameraController::Orbit:
                 ImGui::Text("Orbit");
-                ImGui::DragFloat("Radius", &camera->radius(), IMGUI_VELOCITY);
+                changed |= ImGui::DragFloat("Radius", &camera->radius(), IMGUI_VELOCITY);
                 break;
             case aiko::camera::CameraController::Fly:
                 ImGui::Text("Fly");
-                ImGui::DragFloat("Speed", &camera->speed(), IMGUI_VELOCITY);
+                changed |= ImGui::DragFloat("Speed", &camera->speed(), IMGUI_VELOCITY);
                 break;
             }
 
             ImGui::PopID();
+            return changed;
         }
 
     }

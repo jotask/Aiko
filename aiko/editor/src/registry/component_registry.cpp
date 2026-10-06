@@ -30,7 +30,7 @@ namespace aiko::editor::component
     {
 
         template<class T>
-        ComponentEditorEntry makeComponentEntry(string name, string serializedName, void (*render)(T*), YAML::Node (*serialize)(const T*), bool (*deserialize)(const YAML::Node&, T*), bool addable = true, bool removable = true)
+        ComponentEditorEntry makeComponentEntry(string name, string serializedName, bool (*render)(T*), YAML::Node (*serialize)(const T*), bool (*deserialize)(const YAML::Node&, T*), bool addable = true, bool removable = true)
         {
             static_assert(std::is_base_of_v<Component, T>,"Component registry requires a Component type");
 
@@ -60,7 +60,7 @@ namespace aiko::editor::component
 
                 .render = [render](Component& component)
                 {
-                    render(static_cast<T*>(&component));
+                    return render(static_cast<T*>(&component));
                 },
 
                 .serialize = [serialize](const Component& component)

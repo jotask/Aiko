@@ -57,7 +57,10 @@ namespace aiko
                                 continue;
                             }
                             ImGui::PopID();
-                            component::drawComponent(comp);
+                            if (component::drawComponent(comp))
+                            {
+                                context.document().markDirty();
+                            }
                         }
                     }
                     ImGui::Spacing();

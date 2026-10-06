@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <functional>
 
 #include <aiko_types.h>
 
@@ -38,6 +39,11 @@ namespace aiko::editor
         void execute(AikoUPtr<EditorCommand> command);
         void pushExecuted(AikoUPtr<EditorCommand> command);
 
+        void setMutationCallback(std::function<void()> callback)
+        {
+            m_mutationCallback = std::move(callback);
+        }
+
         bool canUndo() const;
         bool canRedo() const;
 
@@ -47,6 +53,10 @@ namespace aiko::editor
         void clear();
 
     private:
+
+        void notifyMutation();
+
+        std::function<void()> m_mutationCallback;
         vector<AikoUPtr<EditorCommand>> m_undoStack;
         vector<AikoUPtr<EditorCommand>> m_redoStack;
     };

@@ -18,7 +18,7 @@ namespace aiko::editor
     class EditorContext
     {
     public:
-        EditorContext() = default;
+        EditorContext();
 
         void connect(RenderSystem& renderSystem, SceneSystem& sceneSystem, AssetSystem& assetSystem);
 

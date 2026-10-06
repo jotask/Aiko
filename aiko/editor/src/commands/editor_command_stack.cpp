@@ -14,6 +14,8 @@ namespace aiko::editor
         command->execute();
         m_undoStack.emplace_back(std::move(command));
         m_redoStack.clear();
+
+        notifyMutation();
     }
 
     void EditorCommandStack::pushExecuted(AikoUPtr<EditorCommand> command)
@@ -24,6 +26,8 @@ namespace aiko::editor
         }
         m_undoStack.emplace_back(std::move(command));
         m_redoStack.clear();
+
+        notifyMutation();
     }
 
     bool EditorCommandStack::canUndo() const
@@ -46,6 +50,8 @@ namespace aiko::editor
         m_undoStack.pop_back();
         command->undo();
         m_redoStack.emplace_back(std::move(command));
+
+        notifyMutation();
     }
 
     void EditorCommandStack::redo()
@@ -58,12 +64,22 @@ namespace aiko::editor
         m_redoStack.pop_back();
         command->execute();
         m_undoStack.emplace_back(std::move(command));
+
+        notifyMutation();
     }
 
     void EditorCommandStack::clear()
     {
         m_undoStack.clear();
         m_redoStack.clear();
+    }
+
+    void EditorCommandStack::notifyMutation()
+    {
+        if (m_mutationCallback)
+        {
+            m_mutationCallback();
+        }
     }
 
 }
