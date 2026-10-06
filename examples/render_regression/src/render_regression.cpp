@@ -1,8 +1,8 @@
 #include "render_regression.h"
 
+#include "layers/contexts/scene_context.h"
 #include "models/mesh_factory.h"
 
-#include <application/application.h>
 #include <components/camera_component.h>
 #include <components/mesh_component.h>
 
@@ -11,39 +11,30 @@ namespace regression
 
     void RenderRegression::init()
     {
-        auto camera = Instantiate("Camera");
-        auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
 
-        camera->transform().position = { 0.0f, 1.0f, 3.0f };
-        cam->getCamera().position = camera->transform().position;
+        aiko::CameraComponent* camera = scene().createCamera();
+        camera->getCamera().position = { 0.0f, 1.0f, 3.0f };
 
         const aiko::MeshAsset defaultCube = aiko::mesh::factory::generateCube();
 
-        auto cubeA = Instantiate("CubeA");
+        aiko::GameObject* cubeA = Instantiate("CubeA");
         cubeA->transform().position = { -0.35f, 0.0f, 0.0f };
         cubeA->transform().scale = { 1.0f, 1.0f, 1.0f };
-        auto meshA = cubeA->addComponent<aiko::MeshComponent>();
-        meshA->load(defaultCube);
 
-        auto cubeB = Instantiate("CubeB");
+        aiko::MeshComponent* meshA = cubeA->addComponent<aiko::MeshComponent>();
+        meshA->load(defaultCube);
+        meshA->getMaterial().m_baseColor = aiko::RED;
+
+        aiko::GameObject* cubeB = Instantiate("CubeB");
         cubeB->transform().position = { 0.35f, 0.0f, -0.75f };
         cubeB->transform().scale = { 1.0f, 1.0f, 1.0f };
-        auto meshB = cubeB->addComponent<aiko::MeshComponent>();
+
+        aiko::MeshComponent* meshB = cubeB->addComponent<aiko::MeshComponent>();
         meshB->load(defaultCube);
+        meshB->getMaterial().m_baseColor = aiko::BLUE;
 
-        meshA->getMaterial().baseColor = aiko::RED;
-        meshB->getMaterial().baseColor = aiko::BLUE;
-
-    }
-
-    void RenderRegression::update()
-    {
 
     }
 
-    void RenderRegression::render()
-    {
-
-    }
 }
 
