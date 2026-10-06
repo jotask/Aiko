@@ -12,7 +12,7 @@ namespace shadertoy
 
     class RenderSystem;
 
-    class ShaderToy : public aiko::Application
+    class NativeShaderToy : public aiko::Application
     {
     protected:
         virtual void init() override;

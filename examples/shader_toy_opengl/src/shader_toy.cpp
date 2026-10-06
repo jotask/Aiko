@@ -19,7 +19,7 @@
 namespace shadertoy
 {
 
-    std::vector<aiko::string> ShaderToy::s_shaders =
+    std::vector<aiko::string> NativeShaderToy::s_shaders =
     {
         "aiko_shadertoy",
         "aiko_shadertoy_uv",
@@ -53,7 +53,7 @@ namespace shadertoy
         "aiko_shadertoy_happy",
     };
 
-    void ShaderToy::init()
+    void NativeShaderToy::init()
     {
         Application::init();
 
@@ -72,7 +72,7 @@ namespace shadertoy
 
     }
 
-    void ShaderToy::update()
+    void NativeShaderToy::update()
     {
 
         if (isKeyJustPressed(aiko::KEY_SPACE) || isKeyJustPressed(aiko::KEY_RIGHT))
@@ -129,7 +129,7 @@ namespace shadertoy
 
     }
 
-    void ShaderToy::render()
+    void NativeShaderToy::render()
     {
         if (m_shader->isvalid() == true)
         {
@@ -138,27 +138,27 @@ namespace shadertoy
         }
     }
 
-    void ShaderToy::nextShader()
+    void NativeShaderToy::nextShader()
     {
         currentShader++;
         currentShader %= s_shaders.size();
         refreshShader();
     }
 
-    void ShaderToy::randomShader()
+    void NativeShaderToy::randomShader()
     {
         currentShader = aiko::utils::getRandomValue(0, s_shaders.size() - 1);
         refreshShader();
     }
 
-    void ShaderToy::prevShader()
+    void NativeShaderToy::prevShader()
     {
         currentShader--;
         currentShader %= s_shaders.size();
         refreshShader();
     }
 
-    void ShaderToy::refreshShader()
+    void NativeShaderToy::refreshShader()
     {
         m_shader->load("aiko_shadertoy.vs", "aiko_shadertoy.fs");
     }
