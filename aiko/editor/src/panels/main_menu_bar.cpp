@@ -140,6 +140,60 @@ namespace aiko::editor
         }
     }
 
+    void MainMenuBar::renderSimulationControls()
+    {
+        AIKO_ASSERT(m_runtime != nullptr, "MainMenuBar has no RuntimeContext");
+
+        if (m_runtime == nullptr)
+        {
+            return;
+        }
+
+        const bool paused = m_runtime->isPaused();
+
+        const float controlsWidth =
+            ImGui::CalcTextSize(" > ").x +
+            ImGui::CalcTextSize(" || ").x +
+            ImGui::CalcTextSize(" >| ").x +
+            ImGui::GetStyle().FramePadding.x * 6.0f +
+            ImGui::GetStyle().ItemSpacing.x * 2.0f;
+
+        const float availableWidth = ImGui::GetWindowWidth();
+
+        ImGui::SetCursorPosX(availableWidth * 0.5f - controlsWidth * 0.5f);
+
+        ImGui::BeginDisabled(paused == false);
+
+        if (ImGui::Button(" > "))
+        {
+            m_runtime->setPaused(false);
+        }
+
+        ImGui::EndDisabled();
+
+        ImGui::SameLine();
+
+        ImGui::BeginDisabled(paused);
+
+        if (ImGui::Button(" || "))
+        {
+            m_runtime->setPaused(true);
+        }
+
+        ImGui::EndDisabled();
+
+        ImGui::SameLine();
+
+        ImGui::BeginDisabled(paused == false);
+
+        if (ImGui::Button(" >| "))
+        {
+            m_runtime->step();
+        }
+
+        ImGui::EndDisabled();
+    }
+
     bool MainMenuBar::saveScene(EditorContext& context)
     {
         if (context.document().hasPath())
@@ -386,6 +440,8 @@ namespace aiko::editor
 
                 ImGui::EndMenu();
             }
+
+            renderSimulationControls();
 
             ImGui::EndMainMenuBar();
         }

@@ -38,6 +38,7 @@ namespace aiko
             void requestAction(EditorContext& context, PendingAction action);
             void performAction(EditorContext& context, PendingAction action);
             void renderUnsavedChangesPopup(EditorContext& context);
+            void renderSimulationControls();
 
             bool saveScene(EditorContext& context);
             void openSaveDialog(EditorContext& context);
