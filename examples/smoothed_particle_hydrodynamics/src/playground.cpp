@@ -18,7 +18,7 @@ namespace sph
 
     namespace
     {
-        constexpr bool EnableGpuSimulation = false;
+        constexpr bool EnableGpuSimulation = true;
         constexpr uint32_t MaxSimulationSubsteps = 4;
     }
 
@@ -52,9 +52,14 @@ namespace sph
 
         m_simulation.init(InitialParticleCount);
 
-        m_cpuSimulation.init(m_simulation.initialParticles(), m_simulation.parameters().smoothingRadius);
-
-        m_gpuSimulation.init(assetSystem, m_simulation.initialParticles(), m_simulation.shapes());
+        if constexpr (EnableGpuSimulation)
+        {
+            m_gpuSimulation.init(assetSystem, m_simulation.initialParticles(), m_simulation.shapes());
+        }
+        else
+        {
+            m_cpuSimulation.init(m_simulation.initialParticles(), m_simulation.parameters().smoothingRadius);
+        }
 
         m_shapeShaderId = shaderId;
 
