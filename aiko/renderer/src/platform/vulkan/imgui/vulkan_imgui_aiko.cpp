@@ -52,30 +52,7 @@ namespace aiko::renderer::vulkan
         {
             logger::Log::error("Failed to initialize ImGui Vulkan backend!");
         }
-
-        const VkSamplerCreateInfo samplerInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-            .magFilter = VK_FILTER_LINEAR,
-            .minFilter = VK_FILTER_LINEAR,
-            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-            .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-            .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-            .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-            .mipLodBias = 0.0f,
-            .anisotropyEnable = VK_FALSE,
-            .maxAnisotropy = 1.0f,
-            .compareEnable = VK_FALSE,
-            .compareOp = VK_COMPARE_OP_ALWAYS,
-            .minLod = 0.0f,
-            .maxLod = 0.0f,
-            .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-            .unnormalizedCoordinates = VK_FALSE,
-        };
-
-        const VkResult samplerResult = vkCreateSampler(ctx.device(), &samplerInfo, nullptr, &m_textureSampler);
-        AIKO_ASSERT(samplerResult == VK_SUCCESS, "Failed to create Vulkan ImGui texture sampler");
-
+        m_samplerCache = std::make_unique<VulkanSamplerCache>(ctx);
     }
 
     void VulkanImguiImpl::beginFrame(const ViewId id, int width, int height)
@@ -98,40 +75,43 @@ namespace aiko::renderer::vulkan
 
         m_textureBindings.clear();
 
-        if (m_textureSampler != VK_NULL_HANDLE)
+        if (m_samplerCache != nullptr)
         {
-            vkDestroySampler(ctx.device(), m_textureSampler, nullptr);
-            m_textureSampler = VK_NULL_HANDLE;
+            m_samplerCache->destroy();
+            m_samplerCache.reset();
         }
 
         ImGui_ImplGlfw_Shutdown();
     }
 
-    ImguiTextureId VulkanImguiImpl::textureId(const interfaces::ITextureImpl& texture)
+    ImguiTextureId VulkanImguiImpl::textureId(const interfaces::ITextureImpl& texture, const SamplerState& sampler)
     {
-            const auto& vulkanTexture = static_cast<const VulkanTextureImpl&>(texture);
+        const auto& vulkanTexture = static_cast<const VulkanTextureImpl&>(texture);
 
-            AIKO_ASSERT(vulkanTexture.isValid(), "Cannot register invalid Vulkan ImGui texture");
+        AIKO_ASSERT(vulkanTexture.isValid(), "Cannot register invalid Vulkan ImGui texture");
+        AIKO_ASSERT(m_samplerCache != nullptr, "Vulkan ImGui sampler cache is not initialized");
 
-            const VkImageView imageView = vulkanTexture.imageView();
+        const VkImageView imageView = vulkanTexture.imageView();
 
-            auto& binding = m_textureBindings[&texture];
+        const TextureBindingKey key
+        {
+            .texture = &texture,
+            .sampler = sampler,
+        };
 
-            if (binding.descriptorSet == VK_NULL_HANDLE || binding.imageView != imageView)
-            {
-                binding.imageView = imageView;
+        TextureBinding& binding = m_textureBindings[key];
 
-                binding.descriptorSet = ImGui_ImplVulkan_AddTexture(
-                    m_textureSampler,
-                    imageView,
-                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                );
+        if (binding.descriptorSet == VK_NULL_HANDLE || binding.imageView != imageView)
+        {
+            binding.imageView = imageView;
 
-                AIKO_ASSERT(binding.descriptorSet != VK_NULL_HANDLE, "Failed to register Vulkan ImGui texture");
-            }
+            const VkSampler vkSampler = m_samplerCache->getOrCreate(sampler);
 
-            return static_cast<ImguiTextureId>(reinterpret_cast<uintptr_t>(binding.descriptorSet)
-            );
+            binding.descriptorSet = ImGui_ImplVulkan_AddTexture(vkSampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 
+            AIKO_ASSERT(binding.descriptorSet != VK_NULL_HANDLE, "Failed to register Vulkan ImGui texture");
+        }
+
+        return static_cast<ImguiTextureId>(reinterpret_cast<uintptr_t>( binding.descriptorSet ));
     }
 }

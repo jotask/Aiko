@@ -47,6 +47,21 @@ namespace aiko
         return id;
     }
 
+    AssetId AssetContext::createTexture(const TextureAsset& texture)
+    {
+        return m_assetSystem->create(texture);
+    }
+
+    TextureAsset& AssetContext::getMutableTexture(const AssetId& textureId)
+    {
+        return m_assetSystem->getMutableTextureAsset(textureId);
+    }
+
+    void AssetContext::invalidateTexture(const AssetId& textureId)
+    {
+        m_assetSystem->invalidateTexture(textureId);
+    }
+
     AssetId AssetContext::createMesh(const MeshAsset& mesh)
     {
         return m_assetSystem->create(mesh);

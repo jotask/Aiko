@@ -135,9 +135,14 @@ namespace aiko
 
     ImguiTextureId RenderModule::getTextureId(const AssetId& textureId) const
     {
+        return getTextureId(textureId, {});
+    }
+
+    ImguiTextureId RenderModule::getTextureId(const AssetId& textureId, const SamplerState& sampler) const
+    {
         AIKO_ASSERT(textureId != InvalidAssetId, "Cannot get ImGui texture id from invalid asset id");
         Texture& texture = m_renderer->resources().getTexture(textureId);
-        return m_renderer->imguiTextureId(texture);
+        return m_renderer->imguiTextureId(texture, sampler);
     }
 
     void RenderModule::setUiShader(AssetId shaderId)

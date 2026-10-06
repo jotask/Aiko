@@ -25,9 +25,7 @@ namespace nes
             first = false;
             auto pixels = std::vector<aiko::Color>();
             pixels.insert(pixels.end(), &palette::colour_palette[0], &palette::colour_palette[COLOUR_PALETTE_SIZE]);
-            auto pbo = naiko->getApplication()->getPalette();
-            pbo->setPixels(pixels);
-            pbo->refresh();
+            naiko->getApplication()->updatePaletteTexture(pixels);
         }
     }
 
@@ -37,11 +35,17 @@ namespace nes
         {
             ImGui::Text("Colour Palette");
             ImGui::BeginChild("Palette Color");
-            auto pbo = naiko->getApplication()->getPalette();
-            // Get the dimensions of the texture
-            constexpr const float size_multiplier = 16;
-            ImVec2 textureSize = ImVec2(static_cast<float>(pbo->getWidth()) * size_multiplier, static_cast<float>(pbo->getHeight()) * size_multiplier);
-            ImGui::Image( static_cast<ImTextureID>(naiko->getApplication()->getImguiTextureId(*pbo)), textureSize, ImVec2(0, 0), ImVec2(1, 1));
+
+            constexpr float sizeMultiplier = 16.0f;
+            constexpr float paletteWidth = static_cast<float>(COLOUR_PALETTE_SIZE / 4);
+            constexpr float paletteHeight = static_cast<float>(COLOUR_PALETTE_SIZE / 16);
+
+            const ImVec2 textureSize { paletteWidth * sizeMultiplier, paletteHeight * sizeMultiplier };
+
+            NesEmulator* app = naiko->getApplication();
+
+            ImGui::Image(static_cast<ImTextureID>( app->getImguiTextureId( app->getPaletteTextureId() ) ), textureSize, ImVec2(0, 0), ImVec2(1, 1));
+
             ImGui::EndChild();
         }
         ImGui::End();

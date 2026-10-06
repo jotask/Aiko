@@ -7,7 +7,8 @@
 #include "nes/nes_types.h"
 #include "nes/tests/online_test_manager.h"
 #include "nes/utils/nes_utils.h"
-
+#include <layers/contexts/asset_context.h>
+#include <layers/contexts/render_context.h>
 #include <assets/types/texture_asset.h>
 #include <models/game_object.h>
 
@@ -15,24 +16,47 @@
 
 namespace nes
 {
+
+    namespace
+    {
+        aiko::TextureAsset createTextureAsset(int width, int height)
+        {
+            aiko::TextureAsset texture;
+
+            texture.desc =
+            {
+                .type = aiko::TextureType::Sampled,
+                .format = aiko::TextureFormat::RGBA8,
+                .width = width,
+                .height = height,
+                .mipmaps = 1,
+                .computeWrite = false,
+            };
+
+            texture.pixels.resize(static_cast<size_t>(width) * static_cast<size_t>(height), aiko::BLACK);
+
+            return texture;
+        }
+    }
+
     NesEmulator::NesEmulator()
         : m_emulator(this, &m_nes)
     {
     }
 
-    aiko::SpriteComponent* NesEmulator::getNesGo() const
+    const aiko::AssetId& NesEmulator::getNesTextureId() const
     {
-        return m_nesgo;
+        return m_nesTextureId;
     }
 
-    aiko::SpriteComponent* NesEmulator::getPT0() const
+    const aiko::AssetId& NesEmulator::getPatternTableTextureId() const
     {
-        return pattern_table_0;
+        return m_patternTableTextureId;
     }
 
-    aiko::SpriteComponent* NesEmulator::getPalette() const
+    const aiko::AssetId& NesEmulator::getPaletteTextureId() const
     {
-        return palette;
+        return m_paletteTextureId;
     }
 
     void NesEmulator::init()
@@ -41,83 +65,18 @@ namespace nes
         auto* cam = scene().createCamera( aiko::camera::CameraController::Static, aiko::Camera::CameraType::Orthographic );
         cam->getCamera().position = { 0.0f, 1.0f, 3.0f };
 
-        auto setTextureConfiguration = [](aiko::Material& material)
-        {
-            material.m_lit = false;
-            aiko::SamplerState sampler;
-            sampler.minFilter = aiko::TextureFilter::Nearest;
-            sampler.magFilter = aiko::TextureFilter::Nearest;
-            sampler.mipFilter = aiko::TextureMipFilter::None;
-            sampler.wrapU = aiko::TextureWrapMode::Clamp;
-            sampler.wrapV = aiko::TextureWrapMode::Clamp;
-            material.setTextureSampler("u_texture", sampler);
-        };
+        m_nesTextureId = assets().createTexture( createTextureAsset( static_cast<int>(NES_WIDTH), static_cast<int>(NES_HEIGHT) ) );
 
-        auto go = Instantiate("NesTexture");
-        m_nesgo = go->addComponent<aiko::SpriteComponent>();
-        aiko::TextureAsset nesTexture;
-        nesTexture.desc =
-        {
-            .type = aiko::TextureType::Sampled,
-            .format = aiko::TextureFormat::RGBA8,
-            .width = static_cast<int>(NES_WIDTH),
-            .height = static_cast<int>(NES_HEIGHT),
-            .mipmaps = 1,
-            .computeWrite = false,
-        };
-        nesTexture.pixels.resize(
-            static_cast<size_t>(NES_WIDTH) *
-            static_cast<size_t>(NES_HEIGHT),
-            aiko::BLACK
-        );
+        m_patternTableTextureId = assets().createTexture( createTextureAsset(256, 128) );
 
-        m_nesgo->load(std::move(nesTexture));
-        setTextureConfiguration(m_nesgo->getMaterial());
+        constexpr int paletteWidth = static_cast<int>(COLOUR_PALETTE_SIZE / 4);
 
-        auto table_pattern_go_1 = Instantiate("CHR table");
-        pattern_table_0 = table_pattern_go_1->addComponent<aiko::SpriteComponent>();
-        aiko::TextureAsset patternTexture;
-        patternTexture.desc =
-        {
-            .type = aiko::TextureType::Sampled,
-            .format = aiko::TextureFormat::RGBA8,
-            .width = 256,
-            .height = 128,
-            .mipmaps = 1,
-            .computeWrite = false,
-        };
-        patternTexture.pixels.resize(
-            static_cast<size_t>(256) *
-            static_cast<size_t>(128),
-            aiko::BLACK
-        );
-        pattern_table_0->load(std::move(patternTexture));
-        setTextureConfiguration(pattern_table_0->getMaterial());
-        setTextureConfiguration(pattern_table_0->getMaterial());
+        constexpr int paletteHeight = static_cast<int>(COLOUR_PALETTE_SIZE / 16);
 
-        auto palette_go = Instantiate("Palette");
-        constexpr const Byte palette_width = COLOUR_PALETTE_SIZE / 4;
-        constexpr const Byte palette_height = COLOUR_PALETTE_SIZE / 16;
-        palette = palette_go->addComponent<aiko::SpriteComponent>();
-        aiko::TextureAsset paletteTexture;
-        paletteTexture.desc =
-        {
-            .type = aiko::TextureType::Sampled,
-            .format = aiko::TextureFormat::RGBA8,
-            .width = static_cast<int>(palette_width),
-            .height = static_cast<int>(palette_height),
-            .mipmaps = 1,
-            .computeWrite = false,
-        };
-        paletteTexture.pixels.resize(
-            static_cast<size_t>(palette_width) *
-            static_cast<size_t>(palette_height),
-            aiko::BLACK
-        );
-        palette->load(std::move(paletteTexture));
-        setTextureConfiguration(palette->getMaterial());
+        m_paletteTextureId = assets().createTexture( createTextureAsset( paletteWidth, paletteHeight ) );
 
         m_emulator.init();
+
         if constexpr (NES_TESTS_ENABLED)
         {
             nes::test::online::TestManager::it().run();
@@ -139,9 +98,47 @@ namespace nes
         m_emulator.render();
     }
 
-    aiko::ImguiTextureId NesEmulator::getImguiTextureId(const aiko::SpriteComponent& sprite) const
+    aiko::ImguiTextureId NesEmulator::getImguiTextureId(const aiko::AssetId& textureId) const
     {
-        return renderer().getTextureId(sprite.getTextureId());
+        const aiko::SamplerState sampler
+        {
+            .minFilter = aiko::TextureFilter::Nearest,
+            .magFilter = aiko::TextureFilter::Nearest,
+            .mipFilter = aiko::TextureMipFilter::None,
+            .wrapU = aiko::TextureWrapMode::Clamp,
+            .wrapV = aiko::TextureWrapMode::Clamp,
+        };
+        return renderer().getTextureId(textureId, sampler);
+    }
+
+    void NesEmulator::updateNesTexture(const std::vector<aiko::Color>& pixels)
+    {
+        aiko::TextureAsset& texture = assets().getMutableTexture(m_nesTextureId);
+
+        AIKO_ASSERT(texture.pixels.size() == pixels.size(), "NES framebuffer pixel count mismatch");
+
+        texture.pixels = pixels;
+        assets().invalidateTexture(m_nesTextureId);
+    }
+
+    void NesEmulator::updatePatternTableTexture(const std::vector<aiko::Color>& pixels)
+    {
+        aiko::TextureAsset& texture = assets().getMutableTexture(m_patternTableTextureId);
+
+        AIKO_ASSERT(texture.pixels.size() == pixels.size(), "NES pattern table pixel count mismatch");
+
+        texture.pixels = pixels;
+        assets().invalidateTexture(m_patternTableTextureId);
+    }
+
+    void NesEmulator::updatePaletteTexture(const std::vector<aiko::Color>& pixels)
+    {
+        aiko::TextureAsset& texture = assets().getMutableTexture(m_paletteTextureId);
+
+        AIKO_ASSERT(texture.pixels.size() == pixels.size(), "NES palette pixel count mismatch");
+
+        texture.pixels = pixels;
+        assets().invalidateTexture(m_paletteTextureId);
     }
 
 }

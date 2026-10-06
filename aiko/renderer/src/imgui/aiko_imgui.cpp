@@ -114,10 +114,10 @@ namespace aiko
         m_isInitialized = false;
     }
 
-    ImguiTextureId AikoImgui::textureId(const Texture& texture)
+    ImguiTextureId AikoImgui::textureId(const Texture& texture, const SamplerState& sampler)
     {
         AIKO_ASSERT(texture.isValid(), "Cannot register invalid ImGui texture");
-        return backend->textureId(*texture.backend);
+        return backend->textureId(*texture.backend, sampler);
     }
 
 }

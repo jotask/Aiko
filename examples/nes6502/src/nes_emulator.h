@@ -20,13 +20,15 @@ namespace nes
         NesEmulator();
         virtual ~NesEmulator() = default;
 
-        // aiko::texture::RenderTexture2D* getTargetTexture() const { return Application::getTargetTexture(); }
+        const aiko::AssetId& getNesTextureId() const;
+        const aiko::AssetId& getPatternTableTextureId() const;
+        const aiko::AssetId& getPaletteTextureId() const;
 
-        aiko::SpriteComponent* getNesGo() const;
-        aiko::SpriteComponent* getPT0() const;
-        aiko::SpriteComponent* getPalette() const;
+        void updateNesTexture(const std::vector<aiko::Color>& pixels);
+        void updatePatternTableTexture(const std::vector<aiko::Color>& pixels);
+        void updatePaletteTexture(const std::vector<aiko::Color>& pixels);
 
-        aiko::ImguiTextureId getImguiTextureId(const aiko::SpriteComponent& sprite) const;
+        aiko::ImguiTextureId getImguiTextureId(const aiko::AssetId& textureId) const;
 
     protected:
         virtual void init() override;
@@ -38,9 +40,9 @@ namespace nes
         Nes m_nes;
         Naiko m_emulator;
 
-        aiko::SpriteComponent* m_nesgo;
-        aiko::SpriteComponent* pattern_table_0;
-        aiko::SpriteComponent* palette;
+        aiko::AssetId m_nesTextureId = aiko::InvalidAssetId;
+        aiko::AssetId m_patternTableTextureId = aiko::InvalidAssetId;
+        aiko::AssetId m_paletteTextureId = aiko::InvalidAssetId;
 
     };
 

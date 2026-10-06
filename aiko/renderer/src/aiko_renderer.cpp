@@ -253,9 +253,9 @@ namespace aiko
         m_renderer->waitIdle();
     }
 
-    ImguiTextureId AikoRenderer::imguiTextureId(const Texture& texture)
+    ImguiTextureId AikoRenderer::imguiTextureId(const Texture& texture, const SamplerState& sampler)
     {
-        return m_imgui.textureId(texture);
+        return m_imgui.textureId(texture, sampler);
     }
 
     void AikoRenderer::drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius, float borderThickness, Color borderColor)

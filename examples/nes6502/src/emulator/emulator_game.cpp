@@ -27,11 +27,11 @@ namespace nes
         if (ImGui::Begin(name.c_str(), &is_open, flags))
         {
 
-            auto pbo = naiko->getApplication()->getNesGo();
+            NesEmulator* app = naiko->getApplication();
 
             ImGui::BeginChild("GameRender");
 
-            ImVec2 textureSize = ImVec2( static_cast<float>(pbo->getWidth()), static_cast<float>(pbo->getHeight()) );
+            ImVec2 textureSize = ImVec2( static_cast<float>(NES_WIDTH), static_cast<float>(NES_HEIGHT) );
 
             float aspectRatio = textureSize.x / textureSize.y;
 
@@ -56,7 +56,7 @@ namespace nes
             imageHeight = std::min(imageHeight, maxHeight);
 
             ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - imageWidth) * 0.5f, 0));
-            ImGui::Image(static_cast<ImTextureID>(naiko->getApplication()->getImguiTextureId(*pbo)), ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image(static_cast<ImTextureID>( app->getImguiTextureId( app->getNesTextureId() ) ), ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0 ));
             ImGui::EndChild();
 
         }
@@ -65,69 +65,78 @@ namespace nes
 
     void GameWindow::onNesClock(const NesOnClockEvent& event)
     {
+        AIKO_UNUSED(event);
 
-        constexpr const uint16_t PARTICLES_AMOUNT = 1000;
+        constexpr uint16_t ParticleCount = 1000;
 
-        auto pbo = naiko->getApplication()->getNesGo();
+        auto pixels = naiko->getPpu()->getPixels();
 
-        pbo->setPixels( naiko->getPpu()->getPixels() );
-
-        auto randomPosition = [&]() -> aiko::vec2
+        auto randomPosition = []() -> aiko::vec2
         {
-            return aiko::vec2
-            (
-                aiko::utils::getRandomValue(0, NES_WIDTH - 1),
-                aiko::utils::getRandomValue(0, NES_HEIGHT - 1)
-            );
+            return
+            {
+                static_cast<float>(aiko::utils::getRandomValue(0, NES_WIDTH - 1)),
+                static_cast<float>(aiko::utils::getRandomValue(0, NES_HEIGHT - 1))
+            };
         };
 
-        auto randomVelocity = [&]() -> aiko::vec2
+        auto randomVelocity = []() -> aiko::vec2
         {
-            return aiko::vec2
-            (
+            return
+            {
                 aiko::utils::getRandomValue(-1.0f, 1.0f),
                 aiko::utils::getRandomValue(-1.0f, 1.0f)
-            );
+            };
         };
 
-        struct Particle { aiko::vec2 p; aiko::vec2 v; };
-
-        static std::vector<Particle> particles(PARTICLES_AMOUNT);
-        bool static first = true;
-        if (first)
+        struct Particle
         {
-            first = false;
-            for (auto& p : particles)
+            aiko::vec2 position;
+            aiko::vec2 velocity;
+        };
+
+        static std::vector<Particle> particles(ParticleCount);
+        static bool initialized = false;
+
+        if (initialized == false)
+        {
+            initialized = true;
+
+            for (Particle& particle : particles)
             {
-                p.p = randomPosition();
-                p.v = randomVelocity();
+                particle.position = randomPosition();
+                particle.velocity = randomVelocity();
             }
         }
 
-        for (auto& p : particles)
+        for (Particle& particle : particles)
         {
+            particle.position += particle.velocity;
 
-            pbo->setPixel(p.p.x, p.p.y, aiko::BLACK);
-
-            p.p.x += p.v.x;
-            p.p.y += p.v.y;
-
-            if (p.p.x < 0 || p.p.x >= pbo->getWidth())
+            if (particle.position.x < 0.0f || particle.position.x >= static_cast<float>(NES_WIDTH))
             {
-                p.v.x = -p.v.x;
-                p.p.x += p.v.x;
-            }
-            if (p.p.y < 0 || p.p.y >= pbo->getHeight())
-            {
-                p.v.y = -p.v.y;
-                p.p.y += p.v.y;
+                particle.velocity.x = -particle.velocity.x;
+                particle.position.x += particle.velocity.x;
             }
 
-            pbo->setPixel(p.p.x, p.p.y, aiko::WHITE);
+            if (particle.position.y < 0.0f || particle.position.y >= static_cast<float>(NES_HEIGHT))
+            {
+                particle.velocity.y = -particle.velocity.y;
+                particle.position.y += particle.velocity.y;
+            }
 
+            const size_t x = static_cast<size_t>(particle.position.x);
+            const size_t y = static_cast<size_t>(particle.position.y);
+
+            const size_t index = y * static_cast<size_t>(NES_WIDTH) + x;
+
+            if (index < pixels.size())
+            {
+                pixels[index] = aiko::WHITE;
+            }
         }
 
-        pbo->refresh();
+        naiko->getApplication()->updateNesTexture(pixels);
     }
 
 }
