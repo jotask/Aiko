@@ -51,3 +51,7 @@ if(AIKO_BUILD_EXAMPLES)
 endif()
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT AikoEditor )
+
+if(TARGET uninstall)
+    aiko_add_dependency(uninstall)
+endif()
