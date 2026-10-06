@@ -15,10 +15,9 @@ namespace lp
 
     void LifeParticles::init()
     {
-        auto camera = Instantiate("Camera");
-        auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
-        camera->transform().position = { 0.0f, 1.0f, 3.0f };
-        cam->getCamera().position = camera->transform().position;
+
+        aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Fly);
+        camera->getCamera().position = { 0.0f, 1.0f, 3.0f };
 
         aiko::MeshAsset asset = aiko::mesh::factory::generateMeshSphere( 7, 7);
         m_mesh.upload(asset);
@@ -47,14 +46,6 @@ namespace lp
             m_particles[i].type = getRandomType();
         }
 
-    }
-
-    void LifeParticles::update()
-    {
-        for (Particle& lp : m_particles)
-        {
-
-        }
     }
 
     void LifeParticles::render()

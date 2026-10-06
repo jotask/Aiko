@@ -4,7 +4,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${EXAMPLE_LP_SRC})
 
 add_executable(LifeParticles ${EXAMPLE_LP_SRC})
 
-target_link_libraries(LifeParticles PRIVATE Aiko)
+target_link_libraries(LifeParticles PRIVATE Aiko magic_enum)
 
 target_include_directories(LifeParticles PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
