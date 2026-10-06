@@ -1,12 +1,13 @@
 #pragma once
 
-#include <aiko_types.h>
-#include <aiko_includes.h>
-
-#include "application/application.h"
-
-#include "nes/nintendo_entertainment_system.h"
 #include "emulator/emulator.h"
+#include "imgui/aiko_imgui.h"
+#include "nes/nintendo_entertainment_system.h"
+
+#include <layers/layer.h>
+
+#include <aiko_includes.h>
+#include <aiko_types.h>
 
 namespace nes
 {
@@ -24,6 +25,8 @@ namespace nes
         aiko::SpriteComponent* getNesGo() const;
         aiko::SpriteComponent* getPT0() const;
         aiko::SpriteComponent* getPalette() const;
+
+        aiko::ImguiTextureId getImguiTextureId(const aiko::SpriteComponent& sprite) const;
 
     protected:
         virtual void init() override;

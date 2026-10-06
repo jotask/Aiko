@@ -73,7 +73,7 @@ namespace nes
             imageWidth = std::min(imageWidth, maxWidth);
             imageHeight = std::min(imageHeight, maxHeight);
             
-            ImTextureID tid = (ImTextureID)(uintptr_t)pbo->getMaterial().m_diffuse.id();
+            ImTextureID tid = static_cast<ImTextureID>(naiko->getApplication()->getImguiTextureId(*pbo));
 
             ImGui::Image(tid, ImVec2(imageWidth, imageHeight), ImVec2(0, 0), ImVec2(1, 1));
             ImGui::EndChild();

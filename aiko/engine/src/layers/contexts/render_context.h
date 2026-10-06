@@ -28,6 +28,7 @@ namespace aiko
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
         void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
         void renderToTarget(const Camera& camera, RenderTarget& target);
+        ImguiTextureId getTextureId(const AssetId& textureId) const;
         void drawText(const Font& font, string_view text, const Transform& transform, float fontSize, Color color = WHITE);
 
     private:

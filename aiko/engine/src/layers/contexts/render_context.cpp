@@ -42,6 +42,11 @@ namespace aiko
         m_renderSystem->renderToTarget(camera, target);
     }
 
+    ImguiTextureId RenderContext::getTextureId(const AssetId& textureId) const
+    {
+        return m_renderSystem->getTextureId(textureId);
+    }
+
     void RenderContext::drawText(const Font& font, string_view text, const Transform& transform, float fontSize, Color color)
     {
         m_renderSystem->drawText(font, text, transform, fontSize, color);

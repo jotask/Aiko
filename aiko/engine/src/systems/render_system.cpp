@@ -77,6 +77,11 @@ namespace aiko
         return m_renderModule->getTextureId(texture);
     }
 
+    ImguiTextureId RenderSystem::getTextureId(const AssetId& textureId) const
+    {
+        return m_renderModule->getTextureId(textureId);
+    }
+
     void RenderSystem::drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius, float borderThickness, Color borderColor)
     {
         m_renderModule->drawUiRect(position, size, color, cornerRadius, borderThickness, borderColor);
