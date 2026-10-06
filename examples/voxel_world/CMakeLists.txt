@@ -11,3 +11,5 @@ target_link_libraries(VoxelWorld PRIVATE Aiko PerlinNoise::PerlinNoise)
 target_include_directories(VoxelWorld PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(VoxelWorld)
+
+aiko_add_example(VoxelWorld)

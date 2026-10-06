@@ -9,3 +9,5 @@ target_link_libraries(ShaderToy PRIVATE Aiko)
 target_include_directories(ShaderToy PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(ShaderToy)
+
+aiko_add_example(ShaderToy)

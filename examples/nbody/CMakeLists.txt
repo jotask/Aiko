@@ -9,3 +9,5 @@ target_link_libraries(NBody PRIVATE Aiko)
 target_include_directories(NBody PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(NBody)
+
+aiko_add_example(NBody)

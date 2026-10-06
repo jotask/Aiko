@@ -9,3 +9,5 @@ target_link_libraries(PerformanceSmoke PRIVATE Aiko)
 target_include_directories(PerformanceSmoke PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(PerformanceSmoke)
+
+aiko_add_example(PerformanceSmoke)

@@ -9,3 +9,5 @@ target_link_libraries(Sandbox PRIVATE Aiko)
 target_include_directories(Sandbox PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(Sandbox)
+
+aiko_add_example(Sandbox)

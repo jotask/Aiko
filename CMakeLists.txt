@@ -5,6 +5,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(AikoFramework LANGUAGES C CXX)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 include(FetchContent)
 
 set(FETCHCONTENT_BASE_DIR "${PROJECT_BINARY_DIR}/_deps" CACHE PATH "Shared FetchContent directory for this build tree" FORCE)
@@ -12,6 +14,8 @@ set(FETCHCONTENT_QUIET FALSE CACHE BOOL "Print FetchContent progress" FORCE)
 set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE CACHE BOOL "Do not update already-populated FetchContent dependencies" FORCE)
 
 include(cmake/ProjectOptions.cmake)
+include(cmake/AikoTargets.cmake)
+
 aiko_setup_options()
 aiko_detect_platform()
 
@@ -37,6 +41,9 @@ if(TARGET AikoVulkanShaders)
     if(TARGET AikoEditor)
         add_dependencies(AikoEditor AikoVulkanShaders)
     endif()
+
+    aiko_add_target(AikoVulkanShaders)
+
 endif()
 
 if(AIKO_BUILD_EXAMPLES)

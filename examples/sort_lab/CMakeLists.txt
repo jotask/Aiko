@@ -9,3 +9,5 @@ target_link_libraries(SortLab PRIVATE Aiko)
 target_include_directories(SortLab PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(SortLab)
+
+aiko_add_example(SortLab)

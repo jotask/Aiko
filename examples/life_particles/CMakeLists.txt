@@ -9,3 +9,5 @@ target_link_libraries(LifeParticles PRIVATE Aiko magic_enum)
 target_include_directories(LifeParticles PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(LifeParticles)
+
+aiko_add_example(LifeParticles)

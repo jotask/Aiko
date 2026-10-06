@@ -33,3 +33,5 @@ target_link_libraries(Aiko
 target_include_directories(Aiko PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 
 aiko_apply_engine_defaults(Aiko)
+
+aiko_add_target(Aiko)

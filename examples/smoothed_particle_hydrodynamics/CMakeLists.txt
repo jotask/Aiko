@@ -9,3 +9,5 @@ target_link_libraries(SmoothedParticleHydrodynamics PRIVATE Aiko imgui magic_enu
 target_include_directories(SmoothedParticleHydrodynamics PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(SmoothedParticleHydrodynamics)
+
+aiko_add_example(SmoothedParticleHydrodynamics)

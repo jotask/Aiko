@@ -15,3 +15,5 @@ target_sources(AikoEditor PRIVATE  ${imguifiledialog_SOURCE_DIR}/ImGuiFileDialog
 target_include_directories(AikoEditor PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR} ${imguifiledialog_SOURCE_DIR} ${imguizmo_SOURCE_DIR}/src)
 
 aiko_apply_defaults(AikoEditor)
+
+aiko_add_target(AikoEditor)

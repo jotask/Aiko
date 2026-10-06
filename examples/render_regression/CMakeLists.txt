@@ -9,3 +9,5 @@ target_link_libraries(RenderRegression PRIVATE Aiko)
 target_include_directories(RenderRegression PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(RenderRegression)
+
+aiko_add_example(RenderRegression)

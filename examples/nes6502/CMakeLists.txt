@@ -12,3 +12,5 @@ target_link_libraries(NesEmulator PRIVATE Aiko imgui jsoncpp_static)
 target_include_directories(NesEmulator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(NesEmulator)
+
+aiko_add_example(NesEmulator)
