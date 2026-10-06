@@ -34,11 +34,8 @@ namespace sph
         scene().ambientLight().intensity = 0.15f;
 
         // Init camera
-        aiko::GameObject* camera = Instantiate("Camera");
-        m_cameraComponent = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Drag);
-        camera->transform().position = { 0.0f, 2.5f, 42.0f };
-        m_cameraComponent->setCameraType(aiko::Camera::CameraType::Orthographic);
-        m_cameraComponent->getCamera().position = camera->transform().position;
+        m_cameraComponent = scene().createCamera(aiko::camera::CameraController::Drag, aiko::Camera::CameraType::Orthographic);
+        m_cameraComponent->getCamera().position = { 0.0f, 2.5f, 42.0f };
 
         m_playground.init(assets().loadShader("model"), assets().loadShader("sph/sph_gpuinst.vs", "model.fs"), *m_assetSystem);
 

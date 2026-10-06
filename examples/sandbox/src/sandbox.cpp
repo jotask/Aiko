@@ -40,10 +40,8 @@ namespace sb
     void Sandbox::init()
     {
 
-        auto* camera = Instantiate("Camera");
-        auto* cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
-		camera->transform().position = { 0.0f, 1.0f, 2.5f };
-		cam->getCamera().position = camera->transform().position;
+        aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Fly);
+        camera->getCamera().position = { 0.0f, 1.0f, 2.5f };
 
         if constexpr (s_enableMeshTests == true)
         {

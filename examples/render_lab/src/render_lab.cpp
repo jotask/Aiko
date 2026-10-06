@@ -215,18 +215,8 @@ namespace aiko::lab
 
     void RenderLab::initCamera()
     {
-        GameObject* camera = Instantiate("Camera");
-
-        CameraComponent* cameraComponent = camera->addComponent<CameraComponent>(camera::CameraController::Fly);
-
-        camera->transform().position =
-        {
-            0.0f,
-            2.5f,
-            8.0f
-        };
-
-        cameraComponent->getCamera().position = camera->transform().position;
+        aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Fly);
+        camera->getCamera().position = { 0.0f, 2.5f, 8.0f };
     }
 
     // --------------------------------------------------
