@@ -157,21 +157,21 @@ namespace sb
         go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model1 = go1->addComponent<aiko::ModelComponent>();
-        model1->load("church.obj");
+        model1->load("models/church.obj");
 
         auto go2 = Instantiate(root, "Barracks");
         go2->transform().position = { -50.0f, 0.0f, -15.0f };
         go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model2 = go2->addComponent<aiko::ModelComponent>();
-        model2->load("barracks.obj");
+        model2->load("models/barracks.obj");
 
         auto go3 = Instantiate(root, "Watermill");
         go3->transform().position = { 50.0f, 0.0f, -15.0f };
         go3->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go3->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model3 = go3->addComponent<aiko::ModelComponent>();
-        model3->load("watermill.obj");
+        model3->load("models/watermill.obj");
 
         auto go4 = Instantiate(root, "Robot");
         go4->transform().position = { 0.0f, 0.0f, 5.0f };
@@ -179,7 +179,7 @@ namespace sb
         const float scale = 0.25f;
         go4->transform().scale = { scale, scale, scale };
         auto model4 = go4->addComponent<aiko::ModelComponent>();
-        model4->load("robot.glb");
+        model4->load("models/robot.glb");
     }
 
     void Sandbox::initComponents()
