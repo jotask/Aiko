@@ -30,6 +30,14 @@ namespace aiko
         m_pendingMesh = std::move(mesh);
     }
 
+    void MeshComponent::load(const AssetId& id)
+    {
+        AIKO_ASSERT(id != InvalidAssetId, "Cannot load invalid mesh asset");
+        m_primitive = MeshPrimitive::None;
+        m_pendingMesh.reset();
+        m_mesh.set(id);
+    }
+
     void MeshComponent::loadPrimitive(MeshPrimitive primitive)
     {
         switch (primitive)
@@ -113,10 +121,6 @@ namespace aiko
             }
 
             m_mesh.resolve(id);
-
-            m_material.m_shaderId = context.load<ShaderAsset>("model");
-
-            context.loadAsset<ShaderAsset>(m_material.m_shaderId);
         }
 
         if (m_pendingMesh.has_value())
@@ -124,12 +128,13 @@ namespace aiko
             const AssetId id = context.create(*m_pendingMesh);
 
             m_mesh.set(id);
-
-            m_material.m_shaderId = context.load<ShaderAsset>("model");
-
-            context.loadAsset<ShaderAsset>(m_material.m_shaderId);
-
             m_pendingMesh.reset();
+        }
+
+        if (m_mesh.isReady() && m_material.m_shaderId == InvalidAssetId)
+        {
+            m_material.m_shaderId = context.load<ShaderAsset>("model");
+            context.loadAsset<ShaderAsset>(m_material.m_shaderId);
         }
 
     }

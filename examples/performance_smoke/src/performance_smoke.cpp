@@ -3,6 +3,7 @@
 #include "components/camera_component.h"
 #include "components/light_component.h"
 #include "components/mesh_component.h"
+#include "layers/contexts/asset_context.h"
 #include "layers/contexts/scene_context.h"
 #include "models/game_object.h"
 #include "models/mesh_factory.h"
@@ -70,6 +71,7 @@ namespace aiko::perf
         GameObject* root = Instantiate("World");
 
         const MeshAsset cube = mesh::factory::generateCube();
+        const AssetId cubeMeshId = assets().createMesh(cube);
 
         const float halfWidth = static_cast<float>(GridWidth - 1) * ObjectSpacing * 0.5f;
 
@@ -92,7 +94,7 @@ namespace aiko::perf
 
                 MeshComponent* meshComponent = object->addComponent<MeshComponent>();
 
-                meshComponent->load(cube);
+                meshComponent->load(cubeMeshId);
 
                 Material& material = meshComponent->getMaterial();
 

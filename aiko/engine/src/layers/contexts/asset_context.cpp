@@ -11,6 +11,7 @@
 
 #include "models/font.h"
 #include "assets/types/texture_asset.h"
+#include "assets/types/mesh_asset.h"
 #include "systems/system_connector.h"
 #include "systems/asset_system.h"
 
@@ -44,6 +45,11 @@ namespace aiko
         const AssetId id = m_assetSystem->registerAsset<TextureAsset>(source);
         m_assetSystem->loadAsset<TextureAsset>(id);
         return id;
+    }
+
+    AssetId AssetContext::createMesh(const MeshAsset& mesh)
+    {
+        return m_assetSystem->create(mesh);
     }
 
     Font AssetContext::loadFont(string_view source, float pixelSize)

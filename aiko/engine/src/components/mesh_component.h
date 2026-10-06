@@ -36,6 +36,7 @@ namespace aiko
 
         void load(string path);
         void load(MeshAsset mesh);
+        void load(const AssetId& id);
 
         void loadPrimitive(MeshPrimitive primitive);
         MeshPrimitive getPrimitive() const { return m_primitive; }
