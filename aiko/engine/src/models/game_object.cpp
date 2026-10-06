@@ -42,42 +42,22 @@ namespace aiko
 
     GameObject* GameObject::getParent()
     {
-        Transform* parent = transform().getParent();
-
-        if (parent == nullptr || m_scene == nullptr)
+        if (m_scene == nullptr)
         {
             return nullptr;
         }
 
-        for (GameObject* object : m_scene->getObjects())
-        {
-            if (&object->transform() == parent)
-            {
-                return object;
-            }
-        }
-
-        return nullptr;
+        return m_scene->findByTransform(transform().getParent());
     }
 
     const GameObject* GameObject::getParent() const
     {
-        const Transform* parent = transform().getParent();
-
-        if (parent == nullptr || m_scene == nullptr)
+        if (m_scene == nullptr)
         {
             return nullptr;
         }
 
-        for (const GameObject* object : std::as_const(*m_scene).getObjects())
-        {
-            if (&object->transform() == parent)
-            {
-                return object;
-            }
-        }
-
-        return nullptr;
+        return m_scene->findByTransform(transform().getParent());
     }
 
     vector<GameObject*> GameObject::getChildren()
@@ -90,17 +70,14 @@ namespace aiko
         }
 
         const vector<Transform*>& children = transform().getChildren();
+
         result.reserve(children.size());
 
         for (Transform* child : children)
         {
-            for (GameObject* object : m_scene->getObjects())
+            if (GameObject* object = m_scene->findByTransform(child))
             {
-                if (&object->transform() == child)
-                {
-                    result.push_back(object);
-                    break;
-                }
+                result.push_back(object);
             }
         }
 
@@ -117,17 +94,14 @@ namespace aiko
         }
 
         const vector<Transform*>& children = transform().getChildren();
+
         result.reserve(children.size());
 
         for (const Transform* child : children)
         {
-            for (const GameObject* object : std::as_const(*m_scene).getObjects())
+            if (const GameObject* object = m_scene->findByTransform(child))
             {
-                if (&object->transform() == child)
-                {
-                    result.push_back(object);
-                    break;
-                }
+                result.push_back(object);
             }
         }
 

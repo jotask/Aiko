@@ -25,8 +25,10 @@ namespace aiko
         object->setName(std::move(name));
         GameObject* result = object.get();
         result->m_scene = this;
-        registerObjectComponents(*result);
         m_objects.emplace_back(std::move(object));
+        m_objectIndex.emplace(result->uuid(), result);
+        m_transformOwners.emplace(&result->transform(), result);
+        registerObjectComponents(*result);
         return result;
     }
 
@@ -51,26 +53,34 @@ namespace aiko
 
     GameObject* Scene::find(const uuid::Uuid& id)
     {
-        for (const auto& object : m_objects)
-        {
-            if (object != nullptr && object->uuid() == id)
-            {
-                return object.get();
-            }
-        }
-        return nullptr;
+        const auto it = m_objectIndex.find(id);
+        return it != m_objectIndex.end() ? it->second : nullptr;
     }
 
     const GameObject* Scene::find(const uuid::Uuid& id) const
     {
-        for (const auto& object : m_objects)
+        const auto it = m_objectIndex.find(id);
+        return it != m_objectIndex.end() ? it->second : nullptr;
+    }
+
+    GameObject* Scene::findByTransform(const Transform* transform)
+    {
+        if (transform == nullptr)
         {
-            if (object != nullptr && object->uuid() == id)
-            {
-                return object.get();
-            }
+            return nullptr;
         }
-        return nullptr;
+        const auto it = m_transformOwners.find(transform);
+        return it != m_transformOwners.end() ? it->second : nullptr;
+    }
+
+    const GameObject* Scene::findByTransform(const Transform* transform) const
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+        const auto it = m_transformOwners.find(transform);
+        return it != m_transformOwners.end() ? it->second : nullptr;
     }
 
     bool Scene::remove(const GameObject* obj)
@@ -97,6 +107,9 @@ namespace aiko
             m_activeCamera = nullptr;
         }
 
+        m_objectIndex.erase(object->uuid());
+        m_transformOwners.erase(&object->transform());
+
         destroyObject(*object);
 
         m_objects.erase(it);
@@ -115,6 +128,8 @@ namespace aiko
         }
         m_objects.clear();
         m_componentIndex.clear();
+        m_objectIndex.clear();
+        m_transformOwners.clear();
         m_activeCamera = nullptr;
     }
 
