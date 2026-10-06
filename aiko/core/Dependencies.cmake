@@ -12,7 +12,8 @@ FetchContent_Declare(
 
 message("Fetching spdlog")
 FetchContent_MakeAvailable(spdlog)
-set_target_properties(spdlog PROPERTIES FOLDER "Dependencies")
+
+aiko_add_dependency(spdlog)
 
 #----------------------------------------------------------------------
 
@@ -27,7 +28,8 @@ FetchContent_Declare(
 message("Fetching glm")
 FetchContent_MakeAvailable(glm)
 target_compile_definitions(glm INTERFACE GLM_FORCE_SILENT_WARNINGS)
-set_target_properties(glm PROPERTIES FOLDER "Dependencies")
+
+aiko_add_dependency(glm)
 
 #----------------------------------------------------------------------
 
@@ -42,7 +44,8 @@ FetchContent_Declare(
 set(TRACY_ENABLE ${AIKO_PROFILER} CACHE BOOL "Enable profiling" FORCE)
 message("Fetching tracy")
 FetchContent_MakeAvailable(tracy)
-set_target_properties(TracyClient PROPERTIES FOLDER "Dependencies")
+
+aiko_add_dependency(TracyClient)
 
 if (AIKO_PROFILER)
 
@@ -75,11 +78,15 @@ if (AIKO_PROFILER)
             COMMENT "Building Tracy profiler"
     )
 
+    aiko_add_dependency(TracyProfilerBuild)
+
     add_custom_target(TracyProfiler
             COMMAND /bin/bash "${TRACY_PROFILER_LAUNCHER}"
             DEPENDS TracyProfilerBuild
             COMMENT "Launching Tracy profiler"
     )
+
+    aiko_add_dependency(TracyProfiler)
 
 endif()
 
@@ -101,6 +108,8 @@ if (AIKO_PROFILER)
             COMMENT "Building Tracy csvexport"
     )
 
+    aiko_add_dependency(TracyCsvExportBuild)
+
     file(GENERATE OUTPUT "${TRACY_CSVEXPORT_LAUNCHER}" CONTENT
             "#!/usr/bin/env bash
             set -euo pipefail
@@ -120,3 +129,4 @@ if (AIKO_PROFILER)
 endif()
 
 #----------------------------------------------------------------------
+

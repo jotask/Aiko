@@ -6,6 +6,12 @@ function(aiko_add_target target)
     endif()
 endfunction()
 
+function(aiko_add_dependency target)
+    if(TARGET ${target})
+        set_property(TARGET ${target} PROPERTY FOLDER "Dependencies")
+    endif()
+endfunction()
+
 function(aiko_add_example target)
     if(TARGET ${target})
         set_property(TARGET ${target} PROPERTY FOLDER "AikoExamples")

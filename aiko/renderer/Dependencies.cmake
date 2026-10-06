@@ -17,7 +17,8 @@ FetchContent_Declare(
 )
 message("Fetching glfw")
 FetchContent_MakeAvailable(glfw)
-set_target_properties(glfw PROPERTIES FOLDER "Dependencies")
+
+aiko_add_dependency(glfw)
 
 #----------------------------------------------------------------------
 
@@ -51,6 +52,6 @@ if(NOT imgui_POPULATED)
     target_link_libraries(imgui PRIVATE glfw)
 endif ()
 
-set_target_properties(imgui PROPERTIES FOLDER "Dependencies")
+aiko_add_dependency(imgui)
 
 #----------------------------------------------------------------------

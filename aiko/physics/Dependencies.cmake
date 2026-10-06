@@ -40,4 +40,6 @@ if(NOT AIKO_ENGINE_DEBUG)
     target_compile_definitions(Jolt INTERFACE NDEBUG)
 endif()
 
+aiko_add_dependency(Jolt)
+
 #----------------------------------------------------------------------
