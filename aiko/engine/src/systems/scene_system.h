@@ -42,6 +42,8 @@ namespace aiko
         Scene& getScene();
         const Scene& getScene() const;
 
+        void clear();
+
     protected:
 
         virtual void connect(ModuleConnector*, SystemConnector*) override;

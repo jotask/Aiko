@@ -8,6 +8,7 @@
 #include "serializer/scene_serializer_YAML.h"
 #include "systems/scene_system.h"
 #include "commands/game_object/duplicate_game_object_command.h"
+#include "components/camera_component.h"
 #include <layers/contexts/runtime_context.h>
 
 #include <display/display_events.hpp>
@@ -38,8 +39,11 @@ namespace aiko::editor
     {
         context.clearSelection();
         context.commands().clear();
-        Scene& scene = context.sceneSystem().getScene();
-        scene.clear();
+        SceneSystem& sceneSystem = context.sceneSystem();
+        sceneSystem.clear();
+        GameObject* camera = sceneSystem.createGameObject("Camera");
+        camera->addComponent<CameraComponent>(camera::CameraController::Orbit);
+        sceneSystem.setActiveCamera(camera);
         context.document().reset();
     }
 

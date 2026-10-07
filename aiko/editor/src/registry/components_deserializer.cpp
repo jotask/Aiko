@@ -119,11 +119,10 @@ namespace aiko::editor::component
             return false;
         }
         const string source = node["source"].as<string>();
-        if (source.empty())
+        if (source.empty() == false)
         {
-            return false;
+            component->load(source);
         }
-        component->load(source);
         return true;
     }
 
