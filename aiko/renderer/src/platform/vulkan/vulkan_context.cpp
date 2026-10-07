@@ -202,7 +202,7 @@ namespace aiko::renderer::vulkan
         constexpr VkApplicationInfo appInfo =
         {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-            .pApplicationName = "Naiko Renderer",
+            .pApplicationName = "Aiko Engine",
             .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
             .pEngineName = "Aiko",
             .engineVersion = VK_MAKE_VERSION(1, 0, 0),
