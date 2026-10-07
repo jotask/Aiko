@@ -51,6 +51,17 @@ namespace aiko
             return Color(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
         }
 
+        static constexpr Color lerp(const Color& from, const Color& to, float t)
+        {
+            return
+            {
+                from.r + (to.r - from.r) * t,
+                from.g + (to.g - from.g) * t,
+                from.b + (to.b - from.b) * t,
+                from.a + (to.a - from.a) * t
+            };
+        }
+
     };
 
     // Thanks raysan

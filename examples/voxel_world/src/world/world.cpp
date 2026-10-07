@@ -21,8 +21,8 @@ namespace vw
     void World::setup(aiko::LayerContext& context)
     {
         m_context = &context;
-        m_worldRoot = m_context->Instantiate("World");
-        AIKO_ASSERT(m_worldRoot != nullptr, "Couldn't create World Root GameObject")
+        m_worldRoot = m_context->scene().Instantiate("World");
+        AIKO_ASSERT(m_worldRoot != nullptr, "Couldn't create World Root GameObject");
     }
 
     void World::generate()
@@ -112,12 +112,16 @@ namespace vw
         Chunk chunk = {};
 
         const std::string chunk_name = std::format("Chunk({}, {})", x, z);
-        aiko::GameObject* chunkGO = m_context->Instantiate(m_worldRoot, chunk_name.c_str());
+        aiko::GameObject* chunkGO = m_context->scene().Instantiate(m_worldRoot, chunk_name.c_str());
 
         auto meshCMP = chunkGO->addComponent<aiko::MeshComponent>();
         auto bodyCMP = chunkGO->addComponent<aiko::RigidBodyComponent>();
 
         meshCMP->load(asset);
+
+        aiko::Material& material = meshCMP->getMaterial();
+        material.m_useVertexColor = true;
+        material.m_lit = true;
 
         aiko::Transform transform;
         transform.position =

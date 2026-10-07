@@ -3,6 +3,7 @@
 #include "aiko_types.h"
 
 #include <utility>
+#include <format>
 #include <sstream>      // std::stringstream
 
 namespace aiko
@@ -63,6 +64,42 @@ namespace aiko
             static LogStream error() { return LogStream(Type::Error); }
             static LogStream critical() { return LogStream(Type::Critical); }
 
+            template<typename... Args>
+            static void traceFmt(std::format_string<Args...> fmt, Args&&... args)
+            {
+                logFormat(Type::Trace, fmt, std::forward<Args>(args)...);
+            }
+
+            template<typename... Args>
+            static void debugFmt(std::format_string<Args...> fmt, Args&&... args)
+            {
+                logFormat(Type::Debug, fmt, std::forward<Args>(args)...);
+            }
+
+            template<typename... Args>
+            static void infoFmt(std::format_string<Args...> fmt, Args&&... args)
+            {
+                logFormat(Type::Info, fmt, std::forward<Args>(args)...);
+            }
+
+            template<typename... Args>
+            static void warningFmt(std::format_string<Args...> fmt,Args&&... args)
+            {
+                logFormat(Type::Warning, fmt, std::forward<Args>(args)...);
+            }
+
+            template<typename... Args>
+            static void errorFmt(std::format_string<Args...> fmt, Args&&... args)
+            {
+                logFormat(Type::Error, fmt, std::forward<Args>(args)...);
+            }
+
+            template<typename... Args>
+            static void criticalFmt(std::format_string<Args...> fmt, Args&&... args)
+            {
+                logFormat(Type::Critical,fmt,std::forward<Args>(args)...);
+            }
+
             static void init();
 
         private:
@@ -73,6 +110,13 @@ namespace aiko
                 char buffer[1024];
                 std::snprintf(buffer, sizeof(buffer), fmt.c_str(), args...);
                 log(type, buffer);
+            }
+
+            template<typename... Args>
+            static void logFormat(Type type, std::format_string<Args...> fmt, Args&&... args)
+            {
+                const std::string message = std::format(fmt, std::forward<Args>(args)...);
+                log(type, message.c_str());
             }
 
             static void log(Type, const char* message);
@@ -94,3 +138,10 @@ namespace aiko
 #define AIKO_LOG_WARNING(...)  ::aiko::logger::Log::warning(__VA_ARGS__)
 #define AIKO_LOG_ERROR(...)    ::aiko::logger::Log::error(__VA_ARGS__)
 #define AIKO_LOG_CRITICAL(...) ::aiko::logger::Log::critical(__VA_ARGS__)
+
+#define AIKO_LOG_TRACE_FMT(...)     ::aiko::logger::Log::traceFmt(__VA_ARGS__)
+#define AIKO_LOG_DEBUG_FMT(...)     ::aiko::logger::Log::debugFmt(__VA_ARGS__)
+#define AIKO_LOG_INFO_FMT(...)      ::aiko::logger::Log::infoFmt(__VA_ARGS__)
+#define AIKO_LOG_WARNING_FMT(...)   ::aiko::logger::Log::warningFmt(__VA_ARGS__)
+#define AIKO_LOG_ERROR_FMT(...)     ::aiko::logger::Log::errorFmt(__VA_ARGS__)
+#define AIKO_LOG_CRITICAL_FMT(...)  ::aiko::logger::Log::criticalFmt(__VA_ARGS__)

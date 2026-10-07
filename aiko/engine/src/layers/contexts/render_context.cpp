@@ -32,9 +32,39 @@ namespace aiko
         m_renderSystem->drawVerticesGpu(desc);
     }
 
+    void RenderContext::drawFullscreen(const Material& material)
+    {
+        m_renderSystem->drawFullscreen(material);
+    }
+
+    ivec2 RenderContext::getRenderSize() const
+    {
+        return m_renderSystem->getRenderSize();
+    }
+
+    void RenderContext::drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc)
+    {
+        m_renderSystem->drawMeshInstancedGpu(desc);
+    }
+
     void RenderContext::renderToTarget(const Camera& camera, RenderTarget& target)
     {
         m_renderSystem->renderToTarget(camera, target);
+    }
+
+    ImguiTextureId RenderContext::getTextureId(const AssetId& textureId) const
+    {
+        return m_renderSystem->getTextureId(textureId);
+    }
+
+    ImguiTextureId RenderContext::getTextureId(const AssetId& textureId, const SamplerState& sampler) const
+    {
+        return m_renderSystem->getTextureId(textureId, sampler);
+    }
+
+    void RenderContext::drawText(const Font& font, string_view text, const Transform& transform, float fontSize, Color color)
+    {
+        m_renderSystem->drawText(font, text, transform, fontSize, color);
     }
 
 }

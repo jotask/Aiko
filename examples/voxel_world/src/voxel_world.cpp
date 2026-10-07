@@ -1,5 +1,7 @@
 #include "voxel_world.h"
 
+#include "layers/contexts/input_context.h"
+#include "layers/contexts/scene_context.h"
 #include "systems/system_connector.h"
 #include "voxel_world_constants.h"
 
@@ -19,10 +21,8 @@ namespace vw
     void VoxelWorld::init()
     {
 
-        aiko::GameObject* camera = Instantiate("Camera");
-        m_playerCamera = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Static);
-        camera->transform().position = { 32.0f, 77.0f, 32.0f };
-        m_playerCamera->getCamera().position = camera->transform().position;
+        m_playerCamera = scene().createCamera(aiko::camera::CameraController::Static);
+        m_playerCamera->getCamera().position = { 32.0f, 77.0f, 32.0f };
         m_playerCamera->speed() *=  2.0f;
 
         m_world.setup(context());
@@ -42,12 +42,12 @@ namespace vw
             m_playerComponent = player->addComponent<aiko::PlayerControllerComponent>();
             aiko::PlayerControllerComponentDesc desc;
             desc.physics.position = {8.0f, 80.0f, 8.0f};
-            desc.physics.radius = 0.4f;
-            desc.physics.halfHeight = 0.9f;
-            desc.physics.walkSpeed = 6.0f;
-            desc.physics.jumpSpeed = 8.0f;
-            desc.physics.maxSlopeAngleDegrees = 50.0f;
-            desc.eyeHeight = 1.6f;
+            desc.physics.radius = 0.3f;
+            desc.physics.halfHeight = 0.6f;
+            desc.physics.walkSpeed = 4.3f;
+            desc.physics.jumpSpeed = 5.0f;
+            desc.physics.maxSlopeAngleDegrees = 45.0f;
+            desc.eyeHeight = 1.62f;
             desc.debugDraw = true;
             m_playerComponent->create(desc);
         }
@@ -64,7 +64,7 @@ namespace vw
             desc.transform.rotation = aiko::vec3(0.0f);
             desc.transform.scale = aiko::vec3(1.0f);
             desc.shape.type = aiko::physics::ShapeType::Sphere;
-            desc.shape.sphere.radius = 1.0f;
+            desc.shape.sphere.radius = 0.25f;
             desc.restitution = 0.85f;
             desc.debugDraw = true;
             ballBody->create(desc);
@@ -75,41 +75,41 @@ namespace vw
     void VoxelWorld::update()
     {
 
-        if (isKeyJustPressed(aiko::KEY_R))
+        if (input().isKeyJustPressed(aiko::Key::KEY_R))
         {
             m_world.generate();
         }
 
         aiko::vec2 move = {0.0f};
-        if (isKeyPressed(aiko::KEY_LEFT))
+        if (input().isKeyPressed(aiko::Key::KEY_A))
         {
             move.x = 1.0f;
         }
-        else if (isKeyPressed(aiko::KEY_RIGHT))
+        else if (input().isKeyPressed(aiko::Key::KEY_D))
         {
             move.x = -1.0f;
         }
-        if (isKeyPressed(aiko::KEY_UP))
+        if (input().isKeyPressed(aiko::Key::KEY_W))
         {
             move.y = 1.0f;
         }
-        else if (isKeyPressed(aiko::KEY_DOWN))
+        else if (input().isKeyPressed(aiko::Key::KEY_S))
         {
             move.y = -1.0f;
         }
 
         m_playerComponent->setMoveInput(move);
-        m_playerComponent->setJumpPressed(isKeyPressed(aiko::KEY_SPACE));
+        m_playerComponent->setJumpPressed(input().isKeyPressed(aiko::Key::KEY_SPACE));
 
         m_world.update();
 
-        const aiko::vec2 mouseDelta = getMouseDelta();
+        const aiko::vec2 mouseDelta = input().getMouseDelta();
         constexpr float sensitivity = 0.001f;
         aiko::Camera& camera = m_playerCamera->getCamera();
         m_playerComponent->addLookDelta(mouseDelta.x * sensitivity, mouseDelta.y * sensitivity);
         camera.position = m_playerComponent->getCameraPosition();
         camera.target = camera.position + m_playerComponent->getCameraForward();
-        setIsMouseCentred(true);
+        input().setMouseCaptured(true);
 
     }
 

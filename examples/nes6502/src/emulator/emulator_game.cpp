@@ -27,123 +27,116 @@ namespace nes
         if (ImGui::Begin(name.c_str(), &is_open, flags))
         {
 
-            auto pbo = naiko->getApplication()->getNesGo();
-            const auto texture = pbo->getMaterial().m_diffuse.getInfo();
-            // Using a Child allow to fill all the space of the window.
-            // It also allows customization
+            NesEmulator* app = naiko->getApplication();
+
             ImGui::BeginChild("GameRender");
-            // Get the size of the child (i.e. the whole draw size of the windows).
 
-                        // Get the dimensions of the texture
-            ImVec2 textureSize = ImVec2(texture.width, texture.height);
+            ImVec2 textureSize = ImVec2( static_cast<float>(NES_WIDTH), static_cast<float>(NES_HEIGHT) );
 
-            // Calculate aspect ratio of the image
             float aspectRatio = textureSize.x / textureSize.y;
 
-            // Get available space in the window
             ImVec2 availableSpace = ImGui::GetContentRegionAvail();
 
-            // Calculate the maximum size of the image while maintaining the aspect ratio
             float maxWidth = availableSpace.x;
             float maxHeight = availableSpace.y;
             float imageWidth, imageHeight;
 
             if (maxWidth / maxHeight > aspectRatio)
             {
-                // Height is the limiting factor
                 imageHeight = maxHeight;
                 imageWidth = maxHeight * aspectRatio;
             }
             else
             {
-                // Width is the limiting factor
                 imageWidth = maxWidth;
                 imageHeight = maxWidth / aspectRatio;
             }
 
-            // Ensure that the image does not exceed the available space
             imageWidth = std::min(imageWidth, maxWidth);
             imageHeight = std::min(imageHeight, maxHeight);
 
             ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - imageWidth) * 0.5f, 0));
-            ImGui::Image((ImTextureID)pbo->getMaterial().m_diffuse.id(), ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image(static_cast<ImTextureID>( app->getImguiTextureId( app->getNesTextureId() ) ), ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0 ));
             ImGui::EndChild();
 
         }
         ImGui::End();
     }
 
-    void GameWindow::onNesClock(NesOnClockEvent& event)
+    void GameWindow::onNesClock(const NesOnClockEvent& event)
     {
+        AIKO_UNUSED(event);
 
-        constexpr const uint16_t PARTICLES_AMOUNT = 1000;
+        constexpr uint16_t ParticleCount = 1000;
 
-        auto pbo = naiko->getApplication()->getNesGo();
+        auto pixels = naiko->getPpu()->getPixels();
 
-        pbo->setPixels( naiko->getPpu()->getPixels() );
-
-        auto randomPosition = [&]() -> aiko::vec2
+        auto randomPosition = []() -> aiko::vec2
         {
-            return aiko::vec2
-            (
-                aiko::utils::getRandomValue(0, NES_WIDTH - 1),
-                aiko::utils::getRandomValue(0, NES_HEIGHT - 1)
-            );
+            return
+            {
+                static_cast<float>(aiko::utils::getRandomValue(0, NES_WIDTH - 1)),
+                static_cast<float>(aiko::utils::getRandomValue(0, NES_HEIGHT - 1))
+            };
         };
 
-        auto randomVelocity = [&]() -> aiko::vec2
+        auto randomVelocity = []() -> aiko::vec2
         {
-            return aiko::vec2
-            (
+            return
+            {
                 aiko::utils::getRandomValue(-1.0f, 1.0f),
                 aiko::utils::getRandomValue(-1.0f, 1.0f)
-            );
+            };
         };
 
-        struct Particle { aiko::vec2 p; aiko::vec2 v; };
-
-        static std::vector<Particle> particles(PARTICLES_AMOUNT);
-        bool static first = true;
-        if (first)
+        struct Particle
         {
-            first = false;
-            for (auto& p : particles)
+            aiko::vec2 position;
+            aiko::vec2 velocity;
+        };
+
+        static std::vector<Particle> particles(ParticleCount);
+        static bool initialized = false;
+
+        if (initialized == false)
+        {
+            initialized = true;
+
+            for (Particle& particle : particles)
             {
-                p.p = randomPosition();
-                p.v = randomVelocity();
+                particle.position = randomPosition();
+                particle.velocity = randomVelocity();
             }
         }
 
-        for (auto& p : particles)
+        for (Particle& particle : particles)
         {
+            particle.position += particle.velocity;
 
-            // Clear the previous pixel
-            pbo->setPixel(p.p.x, p.p.y, aiko::BLACK);
-
-            // Update the position
-            p.p.x += p.v.x;
-            p.p.y += p.v.y;
-
-            const auto info = pbo->getMaterial().m_diffuse.getInfo();
-
-            // Check for boundary collision and reverse direction if necessary
-            if (p.p.x < 0 || p.p.x >= info.width)
+            if (particle.position.x < 0.0f || particle.position.x >= static_cast<float>(NES_WIDTH))
             {
-                p.v.x = -p.v.x;
-                p.p.x += p.v.x; // Correct the position after reversing direction
-            }
-            if (p.p.y < 0 || p.p.y >= info.height)
-            {
-                p.v.y = -p.v.y;
-                p.p.y += p.v.y; // Correct the position after reversing direction
+                particle.velocity.x = -particle.velocity.x;
+                particle.position.x += particle.velocity.x;
             }
 
-            // Draw the new pixel
-            pbo->setPixel(p.p.x, p.p.y, aiko::WHITE);
+            if (particle.position.y < 0.0f || particle.position.y >= static_cast<float>(NES_HEIGHT))
+            {
+                particle.velocity.y = -particle.velocity.y;
+                particle.position.y += particle.velocity.y;
+            }
 
+            const size_t x = static_cast<size_t>(particle.position.x);
+            const size_t y = static_cast<size_t>(particle.position.y);
+
+            const size_t index = y * static_cast<size_t>(NES_WIDTH) + x;
+
+            if (index < pixels.size())
+            {
+                pixels[index] = aiko::WHITE;
+            }
         }
 
-        pbo->refresh();
+        naiko->getApplication()->updateNesTexture(pixels);
     }
 
 }

@@ -2,15 +2,14 @@
 
 #include "components/camera_component.h"
 #include "display/display_manager.h"
-#include <intrumentor/profiler.h>
-#include "modules/render_module.h"
-
+#include "models/game_object.h"
 #include "modules/module_connector.h"
+#include "modules/render_module.h"
+#include "scene/scene.h"
 #include "systems/render_system.h"
 #include "systems/system_connector.h"
 
-#include "scene/scene.h"
-#include "models/game_object.h"
+#include <intrumentor/profiler.h>
 
 namespace aiko
 {
@@ -42,7 +41,13 @@ namespace aiko
 
         for (MeshComponent* component : m_scene.components<MeshComponent>())
         {
+            if (component == nullptr || component->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
+
             GameObject* gameObject = component->getGameObject();
+
             AIKO_ASSERT(gameObject != nullptr, "MeshComponent is not attached to a GameObject");
 
             m_renderSystem->render(gameObject->transform(), *component);
@@ -50,7 +55,13 @@ namespace aiko
 
         for (ModelComponent* component : m_scene.components<ModelComponent>())
         {
+            if (component == nullptr || component->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
+
             GameObject* gameObject = component->getGameObject();
+
             AIKO_ASSERT(gameObject != nullptr, "ModelComponent is not attached to a GameObject");
 
             m_renderSystem->render(gameObject->transform(), *component);
@@ -58,9 +69,12 @@ namespace aiko
 
         for (SpriteComponent* component : m_scene.components<SpriteComponent>())
         {
+            if (component == nullptr || component->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
             GameObject* gameObject = component->getGameObject();
             AIKO_ASSERT(gameObject != nullptr, "SpriteComponent is not attached to a GameObject");
-
             m_renderSystem->render(gameObject->transform(), *component);
         }
     }
@@ -80,6 +94,26 @@ namespace aiko
         return m_scene.create(parent, name);
     }
 
+    GameObject* SceneSystem::createGameObject(const uuid::Uuid& id, string name)
+    {
+        return m_scene.create(id, std::move(name));
+    }
+
+    GameObject* SceneSystem::createGameObject(const uuid::Uuid& id, GameObject* parent, string name)
+    {
+        return m_scene.create(id, parent, std::move(name));
+    }
+
+    GameObject* SceneSystem::findGameObject(const uuid::Uuid& id)
+    {
+        return m_scene.find(id);
+    }
+
+    const GameObject* SceneSystem::findGameObject(const uuid::Uuid& id) const
+    {
+        return m_scene.find(id);
+    }
+
     void SceneSystem::destroyGameObject(const GameObject* obj)
     {
         m_scene.remove(obj);
@@ -97,22 +131,32 @@ namespace aiko
 
     Camera* SceneSystem::getMainCamera()
     {
-        const auto cameras = m_scene.components<CameraComponent>();
-        if (cameras.empty())
+        for (CameraComponent* component : m_scene.components<CameraComponent>())
         {
-            return nullptr;
+            if (component == nullptr || component->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
+
+            return &component->getCamera();
         }
-        return &cameras.front()->getCamera();
+
+        return nullptr;
     }
 
     const Camera* SceneSystem::getMainCamera() const
     {
-        const auto cameras = m_scene.components<CameraComponent>();
-        if (cameras.empty())
+        for (const CameraComponent* component : m_scene.components<CameraComponent>())
         {
-            return nullptr;
+            if (component == nullptr || component->isActiveAndEnabled() == false)
+            {
+                continue;
+            }
+
+            return &component->getCamera();
         }
-        return &cameras.front()->getCamera();
+
+        return nullptr;
     }
 
     void SceneSystem::setActiveCamera(GameObject* obj)

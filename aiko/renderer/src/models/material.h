@@ -73,6 +73,9 @@
 
         void setMat4(const string& name, const mat4& value);
 
+        void setFloatArray(const string& name, vector<float> values);
+        void setVec3Array(const string& name, vector<vec3> values);
+
         void setTextureSampler(const string& name, const SamplerState& sampler);
 
         const UniformMap& uniforms() const

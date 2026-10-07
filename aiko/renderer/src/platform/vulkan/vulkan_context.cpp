@@ -44,10 +44,11 @@ namespace aiko::renderer::vulkan
         createSurface();
         pickPhysicalDevice();
         createLogicalDevice();
-        m_gpuProfiler.create(m_physicalDevice, m_device, m_graphicsQueueFamily, MAX_FRAMES_IN_FLIGHT);
+        m_gpuProfiler.create(m_physicalDevice, m_device, m_graphicsQueueFamily, m_computeQueueFamily, MAX_FRAMES_IN_FLIGHT);
         createSwapChain();
         createImageViews();
-        createRenderPass();
+        m_clearRenderPass = createRenderPass(VK_ATTACHMENT_LOAD_OP_CLEAR);
+        m_loadRenderPass = createRenderPass(VK_ATTACHMENT_LOAD_OP_LOAD);
         createCommandPool();
         createComputeCommandPool();
         createSwapChainDepthResources();
@@ -130,10 +131,16 @@ namespace aiko::renderer::vulkan
         m_commandBuffers.clear();
         m_activeCommandBuffer = VK_NULL_HANDLE;
 
-        if (m_renderPass != VK_NULL_HANDLE)
+        if (m_clearRenderPass != VK_NULL_HANDLE)
         {
-            vkDestroyRenderPass(m_device, m_renderPass, nullptr);
-            m_renderPass = VK_NULL_HANDLE;
+            vkDestroyRenderPass(m_device, m_clearRenderPass, nullptr);
+            m_clearRenderPass = VK_NULL_HANDLE;
+        }
+
+        if (m_loadRenderPass != VK_NULL_HANDLE)
+        {
+            vkDestroyRenderPass(m_device, m_loadRenderPass, nullptr);
+            m_loadRenderPass = VK_NULL_HANDLE;
         }
 
         m_gpuProfiler.destroy();
@@ -175,6 +182,7 @@ namespace aiko::renderer::vulkan
 
         m_currentFrame = 0;
         m_currentImageIndex = 0;
+        m_capabilities = {};
 
         m_window = nullptr;
 
@@ -194,7 +202,7 @@ namespace aiko::renderer::vulkan
         constexpr VkApplicationInfo appInfo =
         {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-            .pApplicationName = "Naiko Renderer",
+            .pApplicationName = "Aiko Engine",
             .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
             .pEngineName = "Aiko",
             .engineVersion = VK_MAKE_VERSION(1, 0, 0),
@@ -284,15 +292,22 @@ namespace aiko::renderer::vulkan
 
     void VulkanContext::pickPhysicalDevice()
     {
-        uint32_t deviceCount = 0;
-        const VkResult result =vkEnumeratePhysicalDevices(m_vk, &deviceCount, nullptr);
-        AIKO_ASSERT(result == VK_SUCCESS, "vkEnumeratePhysicalDevices failed");
-        logger::Log::info("Physical Devices found : %u", deviceCount);
-        AIKO_ASSERT(deviceCount > 0, "failed to find GPUs with Vulkan support!");
+        const std::vector<VkPhysicalDevice> devices =
+            enumerateVulkanValues<VkPhysicalDevice>(
+                [this](uint32_t* count, VkPhysicalDevice* devices)
+                {
+                    return vkEnumeratePhysicalDevices(
+                        m_vk,
+                        count,
+                        devices
+                    );
+                },
+                "Failed to enumerate Vulkan physical devices"
+            );
 
-        std::vector<VkPhysicalDevice> devices(deviceCount);
-        const VkResult res = vkEnumeratePhysicalDevices(m_vk, &deviceCount, devices.data());
-        AIKO_ASSERT(res == VK_SUCCESS, "Failed to enumerate physical devices");
+        logger::Log::info("Physical Devices found : %u", static_cast<uint32_t>(devices.size()));
+
+        AIKO_ASSERT(devices.empty() == false, "failed to find GPUs with Vulkan support!");
 
         for (const auto& device : devices)
         {
@@ -342,10 +357,11 @@ namespace aiko::renderer::vulkan
 
         VkPhysicalDeviceFeatures supportedFeatures{};
         vkGetPhysicalDeviceFeatures(m_physicalDevice, &supportedFeatures);
-        AIKO_ASSERT(supportedFeatures.fillModeNonSolid == VK_TRUE, "Vulkan device does not support non-solid fill modes");
+
+        m_capabilities.nonSolidFill = supportedFeatures.fillModeNonSolid == VK_TRUE;
 
         VkPhysicalDeviceFeatures deviceFeatures{};
-        deviceFeatures.fillModeNonSolid = VK_TRUE;
+        deviceFeatures.fillModeNonSolid = m_capabilities.nonSolidFill ? VK_TRUE : VK_FALSE;
 
         const VkDeviceCreateInfo createInfo =
         {
@@ -379,6 +395,8 @@ namespace aiko::renderer::vulkan
     void VulkanContext::createSwapChain(VkSwapchainKHR oldSwapchain)
     {
         SwapChainSupportDetails swapChainSupport = querySwapChainSupport(m_physicalDevice, m_surface);
+
+        AIKO_ASSERT((swapChainSupport.capabilties.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) != 0, "Vulkan surface does not support swapchain color attachments");
 
         const VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
         VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes, m_vsync);
@@ -442,11 +460,23 @@ namespace aiko::renderer::vulkan
         createInfo.oldSwapchain = oldSwapchain;
 
         VkResult swapChainResult = vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &m_swapChain);
-        AIKO_ASSERT(swapChainResult == VK_SUCCESS, "Failed to crate SwapChain" );
+        AIKO_ASSERT(swapChainResult == VK_SUCCESS, "Failed to create SwapChain" );
 
-        vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, nullptr);
-        m_swapChainImages.resize(imageCount);
-        vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, m_swapChainImages.data());
+        m_swapChainImages =
+            enumerateVulkanValues<VkImage>(
+                [this](uint32_t* count, VkImage* images)
+                {
+                    return vkGetSwapchainImagesKHR(
+                        m_device,
+                        m_swapChain,
+                        count,
+                        images
+                    );
+                },
+                "Failed to query Vulkan swapchain images"
+            );
+
+        AIKO_ASSERT(m_swapChainImages.empty() == false, "Vulkan swapchain returned no images");
 
         m_swapChainImageFormat = surfaceFormat.format;
         m_swapChainExtent = extent;
@@ -461,17 +491,23 @@ namespace aiko::renderer::vulkan
         }
     }
 
-    void VulkanContext::createRenderPass()
+    VkRenderPass VulkanContext::createRenderPass(VkAttachmentLoadOp colorLoadOp)
     {
+
+        const VkImageLayout initialLayout =
+            colorLoadOp == VK_ATTACHMENT_LOAD_OP_LOAD
+                ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+                : VK_IMAGE_LAYOUT_UNDEFINED;
+
         const VkAttachmentDescription colorAttachment =
         {
             .format = m_swapChainImageFormat,
             .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .loadOp = colorLoadOp,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .initialLayout = initialLayout,
             .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         };
 
@@ -530,8 +566,11 @@ namespace aiko::renderer::vulkan
             .pDependencies = &dependency,
         };
 
-        VkResult result = vkCreateRenderPass(m_device, &renderPassInfo, nullptr, &m_renderPass);
+        VkRenderPass renderPass = VK_NULL_HANDLE;
+        VkResult result = vkCreateRenderPass(m_device, &renderPassInfo, nullptr, &renderPass);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to create render pass!");
+
+        return renderPass;
     }
 
     void VulkanContext::createCommandPool()
@@ -626,7 +665,7 @@ namespace aiko::renderer::vulkan
             const VkFramebufferCreateInfo framebufferInfo =
             {
                 .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                .renderPass = m_renderPass,
+                .renderPass = m_clearRenderPass,
                 .attachmentCount = static_cast<uint32_t>(attachments.size()),
                 .pAttachments = attachments.data(),
                 .width = m_swapChainExtent.width,
@@ -728,7 +767,10 @@ namespace aiko::renderer::vulkan
 
         if (m_framebufferResized)
         {
-            recreateSwapChain();
+            if (recreateSwapChain() == false)
+            {
+                return false;
+            }
         }
 
         const VkResult fenceResult = vkWaitForFences(m_device, 1, &m_inFlightFences[m_currentFrame], VK_TRUE, UINT64_MAX);
@@ -740,6 +782,7 @@ namespace aiko::renderer::vulkan
         }
 
         m_gpuProfiler.resolveGraphicsFrame(m_currentFrame);
+        m_gpuProfiler.resolveComputeFrame(m_currentFrame);
 
         destroyRetiredResourcesForFrame(m_currentFrame);
         uint32_t imageIndex = 0;
@@ -748,11 +791,10 @@ namespace aiko::renderer::vulkan
         if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR)
         {
             recreateSwapChain();
-            acquireResult = vkAcquireNextImageKHR(m_device, m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
+            return false;
         }
 
         AIKO_ASSERT(acquireResult == VK_SUCCESS || acquireResult == VK_SUBOPTIMAL_KHR, "Failed to acquire swapchain image");
-
         m_currentImageIndex = imageIndex;
 
         m_preComputeCommandBufferUsed = false;
@@ -786,11 +828,16 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(computeBeginResult == VK_SUCCESS, "Failed to begin compute command buffer");
         }
 
-        vkResetFences(m_device, 1, &m_inFlightFences[m_currentFrame]);
-
         m_activeCommandBuffer = m_commandBuffers[m_currentFrame];
 
-        vkResetCommandBuffer(m_activeCommandBuffer, 0);
+        const VkResult commandBufferResetResult = vkResetCommandBuffer(m_activeCommandBuffer, 0);
+        AIKO_ASSERT(commandBufferResetResult == VK_SUCCESS, "Failed to reset Vulkan graphics command buffer");
+
+        if (commandBufferResetResult != VK_SUCCESS)
+        {
+            m_activeCommandBuffer = VK_NULL_HANDLE;
+            return false;
+        }
 
         const VkCommandBufferBeginInfo beginInfo =
         {
@@ -803,6 +850,16 @@ namespace aiko::renderer::vulkan
 
         if (beginResult != VK_SUCCESS)
         {
+            m_activeCommandBuffer = VK_NULL_HANDLE;
+            return false;
+        }
+
+        const VkResult fenceResetResult = vkResetFences(m_device, 1, &m_inFlightFences[m_currentFrame]);
+        AIKO_ASSERT(fenceResetResult == VK_SUCCESS, "Failed to reset Vulkan frame fence");
+
+        if (fenceResetResult != VK_SUCCESS)
+        {
+            m_activeCommandBuffer = VK_NULL_HANDLE;
             return false;
         }
 
@@ -971,18 +1028,27 @@ namespace aiko::renderer::vulkan
 
     }
 
-    void VulkanContext::recreateSwapChain()
+    bool VulkanContext::recreateSwapChain()
     {
 
         int width = 0;
         int height = 0;
-        while (width == 0 || height == 0)
+
+        glfwGetFramebufferSize(m_window, &width, &height);
+
+        while ((width == 0 || height == 0) && !glfwWindowShouldClose(m_window))
         {
-            glfwGetFramebufferSize(m_window, &width, &height);
             glfwWaitEvents();
+            glfwGetFramebufferSize(m_window, &width, &height);
         }
 
-        vkDeviceWaitIdle(m_device);
+        if (glfwWindowShouldClose(m_window))
+        {
+            return false;
+        }
+
+        const VkResult idleResult = vkDeviceWaitIdle(m_device);
+        AIKO_ASSERT(idleResult == VK_SUCCESS, "Failed waiting for Vulkan device idle during swapchain recreation");
 
         const VkFormat previousFormat = m_swapChainImageFormat;
         const VkSwapchainKHR oldSwapchain = m_swapChain;
@@ -1001,12 +1067,19 @@ namespace aiko::renderer::vulkan
 
         if (formatChanged == true)
         {
-            if (m_renderPass != VK_NULL_HANDLE)
+            if (m_clearRenderPass != VK_NULL_HANDLE)
             {
-                vkDestroyRenderPass(m_device, m_renderPass, nullptr);
-                m_renderPass = VK_NULL_HANDLE;
+                vkDestroyRenderPass(m_device, m_clearRenderPass, nullptr);
+                m_clearRenderPass = VK_NULL_HANDLE;
             }
-            createRenderPass();
+
+            if (m_loadRenderPass != VK_NULL_HANDLE)
+            {
+                vkDestroyRenderPass(m_device, m_loadRenderPass, nullptr);
+                m_loadRenderPass = VK_NULL_HANDLE;
+            }
+            m_clearRenderPass = createRenderPass(VK_ATTACHMENT_LOAD_OP_CLEAR);
+            m_loadRenderPass = createRenderPass(VK_ATTACHMENT_LOAD_OP_LOAD);
             m_swapChainFormatChanged = true;
         }
 
@@ -1031,6 +1104,8 @@ namespace aiko::renderer::vulkan
         m_activeCommandBuffer = VK_NULL_HANDLE;
 
         m_framebufferResized = false;
+
+        return true;
 
     }
 
@@ -1231,7 +1306,8 @@ namespace aiko::renderer::vulkan
             throw std::runtime_error("failed to allocate image memory!");
         }
 
-        vkBindImageMemory(m_device, image, imageMemory, 0);
+        const VkResult bindResult = vkBindImageMemory(m_device, image, imageMemory, 0);
+        AIKO_ASSERT(bindResult == VK_SUCCESS, "Failed to bind Vulkan image memory");
 
     }
 
@@ -1248,7 +1324,9 @@ namespace aiko::renderer::vulkan
         VkFormatProperties formatProperties;
         vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &formatProperties );
 
-        AIKO_ASSERT(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT, "Texture format does not support linear blitting" );
+        const VkFormatFeatureFlags requiredFeatures = VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+
+        AIKO_ASSERT((formatProperties.optimalTilingFeatures & requiredFeatures) == requiredFeatures, "Texture format does not support linear mipmap generation");
 
         int32_t mipWidth = static_cast<int32_t>(width);
         int32_t mipHeight = static_cast<int32_t>(height);
@@ -1375,7 +1453,8 @@ namespace aiko::renderer::vulkan
             throw std::runtime_error("failed to allocate buffer memory!");
         }
 
-        vkBindBufferMemory(m_device, buffer, bufferMemory, 0);
+        const VkResult bindResult = vkBindBufferMemory(m_device, buffer, bufferMemory, 0);
+        AIKO_ASSERT(bindResult == VK_SUCCESS, "Failed to bind Vulkan buffer memory");
     }
 
     void VulkanContext::retireBuffer(VkBuffer buffer, VkDeviceMemory memory)
@@ -1617,8 +1696,10 @@ namespace aiko::renderer::vulkan
             .commandBufferCount = 1,
         };
 
-        VkCommandBuffer commandBuffer;
-        vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+
+        const VkResult allocateResult = vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+        AIKO_ASSERT(allocateResult == VK_SUCCESS, "Failed to allocate single-time command buffer");
 
         const VkCommandBufferBeginInfo beginInfo =
         {
@@ -1626,20 +1707,16 @@ namespace aiko::renderer::vulkan
             .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
         };
 
-        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+        const VkResult beginResult = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+        AIKO_ASSERT(beginResult == VK_SUCCESS, "Failed to begin single-time command buffer");
 
         return commandBuffer;
     }
 
     void VulkanContext::endSingleTimeCommands(VkCommandBuffer commandBuffer)
     {
-        const VkResult result = vkEndCommandBuffer(commandBuffer);
-
-        if (result != VK_SUCCESS)
-        {
-            logger::Log::error("Failed to end single-time command buffer!");
-            std::exit(-1);
-        }
+        const VkResult endResult = vkEndCommandBuffer(commandBuffer);
+        AIKO_ASSERT(endResult == VK_SUCCESS, "Failed to end single-time command buffer");
 
         const VkSubmitInfo submitInfo =
         {

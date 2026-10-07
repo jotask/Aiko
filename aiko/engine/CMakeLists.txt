@@ -20,16 +20,18 @@ target_link_libraries(Aiko
         assimp
         stb
         nlohmann_json::nlohmann_json
-        AikoCore
         AikoRenderer
         AikoPhysics
         magic_enum
         imgui
 
         PUBLIC
+        AikoCore
         AikoPublicHeaders
 )
 
 target_include_directories(Aiko PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 
 aiko_apply_engine_defaults(Aiko)
+
+aiko_add_target(Aiko)

@@ -10,6 +10,7 @@
 
 namespace aiko::recorder
 {
+
     void LoopVisualizer::init()
     {
 

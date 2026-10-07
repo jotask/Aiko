@@ -27,6 +27,11 @@ namespace aiko::renderer::bgfx
 
         virtual bool isValid() const override;
 
+        virtual TextureFormat preferredDepthFormat() const override
+        {
+            return TextureFormat::D24S8;
+        }
+
         // load
         virtual void create(Texture& color, Texture& depth) override;
 

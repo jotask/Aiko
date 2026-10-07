@@ -28,9 +28,7 @@ namespace nes
                 return;
             }
             auto pixels = convertPatternTableToTexture(chr);
-            auto pbo = naiko->getApplication()->getPT0();
-            pbo->setPixels(pixels);
-            pbo->refresh();
+            naiko->getApplication()->updatePatternTableTexture(pixels);
         }
 
     }
@@ -40,42 +38,36 @@ namespace nes
         if (ImGui::Begin(name.c_str(), &is_open))
         {
             ImGui::BeginChild("CHR table");
-            auto pbo = naiko->getApplication()->getPT0();
-            // Get the dimensions of the texture
 
-            ImVec2 textureSize = ImVec2(pbo->getWidth(), pbo->getHeight());
+            constexpr ImVec2 textureSize = { 256.0f, 128.0f };
 
-            // Calculate aspect ratio of the image
             float aspectRatio = textureSize.x / textureSize.y;
 
-            // Get available space in the window
             ImVec2 availableSpace = ImGui::GetContentRegionAvail();
 
-            // Calculate the maximum size of the image while maintaining the aspect ratio
             float maxWidth = availableSpace.x;
             float maxHeight = availableSpace.y;
             float imageWidth, imageHeight;
 
             if (maxWidth / maxHeight > aspectRatio)
             {
-                // Height is the limiting factor
                 imageHeight = maxHeight;
                 imageWidth = maxHeight * aspectRatio;
             }
             else
             {
-                // Width is the limiting factor
                 imageWidth = maxWidth;
                 imageHeight = maxWidth / aspectRatio;
             }
 
-            // Ensure that the image does not exceed the available space
             imageWidth = std::min(imageWidth, maxWidth);
             imageHeight = std::min(imageHeight, maxHeight);
             
-            ImTextureID tid = (ImTextureID)(uintptr_t)pbo->getMaterial().m_diffuse.id();
+            NesEmulator* app = naiko->getApplication();
 
-            ImGui::Image(tid, ImVec2(imageWidth, imageHeight), ImVec2(0, 0), ImVec2(1, 1));
+            const ImTextureID textureId = static_cast<ImTextureID>( app->getImguiTextureId( app->getPatternTableTextureId() ) );
+
+            ImGui::Image(textureId, ImVec2(imageWidth, imageHeight), ImVec2(0, 0), ImVec2(1, 1));
             ImGui::EndChild();
         }
         ImGui::End();
@@ -91,7 +83,7 @@ namespace nes
 
         for (int table = 0; table < n_of_tables; ++table)
         {
-            int startX = table * (width / n_of_tables); // Adjust start X position for the second table
+            int startX = table * (width / n_of_tables);
             for (int tileY = 0; tileY < 16; ++tileY)
             {
                 for (int tileX = 0; tileX < 16; ++tileX)

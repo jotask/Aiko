@@ -8,14 +8,14 @@ namespace aiko
     
     class Module
     {
-    public:
-    
         friend class Aiko;
-    
+    public:
+        virtual ~Module() = default;
+
     protected:
 
         Module(Aiko* aiko) : aiko(aiko) { };
-    
+
         virtual void connect(ModuleConnector*) = 0;
         
         virtual void preInit() = 0;

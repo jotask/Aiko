@@ -29,6 +29,37 @@ namespace aiko
         vec2def operator*(const vec2def& other) const { return { x * other.x, y * other.y }; }
         vec2def operator+(const vec2def& other) const { return { x + other.x, y + other.y }; }
         vec2def operator-(const vec2def& other) const { return { x - other.x, y - other.y }; }
+        vec2def operator*(T scalar) const { return {x * scalar, y * scalar}; }
+        vec2def operator/(T scalar) const { return {x / scalar, y / scalar}; }
+
+        vec2def& operator+=(const vec2def& other)
+        {
+            x += other.x;
+            y += other.y;
+            return *this;
+        }
+
+        vec2def& operator-=(const vec2def& other)
+        {
+            x -= other.x;
+            y -= other.y;
+            return *this;
+        }
+
+        vec2def& operator*=(T scalar)
+        {
+            x *= scalar;
+            y *= scalar;
+            return *this;
+        }
+
+        vec2def& operator/=(T scalar)
+        {
+            x /= scalar;
+            y /= scalar;
+            return *this;
+        }
+
     };
 
     using bvec2 = vec2def<bool>;

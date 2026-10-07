@@ -63,6 +63,8 @@ namespace aiko::physics
         BodyMeshData getBodyMeshData(BodyId id, bool worldSpace = false) const;
 
         bool castRay(const RayCastDesc& desc, RayCastHit& outHit) const;
+        vector<BodyId> overlapSphere(const SphereOverlapDesc& desc) const;
+        vector<BodyId> overlapBox(const BoxOverlapDesc& desc) const;
 
         vector<PhysicsEvent> drainEvents();
 

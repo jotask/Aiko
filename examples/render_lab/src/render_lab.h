@@ -6,6 +6,7 @@
 #include "models/mesh.h"
 #include "models/texture.h"
 #include "models/compute_buffer.h"
+#include "models/font.h"
 #include "models/render_target.h"
 #include "models/camera.h"
 
@@ -16,6 +17,7 @@ namespace aiko
     class LightComponent;
     class RenderSystem;
     class SystemConnector;
+    class SpriteComponent;
 }
 
 namespace aiko::lab
@@ -56,6 +58,7 @@ namespace aiko::lab
         void initCompute();
         void initGpuVertices();
         void initRenderTarget();
+        void initUI();
 
         // --------------------------------------------------
         // Update
@@ -79,6 +82,8 @@ namespace aiko::lab
         void renderLights();
         void renderGpuVertices();
         void renderRenderTargetTest();
+        void renderUI();
+        void renderTextTests();
 
     private:
         RenderSystem* m_renderSystem = nullptr;
@@ -149,6 +154,9 @@ namespace aiko::lab
 
         Mesh m_renderTargetMesh;
         Material m_renderTargetMaterial;
+
+        Font m_debugFont;
+        SpriteComponent* m_uiTestSprite = nullptr;
 
     };
 }

@@ -5,6 +5,8 @@
 #include "layers/contexts/scene_context.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/job_context.h"
+#include "layers/contexts/ui_context.h"
+#include "layers/contexts/runtime_context.h"
 
 namespace aiko
 {
@@ -33,17 +35,25 @@ namespace aiko
         JobContext& jobs() { return m_jobs; }
         const JobContext& jobs() const { return m_jobs; }
 
+        UIContext& ui() { return m_ui; }
+        const UIContext& ui() const { return m_ui; }
+
+        RuntimeContext& runtime() { return m_runtime; }
+        const RuntimeContext& runtime() const { return m_runtime; }
+
     private:
 
         friend class Aiko;
 
-        explicit LayerContext(SystemConnector&);
+        explicit LayerContext(Aiko&, SystemConnector&);
 
         InputContext m_input;
         RenderContext m_render;
         SceneContext m_scene;
         AssetContext m_assets;
         JobContext m_jobs;
+        UIContext m_ui;
+        RuntimeContext m_runtime;
 
     };
 }

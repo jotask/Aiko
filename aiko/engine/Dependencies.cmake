@@ -42,15 +42,15 @@ if (TARGET assimp)
         set_property(TARGET assimp APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-Wl,-Bdynamic" "-lwinpthread")
     endif()
 
-    set_target_properties(assimp PROPERTIES FOLDER "Dependencies")
+    aiko_add_dependency(assimp)
 endif()
 
 if (TARGET zlibstatic)
-    set_target_properties(zlibstatic PROPERTIES FOLDER "Dependencies")
+    aiko_add_dependency(zlibstatic)
 endif()
 
 if (TARGET UpdateAssimpLibsDebugSymbolsAndDLLs)
-    set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "Dependencies")
+    aiko_add_dependency(UpdateAssimpLibsDebugSymbolsAndDLLs)
 endif()
 
 #----------------------------------------------------------------------
@@ -70,7 +70,8 @@ if(NOT stb_POPULATED)
     add_library(stb INTERFACE ${stb_SOURCE_DIR})
     target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
 endif()
-set_target_properties(stb PROPERTIES FOLDER "Dependencies")
+
+aiko_add_dependency(stb)
 
 #----------------------------------------------------------------------
 
@@ -84,6 +85,7 @@ FetchContent_Declare(
 
 message("Fetching magic_enum")
 FetchContent_MakeAvailable(magic_enum)
+aiko_add_dependency(magic_enum)
 
 #----------------------------------------------------------------------
 
@@ -97,6 +99,6 @@ FetchContent_Declare(
 
 message("Fetching nlohmann_json")
 FetchContent_MakeAvailable(nlohmann_json)
-set_target_properties(nlohmann_json PROPERTIES FOLDER "Dependencies")
+aiko_add_dependency(nlohmann_json)
 
 #----------------------------------------------------------------------

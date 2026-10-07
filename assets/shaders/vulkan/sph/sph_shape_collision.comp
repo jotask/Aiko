@@ -1,0 +1,135 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+struct ShapeEdge
+{
+    vec4 a;
+    vec4 b;
+};
+
+struct Shape
+{
+    uint edgeStart;
+    uint edgeCount;
+    uint padding0;
+    uint padding1;
+};
+
+layout(std430, binding = 0)
+buffer Positions
+{
+    vec4 positions[];
+};
+
+layout(std430, binding = 1)
+readonly buffer ShapeEdges
+{
+    ShapeEdge edges[];
+};
+
+layout(std430, binding = 2)
+readonly buffer Shapes
+{
+    Shape shapes[];
+};
+
+layout(push_constant)
+uniform PushConstants
+{
+    float particleRadius;
+    uint particleCount;
+    uint shapeCount;
+    uint padding;
+} pc;
+
+vec2 closestPointOnSegment(vec2 point, vec2 a, vec2 b)
+{
+    vec2 ab = b - a;
+
+    float lengthSquared = dot(ab, ab);
+
+    if (lengthSquared <= 0.000001)
+    {
+        return a;
+    }
+    float t = clamp(dot(point - a, ab) / lengthSquared, 0.0, 1.0);
+    return a + ab * t;
+}
+
+void main()
+{
+    uint particleIndex = gl_GlobalInvocationID.x;
+
+    if (particleIndex >= pc.particleCount)
+    {
+        return;
+    }
+
+    vec2 position = positions[particleIndex].xy;
+
+    for (uint shapeIndex = 0; shapeIndex < pc.shapeCount; ++shapeIndex)
+    {
+        Shape shape = shapes[shapeIndex];
+
+        bool inside = false;
+
+        float closestDistanceSquared = 3.402823466e+38;
+
+        vec2 closestPoint = vec2(0.0);
+
+        for (uint edgeIndex = 0; edgeIndex < shape.edgeCount;  ++edgeIndex)
+        {
+            ShapeEdge edge = edges[shape.edgeStart + edgeIndex];
+
+            vec2 a = edge.a.xy;
+            vec2 b = edge.b.xy;
+
+            vec2 pointOnEdge = closestPointOnSegment(position, a, b);
+
+            vec2 direction = pointOnEdge - position;
+
+            float distanceSquared = dot(direction, direction);
+
+            if (distanceSquared < closestDistanceSquared)
+            {
+                closestDistanceSquared = distanceSquared;
+                closestPoint = pointOnEdge;
+            }
+
+            bool intersects = ((a.y > position.y) != (b.y > position.y)) && (position.x < (b.x - a.x) * (position.y - a.y) / (b.y - a.y) + a.x);
+
+            if (intersects)
+            {
+                inside = !inside;
+            }
+        }
+
+        float distance = sqrt(closestDistanceSquared);
+
+        if (!inside && distance >= pc.particleRadius)
+        {
+            continue;
+        }
+
+        if (distance <= 0.000001)
+        {
+            continue;
+        }
+
+        vec2 directionToBoundary = closestPoint - position;
+
+        vec2 normal = directionToBoundary / distance;
+
+        if (inside)
+        {
+            position += directionToBoundary + normal * pc.particleRadius;
+        }
+        else
+        {
+            position += normal * (distance - pc.particleRadius);
+        }
+    }
+
+    positions[particleIndex].xy = position;
+}

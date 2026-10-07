@@ -2,10 +2,21 @@
 
 #include "types/render_types.h"
 
+#include <metadata/texture_meta.h>
+
 class GLFWwindow;
 
 namespace aiko
 {
+
+    using ImguiTextureId = uint64_t;
+
+    class Texture;
+
+    namespace interfaces
+    {
+        class ITextureImpl;
+    }
 
     class AikoImguiImpl
     {
@@ -15,6 +26,7 @@ namespace aiko
         virtual void beginFrame(const ViewId viewId, int width, int height) = 0;
         virtual void endFrame(const ViewId viewId, int width, int height) = 0;
         virtual void dispose() = 0;
+        virtual ImguiTextureId textureId(const interfaces::ITextureImpl& texture, const SamplerState& sampler) = 0;
     };
 
     class AikoImgui
@@ -26,6 +38,7 @@ namespace aiko
         void beginFrame(int width, int height);
         void endFrame(int width, int height);
         void dispose();
+        ImguiTextureId textureId(const Texture& texture, const SamplerState& sampler = {});
     private:
         GLFWwindow* m_window;
         const ViewId m_viewId = IMGUI_VIEW;

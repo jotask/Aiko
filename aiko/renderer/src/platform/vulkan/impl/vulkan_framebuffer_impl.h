@@ -19,6 +19,8 @@ namespace aiko::renderer::vulkan
 
         virtual bool isValid() const override;
 
+        virtual TextureFormat preferredDepthFormat() const override;
+
         // load
         virtual void create(interfaces::ITextureImpl& color, interfaces::ITextureImpl& depth) override;
 

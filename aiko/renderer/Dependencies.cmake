@@ -17,7 +17,8 @@ FetchContent_Declare(
 )
 message("Fetching glfw")
 FetchContent_MakeAvailable(glfw)
-set_target_properties(glfw PROPERTIES FOLDER "Dependencies")
+aiko_add_dependency(glfw)
+aiko_add_dependency(update_mappings)
 
 #----------------------------------------------------------------------
 

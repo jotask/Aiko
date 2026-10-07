@@ -185,6 +185,8 @@ namespace aiko::renderer::vulkan
                         existingIt->type == incomingMember.type &&
                         existingIt->offset == incomingMember.offset &&
                         existingIt->size == incomingMember.size &&
+                        existingIt->arrayCount == incomingMember.arrayCount &&
+                        existingIt->arrayStride == incomingMember.arrayStride &&
                         existingIt->matrixStride == incomingMember.matrixStride &&
                         existingIt->rowMajor == incomingMember.rowMajor,
                         "Shader stages disagree on material uniform layout"
@@ -221,6 +223,46 @@ namespace aiko::renderer::vulkan
 
         const SpvReflectResult createResult = spvReflectCreateShaderModule(code.size(), code.data(), &module);
         AIKO_ASSERT(createResult == SPV_REFLECT_RESULT_SUCCESS, "Failed to reflect SPIR-V shader");
+
+        if (stage == VK_SHADER_STAGE_VERTEX_BIT)
+        {
+            uint32_t inputCount = 0;
+
+            SpvReflectResult inputResult = spvReflectEnumerateInputVariables(&module, &inputCount, nullptr);
+
+            AIKO_ASSERT(inputResult == SPV_REFLECT_RESULT_SUCCESS, "Failed to enumerate vertex shader inputs");
+
+            std::vector<SpvReflectInterfaceVariable*> inputs(inputCount);
+
+            if (inputCount > 0)
+            {
+                inputResult = spvReflectEnumerateInputVariables(&module, &inputCount, inputs.data());
+
+                AIKO_ASSERT(inputResult == SPV_REFLECT_RESULT_SUCCESS, "Failed to read vertex shader inputs");
+            }
+
+            for (const SpvReflectInterfaceVariable* input : inputs)
+            {
+                AIKO_ASSERT(input != nullptr, "Invalid reflected vertex shader input");
+
+                if ((input->decoration_flags & SPV_REFLECT_DECORATION_BUILT_IN) != 0)
+                {
+                    continue;
+                }
+
+                reflection.vertexInputLocations.push_back(input->location);
+            }
+
+            std::sort(
+                reflection.vertexInputLocations.begin(),
+                reflection.vertexInputLocations.end());
+
+            reflection.vertexInputLocations.erase(
+                std::unique(
+                    reflection.vertexInputLocations.begin(),
+                    reflection.vertexInputLocations.end()),
+                reflection.vertexInputLocations.end());
+        }
 
         uint32_t descriptorCount = 0;
 
@@ -271,11 +313,25 @@ namespace aiko::renderer::vulkan
 
                     AIKO_ASSERT(member.name != nullptr && member.name[0] != '\0', "Material uniform has no reflected name");
                     AIKO_ASSERT(member.member_count == 0, "Nested material uniform structs are not supported yet");
-                    AIKO_ASSERT(member.array.dims_count == 0, "Material uniform arrays are not supported yet");
+
+                    AIKO_ASSERT(member.array.dims_count <= 1, "Only one-dimensional material uniform arrays are supported");
+
+                    const uint32_t arrayCount = member.array.dims_count == 0 ? 0 : member.array.dims[0];
+                    const uint32_t arrayStride = member.array.dims_count == 0 ? 0 : member.array.stride;
+
+                    if (arrayCount > 0)
+                    {
+                        AIKO_ASSERT(arrayStride > 0, "Material uniform array has invalid reflected stride");
+                    }
 
                     const UniformType type = reflectUniformType(member);
-
                     AIKO_ASSERT(type != UniformType::Unknown, "Unsupported material uniform type");
+
+                    if (arrayCount > 0)
+                    {
+                        AIKO_ASSERT(type == UniformType::Float || type == UniformType::Vec3, "Only float and vec3 material uniform arrays are currently supported");
+                    }
+
                     AIKO_ASSERT(member.offset + member.size <= binding->block.size, "Material uniform exceeds reflected UBO size");
 
                     block.members.push_back(
@@ -284,6 +340,8 @@ namespace aiko::renderer::vulkan
                         .type = type,
                         .offset = member.offset,
                         .size = member.size,
+                        .arrayCount = arrayCount,
+                        .arrayStride = arrayStride,
                         .matrixStride = member.numeric.matrix.stride,
                         .rowMajor = (member.decoration_flags & SPV_REFLECT_DECORATION_ROW_MAJOR) != 0,
                     });

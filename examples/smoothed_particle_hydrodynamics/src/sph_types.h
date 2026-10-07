@@ -1,0 +1,87 @@
+#pragma once
+
+#include "math/math_vector.h"
+#include "types/color.h"
+
+namespace sph
+{
+
+    static constexpr uint32_t MaxCpuParticles = 1024/ 2;
+    static constexpr uint32_t MaxGpuParticles = 65536;
+    static constexpr uint32_t MaxSprings = 1u << 21;
+
+    struct SPHParticle
+    {
+        aiko::vec3 position = {};
+        aiko::vec3 prevPosition = {};
+        aiko::vec3 velocity = {};
+        aiko::vec3 acceleration = {};
+        aiko::Color color = aiko::BLUE;
+        float density = 0.0f;
+        float pressure = 0.0f;
+    };
+
+    struct SPHParameters
+    {
+        float particleRadius = 0.05f;
+        float smoothingRadius = 0.25f;
+
+        float restDensity = 10.0f;
+        float gasConstant = 2000.0f;
+        float viscosity = 0.1f;
+
+        float pressureStiffness = 0.005f;
+        float nearPressureStiffness = 0.03f;
+
+        // viscosity
+        float sigma = 0.5f;
+        float beta = 0.0f;
+
+        // Global kinetic-energy damping applied after position-based
+        // constraints are converted back into velocity.
+        //
+        // 1.0 preserves all reconstructed velocity.
+        // Values slightly below 1.0 allow the fluid to settle.
+        float velocityDamping = 0.995f;
+
+        // Maximum distance represented by reconstructed velocity during one
+        // solver step, expressed as a fraction of the smoothing radius.
+        //
+        // This prevents large positional corrections from turning into
+        // explosive velocities on the following step.
+        float maxStepDisplacementRatio = 0.5f;
+
+        // plasticity
+        float gamma = 0.3f;
+        float plasticity = 1.0f;
+        float springStiffness = 0.9f;
+
+        // sticky parameters
+        float maxStickiness = smoothingRadius;
+        float kStick = 0.1f;
+
+        float gravity = 0.01f;
+        aiko::vec3 gravityDirection = { 0.0f, -1.0f, 0.0f};
+
+        // Real-world cadence used by the accumulator.
+        float simulationStepTime = 1.0f / 60.0f;
+
+        // Integration scale used by the SPH solver itself.
+        //
+        // This preserves the behaviour of the previously tuned simulation.
+        float solverDeltaTime = 0.3f;
+    };
+
+    struct SimulationState
+    {
+        int nParticles;
+        float mass;
+    };
+
+    struct WorldBounds
+    {
+        aiko::vec3 position;
+        aiko::vec3 size;
+    };
+
+}

@@ -4,13 +4,13 @@
 #include <systems/base_system.h>
 #include <models/compute_buffer.h>
 #include <models/material.h>
+#include <models/mesh.h>
 #include <types/compute_pass.h>
 
 #include <unordered_map>
 
 namespace aiko
 {
-    class RenderModule;
     class AssetsManagerModule;
     class SceneSystem;
     class RenderSystem;
@@ -59,6 +59,7 @@ namespace nbody
             aiko::ComputeBuffer indirectBuffer;
 
             bool renderInitialized = false;
+            aiko::Mesh bodyMesh;
             aiko::Material bodyMaterial;
         };
 
@@ -69,7 +70,6 @@ namespace nbody
         RuntimeState& getOrCreateState(const NBodyComponent* cmp);
         void destroyStates();
 
-        aiko::RenderModule* m_renderModule;
         aiko::AssetsManagerModule* m_assetManagerModule;
         aiko::RenderSystem* m_renderSystem;
         aiko::SceneSystem* m_sceneSystem;
@@ -77,8 +77,6 @@ namespace nbody
 
         aiko::AssetId m_initShaderId = aiko::InvalidAssetId;
         aiko::AssetId m_updateShaderId = aiko::InvalidAssetId;
-
-        aiko::ReadbackId m_nextReadbackId = aiko::InvalidReadbackId + 1;
 
         std::unordered_map<const NBodyComponent*, aiko::AikoUPtr<RuntimeState>> m_runtime;
 

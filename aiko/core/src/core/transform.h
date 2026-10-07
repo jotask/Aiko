@@ -35,6 +35,7 @@ namespace aiko
             }
 
             m_parent = newParent;
+            m_worldValid = false;
 
             if (m_parent != nullptr)
             {
@@ -67,28 +68,111 @@ namespace aiko
 
         mat4 getLocalMatrix() const
         {
-            const mat4 translationMatrix = math::translate(mat4(1.0f), position);
-            mat4 rotationMatrix(1.0f);
-            rotationMatrix = math::rotate(rotationMatrix, math::radians(rotation.x), vec3(1.0f, 0.0f, 0.0f));
-            rotationMatrix = math::rotate(rotationMatrix, math::radians(rotation.y), vec3(0.0f, 1.0f, 0.0f));
-            rotationMatrix = math::rotate(rotationMatrix, math::radians(rotation.z), vec3(0.0f, 0.0f, 1.0f));
-            const mat4 scaleMatrix = math::scale(mat4(1.0f), scale);
-            return translationMatrix * rotationMatrix * scaleMatrix;
+            refreshLocalMatrix();
+            return m_localMatrix;
         }
 
         mat4 getWorldMatrix() const
         {
-            const mat4 localMatrix = getLocalMatrix();
-            if (m_parent != nullptr)
+            refreshLocalMatrix();
+
+            if (m_parent == nullptr)
             {
-                return m_parent->getWorldMatrix() * localMatrix;
+                if (m_worldValid == false || m_cachedLocalRevision != m_localRevision)
+                {
+                    m_worldMatrix = m_localMatrix;
+
+                    m_cachedLocalRevision = m_localRevision;
+                    m_cachedParentWorldRevision = 0;
+
+                    m_worldValid = true;
+
+                    ++m_worldRevision;
+                }
+
+                return m_worldMatrix;
             }
-            return localMatrix;
+
+            const mat4 parentWorldMatrix = m_parent->getWorldMatrix();
+            const u64 parentWorldRevision = m_parent->m_worldRevision;
+
+            if (m_worldValid == false || m_cachedLocalRevision != m_localRevision || m_cachedParentWorldRevision != parentWorldRevision)
+            {
+                m_worldMatrix = parentWorldMatrix * m_localMatrix;
+
+                m_cachedLocalRevision = m_localRevision;
+                m_cachedParentWorldRevision = parentWorldRevision;
+
+                m_worldValid = true;
+
+                ++m_worldRevision;
+            }
+
+            return m_worldMatrix;
         }
 
     private:
+
+        bool localTransformChanged() const
+        {
+            return
+                position.x != m_cachedPosition.x ||
+                position.y != m_cachedPosition.y ||
+                position.z != m_cachedPosition.z ||
+
+                rotation.x != m_cachedRotation.x ||
+                rotation.y != m_cachedRotation.y ||
+                rotation.z != m_cachedRotation.z ||
+
+                scale.x != m_cachedScale.x ||
+                scale.y != m_cachedScale.y ||
+                scale.z != m_cachedScale.z;
+        }
+
+        void refreshLocalMatrix() const
+        {
+            if (localTransformChanged() == false)
+            {
+                return;
+            }
+
+            const mat4 translationMatrix = math::translate(mat4(1.0f), position);
+
+            mat4 rotationMatrix(1.0f);
+
+            rotationMatrix = math::rotate(rotationMatrix, math::radians(rotation.x), vec3(1.0f, 0.0f, 0.0f));
+            rotationMatrix = math::rotate(rotationMatrix, math::radians(rotation.y), vec3(0.0f, 1.0f, 0.0f));
+            rotationMatrix = math::rotate(rotationMatrix, math::radians(rotation.z), vec3(0.0f, 0.0f, 1.0f));
+
+            const mat4 scaleMatrix = math::scale(mat4(1.0f), scale);
+
+            m_localMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+            m_cachedPosition = position;
+            m_cachedRotation = rotation;
+            m_cachedScale = scale;
+
+            ++m_localRevision;
+        }
+
+
         Transform* m_parent = nullptr;
         vector<Transform*> m_children;
+
+        mutable vec3 m_cachedPosition = {0.0f};
+        mutable vec3 m_cachedRotation = {0.0f};
+        mutable vec3 m_cachedScale = {1.0f};
+
+        mutable mat4 m_localMatrix = mat4(1.0f);
+        mutable mat4 m_worldMatrix = mat4(1.0f);
+
+        mutable u64 m_localRevision = 0;
+        mutable u64 m_worldRevision = 0;
+
+        mutable u64 m_cachedLocalRevision = 0;
+        mutable u64 m_cachedParentWorldRevision = 0;
+
+        mutable bool m_worldValid = false;
 
     };
 }

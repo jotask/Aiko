@@ -25,6 +25,7 @@ namespace aiko
         ParticleSystem() = default;
         virtual ~ParticleSystem() override = default;
     protected:
+        virtual SystemUpdatePhase updatePhase() const override { return SystemUpdatePhase::LateUpdate; }
         virtual void connect(ModuleConnector*, SystemConnector*) override;
         virtual void init() override;
         virtual void update() override;

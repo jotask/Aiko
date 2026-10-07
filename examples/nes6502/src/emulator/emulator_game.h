@@ -15,7 +15,7 @@ namespace nes
         virtual void render() override;
     private:
 
-        void onNesClock(NesOnClockEvent& event);
+        void onNesClock(const NesOnClockEvent& event);
 
     };
 }

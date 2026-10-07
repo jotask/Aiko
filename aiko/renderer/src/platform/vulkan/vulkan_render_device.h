@@ -62,6 +62,7 @@ namespace aiko::renderer::vulkan
         virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) override;
         virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) override;
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) override;
+        virtual void drawFullscreen(ViewId viewId, const Material& material) override;
 
     public:
 
@@ -108,6 +109,8 @@ namespace aiko::renderer::vulkan
         VulkanMaterialResources m_materialResources;
 
         VkPipeline m_boundGraphicsPipeline = VK_NULL_HANDLE;
+        VkBuffer m_boundVertexBuffer = VK_NULL_HANDLE;
+        VkBuffer m_boundIndexBuffer = VK_NULL_HANDLE;
         void bindGraphicsPipeline(VkPipeline pipeline);
 
         VkDescriptorSet m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
@@ -115,6 +118,8 @@ namespace aiko::renderer::vulkan
         Texture m_whiteTexture;
 
         RenderPassCompatibilityKey m_activeRenderPassCompatibility{};
+        std::optional<ModelPipelineKey> m_cachedModelPipelineKey;
+        VkPipeline m_cachedModelPipeline = VK_NULL_HANDLE;
 
         VkPipeline getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced);
 
@@ -170,6 +175,14 @@ namespace aiko::renderer::vulkan
         VulkanSamplerCache m_samplerCache;
 
         std::unordered_map<const Material*, VulkanMaterialBinding*> m_preparedMaterialBindings;
+
+        struct PreparedMaterialState
+        {
+            const Material* material = nullptr;
+            VulkanMaterialBinding* binding = nullptr;
+        };
+
+        std::unordered_map<MaterialId, std::vector<PreparedMaterialState>> m_preparedMaterialStates;
 
         const Texture* resolveTextureBinding(const TextureBinding& binding);
         void refreshMaterialTextureBindings(VulkanMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings);

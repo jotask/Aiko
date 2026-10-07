@@ -1,7 +1,9 @@
 #include "scene.h"
 
 #include "models/game_object.h"
+#include "components/camera_component.h"
 
+#include <utility>
 #include <algorithm>
 
 namespace aiko
@@ -12,18 +14,32 @@ namespace aiko
 
     GameObject* Scene::create(string name)
     {
+        return create(uuid::Uuid{}, std::move(name));
+    }
+
+    GameObject* Scene::create(const uuid::Uuid& id, string name)
+    {
+        AIKO_ASSERT(find(id) == nullptr, "Scene already contains a GameObject with this UUID");
         auto object = std::make_unique<GameObject>();
-        object->setName(name);
+        object->m_uuid = id;
+        object->setName(std::move(name));
         GameObject* result = object.get();
         result->m_scene = this;
-        registerObjectComponents(*result);
         m_objects.emplace_back(std::move(object));
+        m_objectIndex.emplace(result->uuid(), result);
+        m_transformOwners.emplace(&result->transform(), result);
+        registerObjectComponents(*result);
         return result;
     }
 
     GameObject* Scene::create(GameObject* parent, string name)
     {
-        GameObject* object = create(name);
+        return create(uuid::Uuid{}, parent, std::move(name));
+    }
+
+    GameObject* Scene::create(const uuid::Uuid& id, GameObject* parent, string name)
+    {
+        GameObject* object = create(id, std::move(name));
         if (parent != nullptr)
         {
             AIKO_ASSERT(parent->m_scene == this, "Parent GameObject belongs to another Scene");
@@ -33,6 +49,38 @@ namespace aiko
             }
         }
         return object;
+    }
+
+    GameObject* Scene::find(const uuid::Uuid& id)
+    {
+        const auto it = m_objectIndex.find(id);
+        return it != m_objectIndex.end() ? it->second : nullptr;
+    }
+
+    const GameObject* Scene::find(const uuid::Uuid& id) const
+    {
+        const auto it = m_objectIndex.find(id);
+        return it != m_objectIndex.end() ? it->second : nullptr;
+    }
+
+    GameObject* Scene::findByTransform(const Transform* transform)
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+        const auto it = m_transformOwners.find(transform);
+        return it != m_transformOwners.end() ? it->second : nullptr;
+    }
+
+    const GameObject* Scene::findByTransform(const Transform* transform) const
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+        const auto it = m_transformOwners.find(transform);
+        return it != m_transformOwners.end() ? it->second : nullptr;
     }
 
     bool Scene::remove(const GameObject* obj)
@@ -59,6 +107,9 @@ namespace aiko
             m_activeCamera = nullptr;
         }
 
+        m_objectIndex.erase(object->uuid());
+        m_transformOwners.erase(&object->transform());
+
         destroyObject(*object);
 
         m_objects.erase(it);
@@ -77,6 +128,8 @@ namespace aiko
         }
         m_objects.clear();
         m_componentIndex.clear();
+        m_objectIndex.clear();
+        m_transformOwners.clear();
         m_activeCamera = nullptr;
     }
 
@@ -109,11 +162,20 @@ namespace aiko
             m_activeCamera = nullptr;
             return;
         }
-        bool exists = std::any_of(m_objects.begin(), m_objects.end(), [obj](const AikoUPtr<GameObject>& go) { return go != nullptr && go.get() == obj; });
-        if (exists)
-        {
-            m_activeCamera = obj;
-        }
+
+        const bool exists = std::any_of(
+            m_objects.begin(),
+            m_objects.end(),
+            [obj](const AikoUPtr<GameObject>& go)
+            {
+                return go != nullptr && go.get() == obj;
+            }
+        );
+
+        AIKO_ASSERT(exists, "Active camera GameObject does not belong to this Scene");
+        AIKO_ASSERT(obj->getComponent<CameraComponent>() != nullptr, "Active camera GameObject has no CameraComponent");
+
+        m_activeCamera = obj;
     }
 
     void Scene::destroyObject(GameObject& object)

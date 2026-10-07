@@ -27,6 +27,9 @@ namespace aiko
         AssetSystem();
         virtual ~AssetSystem() = default;
 
+
+        AssetId registerShader(string_view vertexSource, string_view fragmentSource);
+
         template<typename T>
         AssetId registerAsset(string_view source)
         {
@@ -76,9 +79,10 @@ namespace aiko
         void invalidateShader(const AssetId& id);
 
     protected:
-
+        SystemUpdatePhase updatePhase() const override { return SystemUpdatePhase::EarlyUpdate; }
         virtual void connect(ModuleConnector*, SystemConnector*) override;
         virtual void update() override;
+        bool updateWhenPaused() const override { return true; }
 
     private:
 

@@ -9,3 +9,5 @@ target_link_libraries(RenderLab PRIVATE Aiko)
 target_include_directories(RenderLab PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(RenderLab)
+
+aiko_add_example(RenderLab)

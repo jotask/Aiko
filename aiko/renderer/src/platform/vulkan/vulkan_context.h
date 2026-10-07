@@ -3,10 +3,12 @@
 #include "vulkan_types.h"
 #include "vulkan_resource_types.h"
 #include "vulkan_gpu_profiler.h"
+#include "vulkan_device_capabilities.h"
 
 #include <array>
 #include <optional>
 #include <limits>
+#include <string_view>
 
 class GLFWwindow;
 
@@ -25,7 +27,8 @@ namespace aiko::renderer::vulkan
         VkDevice device() const { return m_device; }
         VkPhysicalDevice physicalDevice() const { return m_physicalDevice; }
         VkQueue graphicsQueue() const { return m_graphicsQueue; }
-        VkRenderPass renderPass() const { return m_renderPass; }
+        VkRenderPass clearRenderPass() const { return m_clearRenderPass; }
+        VkRenderPass loadRenderPass() const { return m_loadRenderPass; }
         std::vector<VkImage> swapChainImages() const { return m_swapChainImages; }
         VkFormat swapChainImageFormat() const { return m_swapChainImageFormat; }
         VkFormat depthFormat() const;
@@ -45,6 +48,12 @@ namespace aiko::renderer::vulkan
         double graphicsGpuMs() const { return m_gpuProfiler.graphicsGpuMs(); }
         void beginGraphicsGpuPass() { m_gpuProfiler.beginGraphicsPass(m_activeCommandBuffer, m_currentFrame); }
         void endGraphicsGpuPass() { m_gpuProfiler.endGraphicsPass(m_activeCommandBuffer, m_currentFrame); }
+        void beginComputeGpuFrame(VkCommandBuffer commandBuffer) { m_gpuProfiler.beginComputeFrame(commandBuffer, m_currentFrame);}
+        void endComputeGpuFrame(VkCommandBuffer commandBuffer) { m_gpuProfiler.endComputeFrame(commandBuffer, m_currentFrame); }
+        void beginComputeGpuPass(VkCommandBuffer commandBuffer, std::string_view name) { m_gpuProfiler.beginComputePass(commandBuffer, m_currentFrame, name); }
+        void endComputeGpuPass(VkCommandBuffer commandBuffer) { m_gpuProfiler.endComputePass(commandBuffer, m_currentFrame);}
+
+        const VulkanDeviceCapabilities& capabilities() const { return m_capabilities; }
 
     private:
 
@@ -63,7 +72,8 @@ namespace aiko::renderer::vulkan
         GLFWwindow* m_window = nullptr;
         VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
         VkDevice m_device = VK_NULL_HANDLE;
-        VkRenderPass m_renderPass = VK_NULL_HANDLE;
+        VkRenderPass m_clearRenderPass = VK_NULL_HANDLE;
+        VkRenderPass m_loadRenderPass = VK_NULL_HANDLE;
         VkCommandPool m_commandPool = VK_NULL_HANDLE;
         VkCommandPool m_computeCommandPool = VK_NULL_HANDLE;
 
@@ -107,6 +117,8 @@ namespace aiko::renderer::vulkan
         bool m_framebufferResized = false;
         bool m_vsync = false;
 
+        VulkanDeviceCapabilities m_capabilities{};
+
         VulkanGpuProfiler m_gpuProfiler;
 
     public:
@@ -118,7 +130,7 @@ namespace aiko::renderer::vulkan
         void createLogicalDevice();
         void createSwapChain(VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE);
         void createImageViews();
-        void createRenderPass();
+        VkRenderPass createRenderPass(VkAttachmentLoadOp colorLoadOp);
         void createCommandPool();
         void createSyncObjects();
         void createSwapChainDepthResources();
@@ -131,7 +143,7 @@ namespace aiko::renderer::vulkan
         bool beginFrame();
         void submitAndPresent();
 
-        void recreateSwapChain();
+        bool recreateSwapChain();
         void cleanupSwapChainResources();
         void cleanupSwapChain();
 

@@ -5,7 +5,7 @@
 namespace sb
 {
     SelectionSort::SelectionSort(SortLab* lab)
-        : Sorter(lab, "SelectionSort")
+        : Sorter(lab, "Selection Sort")
     {
     }
 

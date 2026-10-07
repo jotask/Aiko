@@ -1,18 +1,23 @@
 #include "render_lab.h"
 
+#include "components/button_component.h"
 #include "components/camera_component.h"
 #include "components/compute_shader_component.h"
 #include "components/light_component.h"
 #include "components/mesh_component.h"
 #include "components/model_component.h"
 #include "components/particle_emitter_component.h"
+#include "components/selectable_component.h"
 #include "components/sprite_component.h"
+#include "components/text_component.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/render_context.h"
 #include "layers/contexts/scene_context.h"
+#include "layers/contexts/ui_context.h"
 #include "models/camera.h"
 #include "models/game_object.h"
 #include "models/mesh_factory.h"
+#include "models/sprite_sheet.h"
 #include "models/texture_factory.h"
 #include "systems/render_system.h"
 #include "systems/system_connector.h"
@@ -22,8 +27,8 @@
 
 #include <core/random.h>
 
-#include <chrono>
 #include <array>
+#include <chrono>
 #include <cmath>
 
 namespace aiko::lab
@@ -42,6 +47,8 @@ namespace aiko::lab
         constexpr bool EnableComputeTests = true;
         constexpr bool EnableGpuVertexTests = true;
         constexpr bool EnableRenderTargetTests = true;
+        constexpr bool EnableUI = true;
+        constexpr bool EnableTextTests = true;
         constexpr bool EnableRenderTargetResizeStress = true;
     }
 
@@ -57,6 +64,11 @@ namespace aiko::lab
         scene().ambientLight().intensity = 0.15f;
 
         initCamera();
+
+        if constexpr (EnableUI || EnableTextTests)
+        {
+            m_debugFont = assets().loadFont("fonts/RobotoMono-Regular.ttf", 48.0f);
+        }
 
         if constexpr (EnableModelTests)
         {
@@ -107,6 +119,11 @@ namespace aiko::lab
         {
             initRenderTarget();
         }
+
+        if constexpr (EnableUI)
+        {
+            initUI();
+        }
     }
 
     void RenderLab::update()
@@ -139,6 +156,7 @@ namespace aiko::lab
 
     void RenderLab::render()
     {
+
         if constexpr (EnablePrimitiveTests)
         {
             renderPrimitives();
@@ -178,6 +196,17 @@ namespace aiko::lab
         {
             renderRenderTargetTest();
         }
+
+        if constexpr (EnableUI)
+        {
+            renderUI();
+        }
+
+        if constexpr (EnableTextTests)
+        {
+            renderTextTests();
+        }
+
     }
 
     // --------------------------------------------------
@@ -186,18 +215,8 @@ namespace aiko::lab
 
     void RenderLab::initCamera()
     {
-        GameObject* camera = Instantiate("Camera");
-
-        CameraComponent* cameraComponent = camera->addComponent<CameraComponent>(camera::CameraController::Fly);
-
-        camera->transform().position =
-        {
-            0.0f,
-            2.5f,
-            8.0f
-        };
-
-        cameraComponent->getCamera().position = camera->transform().position;
+        aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Fly);
+        camera->getCamera().position = { 0.0f, 2.5f, 8.0f };
     }
 
     // --------------------------------------------------
@@ -213,17 +232,17 @@ namespace aiko::lab
         GameObject* church = Instantiate(root, "Church");
         church->transform().position = {-modelOffset, 0.0f, -28.0f};
         ModelComponent* churchModel = church->addComponent<ModelComponent>();
-        churchModel->load("church.obj");
+        churchModel->load("models/church.obj");
 
         GameObject* barracks = Instantiate(root, "Barracks");
         barracks->transform().position = {0.0f, 0.0f, -28.0f};
         ModelComponent* barracksModel = barracks->addComponent<ModelComponent>();
-        barracksModel->load("barracks.obj");
+        barracksModel->load("models/barracks.obj");
 
         GameObject* watermill = Instantiate(root, "Watermill");
         watermill->transform().position = {modelOffset, 0.0f, -28.0f};
         ModelComponent* watermillModel = watermill->addComponent<ModelComponent>();
-        watermillModel->load("watermill.obj");
+        watermillModel->load("models/watermill.obj");
 
         GameObject* robot = Instantiate(root, "Robot");
         robot->transform().position = {0.0f, 0.0f, -10.0f};
@@ -238,7 +257,7 @@ namespace aiko::lab
         };
 
         ModelComponent* robotModel = robot->addComponent<ModelComponent>();
-        robotModel->load("robot.glb");
+        robotModel->load("models/robot.glb");
     }
 
     // --------------------------------------------------
@@ -288,11 +307,14 @@ namespace aiko::lab
             1.0f
         };
 
-        SpriteComponent* assetSprite = assetTexture->addComponent<SpriteComponent>();
+        m_uiTestSprite = assetTexture->addComponent<SpriteComponent>();
 
-        assetSprite->load("texel_checker.png");
+        m_uiTestSprite->load("texel_checker.png");
 
-        assetSprite->getMaterial().m_lit = false;
+        const SpriteSheet spriteSheet(256, 256, 64, 64);
+        m_uiTestSprite->setTextureRegion(spriteSheet.region(1));
+
+        m_uiTestSprite->getMaterial().m_lit = false;
 
         m_dynamicTextureObject = Instantiate(root, "DynamicTexture");
 
@@ -766,6 +788,540 @@ namespace aiko::lab
         m_renderTargetMaterial.setTexture("u_texture", &m_validationRenderTarget.colorTexture(), sampler);
     }
 
+    void RenderLab::initUI()
+    {
+
+       // --------------------------------------------------
+        // Canvas 0 - main retained UI
+        // --------------------------------------------------
+
+        GameObject* canvasObject = scene().Instantiate("UI Test Canvas");
+
+        CanvasComponent* canvas = canvasObject->addComponent<CanvasComponent>();
+
+        canvas->setScaleMode(CanvasScaleMode::ScaleWithScreenSize);
+        canvas->setReferenceResolution({1920.0f, 1080.0f});
+        canvas->setMatchWidthOrHeight(0.5f);
+        canvas->setSortingOrder(0);
+
+        canvas->getTheme().image.appearance.color = MAGENTA;
+
+        // --------------------------------------------------
+        // Center panel
+        //
+        // Fixed-size centered RectTransform.
+        // --------------------------------------------------
+
+        GameObject* centerPanel = scene().Instantiate(canvasObject, "Center Panel");
+
+        RectTransformComponent* centerRect = centerPanel->addComponent<RectTransformComponent>();
+
+        centerRect->setAnchors({0.5f, 0.5f}, {0.5f, 0.5f});
+
+        centerRect->setPivot({0.5f, 0.5f});
+        centerRect->setAnchoredPosition({0.0f, 0.0f});
+        centerRect->setSizeDelta({500.0f, 300.0f});
+
+        ImageComponent* centerImage = centerPanel->addComponent<ImageComponent>();
+
+        centerImage->setColor(RED);
+        centerImage->clearColorOverride();
+
+        // --------------------------------------------------
+        // Nested child
+        //
+        // Stretches inside the red parent with a logical
+        // 50-unit inset on every side.
+        // --------------------------------------------------
+
+        GameObject* nestedPanel = scene().Instantiate(centerPanel, "Nested Panel");
+
+        RectTransformComponent* nestedRect = nestedPanel->addComponent<RectTransformComponent>();
+
+        nestedRect->setAnchors({0.0f, 0.0f}, {1.0f, 1.0f});
+
+        nestedRect->setPivot({0.5f, 0.5f});
+        nestedRect->setAnchoredPosition({0.0f, 0.0f});
+        nestedRect->setSizeDelta({-100.0f, -100.0f});
+
+        ImageComponent* nestedImage = nestedPanel->addComponent<ImageComponent>();
+
+        nestedImage->setColor(GREEN);
+
+        // --------------------------------------------------
+        // Stretch test
+        //
+        // Anchored to the bottom area of the entire Canvas.
+        // 100 logical-unit horizontal margins.
+        // --------------------------------------------------
+
+        GameObject* stretchPanel = scene().Instantiate(canvasObject, "Stretch Panel");
+
+        RectTransformComponent* stretchRect = stretchPanel->addComponent<RectTransformComponent>();
+
+        stretchRect->setAnchors({0.0f, 1.0f}, {1.0f, 1.0f});
+
+        stretchRect->setPivot({0.5f, 1.0f});
+        stretchRect->setAnchoredPosition({0.0f, -50.0f});
+        stretchRect->setSizeDelta({-200.0f, 100.0f});
+
+        ImageComponent* stretchImage = stretchPanel->addComponent<ImageComponent>();
+
+        stretchImage->setColor(BLUE);
+
+        // --------------------------------------------------
+        // Horizontal layout test
+        //
+        // Validates:
+        // - padding
+        // - spacing
+        // - preferred sizes
+        // - flexible surplus distribution
+        // - cross-axis centering
+        // --------------------------------------------------
+
+        GameObject* layoutPanel = scene().Instantiate(canvasObject, "Horizontal Layout");
+
+        RectTransformComponent* layoutRect = layoutPanel->addComponent<RectTransformComponent>();
+
+        layoutRect->setAnchors(
+            {0.5f, 0.5f},
+            {0.5f, 0.5f});
+
+        layoutRect->setPivot({0.5f, 0.5f});
+        layoutRect->setAnchoredPosition({0.0f, -300.0f});
+        layoutRect->setSizeDelta({800.0f, 100.0f});
+
+        ImageComponent* layoutBackground = layoutPanel->addComponent<ImageComponent>();
+
+        layoutBackground->setColor(GRAY);
+
+        HorizontalLayoutComponent* horizontalLayout = layoutPanel->addComponent<HorizontalLayoutComponent>();
+
+        horizontalLayout->setPadding(
+            {
+                .left = 20.0f,
+                .right = 20.0f,
+                .top = 20.0f,
+                .bottom = 20.0f
+            });
+
+        horizontalLayout->setSpacing(20.0f);
+        horizontalLayout->setChildAlignment(UICrossAxisAlignment::Center);
+
+        // Child A
+        // Preferred 120 wide, never consumes surplus.
+
+        GameObject* layoutChildA = scene().Instantiate(layoutPanel, "Layout Child A");
+
+        layoutChildA->addComponent<RectTransformComponent>();
+
+        ImageComponent* layoutImageA = layoutChildA->addComponent<ImageComponent>();
+
+        layoutImageA->setColor(RED);
+
+        LayoutElementComponent* layoutElementA = layoutChildA->addComponent<LayoutElementComponent>();
+
+        layoutElementA->setMinSize({80.0f, 60.0f});
+        layoutElementA->setPreferredSize({120.0f, 80.0f});
+
+        // Child B
+        // Flexible weight 1.
+
+        GameObject* layoutChildB = scene().Instantiate(layoutPanel, "Layout Child B");
+
+        layoutChildB->addComponent<RectTransformComponent>();
+
+        ImageComponent* layoutImageB = layoutChildB->addComponent<ImageComponent>();
+
+        layoutImageB->setColor(GREEN);
+
+        LayoutElementComponent* layoutElementB = layoutChildB->addComponent<LayoutElementComponent>();
+
+        layoutElementB->setMinSize({100.0f, 80.0f});
+        layoutElementB->setPreferredSize({160.0f, 100.0f});
+        layoutElementB->setFlexibleWeight({1.0f, 0.0f});
+
+        // Child C
+        // Flexible weight 2, so it receives twice B's surplus.
+
+        GameObject* layoutChildC = scene().Instantiate(layoutPanel, "Layout Child C");
+
+        layoutChildC->addComponent<RectTransformComponent>();
+
+        ImageComponent* layoutImageC = layoutChildC->addComponent<ImageComponent>();
+
+        layoutImageC->setColor(BLUE);
+
+        LayoutElementComponent* layoutElementC = layoutChildC->addComponent<LayoutElementComponent>();
+
+        layoutElementC->setMinSize({100.0f, 100.0f});
+        layoutElementC->setPreferredSize({160.0f, 120.0f});
+        layoutElementC->setFlexibleWeight({2.0f, 0.0f});
+
+        // --------------------------------------------------
+        // Vertical layout test
+        //
+        // Validates:
+        // - vertical main-axis allocation
+        // - preferred heights
+        // - flexible Y surplus distribution
+        // - horizontal cross-axis centering
+        // --------------------------------------------------
+
+        GameObject* verticalPanel = scene().Instantiate(canvasObject, "Vertical Layout");
+
+        RectTransformComponent* verticalRect = verticalPanel->addComponent<RectTransformComponent>();
+
+        verticalRect->setAnchors(
+            {0.0f, 0.5f},
+            {0.0f, 0.5f});
+
+        verticalRect->setPivot({0.0f, 0.5f});
+        verticalRect->setAnchoredPosition({80.0f, 0.0f});
+        verticalRect->setSizeDelta({320.0f, 500.0f});
+
+        ImageComponent* verticalBackground = verticalPanel->addComponent<ImageComponent>();
+
+        verticalBackground->setColor(GRAY);
+
+        VerticalLayoutComponent* verticalLayout = verticalPanel->addComponent<VerticalLayoutComponent>();
+
+        verticalLayout->setPadding(
+            {
+                .left = 20.0f,
+                .right = 20.0f,
+                .top = 20.0f,
+                .bottom = 20.0f
+            });
+
+        verticalLayout->setSpacing(20.0f);
+        verticalLayout->setChildAlignment(UICrossAxisAlignment::Center);
+
+        // Child A
+        // Fixed at preferred height once enough space exists.
+
+        GameObject* verticalChildA = scene().Instantiate(verticalPanel, "Vertical Child A");
+
+        verticalChildA->addComponent<RectTransformComponent>();
+
+        ImageComponent* verticalImageA = verticalChildA->addComponent<ImageComponent>();
+
+        verticalImageA->setColor(RED);
+
+        LayoutElementComponent* verticalElementA = verticalChildA->addComponent<LayoutElementComponent>();
+
+        verticalElementA->setMinSize({120.0f, 60.0f});
+        verticalElementA->setPreferredSize({180.0f, 80.0f});
+
+        // Child B
+        // Flexible Y weight 1.
+
+        GameObject* verticalChildB = scene().Instantiate(verticalPanel, "Vertical Child B");
+
+        verticalChildB->addComponent<RectTransformComponent>();
+
+        ImageComponent* verticalImageB = verticalChildB->addComponent<ImageComponent>();
+
+        verticalImageB->setColor(GREEN);
+
+        LayoutElementComponent* verticalElementB = verticalChildB->addComponent<LayoutElementComponent>();
+
+        verticalElementB->setMinSize({160.0f, 80.0f});
+        verticalElementB->setPreferredSize({220.0f, 100.0f});
+        verticalElementB->setFlexibleWeight({0.0f, 1.0f});
+
+        // Child C
+        // Flexible Y weight 2, so it receives twice B's
+        // share of vertical surplus.
+
+        GameObject* verticalChildC = scene().Instantiate(verticalPanel, "Vertical Child C");
+
+        verticalChildC->addComponent<RectTransformComponent>();
+
+        ImageComponent* verticalImageC = verticalChildC->addComponent<ImageComponent>();
+
+        verticalImageC->setColor(BLUE);
+
+        LayoutElementComponent* verticalElementC = verticalChildC->addComponent<LayoutElementComponent>();
+
+        verticalElementC->setMinSize({200.0f, 80.0f});
+        verticalElementC->setPreferredSize({260.0f, 100.0f});
+        verticalElementC->setFlexibleWeight({0.0f, 2.0f});
+
+        // --------------------------------------------------
+        // Nested layout test
+        //
+        // Vertical layout controls two row containers.
+        // Each row then performs its own horizontal layout
+        // using the effective rect assigned by the parent.
+        //
+        // Validates:
+        // Vertical -> effective UIRect -> Horizontal.
+        // --------------------------------------------------
+
+        GameObject* nestedLayoutPanel = scene().Instantiate(canvasObject, "Nested Layout");
+
+        RectTransformComponent* nestedLayoutRect = nestedLayoutPanel->addComponent<RectTransformComponent>();
+
+        nestedLayoutRect->setAnchors(
+            {1.0f, 0.5f},
+            {1.0f, 0.5f});
+
+        nestedLayoutRect->setPivot({1.0f, 0.5f});
+        nestedLayoutRect->setAnchoredPosition({-80.0f, 0.0f});
+        nestedLayoutRect->setSizeDelta({500.0f, 400.0f});
+
+        ImageComponent* nestedLayoutBackground = nestedLayoutPanel->addComponent<ImageComponent>();
+
+        nestedLayoutBackground->setColor(GRAY);
+
+        VerticalLayoutComponent* nestedVerticalLayout = nestedLayoutPanel->addComponent<VerticalLayoutComponent>();
+
+        nestedVerticalLayout->setPadding(
+            {
+                .left = 20.0f,
+                .right = 20.0f,
+                .top = 20.0f,
+                .bottom = 20.0f
+            });
+
+        nestedVerticalLayout->setSpacing(20.0f);
+        nestedVerticalLayout->setChildAlignment(UICrossAxisAlignment::Center);
+
+        // --------------------------------------------------
+        // Nested row A
+        // --------------------------------------------------
+
+        GameObject* nestedRowA = scene().Instantiate(nestedLayoutPanel, "Nested Row A");
+
+        nestedRowA->addComponent<RectTransformComponent>();
+
+        ImageComponent* nestedRowAImage = nestedRowA->addComponent<ImageComponent>();
+
+        nestedRowAImage->setColor(WHITE);
+
+        LayoutElementComponent* nestedRowAElement = nestedRowA->addComponent<LayoutElementComponent>();
+
+        nestedRowAElement->setMinSize({300.0f, 100.0f});
+        nestedRowAElement->setPreferredSize({420.0f, 120.0f});
+        nestedRowAElement->setFlexibleWeight({0.0f, 1.0f});
+
+        HorizontalLayoutComponent* nestedRowALayout = nestedRowA->addComponent<HorizontalLayoutComponent>();
+
+        nestedRowALayout->setPadding(
+            {
+                .left = 10.0f,
+                .right = 10.0f,
+                .top = 10.0f,
+                .bottom = 10.0f
+            });
+
+        nestedRowALayout->setSpacing(10.0f);
+        nestedRowALayout->setChildAlignment(UICrossAxisAlignment::Center);
+
+        GameObject* nestedRowAChildA = scene().Instantiate(nestedRowA, "Nested Row A Child A");
+
+        nestedRowAChildA->addComponent<RectTransformComponent>();
+
+        ImageComponent* nestedRowAImageA = nestedRowAChildA->addComponent<ImageComponent>();
+
+        nestedRowAImageA->setColor(RED);
+
+        LayoutElementComponent* nestedRowAElementA = nestedRowAChildA->addComponent<LayoutElementComponent>();
+
+        nestedRowAElementA->setMinSize({80.0f, 50.0f});
+        nestedRowAElementA->setPreferredSize({100.0f, 70.0f});
+        nestedRowAElementA->setFlexibleWeight({1.0f, 0.0f});
+
+        GameObject* nestedRowAChildB = scene().Instantiate(nestedRowA, "Nested Row A Child B");
+
+        nestedRowAChildB->addComponent<RectTransformComponent>();
+
+        ImageComponent* nestedRowAImageB = nestedRowAChildB->addComponent<ImageComponent>();
+
+        nestedRowAImageB->setColor(GREEN);
+
+        LayoutElementComponent* nestedRowAElementB = nestedRowAChildB->addComponent<LayoutElementComponent>();
+
+        nestedRowAElementB->setMinSize({80.0f, 50.0f});
+        nestedRowAElementB->setPreferredSize({100.0f, 70.0f});
+        nestedRowAElementB->setFlexibleWeight({2.0f, 0.0f});
+
+        // --------------------------------------------------
+        // Nested row B
+        // --------------------------------------------------
+
+        GameObject* nestedRowB = scene().Instantiate(nestedLayoutPanel, "Nested Row B");
+
+        nestedRowB->addComponent<RectTransformComponent>();
+
+        ImageComponent* nestedRowBImage = nestedRowB->addComponent<ImageComponent>();
+
+        nestedRowBImage->setColor(WHITE);
+
+        LayoutElementComponent* nestedRowBElement = nestedRowB->addComponent<LayoutElementComponent>();
+
+        nestedRowBElement->setMinSize({300.0f, 100.0f});
+        nestedRowBElement->setPreferredSize({420.0f, 120.0f});
+        nestedRowBElement->setFlexibleWeight({0.0f, 2.0f});
+
+        HorizontalLayoutComponent* nestedRowBLayout = nestedRowB->addComponent<HorizontalLayoutComponent>();
+
+        nestedRowBLayout->setPadding(
+            {
+                .left = 10.0f,
+                .right = 10.0f,
+                .top = 10.0f,
+                .bottom = 10.0f
+            });
+
+        nestedRowBLayout->setSpacing(10.0f);
+        nestedRowBLayout->setChildAlignment(UICrossAxisAlignment::Center);
+
+        GameObject* nestedRowBChildA = scene().Instantiate(nestedRowB, "Nested Row B Child A");
+
+        nestedRowBChildA->addComponent<RectTransformComponent>();
+
+        ImageComponent* nestedRowBImageA = nestedRowBChildA->addComponent<ImageComponent>();
+
+        nestedRowBImageA->setColor(BLUE);
+
+        LayoutElementComponent* nestedRowBElementA = nestedRowBChildA->addComponent<LayoutElementComponent>();
+
+        nestedRowBElementA->setMinSize({80.0f, 50.0f});
+        nestedRowBElementA->setPreferredSize({120.0f, 70.0f});
+        nestedRowBElementA->setFlexibleWeight({1.0f, 0.0f});
+
+        GameObject* nestedRowBChildB = scene().Instantiate(nestedRowB, "Nested Row B Child B");
+
+        nestedRowBChildB->addComponent<RectTransformComponent>();
+
+        ImageComponent* nestedRowBImageB = nestedRowBChildB->addComponent<ImageComponent>();
+
+        nestedRowBImageB->setColor(MAGENTA);
+
+        LayoutElementComponent* nestedRowBElementB = nestedRowBChildB->addComponent<LayoutElementComponent>();
+
+        nestedRowBElementB->setMinSize({80.0f, 50.0f});
+        nestedRowBElementB->setPreferredSize({120.0f, 70.0f});
+        nestedRowBElementB->setFlexibleWeight({1.0f, 0.0f});
+
+        // --------------------------------------------------
+        // Canvas 1 - sorting test
+        //
+        // Higher sortingOrder, therefore this must render
+        // over the main Canvas where they overlap.
+        // --------------------------------------------------
+
+        GameObject* overlayCanvasObject = scene().Instantiate("UI Test Overlay Canvas");
+
+        CanvasComponent* overlayCanvas = overlayCanvasObject->addComponent<CanvasComponent>();
+
+        UITheme& overlayTheme = overlayCanvas->getTheme();
+
+        overlayTheme.selectable.normal.color = WHITE;
+        overlayTheme.selectable.hovered.color = YELLOW;
+        overlayTheme.selectable.pressed.color = RED;
+        overlayTheme.selectable.disabled.color = GRAY;
+
+        overlayTheme.button.selectable.normal.color = LIGHTGRAY;
+        overlayTheme.button.selectable.hovered.color = GREEN;
+        overlayTheme.button.selectable.pressed.color = BLUE;
+        overlayTheme.button.selectable.disabled.color = DARKGRAY;
+
+        overlayCanvas->setScaleMode(CanvasScaleMode::ScaleWithScreenSize);
+        overlayCanvas->setReferenceResolution({1920.0f, 1080.0f});
+        overlayCanvas->setMatchWidthOrHeight(0.5f);
+        overlayCanvas->setSortingOrder(100);
+
+        GameObject* overlayPanel = scene().Instantiate(overlayCanvasObject, "Overlay Panel");
+
+        RectTransformComponent* overlayRect = overlayPanel->addComponent<RectTransformComponent>();
+        overlayRect->setAnchors({0.5f, 0.5f}, {0.5f, 0.5f});
+        overlayRect->setPivot({0.5f, 0.5f});
+        overlayRect->setAnchoredPosition({180.0f, 100.0f});
+        overlayRect->setSizeDelta({180.0f, 180.0f});
+
+        ImageComponent* overlayImage = overlayPanel->addComponent<ImageComponent>();
+        overlayImage->load("texel_checker.png");
+        overlayImage->setColor(WHITE);
+
+        // --------------------------------------------------
+        // Button test
+        //
+        // Separate from the plain overlay image so the
+        // interactive control is visually distinguishable.
+        // --------------------------------------------------
+
+        GameObject* buttonObject = scene().Instantiate(overlayCanvasObject, "Button Test");
+
+        RectTransformComponent* buttonRect = buttonObject->addComponent<RectTransformComponent>();
+        buttonRect->setAnchors({0.5f, 0.5f}, {0.5f, 0.5f});
+        buttonRect->setPivot({0.5f, 0.5f});
+        buttonRect->setAnchoredPosition({-180.0f, 100.0f});
+        buttonRect->setSizeDelta({180.0f, 100.0f});
+
+        buttonObject->addComponent<ImageComponent>();
+        buttonObject->addComponent<SelectableComponent>();
+
+        ButtonComponent* button = buttonObject->addComponent<ButtonComponent>();
+        button->setOnClick(
+        [buttonRect]()
+        {
+            static bool toggled = false;
+            toggled = !toggled;
+
+            buttonRect->setSizeDelta(
+                toggled
+                    ? vec2{220.0f, 120.0f}
+                    : vec2{180.0f, 100.0f});
+        });
+
+        GameObject* buttonLabel = Instantiate(buttonObject, "Button Label");
+
+        RectTransformComponent* labelRect = buttonLabel->addComponent<RectTransformComponent>();
+        labelRect->setAnchors({0.0f, 0.0f}, {1.0f, 1.0f});
+        labelRect->setPivot({0.0f, 0.0f});
+        labelRect->setAnchoredPosition({12.0f, 12.0f});
+        labelRect->setSizeDelta({-24.0f, -24.0f});
+
+        TextComponent* label = buttonLabel->addComponent<TextComponent>();
+        label->setFont(m_debugFont);
+        label->setText("Button");
+        label->setFontSize(24.0f);
+        label->setColor(WHITE);
+
+        const AssetId buttonHoverTexture = assets().loadTexture("texel_checker.png");
+
+        overlayTheme.button.selectable.normal.color = LIGHTGRAY;
+
+        overlayTheme.button.selectable.hovered.color = WHITE;
+        overlayTheme.button.selectable.hovered.texture = buttonHoverTexture;
+
+        overlayTheme.button.selectable.pressed.color = BLUE;
+        overlayTheme.button.selectable.disabled.color = DARKGRAY;
+
+        overlayTheme.button.selectable.normal.border.thickness = 2.0f;
+        overlayTheme.button.selectable.normal.border.color = GRAY;
+
+        overlayTheme.button.selectable.hovered.border.thickness = 4.0f;
+        overlayTheme.button.selectable.hovered.border.color = YELLOW;
+
+        overlayTheme.button.selectable.pressed.border.thickness = 6.0f;
+        overlayTheme.button.selectable.pressed.border.color = RED;
+
+        overlayTheme.button.selectable.disabled.border.thickness = 2.0f;
+        overlayTheme.button.selectable.disabled.border.color = DARKGRAY;
+
+        overlayTheme.button.selectable.normal.cornerRadius = 12.0f;
+        overlayTheme.button.selectable.hovered.cornerRadius = 24.0f;
+        overlayTheme.button.selectable.pressed.cornerRadius = 40.0f;
+
+        overlayTheme.button.selectable.transitionDuration = 0.25f;
+
+    }
+
     // --------------------------------------------------
     // Updates
     // --------------------------------------------------
@@ -1190,4 +1746,41 @@ namespace aiko::lab
 
         renderer().drawMesh(monitor, m_renderTargetMesh, m_renderTargetMaterial);
     }
+
+    void RenderLab::renderUI()
+    {
+
+        ui().text(m_debugFont, "Hello Aiko!", {20.0f, 220.0f}, 32.0f, WHITE);
+        ui().text(m_debugFont, "Immediate UI / debug text\nSecond line", {20.0f, 260.0f}, 24.0f, YELLOW);
+
+        ui().rect(
+            {20.0f, 20.0f},
+            {200.0f, 60.0f},
+            MAGENTA);
+
+        // Clipping test for the immediate frontend.
+        ui().pushClipRect(
+            {20.0f, 100.0f},
+            {200.0f, 100.0f});
+
+        ui().rect(
+            {-30.0f, 120.0f},
+            {300.0f, 60.0f},
+            CYAN);
+
+        ui().popClipRect();
+    }
+
+    void RenderLab::renderTextTests()
+    {
+        Transform textTransform;
+        textTransform.position =
+        {
+            0.0f,
+            3.0f,
+            0.0f
+        };
+        renderer().drawText(m_debugFont, "Aiko World Text", textTransform, 0.5f, WHITE);
+    }
+
 }

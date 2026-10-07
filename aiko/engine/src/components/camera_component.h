@@ -24,7 +24,10 @@ namespace aiko
         void setCameraController(camera::CameraController);
 
         float& radius() { return m_radius; }
+        const float radius() const { return m_radius; }
+
         float& speed() { return m_speed; }
+        const float speed() const { return m_speed; }
 
         const Camera& getCamera() const { return m_camera; }
         Camera& getCamera() { return m_camera; }

@@ -18,6 +18,7 @@
 #include "modules/input_module.h"
 
 // Systems
+#include "magic_enum/magic_enum_utility.hpp"
 #include "modules/assets_manager_module.h"
 #include "systems/asset_binding_system.h"
 #include "systems/asset_system.h"
@@ -30,6 +31,7 @@
 #include "systems/scene_system.h"
 #include "systems/job_system.h"
 #include "systems/system_registry.h"
+#include "systems/ui_system.h"
 
 namespace aiko
 {
@@ -47,9 +49,10 @@ namespace aiko
 
     Aiko::~Aiko()
     {
+        EventSystem::it().unbindAll(this);
     }
 
-    void Aiko::onWindowClose(WindowCloseEvent& event)
+    void Aiko::onWindowClose(const WindowCloseEvent& event)
     {
         m_shouldStop = true;
     }
@@ -96,6 +99,7 @@ namespace aiko
         systemRegistry.add<JobSystem>();
         systemRegistry.add<SceneSystem>();
         systemRegistry.add<RenderSystem>();
+        systemRegistry.add<UISystem>();
         systemRegistry.add<AssetSystem>();
         systemRegistry.add<ComputeSystem>();
         systemRegistry.add<InputSystem>();
@@ -110,7 +114,7 @@ namespace aiko
         for (auto&& system : m_systems) system->connect(&moduleConnector, &systemConnector);
         for (auto&& system : m_systems) system->init();
 
-        m_layerContext = AikoUPtr<LayerContext>(new LayerContext(systemConnector));
+        m_layerContext = AikoUPtr<LayerContext>(new LayerContext(*this, systemConnector));
 
         m_application->connect(systemConnector, *m_layerContext);
         m_application->init();
@@ -122,8 +126,18 @@ namespace aiko
         AIKO_FUNCTION_PROFILE
         for (auto&& module : m_modules) module->preUpdate();
         for (auto&& module : m_modules) module->update();
-        for (auto&& system : m_systems) system->update();
-        m_application->update();
+
+        const bool runSimulation = m_simulationPaused == false || m_stepSimulation;
+
+        magic_enum::enum_for_each<SystemUpdatePhase>([&](SystemUpdatePhase phase)
+        {
+            runUpdatePhase(phase, runSimulation);
+        });
+        if (runSimulation == true)
+        {
+            m_application->update();
+        }
+        m_stepSimulation = false;
         for (auto&& module : m_modules) module->postUpdate();
     }
 
@@ -133,7 +147,9 @@ namespace aiko
         for (auto&& module : m_modules) module->beginFrame();
         for (auto&& module : m_modules) module->preRender();
         for (auto&& module : m_modules) module->render();
-        for (auto&& system : m_systems) system->render();
+        magic_enum::enum_for_each<SystemRenderPhase>([&](SystemRenderPhase phase) {
+            runRenderPhase(phase);
+        });
         m_application->render();
         for (auto&& module : m_modules) module->postRender();
         for (auto&& module : m_modules) module->endFrame();
@@ -144,7 +160,38 @@ namespace aiko
         for (auto&& module : m_modules) module->preDispose();
         m_application->dispose();
         for (auto&& system : m_systems) system->dispose();
-        for (auto&& module : m_modules) module->dispose();
+        for (auto it = m_modules.rbegin(); it != m_modules.rend(); ++it)
+        {
+            (*it)->dispose();
+        }
     }
 
+    void Aiko::runUpdatePhase(SystemUpdatePhase phase, bool runSimulation)
+    {
+        for (auto&& system : m_systems)
+        {
+            if (system->updatePhase() != phase)
+            {
+                continue;
+            }
+
+            if (runSimulation == false && system->updateWhenPaused() == false)
+            {
+                continue;
+            }
+
+            system->update();
+        }
+    }
+
+    void Aiko::runRenderPhase(SystemRenderPhase phase)
+    {
+        for (auto&& system : m_systems)
+        {
+            if (system->renderPhase() == phase)
+            {
+                system->render();
+            }
+        }
+    }
 }

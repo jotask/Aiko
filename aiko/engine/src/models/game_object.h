@@ -37,6 +37,9 @@ namespace aiko
         template<class T>
         const T* getComponent() const;
 
+        vector<Component*> getComponents();
+        vector<const Component*> getComponents() const;
+
         template<class T>
         vector<T*> getComponents();
 
@@ -48,11 +51,36 @@ namespace aiko
 
         bool removeComponent(Component*);
 
-        string getName() const { return name; }
-        void setName( string newName ) { name = newName; }
+        string getName() const
+        {
+            return name;
+        }
+
+        void setName(string newName)
+        {
+            name = std::move(newName);
+        }
+
+        void setActive(bool active)
+        {
+            m_activeSelf = active;
+        }
+
+        bool isActiveSelf() const
+        {
+            return m_activeSelf;
+        }
+
+        bool isActiveInHierarchy() const;
 
         Transform& transform();
         const Transform& transform() const;
+
+        GameObject* getParent();
+        const GameObject* getParent() const;
+
+        vector<GameObject*> getChildren();
+        vector<const GameObject*> getChildren() const;
 
         const uuid::Uuid& uuid() const { return m_uuid; }
 
@@ -62,6 +90,7 @@ namespace aiko
         uuid::Uuid m_uuid;
 
         string name;
+        bool m_activeSelf = true;
 
         using ComponentBucket = vector<Component*>;
 

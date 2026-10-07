@@ -21,6 +21,7 @@ namespace aiko
         physics::AikoPhysics& getPhysics() { return m_physics; }
 
     protected:
+        SystemUpdatePhase updatePhase() const override { return SystemUpdatePhase::Physics; }
         void connect(ModuleConnector*, SystemConnector*) override;
         void init() override;
         void update() override;

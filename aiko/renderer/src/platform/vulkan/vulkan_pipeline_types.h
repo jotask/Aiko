@@ -93,9 +93,26 @@ namespace aiko::renderer::vulkan
         RenderResourceId shaderId = InvalidRenderResourceId;
         RenderPassCompatibilityKey renderPass{};
 
+        FillMode fillMode = FillMode::Solid;
+        CullMode cullMode = CullMode::None;
+
+        bool depthTest = true;
+        bool depthWrite = true;
+
+        DepthCompare depthCompare = DepthCompare::LessEqual;
+
+        bool blend = false;
+
         bool operator==(const GpuPipelineKey& other) const
         {
-            return shaderId == other.shaderId && renderPass == other.renderPass;
+            return shaderId == other.shaderId
+                && renderPass == other.renderPass
+                && fillMode == other.fillMode
+                && cullMode == other.cullMode
+                && depthTest == other.depthTest
+                && depthWrite == other.depthWrite
+                && depthCompare == other.depthCompare
+                && blend == other.blend;
         }
     };
 
@@ -104,8 +121,16 @@ namespace aiko::renderer::vulkan
         size_t operator()(const GpuPipelineKey& key) const
         {
             size_t seed = 0;
+
             utils::hashCombine(std::hash<RenderResourceId>{}(key.shaderId), seed);
             utils::hashCombine(RenderPassCompatibilityKeyHash{}(key.renderPass), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.fillMode)), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.cullMode)), seed);
+            utils::hashCombine(std::hash<bool>{}(key.depthTest), seed);
+            utils::hashCombine(std::hash<bool>{}(key.depthWrite), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.depthCompare)), seed);
+            utils::hashCombine(std::hash<bool>{}(key.blend), seed);
+
             return seed;
         }
     };
@@ -116,11 +141,27 @@ namespace aiko::renderer::vulkan
         RenderPassCompatibilityKey renderPass{};
         VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 
+        FillMode fillMode = FillMode::Solid;
+        CullMode cullMode = CullMode::None;
+
+        bool depthTest = true;
+        bool depthWrite = true;
+
+        DepthCompare depthCompare = DepthCompare::LessEqual;
+
+        bool blend = false;
+
         bool operator==(const GpuVertexPipelineKey& other) const
         {
             return shaderId == other.shaderId
                 && renderPass == other.renderPass
-                && topology == other.topology;
+                && topology == other.topology
+                && fillMode == other.fillMode
+                && cullMode == other.cullMode
+                && depthTest == other.depthTest
+                && depthWrite == other.depthWrite
+                && depthCompare == other.depthCompare
+                && blend == other.blend;
         }
     };
 
@@ -129,9 +170,17 @@ namespace aiko::renderer::vulkan
         size_t operator()(const GpuVertexPipelineKey& key) const
         {
             size_t seed = 0;
+
             utils::hashCombine(std::hash<RenderResourceId>{}(key.shaderId), seed);
             utils::hashCombine(RenderPassCompatibilityKeyHash{}(key.renderPass), seed);
             utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.topology)), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.fillMode)), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.cullMode)), seed);
+            utils::hashCombine(std::hash<bool>{}(key.depthTest), seed);
+            utils::hashCombine(std::hash<bool>{}(key.depthWrite), seed);
+            utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(key.depthCompare)), seed);
+            utils::hashCombine(std::hash<bool>{}(key.blend), seed);
+
             return seed;
         }
     };

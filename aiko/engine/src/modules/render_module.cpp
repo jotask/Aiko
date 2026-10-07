@@ -54,13 +54,17 @@ namespace aiko
 
     void RenderModule::submitInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount)
     {
-        m_renderer->submit(
-            mesh,
-            material,
-            instances,
-            instanceCount,
-            sizeof(InstanceData)
-        );
+        m_renderer->submit(mesh, material, instances, instanceCount, sizeof(InstanceData));
+    }
+
+    void RenderModule::submitFullscreen(const Material& material)
+    {
+        m_renderer->submitFullscreen(material);
+    }
+
+    ivec2 RenderModule::getRenderSize() const
+    {
+        return m_renderer->sceneRenderTarget().size();
     }
 
     void RenderModule::enqueueCompute(const ComputePass& pass)
@@ -123,6 +127,58 @@ namespace aiko
         m_renderer->resources().unloadShader(id);
     }
 
+    ImguiTextureId RenderModule::getTargetTextureId() const
+    {
+        return m_renderer->imguiTextureId(m_renderer->sceneRenderTarget().colorTexture());
+    }
+
+    ImguiTextureId RenderModule::getTextureId(const Texture& texture) const
+    {
+        return m_renderer->imguiTextureId(texture);
+    }
+
+    ImguiTextureId RenderModule::getTextureId(const AssetId& textureId) const
+    {
+        return getTextureId(textureId, {});
+    }
+
+    ImguiTextureId RenderModule::getTextureId(const AssetId& textureId, const SamplerState& sampler) const
+    {
+        AIKO_ASSERT(textureId != InvalidAssetId, "Cannot get ImGui texture id from invalid asset id");
+        Texture& texture = m_renderer->resources().getTexture(textureId);
+        return m_renderer->imguiTextureId(texture, sampler);
+    }
+
+    void RenderModule::setUiShader(AssetId shaderId)
+    {
+        m_renderer->setUiShader(shaderId);
+    }
+
+    void RenderModule::drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius, float borderThickness, Color borderColor)
+    {
+        m_renderer->drawUiRect(position, size, color, cornerRadius, borderThickness, borderColor);
+    }
+
+    void RenderModule::drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
+    {
+        m_renderer->drawUiImage(textureId, position, size, tint, cornerRadius, borderThickness, borderColor);
+    }
+
+    void RenderModule::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
+    {
+        m_renderer->drawUiImage(textureId, region, position, size, tint, cornerRadius, borderThickness, borderColor);
+    }
+
+    void RenderModule::pushUiClipRect(const vec2& position, const vec2& size)
+    {
+        m_renderer->pushUiClipRect(position, size);
+    }
+
+    void RenderModule::popUiClipRect()
+    {
+        m_renderer->popUiClipRect();
+    }
+
     void RenderModule::connect(ModuleConnector* moduleConnector)
     {
         BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule);
@@ -134,7 +190,7 @@ namespace aiko
 
         AssetManager* assetManager = m_assetManager->getManager();
 
-        const ivec2 size = m_displayModule->getDisplaySize();
+        const ivec2 size = m_displayModule->getFramebufferSize();
         const RenderSurfaceDesc surface =
         {
             .nativeWindowHandle = m_displayModule->getNativeWindow(),

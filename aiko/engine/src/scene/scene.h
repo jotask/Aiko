@@ -23,6 +23,15 @@ namespace aiko
         GameObject* create(string name);
         GameObject* create(GameObject* parent, string name);
 
+        GameObject* create(const uuid::Uuid& id, string name);
+        GameObject* create(const uuid::Uuid& id, GameObject* parent, string name);
+
+        GameObject* find(const uuid::Uuid& id);
+        const GameObject* find(const uuid::Uuid& id) const;
+
+        GameObject* findByTransform(const Transform* transform);
+        const GameObject* findByTransform(const Transform* transform) const;
+
         bool remove(const GameObject* obj);
 
         void clear();
@@ -49,6 +58,9 @@ namespace aiko
     private:
         using ComponentBucket = vector<Component*>;
         std::unordered_map<std::type_index, ComponentBucket> m_componentIndex;
+
+        std::unordered_map<uuid::Uuid, GameObject*> m_objectIndex;
+        std::unordered_map<const Transform*, GameObject*> m_transformOwners;
 
         Color m_clearColor = RAYWHITE;
         AmbientLight m_ambientLight;

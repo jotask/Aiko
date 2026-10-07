@@ -36,7 +36,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(desc.count > 0, "Invalid compute buffer count");
 
         m_format = desc.format;
-        buildLayout(desc.format);
+        buildLayout(desc.format, desc.stride);
 
         m_count = desc.count;
         m_usage = desc.usage;
@@ -170,7 +170,7 @@ namespace aiko::renderer::vulkan
         VulkanContext::current().retireBuffer(buffer, memory);
     }
 
-    void VulkanComputeBufferImpl::buildLayout(ComputeBufferFormat format)
+    void VulkanComputeBufferImpl::buildLayout(ComputeBufferFormat format, uint32_t stride)
     {
         switch (format)
         {
@@ -180,6 +180,12 @@ namespace aiko::renderer::vulkan
 
             case ComputeBufferFormat::Uint32:
                 m_elementSize = sizeof(uint32_t);
+                break;
+
+            case ComputeBufferFormat::Structured:
+                AIKO_ASSERT(stride > 0, "Structured compute buffer requires a stride");
+                AIKO_ASSERT(stride % 4 == 0, "Structured compute buffer stride must be 4-byte aligned");
+                m_elementSize = stride;
                 break;
 
             default:

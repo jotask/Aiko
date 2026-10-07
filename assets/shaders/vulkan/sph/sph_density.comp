@@ -1,0 +1,124 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+layout(std430, binding = 0)
+readonly buffer Positions
+{
+    vec4 positions[];
+};
+
+layout(std430, binding = 1)
+readonly buffer CellHeads
+{
+    uint cellHeads[];
+};
+
+layout(std430, binding = 2)
+readonly buffer ParticleNext
+{
+    uint particleNext[];
+};
+
+layout(std430, binding = 3)
+writeonly buffer Pressures
+{
+    vec4 pressures[];
+};
+
+layout(push_constant)
+uniform PushConstants
+{
+    float smoothingRadius;
+    float restDensity;
+    float pressureStiffness;
+    float nearPressureStiffness;
+
+    uint particleCount;
+    uint gridWidth;
+    uint gridHeight;
+    uint padding;
+
+    vec4 boundsMin;
+} pc;
+
+void main()
+{
+    uint i = gl_GlobalInvocationID.x;
+
+    if (i >= pc.particleCount)
+    {
+        return;
+    }
+
+    vec3 positionA = positions[i].xyz;
+
+    ivec2 cell = ivec2(floor((positionA.xy - pc.boundsMin.xy) / pc.smoothingRadius));
+
+    float density = 0.0;
+    float densityNear = 0.0;
+
+    float smoothingRadiusSquared =
+        pc.smoothingRadius * pc.smoothingRadius;
+
+    float inverseSmoothingRadius =
+        1.0 / pc.smoothingRadius;
+
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            ivec2 neighbourCell = cell + ivec2(x, y);
+
+            if (neighbourCell.x < 0 || neighbourCell.y < 0 || neighbourCell.x >= int(pc.gridWidth) || neighbourCell.y >= int(pc.gridHeight))
+            {
+                continue;
+            }
+
+            uint key = uint(neighbourCell.y) * pc.gridWidth + uint(neighbourCell.x);
+
+            uint j = cellHeads[key];
+
+            while (j != 0xFFFFFFFFu)
+            {
+                uint nextParticle = particleNext[j];
+
+                if (j != i)
+                {
+                    vec3 direction = positions[j].xyz - positionA;
+
+                    float distanceSquared =
+                        dot(direction, direction);
+
+                    if (distanceSquared < smoothingRadiusSquared)
+                    {
+                        float distance =
+                            sqrt(distanceSquared);
+
+                        float q =
+                            distance * inverseSmoothingRadius;
+
+                        float oneMinusQ = 1.0 - q;
+                        float oneMinusQ2 =
+                            oneMinusQ * oneMinusQ;
+
+                        density += oneMinusQ2;
+                        densityNear +=
+                            oneMinusQ2 * oneMinusQ;
+                    }
+                }
+
+                j = nextParticle;
+            }
+        }
+    }
+
+    float pressure = pc.pressureStiffness * (density - pc.restDensity);
+    float pressureNear = pc.nearPressureStiffness * densityNear;
+
+    pressures[i] = vec4(
+        pressure,
+        pressureNear,
+        0.0,
+        0.0);
+}

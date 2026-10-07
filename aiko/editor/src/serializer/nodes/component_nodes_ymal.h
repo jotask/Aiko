@@ -19,9 +19,9 @@ namespace YAML
 {
 
     template<>
-    struct convert<aiko::TransforComponent>
+    struct convert<aiko::TransformComponent>
     {
-        static Node encode(const aiko::TransforComponent& rhs)
+        static Node encode(const aiko::TransformComponent& rhs)
         {
             Node node;
             node["position"] = rhs.transform.position;
@@ -30,7 +30,7 @@ namespace YAML
             return node;
         }
 
-        static bool decode(const Node& node, aiko::TransforComponent& rhs)
+        static bool decode(const Node& node, aiko::TransformComponent& rhs)
         {
             if (node.IsMap() == false)
             {
@@ -76,8 +76,6 @@ namespace YAML
         {
             Node node;
             node["meshAsset"] = rhs.getMeshId();
-            node["materialAsset"] = rhs.getMaterial();
-            node["materialInstance"] = rhs.getMaterialInstance();
             return node;
         }
 

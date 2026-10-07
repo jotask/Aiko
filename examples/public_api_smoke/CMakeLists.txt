@@ -9,3 +9,5 @@ target_link_libraries(PublicApiSmoke PRIVATE Aiko)
 target_include_directories(PublicApiSmoke PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(PublicApiSmoke)
+
+aiko_add_example(PublicApiSmoke)

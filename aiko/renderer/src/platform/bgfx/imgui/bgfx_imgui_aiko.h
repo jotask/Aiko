@@ -12,6 +12,8 @@ namespace aiko::renderer::bgfx
         virtual void beginFrame(const ViewId id, int width, int height) override;
         virtual void endFrame(const ViewId id, int width, int height) override;
         virtual void dispose() override;
+        virtual ImguiTextureId textureId(const interfaces::ITextureImpl& texture) override;
+
     };
 
 }

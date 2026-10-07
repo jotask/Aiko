@@ -1,5 +1,7 @@
 #include <stdlib.h>
 
+#include <application/application.h>
+
 #include "voxel_world.h"
 
 int main()

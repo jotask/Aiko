@@ -7,19 +7,18 @@
 #include "components/model_component.h"
 #include "components/particle_emitter_component.h"
 #include "components/sprite_component.h"
+#include "layers/contexts/asset_context.h"
+#include "layers/contexts/render_context.h"
+#include "layers/contexts/scene_context.h"
 #include "models/camera.h"
 #include "models/game_object.h"
 #include "models/mesh_factory.h"
 #include "models/texture_factory.h"
 #include "systems/system_connector.h"
 #include "types/color.h"
-#include "layers/contexts/render_context.h"
-#include "layers/contexts/asset_context.h"
 
-#include <application/application.h>
 #include <core/random.h>
 
-#include <aiko_includes.h>
 #include <chrono>
 #include <cmath>
 
@@ -40,10 +39,8 @@ namespace sb
     void Sandbox::init()
     {
 
-        auto* camera = Instantiate("Camera");
-        auto* cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
-		camera->transform().position = { 0.0f, 1.0f, 2.5f };
-		cam->getCamera().position = camera->transform().position;
+        aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Fly);
+        camera->getCamera().position = { 0.0f, 1.0f, 2.5f };
 
         if constexpr (s_enableMeshTests == true)
         {
@@ -58,6 +55,11 @@ namespace sb
         if constexpr (s_enableInstancingTests == true)
         {
             initInstancing();
+        }
+
+        if constexpr (s_enableLightTests == true)
+        {
+            initLights();
         }
 
         if constexpr (s_enableParticleTests == true)
@@ -157,21 +159,21 @@ namespace sb
         go1->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go1->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model1 = go1->addComponent<aiko::ModelComponent>();
-        model1->load("church.obj");
+        model1->load("models/church.obj");
 
         auto go2 = Instantiate(root, "Barracks");
         go2->transform().position = { -50.0f, 0.0f, -15.0f };
         go2->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go2->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model2 = go2->addComponent<aiko::ModelComponent>();
-        model2->load("barracks.obj");
+        model2->load("models/barracks.obj");
 
         auto go3 = Instantiate(root, "Watermill");
         go3->transform().position = { 50.0f, 0.0f, -15.0f };
         go3->transform().rotation = { 0.0f, 0.0f, 0.0f };
         go3->transform().scale = { 1.0f, 1.0f, 1.0f };
         auto model3 = go3->addComponent<aiko::ModelComponent>();
-        model3->load("watermill.obj");
+        model3->load("models/watermill.obj");
 
         auto go4 = Instantiate(root, "Robot");
         go4->transform().position = { 0.0f, 0.0f, 5.0f };
@@ -179,7 +181,7 @@ namespace sb
         const float scale = 0.25f;
         go4->transform().scale = { scale, scale, scale };
         auto model4 = go4->addComponent<aiko::ModelComponent>();
-        model4->load("robot.glb");
+        model4->load("models/robot.glb");
     }
 
     void Sandbox::initComponents()

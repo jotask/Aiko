@@ -1,0 +1,139 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+struct ShapeEdge
+{
+    vec4 a;
+    vec4 b;
+};
+
+struct Shape
+{
+    uint edgeStart;
+    uint edgeCount;
+    uint padding0;
+    uint padding1;
+};
+
+layout(std430, binding = 0)
+buffer Positions
+{
+    vec4 positions[];
+};
+
+layout(std430, binding = 1)
+readonly buffer ShapeEdges
+{
+    ShapeEdge edges[];
+};
+
+layout(std430, binding = 2)
+readonly buffer Shapes
+{
+    Shape shapes[];
+};
+
+layout(push_constant)
+uniform PushConstants
+{
+    float dt;
+    float maxStickiness;
+    float kStick;
+    uint particleCount;
+
+    uint shapeCount;
+    uint padding0;
+    uint padding1;
+    uint padding2;
+} pc;
+
+vec2 closestPointOnSegment(
+    vec2 point,
+    vec2 a,
+    vec2 b)
+{
+    vec2 ab = b - a;
+
+    float lengthSquared =
+    dot(ab, ab);
+
+    if (lengthSquared <= 0.000001)
+    {
+        return a;
+    }
+
+    float t =
+    clamp(
+        dot(point - a, ab) /
+        lengthSquared,
+        0.0,
+        1.0);
+
+    return a + ab * t;
+}
+
+void main()
+{
+    uint particleIndex = gl_GlobalInvocationID.x;
+
+    if (particleIndex >= pc.particleCount)
+    {
+        return;
+    }
+
+    if (pc.maxStickiness <= 0.0)
+    {
+        return;
+    }
+
+    vec2 position = positions[particleIndex].xy;
+
+    for ( uint shapeIndex = 0; shapeIndex < pc.shapeCount;  ++shapeIndex)
+    {
+        Shape shape = shapes[shapeIndex];
+
+        float closestDistanceSquared = 3.402823466e+38;
+
+        vec2 closestPoint = vec2(0.0);
+
+        for ( uint edgeIndex = 0; edgeIndex < shape.edgeCount;  ++edgeIndex)
+        {
+            ShapeEdge edge = edges[shape.edgeStart + edgeIndex];
+
+            vec2 pointOnEdge = closestPointOnSegment(position, edge.a.xy, edge.b.xy);
+
+            vec2 direction = pointOnEdge - position;
+
+            float distanceSquared = dot(direction, direction);
+
+            if (distanceSquared < closestDistanceSquared)
+            {
+                closestDistanceSquared = distanceSquared;
+                closestPoint = pointOnEdge;
+            }
+        }
+
+        if (closestDistanceSquared > pc.maxStickiness * pc.maxStickiness)
+        {
+            continue;
+        }
+
+        vec2 nearestVector = closestPoint - position;
+
+        float distance = length(nearestVector);
+
+        if (distance <= 0.000001)
+        {
+            continue;
+        }
+
+        vec2 direction = nearestVector / distance;
+
+        float stickyTerm = pc.dt * pc.kStick * distance * (1.0 - distance / pc.maxStickiness);
+
+        position += direction * stickyTerm;
+    }
+
+    positions[particleIndex].xy = position;
+}

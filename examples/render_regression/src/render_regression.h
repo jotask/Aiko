@@ -1,7 +1,7 @@
 #pragma once
 
 #include <aiko_includes.h>
-#include <application/application.h>
+#include <layers/layer.h>
 
 namespace regression
 {
@@ -10,8 +10,6 @@ namespace regression
     {
     protected:
         virtual void init() override;
-        virtual void update() override;
-        virtual void render() override;
     private:
 
     };

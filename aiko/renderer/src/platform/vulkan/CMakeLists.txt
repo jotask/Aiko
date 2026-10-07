@@ -2,6 +2,8 @@ set(VULKAN_HEADERS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 set(VULKAN_HEADERS_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 set(VULKAN_HEADERS_ENABLE_MODULE OFF CACHE BOOL "" FORCE)
 
+#----------------------------------------------------------------------
+
 FetchContent_Declare(
         VulkanHeaders
         GIT_REPOSITORY https://github.com/KhronosGroup/Vulkan-Headers.git
@@ -23,6 +25,10 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(volk)
+
+aiko_add_dependency(volk)
+
+#----------------------------------------------------------------------
 
 set(SPIRV_REFLECT_EXECUTABLE OFF CACHE BOOL "" FORCE)
 set(SPIRV_REFLECT_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -49,3 +55,7 @@ target_compile_definitions(imgui PUBLIC IMGUI_IMPL_VULKAN_USE_VOLK VK_NO_PROTOTY
 target_link_libraries(AikoRenderer PRIVATE volk::volk Vulkan::Headers spirv-reflect-static)
 target_link_libraries(imgui PUBLIC volk::volk Vulkan::Headers)
 aiko_set_common_source_layout(AikoRenderer ${CMAKE_CURRENT_SOURCE_DIR} ${AIKORENDERER_VULKAN_SRC})
+
+aiko_add_dependency(spirv-reflect-static)
+
+#----------------------------------------------------------------------

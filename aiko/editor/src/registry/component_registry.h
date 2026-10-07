@@ -1,27 +1,55 @@
 #pragma once
 
-#include <models/game_object.h>
-#include <models/component.h>
+#include <aiko_types.h>
 
 #include <yaml-cpp/yaml.h>
 
 #include <functional>
+#include <string_view>
+#include <typeindex>
 
+namespace aiko
+{
+    class GameObject;
+    class Component;
+}
+
+namespace aiko::editor
+{
+    class EditorContext;
+}
 
 namespace aiko::editor::component
 {
 
     struct ComponentEditorEntry
     {
-        std::string name;
-        std::function<bool(GameObject*)> has;
-        std::function<void(GameObject*)> add;
-        std::function<void(GameObject*)> remove;
-        std::function<bool(Component*)> render;
-        std::function<bool(Component* c, YAML::Node& node)> serialize;
-        std::function<bool(const YAML::Node& node, GameObject& obj)> deserialize;
+        string name;
+        string serializedName;
+        std::type_index type;
+
+        bool addable;
+        bool removable;
+
+        std::function<bool(const GameObject&)> has;
+
+        std::function<void(EditorContext&, GameObject&)> add;
+
+        std::function<void(EditorContext&, GameObject&)> remove;
+
+        std::function<bool(Component&)> render;
+
+        std::function<YAML::Node(const Component&)> serialize;
+
+        std::function<bool(const YAML::Node&, GameObject&)> deserialize;
     };
 
-    extern const vector<ComponentEditorEntry> s_componentEntries;
+    const vector<ComponentEditorEntry>& componentEntries();
+
+    const ComponentEditorEntry* findComponentEntry(const Component& component);
+
+    const ComponentEditorEntry* findComponentEntryByName(std::string_view name);
+
+    const ComponentEditorEntry* findComponentEntryBySerializedName(std::string_view serializedName);
 
 }

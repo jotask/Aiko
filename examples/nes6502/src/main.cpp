@@ -2,6 +2,8 @@
 
 #include "nes_emulator.h"
 
+#include "application/application.h"
+
 int main()
 {
     aiko::Application app;

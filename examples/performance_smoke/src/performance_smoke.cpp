@@ -3,6 +3,7 @@
 #include "components/camera_component.h"
 #include "components/light_component.h"
 #include "components/mesh_component.h"
+#include "layers/contexts/asset_context.h"
 #include "layers/contexts/scene_context.h"
 #include "models/game_object.h"
 #include "models/mesh_factory.h"
@@ -51,18 +52,8 @@ namespace aiko::perf
 
     void PerformanceSmoke::initCamera()
     {
-        GameObject* camera = Instantiate("Camera");
-
-        CameraComponent* cameraComponent = camera->addComponent<CameraComponent>(camera::CameraController::Fly);
-
-        camera->transform().position =
-        {
-            0.0f,
-            18.0f,
-            35.0f
-        };
-
-        cameraComponent->getCamera().position = camera->transform().position;
+        aiko::CameraComponent* camera = scene().createCamera(camera::CameraController::Fly);
+        camera->getCamera().position = { 0.0f, 18.0f, 35.0f };
     }
 
     void PerformanceSmoke::initWorld()
@@ -70,6 +61,7 @@ namespace aiko::perf
         GameObject* root = Instantiate("World");
 
         const MeshAsset cube = mesh::factory::generateCube();
+        const AssetId cubeMeshId = assets().createMesh(cube);
 
         const float halfWidth = static_cast<float>(GridWidth - 1) * ObjectSpacing * 0.5f;
 
@@ -92,7 +84,7 @@ namespace aiko::perf
 
                 MeshComponent* meshComponent = object->addComponent<MeshComponent>();
 
-                meshComponent->load(cube);
+                meshComponent->load(cubeMeshId);
 
                 Material& material = meshComponent->getMaterial();
 

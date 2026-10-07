@@ -1,6 +1,9 @@
 #include "loop_recorder_gui.h"
 
 #include <aiko_includes.h>
+#include <components/camera_component.h>
+#include <layers/contexts/scene_context.h>
+#include <types/color.h>
 
 #include <imgui.h>
 #include <portaudio.h>
@@ -9,6 +12,11 @@ namespace aiko::recorder
 {
     void LoopRecorderGui::init()
     {
+
+        scene().clearColor() = aiko::BLACK;
+
+        scene().createCamera(aiko::camera::CameraController::Static);
+
         m_loopRecorder.init();
         m_loopVisualizer.init();
         m_loopPlayer.init();
@@ -21,7 +29,7 @@ namespace aiko::recorder
             static const LoopRecorder::AudioDevice* current_item = nullptr;
             ImGui::PushID(this);
 
-            std::vector<LoopRecorder::AudioDevice>& audioDevices = m_loopRecorder.getAudioDevices();
+            const std::vector<LoopRecorder::AudioDevice>& audioDevices = m_loopRecorder.getAudioDevices();
 
             if (ImGui::BeginCombo("##combo", current_item ? current_item->info->name : "Select Device"))
             {

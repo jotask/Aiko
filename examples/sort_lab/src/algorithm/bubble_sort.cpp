@@ -7,7 +7,7 @@
 namespace sb
 {
     BubbleSort::BubbleSort(SortLab* lab)
-        : Sorter(lab, "BubbleSort")
+        : Sorter(lab, "Bubble Sort")
     {
     }
 

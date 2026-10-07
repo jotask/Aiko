@@ -20,6 +20,8 @@ FetchContent_Declare(
 message("Fetching jsoncpp")
 FetchContent_MakeAvailable(jsoncpp)
 
+aiko_add_dependency(jsoncpp_static)
+
 #----------------------------------------------------------------------
 
 FetchContent_Declare(
@@ -30,6 +32,11 @@ FetchContent_Declare(
     GIT_PROGRESS   TRUE
 )
 FetchContent_MakeAvailable(yaml-cpp)
+
+aiko_add_dependency(yaml-cpp)
+aiko_add_dependency(yaml-cpp-parse)
+aiko_add_dependency(yaml-cpp-read)
+aiko_add_dependency(yaml-cpp-sandbox)
 
 #----------------------------------------------------------------------
 
@@ -43,5 +50,21 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(imguifiledialog)
+
+aiko_add_dependency(ImGuiFileDialog)
+
+#----------------------------------------------------------------------
+
+FetchContent_Declare(
+        imguizmo
+        GIT_REPOSITORY https://github.com/CedricGuillemet/ImGuizmo.git
+        GIT_TAG master
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+)
+
+FetchContent_MakeAvailable(imguizmo)
+
+aiko_add_dependency(imguizmo)
 
 #----------------------------------------------------------------------

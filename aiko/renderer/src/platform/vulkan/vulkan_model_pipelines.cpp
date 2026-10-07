@@ -1,5 +1,6 @@
 #include "vulkan_model_pipelines.h"
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 
@@ -8,52 +9,10 @@
 #include "vulkan_shader_reflector.h"
 #include "vulkan_types.h"
 #include "impl/vulkan_shader_impl.h"
+#include "vulkan_render_state_utils.h"
 
 namespace aiko::renderer::vulkan
 {
-    namespace
-    {
-        VkCullModeFlags toVulkanCullMode(CullMode mode)
-        {
-            switch (mode)
-            {
-                case CullMode::None:    return VK_CULL_MODE_NONE;
-                case CullMode::Front:   return VK_CULL_MODE_FRONT_BIT;
-                case CullMode::Back:    return VK_CULL_MODE_BACK_BIT;
-            }
-
-            AIKO_ASSERT(false, "Unsupported CullMode");
-            return VK_CULL_MODE_NONE;
-        }
-
-        VkCompareOp toVulkanDepthCompare(DepthCompare compare)
-        {
-            switch (compare)
-            {
-                case DepthCompare::Less:            return VK_COMPARE_OP_LESS;
-                case DepthCompare::LessEqual:       return VK_COMPARE_OP_LESS_OR_EQUAL;
-                case DepthCompare::Equal:           return VK_COMPARE_OP_EQUAL;
-                case DepthCompare::Greater:         return VK_COMPARE_OP_GREATER;
-                case DepthCompare::GreaterEqual:    return VK_COMPARE_OP_GREATER_OR_EQUAL;
-                case DepthCompare::Always:          return VK_COMPARE_OP_ALWAYS;
-            }
-
-            AIKO_ASSERT(false, "Unsupported DepthCompare");
-            return VK_COMPARE_OP_LESS_OR_EQUAL;
-        }
-
-        VkPolygonMode toVulkanPolygonMode(FillMode mode)
-        {
-            switch (mode)
-            {
-                case FillMode::Solid: return VK_POLYGON_MODE_FILL;
-                case FillMode::Wireframe: return VK_POLYGON_MODE_LINE;
-                case FillMode::Point: return VK_POLYGON_MODE_POINT;
-            }
-            AIKO_ASSERT(false, "Unsupported fill mode");
-            return VK_POLYGON_MODE_FILL;
-        }
-    }
 
     VulkanModelPipelines::VulkanModelPipelines(VulkanContext& context)
         : m_context(context)
@@ -204,7 +163,26 @@ namespace aiko::renderer::vulkan
 
         const VkVertexInputBindingDescription bindingDescription = VulkanVertex::bindingDescription();
 
-        const auto attributeDescriptions = VulkanVertex::attributeDescriptions();
+        const auto vertexAttributes = VulkanVertex::attributeDescriptions();
+
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+        attributeDescriptions.reserve(vertexAttributes.size());
+
+        for (const uint32_t location : shader.reflection().vertexInputLocations)
+        {
+            const auto it =
+                std::find_if(
+                    vertexAttributes.begin(),
+                    vertexAttributes.end(),
+                    [location](const VkVertexInputAttributeDescription& attribute)
+                    {
+                        return attribute.location == location;
+                    });
+
+            AIKO_ASSERT(it != vertexAttributes.end(), "Model vertex shader uses unsupported vertex input location");
+
+            attributeDescriptions.push_back(*it);
+        }
 
         const VkPipelineVertexInputStateCreateInfo vertexInputInfo =
         {
@@ -234,7 +212,7 @@ namespace aiko::renderer::vulkan
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
-            .polygonMode = toVulkanPolygonMode(key.fillMode),
+            .polygonMode = toVulkanPolygonMode(key.fillMode, m_context.capabilities()),
             .cullMode = toVulkanCullMode(key.cullMode),
             .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
@@ -371,44 +349,64 @@ namespace aiko::renderer::vulkan
 
         const auto meshAttributes = VulkanVertex::attributeDescriptions();
 
-        std::array< VkVertexInputAttributeDescription, 8> attributes{};
+        std::vector<VkVertexInputAttributeDescription> supportedAttributes;
+        supportedAttributes.reserve(8);
 
-        for (size_t i = 0; i < meshAttributes.size(); ++i)
+        supportedAttributes.insert(
+            supportedAttributes.end(),
+            meshAttributes.begin(),
+            meshAttributes.end());
+
+        supportedAttributes.push_back(
+            {
+                .location = 4,
+                .binding = 1,
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .offset = offsetof(VulkanInstanceData, position),
+            });
+
+        supportedAttributes.push_back(
+            {
+                .location = 5,
+                .binding = 1,
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .offset = offsetof(VulkanInstanceData, rotation),
+            });
+
+        supportedAttributes.push_back(
+            {
+                .location = 6,
+                .binding = 1,
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .offset = offsetof(VulkanInstanceData, scale),
+            });
+
+        supportedAttributes.push_back(
+            {
+                .location = 7,
+                .binding = 1,
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .offset = offsetof(VulkanInstanceData, color),
+            });
+
+        std::vector<VkVertexInputAttributeDescription> attributes;
+        attributes.reserve(supportedAttributes.size());
+
+        for (const uint32_t location : shader.reflection().vertexInputLocations)
         {
-            attributes[i] = meshAttributes[i];
+            const auto it =
+                std::find_if(
+                    supportedAttributes.begin(),
+                    supportedAttributes.end(),
+                    [location](const VkVertexInputAttributeDescription& attribute)
+                    {
+                        return attribute.location == location;
+                    });
+
+            AIKO_ASSERT(it != supportedAttributes.end(), "Instanced model vertex shader uses unsupported vertex input location");
+
+            attributes.push_back(*it);
         }
-
-        attributes[4] =
-        {
-            .location = 4,
-            .binding = 1,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(VulkanInstanceData, position),
-        };
-
-        attributes[5] =
-        {
-            .location = 5,
-            .binding = 1,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(VulkanInstanceData, rotation),
-        };
-
-        attributes[6] =
-        {
-            .location = 6,
-            .binding = 1,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(VulkanInstanceData, scale),
-        };
-
-        attributes[7] =
-        {
-            .location = 7,
-            .binding = 1,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(VulkanInstanceData, color),
-        };
 
         const VkPipelineVertexInputStateCreateInfo  vertexInputInfo =
         {
@@ -438,7 +436,7 @@ namespace aiko::renderer::vulkan
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
-            .polygonMode = toVulkanPolygonMode(key.fillMode),
+            .polygonMode = toVulkanPolygonMode(key.fillMode, m_context.capabilities()),
             .cullMode = toVulkanCullMode(key.cullMode),
             .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,

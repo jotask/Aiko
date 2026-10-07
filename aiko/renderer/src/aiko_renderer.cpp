@@ -28,6 +28,11 @@ namespace aiko
 
     }
 
+    AikoRenderer::~AikoRenderer()
+    {
+        EventSystem::it().unbindAll(this);
+    }
+
     void AikoRenderer::init(const RendererConfig& config, const RenderSurfaceDesc& surface)
     {
 
@@ -92,6 +97,8 @@ namespace aiko
         m_computeQueue.clear();
         m_sceneRenderRequests.clear();
         m_lights.clear();
+        m_uiDrawList.clear();
+        m_uiRenderer.beginFrame();
         m_imgui.beginFrame(m_renderSurface.x, m_renderSurface.y);
     }
 
@@ -141,6 +148,12 @@ namespace aiko
         AIKO_FUNCTION_PROFILE
         Material& stagedMaterial = stageMaterial(materialAsset, materialInstance);
         submit(transform, mesh, stagedMaterial);
+    }
+
+    void AikoRenderer::submitFullscreen(const Material& material)
+    {
+        AIKO_FUNCTION_PROFILE
+        m_renderQueue.submitFullscreen(material);
     }
 
     void AikoRenderer::submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology)
@@ -212,11 +225,20 @@ namespace aiko
 
         submitPresentPass(m_sceneTarget.colorTexture());
 
+        submitUiPass();
+
+        submitImguiPass();
+
     }
 
     void AikoRenderer::setDebugTexture(const Texture* texture)
     {
         m_debugTexture = texture;
+    }
+
+    void AikoRenderer::setUiShader(AssetId shaderId)
+    {
+        m_uiRenderer.setShader(shaderId);
     }
 
     void AikoRenderer::renderToTarget(const Camera& camera, RenderTarget& target)
@@ -237,7 +259,68 @@ namespace aiko
         m_renderer->waitIdle();
     }
 
-    void AikoRenderer::onWindowResize(WindowResizeEvent& event)
+    ImguiTextureId AikoRenderer::imguiTextureId(const Texture& texture, const SamplerState& sampler)
+    {
+        return m_imgui.textureId(texture, sampler);
+    }
+
+    void AikoRenderer::drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius, float borderThickness, Color borderColor)
+    {
+        m_uiDrawList.addRect(
+            {
+                .position = position,
+                .size = size
+            },
+            color,
+            cornerRadius,
+            borderThickness,
+            borderColor);
+    }
+
+    void AikoRenderer::drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
+    {
+        m_uiDrawList.addImage(
+            {
+                .position = position,
+                .size = size
+            },
+            textureId,
+            tint,
+            cornerRadius,
+            borderThickness,
+            borderColor);
+    }
+
+    void AikoRenderer::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
+    {
+        m_uiDrawList.addImage(
+            {
+                .position = position,
+                .size = size
+            },
+            textureId,
+            region,
+            tint,
+            cornerRadius,
+            borderThickness,
+            borderColor);
+    }
+
+    void AikoRenderer::pushUiClipRect(const vec2& position, const vec2& size)
+    {
+        m_uiDrawList.pushClipRect(
+        {
+            .position = position,
+            .size = size
+        });
+    }
+
+    void AikoRenderer::popUiClipRect()
+    {
+        m_uiDrawList.popClipRect();
+    }
+
+    void AikoRenderer::onWindowResize(const WindowResizeEvent& event)
     {
         if (event.width <= 0 || event.height <= 0)
         {
@@ -292,8 +375,8 @@ namespace aiko
         {
             .width = static_cast<u32>(size.x),
             .height = static_cast<u32>(size.y),
-            .clearColor = true,
-            .clearDepth = true,
+            .colorLoadOp = renderer::AttachmentLoadOp::Clear,
+            .depthLoadOp = renderer::AttachmentLoadOp::Clear,
             .clear = m_clearColor
         };
 
@@ -306,6 +389,11 @@ namespace aiko
                 m_renderer->prepareMaterial(*material);
             }
         };
+
+        for (const Material* material : passData.fullscreen)
+        {
+            prepareMaterial(material);
+        }
 
         for (const GpuInstanceDrawDesc* desc : passData.gpuInstances)
         {
@@ -382,6 +470,14 @@ namespace aiko
         m_renderer->bindFrame(SCENE_VIEW, frameData);
 
         {
+            for (const Material* material : passData.fullscreen)
+            {
+                AIKO_ASSERT(material != nullptr, "Prepared fullscreen draw has null material");
+                m_renderer->submitFullscreen(SCENE_VIEW, *material);
+            }
+        }
+
+        {
             for (const GpuVertexDrawDesc* desc : passData.gpuVertices)
             {
                 if (desc != nullptr)
@@ -451,8 +547,8 @@ namespace aiko
         {
             .width = static_cast<u32>(m_renderSurface.x),
             .height = static_cast<u32>(m_renderSurface.y),
-            .clearColor = false,
-            .clearDepth = false,
+            .colorLoadOp = renderer::AttachmentLoadOp::Clear,
+            .depthLoadOp = renderer::AttachmentLoadOp::Clear,
         };
 
         const renderer::FrameData screenFrame =
@@ -477,8 +573,62 @@ namespace aiko
 
         m_renderer->presentTextureToScreen(SCREEN_VIEW, m_screenPresenter.mesh(), *presentTexture);
 
-        m_imgui.endFrame(m_renderSurface.x, m_renderSurface.y);
+        m_renderer->endPass();
+    }
 
+    void AikoRenderer::submitUiPass()
+    {
+        if (m_uiDrawList.empty())
+        {
+            return;
+        }
+
+        const float width = static_cast<float>(m_renderSurface.x);
+        const float height = static_cast<float>(m_renderSurface.y);
+
+        const renderer::PassDescription uiPass =
+        {
+            .width = static_cast<u32>(m_renderSurface.x),
+            .height = static_cast<u32>(m_renderSurface.y),
+            .colorLoadOp = renderer::AttachmentLoadOp::Load,
+            .depthLoadOp = renderer::AttachmentLoadOp::DontCare,
+        };
+
+        const renderer::FrameData uiFrame =
+        {
+            .view = mat4(1.0f),
+            .projection = math::ortho(
+                0.0f,
+                width,
+                0.0f,
+                height,
+                -1.0f,
+                1.0f),
+        };
+
+        m_renderer->prepareMaterial(m_uiRenderer.material()); // see below
+
+        m_renderer->beginPass(UI_VIEW, uiPass, nullptr);
+        m_renderer->bindFrame(UI_VIEW, uiFrame);
+
+        m_uiRenderer.render(*m_renderer, m_uiDrawList, m_renderSurface);
+
+        m_renderer->endPass();
+
+    }
+
+    void AikoRenderer::submitImguiPass()
+    {
+        const renderer::PassDescription imguiPass =
+        {
+            .width = static_cast<u32>(m_renderSurface.x),
+            .height = static_cast<u32>(m_renderSurface.y),
+            .colorLoadOp = renderer::AttachmentLoadOp::Load,
+            .depthLoadOp = renderer::AttachmentLoadOp::DontCare,
+        };
+
+        m_renderer->beginPass(IMGUI_VIEW, imguiPass, nullptr);
+        m_imgui.endFrame(m_renderSurface.x, m_renderSurface.y);
         m_renderer->endPass();
     }
 

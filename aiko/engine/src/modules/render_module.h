@@ -2,6 +2,7 @@
 
 #include <assets/asset_id.h>
 #include "modules/base_module.h"
+#include <models/texture_region.h>
 #include "models/light.h"
 
 namespace aiko
@@ -34,6 +35,9 @@ namespace aiko
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
         void submitInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
 
+        void submitFullscreen(const Material& material);
+        ivec2 getRenderSize() const;
+
         void enqueueCompute(const ComputePass& pass);
 
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
@@ -51,6 +55,20 @@ namespace aiko
         void unloadMesh(const AssetId& id);
         void unloadModel(const AssetId& id);
         void unloadShader(const AssetId& id);
+
+        ImguiTextureId getTargetTextureId() const;
+        ImguiTextureId getTextureId(const Texture& texture) const;
+        ImguiTextureId getTextureId(const AssetId& textureId) const;
+        ImguiTextureId getTextureId(const AssetId& textureId, const SamplerState& sampler) const;
+
+        void setUiShader(AssetId shaderId);
+
+        void drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius, float borderThickness, Color borderColor);
+        void drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor);
+        void drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor);
+
+        void pushUiClipRect(const vec2& position, const vec2& size);
+        void popUiClipRect();
 
     protected:
 

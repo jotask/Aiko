@@ -54,6 +54,11 @@ namespace aiko
         m_transientDraws.push_back(std::move(desc));
     }
 
+    void RenderQueue::submitFullscreen(const Material& material)
+    {
+        m_fullscreenDraws.push_back(&material);
+    }
+
     void RenderQueue::submitGpuInstances(const GpuInstanceDrawDesc& desc)
     {
         m_gpuInstanceDraws.push_back(desc);
@@ -72,6 +77,7 @@ namespace aiko
     void RenderQueue::clear()
     {
         m_renderItems.clear();
+        m_fullscreenDraws.clear();
 
         m_instancedItems.clear();
         m_instanceData.clear();
@@ -88,6 +94,15 @@ namespace aiko
     {
         AIKO_FUNCTION_PROFILE
         PreparedScenePass passData;
+
+        passData.fullscreen.reserve(m_fullscreenDraws.size());
+        for (const Material* material : m_fullscreenDraws)
+        {
+            if (material != nullptr)
+            {
+                passData.fullscreen.push_back(material);
+            }
+        }
 
         passData.gpuInstances.reserve(m_gpuInstanceDraws.size());
         for (const GpuInstanceDrawDesc& desc : m_gpuInstanceDraws)

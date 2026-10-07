@@ -1,9 +1,6 @@
 function(aiko_setup_options)
     option(AIKO_ENABLE_UNITY "Enable unity/jumbo builds" OFF)
     option(AIKO_BUILD_EXAMPLES "Build example executables" OFF)
-    if(AIKO_BUILD_EXAMPLES)
-        option(AIKO_BUILD_EXAMPLES_NAIKO_LLVM "Build example executables" OFF)
-    endif()
 
     set(AIKO_RENDER "AIKO_VULKAN" CACHE STRING "Render backend")
     set_property(CACHE AIKO_RENDER PROPERTY STRINGS AIKO_BGFX AIKO_NATIVE AIKO_VULKAN)
@@ -136,6 +133,17 @@ function(aiko_add_vulkan_shader_target target_name)
             "${AIKO_SHADER_SOURCE_DIR}/*.tese"
     )
 
+    file(GLOB_RECURSE AIKO_SHADERTOY_SHADERS CONFIGURE_DEPENDS
+            "${AIKO_SHADER_SOURCE_DIR}/*.shadertoy"
+    )
+    set(AIKO_SHADER_GENERATED_DIR  "${CMAKE_BINARY_DIR}/generated/shaders/vulkan")
+    list(
+            FILTER
+            AIKO_SHADERTOY_SHADERS
+            EXCLUDE
+            REGEX "\\.common\\.shadertoy$"
+    )
+
     set(AIKO_VULKAN_SPIRV_SHADERS)
 
     foreach(SHADER ${AIKO_VULKAN_GLSL_SHADERS})
@@ -158,6 +166,118 @@ function(aiko_add_vulkan_shader_target target_name)
                 DEPENDS "${SHADER}"
                 DEPFILE "${DEP_FILE}"
                 COMMENT "Compiling Vulkan shader ${SHADER_REL}"
+                VERBATIM
+        )
+
+        list(APPEND AIKO_VULKAN_SPIRV_SHADERS "${SPIRV_FILE}")
+    endforeach()
+
+    foreach(SHADER ${AIKO_SHADERTOY_SHADERS})
+        file(
+                RELATIVE_PATH
+                SHADER_REL
+                "${AIKO_SHADER_SOURCE_DIR}"
+                "${SHADER}"
+        )
+
+        string(
+                REGEX REPLACE
+                "\\.shadertoy$"
+                ""
+                SHADER_REL_BASE
+                "${SHADER_REL}"
+        )
+
+        set(
+                GENERATED_FRAGMENT
+                "${AIKO_SHADER_GENERATED_DIR}/${SHADER_REL_BASE}.frag"
+        )
+
+        set(
+                SPIRV_FILE
+                "${AIKO_SHADER_BINARY_DIR}/${SHADER_REL_BASE}.frag.spv"
+        )
+
+        string(
+                REGEX REPLACE
+                "\\.shadertoy$"
+                ".common.shadertoy"
+                SHADERTOY_COMMON_FILE
+                "${SHADER}"
+        )
+
+        set(SHADERTOY_COMMON_ARGS)
+        set(SHADERTOY_COMMON_DEPENDS)
+
+        if(EXISTS "${SHADERTOY_COMMON_FILE}")
+            list(
+                    APPEND
+                    SHADERTOY_COMMON_ARGS
+                    "-DCOMMON_FILE=${SHADERTOY_COMMON_FILE}"
+            )
+
+            list(
+                    APPEND
+                    SHADERTOY_COMMON_DEPENDS
+                    "${SHADERTOY_COMMON_FILE}"
+            )
+        endif()
+
+        set(DEP_FILE "${SPIRV_FILE}.d")
+
+        get_filename_component(
+                GENERATED_DIR
+                "${GENERATED_FRAGMENT}"
+                DIRECTORY
+        )
+
+        get_filename_component(
+                SPIRV_DIR
+                "${SPIRV_FILE}"
+                DIRECTORY
+        )
+
+        add_custom_command(
+                OUTPUT "${GENERATED_FRAGMENT}"
+
+                COMMAND
+                ${CMAKE_COMMAND} -E make_directory "${GENERATED_DIR}"
+
+                COMMAND
+                ${CMAKE_COMMAND}
+                "-DINPUT_FILE=${SHADER}"
+                "-DOUTPUT_FILE=${GENERATED_FRAGMENT}"
+                ${SHADERTOY_COMMON_ARGS}
+                -P "${CMAKE_SOURCE_DIR}/cmake/GenerateShaderToyFragment.cmake"
+
+                DEPENDS
+                "${SHADER}"
+                ${SHADERTOY_COMMON_DEPENDS}
+                "${CMAKE_SOURCE_DIR}/cmake/GenerateShaderToyFragment.cmake"
+
+                COMMENT "Generating Vulkan ShaderToy fragment ${SHADER_REL}"
+                VERBATIM
+        )
+
+        add_custom_command(
+                OUTPUT "${SPIRV_FILE}"
+
+                COMMAND
+                ${CMAKE_COMMAND} -E make_directory "${SPIRV_DIR}"
+
+                COMMAND
+                "${GLSLC_EXECUTABLE}"
+                "--target-env=${AIKO_SHADER_TARGET_ENV}"
+                -I "${AIKO_SHADER_SOURCE_DIR}"
+                -MD -MF "${DEP_FILE}"
+                "${GENERATED_FRAGMENT}"
+                -o "${SPIRV_FILE}"
+
+                DEPENDS "${GENERATED_FRAGMENT}"
+
+                DEPFILE "${DEP_FILE}"
+
+                COMMENT "Compiling Vulkan ShaderToy ${SHADER_REL}"
                 VERBATIM
         )
 

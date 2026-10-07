@@ -1,0 +1,118 @@
+#include "inspector_panel.h"
+
+#include "registry/component_registry.h"
+#include "core/editor_context.h"
+#include "core/imgui_helper.h"
+#include "registry/components_functionality.h"
+#include "registry/components_render.h"
+#include "commands/game_object/rename_game_object_command.h"
+
+#include <aiko_includes.h>
+#include <imgui.h>
+
+namespace aiko
+{
+    namespace editor
+    {
+
+        InspectorPanel::InspectorPanel()
+            : EditorPanel("Inspector")
+        {
+        }
+
+        void InspectorPanel::render(EditorContext& context)
+        {
+            GameObject* selectedGameObject = context.selectedGameObject();
+            vector<Component*> componentsToRemove;
+            if (ImGui::Begin("Inspector"))
+            {
+                if (selectedGameObject != nullptr)
+                {
+                    ImGui::Text("Uuid: %s", selectedGameObject->uuid().get().c_str() );
+                    string name = selectedGameObject->getName();
+
+                    imgui::InputText("Name", &name);
+
+                    if (ImGui::IsItemDeactivatedAfterEdit())
+                    {
+                        if (name.empty() == false && name != selectedGameObject->getName())
+                        {
+                            context.commands().execute<RenameGameObjectCommand>(context.sceneSystem(), *selectedGameObject, name);
+                        }
+                    }
+                    ImGui::Spacing();
+                    ImGui::Spacing();
+                    for (Component* comp : selectedGameObject->getComponents())
+                    {
+                        if (ImGui::CollapsingHeader(comp->getName(), ImGuiTreeNodeFlags_DefaultOpen))
+                        {
+                            const component::ComponentEditorEntry* entry = component::findComponentEntry(*comp);
+                            const bool removable = entry != nullptr && entry->removable;
+                            ImGui::PushID(comp);
+
+                            if (removable && ImGui::Button("Remove"))
+                            {
+                                componentsToRemove.push_back(comp);
+                                ImGui::PopID();
+                                continue;
+                            }
+                            ImGui::PopID();
+                            if (component::drawComponent(comp))
+                            {
+                                context.document().markDirty();
+                            }
+                        }
+                    }
+                    ImGui::Spacing();
+                    ImGui::Spacing();
+                    if (ImGui::Button("Add Component", ImVec2(ImGui::GetContentRegionAvail().x, 0)) == true)
+                    {
+                        ImGui::OpenPopup("Add Component Context");
+                    }
+                    if (ImGui::BeginPopup("Add Component Context"))
+                    {
+                        ImGui::SeparatorText("Aquarium");
+
+                        static ImGuiTextFilter filter;
+                        ImGui::Text("Filter usage:\n"
+                            "  \"\"         display all lines\n"
+                            "  \"xxx\"      display lines containing \"xxx\"\n"
+                            "  \"xxx,yyy\"  display lines containing \"xxx\" or \"yyy\"\n"
+                            "  \"-xxx\"     hide lines containing \"xxx\"");
+                        filter.Draw();
+                        vector<string> components = component::getMissingComponents(selectedGameObject);
+                        for(string component : components)
+                        {
+                            if (filter.PassFilter(component.c_str()))
+                            {
+                                if (ImGui::Selectable(component.c_str()) == true)
+                                {
+                                    component::addComponent(context, component, *selectedGameObject);
+                                }
+                            }
+                        }
+                        ImGui::EndPopup();
+                    }
+                }
+                else
+                {
+                    ImGui::Text("Nothing selected");
+                }
+            }
+            ImGui::End();
+
+            if (selectedGameObject != nullptr)
+            {
+                for (Component* component : componentsToRemove)
+                {
+                    if (component != nullptr)
+                    {
+                        component::removeComponent(context, *component);
+                    }
+                }
+            }
+
+        }
+
+    }
+}

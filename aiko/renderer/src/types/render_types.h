@@ -14,12 +14,22 @@ namespace aiko
     constexpr ViewId COMPUTE_DRAW = 1;
     constexpr ViewId SCENE_VIEW = 2;
     constexpr ViewId SCREEN_VIEW = 3;
-    constexpr ViewId IMGUI_VIEW = 4;
+    constexpr ViewId UI_VIEW = 4;
+    constexpr ViewId IMGUI_VIEW = 5;
 
     constexpr ViewId READBACK_VIEW = 250;
     constexpr ViewId READBACK_BLIT_VIEW = 251;
 
     constexpr u32 MaxFrameLights = 8;
+
+    struct ScissorRect
+    {
+        int32_t x = 0;
+        int32_t y = 0;
+
+        uint32_t width = 0;
+        uint32_t height = 0;
+    };
 
     struct DeviceInitDesc
     {

@@ -25,10 +25,33 @@ namespace aiko
         const uuid::Uuid uuid;
     
         virtual ~Component() = default;
-        const char* getName() const { return m_name.c_str(); };
 
-        GameObject* getGameObject() { return gameobject; }
-        const GameObject* getGameObject() const { return gameobject; }
+        const char* getName() const
+        {
+            return m_name.c_str();
+        }
+
+        GameObject* getGameObject()
+        {
+            return gameobject;
+        }
+
+        const GameObject* getGameObject() const
+        {
+            return gameobject;
+        }
+
+        void setEnabled(bool enabled)
+        {
+            m_enabled = enabled;
+        }
+
+        bool isEnabled() const
+        {
+            return m_enabled;
+        }
+
+        bool isActiveAndEnabled() const;
 
     protected:
         GameObject* gameobject;
@@ -36,6 +59,8 @@ namespace aiko
         virtual void dispose() { }
     private:
         const string m_name;
+        bool m_enabled = true;
+
         void setup(GameObject* obj);
     };
 

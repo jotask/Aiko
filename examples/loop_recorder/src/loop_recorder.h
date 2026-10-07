@@ -1,11 +1,10 @@
 #pragma once
 
-#include "application/application.h"
-
 #include <atomic>
-#include <vector>
+#include <mutex>
 #include <string>
-#include <assert.h>
+#include <thread>
+#include <vector>
 
 class PaDeviceInfo;
 class PaHostApiInfo;
@@ -30,31 +29,41 @@ namespace aiko::recorder
             std::string filename;
         };
 
+        LoopRecorder() = default;
+        ~LoopRecorder();
+
         void init();
 
-        std::vector<AudioDevice>& getAudioDevices();
-        std::vector<SavedFile>& getSavedFiles();
+        const std::vector<AudioDevice>& getAudioDevices() const;
+        std::vector<SavedFile> getSavedFiles() const;
 
-        bool isRecording() const { return _isRecording; }
+        bool isRecording() const { return m_isRecording; }
 
         void startRecording(const AudioDevice* device);
         void stopRecording();
 
-        void deleteFile(SavedFile);
-
-    protected:
+        void deleteFile(const SavedFile& file);
 
     private:
 
+        void shutdown();
+
         void recordDevice(int deviceId);
-        void saveRecordingToFile(std::string filename);
+        void saveRecordingToFile(const std::string& filename);
 
         void refreshAudioDevices();
         void refreshSavedFiles();
 
-        std::atomic<bool> _isRecording = false;
+        bool m_initialized = false;
+        std::atomic<bool> m_isRecording = false;
+
+        std::thread m_recordingThread;
+
         std::vector<AudioDevice> m_audioDevices;
+
+        mutable std::mutex m_savedFilesMutex;
         std::vector<SavedFile> m_savedFiles;
+
         std::vector<float> m_recordedSamples;
 
     };

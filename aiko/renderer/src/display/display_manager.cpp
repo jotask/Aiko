@@ -14,6 +14,13 @@
 namespace aiko
 {
 
+    DisplayManager::DisplayManager() = default;
+
+    DisplayManager::~DisplayManager()
+    {
+        EventSystem::it().unbindAll(this);
+    }
+
     void DisplayManager::init(string title, const uint width, uint height)
     {
 
@@ -22,7 +29,7 @@ namespace aiko
             logger::Log::error("GLFW error [%d]: %s", code, desc ? desc : "unknown");
         });
 
-        AIKO_ASSERT(glfwInit() == GLFW_TRUE, "Failed to init Window")
+        AIKO_ASSERT(glfwInit() == GLFW_TRUE, "Failed to init Window");
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // no OpenGL
         GLFWwindow* window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
@@ -30,7 +37,7 @@ namespace aiko
         {
             logger::Log::critical("Failed to create GLFW window");
             glfwTerminate();
-            AIKO_ASSERT(false, "Failed to create GLFW window")
+            AIKO_ASSERT(false, "Failed to create GLFW window");
         }
 
         centerWindow(window);
@@ -43,10 +50,12 @@ namespace aiko
         glfwGetVersion(&glfw_major, &glfw_minor, &glfw_patch);
         logger::Log::info() << "GLFW Version: " << glfw_major << "." << glfw_minor << "." << glfw_patch;
 
-        m_display.setWindowTitle(title);
-        m_display.setWindowSize(width, height);
-
         m_native = window;
+
+        const ivec2 framebufferSize = getFramebufferSize();
+
+        m_display.setWindowTitle(title);
+        m_display.setWindowSize(framebufferSize.x, framebufferSize.y);
 
         EventSystem::it().bind<OnKeyPressedEvent>(this, &DisplayManager::onKeyPressed);
         EventSystem::it().bind<WindowResizeEvent>(this, &DisplayManager::onWindowResize);
@@ -60,7 +69,16 @@ namespace aiko
 
     void DisplayManager::dispose()
     {
+        if (m_native == nullptr)
+        {
+            return;
+        }
+
+        EventSystem::it().unbindAll(this);
+
         glfwDestroyWindow(m_native);
+        m_native = nullptr;
+
         glfwTerminate();
     }
 
@@ -77,6 +95,44 @@ namespace aiko
     GLFWwindow * DisplayManager::getNativeWindow() const
     {
         return m_native;
+    }
+
+    ivec2 DisplayManager::getWindowSize() const
+    {
+        if (m_native == nullptr)
+        {
+            return {};
+        }
+
+        int width = 0;
+        int height = 0;
+
+        glfwGetWindowSize(
+            m_native,
+            &width,
+            &height
+        );
+
+        return
+        {
+            width,
+            height
+        };
+    }
+
+    ivec2 DisplayManager::getFramebufferSize() const
+    {
+        if (m_native == nullptr)
+        {
+            return {};
+        }
+
+        int width = 0;
+        int height = 0;
+
+        glfwGetFramebufferSize(m_native, &width, &height);
+
+        return { width, height };
     }
 
     bool DisplayManager::centerWindow(GLFWwindow* window)
@@ -185,13 +241,13 @@ namespace aiko
 
     }
 
-    void DisplayManager::onKeyPressed(OnKeyPressedEvent& event)
+    void DisplayManager::onKeyPressed(const OnKeyPressedEvent& event)
     {
         const Key key = static_cast<Key>(event.key);
         glfwSetWindowShouldClose(m_native, key == Key::KEY_ESCAPE);
     }
 
-    void DisplayManager::onWindowResize(WindowResizeEvent& event)
+    void DisplayManager::onWindowResize(const WindowResizeEvent& event)
     {
         m_display.setWindowSize(event.width, event.height);
     }

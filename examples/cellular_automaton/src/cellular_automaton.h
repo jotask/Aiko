@@ -2,12 +2,11 @@
 
 #include "application/application.h"
 #include "cell_automaton_component/cellular_automaton/automaton_renderer.h"
+#include "cell_automaton_component/cellular_automaton/world_cellular_automaton.h"
 #include "layers/layer.h"
 
 namespace aiko::ca
 {
-
-    class CellularAutomatonComponent;
 
     class CellularAutomaton : public Layer
     {
@@ -16,8 +15,8 @@ namespace aiko::ca
         virtual void update() override;
         virtual void render() override;
     private:
-        CellularAutomatonComponent* m_automaton = nullptr;
-        cellautomaton::AutomatonRender m_renderer;
+        WorldCellularAutomaton m_world;
+        AutomatonRender m_renderer;
     };
 
 }

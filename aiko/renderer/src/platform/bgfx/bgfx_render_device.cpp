@@ -165,8 +165,16 @@ namespace aiko::renderer::bgfx
         ::bgfx::setViewRect(viewId, 0, 0, (uint16_t)pass.width, (uint16_t)pass.height);
 
         uint16_t flags = 0;
-        if (pass.clearColor) flags |= BGFX_CLEAR_COLOR;
-        if (pass.clearDepth) flags |= BGFX_CLEAR_DEPTH;
+
+        if (pass.colorLoadOp == AttachmentLoadOp::Clear)
+        {
+            flags |= BGFX_CLEAR_COLOR;
+        }
+
+        if (pass.depthLoadOp == AttachmentLoadOp::Clear)
+        {
+            flags |= BGFX_CLEAR_DEPTH;
+        }
 
         const uint32_t rgba = pass.clear.rgba();
 
@@ -718,7 +726,16 @@ namespace aiko::renderer::bgfx
         ::bgfx::setVertexBuffer(0, &tvb);
         if (useIndices == true)
         {
-            ::bgfx::setIndexBuffer(&tib);
+
+            const uint32_t totalIndexCount = static_cast<uint32_t>(desc.geometry->indices.size());
+
+            AIKO_ASSERT(desc.indexOffset <= totalIndexCount, "Transient draw index offset exceeds geometry");
+
+            const uint32_t indexCount = desc.indexCount != 0 ? desc.indexCount : totalIndexCount - desc.indexOffset;
+
+            AIKO_ASSERT(desc.indexOffset + indexCount <= totalIndexCount, "Transient draw index range exceeds geometry");
+
+            bgfx::setIndexBuffer(&tib, desc.indexOffset, indexCount);
         }
 
         uint64_t state = s_default_state;

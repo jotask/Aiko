@@ -48,3 +48,5 @@ endif()
 aiko_set_common_source_layout(AikoRenderer ${AIKORENDERER_SRC_DIR} ${AIKORENDERER_COMMON_SRC})
 
 aiko_apply_engine_defaults(AikoRenderer)
+
+aiko_add_target(AikoRenderer)

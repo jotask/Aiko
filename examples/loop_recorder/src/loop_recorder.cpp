@@ -1,21 +1,61 @@
 #include "loop_recorder.h"
 
-#include <aiko_includes.h>
-
-#include <iostream>
-#include <filesystem>
 #include <portaudio.h>
-#include <thread>
+
+#include <algorithm>
+#include <ctime>
+#include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <type_traits>
+#include <string_view>
+#include <utility>
 
 namespace aiko::recorder
 {
+
+    LoopRecorder::~LoopRecorder()
+    {
+        shutdown();
+    }
+
     void LoopRecorder::init()
     {
         static_assert(std::is_same_v<PaDeviceIndex, AudioDevice::DeviceId>, "PaDeviceIndex and AudioDevice::DeviceId must be the same type");
-        Pa_Initialize();
+
+        if (m_initialized)
+        {
+            return;
+        }
+
+        const PaError error = Pa_Initialize();
+        if (error != paNoError)
+        {
+            std::cerr << "Failed to initialize PortAudio: " << Pa_GetErrorText(error) << '\n';
+            return;
+        }
+
+        m_initialized = true;
+
         refreshAudioDevices();
         refreshSavedFiles();
+    }
+
+    void LoopRecorder::shutdown()
+    {
+        if (m_recordingThread.joinable())
+        {
+            m_isRecording = false;
+            m_recordingThread.join();
+        }
+
+        if (m_initialized)
+        {
+            Pa_Terminate();
+            m_initialized = false;
+        }
     }
 
     void LoopRecorder::refreshAudioDevices()
@@ -32,13 +72,22 @@ namespace aiko::recorder
             return;
         }
 
-        std::cout << "Found " << numDevices << " audio devices:\n\n";
-
         for (int i = 0; i < numDevices; i++)
         {
 
             const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+
+            if (deviceInfo == nullptr || deviceInfo->maxInputChannels <= 0)
+            {
+                continue;
+            }
+
             const PaHostApiInfo* hostApiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
+
+            if (hostApiInfo == nullptr)
+            {
+                continue;
+            }
 
             m_audioDevices.push_back({ i, deviceInfo, hostApiInfo });
 
@@ -54,34 +103,38 @@ namespace aiko::recorder
             }
         }
 
+        std::cout << "Found " << m_audioDevices.size() << " input audio devices.\n";
+
     }
 
     void LoopRecorder::refreshSavedFiles()
     {
         try
         {
-            const std::string extension = ".wav";
+            std::vector<SavedFile> savedFiles;
 
-            m_savedFiles.clear();
-            for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::current_path().c_str()))
+            constexpr std::string_view extension = ".wav";
+
+            for (const auto& entry : std::filesystem::directory_iterator( std::filesystem::current_path()))
             {
-                if (entry.is_regular_file())
+                if (entry.is_regular_file() && entry.path().extension() == extension)
                 {
-                    std::string filename = entry.path().filename().string();
-                    if (extension.empty() || entry.path().extension() == extension)
-                    {
-                        m_savedFiles.push_back({ filename});
-                    }
+                    savedFiles.push_back(
+                        { entry.path().filename().string() }
+                    );
                 }
             }
+
+            std::scoped_lock lock(m_savedFilesMutex);
+            m_savedFiles = std::move(savedFiles);
         }
         catch (const std::filesystem::filesystem_error& e)
         {
-            std::cerr << "Filesystem error: " << e.what() << std::endl;
+            std::cerr << "Filesystem error: " << e.what() << '\n';
         }
     }
 
-    void LoopRecorder::deleteFile(LoopRecorder::SavedFile file)
+    void LoopRecorder::deleteFile(const SavedFile& file)
     {
         try
         {
@@ -95,26 +148,37 @@ namespace aiko::recorder
         }
     }
 
-    std::vector<LoopRecorder::AudioDevice>& LoopRecorder::getAudioDevices()
+    const std::vector<LoopRecorder::AudioDevice>& LoopRecorder::getAudioDevices() const
     {
         return m_audioDevices;
     }
 
-    std::vector<LoopRecorder::SavedFile>& LoopRecorder::getSavedFiles()
+    std::vector<LoopRecorder::SavedFile> LoopRecorder::getSavedFiles() const
     {
+        std::scoped_lock lock(m_savedFilesMutex);
         return m_savedFiles;
     }
 
     void LoopRecorder::startRecording(const AudioDevice* device)
     {
-        assert(_isRecording == false);
-        std::thread(&LoopRecorder::recordDevice, this, device->id).detach();
+        if (device == nullptr || m_initialized == false || m_isRecording)
+        {
+            return;
+        }
+
+        if (m_recordingThread.joinable())
+        {
+            m_recordingThread.join();
+        }
+
+        m_isRecording = true;
+
+        m_recordingThread = std::thread(&LoopRecorder::recordDevice, this, device->id);
     }
 
     void LoopRecorder::stopRecording()
     {
-        assert(_isRecording == true);
-        _isRecording = false;
+        m_isRecording = false;
     }
 
     void LoopRecorder::recordDevice(int deviceId)
@@ -122,19 +186,24 @@ namespace aiko::recorder
 
         auto recordCallback = [](const void* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData) -> int
         {
-            std::vector<float>* recordedSamples = (std::vector<float>*)userData;
-            const float* input = (const float*)inputBuffer;
-            for (unsigned int i = 0; i < framesPerBuffer; i++)
+            auto* recordedSamples = static_cast<std::vector<float>*>(userData);
+
+            if (inputBuffer == nullptr)
             {
-                recordedSamples->push_back(input[i]);
+                recordedSamples->insert(recordedSamples->end(), framesPerBuffer, 0.0f);
+                return paContinue;
             }
+            const auto* input = static_cast<const float*>(inputBuffer);
+
+            recordedSamples->insert(recordedSamples->end(), input, input + framesPerBuffer);
+
             return paContinue;
         };
 
 
         m_recordedSamples.clear();
 
-        PaStream* stream;
+        PaStream* stream = nullptr;
 
         PaStreamParameters inputParams;
         inputParams.device = deviceId;
@@ -147,14 +216,24 @@ namespace aiko::recorder
         if (err != paNoError)
         {
             std::cerr << "Failed to open stream: " << Pa_GetErrorText(err) << std::endl;
+            m_isRecording = false;
             return;
         }
 
-        _isRecording = true;
-        Pa_StartStream(stream);
+        err = Pa_StartStream(stream);
+
+        if (err != paNoError)
+        {
+            std::cerr << "Failed to start stream: " << Pa_GetErrorText(err) << '\n';
+
+            Pa_CloseStream(stream);
+            m_isRecording = false;
+            return;
+        }
+
         std::cout << "Recording started..." << std::endl;
 
-        while (_isRecording)
+        while (m_isRecording)
         {
             Pa_Sleep(100);
         }
@@ -180,7 +259,7 @@ namespace aiko::recorder
 
     }
 
-    void LoopRecorder::saveRecordingToFile(std::string filename)
+    void LoopRecorder::saveRecordingToFile(const std::string& filename)
     {
 
         std::ofstream file(filename, std::ios::binary);

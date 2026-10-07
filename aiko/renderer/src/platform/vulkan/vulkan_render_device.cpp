@@ -53,8 +53,67 @@ namespace aiko::renderer::vulkan
             }
         }
 
+        template<typename T>
+        void writeUniformArray(std::vector<uint8_t>& destination, const VulkanShaderUniformMember& member, const vector<T>& values)
+        {
+            AIKO_ASSERT(member.arrayCount > 0, "Uniform member is not an array");
+            AIKO_ASSERT(member.arrayStride > 0, "Uniform array has invalid stride");
+            AIKO_ASSERT(values.size() == member.arrayCount, "Uniform array element count mismatch");
+            AIKO_ASSERT(sizeof(T) <= member.arrayStride, "Uniform array element exceeds reflected stride");
+
+            for (uint32_t i = 0; i < member.arrayCount; ++i)
+            {
+                const size_t relativeOffset = static_cast<size_t>(i) * member.arrayStride;
+                AIKO_ASSERT(relativeOffset + sizeof(T) <= member.size, "Uniform array element exceeds reflected member size");
+
+                const size_t byteOffset = static_cast<size_t>(member.offset) + relativeOffset;
+                AIKO_ASSERT(byteOffset + sizeof(T) <= destination.size(), "Uniform array write exceeds reflected material UBO");
+
+                std::memcpy(destination.data() + byteOffset, &values[i], sizeof(T));
+            }
+        }
+
         void packUniformValue(std::vector<uint8_t>& destination, const VulkanShaderUniformMember& member, const UniformValue& value)
         {
+
+            if (member.arrayCount > 0)
+            {
+                switch (member.type)
+                {
+                    case UniformType::Float:
+                    {
+                        const FloatArray* typed = std::get_if<FloatArray>(&value);
+                        AIKO_ASSERT(typed != nullptr, "Float array uniform type mismatch");
+
+                        if (typed != nullptr)
+                        {
+                            writeUniformArray(destination, member, typed->values);
+                        }
+
+                        return;
+                    }
+
+                    case UniformType::Vec3:
+                    {
+                        const Vec3Array* typed = std::get_if<Vec3Array>(&value);
+                        AIKO_ASSERT(typed != nullptr, "Vec3 array uniform type mismatch");
+
+                        if (typed != nullptr)
+                        {
+                            writeUniformArray(destination, member, typed->values);
+                        }
+
+                        return;
+                    }
+
+                    default:
+                    {
+                        AIKO_ASSERT(false, "Unsupported material uniform array type");
+                        return;
+                    }
+                }
+            }
+
             switch (member.type)
             {
                 case UniformType::Bool:
@@ -376,6 +435,38 @@ namespace aiko::renderer::vulkan
             return descriptors;
         }
 
+        bool sameRenderState(const RenderState& a, const RenderState& b)
+        {
+            return
+                a.cullMode == b.cullMode &&
+                a.fillMode == b.fillMode &&
+                a.depthTest == b.depthTest &&
+                a.depthWrite == b.depthWrite &&
+                a.depthCompare == b.depthCompare &&
+                a.blend == b.blend;
+        }
+
+        bool sameUniformState(const Material& a, const Material& b)
+        {
+            if (a.uniforms().empty() && b.uniforms().empty())
+            {
+                return true;
+            }
+            return false;
+        }
+
+        bool sameMaterialState(const Material& a, const Material& b)
+        {
+            return
+                a.m_shaderId == b.m_shaderId &&
+                a.m_useVertexColor == b.m_useVertexColor &&
+                a.m_lit == b.m_lit &&
+                a.m_baseColor.rgba() == b.m_baseColor.rgba() &&
+                sameRenderState(a.m_renderState, b.m_renderState) &&
+                sameUniformState(a, b) &&
+                a.textureBindings() == b.textureBindings();
+        }
+
     }
 
     VulkanRenderDevice::VulkanRenderDevice(RenderResourceManager* resources)
@@ -454,6 +545,7 @@ namespace aiko::renderer::vulkan
     {
         AIKO_FUNCTION_PROFILE
         m_preparedMaterialBindings.clear();
+        m_preparedMaterialStates.clear();
         m_frameActive = m_context.beginFrame();
 
         if (m_frameActive == false)
@@ -505,7 +597,14 @@ namespace aiko::renderer::vulkan
         {
             AIKO_ASSERT(m_renderPassActive == false, "Compute pass cannot begin inside a graphics render pass");
             AIKO_ASSERT(m_computePassActive == false, "Compute pass is already active");
+
             m_computePassActive = true;
+
+            VkCommandBuffer commandBuffer = m_context.hasDedicatedComputeQueue() ? m_context.computeCommandBuffer() : m_context.activeCommandBuffer();
+            AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Compute pass requires a valid command buffer");
+
+            m_context.beginComputeGpuFrame(commandBuffer);
+
             return;
         }
 
@@ -513,6 +612,9 @@ namespace aiko::renderer::vulkan
 
         m_boundGraphicsPipeline = VK_NULL_HANDLE;
         m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
+
+        m_boundVertexBuffer = VK_NULL_HANDLE;
+        m_boundIndexBuffer = VK_NULL_HANDLE;
 
         AIKO_ASSERT(m_computePassActive == false, "Graphics pass cannot begin while compute pass is active");
 
@@ -582,7 +684,22 @@ namespace aiko::renderer::vulkan
             m_activeColorAttachment = nullptr;
             m_activeDepthAttachment = nullptr;
 
-            renderPass = m_context.renderPass();
+            switch (pass.colorLoadOp)
+            {
+            case AttachmentLoadOp::Clear:
+                renderPass = m_context.clearRenderPass();
+                break;
+
+            case AttachmentLoadOp::Load:
+                renderPass = m_context.loadRenderPass();
+                break;
+
+            case AttachmentLoadOp::DontCare:
+                AIKO_ASSERT(false, "Swapchain DontCare load operation is not implemented");
+                renderPass = m_context.clearRenderPass();
+                break;
+            }
+
             framebuffer = m_context.currentSwapChainFramebuffer();
             extent = m_context.swapChainExtent();
 
@@ -646,6 +763,9 @@ namespace aiko::renderer::vulkan
         AIKO_FUNCTION_PROFILE
         if (m_computePassActive)
         {
+            VkCommandBuffer commandBuffer = m_context.hasDedicatedComputeQueue() ? m_context.computeCommandBuffer() : m_context.activeCommandBuffer();
+            AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Compute pass requires a valid command buffer");
+            m_context.endComputeGpuFrame(commandBuffer);
             m_computePassActive = false;
             return;
         }
@@ -706,13 +826,17 @@ namespace aiko::renderer::vulkan
         {
             return;
         }
-        m_context.submitAndPresent();
         m_frameActive = false;
+        m_context.submitAndPresent();
     }
 
     void VulkanRenderDevice::bindMaterial(const Material& material)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
 
         VulkanMaterialBinding* binding = nullptr;
 
@@ -745,6 +869,10 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
         const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, material.m_shaderId, material.m_renderState, false);
         drawMeshWithPipeline(viewId, world, mesh, pipeline);
     }
@@ -753,6 +881,11 @@ namespace aiko::renderer::vulkan
     {
         AIKO_FUNCTION_PROFILE
         AIKO_UNUSED(viewId);
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
 
         AIKO_ASSERT(m_renderPassActive, "Screen pass is not active");
 
@@ -797,6 +930,11 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         if (viewId != SCENE_VIEW || m_renderPassActive == false)
         {
             return;
@@ -889,13 +1027,22 @@ namespace aiko::renderer::vulkan
 
         vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
         vkCmdBindIndexBuffer( commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+
+        m_boundVertexBuffer = meshImpl->vertexBuffer();
+        m_boundIndexBuffer = meshImpl->indexBuffer();
+
         vkCmdDrawIndexed( commandBuffer, meshImpl->indexCount(), instanceCount, 0, 0, 0);
     }
 
     void VulkanRenderDevice::bindFrame(ViewId viewId, const FrameData& u)
     {
         AIKO_FUNCTION_PROFILE
-        if (viewId != SCENE_VIEW && viewId != COMPUTE_VIEW)
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
+        if (viewId != SCENE_VIEW && viewId != UI_VIEW && viewId != COMPUTE_VIEW)
         {
             return;
         }
@@ -994,7 +1141,7 @@ namespace aiko::renderer::vulkan
 
         const VulkanFrameBinding& binding = m_frameResources.allocate(frame, ubo);
 
-        if (viewId == SCENE_VIEW)
+        if (viewId == SCENE_VIEW || viewId == UI_VIEW)
         {
             vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsFrameSet, 1, &binding.descriptorSet, 0, nullptr);
         }
@@ -1004,12 +1151,19 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::execute(ViewId viewId, const ComputePass& pass)
     {
         AIKO_FUNCTION_PROFILE
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         AIKO_ASSERT(viewId == COMPUTE_VIEW, "Compute pass must use COMPUTE_VIEW");
         AIKO_ASSERT(m_computePassActive, "Compute dispatch requires an active compute pass");
         AIKO_ASSERT(pass.shader != nullptr, "Compute pass has no shader");
         AIKO_ASSERT(pass.shader->isValid(), "Invalid compute shader");
         AIKO_ASSERT(pass.buffers.empty() == false || pass.images.empty() == false, "Vulkan compute requires at least one resource");
         AIKO_ASSERT(pass.buffers.size() <= abi::MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
+        AIKO_ASSERT(pass.images.size() <= abi::MaxComputeImageBindings, "Too many Vulkan compute image bindings");
 
         auto* shaderImpl = static_cast<VulkanComputeShaderImpl*>(getComputeShaderBackend(*pass.shader));
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan compute shader implementation");
@@ -1114,6 +1268,11 @@ namespace aiko::renderer::vulkan
             vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, static_cast<uint32_t>( pass.pushConstants.size()), pass.pushConstants.data());
         }
 
+        if (pass.name.empty() == false)
+        {
+            m_context.beginComputeGpuPass(commandBuffer, pass.name);
+        }
+
         if (indirectBufferImpl != nullptr)
         {
             vkCmdDispatchIndirect(commandBuffer, indirectBufferImpl->buffer(), pass.dispatch.indirectOffset);
@@ -1121,6 +1280,11 @@ namespace aiko::renderer::vulkan
         else
         {
             vkCmdDispatch(commandBuffer, pass.dispatch.groupsX, pass.dispatch.groupsY, pass.dispatch.groupsZ);
+        }
+
+        if (pass.name.empty() == false)
+        {
+            m_context.endComputeGpuPass(commandBuffer);
         }
 
     }
@@ -1161,6 +1325,10 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawMeshInstancedGpu(ViewId viewId, const GpuInstanceDrawDesc& desc)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
         if (viewId != SCENE_VIEW || m_renderPassActive == false)
         {
             return;
@@ -1224,6 +1392,10 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawBillboards(ViewId viewId, const GpuBillboardDrawDesc& desc)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
         AIKO_ASSERT(desc.material != nullptr, "GPU billboard draw has no material");
         AIKO_ASSERT(desc.positionBuffer != nullptr, "GPU billboard draw has no position buffer");
         AIKO_ASSERT(desc.positionBuffer->isValid(), "GPU billboard position buffer is invalid");
@@ -1251,6 +1423,10 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawVerticesGpu(ViewId viewId, const GpuVertexDrawDesc& desc)
     {
         AIKO_FUNCTION_PROFILE
+        if (m_frameActive == false)
+        {
+            return;
+        }
         if (viewId != SCENE_VIEW || m_renderPassActive == false)
         {
             return;
@@ -1378,6 +1554,12 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::prepareVertexBuffer(const ComputeBuffer& buffer)
     {
         AIKO_FUNCTION_PROFILE
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         auto* impl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(buffer));
         AIKO_ASSERT(impl != nullptr, "Invalid Vulkan compute buffer implementation");
         AIKO_ASSERT(impl->isValid(), "Invalid Vulkan vertex compute buffer");
@@ -1401,6 +1583,12 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::prepareIndexBuffer(const ComputeBuffer& buffer)
     {
         AIKO_FUNCTION_PROFILE
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         auto* impl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(buffer));
         AIKO_ASSERT(impl != nullptr, "Invalid Vulkan compute buffer implementation");
         AIKO_ASSERT(impl->isValid(), "Invalid Vulkan index compute buffer");
@@ -1426,6 +1614,12 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::prepareIndirectBuffer(const ComputeBuffer& buffer)
     {
         AIKO_FUNCTION_PROFILE
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         auto* impl = static_cast<VulkanComputeBufferImpl*>(getComputeBufferBackend(buffer));
         AIKO_ASSERT(impl != nullptr, "Invalid Vulkan compute buffer implementation");
         AIKO_ASSERT(impl->isValid(), "Invalid Vulkan indirect compute buffer");
@@ -1450,7 +1644,7 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawTransient(ViewId viewId, const TransientDrawDesc& desc)
     {
         AIKO_FUNCTION_PROFILE
-        if (viewId != SCENE_VIEW || m_renderPassActive == false)
+        if (m_renderPassActive == false)
         {
             return;
         }
@@ -1535,14 +1729,90 @@ namespace aiko::renderer::vulkan
 
         vkCmdBindIndexBuffer(commandBuffer, indexSlice.buffer, indexSlice.offset, VK_INDEX_TYPE_UINT16);
 
-        vkCmdDrawIndexed(commandBuffer,static_cast<uint32_t>(desc.geometry->indices.size()),1,0,0,0);
+        const uint32_t totalIndexCount = static_cast<uint32_t>(desc.geometry->indices.size());
 
+        AIKO_ASSERT(desc.indexOffset <= totalIndexCount, "Transient draw index offset exceeds geometry");
+
+        const uint32_t indexCount = desc.indexCount != 0 ? desc.indexCount : totalIndexCount - desc.indexOffset;
+
+        AIKO_ASSERT(desc.indexOffset + indexCount <= totalIndexCount, "Transient draw index range exceeds geometry");
+
+        VkRect2D scissor =
+        {
+            .offset = {0, 0},
+            .extent = m_activeExtent
+        };
+
+        if (desc.scissor.has_value())
+        {
+            const ScissorRect& requested = *desc.scissor;
+
+            AIKO_ASSERT(requested.x >= 0, "Scissor x must not be negative");
+            AIKO_ASSERT(requested.y >= 0, "Scissor y must not be negative");
+
+            const uint32_t x = static_cast<uint32_t>(requested.x);
+            const uint32_t y = static_cast<uint32_t>(requested.y);
+
+            AIKO_ASSERT(x <= m_activeExtent.width, "Scissor x exceeds render target");
+            AIKO_ASSERT(y <= m_activeExtent.height, "Scissor y exceeds render target");
+            AIKO_ASSERT(requested.width <= m_activeExtent.width - x, "Scissor exceeds render target width");
+            AIKO_ASSERT(requested.height <= m_activeExtent.height - y, "Scissor exceeds render target height");
+
+            scissor.offset =
+            {
+                requested.x,
+                requested.y
+            };
+
+            scissor.extent =
+            {
+                requested.width,
+                requested.height
+            };
+        }
+
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+        vkCmdDrawIndexed(commandBuffer, indexCount, 1, desc.indexOffset, 0, 0);
+
+    }
+
+    void VulkanRenderDevice::drawFullscreen(ViewId viewId, const Material& material)
+    {
+        AIKO_FUNCTION_PROFILE
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
+        if (viewId != SCENE_VIEW || m_renderPassActive == false)
+        {
+            return;
+        }
+
+        AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "Fullscreen material has invalid shader id");
+
+        const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, material.m_shaderId, material.m_renderState, false);
+        AIKO_ASSERT(pipeline != VK_NULL_HANDLE, "Fullscreen pipeline is invalid");
+
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+        AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Fullscreen draw requires an active command buffer");
+
+        bindGraphicsPipeline(pipeline);
+
+        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
     }
 
     void VulkanRenderDevice::prepareTextureForSampling(const Texture& texture)
     {
         AIKO_FUNCTION_PROFILE
-        AIKO_ASSERT(m_frameActive, "Texture preparation requires an active frame");
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         AIKO_ASSERT(m_renderPassActive == false, "Texture preparation must happen outside a render pass");
         AIKO_ASSERT(texture.isValid(), "Cannot prepare invalid texture");
 
@@ -1590,10 +1860,36 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::prepareMaterial(const Material& material)
     {
         AIKO_FUNCTION_PROFILE
+
+        if (m_frameActive == false)
+        {
+            return;
+        }
+
         if (m_preparedMaterialBindings.contains(&material))
         {
             return;
         }
+
+        const MaterialId materialId = material.id();
+
+        if (const auto stateIt = m_preparedMaterialStates.find(materialId); stateIt != m_preparedMaterialStates.end())
+        {
+            for (const PreparedMaterialState& prepared : stateIt->second)
+            {
+                AIKO_ASSERT(prepared.material != nullptr, "Prepared material state has null material");
+                AIKO_ASSERT(prepared.binding != nullptr, "Prepared material state has null binding");
+
+                if (sameMaterialState(material, *prepared.material))
+                {
+                    const auto [it, inserted] = m_preparedMaterialBindings.emplace(&material, prepared.binding);
+                    AIKO_UNUSED(it);
+                    AIKO_ASSERT(inserted, "Failed to cache equivalent Vulkan material binding");
+                    return;
+                }
+            }
+        }
+
         for (const auto& [name, textureBinding] : material.textureBindings())
         {
             AIKO_UNUSED(name);
@@ -1601,10 +1897,18 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
             prepareTextureForSampling(*texture);
         }
+
         VulkanMaterialBinding& binding = resolveMaterialBinding(material);
+
         const auto [it, inserted] = m_preparedMaterialBindings.emplace(&material, &binding);
         AIKO_UNUSED(it);
         AIKO_ASSERT(inserted, "Failed to cache prepared Vulkan material binding");
+
+        m_preparedMaterialStates[materialId].push_back(
+        {
+            .material = &material,
+            .binding = &binding,
+        });
     }
 
     VulkanMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
@@ -1799,11 +2103,25 @@ namespace aiko::renderer::vulkan
 
         vkCmdPushConstants(commandBuffer, m_modelPipelines.layout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
 
-        const VkBuffer vertexBuffers[] = { meshImpl->vertexBuffer() };
-        const VkDeviceSize offsets[] = { 0 };
+        const VkBuffer vertexBuffer = meshImpl->vertexBuffer();
 
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+        if (m_boundVertexBuffer != vertexBuffer)
+        {
+            const VkDeviceSize offset = 0;
+
+            vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, &offset);
+
+            m_boundVertexBuffer = vertexBuffer;
+        }
+
+        const VkBuffer indexBuffer = meshImpl->indexBuffer();
+
+        if (m_boundIndexBuffer != indexBuffer)
+        {
+            vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+            m_boundIndexBuffer = indexBuffer;
+        }
 
         vkCmdDrawIndexed(commandBuffer, meshImpl->indexCount(), 1, 0, 0, 0);
     }
@@ -1818,6 +2136,7 @@ namespace aiko::renderer::vulkan
         std::array<VkDescriptorImageInfo, abi::MaxComputeImageBindings> imageInfos{};
         std::array<VkWriteDescriptorSet, abi::MaxComputeImageBindings> imageWrites{};
         std::array<bool, abi::MaxComputeBufferBindings> usedBindings{};
+        std::array<bool, abi::MaxComputeImageBindings> usedImageBindings{};
 
         uint32_t writeCount = 0;
 
@@ -1861,11 +2180,14 @@ namespace aiko::renderer::vulkan
         for (const ComputeImageBinding& binding : images)
         {
             AIKO_ASSERT(binding.stage < abi::MaxComputeImageBindings, "Compute image binding exceeds Vulkan binding limit");
+            AIKO_ASSERT(usedImageBindings[binding.stage] == false, "Duplicate Vulkan compute image binding");
             AIKO_ASSERT(binding.texture != nullptr, "Compute image texture is null");
             AIKO_ASSERT(binding.texture->isValid(), "Invalid compute image texture");
 
             auto* textureImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(*binding.texture));
             AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan compute texture");
+
+            usedImageBindings[binding.stage] = true;
 
             imageInfos[imageWriteCount] =
             {
@@ -2464,8 +2786,10 @@ namespace aiko::renderer::vulkan
 
     void VulkanRenderDevice::prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings)
     {
-        VkCommandBuffer commandBuffer =
-        m_context.activeCommandBuffer();
+        if (m_frameActive == false)
+        {
+            return;
+        }
 
         for (const GpuReadBufferBinding& binding : bindings)
         {
@@ -2554,6 +2878,12 @@ namespace aiko::renderer::vulkan
         {
             .shaderId = shader.id(),
             .renderPass = m_activeRenderPassCompatibility,
+            .fillMode = material.m_renderState.fillMode,
+            .cullMode = material.m_renderState.cullMode,
+            .depthTest = material.m_renderState.depthTest,
+            .depthWrite = material.m_renderState.depthWrite,
+            .depthCompare = material.m_renderState.depthCompare,
+            .blend = material.m_renderState.blend,
         };
 
         return m_gpuPipelines.getOrCreateInstanced(key, renderPass, *shaderImpl);
@@ -2576,6 +2906,12 @@ namespace aiko::renderer::vulkan
             .shaderId = shader.id(),
             .renderPass = m_activeRenderPassCompatibility,
             .topology = topology,
+            .fillMode = material.m_renderState.fillMode,
+            .cullMode = material.m_renderState.cullMode,
+            .depthTest = material.m_renderState.depthTest,
+            .depthWrite = material.m_renderState.depthWrite,
+            .depthCompare = material.m_renderState.depthCompare,
+            .blend = material.m_renderState.blend,
         };
 
         return m_gpuPipelines.getOrCreateVertex(key, renderPass, *shaderImpl);
@@ -2757,6 +3093,7 @@ namespace aiko::renderer::vulkan
     VkPipeline VulkanRenderDevice::getOrCreateModelPipeline(VkRenderPass renderPass, VkPrimitiveTopology topology, AssetId shaderId, const RenderState& renderState, bool instanced)
     {
         AIKO_FUNCTION_PROFILE
+
         AIKO_ASSERT(m_activeRenderPassCompatibility.colorFormat != VK_FORMAT_UNDEFINED, "Graphics pipeline requires an active render-pass compatibility key");
 
         const ModelPipelineKey key =
@@ -2773,16 +3110,37 @@ namespace aiko::renderer::vulkan
             .instanced = instanced,
         };
 
-        if (instanced)
+        if (m_cachedModelPipelineKey.has_value() && *m_cachedModelPipelineKey == key)
         {
-            return m_modelPipelines.getOrCreateInstanced(key, renderPass);
+            AIKO_ASSERT(m_cachedModelPipeline != VK_NULL_HANDLE, "Cached model pipeline is invalid");
+
+            return m_cachedModelPipeline;
         }
 
-        AIKO_ASSERT(shaderId != InvalidAssetId, "Model material has invalid shader id");
-        Shader& shader = getResources()->getShader(shaderId);
-        auto* shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
-        AIKO_ASSERT(shaderImpl != nullptr && shaderImpl->isValid(), "Invalid Vulkan material shader");
-        return m_modelPipelines.getOrCreate(key, renderPass, *shaderImpl);
+        VkPipeline pipeline = VK_NULL_HANDLE;
+
+        if (instanced)
+        {
+            pipeline = m_modelPipelines.getOrCreateInstanced(key, renderPass);
+        }
+        else
+        {
+            AIKO_ASSERT(shaderId != InvalidAssetId, "Model material has invalid shader id");
+
+            Shader& shader = getResources()->getShader(shaderId);
+
+            auto* shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
+            AIKO_ASSERT(shaderImpl != nullptr && shaderImpl->isValid(), "Invalid Vulkan material shader");
+
+            pipeline = m_modelPipelines.getOrCreate(key, renderPass, *shaderImpl);
+        }
+
+        AIKO_ASSERT(pipeline != VK_NULL_HANDLE, "Failed to resolve model pipeline");
+
+        m_cachedModelPipelineKey = key;
+        m_cachedModelPipeline = pipeline;
+
+        return pipeline;
     }
 
 }

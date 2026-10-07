@@ -25,6 +25,6 @@ namespace aiko
 
     void InputModule::postUpdate()
     {
-        m_input.clearEvents();
+        m_input.clearFrameState();
     }
 }

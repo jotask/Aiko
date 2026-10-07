@@ -1,0 +1,146 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+layout(std430, binding = 0)
+readonly buffer Positions
+{
+    vec4 positions[];
+};
+
+layout(std430, binding = 1)
+readonly buffer Velocities
+{
+    vec4 velocities[];
+};
+
+layout(std430, binding = 2)
+readonly buffer CellHeads
+{
+    uint cellHeads[];
+};
+
+layout(std430, binding = 3)
+readonly buffer ParticleNext
+{
+    uint particleNext[];
+};
+
+layout(std430, binding = 4)
+writeonly buffer VelocityDeltas
+{
+    vec4 velocityDeltas[];
+};
+
+layout(push_constant)
+uniform PushConstants
+{
+    float dt;
+    float smoothingRadius;
+    float sigma;
+    float beta;
+
+    uint particleCount;
+    uint gridWidth;
+    uint gridHeight;
+    uint padding;
+
+    vec4 boundsMin;
+} pc;
+
+void main()
+{
+    uint i = gl_GlobalInvocationID.x;
+
+    if (i >= pc.particleCount)
+    {
+        return;
+    }
+
+    vec3 positionA = positions[i].xyz;
+
+    vec3 velocityA = velocities[i].xyz;
+
+    vec2 localPosition = positionA.xy - pc.boundsMin.xy;
+
+    ivec2 cell = ivec2(floor(localPosition / pc.smoothingRadius));
+
+    vec3 velocityDelta = vec3(0.0);
+
+    float smoothingRadiusSquared =
+        pc.smoothingRadius * pc.smoothingRadius;
+
+    float inverseSmoothingRadius =
+        1.0 / pc.smoothingRadius;
+
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            ivec2 neighbourCell = cell + ivec2(x, y);
+
+            if (neighbourCell.x < 0 || neighbourCell.y < 0 || neighbourCell.x >= int(pc.gridWidth) || neighbourCell.y >= int(pc.gridHeight))
+            {
+                continue;
+            }
+
+            uint cellKey = uint(neighbourCell.y) * pc.gridWidth + uint(neighbourCell.x);
+
+            uint j = cellHeads[cellKey];
+
+            while (j != 0xFFFFFFFFu)
+            {
+                uint nextParticle = particleNext[j];
+
+                if (j != i)
+                {
+                    vec3 direction = positions[j].xyz - positionA;
+
+                    float distanceSquared =
+                        dot(direction, direction);
+
+                    if (
+                        distanceSquared > 0.000000000001 &&
+                        distanceSquared < smoothingRadiusSquared)
+                    {
+                        float distance =
+                            sqrt(distanceSquared);
+
+                        float inverseDistance =
+                            1.0 / distance;
+
+                        float q =
+                            distance * inverseSmoothingRadius;
+
+                        vec3 normalizedDirection =
+                            direction * inverseDistance;
+
+                        float u = dot(
+                            velocityA - velocities[j].xyz,
+                            normalizedDirection);
+
+                        if (u > 0.0)
+                        {
+                            float term =
+                                pc.dt *
+                                (1.0 - q) *
+                                (
+                                    pc.sigma * u +
+                                    pc.beta * u * u
+                                );
+
+                            velocityDelta -=
+                                normalizedDirection *
+                                term *
+                                0.5;
+                        }
+                    }
+                }
+
+                j = nextParticle;
+            }
+        }
+    }
+
+    velocityDeltas[i] = vec4(velocityDelta, 0.0);
+}

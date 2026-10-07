@@ -1,0 +1,155 @@
+// Analytic 3D stepped recess, inspired by the supplied paper-cut artwork.
+// Blank -> sequential sinking -> hold 5 s -> exact reverse -> hold 5 s.
+
+const int BANDS = 12;
+const float MOVE_TIME = 0.15; // Seconds for each individual band.
+const float HOLD_TIME = 1.0;
+const float START_HOLD = 1.0;
+const float STEP_DEPTH = 0.055;
+const vec3 BACKGROUND = vec3(0.975, 0.975, 0.955);
+const vec2 VIEW_SLOPE = vec2(-0.25, 0.20);
+
+float smoother(float x) {
+    x = clamp(x, 0.0, 1.0);
+    return x*x*x*(x*(x*6.0-15.0)+10.0);
+}
+
+// One common playhead makes the outward motion an exact time reversal.
+float playhead(float time) {
+    float duration = float(BANDS)*MOVE_TIME;
+    float t = mod(max(time-START_HOLD, 0.0), 2.0*duration+2.0*HOLD_TIME);
+    if (t < duration) return t;
+    if (t < duration+HOLD_TIME) return duration;
+    if (t < 2.0*duration+HOLD_TIME)
+        return 2.0*duration+HOLD_TIME-t;
+    return 0.0;
+}
+
+float amount(int k, float clock) {
+    return smoother((clock-float(k)*MOVE_TIME)/MOVE_TIME);
+}
+float depth(int k, float clock) {
+    return STEP_DEPTH*float(k+1)*amount(k, clock);
+}
+float topEdge(int k) { return 0.88-0.115*float(k); }
+float leftEdge(float y, int k) {
+    return -0.33+0.325*(y-0.88)+0.145*float(k);
+}
+float rightEdge(float y) { return 0.32-0.325*(y-0.88); }
+float notchHalf(float y) { return 0.205+0.325*(-0.69-y); }
+
+bool opening(vec2 p, int k) {
+    bool notch = p.y < -0.69 && abs(p.x-0.035) < notchHalf(p.y);
+    return p.y <= topEdge(k) && p.y >= -1.0 &&
+           p.x >= leftEdge(p.y,k) && p.x <= rightEdge(p.y) && !notch;
+}
+
+vec3 pigment(int k) {
+    if(k==0) return vec3(0.96,0.85,0.53);
+    if(k==1) return vec3(1.00,0.91,0.025);
+    if(k==2) return vec3(1.00,0.76,0.015);
+    if(k==3) return vec3(1.00,0.64,0.010);
+    if(k==4) return vec3(0.99,0.43,0.010);
+    if(k==5) return vec3(0.94,0.27,0.015);
+    if(k==6) return vec3(0.81,0.065,0.025);
+    if(k==7) return vec3(0.59,0.018,0.085);
+    if(k==8) return vec3(0.40,0.008,0.050);
+    if(k==9) return vec3(0.25,0.006,0.025);
+    if(k==10) return vec3(0.12,0.003,0.010);
+    return vec3(0.045,0.008,0.006);
+}
+
+vec3 material(int k, float clock) {
+    return mix(BACKGROUND, pigment(k), smoother(amount(k,clock)*3.0));
+}
+
+// Intersect a vertical wall n.xy dot p.xy = c, between two floor depths.
+void wall(vec2 origin, vec2 n, float c, float a, float b, int k,
+          float clock, inout float nearest, inout vec3 col) {
+    float denominator = dot(n,VIEW_SLOPE);
+    if(abs(denominator)<0.00001 || abs(a-b)<0.00001) return;
+    float t = (c-dot(n,origin))/denominator;
+    if(t <= 0.0 || t >= nearest || t < min(a,b) || t > max(a,b)) return;
+    vec2 p = origin+VIEW_SLOPE*t;
+    // Only the finite top/left portions of each nested opening are walls.
+    if(!opening(p-n*0.0002,k)) return;
+    float shade = mix(0.43,0.62,abs(normalize(n).x));
+    float bevel = smoothstep(0.0,0.010,abs(t-min(a,b)));
+    col = material(k,clock)*mix(0.82,shade,bevel);
+    nearest = t;
+}
+
+// Perimeter walls: they meet the floor band present at that point.
+void perimeter(vec2 origin, vec2 n, float c, float clock,
+               inout float nearest, inout vec3 col) {
+    float denominator = dot(n,VIEW_SLOPE);
+    if(abs(denominator)<0.00001) return;
+    float t = (c-dot(n,origin))/denominator;
+    if(t<=0.0 || t>=nearest) return;
+    vec2 p = origin+VIEW_SLOPE*t-n*0.0002;
+    if(!opening(p,0) || opening(p+n*0.0004,0)) return;
+    for(int k=0;k<BANDS;k++) {
+        bool inside = opening(p,k);
+        if(k<BANDS-1) inside = inside && !opening(p,k+1);
+        if(inside && t<=depth(k,clock)) {
+            col = material(k,clock)*0.56;
+            nearest=t;
+        }
+    }
+}
+
+vec3 render(vec2 p, float clock) {
+    // At rest every surface is flush and exactly the background color.
+    if(clock<=0.0 || !opening(p,0)) return BACKGROUND;
+    float nearest=100.0;
+    vec3 col=BACKGROUND;
+
+    // Direct ray/plane intersections: no ray marching or textures.
+    for(int k=0;k<BANDS;k++) {
+        float z=depth(k,clock);
+        vec2 q=p+VIEW_SLOPE*z;
+        bool visible=opening(q,k);
+        if(k<BANDS-1) visible=visible && !opening(q,k+1);
+        if(visible && z<nearest) {
+            float reveal=amount(k,clock);
+            float previous=k==0 ? 0.0 : depth(k-1,clock);
+            float height=max(z-previous,0.0);
+            float edgeDistance=min(topEdge(k)-q.y,
+                                  (q.x-leftEdge(q.y,k))/1.052);
+            float contact=exp(-max(edgeDistance,0.0)/0.030);
+            float shadow=1.0-0.39*contact*smoothstep(0.0,0.045,height);
+            // Restrained procedural paper grain, only on revealed bands.
+            float grain=fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453)-0.5;
+            col=material(k,clock)*shadow*(1.0+0.018*grain*reveal);
+            nearest=z;
+        }
+    }
+    for(int k=0;k<BANDS;k++) {
+        float previous=k==0 ? 0.0 : depth(k-1,clock);
+        float z=depth(k,clock);
+        wall(p,vec2(0.0,1.0),topEdge(k),previous,z,k,clock,nearest,col);
+        wall(p,vec2(-1.0,0.325),0.616-0.145*float(k),
+             previous,z,k,clock,nearest,col);
+    }
+    perimeter(p,vec2(1.0,0.325),0.606,clock,nearest,col);
+    perimeter(p,vec2(0.0,-1.0),1.0,clock,nearest,col);
+    // The small trapezoidal white cutout at the foot of the artwork.
+    perimeter(p,vec2(0.0,-1.0),0.69,clock,nearest,col);
+    perimeter(p,vec2(-1.0,-0.325),-0.01575,clock,nearest,col);
+    perimeter(p,vec2(1.0,-0.325),0.05425,clock,nearest,col);
+    return col;
+}
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+    float clock=playhead(iTime);
+    // Fit the reference into both portrait and landscape viewports.
+    float scale=2.50/min(iResolution.x,iResolution.y);
+    vec2 p=(fragCoord-0.5*iResolution.xy)*scale+vec2(0.0,-0.04);
+    // Four samples soften the diagonal silhouette and narrow wall edges.
+    vec3 col=vec3(0.0);
+    for(int y=0;y<2;y++) for(int x=0;x<2;x++) {
+        vec2 offset=(vec2(float(x),float(y))-0.5)*0.5*scale;
+        col+=render(p+offset,clock);
+    }
+    fragColor=vec4(col*0.25,1.0);
+}

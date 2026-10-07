@@ -41,8 +41,8 @@ namespace aiko::renderer::vulkan
         const stdpath vshaderPath = base / (vertex_file + std::string(".spv"));
         const stdpath fshaderPath = base / (fragment_file + std::string(".spv"));
 
-        AIKO_ASSERT(std::filesystem::exists(vshaderPath), "Vertex shader file not found!");
-        AIKO_ASSERT(std::filesystem::exists(fshaderPath), "Fragment shader file not found!");
+        AIKO_ASSERTF(std::filesystem::exists(vshaderPath), "Vertex shader file not found! %s", vshaderPath.string().c_str());
+        AIKO_ASSERTF(std::filesystem::exists(fshaderPath), "Fragment shader file not found! %s", fshaderPath.string().c_str());
 
         auto vertShaderCode = files::readFileBytes(vshaderPath);
         auto fragShaderCode = files::readFileBytes(fshaderPath);

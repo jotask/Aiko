@@ -5,6 +5,7 @@
 
 #include <aiko_types.h>
 #include <aiko_renderer.h>
+#include <math/math_bounds.h>
 
 #include "components/compute_shader_component.h"
 #include "components/mesh_component.h"
@@ -22,6 +23,7 @@ namespace aiko
     class RenderModule;
     class AssetSystem;
     class RenderTarget;
+    class Font;
 
     class RenderSystem : public BaseSystem
     {
@@ -48,6 +50,10 @@ namespace aiko
 
         void renderInstanced( const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
+        void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
+
+        void drawFullscreen(const Material& material);
+        ivec2 getRenderSize() const;
 
         void dispatch(const ComputePass& pass, const AssetId& shaderId);
         void dispatch(const ComputePass& pass, const ComputeShaderComponent& component);
@@ -62,6 +68,20 @@ namespace aiko
 
         void clearCaches();
 
+        ImguiTextureId getTargetTextureId() const;
+        ImguiTextureId getTextureId(const Texture& texture) const;
+        ImguiTextureId getTextureId(const AssetId& textureId) const;
+        ImguiTextureId getTextureId(const AssetId& textureId, const SamplerState& sampler) const;
+
+        void drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
+        void drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
+        void drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
+        void drawUiText(const Font& font, string_view text, const vec2& position, float fontSize, Color color = WHITE);
+        void drawText(const Font& font, string_view text, const Transform& transform, float fontSize, Color color = WHITE);
+
+        void pushUiClipRect(const vec2& position, const vec2& size);
+        void popUiClipRect();
+
     protected:
 
         virtual void connect(ModuleConnector*, SystemConnector*) override;
@@ -72,14 +92,15 @@ namespace aiko
         SceneSystem* m_sceneSystem;
         AssetSystem* m_assetSystem;
 
-    // ---------------------------------------------------
-    //                   PRIMITIVES
-    // ---------------------------------------------------
+        std::unordered_map<AssetId, Material> m_worldTextMaterials;
 
         PrimitiveMeshCache m_primitiveMeshCache;
         TransientTopology m_defaultTransientTopology = TransientTopology::Triangles;
         Material m_materialPrimitives;
+        std::unordered_map<u32, Material> m_gizmoMaterials;
+
         Material& resolvePrimitiveMaterial(Material* material);
+        Material& resolveGizmoMaterial(Color color);
 
     public:
 
@@ -98,6 +119,11 @@ namespace aiko
         void renderTorus(vec3 pos, vec3 size, Material* material = nullptr);
         void renderKnot(vec3 pos, vec3 size, Material* material = nullptr);
 
+        void setClearColor(Color color);
+
+        void renderLightGizmo(vec3 position, vec3 size, Color color);
+        void renderCameraGizmo(const Camera& camera, Color color);
+        void renderBoundsGizmo(const Bounds& bounds, Color color);
 
     };
 

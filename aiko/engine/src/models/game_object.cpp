@@ -1,5 +1,7 @@
 #include "game_object.h"
 
+#include <utility>
+
 #include "components/transform_component.h"
 #include "scene/scene.h"
 
@@ -11,6 +13,23 @@ namespace aiko
         addComponent<TransformComponent>();
     }
 
+    bool GameObject::isActiveInHierarchy() const
+    {
+        if (m_activeSelf == false)
+        {
+            return false;
+        }
+
+        const GameObject* parent = getParent();
+
+        if (parent == nullptr)
+        {
+            return true;
+        }
+
+        return parent->isActiveInHierarchy();
+    }
+
     Transform& GameObject::transform()
     {
         return getComponent<TransformComponent>()->transform;
@@ -19,6 +38,100 @@ namespace aiko
     const Transform& GameObject::transform() const
     {
         return getComponent<TransformComponent>()->transform;
+    }
+
+    GameObject* GameObject::getParent()
+    {
+        if (m_scene == nullptr)
+        {
+            return nullptr;
+        }
+
+        return m_scene->findByTransform(transform().getParent());
+    }
+
+    const GameObject* GameObject::getParent() const
+    {
+        if (m_scene == nullptr)
+        {
+            return nullptr;
+        }
+
+        return m_scene->findByTransform(transform().getParent());
+    }
+
+    vector<GameObject*> GameObject::getChildren()
+    {
+        vector<GameObject*> result;
+
+        if (m_scene == nullptr)
+        {
+            return result;
+        }
+
+        const vector<Transform*>& children = transform().getChildren();
+
+        result.reserve(children.size());
+
+        for (Transform* child : children)
+        {
+            if (GameObject* object = m_scene->findByTransform(child))
+            {
+                result.push_back(object);
+            }
+        }
+
+        return result;
+    }
+
+    vector<const GameObject*> GameObject::getChildren() const
+    {
+        vector<const GameObject*> result;
+
+        if (m_scene == nullptr)
+        {
+            return result;
+        }
+
+        const vector<Transform*>& children = transform().getChildren();
+
+        result.reserve(children.size());
+
+        for (const Transform* child : children)
+        {
+            if (const GameObject* object = m_scene->findByTransform(child))
+            {
+                result.push_back(object);
+            }
+        }
+
+        return result;
+    }
+
+    vector<Component*> GameObject::getComponents()
+    {
+        vector<Component*> result;
+        result.reserve(m_components.size());
+
+        for (const auto& component : m_components)
+        {
+            result.push_back(component.get());
+        }
+
+        return result;
+    }
+
+    vector<const Component*> GameObject::getComponents() const
+    {
+        vector<const Component*> result;
+        result.reserve(m_components.size());
+
+        for (const auto& component : m_components)
+        {
+            result.push_back(component.get());
+        }
+
+        return result;
     }
 
     bool GameObject::removeComponent(Component* item)

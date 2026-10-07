@@ -7,12 +7,14 @@ namespace lp
 
     enum class ParticleType
     {
-        RED,
+        Red,
+        Green,
+        Blue
     };
 
     struct Particle
     {
-        ParticleType type = ParticleType::RED;
+        ParticleType type = ParticleType::Red;
         aiko::vec3 position;
         aiko::vec3 velocity;
     };

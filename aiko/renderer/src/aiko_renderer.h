@@ -10,6 +10,9 @@
 #include "resources/render_resource_manager.h"
 #include "types/aiko_renderer_types.h"
 #include "types/compute_pass.h"
+#include "models/texture_region.h"
+#include "ui/ui_renderer.h"
+#include "ui/ui_draw_list.h"
 
 #include <types/color.h>
 #include <types/render_types.h>
@@ -44,7 +47,7 @@ namespace aiko
     public:
 
         AikoRenderer(IAssetProvider& assets);
-        ~AikoRenderer() = default;
+        ~AikoRenderer();
 
         void init(const RendererConfig& config, const RenderSurfaceDesc& surface);
         void beginFrame();
@@ -57,6 +60,7 @@ namespace aiko
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
         void submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride);
         void submit(const Transform& transform, const Mesh& mesh, const MaterialAsset& materialAsset, const MaterialInstance& materialInstance);
+        void submitFullscreen(const Material& material);
 
         void submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology);
 
@@ -70,7 +74,8 @@ namespace aiko
 
         void render(const Camera& camera);
 
-        void setDebugTexture(const Texture* texture);   // nullptr disables
+        void setDebugTexture(const Texture* texture);
+        void setUiShader(AssetId shaderId);
 
         void renderToTarget(const Camera& camera, RenderTarget& target);
         const RenderTarget& sceneRenderTarget() const { return m_sceneTarget; }
@@ -79,11 +84,20 @@ namespace aiko
 
         void waitIdle();
 
+        ImguiTextureId imguiTextureId(const Texture& texture, const SamplerState& sampler = {});
+
+        void drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
+        void drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
+        void drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
+
+        void pushUiClipRect(const vec2& position, const vec2& size);
+        void popUiClipRect();
+
     protected:
 
         const Texture* m_debugTexture = nullptr;
 
-        void onWindowResize(WindowResizeEvent&);
+        void onWindowResize(const WindowResizeEvent&);
 
         RenderResourceManager m_resources;
         AikoPtr<renderer::IRenderDevice> m_renderer;
@@ -109,6 +123,8 @@ namespace aiko
         void executeComputePasses();
         void submitScenePass(const renderer::FrameData& frameData, const PreparedScenePass& passData, const RenderTarget& target);
         void submitPresentPass(const Texture& texture);
+        void submitUiPass();
+        void submitImguiPass();
 
         static_assert(COMPUTE_VIEW < SCENE_VIEW, "Compute View MUST be less than Scene View");
 
@@ -125,6 +141,10 @@ namespace aiko
 
         std::vector<SceneRenderRequest> m_sceneRenderRequests;
 
+        UIRenderer m_uiRenderer;
+        UIDrawList m_uiDrawList;
+
     };
+
 
 }

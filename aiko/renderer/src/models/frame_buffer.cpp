@@ -39,16 +39,16 @@ namespace aiko
                 .format = TextureFormat::RGBA8,
                 .width = width,
                 .height = height,
-                .mipmaps = false,
+                .mipmaps = 1,
                 .computeWrite = true,
             });
         depthTexture.create(
             {
                 .type = TextureType::DepthStencil,
-                .format = TextureFormat::D24S8,
+                .format = backend->preferredDepthFormat(),
                 .width = width,
                 .height = height,
-                .mipmaps = false,
+                .mipmaps = 1,
             });
         backend->create(*colorTexture.backend, *depthTexture.backend);
     }

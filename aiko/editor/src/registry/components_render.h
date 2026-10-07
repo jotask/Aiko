@@ -4,22 +4,24 @@ namespace aiko
 {
     class GameObject;
     class Component;
-    class TransforComponent;
+    class TransformComponent;
     class SpriteComponent;
     class MeshComponent;
     class LightComponent;
     class CameraComponent;
+    class ModelComponent;
 }
 
 namespace aiko::editor::component
 {
 
-    void drawComponent(Component*);
+    bool drawComponent(Component*);
 
-    void drawTransform(TransforComponent*);
-    void drawSprite(SpriteComponent*);
-    void drawMesh(MeshComponent*);
-    void drawLight(LightComponent*);
-    void drawCamera(CameraComponent*);
+    bool drawTransform(TransformComponent*);
+    bool drawSprite(SpriteComponent*);
+    bool drawMesh(MeshComponent*);
+    bool drawModel(ModelComponent*);
+    bool drawLight(LightComponent*);
+    bool drawCamera(CameraComponent*);
 
 }

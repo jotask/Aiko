@@ -32,15 +32,31 @@ namespace aiko
             return std::sqrt(v);
         }
 
+        inline float pow(float raise, float power)
+        {
+            return std::pow(raise, power);
+        }
+
+        inline float lengthSquared(const vec3& v)
+        {
+            return v.x * v.x + v.y * v.y + v.z * v.z;
+        }
+
         inline float length(const vec3& v)
         {
-            return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+            return sqrt(lengthSquared(v));
         }
 
         template<class T>
         T map(T x, T in_min, T in_max, T out_min, T out_max)
         {
             return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+        }
+
+        template<class T>
+        constexpr T lerp(const T& from, const T& to, float t)
+        {
+            return from + (to - from) * t;
         }
 
     }

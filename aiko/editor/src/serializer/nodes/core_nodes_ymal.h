@@ -56,7 +56,35 @@ namespace YAML
         }
     };
 
+    template<>
+    struct convert<aiko::vec2>
+    {
+        static Node encode(const aiko::vec2& rhs)
+        {
+            Node node(NodeType::Map);
+            node["x"] = rhs.x;
+            node["y"] = rhs.y;
+            return node;
+        }
 
+        static bool decode(const Node& node, aiko::vec2& rhs)
+        {
+            if (node.IsMap() == false)
+            {
+                return false;
+            }
+
+            if (!node["x"] || !node["y"])
+            {
+                return false;
+            }
+
+            rhs.x = node["x"].as<float>();
+            rhs.y = node["y"].as<float>();
+
+            return true;
+        }
+    };
 
     template<>
     struct convert<aiko::Color>
@@ -64,20 +92,32 @@ namespace YAML
         static Node encode(const aiko::Color& rhs)
         {
             Node node(NodeType::Map);
+
             node["r"] = rhs.r;
             node["g"] = rhs.g;
             node["b"] = rhs.b;
             node["a"] = rhs.a;
+
             return node;
         }
 
         static bool decode(const Node& node, aiko::Color& rhs)
         {
-            if (node.IsScalar() == false)
+            if (node.IsMap() == false)
             {
                 return false;
             }
-            AIKO_NOT_IMPLEMENTED;
+
+            if (!node["r"] || !node["g"] || !node["b"] || !node["a"])
+            {
+                return false;
+            }
+
+            rhs.r = node["r"].as<float>();
+            rhs.g = node["g"].as<float>();
+            rhs.b = node["b"].as<float>();
+            rhs.a = node["a"].as<float>();
+
             return true;
         }
     };

@@ -2,10 +2,12 @@
 
 #include <cstdint>
 #include <vector>
+#include <optional>
 
 #include <aiko_types.h>
 #include <math/math_vector.h>
 
+#include "types/render_types.h"
 #include "types/color.h"
 
 namespace aiko
@@ -40,5 +42,8 @@ namespace aiko
         mat4 mtx = mat4(1.0f);
         const Material* material = nullptr;
         const TransientGeometry* geometry = nullptr;
+        uint32_t indexOffset = 0;
+        uint32_t indexCount = 0;
+        std::optional<ScissorRect> scissor;
     };
 }

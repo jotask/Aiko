@@ -29,7 +29,7 @@ namespace aiko
 
         unsigned char* data = stbi_load(base.c_str(), &width, &height, &channels, 4); // force RGBA
 
-        AIKO_ASSERT(data, "Texture Failed to load texture.")
+        AIKO_ASSERT(data, "Texture Failed to load texture.");
 
         TextureAsset asset = {};
         asset.desc.type = TextureType::Sampled;
@@ -143,8 +143,7 @@ namespace aiko
     ImportedModel AssetImporter::loadModel(const string& filePath)
     {
 
-        string path = string("models/") + filePath;
-        auto finalFilePath = global::getAssetPath(path.c_str());
+        const string finalFilePath = global::getAssetPath(filePath.c_str());
 
         Assimp::Importer importer;
 

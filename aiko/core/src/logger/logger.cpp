@@ -2,7 +2,6 @@
 
 #include <chrono>
 #include <iostream>
-#include <cstdarg>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -24,14 +23,13 @@ namespace aiko
         {
             switch (type)
             {
-                case aiko::logger::Log::Type::Trace:        spdlog::trace(msg);    return;
-                case aiko::logger::Log::Type::Debug:        spdlog::debug(msg);    return;
-                case aiko::logger::Log::Type::Info:         spdlog::info(msg);     return;
-                case aiko::logger::Log::Type::Warning:      spdlog::warn(msg);     return;
-                case aiko::logger::Log::Type::Error:        spdlog::error(msg);    return;
-                case aiko::logger::Log::Type::Critical:     spdlog::critical(msg); return;
-                default:
-                    break;
+                case Type::Trace:        spdlog::trace(msg);    return;
+                case Type::Debug:        spdlog::debug(msg);    return;
+                case Type::Info:         spdlog::info(msg);     return;
+                case Type::Warning:      spdlog::warn(msg);     return;
+                case Type::Error:        spdlog::error(msg);    return;
+                case Type::Critical:     spdlog::critical(msg); return;
+                default:                                        break;
             }
         }
 

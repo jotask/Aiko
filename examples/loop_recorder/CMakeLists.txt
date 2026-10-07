@@ -9,3 +9,5 @@ add_executable(LoopRecorder ${EXAMPLE_LR_SRC})
 target_link_libraries(LoopRecorder PRIVATE Aiko imgui portaudio_static)
 
 aiko_apply_defaults(LoopRecorder)
+
+aiko_add_example(LoopRecorder)

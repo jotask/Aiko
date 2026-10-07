@@ -18,6 +18,8 @@ namespace sb
         virtual void step(Numeros& n) = 0;
         virtual void dispose() = 0;
 
+        const aiko::string& getName() const { return m_name; }
+
     protected:
         SortLab* m_lab;
         aiko::string m_name;

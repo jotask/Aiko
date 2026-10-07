@@ -8,12 +8,21 @@
 namespace aiko::renderer
 {
 
+    enum class AttachmentLoadOp
+    {
+        Load,
+        Clear,
+        DontCare
+    };
+
     struct PassDescription
     {
         u32 width;
         u32 height;
-        bool clearColor = true;
-        bool clearDepth = true;
+
+        AttachmentLoadOp colorLoadOp = AttachmentLoadOp::Clear;
+        AttachmentLoadOp depthLoadOp = AttachmentLoadOp::Clear;
+
         Color clear = BLACK;
     };
 

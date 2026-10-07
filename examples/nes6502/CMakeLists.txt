@@ -7,8 +7,10 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${EXAMPLE_NESEMULATOR_SR
 
 add_executable(NesEmulator ${EXAMPLE_NESEMULATOR_SRC})
 
-target_link_libraries(NesEmulator PRIVATE Aiko imgui jsoncpp_static)
+target_link_libraries(NesEmulator PRIVATE Aiko imgui jsoncpp_static magic_enum)
 
 target_include_directories(NesEmulator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 aiko_apply_defaults(NesEmulator)
+
+aiko_add_example(NesEmulator)

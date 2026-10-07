@@ -26,7 +26,16 @@ namespace aiko
         Aiko(Application* app);
         Aiko(Application* app, AikoConfig cfg);
         ~Aiko();
-    
+
+        void setSimulationPaused(bool paused) { m_simulationPaused = paused; }
+        bool isSimulationPaused() const { return m_simulationPaused; }
+
+        void stepSimulation()
+        {
+            m_simulationPaused = true;
+            m_stepSimulation = true;
+        }
+
         void close();
 
         const AikoConfig& getConfig() const { return cfg; }
@@ -37,12 +46,15 @@ namespace aiko
 
         void run();
 
-        void onWindowClose(WindowCloseEvent&);
+        void onWindowClose(const WindowCloseEvent&);
 
         void init();
         void update();
         void render();
         void dispose();
+
+        void runUpdatePhase(SystemUpdatePhase phase, bool runSimulation);
+        void runRenderPhase(SystemRenderPhase phase);
 
         bool m_shouldStop;
 
@@ -50,6 +62,9 @@ namespace aiko
          Systems m_systems;
 
         AikoUPtr<LayerContext> m_layerContext;
+
+        bool m_simulationPaused = false;
+        bool m_stepSimulation = false;
 
         const AikoConfig cfg;
 

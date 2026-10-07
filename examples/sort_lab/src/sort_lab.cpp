@@ -1,27 +1,33 @@
 #include "sort_lab.h"
 
-#include <algorithm>
-#include <format>
-
-#include <time/time.h>
-#include <aiko_includes.h>
-
-#include "models/game_object.h"
-#include "components/camera_component.h"
-
 #include "algorithm/bubble_sort.h"
 #include "algorithm/insertion_sort.h"
 #include "algorithm/selection_sort.h"
+#include "components/camera_component.h"
+#include "layers/contexts/asset_context.h"
+#include "layers/contexts/input_context.h"
+#include "layers/contexts/render_context.h"
+#include "layers/contexts/scene_context.h"
+#include "layers/contexts/ui_context.h"
+#include "models/game_object.h"
+
+#include <time/time.h>
+
+#include <aiko_includes.h>
+#include <algorithm>
+#include <format>
 
 namespace sb
 {
     void SortLab::init()
     {
-        auto camera = Instantiate("Camera");
-        auto cam = camera->addComponent<aiko::CameraComponent>(aiko::camera::CameraController::Fly);
-        cam->setCameraType(aiko::Camera::CameraType::Orthographic);
-		camera->transform().position = { 0.0f, 0.0f, 25.0f };
-		cam->getCamera().position = camera->transform().position;
+
+        scene().clearColor() = aiko::BLACK;
+
+        aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Fly, aiko::Camera::CameraType::Orthographic);
+        camera->getCamera().position = { 0.0f, 0.0f, 25.0f };
+
+        m_debugFont = assets().loadFont("fonts/RobotoMono-Regular.ttf", 48.0f);
 
         setup();
 
@@ -32,18 +38,18 @@ namespace sb
 
     void SortLab::update()
     {
-        if (isKeyJustPressed(aiko::Key::KEY_SPACE))
+        if (input().isKeyJustPressed(aiko::Key::KEY_SPACE))
         {
             clear();
             shuffle();
             m_sorters[m_currentSorterIdx]->init();
         }
 
-        if (isKeyJustPressed(aiko::Key::KEY_RIGHT))
+        if (input().isKeyJustPressed(aiko::Key::KEY_RIGHT))
         {
             nextSorter(+1);
         }
-        if (isKeyJustPressed(aiko::Key::KEY_LEFT))
+        if (input().isKeyJustPressed(aiko::Key::KEY_LEFT))
         {
             nextSorter(-1);
         }
@@ -69,13 +75,18 @@ namespace sb
 
         const float initial_position_x = ((w * m_numbers.size()) / 2.0f) * -1.0f;
 
+        ui().text(m_debugFont, m_sorters[m_currentSorterIdx]->getName(), {20.0f, 20.0f}, 32.0f, aiko::WHITE);
+
+        constexpr float maxSize = 10.0f;
+
         for (uint16_t i = 0 ; i < m_numbers.size(); ++i)
         {
             const NUMBER number = m_numbers[i];
-            const float h = aiko::math::map<float>(number, 0, m_numbers.size(), 1.0f, 10.0f);
+            const float h = aiko::math::map<float>(number, 0, m_numbers.size(), 1.0f, maxSize);
+            const float yOffset = (h / 2.0f) - (maxSize / 2.0f);
             const aiko::vec3 size = {w, h, 0.0f};
-            const aiko::vec3 pos = {initial_position_x + ( i * w), 0.0f, 0.0f};
-            drawRectangle(pos, size);
+            const aiko::vec3 pos = {initial_position_x + ( i * w), yOffset, 0.0f};
+            renderer().drawRectangle(pos, size);
         }
 
     }

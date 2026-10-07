@@ -24,6 +24,12 @@ namespace aiko
 
         GameObject* createGameObject(string name = DEFAULT_OBJECT_NAME);
         GameObject* createGameObject(GameObject* parent, string name = DEFAULT_OBJECT_NAME);
+        GameObject* createGameObject(const uuid::Uuid& id, string name = DEFAULT_OBJECT_NAME);
+        GameObject* createGameObject(const uuid::Uuid& id, GameObject* parent, string name = DEFAULT_OBJECT_NAME);
+
+        GameObject* findGameObject(const uuid::Uuid& id);
+        const GameObject* findGameObject(const uuid::Uuid& id) const;
+
         void destroyGameObject(const GameObject* obj);
 
         Camera* getMainCamera();

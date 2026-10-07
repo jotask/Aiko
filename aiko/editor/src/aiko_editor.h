@@ -1,13 +1,17 @@
 #pragma once
 
-#include <vector>
-
-#include "aiko_types.h"
-#include "application/application.h"
-
-#include "windows/window.h"
+#include "layers/layer.h"
 
 #include "core/editor_context.h"
+#include "core/editor_workspace.h"
+
+namespace aiko
+{
+    class RenderSystem;
+    class SceneSystem;
+    class AssetSystem;
+    class SystemConnector;
+}
 
 namespace aiko::editor
 {
@@ -15,24 +19,30 @@ namespace aiko::editor
     class AikoEditor : public Layer
     {
     public:
-        using Windows = std::vector<AikoUPtr<Window>>;
-
-        AikoEditor();
-        Aiko* getAiko() const;
-
-        const Windows& getWindows() { return m_windows; }
+        AikoEditor() = default;
 
         EditorContext& context() { return m_context; }
         const EditorContext& context() const { return m_context; }
 
+        EditorWorkspace& workspace() { return m_workspace; }
+        const EditorWorkspace& workspace() const { return m_workspace; }
+
     protected:
-        virtual void init() override;
-        virtual void render() override;
+        void connect(SystemConnector& connector) override;
+        void init() override;
+        void render() override;
+
+    private:
+
+        void applyViewSettings();
+        void renderSceneGizmos();
+
+        RenderSystem* m_renderSystem = nullptr;
+        SceneSystem* m_sceneSystem = nullptr;
+        AssetSystem* m_assetSystem = nullptr;
 
         EditorContext m_context;
-        Windows m_windows;
-
+        EditorWorkspace m_workspace;
     };
 
 }
-

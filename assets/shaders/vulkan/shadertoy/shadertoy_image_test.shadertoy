@@ -1,0 +1,17 @@
+float circle(vec2 p, vec2 center, float radius)
+{
+    return 1.0 - smoothstep(
+        radius - 2.0,
+        radius + 2.0,
+        length(p - center)
+    );
+}
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
+{
+    vec2 uv = fragCoord / iResolution.xy;
+
+    vec3 textureColor = texture(iChannel0, uv).rgb;
+
+    fragColor = vec4(textureColor, 1.0);
+}

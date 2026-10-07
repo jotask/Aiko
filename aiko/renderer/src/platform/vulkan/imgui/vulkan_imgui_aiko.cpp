@@ -8,6 +8,8 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 
+#include "platform/vulkan/impl/vulkan_texture_impl.h"
+
 namespace aiko::renderer::vulkan
 {
 
@@ -22,7 +24,7 @@ namespace aiko::renderer::vulkan
 
         const ImGui_ImplVulkan_PipelineInfo pipelineInfo =
         {
-            .RenderPass = ctx.renderPass(),
+            .RenderPass = ctx.clearRenderPass(),
             .Subpass = 0,
             .MSAASamples = VK_SAMPLE_COUNT_1_BIT,
         };
@@ -50,7 +52,7 @@ namespace aiko::renderer::vulkan
         {
             logger::Log::error("Failed to initialize ImGui Vulkan backend!");
         }
-
+        m_samplerCache = std::make_unique<VulkanSamplerCache>(ctx);
     }
 
     void VulkanImguiImpl::beginFrame(const ViewId id, int width, int height)
@@ -66,7 +68,50 @@ namespace aiko::renderer::vulkan
 
     void VulkanImguiImpl::dispose()
     {
+
+        VulkanContext& ctx = VulkanContext::current();
+
         ImGui_ImplVulkan_Shutdown();
+
+        m_textureBindings.clear();
+
+        if (m_samplerCache != nullptr)
+        {
+            m_samplerCache->destroy();
+            m_samplerCache.reset();
+        }
+
         ImGui_ImplGlfw_Shutdown();
+    }
+
+    ImguiTextureId VulkanImguiImpl::textureId(const interfaces::ITextureImpl& texture, const SamplerState& sampler)
+    {
+        const auto& vulkanTexture = static_cast<const VulkanTextureImpl&>(texture);
+
+        AIKO_ASSERT(vulkanTexture.isValid(), "Cannot register invalid Vulkan ImGui texture");
+        AIKO_ASSERT(m_samplerCache != nullptr, "Vulkan ImGui sampler cache is not initialized");
+
+        const VkImageView imageView = vulkanTexture.imageView();
+
+        const TextureBindingKey key
+        {
+            .texture = &texture,
+            .sampler = sampler,
+        };
+
+        TextureBinding& binding = m_textureBindings[key];
+
+        if (binding.descriptorSet == VK_NULL_HANDLE || binding.imageView != imageView)
+        {
+            binding.imageView = imageView;
+
+            const VkSampler vkSampler = m_samplerCache->getOrCreate(sampler);
+
+            binding.descriptorSet = ImGui_ImplVulkan_AddTexture(vkSampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+
+            AIKO_ASSERT(binding.descriptorSet != VK_NULL_HANDLE, "Failed to register Vulkan ImGui texture");
+        }
+
+        return static_cast<ImguiTextureId>(reinterpret_cast<uintptr_t>( binding.descriptorSet ));
     }
 }
