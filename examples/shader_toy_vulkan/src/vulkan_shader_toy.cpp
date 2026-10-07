@@ -5,11 +5,10 @@
 #include "layers/contexts/scene_context.h"
 #include "layers/contexts/input_context.h"
 
-#include "assets/types/texture_asset.h"
-
 #include <chrono>
 #include <cmath>
 #include <ctime>
+#include <string>
 
 namespace shadertoy
 {
@@ -55,7 +54,7 @@ namespace shadertoy
     {
         scene().createCamera(aiko::camera::CameraController::Static);
 
-        m_material.m_shaderId = assets().loadShader("shadertoy/shadertoy_fullscreen", "shadertoy/shadertoy_image_test" );
+        m_material.m_shaderId = assets().loadShader("shadertoy/shadertoy_fullscreen", "shadertoy/happy" );
 
         m_material.m_renderState.depthTest = false;
         m_material.m_renderState.depthWrite = false;
@@ -68,56 +67,6 @@ namespace shadertoy
 
         m_material.setVec4("iMouse", 0.0f, 0.0f, 0.0f, 0.0f);
         m_material.setVec4("iDate", getShaderToyDate());
-
-        m_material.setFloatArray(
-            "iChannelTime",
-            {
-                0.0f,
-                0.0f,
-                0.0f,
-                0.0f
-            }
-        );
-
-        m_material.setVec3Array(
-            "iChannelResolution",
-            {
-                { 2.0f, 2.0f, 1.0f },
-                { 0.0f, 0.0f, 0.0f },
-                { 0.0f, 0.0f, 0.0f },
-                { 0.0f, 0.0f, 0.0f }
-            }
-        );
-
-        aiko::TextureAsset channel0{};
-
-        channel0.desc.type = aiko::TextureType::Sampled;
-        channel0.desc.format = aiko::TextureFormat::RGBA8;
-        channel0.desc.width = 2;
-        channel0.desc.height = 2;
-        channel0.desc.mipmaps = 1;
-        channel0.desc.computeWrite = false;
-
-        channel0.pixels =
-        {
-            aiko::RED,
-            aiko::GREEN,
-            aiko::BLUE,
-            aiko::WHITE
-        };
-
-        const aiko::AssetId channel0Id = assets().createTexture(channel0);
-
-        const aiko::SamplerState sampler =
-        {
-            .minFilter = aiko::TextureFilter::Nearest,
-            .magFilter = aiko::TextureFilter::Nearest,
-            .mipFilter = aiko::TextureMipFilter::Nearest,
-            .wrapU = aiko::TextureWrapMode::Clamp,
-            .wrapV = aiko::TextureWrapMode::Clamp
-        };
-
-        m_material.setTexture("iChannel0", channel0Id, sampler);
 
     }
 
@@ -205,12 +154,46 @@ namespace shadertoy
         // --------------------------------------------------
 
         m_material.setVec4("iDate", getShaderToyDate());
+
+        m_material.setFloatArray(
+            "iChannelTime",
+            {
+                m_channelTimes[0],
+                m_channelTimes[1],
+                m_channelTimes[2],
+                m_channelTimes[3]
+            }
+        );
+
+        m_material.setVec3Array(
+            "iChannelResolution",
+            {
+                m_channelResolutions[0],
+                m_channelResolutions[1],
+                m_channelResolutions[2],
+                m_channelResolutions[3]
+            }
+        );
     }
 
     void VulkanShaderToy::render()
     {
         renderer().drawFullscreen(m_material);
         ++m_frame;
+    }
+
+    void VulkanShaderToy::setChannel(uint32_t index, aiko::AssetId textureId, const aiko::ivec2& resolution, const aiko::SamplerState& sampler)
+    {
+        AIKO_ASSERT(index < 4, "ShaderToy channel index out of range");
+        const aiko::string channelName = "iChannel" + std::to_string(index);
+        m_material.setTexture(channelName, textureId, sampler);
+        m_channelTimes[index] = 0.0f;
+        m_channelResolutions[index] =
+        {
+            static_cast<float>(resolution.x),
+            static_cast<float>(resolution.y),
+            1.0f
+        };
     }
 
 }
