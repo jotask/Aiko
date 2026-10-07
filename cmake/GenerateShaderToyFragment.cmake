@@ -39,6 +39,26 @@ layout(
     vec3 iChannelResolution[4];
 };
 
+layout(
+    set = AIKO_GRAPHICS_MATERIAL_SET,
+    binding = AIKO_MATERIAL_TEXTURE_BINDING + 0
+) uniform sampler2D iChannel0;
+
+layout(
+    set = AIKO_GRAPHICS_MATERIAL_SET,
+    binding = AIKO_MATERIAL_TEXTURE_BINDING + 1
+) uniform sampler2D iChannel1;
+
+layout(
+    set = AIKO_GRAPHICS_MATERIAL_SET,
+    binding = AIKO_MATERIAL_TEXTURE_BINDING + 2
+) uniform sampler2D iChannel2;
+
+layout(
+    set = AIKO_GRAPHICS_MATERIAL_SET,
+    binding = AIKO_MATERIAL_TEXTURE_BINDING + 3
+) uniform sampler2D iChannel3;
+
 layout(location = 0) out vec4 outColor;
 
 #line 1

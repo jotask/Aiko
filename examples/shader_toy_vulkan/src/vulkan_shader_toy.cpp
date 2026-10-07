@@ -5,6 +5,8 @@
 #include "layers/contexts/scene_context.h"
 #include "layers/contexts/input_context.h"
 
+#include "assets/types/texture_asset.h"
+
 #include <chrono>
 #include <cmath>
 #include <ctime>
@@ -80,12 +82,42 @@ namespace shadertoy
         m_material.setVec3Array(
             "iChannelResolution",
             {
-                { 0.0f, 0.0f, 0.0f },
+                { 2.0f, 2.0f, 1.0f },
                 { 0.0f, 0.0f, 0.0f },
                 { 0.0f, 0.0f, 0.0f },
                 { 0.0f, 0.0f, 0.0f }
             }
         );
+
+        aiko::TextureAsset channel0{};
+
+        channel0.desc.type = aiko::TextureType::Sampled;
+        channel0.desc.format = aiko::TextureFormat::RGBA8;
+        channel0.desc.width = 2;
+        channel0.desc.height = 2;
+        channel0.desc.mipmaps = 1;
+        channel0.desc.computeWrite = false;
+
+        channel0.pixels =
+        {
+            aiko::RED,
+            aiko::GREEN,
+            aiko::BLUE,
+            aiko::WHITE
+        };
+
+        const aiko::AssetId channel0Id = assets().createTexture(channel0);
+
+        const aiko::SamplerState sampler =
+        {
+            .minFilter = aiko::TextureFilter::Nearest,
+            .magFilter = aiko::TextureFilter::Nearest,
+            .mipFilter = aiko::TextureMipFilter::Nearest,
+            .wrapU = aiko::TextureWrapMode::Clamp,
+            .wrapV = aiko::TextureWrapMode::Clamp
+        };
+
+        m_material.setTexture("iChannel0", channel0Id, sampler);
 
     }
 
