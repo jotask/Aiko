@@ -101,6 +101,16 @@ namespace aiko
         setUniform(name, value);
     }
 
+    void Material::setFloatArray(const string& name, vector<float> values)
+    {
+        setUniform( name, FloatArray { .values = std::move(values) });
+    }
+
+    void Material::setVec3Array(const string& name, vector<vec3> values)
+    {
+        setUniform(name, Vec3Array { .values = std::move(values) });
+    }
+
     void Material::setTextureSampler(const string& name, const SamplerState& sampler)
     {
         AIKO_ASSERT(name.empty() == false, "Texture binding name cannot be empty");

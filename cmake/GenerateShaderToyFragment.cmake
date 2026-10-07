@@ -34,6 +34,9 @@ layout(
 
     vec4 iMouse;
     vec4 iDate;
+
+    float iChannelTime[4];
+    vec3 iChannelResolution[4];
 };
 
 layout(location = 0) out vec4 outColor;

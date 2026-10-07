@@ -67,6 +67,26 @@ namespace shadertoy
         m_material.setVec4("iMouse", 0.0f, 0.0f, 0.0f, 0.0f);
         m_material.setVec4("iDate", getShaderToyDate());
 
+        m_material.setFloatArray(
+            "iChannelTime",
+            {
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f
+            }
+        );
+
+        m_material.setVec3Array(
+            "iChannelResolution",
+            {
+                { 0.0f, 0.0f, 0.0f },
+                { 0.0f, 0.0f, 0.0f },
+                { 0.0f, 0.0f, 0.0f },
+                { 0.0f, 0.0f, 0.0f }
+            }
+        );
+
     }
 
     void VulkanShaderToy::update()

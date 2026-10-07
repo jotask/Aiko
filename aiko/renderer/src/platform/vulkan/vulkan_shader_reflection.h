@@ -37,6 +37,9 @@ namespace aiko::renderer::vulkan
         uint32_t offset = 0;
         uint32_t size = 0;
 
+        uint32_t arrayCount = 0;
+        uint32_t arrayStride = 0;
+
         uint32_t matrixStride = 0;
         bool rowMajor = false;
     };

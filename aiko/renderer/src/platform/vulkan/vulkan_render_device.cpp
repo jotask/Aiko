@@ -53,8 +53,67 @@ namespace aiko::renderer::vulkan
             }
         }
 
+        template<typename T>
+        void writeUniformArray(std::vector<uint8_t>& destination, const VulkanShaderUniformMember& member, const vector<T>& values)
+        {
+            AIKO_ASSERT(member.arrayCount > 0, "Uniform member is not an array");
+            AIKO_ASSERT(member.arrayStride > 0, "Uniform array has invalid stride");
+            AIKO_ASSERT(values.size() == member.arrayCount, "Uniform array element count mismatch");
+            AIKO_ASSERT(sizeof(T) <= member.arrayStride, "Uniform array element exceeds reflected stride");
+
+            for (uint32_t i = 0; i < member.arrayCount; ++i)
+            {
+                const size_t relativeOffset = static_cast<size_t>(i) * member.arrayStride;
+                AIKO_ASSERT(relativeOffset + sizeof(T) <= member.size, "Uniform array element exceeds reflected member size");
+
+                const size_t byteOffset = static_cast<size_t>(member.offset) + relativeOffset;
+                AIKO_ASSERT(byteOffset + sizeof(T) <= destination.size(), "Uniform array write exceeds reflected material UBO");
+
+                std::memcpy(destination.data() + byteOffset, &values[i], sizeof(T));
+            }
+        }
+
         void packUniformValue(std::vector<uint8_t>& destination, const VulkanShaderUniformMember& member, const UniformValue& value)
         {
+
+            if (member.arrayCount > 0)
+            {
+                switch (member.type)
+                {
+                    case UniformType::Float:
+                    {
+                        const FloatArray* typed = std::get_if<FloatArray>(&value);
+                        AIKO_ASSERT(typed != nullptr, "Float array uniform type mismatch");
+
+                        if (typed != nullptr)
+                        {
+                            writeUniformArray(destination, member, typed->values);
+                        }
+
+                        return;
+                    }
+
+                    case UniformType::Vec3:
+                    {
+                        const Vec3Array* typed = std::get_if<Vec3Array>(&value);
+                        AIKO_ASSERT(typed != nullptr, "Vec3 array uniform type mismatch");
+
+                        if (typed != nullptr)
+                        {
+                            writeUniformArray(destination, member, typed->values);
+                        }
+
+                        return;
+                    }
+
+                    default:
+                    {
+                        AIKO_ASSERT(false, "Unsupported material uniform array type");
+                        return;
+                    }
+                }
+            }
+
             switch (member.type)
             {
                 case UniformType::Bool:

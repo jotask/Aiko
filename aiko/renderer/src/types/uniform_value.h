@@ -9,6 +9,16 @@
 namespace aiko
 {
 
+    struct FloatArray
+    {
+        vector<float> values;
+    };
+
+    struct Vec3Array
+    {
+        vector<vec3> values;
+    };
+
     enum class UniformType
     {
         Unknown,
@@ -59,7 +69,10 @@ namespace aiko
         vec3,
         vec4,
 
-        mat4
+        mat4,
+
+        FloatArray,
+        Vec3Array
     >;
 
     using UniformMap = std::unordered_map<string, UniformValue>;
