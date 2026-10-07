@@ -81,7 +81,7 @@ namespace aiko
 
     void SceneSystem::dispose()
     {
-        m_scene.clear();
+        clear();
     }
 
     GameObject* SceneSystem::createGameObject(string name)
@@ -129,6 +129,12 @@ namespace aiko
         return m_scene;
     }
 
+    void SceneSystem::clear()
+    {
+        m_scene.clear();
+        m_renderModule->setMainCamera(nullptr);
+    }
+
     Camera* SceneSystem::getMainCamera()
     {
         for (CameraComponent* component : m_scene.components<CameraComponent>())
@@ -162,5 +168,13 @@ namespace aiko
     void SceneSystem::setActiveCamera(GameObject* obj)
     {
         m_scene.setActiveCamera(obj);
+        if (obj == nullptr)
+        {
+            m_renderModule->setMainCamera(nullptr);
+            return;
+        }
+        CameraComponent* camera = obj->getComponent<CameraComponent>();
+        AIKO_ASSERT(camera != nullptr, "Active camera GameObject has no CameraComponent");
+        m_renderModule->setMainCamera(camera != nullptr ? &camera->getCamera() : nullptr);
     }
 }
