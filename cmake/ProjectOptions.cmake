@@ -140,6 +140,12 @@ function(aiko_add_vulkan_shader_target target_name)
             "${AIKO_SHADER_SOURCE_DIR}/*.shadertoy"
     )
     set(AIKO_SHADER_GENERATED_DIR  "${CMAKE_BINARY_DIR}/generated/shaders/vulkan")
+    list(
+            FILTER
+            AIKO_SHADERTOY_SHADERS
+            EXCLUDE
+            REGEX "\\.common\\.shadertoy$"
+    )
 
     set(AIKO_VULKAN_SPIRV_SHADERS)
 
@@ -195,6 +201,31 @@ function(aiko_add_vulkan_shader_target target_name)
                 "${AIKO_SHADER_BINARY_DIR}/${SHADER_REL_BASE}.frag.spv"
         )
 
+        string(
+                REGEX REPLACE
+                "\\.shadertoy$"
+                ".common.shadertoy"
+                SHADERTOY_COMMON_FILE
+                "${SHADER}"
+        )
+
+        set(SHADERTOY_COMMON_ARGS)
+        set(SHADERTOY_COMMON_DEPENDS)
+
+        if(EXISTS "${SHADERTOY_COMMON_FILE}")
+            list(
+                    APPEND
+                    SHADERTOY_COMMON_ARGS
+                    "-DCOMMON_FILE=${SHADERTOY_COMMON_FILE}"
+            )
+
+            list(
+                    APPEND
+                    SHADERTOY_COMMON_DEPENDS
+                    "${SHADERTOY_COMMON_FILE}"
+            )
+        endif()
+
         set(DEP_FILE "${SPIRV_FILE}.d")
 
         get_filename_component(
@@ -219,10 +250,12 @@ function(aiko_add_vulkan_shader_target target_name)
                 ${CMAKE_COMMAND}
                 "-DINPUT_FILE=${SHADER}"
                 "-DOUTPUT_FILE=${GENERATED_FRAGMENT}"
+                ${SHADERTOY_COMMON_ARGS}
                 -P "${CMAKE_SOURCE_DIR}/cmake/GenerateShaderToyFragment.cmake"
 
                 DEPENDS
                 "${SHADER}"
+                ${SHADERTOY_COMMON_DEPENDS}
                 "${CMAKE_SOURCE_DIR}/cmake/GenerateShaderToyFragment.cmake"
 
                 COMMENT "Generating Vulkan ShaderToy fragment ${SHADER_REL}"

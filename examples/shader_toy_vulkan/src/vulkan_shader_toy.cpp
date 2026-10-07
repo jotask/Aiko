@@ -16,6 +16,34 @@ namespace shadertoy
     namespace
     {
 
+        constexpr std::array ShadersSrc = {
+            "synthwave_sunset",
+            "common_validation",
+            "happy",
+            "fractal_circles",
+            "capsule_corp",
+            "coral_reef",
+            "fractal_land",
+            "mandebulb",
+            "matter_loading",
+            "pretty_hip",
+            "shader_fractal",
+            "vangogh",
+            "animation",
+            "costal_landscape",
+            "cyber_fuji",
+            "julia_bulb",
+            "main_start",
+            "mandelbulbo",
+            "matter_loading",
+            "menger_journey",
+            "planet_fall",
+            "refractal",
+            "starry_night",
+            "sunflower_fields",
+            "tiny_planer",
+        };
+
         aiko::vec4 getShaderToyDate()
         {
             using Clock = std::chrono::system_clock;
@@ -54,7 +82,7 @@ namespace shadertoy
     {
         scene().createCamera(aiko::camera::CameraController::Static);
 
-        m_material.m_shaderId = assets().loadShader("shadertoy/shadertoy_fullscreen", "shadertoy/happy" );
+        loadCurrentShader();
 
         m_material.m_renderState.depthTest = false;
         m_material.m_renderState.depthWrite = false;
@@ -72,6 +100,20 @@ namespace shadertoy
 
     void VulkanShaderToy::update()
     {
+
+        if (input().isKeyJustPressed(aiko::Key::KEY_RIGHT))
+        {
+            nextShader();
+        }
+        else if (input().isKeyJustPressed(aiko::Key::KEY_LEFT))
+        {
+            previousShader();
+        }
+        else if (input().isKeyJustPressed(aiko::Key::KEY_R))
+        {
+            randomShader();
+        }
+
         const float deltaTime = getDeltaTime();
 
         m_time += deltaTime;
@@ -194,6 +236,44 @@ namespace shadertoy
             static_cast<float>(resolution.y),
             1.0f
         };
+    }
+
+    void VulkanShaderToy::nextShader()
+    {
+        m_currentShader++;
+        m_currentShader %= ShadersSrc.size();
+        loadCurrentShader();
+    }
+
+    void VulkanShaderToy::previousShader()
+    {
+        if (m_currentShader == 0)
+        {
+            m_currentShader = ShadersSrc.size() - 1;
+        }
+        else
+        {
+            --m_currentShader;
+        }
+        loadCurrentShader();
+    }
+
+    void VulkanShaderToy::randomShader()
+    {
+        const int randomShaderIdx = aiko::utils::getRandomValue(0, ShadersSrc.size() - 1);
+        m_currentShader = static_cast<size_t>(randomShaderIdx);
+        loadCurrentShader();
+    }
+
+    void VulkanShaderToy::loadCurrentShader()
+    {
+        const std::string fragmentPath = aiko::string("shadertoy/") + ShadersSrc[m_currentShader];
+        aiko::logger::Log::info(fragmentPath.c_str());
+        m_material.m_shaderId = assets().loadShader("shadertoy/shadertoy_fullscreen", fragmentPath.c_str() );
+        m_time = 0.0f;
+        m_frame = 0;
+        m_channelTimes.fill(0.0f);
+        m_channelResolutions.fill({});
     }
 
 }

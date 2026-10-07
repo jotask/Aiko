@@ -1,0 +1,1186 @@
+// =====================================================================
+//  Capsule Corp. Spaceship  from  Dragon Ball Z, landed on Namek
+//
+//  The ship and trees are composed of simple SDFs, with cel shading
+//  done in the ray march.
+//  This drops creases but it's a simple enough shape that we can just
+//  paint them on.
+//  The ground and sea are just a flat plane, and the cliffs are
+//  The clouds, mesa, coastline and dirt patch shapes are fbm.
+//
+//  I'm not terribly happy with the ink on the ground or the far mesas, but
+//  neither of those are really the main focus. The trees should likely have
+//  ink on their faces as well.
+//
+//  This became feasible as a project for me when Opus 5.5 got surprisingly
+//  close to what you're looking at in one shot.
+//  I defined the leg struts manually and did a bunch of visual tuning to a reference
+//  from the manga on top of that base.
+// =====================================================================
+
+#define AA    1     // supersampling per axis: 1 = fast, 2 = smooth edges.
+                    // I'm defaulting this to 1 because 60 fps on mobile is nicer than not-flickering
+#define RETRO 1     // 1 = early-90s cel colour grade + film grain
+
+#define PI  3.14159265
+#define TAU 6.28318531
+
+// This macro is a hack to purposefully disable loop unrolling.
+// I'm getting a warning that ShaderToy is taking too long to compile
+// and disabling this doesn't seemt to impact framerate too much.
+#define ZERO (min(iFrame, 0))
+
+// ------------------------------------------------------------ layout
+// The hull is a unit sphere at the origin; the door faces +z.
+const float GROUND   = -1.04;           // short legs: the belly sits low
+const float BAND_TOP =  0.08;           // black belt around the middle
+const float BAND_BOT = -0.52;
+const float WIN_N    = 12.0;            // porthole slots (the door takes one)
+const float WIN_Y    = -0.22;
+const float WIN_A    =  0.10;           // glass radius where it meets the rim
+const float WIN_BULGE=  0.06;           // Farthest distance the glass reaches
+const float RING_Y   =  0.71;           // raised lip under the black top cap
+const float RING_H   =  0.04;
+const float DOOR_HW  =  0.17;
+const float DOOR_Y0  = -0.60;
+const float DOOR_Y1  =  0.21;           // arch tucks in just under "CORP."
+const float DOOR_T   =  0.005;          // how far the hatch stands proud of the hull
+const float LEG_LON  =  0.7854;         // first landing leg sits under a porthole
+const float FLAP_Y   = -0.60;           // leg bay panels hinge just under the belt
+const float FLAP_LEN =  0.36;           // panel arc length down the hull
+const float FLAP_HW  =  0.125;          // panel half width at the hinge,
+const float FLAP_TIP_HW = 0.08;         // narrowing to this at the far end
+const float FLAP_T   =  0.03;           // panel thickness, which the cut edge of its bay shows too
+const float FLAP_OPEN = 2.2;          // swing about the hinge: painted side up, tip ~23 deg down
+const float BAY_DEPTH = 0.03;           // open bay: its black floor sits this far under the skin
+const float LEG_R    =  0.99;           // radial distance of the shock cylinder axis
+const float SHOCK_Y  = GROUND + 0.12;   // bottom of the shock cylinder, top of the piston
+const float BELLY_R  =  0.26;           // the hull's bottom is cut off flat this wide,
+const float BELLY_Y  = -sqrt(1.0 - BELLY_R * BELLY_R);   // the cut
+const float BELLY_EXT=  0.06;           // pushed down this far
+const float SHAFT_R  =  0.10;           // on a metal cylinder this wide
+
+const float CAPS_LON = 0.08, CAPS_LAT = 0.547, CAPS_H = 0.25;   // "CAPSULE"
+const float CORP_LON = 0.02, CORP_LAT = 0.284, CORP_H = 0.10;   // "CORP."
+const float ADV = 0.78;                                         // letter advance
+
+// ------------------------------------------------------------ palette
+const vec3 INK      = vec3(0.05, 0.07, 0.09);
+const vec3 HULL     = vec3(0.92, 0.95, 0.91);
+const vec3 BLACK    = vec3(0.07, 0.11, 0.14);
+const vec3 BLACK_HI = vec3(0.47, 0.68, 0.68);
+const vec3 METAL    = vec3(0.74, 0.76, 0.78);
+const vec3 GLASS_LO = vec3(0.36, 0.70, 0.80);
+const vec3 GLASS_HI = vec3(0.06, 0.33, 0.50);
+const vec3 SHADE    = vec3(0.64, 0.76, 0.86);   // cel shadow multiplier
+
+const vec3 SKY_TOP  = vec3(0.30, 0.67, 0.37);
+const vec3 SKY_MID  = vec3(0.58, 0.78, 0.50);
+const vec3 SKY_HZ   = vec3(0.74, 0.87, 0.70);
+const vec3 CLOUD    = vec3(0.84, 0.93, 0.77);
+const vec3 HAZE     = vec3(0.62, 0.80, 0.74);
+const vec3 GRASS    = vec3(0.20, 0.57, 0.58);
+const vec3 GRASS_DK = vec3(0.15, 0.45, 0.50);
+const vec3 SAND     = vec3(0.86, 0.80, 0.62);
+const vec3 SAND_RIM = vec3(0.80, 0.50, 0.38);
+const vec3 DIRT_DK  = vec3(0.60, 0.43, 0.28);
+const vec3 SEA      = vec3(0.435, 0.663, 0.494); // (111, 169, 126)
+const vec3 SEA_SHOAL= vec3(0.55, 0.77, 0.62);
+const vec3 SEA_HI   = vec3(0.80, 0.91, 0.80);     // foam and wave glints
+const vec3 MESA_TOP = vec3(0.30, 0.62, 0.55);
+const vec3 CLIFF_A  = vec3(0.86, 0.58, 0.48);
+const vec3 CLIFF_B  = vec3(0.95, 0.80, 0.66);
+const vec3 CLIFF_C  = vec3(0.66, 0.38, 0.36);
+const vec3 LEAF     = vec3(0.13, 0.48, 0.60);
+const vec3 LEAF_HI  = vec3(0.38, 0.72, 0.78);
+const vec3 TRUNK    = vec3(0.86, 0.88, 0.78);
+
+const vec3 LIG = normalize(vec3(-0.59, 0.36, 0.73));   // low sun from the left
+
+// ------------------------------------------------------------ noise
+float hash12(vec2 p)
+{
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
+float noise(vec2 p)
+{
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),
+               mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);
+}
+
+float fbm(vec2 p)
+{
+    const mat2 M = mat2(1.6, 1.2, -1.2, 1.6);
+    float s = 0.0, a = 0.5;
+    for (int i = ZERO; i < 4; i++) { s += a * noise(p); p = M * p; a *= 0.5; }
+    return s / 0.9375;
+}
+
+// Value noise whose lattice wraps every n cells along x, so a strip of it
+// laid round the horizon closes up without a seam.
+float noiseWrapX(vec2 p, float n)
+{
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    float i0 = mod(i.x, n), i1 = mod(i.x + 1.0, n);
+    return mix(mix(hash12(vec2(i0, i.y)),       hash12(vec2(i1, i.y)),       u.x),
+               mix(hash12(vec2(i0, i.y + 1.0)), hash12(vec2(i1, i.y + 1.0)), u.x), u.y);
+}
+
+// fbm over noiseWrapX. The octaves just double, without fbm's rotation, which
+// would mix y into x and break the wrap; octave k repeats every n * 2^k cells.
+float fbmWrapX(vec2 p, float n)
+{
+    float s = 0.0, a = 0.5;
+    for (int i = ZERO; i < 4; i++) { s += a * noiseWrapX(p, n); p = 2.0 * p + vec2(0.0, 5.3); n *= 2.0; a *= 0.5; }
+    return s / 0.9375;
+}
+
+// ------------------------------------------------------------ sdf helpers
+vec2 opU(vec2 a, vec2 b) { return a.x < b.x ? a : b; }
+
+float sdSeg(vec2 p, vec2 a, vec2 b)
+{
+    vec2 pa = p - a, ba = b - a;
+    return length(pa - ba * clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0));
+}
+
+float sdBox(vec3 p, vec3 b)
+{
+    vec3 q = abs(p) - b;
+    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
+}
+
+float sdBox2(vec2 p, vec2 b)
+{
+    vec2 d = abs(p) - b;
+    return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
+}
+
+// Trapezoid centred on the y axis: half width r1 at y = -he narrowing to r2 at y = he.
+float sdTrapezoid(vec2 p, float r1, float r2, float he)
+{
+    vec2 k1 = vec2(r2, he), k2 = vec2(r2 - r1, 2.0 * he);
+    p.x = abs(p.x);
+    vec2 ca = vec2(p.x - min(p.x, p.y < 0.0 ? r1 : r2), abs(p.y) - he);
+    vec2 cb = p - k1 + k2 * clamp(dot(k1 - p, k2) / dot(k2, k2), 0.0, 1.0);
+    float s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
+    return s * sqrt(min(dot(ca, ca), dot(cb, cb)));
+}
+
+float sdCylY(vec3 p, float r, float y0, float y1)
+{
+    vec2 d = vec2(length(p.xz) - r, abs(p.y - 0.5 * (y0 + y1)) - 0.5 * (y1 - y0));
+    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+}
+
+// Truncated cone around the y axis: radius rb at y0 narrowing to rt at y1.
+float sdConeY(vec3 p, float rb, float rt, float y0, float y1)
+{
+    float h = 0.5 * (y1 - y0);
+    vec2 q  = vec2(length(p.xz), p.y - y0 - h);
+    vec2 k1 = vec2(rt, h), k2 = vec2(rt - rb, 2.0 * h);
+    vec2 ca = vec2(q.x - min(q.x, q.y < 0.0 ? rb : rt), abs(q.y) - h);
+    vec2 cb = q - k1 + k2 * clamp(dot(k1 - q, k2) / dot(k2, k2), 0.0, 1.0);
+    float s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
+    return s * sqrt(min(dot(ca, ca), dot(cb, cb)));
+}
+
+// The bottom of a sphere of radius r round the origin, cut off flat at height
+// h (iq's cut sphere, upside down). Unlike max(sphere, plane) it doesn't see
+// the rest of the sphere carrying on past the rim, which inked a halo round it.
+float sdCutSphereBelow(vec3 p, float r, float h)
+{
+    float w = sqrt(r * r - h * h);
+    vec2  q = vec2(length(p.xz), -p.y);
+    h = -h;
+    float s = max((h - r) * q.x * q.x + w * w * (h + r - 2.0 * q.y), h * q.x - w * q.y);
+    return s < 0.0 ? length(q) - r : q.x < w ? h - q.y : length(q - vec2(w, h));
+}
+
+// Flat-capped cylinder of radius r running from a to b.
+float sdCylSeg(vec3 p, vec3 a, vec3 b, float r)
+{
+    vec3 pa = p - a, ba = b - a;
+    float l = length(ba);
+    float h = dot(pa, ba) / l;
+    vec2 d = vec2(length(pa - ba * (h / l)) - r, abs(h - 0.5 * l) - 0.5 * l);
+    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+}
+
+float sdCapsule(vec3 p, vec3 a, vec3 b, float r)
+{
+    vec3 pa = p - a, ba = b - a;
+    return length(pa - ba * clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0)) - r;
+}
+
+vec2 rot(vec2 p, float a)
+{
+    float c = cos(a), s = sin(a);
+    return mat2(c, s, -s, c) * p;
+}
+
+// Arched hatch outline: flat bottom at y0, semicircular top reaching y1.
+float sdArch(vec2 p, float hw, float y0, float y1)
+{
+    float d = length(vec2(p.x, p.y - clamp(p.y, y0 - hw, y1 - hw))) - hw;
+    return max(d, y0 - p.y);
+}
+
+// Polar repetition around the y axis given the point's longitude a and
+// horizontal radius r. Returns the point in the local sector frame.
+vec3 polarY(float a, float r, float y, float n, float a0, out float idx)
+{
+    float s = TAU / n;
+    a -= a0;
+    idx = floor(a / s + 0.5);
+    a -= idx * s;
+    return vec3(r * sin(a), y, r * cos(a));
+}
+
+// ------------------------------------------------------------ the ship
+// material ids: 0 hull, 1 lip ring, 2 glass, 3 porthole rim, 4 door,
+//               5 leg struts, 6 foot pads, 7 belly cylinder, 8 trunk, 9 leaves,
+//               10 leg bay panels, 11 open leg bays, 12 belly cut faces
+
+// Where a leg bay panel sits in the closed hull, as a 2D distance across the
+// surface: FLAP_LEN down from the hinge, tapering to FLAP_TIP_HW at the far
+// end. s = (sideways, y, radial) in the leg's frame.
+float flapOutline(vec3 s)
+{
+    const float R = 0.06;                                   // corner radius
+    float a = asin(FLAP_Y) - atan(s.y, length(s.xz));      // arc length down from the hinge
+    return sdTrapezoid(vec2(s.x, a - 0.5 * FLAP_LEN), FLAP_HW - R, FLAP_TIP_HW - R, 0.5 * FLAP_LEN - R) - R;
+}
+
+// Where a point on the swung-out bay panel sat while the panel was shut,
+// both in the leg's frame.
+vec3 flapHome(vec3 l)
+{
+    vec2 h = vec2(sqrt(1.0 - FLAP_Y * FLAP_Y), FLAP_Y);
+    vec2 q = h + rot(l.zy - h, -FLAP_OPEN);
+    return vec3(l.x, q.y, q.x);
+}
+
+// Leg bay panel: a patch of hull shell hinged along its top edge and swung
+// out by FLAP_OPEN, so it ends up as a canopy over the leg with its painted
+// side up. l = (sideways, y, radial) in the leg's frame.
+float sdFlap(vec3 l)
+{
+    vec3 s = flapHome(l);
+    return max(abs(length(s) - 1.0 + 0.5 * FLAP_T) - 0.5 * FLAP_T, flapOutline(s));
+}
+
+// One landing leg: the bay panel, a shock cylinder hanging from its tip down
+// a piston to a conical foot, rails back to the hull under the panel, and a
+// pair of hydraulic rams bracing the shock cylinder against the belly.
+//
+// Its bounds stand in for it where they're further off than best, the nearest
+// surface found so far, since then it can't be the nearest, or further than
+// 0.1, where the march doesn't need its detail.
+vec2 mapLeg(vec3 l, float best)
+{
+    float sag = .02;                // upper strut, leading to the shock
+    float y = -0.73;
+
+    // Bounds. Wherever FLAP_OPEN swings the panel, it stays within FLAP_T +
+    // FLAP_HW of the chord from its hinge to its tip, which covers its
+    // thickness, its bow and the hull curving away under its sides. The
+    // struts, shock and foot stand no higher than the upper strut and no
+    // further out than the foot's rim.
+    vec2  hinge  = vec2(sqrt(1.0 - FLAP_Y * FLAP_Y), FLAP_Y);         // (radial, y), as in flapHome
+    float tipLat = asin(FLAP_Y) - FLAP_LEN;
+    vec2  tip    = hinge + rot(vec2(cos(tipLat), sin(tipLat)) - hinge, FLAP_OPEN);
+    float bb = max(sdSeg(l.zy, hinge, tip) - FLAP_T - FLAP_HW, abs(l.x) - FLAP_HW);
+    vec3  lo = vec3(-0.1, GROUND, 0.0), hi = vec3(0.1, y + sag + 0.02, LEG_R + 0.1);
+    bb = min(bb, sdBox(l - 0.5 * (lo + hi), 0.5 * (hi - lo)));
+    if (bb > min(best, 0.1)) return vec2(bb, 5.0);
+
+    vec3 c = l - vec3(0.0, 0.0, LEG_R);
+    float leg = sdCylY(c, 0.05, SHOCK_Y + 0.01, -0.72) - 0.01;      // top ends inside the panel
+    leg = min(leg, sdCylY(c, 0.025, GROUND + 0.05, SHOCK_Y));       // strut from leg to foot
+
+    // Upper strut leading to the shock:
+    leg = min(leg, sdCapsule(l, vec3(0.0, y + sag, 0.6), vec3(0.0, y, LEG_R), 0.018));
+
+    // Diagonal strut leading to a joint:
+    const float ySeparation = 0.09;
+    const float xSeparation = 0.05;
+    const float joint = LEG_R - .2;
+    leg = min(leg, sdCapsule(l, vec3(-xSeparation, y, 0.6), vec3(-xSeparation, y - ySeparation, joint), 0.018));
+    leg = min(leg, sdCapsule(l, vec3(xSeparation, y, 0.6), vec3(xSeparation, y - ySeparation, joint), 0.018));
+
+    y -= ySeparation;
+    // Cylinder serving as a leg joint:
+    const float jointWidth = xSeparation + .02;
+    leg = min(leg, sdCylSeg(l, vec3(-jointWidth, y + sag, joint), vec3(jointWidth, y + sag, joint), 0.05));
+
+    // Split lower strut
+    leg = min(leg, sdCapsule(l, vec3(xSeparation, y + sag, joint), vec3(xSeparation, y, LEG_R), 0.012)); // single strut from joint to leg
+    leg = min(leg, sdCapsule(l, vec3(-xSeparation, y + sag, joint), vec3(-xSeparation, y, LEG_R), 0.012));
+    leg = min(leg, sdCapsule(l, vec3(xSeparation, y + sag, joint), vec3(xSeparation, y, 0.2), 0.012)); // single strut from joint to ship
+    leg = min(leg, sdCapsule(l, vec3(-xSeparation, y + sag, joint), vec3(-xSeparation, y, 0.2), 0.012));
+
+    vec3 m = vec3(abs(l.x), l.yz);
+    vec3 a = vec3(0.05, -0.70, 0.66), b = vec3(0.05, SHOCK_Y + 0.05, LEG_R - 0.02);
+
+    vec2 res = vec2(leg, 5.0);
+    res = opU(res, vec2(sdConeY(c, 0.094, 0.024, GROUND + 0.006, GROUND + 0.064) - 0.006, 6.0)); // Cone foot
+    return opU(res, vec2(sdFlap(l), 10.0));
+}
+
+vec2 mapShip(vec3 p)
+{
+    float bb = length(p - vec3(0.0, -0.3, 0.0)) - 1.6;
+    if (bb > 0.25) return vec2(bb, 0.0);
+
+    float r   = length(p);
+    float lon = atan(p.x, p.z);
+    float rxz = length(p.xz);
+    float li;
+    vec3 l = polarY(lon, rxz, p.y, 4.0, LEG_LON, li);      // nearest landing leg's frame
+
+    // hull, with the hole each leg's panel swung out of cut through the skin
+    // into a shallow pocket, and the bottom cut off flat
+    float bay = max(flapOutline(l), 1.0 - FLAP_T - BAY_DEPTH - r);
+    vec2 res = r - 1.0 > -bay ? vec2(r - 1.0, 0.0) : vec2(-bay, 11.0);
+    if (BELLY_Y - p.y > res.x) res = vec2(BELLY_Y - p.y, 12.0);
+    res = opU(res, vec2(max(r - 1.022, abs(p.y - RING_Y) - RING_H), 1.0));
+
+    // hatch: raised arched panel
+    float door = sdArch(vec2(lon * rxz, p.y), DOOR_HW, DOOR_Y0, DOOR_Y1);
+    res = opU(res, vec2(max(r - 1.0 - DOOR_T, door), 4.0));
+
+    // portholes: shallow glass domes with a rim, skipping the door's slot
+    float wi;
+    vec3 q = polarY(lon, rxz, p.y, WIN_N, 0.0, wi);
+    if (abs(wi) > 0.5)
+    {
+        vec3 c = vec3(0.0, WIN_Y, sqrt(1.0 - WIN_Y * WIN_Y));
+        vec3 w = q - c;
+        float h = dot(w, c);
+        float R = (WIN_A * WIN_A + WIN_BULGE * WIN_BULGE) / (2.0 * WIN_BULGE);
+        res = opU(res, vec2(length(q - c * (1.0 + WIN_BULGE - R)) - R, 2.0));
+        res = opU(res, vec2(length(vec2(length(w - h * c) - 0.114, h)) - 0.017, 3.0));
+    }
+
+    // four landing legs
+    res = opU(res, mapLeg(l, res.x));
+
+    // belly: the cut-off bottom of the hull, pushed down on a metal cylinder
+    vec3 b = p + vec3(0.0, BELLY_EXT, 0.0);
+    res = opU(res, vec2(sdCutSphereBelow(b, 1.0, BELLY_Y), b.y - BELLY_Y > length(b) - 1.0 ? 12.0 : 0.0));
+    res = opU(res, vec2(sdCylY(p, SHAFT_R, BELLY_Y - BELLY_EXT - 0.01, BELLY_Y + 0.05), 7.0));
+    return res;
+}
+
+// Namekian Ajissa trees: (x, z, height, canopy radius)
+const vec4 TREES[2] = vec4[2](vec4(1.86, 0.83, 0.65, 0.15), vec4(-5.9, -4.4, 1.9, 0.38));
+
+// thin trunk, fluffy ball of leaves
+vec2 mapTree(vec3 p, vec4 tr)
+{
+    float h = tr.z, r = tr.w;
+    vec3 q = p - vec3(tr.x, GROUND, tr.y);
+    float bb = length(q - vec3(0.0, 0.5 * h, 0.0)) - 0.5 * h - r - 0.1;
+    if (bb > 0.2) return vec2(bb, 8.0);
+
+    float taper = mix(0.018, 0.012, clamp(q.y / h, 0.0, 1.0));
+    float trunk = length(vec2(length(q.xz), q.y - clamp(q.y, -0.2, h))) - taper;
+
+    vec3 c = q - vec3(0.0, h, 0.0);
+    vec3 n = c / (length(c) + 1e-4);
+    float bump = sin(9.0 * n.x + 1.0) * sin(9.0 * n.y + 2.0) * sin(9.0 * n.z + 3.0);
+    float leaves = (length(c) - r * (1.0 + 0.07 * bump)) * 0.8;
+    return opU(vec2(trunk, 8.0), vec2(leaves, 9.0));
+}
+
+vec2 mapCel(vec3 p)
+{
+    vec2 res = mapShip(p);
+    for (int i = 0; i < 2; i++) res = opU(res, mapTree(p, TREES[i]));
+    return res;
+}
+
+// Corners of a tetrahedron round the origin
+const vec3 TET[4] = vec3[4](vec3(1.0, -1.0, -1.0), vec3(-1.0, -1.0, 1.0), vec3(-1.0, 1.0, -1.0), vec3(1.0));
+
+vec3 calcNormal(vec3 p)
+{
+    vec3 n = vec3(0.0);
+    for (int i = ZERO; i < 4; i++)
+    {
+        n += TET[i] * mapCel(p + 0.0007 * TET[i]).x;
+    }
+    return normalize(n);
+}
+
+// Sphere-trace the cel layer. Whenever the distance passes through a local
+// minimum closer than the line width, the ray just skimmed an occluding
+// contour: that's where the ink goes. Contours skimmed on a porthole's glass
+// or rim go in winEdge instead, so the caller can drop them where the ray
+// lands on the porthole and leave the glass meeting its rim without a line.
+vec2 marchCel(vec3 ro, vec3 rd, float lineA, float pixA, out float edge, out float winEdge, out float tEdge)
+{
+    edge = 0.0; winEdge = 0.0; tEdge = 1e10;
+    float t = 0.5;
+    vec2 prev = vec2(1e10, -1.0);
+    for (int i = 0; i < 180; i++)
+    {
+        vec2 h = mapCel(ro + rd * t);
+        if (h.x < 0.0003 * t) return vec2(t, h.y);
+        float w = lineA * t;
+        if (h.x > prev.x && prev.x < w)
+        {
+            float e = clamp((w - prev.x) / (pixA * t), 0.0, 1.0);
+            if (abs(prev.y - 2.5) < 1.0) winEdge = max(winEdge, e);
+            else                         edge    = max(edge, e);
+            tEdge = min(tEdge, t);
+        }
+        prev = h;
+        t += h.x;
+        if (t > 24.0) break;
+    }
+    return vec2(t, -1.0);
+}
+
+// Where a ray leaves the sphere round c of radius r, or 0 if it misses it.
+float sphereExit(vec3 ro, vec3 rd, vec3 c, float r)
+{
+    vec3  oc = ro - c;
+    float b  = dot(oc, rd), h = b * b - dot(oc, oc) + r * r;
+    return h > 0.0 ? -b + sqrt(h) : 0.0;
+}
+
+// How far along a shadow ray anything could still darken it: to where it
+// leaves the last of the spheres mapShip and mapTree bound their detail with,
+// grown by PEN. celShadow only registers a near miss closer than 0.04 t, at
+// most 0.36 by t = 9, so past this point it can't change the result.
+float casterExit(vec3 ro, vec3 rd)
+{
+    const float PEN = 0.4;
+    float te = sphereExit(ro, rd, vec3(0.0, -0.3, 0.0), 1.6 + PEN);
+    for (int i = 0; i < 2; i++)
+    {
+        vec4 tr = TREES[i];
+        te = max(te, sphereExit(ro, rd, vec3(tr.x, GROUND + 0.5 * tr.z, tr.y), 0.5 * tr.z + tr.w + 0.1 + PEN));
+    }
+    return te;
+}
+
+float celShadow(vec3 ro, vec3 rd)
+{
+    float tmax = min(casterExit(ro, rd), 9.0);
+    if (tmax < 0.02) return 1.0;                // misses the ship and the trees
+    float res = 1.0, t = 0.02;
+    for (int i = 0; i < 64; i++)
+    {
+        float h = mapCel(ro + rd * t).x;
+        res = min(res, 10.0 * h / t);
+        t += clamp(h, 0.01, 0.3);
+        if (res < 0.0 || t > tmax) break;
+    }
+    return smoothstep(0.25, 0.4, res);      // toon: nearly hard edged
+}
+
+// ------------------------------------------------------------ lettering
+// Bold sans capitals as 2D signed distances in a box x:[-.3,.3] y:[-.5,.5]
+const float SW = 0.085;     // half stroke width
+
+float rect(vec2 p, float x0, float y0, float x1, float y1)
+{
+    return sdBox2(p - 0.5 * vec2(x0 + x1, y0 + y1), 0.5 * vec2(x1 - x0, y1 - y0));
+}
+
+float stroke(vec2 p, vec2 a, vec2 b) { return sdSeg(p, a, b) - SW; }
+
+float arc(vec2 p, vec2 c, float r, float a0, float a1)
+{
+    vec2 q = p - c;
+    if (mod(atan(q.y, q.x) - a0, TAU) < a1 - a0) return abs(length(q) - r) - SW;
+    return min(length(q - r * vec2(cos(a0), sin(a0))),
+               length(q - r * vec2(cos(a1), sin(a1)))) - SW;
+}
+
+// glyph ids 0..6 spell C A P S U L E; 7 = O, 8 = R, 9 = '.'
+float glyph(vec2 p, int g)
+{
+    float d;
+    if (g == 0)             // C
+    {
+        d = min(arc(p, vec2(0.0, 0.2), 0.215, 0.5, PI), arc(p, vec2(0.0, -0.2), 0.215, PI, TAU - 0.5));
+        d = min(d, rect(p, -0.3, -0.2, -0.13, 0.2));
+    }
+    else if (g == 1)        // A
+    {
+        d = min(stroke(p, vec2(-0.245, -0.6), vec2(-0.01, 0.6)), stroke(p, vec2(0.245, -0.6), vec2(0.01, 0.6)));
+        d = min(d, rect(p, -0.16, -0.22, 0.16, -0.06));
+    }
+    else if (g == 2 || g == 8)  // P, R
+    {
+        d = min(rect(p, -0.28, -0.5, -0.11, 0.5), rect(p, -0.28, 0.33, 0.0, 0.5));
+        d = min(d, rect(p, -0.28, -0.08, 0.0, 0.09));
+        d = min(d, arc(p, vec2(0.0, 0.205), 0.21, -0.5 * PI, 0.5 * PI));
+        if (g == 8) d = min(d, stroke(p, vec2(0.0, 0.0), vec2(0.24, -0.6)));
+    }
+    else if (g == 3)        // S
+    {
+        d = min(arc(p, vec2(0.0,  0.2075), 0.2075, 0.4, 1.5 * PI),
+                arc(p, vec2(0.0, -0.2075), 0.2075, PI + 0.4, 2.5 * PI));
+    }
+    else if (g == 4)        // U
+    {
+        d = min(rect(p, -0.3, -0.2, -0.13, 0.5), rect(p, 0.13, -0.2, 0.3, 0.5));
+        d = min(d, arc(p, vec2(0.0, -0.2), 0.215, PI, TAU));
+    }
+    else if (g == 5)        // L
+    {
+        d = min(rect(p, -0.27, -0.5, -0.10, 0.5), rect(p, -0.27, -0.5, 0.26, -0.33));
+    }
+    else if (g == 6)        // E
+    {
+        d = min(rect(p, -0.27, -0.5, -0.10, 0.5), rect(p, -0.27, 0.33, 0.26, 0.5));
+        d = min(d, min(rect(p, -0.27, -0.085, 0.2, 0.085), rect(p, -0.27, -0.5, 0.26, -0.33)));
+    }
+    else if (g == 7)        // O
+    {
+        d = abs(length(vec2(p.x, p.y - clamp(p.y, -0.2, 0.2))) - 0.215) - SW;
+    }
+    else                    // .
+    {
+        d = length(p - vec2(-0.26, -0.4)) - 0.1;
+    }
+    return max(d, abs(p.y) - 0.5);
+}
+
+// Text laid out along lines of latitude, centred over the door.
+float lettering(vec3 p, float aa)
+{
+    float lon = atan(p.x, p.z);
+    float lat = asin(clamp(p.y / length(p), -1.0, 1.0));
+    float ink = 0.0;
+
+    vec2 g = vec2((lon - CAPS_LON) * cos(CAPS_LAT), lat - CAPS_LAT) / CAPS_H;
+    float i = floor(g.x / ADV + 3.5);
+    if (abs(g.y) < 0.6 && i >= 0.0 && i < 7.0)
+        ink = 1.0 - smoothstep(-aa, aa, CAPS_H * glyph(vec2(g.x - (i - 3.0) * ADV, g.y), int(i)));
+
+    g = vec2((lon - CORP_LON) * cos(CORP_LAT), lat - CORP_LAT) / CORP_H;
+    i = floor(g.x / ADV + 2.5);
+    if (abs(g.y) < 0.6 && i >= 0.0 && i < 5.0)
+    {
+        int c = i < 0.5 ? 0 : i < 1.5 ? 7 : i < 2.5 ? 8 : i < 3.5 ? 2 : 9;
+        ink = max(ink, 1.0 - smoothstep(-aa, aa, CORP_H * glyph(vec2(g.x - (i - 2.0) * ADV, g.y), c)));
+    }
+    return ink;
+}
+
+// A row of n painted ticks, the hatching drawn over both the grass and the
+// ship's paint. The ticks stand up +y from feet spaced gap apart along x and
+// centered on x = 0. The row bows by bend at its ends (+ve: the ends rise),
+// lowest foot on y = 0, and curl takes it from that shallow arc right round
+// into a semicircle the same length. Ticks are len tall, each cut short by up
+// to spread of that, and lean a little either way. Returns the distance from q
+// to the nearest tick for strokes about lw wide; seed scatters the row.
+float tickRow(vec2 q, vec2 seed, int n, float gap, float len, float bend, float curl, float spread, float lw)
+{
+    float mid = 0.5 * float(n - 1);
+    float r   = 2.0 * mid * gap / PI;                       // the semicircle's radius
+    float sb  = bend < 0.0 ? -1.0 : 1.0;
+    float d   = 1e9;
+    for (int k = 0; k < 9; k++)
+    {
+        if (k >= n) break;
+        float f = (float(k) - mid) / mid;                   // -1 .. 1 along the row
+        vec4  h = vec4(hash12(seed + float(k) * 3.1 + 51.0), hash12(seed + float(k) * 5.7 + 63.0),
+                       hash12(seed + float(k) * 2.3 + 77.0), hash12(seed + float(k) * 4.9 + 89.0));
+        vec2  b = vec2(gap * (float(k) - mid), bend * f * f + max(-bend, 0.0));
+        b = mix(b, r * vec2(sin(0.5 * PI * f), sb * (1.0 - cos(0.5 * PI * f))), curl);
+        b += vec2(0.4 * gap * (h.x - 0.5), 0.35 * len * h.y);         // feet a little out of line
+        float l = len * (1.0 - spread * hash12(seed + float(k) * 6.1 + 97.0));
+        float a = 0.5 * (h.z - 0.5);                        // lean, radians
+        d = min(d, sdSeg(q, b, b + l * vec2(sin(a), cos(a))) - (0.5 + h.w) * lw);
+    }
+    return d;
+}
+
+// Scuffs: rows of ticks like the grass's, scattered over the ship's white
+// paint. Cells are laid out in rings of latitude, each ring cut into as many
+// roughly square cells as fit round it, and most hold a row lying flat on the
+// hull, turned any which way. They're far more varied than the grass: from
+// strings of dots to strokes three times a blade's height, sometimes curled
+// into a semicircle.
+const float SCUFFS = 10.0;              // rows per unit of hull area (the whole hull is 4 pi)
+
+float scuffInk(vec3 p, float t, float lineA, float aa)
+{
+    // Rows reach up to 0.15 from their centres, and the 3x3 cells searched
+    // only cover that while cells are at least 0.12 across.
+    float cellA = max(sqrt(0.6 / SCUFFS), 0.12);            // cell size, as arc on the unit hull,
+    float fill  = SCUFFS * cellA * cellA;                   // and the share of cells with a row
+    vec3  u   = normalize(p);
+    float lat = asin(clamp(u.y, -1.0, 1.0)), lon = atan(u.x, u.z);
+    float lw  = 0.2 * lineA * t;
+    float d   = 1e9;
+    for (int j = -1; j <= 1; j++)
+    {
+        float ring = floor(lat / cellA) + float(j);
+        float nr   = max(1.0, floor(TAU * cos((ring + 0.5) * cellA) / cellA));   // cells round the ring
+        float da   = TAU / nr;
+        for (int i = -1; i <= 1; i++)
+        {
+            vec2 cell = vec2(mod(floor(lon / da) + float(i), nr), ring);
+            if (hash12(cell * 1.17 + 3.9) > fill) continue;
+            vec4 g = vec4(hash12(cell + 7.3), hash12(cell + 19.1), hash12(cell + 23.9), hash12(cell + 37.3));
+            float cla = (ring + 0.25 + 0.5 * g.x) * cellA, clo = (cell.x + 0.25 + 0.5 * g.y) * da;
+            vec3  c = vec3(cos(cla) * sin(clo), sin(cla), cos(cla) * cos(clo));   // the row's centre,
+            vec3  e = vec3(cos(clo), 0.0, -sin(clo));                              // east there
+            vec2  q = rot(vec2(dot(u - c, e), dot(u - c, cross(c, e))), 2.4 * (g.z - 0.5));
+            if (dot(q, q) > 0.0225) continue;
+            if (sdArch(vec2(atan(c.x, c.z) * length(c.xz), c.y), DOOR_HW, DOOR_Y0, DOOR_Y1) < 0.15) continue;   // clear of the raised hatch
+            vec4 h = vec4(hash12(cell + 41.7), hash12(cell + 53.3), hash12(cell + 67.1), hash12(cell + 79.9));
+            int   n    = 2 + int(7.0 * g.w);
+            float gap  = 0.016 * (0.75 + 0.5 * h.x);
+            float len  = 0.001 + 0.044 * h.y * h.y;         // mostly short: dots up to long strokes
+            float bend = 0.6 * gap * 0.5 * float(n - 1) * (2.0 * h.z - 1.0);
+            float curl = step(0.85, h.w);
+            d = min(d, tickRow(q, cell + 101.0, n, gap, len, bend, curl, 0.7, lw));
+        }
+    }
+    return 1.0 - smoothstep(-aa, aa, d);
+}
+
+// The sheen on the black paint is painted onto the ship's outline, not the
+// hull: a disc centred on the silhouette at the upper left. Its edge is
+// hatched with a comb of tapered strokes running along lines of latitude,
+// light teeth reaching into the dark and dark teeth back into the light,
+// each a different length. The sheen is measured from the view axis through
+// the hull's centre and latitude looks the same from every side, so the
+// sheen and its strokes hold still against the outline as the camera moves.
+const float SHEEN_R = 0.99;             // disc radius, as arc from its centre
+const float HATCH_W = 0.02;             // stroke pitch, as arc down the hull
+const float HATCH_L = 0.09;             // longest light tooth
+const float HATCH_D = 0.09;             // longest dark tooth
+
+float hatchedSheen(vec3 n, vec3 vr, vec3 vu, float aa)
+{
+    vec3  hn = 0.6 * vu - 0.8 * vr;                     // the sheen's centre
+    float c0 = cos(SHEEN_R + 0.1 * (noise(7.0 * vec2(dot(n, vr), dot(n, vu))) - 0.5));
+
+    // Teeth are measured along this point's line of latitude, where
+    // dot(n, hn) = m + w cos(a) and a is the longitude away from the sheen.
+    // e is the arc along the line to where it crosses the sheen's edge, +ve
+    // inside; de is how fast e changes up the hull.
+    float rho = max(length(n.xz), 1e-4);                // the line's radius
+    float hH  = length(hn.xz);
+    float m   = n.y * hn.y, w = rho * hH;
+    float a   = acos(clamp(dot(n.xz, hn.xz) / w, -1.0, 1.0));
+    float q   = (c0 - m) / w;                           // cos of the lit arc's half angle
+    float e, de;
+    if (abs(q) < 1.0)
+    {
+        float lit = acos(q);
+        e  = rho * (lit - a);
+        de = -n.y * (lit - a) - (c0 * n.y - hn.y) / (w * max(sqrt(1.0 - q * q), 0.05));
+    }
+    else
+    {
+        // The line misses the edge. Start from its gap to the edge, so a tiny
+        // line near the top doesn't read as sitting on the edge.
+        float hm  = m + sign(q) * w;                    // its point nearest the edge
+        float gap = abs(c0 - hm) / sqrt(max(1.0 - hm * hm, 1e-4));
+        float arc = q > 0.0 ? a : PI - a;               // round from that point
+        e  = -sign(q) * (gap + rho * arc);
+        de = sign(q) * n.y * arc;
+    }
+
+    // Cells are bands of latitude. Teeth are capped well short of half way
+    // round their line, so one can never close a whole ring near the top.
+    float s  = asin(clamp(n.y, -1.0, 1.0)) / HATCH_W;
+    float c1 = floor(s + 0.5), u1 = s - c1;            // light tooth mid-cell,
+    float c2 = floor(s),       u2 = s - c2 - 0.5;      // dark one between cells
+    float fit = min(1.0, 1.25 * rho / max(HATCH_L, HATCH_D));
+    float L  = fit * HATCH_L * (0.15 + 0.85 * hash12(vec2(c1, 3.1)));
+    float D  = fit * HATCH_D * (0.15 + 0.85 * hash12(vec2(c2, 7.7)));
+    float z  = e + L * (1.0 - 2.0 * abs(u1)) - D * (1.0 - 2.0 * abs(u2));
+    float dz = de + 2.0 * (D * sign(u2) - L * sign(u1)) / HATCH_W;   // up the hull; along it, 1
+    return smoothstep(-aa, aa, z / sqrt(1.0 + dz * dz));
+}
+
+// ------------------------------------------------------------ cel shading
+vec3 shadeCel(vec3 p, vec3 n, vec3 rd, float id, float t, float pixA, float lineA)
+{
+    float aa   = 0.7 * pixA * t / max(dot(n, -rd), 0.3);   // pixel footprint
+    float lw   = 0.5 * lineA * t;                          // painted line half-width
+    float lam  = smoothstep(-0.02, 0.02, dot(n, LIG));
+    if (lam > 0.0) lam *= celShadow(p + n * 0.004, LIG);       // no use turned away from the sun
+    vec3  lit  = mix(SHADE, vec3(1.0), lam);
+    vec3  col;
+
+    if (id < 0.5)                       // hull paint job
+    {
+        float cap  = smoothstep(-aa, aa, p.y - (RING_Y + RING_H));
+        float band = smoothstep(-aa, aa, p.y - BAND_BOT) - smoothstep(-aa, aa, p.y - BAND_TOP);
+        vec3  vd   = normalize(t * rd - p);                       // camera to hull centre
+        vec3  vr   = normalize(cross(vd, vec3(0.0, 1.0, 0.0)));
+        float hi   = hatchedSheen(n, vr, cross(vr, vd), aa);
+        vec3  blk  = mix(BLACK, BLACK_HI, hi) * mix(0.7, 1.0, lam);
+        float dark = max(cap, band);
+        col = mix(HULL * lit, blk, dark);
+        col = mix(col, INK, max(lettering(p, aa), (1.0 - dark) * scuffInk(p, t, lineA, aa)));
+    }
+    else if (id < 1.5)                  // lip ring with a groove
+    {
+        float dy = abs(p.y - RING_Y);
+        col = HULL * lit;
+        float ink = 1.0 - smoothstep(0.6 * lw - aa, 0.6 * lw + aa, dy);
+        ink = max(ink, smoothstep(RING_H - 1.3 * lw - aa, RING_H - 1.3 * lw + aa, dy));
+        col = mix(col, INK, ink);
+    }
+    else if (id < 2.5)                  // porthole glass: dark blue, pale crescent,
+    {                                   // white streak
+        float wi;
+        vec3 q  = polarY(atan(p.x, p.z), length(p.xz), p.y, WIN_N, 0.0, wi);
+        vec3 c  = vec3(0.0, WIN_Y, sqrt(1.0 - WIN_Y * WIN_Y));
+        vec2 w  = vec2(q.x, dot(q - c, normalize(vec3(0.0, 1.0, 0.0) - c * WIN_Y)));
+        float rr = length(w);
+        col = mix(GLASS_HI, GLASS_LO, smoothstep(0.1 - aa, 0.1 + aa, length(w - vec2(-0.035, 0.04))));
+        float streak = abs(rr - 0.062) - 0.011;
+        streak = max(streak, abs(atan(w.y, w.x) - 2.25) * rr - 0.035);
+        col = mix(col, vec3(0.93, 0.98, 1.0), 1.0 - smoothstep(-aa, aa, streak));
+        col *= mix(0.8, 1.0, lam);
+    }
+    else if (id < 3.5)                  // porthole rim
+    {
+        col = METAL * lit;
+    }
+    else if (id < 4.5)                  // hatch: inked round its face and
+    {                                   // where its side wall meets the hull
+        float da  = sdArch(vec2(atan(p.x, p.z) * length(p.xz), p.y), DOOR_HW, DOOR_Y0, DOOR_Y1);
+        float top = length(p) - 1.0 - DOOR_T;
+        col = HULL * lit;
+        float ink = 1.0 - smoothstep(lw - aa, lw + aa, length(vec2(da, top)));
+        ink = max(ink, 1.0 - smoothstep(0.7 * lw - aa, 0.7 * lw + aa, length(vec2(da, top + DOOR_T))));
+        col = mix(col, INK, ink);
+    }
+    else if (id < 7.5)                  // legs, feet, belly cylinder
+    {
+        col = METAL * mix(vec3(0.50, 0.60, 0.78), vec3(1.0), lam);
+    }
+    else if (id < 8.5)                  // tree trunk
+    {
+        col = TRUNK * lit;
+    }
+    else if (id < 9.5)                  // tree leaves: three tones
+    {
+        vec4 tr = TREES[0];
+        if (length(p.xz - TREES[1].xy) < length(p.xz - tr.xy)) tr = TREES[1];
+        vec3 sn = normalize(p - vec3(tr.x, GROUND + tr.z, tr.y));
+        float k = dot(normalize(sn + 0.5 * n), LIG) + 0.15 * (noise(sn.xy * 9.0 + sn.z * 5.0) - 0.5);
+        col = mix(LEAF * vec3(0.72, 0.78, 0.9), LEAF, smoothstep(0.0, 0.04, k) * celShadow(p + n * 0.01, LIG));
+        col = mix(col, LEAF_HI, smoothstep(0.55, 0.59, k));
+    }
+    else if (id < 10.5)                 // leg bay panels, scuffed where they
+    {                                   // sat in the hull
+        float li;
+        vec3  l = flapHome(polarY(atan(p.x, p.z), length(p.xz), p.y, 4.0, LEG_LON, li));
+        vec2  w = rot(l.xz, -LEG_LON - 0.5 * PI * li);
+        col = mix(HULL * lit, INK, scuffInk(vec3(w.x, l.y, w.y), t, lineA, aa));
+    }
+    else if (id < 11.5)                 // open leg bays: the cut edge of the
+    {                                   // skin, then pitch black inside
+        col = mix(vec3(0.0), HULL * lit, smoothstep(-aa, aa, length(p) - 1.0 + FLAP_T));
+    }
+    else                                // the belly's cut faces, either side of
+    {                                   // the gap: a rim of skin round black
+        col = mix(vec3(0.0), HULL * lit, smoothstep(-aa, aa, length(p.xz) - BELLY_R + FLAP_T));
+    }
+    return col;
+}
+
+// ------------------------------------------------------------ Namek
+// The ship sits on a flat island whose shore wanders around radius COAST_R.
+// Beyond it the same flat plane is painted as sea, and scattered two-tier
+// mesas rise out of it past MESA_R. One is seeded so the hero shot has a
+// butte behind the ship's left side.
+const float COAST_R = 10.0;
+const float MESA_R  = 18.0;
+
+// Roughly the distance out to sea from the island's shore: negative on land.
+float coast(vec2 x)
+{
+    return length(x) - COAST_R - 7.0 * (fbm(x * 0.09 + 7.0) - 0.5);
+}
+
+// Mesas stand wherever this passes 0.63, and step up again at 0.71.
+float mesaField(vec2 x)
+{
+    float m = fbm(x * 0.05 + vec2(4.3, -2.1)) + 0.04 * noise(x * 0.8);
+    m -= 0.4 * (1.0 - smoothstep(MESA_R, 30.0, length(x)));
+    m += 0.25 * (1.0 - smoothstep(3.0, 9.0, length(x - vec2(-21.0, -22.0))));
+    return m;
+}
+
+float terrainH(vec2 x)
+{
+    float m = mesaField(x);
+    return GROUND + 1.3 * smoothstep(0.63, 0.64, m) + 0.55 * smoothstep(0.71, 0.72, m);
+}
+
+float marchTerrain(vec3 ro, vec3 rd, float tmax)
+{
+    const float CEIL = GROUND + 1.9;
+    float tp = rd.y < 0.0 ? (GROUND - ro.y) / rd.y : 1e10;     // the plain
+
+    // The camera is inside the flat disc, so only the stretch of ray after it
+    // leaves the disc can meet a mesa.
+    float a = max(dot(rd.xz, rd.xz), 1e-6);
+    float b = dot(ro.xz, rd.xz);
+    float c = dot(ro.xz, ro.xz) - MESA_R * MESA_R;
+    float t = (-b + sqrt(max(b * b - a * c, 0.0))) / a;
+    float tend = min(tp, tmax);
+    float lt = t;
+    for (int i = 0; i < 200; i++)
+    {
+        if (t > tend) break;
+        vec3 p = ro + rd * t;
+        if (p.y > CEIL && rd.y > 0.0) break;
+        float cl = p.y - terrainH(p.xz);
+        if (cl < 0.0)
+        {
+            for (int j = 0; j < 6; j++)             // bisect the crossing
+            {
+                float tm = 0.5 * (lt + t);
+                vec3 q = ro + rd * tm;
+                if (q.y < terrainH(q.xz)) t = tm; else lt = tm;
+            }
+            return 0.5 * (lt + t);
+        }
+        lt = t;
+        t += max(0.3 * cl, 0.02 + 0.015 * t);
+    }
+    return tp < tmax ? tp : -1.0;
+}
+// Steps either way along x and z, for central differences.
+const vec2 CROSS[4] = vec2[4](vec2(-1.0, 0.0), vec2(1.0, 0.0), vec2(0.0, -1.0), vec2(0.0, 1.0));
+
+vec3 terrainNormal(vec2 x, float t)
+{
+    float h = 0.02 + 0.002 * t;
+    vec2  g = vec2(0.0);
+    for (int i = ZERO; i < 4; i++) g -= CROSS[i] * terrainH(x + h * CROSS[i]);
+    return normalize(vec3(g.x, 2.0 * h, g.y));
+}
+
+vec3 skyColor(vec3 rd)
+{
+    float y = max(rd.y, 0.0);
+    vec3 col = mix(SKY_HZ, SKY_MID, smoothstep(0.0, 0.12, y));
+    col = mix(col, SKY_TOP, smoothstep(0.08, 0.35, y));
+    // long painted cloud streaks
+    const float N = 19.0;                                   // noise cells round the horizon, ~3 a radian
+    vec2 uv = vec2(atan(rd.x, rd.z) * (N / TAU) + 0.004 * iTime, y * 26.0);
+    float c = fbmWrapX(uv * vec2(1.0, 0.8) + vec2(0.0, 3.0), N);
+
+    float cl = smoothstep(0.56, 0.60, c) * smoothstep(0.015, 0.05, y) * (1.0 - smoothstep(0.18, 0.35, y));
+    col = mix(col, CLOUD, 0.75 * cl);
+    return col;
+}
+
+// The plains' patterns are sampled through this warp so they read as ragged
+// rather than blobby.
+vec2 groundWarp(vec2 x)
+{
+    vec2 q = vec2(fbm(x * 0.8 + 2.0), fbm(x * 0.8 + 8.3));
+    return x + 1.2 * (vec2(fbm(x * 1.6 + 3.0 * q + 1.7), fbm(x * 1.6 + 3.0 * q + 9.2)) - 0.5);
+}
+
+// Bare dirt shows through the scrub wherever this is positive, given a point
+// already through groundWarp.
+float dirtField(vec2 xw)
+{
+    return fbm(xw * 0.7 + vec2(-13.7, 31.9)) - 0.62;
+}
+
+// Grass marks: a row of 3-7 short upright ticks in most grassy cells of a ground
+// grid. Each tick stands on the plain like a tiny post, so rows run across the
+// view and shrink into the distance from any angle. A ground point is inked when
+// the ray down to it passes through a tick just in front of it.
+float grassInk(vec2 x, vec3 ro, float t, float pixA, float lineA)
+{
+    const float CELL = 0.4, TH = 0.015, GAP = 0.02;        // grid cell, tick height, tick spacing
+    if (t > 12.0) return 0.0;
+    float eye = ro.y - GROUND;
+    vec2  v   = x - ro.xz;
+    float dx  = length(v);
+    vec2  fwd = v / dx, side = vec2(-fwd.y, fwd.x);
+    float reach = dx * 2.2 * TH / eye;                      // how far in front the tallest tick can still cover x
+    vec2  cc  = floor((x - 0.5 * reach * fwd) / CELL);
+    float ink = 0.0;
+    for (int j = -1; j <= 1; j++)
+    for (int i = -1; i <= 1; i++)
+    {
+        vec2 cell = cc + vec2(i, j);
+        if (hash12(cell * 1.31 + 5.7) > 0.55) continue;    // empty cell
+        vec2  c = (cell + 0.2 + 0.6 * vec2(hash12(cell + 7.3), hash12(cell + 19.1))) * CELL;
+        float s = dot(c - ro.xz, fwd);                      // distance along the ray to the row
+        if (s > dx || s < dx - reach) continue;
+        vec2  q = vec2(dot(ro.xz - c, side), eye * (1.0 - s / dx));   // where the ray passes, in the row's upright plane
+        if (abs(q.x) > 5.0 * GAP) continue;
+        if (dirtField(groundWarp(c)) > -0.04 || coast(c) > -0.8) continue;   // rooted in dirt or sand
+        int   n    = 3 + int(5.0 * hash12(cell + 31.7));
+        float bend = 0.7 * TH * (2.0 * hash12(cell + 43.1) - 1.0);   // arc of the row, up or down
+        float tc = t * s / dx;                              // eye distance to the row
+        float lw = 0.14 * lineA * tc, aa = 0.7 * pixA * tc;
+        float d = tickRow(q, cell, n, GAP, TH, bend, 0.0, 0.0, lw);
+        ink = max(ink, 1.0 - smoothstep(-aa, aa, d));
+    }
+    return ink * (1.0 - smoothstep(8.0, 12.0, t));
+}
+
+// The dirt's colour is brushed on in long soft streaks along +x, which from
+// the hero camera runs just off level, falling to the right. Its ink marks
+// keep to that look from any side: they lie across the line of sight, turned
+// DIRT_TILT towards the camera.
+const vec2  DIRT_GRAIN = vec2(0.7, 0.0);
+const float DIRT_TILT  = 0.3;
+
+// A brush stroke from a bowing through m to b, all in pixels relative to the
+// pixel being shaded. It's w half wide in the middle, narrowing towards the
+// ends by taper (0 for dots, which stay round). Returns the pixel distance.
+float sdBrush(vec2 a, vec2 m, vec2 b, float w, float taper)
+{
+    vec2  ma = m - a, bm = b - m;
+    float h1 = clamp(-dot(a, ma) / max(dot(ma, ma), 1e-6), 0.0, 1.0);
+    float h2 = clamp(-dot(m, bm) / max(dot(bm, bm), 1e-6), 0.0, 1.0);
+    float d1 = length(a + ma * h1), d2 = length(m + bm * h2);
+    float u  = d1 < d2 ? 0.5 * h1 : 0.5 + 0.5 * h2;           // 0 .. 1 along the stroke
+    return min(d1, d2) - w * mix(1.0, 0.3 + 0.7 * sqrt(sin(PI * u)), taper);
+}
+
+// The dirt's ink marks are pinned to the ground and lie flat on it, so they
+// foreshorten with it, but they're drawn in pixels (Ji takes a step on the
+// ground to one on screen): the brush is the same width everywhere and its
+// dots are round. lw is the outline's half width, in pixels. Both kinds
+// return the pixel distance to the nearest mark.
+
+// Strokes: in about a third of the cells of a ground grid inside the dirt, a
+// bunch of two to four long strokes side by side, which never close up into
+// one line when seen low across the ground.
+float dirtStrokes(vec2 x, vec2 eye, mat2 Ji, float lw)
+{
+    const float CELL = 0.5;
+    vec2  cc = floor(x / CELL);
+    float d  = 1e9;
+    for (int j = -1; j <= 1; j++)
+    for (int i = -1; i <= 1; i++)
+    {
+        vec2 cell = cc + vec2(i, j);
+        if (hash12(cell * 1.71 + 2.3) > 0.35) continue;     // empty cell
+        vec4  g = vec4(hash12(cell + 11.3), hash12(cell + 23.7), hash12(cell + 31.1), hash12(cell + 47.9));
+        vec4  h = vec4(hash12(cell + 53.1), hash12(cell + 61.9), hash12(cell + 71.3), hash12(cell + 83.7));
+        vec2  c = (cell + 0.25 + 0.5 * g.xy) * CELL;
+        vec2  v = normalize(c - eye);
+        vec2  e = rot(vec2(-v.y, v.x), DIRT_TILT + 0.35 * (g.z - 0.5));   // along the bunch
+        vec2  C = Ji * (c - x);                             // its centre, in pixels from here
+        vec2  E = Ji * e;                                   // a step along it, in pixels
+        float le = length(E);
+        vec2  P = vec2(-E.y, E.x) / le;                     // across it, on screen
+        float sp = 0.12 + 0.025 * h.z;                     // spacing on the ground,
+        float spx = max(sp * abs(dot(Ji * vec2(-e.y, e.x), P)), 3.2 * lw);   // but never closer than this on screen
+        if (length(C) > 0.35 * le + 2.0 * spx + 2.0 * lw) continue;   // out of reach
+        if (dirtField(groundWarp(c)) < 0.015 || coast(c) > -1.5) continue;   // clear of the outline and the beach
+        int   n   = 2 + int(2.2 * h.y * h.y);               // mostly two or three
+        float st  = 0.06 * (h.w - 0.5);                     // shift along from one to the next
+        float bow = 0.2 * (h.x - 0.5);                      // arc, as a share of the length
+        for (int k = 0; k < 4; k++)
+        {
+            if (k >= n) break;
+            float fk = float(k) - 0.5 * float(n - 1);
+            float l  = 0.18 * (0.3 + 0.7 * hash12(cell + float(k) * 7.3 + 91.0));   // half length
+            vec2  o  = C + P * fk * spx + E * (fk * st + 0.06 * (hash12(cell + float(k) * 5.1 + 97.0) - 0.5));
+            d = min(d, sdBrush(o - E * l, o + P * bow * l * le, o + E * l, 0.95 * lw, 1.0));
+        }
+    }
+    return d;
+}
+
+// Dots: flicked about at random, one to a cell of a finer grid, thick in some
+// stretches of dirt and only the odd one elsewhere. Most are round, a few
+// drawn out into short dashes. Where the cells close up on screen with
+// distance, the dots thin out rather than crowd together.
+float dirtDots(vec2 x, vec2 eye, mat2 Ji, float lw)
+{
+    const float CELL = 0.16;
+    vec2  cc = floor(x / CELL);
+    float crowd = min(1.0, CELL * CELL * abs(determinant(Ji)) / (60.0 * lw * lw));   // a cell's room on screen, for 1 dot
+    float d  = 1e9;
+    for (int j = -1; j <= 1; j++)
+    for (int i = -1; i <= 1; i++)
+    {
+        vec2  cell = cc + vec2(i, j);
+        vec4  g = vec4(hash12(cell + 5.9), hash12(cell + 17.3), hash12(cell + 29.5), hash12(cell + 43.1));
+        vec2  c = (cell + 0.1 + 0.8 * g.xy) * CELL;
+        float p = 0.03 + 0.7 * smoothstep(0.5, 0.72, noise(c * 2.2 + 71.0));  // the chance of a dot here
+        if (hash12(cell * 1.37 + 9.1) > p * crowd) continue;
+        vec2  C = Ji * (c - x);
+        if (dot(C, C) > 16.0 * lw * lw) continue;           // out of reach
+        if (dirtField(groundWarp(c)) < 0.03 || coast(c) > -1.0) continue;   // clear of the outline and the beach
+        vec2  v = normalize(c - eye);
+        vec2  E = normalize(Ji * rot(vec2(-v.y, v.x), DIRT_TILT + 0.6 * (g.z - 0.5)));
+        vec2  ed = (0.3 + 1.5 * g.w * g.w) * lw * E;        // half its length
+        d = min(d, sdBrush(C - ed, C, C + ed, (1.0 + 0.35 * hash12(cell + 57.7)) * lw, 0.0));
+    }
+    return d;
+}
+
+float dirtInk(vec2 x, vec2 eye, float t, mat2 Ji, float lw)
+{
+    if (t > 14.0) return 0.0;
+    float d = min(dirtStrokes(x, eye, Ji, lw), dirtDots(x, eye, Ji, lw));
+    return (1.0 - smoothstep(-0.5, 0.5, d)) * (1.0 - smoothstep(10.0, 14.0, t));
+}
+
+vec3 shadeTerrain(vec3 p, vec3 ro, float t, float pixA, float lineA)
+{
+    vec3 n = length(p.xz) > MESA_R ? terrainNormal(p.xz, t) : vec3(0.0, 1.0, 0.0);
+    vec2 x = p.xz;
+    float r = length(x);
+    float hgt = p.y - GROUND;
+
+    // plains: teal scrub, sandy rock patches, a beach round the shore
+    vec2 xw = groundWarp(x);
+    vec3 col = mix(GRASS, GRASS_DK, 0.6 * smoothstep(0.55, 0.56, fbm(xw * 1.1 + 3.0)));
+    float pn = dirtField(xw);                                    // > 0 on dirt
+    vec2  g  = vec2(dFdx(pn), dFdy(pn));                         // points across the edge, on screen
+    float recede = smoothstep(0.25, 0.6, abs(g.x) / max(length(g), 1e-6));  // 0 along the horizon, 1 running away
+    pn += 0.03 * (abs(noise(x * 5.0) - 0.5) + 0.5 * abs(noise(x * 11.0 + 7.0) - 0.5) - 0.35);  // jagged edge
+    float fw = max(length(vec2(dFdx(pn), dFdy(pn))), 1e-5);      // change in pn per pixel
+    mat2  J  = mat2(dFdx(x), dFdy(x));                           // a pixel's step, on the ground
+    float lw   = 0.5 * lineA / pixA;                             // ink half-width, pixels
+    vec2  gu = vec2(dot(x, DIRT_GRAIN), dot(x, vec2(-DIRT_GRAIN.y, DIRT_GRAIN.x)));   // along and across the grain
+    gu.y += 0.8 * fbm(x * 0.25 + 5.0) + 0.12 * noise(x * 1.9 + 2.0);                // wandering off it
+    float sp = 0.5 + (fbm(vec2(0.45 * gu.x, 3.0 * gu.y) + 27.0) - 0.5)              // long broad streaks, stronger in places,
+                   * (0.5 + noise(x * 0.6 + 31.0))
+             + 0.7 * (noise(vec2(1.2 * gu.x, 11.0 * gu.y) + 41.0) - 0.5)          // and narrow dry-brush ones here and there
+                   * smoothstep(0.35, 0.75, noise(vec2(0.7 * gu.x, 1.5 * gu.y) + 13.0));
+    vec3 dirt = mix(SAND, DIRT_DK, mix(0.36, 0.6, smoothstep(0.25, 0.75, sp)));     // a little either side of halfway
+    col = mix(col, dirt, smoothstep(-fw, fw, pn));
+    if (pn > 3.0 * fw * lw && abs(determinant(J)) > 1e-12)       // the smoothstep below is 0 elsewhere
+        col = mix(col, INK, smoothstep(3.0, 5.0, pn / fw / lw) * dirtInk(x, ro.xz, t, inverse(J), lw));   // kept off the outline
+    float ink  = 1.0 - smoothstep(lw - 0.5, lw + 0.5, abs(pn) / fw);
+    float dash = smoothstep(0.45, 0.5, noise(x * 16.0 + 5.0));   // gaps pinned to the ground
+    col = mix(col, INK, ink * mix(1.0, dash, recede));
+    float cd = coast(x);
+    col = mix(col, SAND_RIM, smoothstep(-0.75, -0.7, cd));
+    col = mix(col, SAND, smoothstep(-0.6, -0.55, cd));
+
+    // sea: pale shallows, surf washing up the beach and lapping round the
+    // mesas, painted wave streaks rolling in on the island in rings, so they
+    // run across the view from any side
+    float fade = 1.0 - smoothstep(20.0, 45.0, t);                 // before they alias
+    float lap  = 0.5 + 0.5 * sin(1.3 * iTime - 6.0 * noise(x * 0.4));   // out of step along the shore
+    vec3 sea = mix(SEA_SHOAL, SEA, smoothstep(0.9, 1.0, cd));
+    float shore = -0.35 * lap;                                     // the waterline
+    float foam = 1.0 - smoothstep(shore + 0.15, shore + 0.2, cd);
+    float m = mesaField(x);
+    foam = max(foam, smoothstep(0.61 - 0.02 * lap, 0.615 - 0.02 * lap, m));
+    float wave = noise(vec2(3.0 * r + 3.0 * noise(x * 0.25) + 1.2 * iTime, 0.5)) * noise(x * 0.6 + 2.0);
+    foam = max(foam, fade * smoothstep(0.5, 0.53, wave));
+    sea = mix(sea, SEA_HI, foam);
+    col = mix(col, sea, smoothstep(shore - 0.05, shore, cd) * (1.0 - step(0.02, hgt)));
+    col = mix(col, INK, grassInk(x, ro, t, pixA, lineA));        // over the dirt and sea behind
+
+    // mesas: grassy tops, striped cliffs with vertical weathering
+    col = mix(col, MESA_TOP, smoothstep(0.5, 1.2, hgt));
+    float s = fract(hgt * 1.3 + 0.35 * noise(x * 0.5));
+    vec3 strata = s < 0.45 ? CLIFF_A : s < 0.75 ? CLIFF_B : CLIFF_C;
+    strata *= 0.8 + 0.2 * noise(vec2(dot(x, vec2(2.0, 1.3)) * 3.0, hgt * 0.5));
+    col = mix(col, strata, smoothstep(0.35, 0.55, 1.0 - n.y));
+
+    float lam = smoothstep(-0.05, 0.2, dot(n, LIG));
+    if (r < 12.0) lam *= celShadow(p + n * 0.02, LIG);   // ship & tree shadows
+    col *= mix(SHADE * 0.95, vec3(1.0), lam);
+
+    return mix(col, HAZE, 1.0 - exp(-0.012 * t));
+}
+
+// ------------------------------------------------------------ frame
+vec3 render(vec3 ro, vec3 rd, float pixA, float lineA)
+{
+    float edge, winEdge, tEdge;
+    vec2 hs = marchCel(ro, rd, lineA, pixA, edge, winEdge, tEdge);
+    if (abs(hs.y - 2.5) > 1.0) edge = max(edge, winEdge);      // glass meets rim with no line
+    bool ship = hs.y >= 0.0;
+    float tt = marchTerrain(ro, rd, ship ? hs.x : 400.0);
+
+    vec3 col;
+    float tFront = 1e10;
+    if (ship && tt < 0.0)
+    {
+        vec3 p = ro + rd * hs.x;
+        col = shadeCel(p, calcNormal(p), rd, hs.y, hs.x, pixA, lineA);
+        tFront = hs.x;
+    }
+    else if (tt > 0.0)
+    {
+        col = shadeTerrain(ro + rd * tt, ro, tt, pixA, lineA);
+        tFront = tt;
+    }
+    else
+    {
+        col = skyColor(rd);
+    }
+    if (tEdge < tFront) col = mix(col, INK, edge);
+    return col;
+}
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
+{
+    // camera: a slow turn round the ship, once a minute from the hero angle,
+    // or mouse orbit
+    float az = 0.42 + TAU * iTime / 60.0;
+    float el = 0.18 + 0.03 * sin(0.21 * iTime);
+    if (iMouse.x > 0.0 || iMouse.y > 0.0)
+    {
+        vec2 m = iMouse.xy / iResolution.xy;
+        az = 0.42 + (m.x - 0.5) * TAU;
+        el = mix(0.03, 1.1, m.y);
+    }
+    const float FL = 3.4;
+    vec3 ta = vec3(0.0, -0.25, 0.0);
+    vec3 ro = ta + 5.6 * vec3(sin(az) * cos(el), sin(el), cos(az) * cos(el));
+    vec3 cw = normalize(ta - ro);
+    vec3 cu = normalize(cross(cw, vec3(0.0, 1.0, 0.0)));
+    vec3 cv = cross(cu, cw);
+
+    float pixA  = 2.0 / (iResolution.y * FL);                // one pixel, in radians
+    float lineA = (0.0055 + 1.2 / iResolution.y) / FL;      // ink line width, in radians
+
+    vec3 col = vec3(0.0);
+    for (int j = 0; j < AA; j++)
+    for (int i = 0; i < AA; i++)
+    {
+        vec2 o = (vec2(float(i), float(j)) + 0.5) / float(AA) - 0.5;
+        vec2 uv = (2.0 * (fragCoord + o) - iResolution.xy) / iResolution.y;
+        vec3 rd = normalize(uv.x * cu + uv.y * cv + FL * cw);
+        col += render(ro, rd, pixA, lineA);
+    }
+    col /= float(AA * AA);
+
+    vec2 q = fragCoord / iResolution.xy;
+#if RETRO
+    col = col * vec3(0.94, 1.0, 0.96) + vec3(0.025, 0.035, 0.03);
+    col += 0.03 * (hash12(fragCoord + 61.7 * fract(iTime * 7.13)) - 0.5);
+#endif
+    col *= 0.55 + 0.45 * pow(16.0 * q.x * q.y * (1.0 - q.x) * (1.0 - q.y), 0.12);
+    fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+}
+
+
+

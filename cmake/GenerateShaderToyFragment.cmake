@@ -8,6 +8,32 @@ endif()
 
 file(READ "${INPUT_FILE}" SHADERTOY_SOURCE)
 
+set(SHADERTOY_COMMON_SOURCE "")
+
+if(DEFINED COMMON_FILE AND EXISTS "${COMMON_FILE}")
+    file(
+            READ
+            "${COMMON_FILE}"
+            SHADERTOY_COMMON_SOURCE
+    )
+
+    string(
+            REPLACE
+            "\r\n"
+            "\n"
+            SHADERTOY_COMMON_SOURCE
+            "${SHADERTOY_COMMON_SOURCE}"
+    )
+
+    string(
+            REPLACE
+            "\r"
+            "\n"
+            SHADERTOY_COMMON_SOURCE
+            "${SHADERTOY_COMMON_SOURCE}"
+    )
+endif()
+
 get_filename_component(OUTPUT_DIR "${OUTPUT_FILE}" DIRECTORY)
 file(MAKE_DIRECTORY "${OUTPUT_DIR}")
 
@@ -72,8 +98,29 @@ void main()
 }
 ]=])
 
+set(SHADERTOY_GENERATED_SOURCE "${SHADERTOY_HEADER}\n")
+
+if(NOT SHADERTOY_COMMON_SOURCE STREQUAL "")
+    string(
+            APPEND
+            SHADERTOY_GENERATED_SOURCE
+            "// ShaderToy Common\n"
+            "#line 1\n"
+            "${SHADERTOY_COMMON_SOURCE}\n\n"
+    )
+endif()
+
+string(
+        APPEND
+        SHADERTOY_GENERATED_SOURCE
+        "// ShaderToy Image\n"
+        "#line 1\n"
+        "${SHADERTOY_SOURCE}\n"
+        "${SHADERTOY_FOOTER}\n"
+)
+
 file(
         WRITE
         "${OUTPUT_FILE}"
-        "${SHADERTOY_HEADER}\n${SHADERTOY_SOURCE}\n${SHADERTOY_FOOTER}\n"
+        "${SHADERTOY_GENERATED_SOURCE}"
 )

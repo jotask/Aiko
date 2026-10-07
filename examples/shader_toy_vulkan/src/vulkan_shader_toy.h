@@ -32,6 +32,13 @@ namespace shadertoy
         std::array<float, 4> m_channelTimes{};
         std::array<aiko::vec3, 4> m_channelResolutions{};
 
+        // Controllers
+        size_t m_currentShader = 0;
+        void nextShader();
+        void previousShader();
+        void randomShader();
+        void loadCurrentShader();
+
     };
 
 }
