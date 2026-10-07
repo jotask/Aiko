@@ -1,9 +1,6 @@
 function(aiko_setup_options)
     option(AIKO_ENABLE_UNITY "Enable unity/jumbo builds" OFF)
     option(AIKO_BUILD_EXAMPLES "Build example executables" OFF)
-    if(AIKO_BUILD_EXAMPLES)
-        option(AIKO_BUILD_EXAMPLES_NAIKO_LLVM "Build example executables" OFF)
-    endif()
 
     set(AIKO_RENDER "AIKO_VULKAN" CACHE STRING "Render backend")
     set_property(CACHE AIKO_RENDER PROPERTY STRINGS AIKO_BGFX AIKO_NATIVE AIKO_VULKAN)
