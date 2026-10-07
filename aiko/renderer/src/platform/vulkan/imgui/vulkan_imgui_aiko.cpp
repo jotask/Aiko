@@ -103,11 +103,17 @@ namespace aiko::renderer::vulkan
 
         if (binding.descriptorSet == VK_NULL_HANDLE || binding.imageView != imageView)
         {
+            if (binding.descriptorSet != VK_NULL_HANDLE)
+            {
+                ImGui_ImplVulkan_RemoveTexture(binding.descriptorSet);
+                binding.descriptorSet = VK_NULL_HANDLE;
+            }
+
             binding.imageView = imageView;
 
             const VkSampler vkSampler = m_samplerCache->getOrCreate(sampler);
 
-            binding.descriptorSet = ImGui_ImplVulkan_AddTexture(vkSampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+            binding.descriptorSet = ImGui_ImplVulkan_AddTexture(vkSampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
             AIKO_ASSERT(binding.descriptorSet != VK_NULL_HANDLE, "Failed to register Vulkan ImGui texture");
         }
