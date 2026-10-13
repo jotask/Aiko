@@ -1503,6 +1503,37 @@ namespace aiko::renderer::vulkan
         });
     }
 
+    void VulkanContext::retireDescriptorSet(VkDescriptorSet descriptorSet, void (*release)(VkDescriptorSet))
+    {
+        if (descriptorSet == VK_NULL_HANDLE)
+        {
+            return;
+        }
+
+        AIKO_ASSERT(m_device != VK_NULL_HANDLE, "Cannot retire a descriptor set without a device");
+        AIKO_ASSERT(release != nullptr, "Descriptor retirement requires a release function");
+
+        if (release == nullptr)
+        {
+            return;
+        }
+
+        m_retiredResources[retirementFrameIndex()].descriptorSets.push_back(
+            {
+                .descriptorSet = descriptorSet,
+                .release = release,
+            });
+    }
+
+    void VulkanContext::releaseRetiredDescriptorSets()
+    {
+        AIKO_ASSERT(m_activeCommandBuffer == VK_NULL_HANDLE, "Cannot flush retired descriptors during an active frame");
+        for (uint32_t frameIndex = 0; frameIndex < MAX_FRAMES_IN_FLIGHT; ++frameIndex)
+        {
+            releaseRetiredDescriptorSetsForFrame(frameIndex);
+        }
+    }
+
     void VulkanContext::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
     {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands();
@@ -1909,6 +1940,8 @@ namespace aiko::renderer::vulkan
     {
         AIKO_ASSERT(frameIndex < MAX_FRAMES_IN_FLIGHT, "Invalid Vulkan retirement frame index");
 
+        releaseRetiredDescriptorSetsForFrame(frameIndex);
+
         RetiredResources& resources = m_retiredResources[frameIndex];
 
         // Framebuffers must stop referring to attachment views first.
@@ -1975,6 +2008,20 @@ namespace aiko::renderer::vulkan
         {
             destroyRetiredResourcesForFrame(frameIndex);
         }
+    }
+
+    void VulkanContext::releaseRetiredDescriptorSetsForFrame(uint32_t frameIndex)
+    {
+        AIKO_ASSERT(frameIndex < MAX_FRAMES_IN_FLIGHT, "Invalid descriptor retirement frame index");
+
+        auto& descriptors = m_retiredResources[frameIndex].descriptorSets;
+
+        for (const RetiredDescriptorSet& descriptor : descriptors)
+        {
+            descriptor.release(descriptor.descriptorSet);
+        }
+
+        descriptors.clear();
     }
 
     void VulkanContext::waitIdle()

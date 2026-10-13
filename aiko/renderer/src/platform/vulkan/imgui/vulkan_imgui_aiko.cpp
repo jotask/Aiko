@@ -71,6 +71,8 @@ namespace aiko::renderer::vulkan
 
         VulkanContext& ctx = VulkanContext::current();
 
+        ctx.releaseRetiredDescriptorSets();
+
         ImGui_ImplVulkan_Shutdown();
 
         m_textureBindings.clear();
@@ -105,7 +107,7 @@ namespace aiko::renderer::vulkan
         {
             if (binding.descriptorSet != VK_NULL_HANDLE)
             {
-                ImGui_ImplVulkan_RemoveTexture(binding.descriptorSet);
+                VulkanContext::current().retireDescriptorSet(binding.descriptorSet, ImGui_ImplVulkan_RemoveTexture);
                 binding.descriptorSet = VK_NULL_HANDLE;
             }
 

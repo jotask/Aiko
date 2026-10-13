@@ -66,6 +66,8 @@ namespace aiko::renderer::vulkan
         void destroyRetiredResourcesForFrame(uint32_t frameIndex);
         void destroyRetiredResources();
 
+        void releaseRetiredDescriptorSetsForFrame(uint32_t frameIndex);
+
         VkInstance m_vk = VK_NULL_HANDLE;
         VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
         VkSurfaceKHR m_surface = VK_NULL_HANDLE;
@@ -171,6 +173,10 @@ namespace aiko::renderer::vulkan
         void retireBuffer(VkBuffer buffer, VkDeviceMemory memory);
         void retireImage(VkSampler sampler, VkImageView view, VkImage image, VkDeviceMemory memory);
         void retireFrameBuffer(VkFramebuffer framebuffer, VkRenderPass renderPass);
+        void retireDescriptorSet(VkDescriptorSet descriptorSet, void (*release)(VkDescriptorSet));
+
+        // Call only after GPU completion and before the descriptor owner shuts down.
+        void releaseRetiredDescriptorSets();
 
         VkCommandBuffer beginSingleTimeCommands();
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);

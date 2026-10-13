@@ -26,10 +26,17 @@ namespace aiko::renderer::vulkan
         VkRenderPass renderPass = VK_NULL_HANDLE;
     };
 
+    struct RetiredDescriptorSet
+    {
+        VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+        void (*release)(VkDescriptorSet) = nullptr;
+    };
+
     struct RetiredResources
     {
         std::vector<RetiredBuffer> buffers;
         std::vector<RetiredImage> images;
         std::vector<RetiredFrameBuffer> frameBuffers;
+        std::vector<RetiredDescriptorSet> descriptorSets;
     };
 }
