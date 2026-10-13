@@ -1,6 +1,8 @@
 #include "job_system.h"
 
 #include <chrono>
+#include <thread>
+#include <utility>
 
 namespace aiko
 {
@@ -17,21 +19,8 @@ namespace aiko
 
     void JobSystem::init()
     {
-        const uint32_t workerCount = resolveWorkerCount();
-
+        m_executor.start(resolveWorkerCount());
         m_acceptingJobs.store(true, std::memory_order_release);
-
-        m_workers.reserve(workerCount);
-
-        for (uint32_t i = 0; i < workerCount; ++i)
-        {
-            m_workers.emplace_back(
-                [this](std::stop_token stopToken)
-                {
-                    workerLoop(stopToken);
-                }
-            );
-        }
     }
 
     void JobSystem::update()
@@ -42,9 +31,6 @@ namespace aiko
     void JobSystem::dispose()
     {
         shutdown();
-
-        std::scoped_lock lock(m_mainThreadMutex);
-        m_mainThreadJobs.clear();
     }
 
     void JobSystem::submit(BackgroundJob job)
@@ -53,23 +39,16 @@ namespace aiko
         {
             return;
         }
-
-        {
-            std::scoped_lock lock(m_jobMutex);
-
-            if (m_acceptingJobs.load(std::memory_order_relaxed) == false)
-            {
-                return;
-            }
-
-            m_jobs.emplace_back(std::move(job));
-        }
-
-        m_jobCondition.notify_one();
+        m_executor.submit(std::move(job));
     }
 
     void JobSystem::dispatchMainThread(MainThreadJob job)
     {
+        if (job.valid() == false)
+        {
+            return;
+        }
+
         if (m_acceptingJobs.load(std::memory_order_acquire) == false)
         {
             return;
@@ -87,14 +66,12 @@ namespace aiko
 
     JobStats JobSystem::stats() const
     {
-        JobStats result;
-        result.workerThreads = static_cast<uint32_t>(m_workers.size());
-        result.activeJobs = m_activeJobs.load(std::memory_order_relaxed);
+        const JobExecutorStats background = m_executor.stats();
 
-        {
-            std::scoped_lock lock(m_jobMutex);
-            result.queuedJobs = m_jobs.size();
-        }
+        JobStats result;
+        result.workerThreads = background.workerThreads;
+        result.queuedJobs = background.queuedJobs;
+        result.activeJobs = background.activeJobs;
 
         {
             std::scoped_lock lock(m_mainThreadMutex);
@@ -102,46 +79,6 @@ namespace aiko
         }
 
         return result;
-    }
-
-    void JobSystem::workerLoop(std::stop_token stopToken)
-    {
-        while (stopToken.stop_requested() == false)
-        {
-            BackgroundJob job;
-
-            {
-                std::unique_lock lock(m_jobMutex);
-
-                m_jobCondition.wait(
-                    lock,
-                    stopToken,
-                    [this]
-                    {
-                        return m_jobs.empty() == false || m_acceptingJobs.load(std::memory_order_acquire) == false;
-                    }
-                );
-
-                if (stopToken.stop_requested())
-                {
-                    return;
-                }
-
-                if (m_jobs.empty())
-                {
-                    continue;
-                }
-
-                job = std::move(m_jobs.front());
-                m_jobs.pop_front();
-            }
-
-            m_activeJobs.fetch_add(1, std::memory_order_relaxed);
-
-            job();
-
-            m_activeJobs.fetch_sub(1, std::memory_order_relaxed);
-        }
     }
 
     void JobSystem::processMainThreadJobs(float budgetMs)
@@ -184,26 +121,24 @@ namespace aiko
 
     void JobSystem::shutdown()
     {
-        if (m_workers.empty())
         {
-            return;
+            std::scoped_lock lock(m_mainThreadMutex);
+            m_acceptingJobs.store(false, std::memory_order_release);
         }
 
-        m_acceptingJobs.store(false, std::memory_order_release);
+        // Do not hold the completion mutex while joining workers:
+        // a running job may still attempt to dispatch a completion.
+        m_executor.shutdown();
+
+        std::deque<MainThreadJob> cancelledJobs;
 
         {
-            std::scoped_lock lock(m_jobMutex);
-            m_jobs.clear();
+            std::scoped_lock lock(m_mainThreadMutex);
+            cancelledJobs.swap(m_mainThreadJobs);
         }
 
-        for (std::jthread& worker : m_workers)
-        {
-            worker.request_stop();
-        }
-
-        m_jobCondition.notify_all();
-
-        m_workers.clear();
+        // Destroy completion captures outside the mutex.
+        cancelledJobs.clear();
     }
 
     uint32_t JobSystem::resolveWorkerCount() const
