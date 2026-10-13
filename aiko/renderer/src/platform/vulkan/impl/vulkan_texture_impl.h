@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <aiko_types.h>
 
 #include <types/texture_types.h>
@@ -37,6 +39,8 @@ namespace aiko::renderer::vulkan
         void setState(const VulkanImageState& state) { m_state = state; }
         VkImageLayout layout() const { return m_state.layout; }
 
+        std::weak_ptr<const u8> lifetime() const { return m_lifetime; }
+
     private:
 
         VkImage m_image = VK_NULL_HANDLE;
@@ -47,6 +51,8 @@ namespace aiko::renderer::vulkan
         uint32_t m_mipLevels = 1;
 
         VulkanImageState m_state{};
+
+        std::shared_ptr<const u8> m_lifetime;
 
         VkFormat convertToVkFormat(const TextureFormat format);
 

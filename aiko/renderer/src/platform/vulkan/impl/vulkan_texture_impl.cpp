@@ -163,10 +163,14 @@ namespace aiko::renderer::vulkan
             .access = 0,
         };
 
+        m_lifetime = std::make_shared<const u8>(0);
+
     }
 
     void VulkanTextureImpl::unload()
     {
+
+        m_lifetime.reset();
 
         if (m_view == VK_NULL_HANDLE && m_image == VK_NULL_HANDLE && m_memory == VK_NULL_HANDLE)
         {

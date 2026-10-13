@@ -57,6 +57,7 @@ namespace aiko::renderer::vulkan
 
     void VulkanImguiImpl::beginFrame(const ViewId id, int width, int height)
     {
+        removeExpiredTextureBindings();
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
     }
@@ -103,7 +104,7 @@ namespace aiko::renderer::vulkan
 
         TextureBinding& binding = m_textureBindings[key];
 
-        if (binding.descriptorSet == VK_NULL_HANDLE || binding.imageView != imageView)
+        if (binding.descriptorSet == VK_NULL_HANDLE || binding.lifetime.expired() || binding.imageView != imageView)
         {
             if (binding.descriptorSet != VK_NULL_HANDLE)
             {
@@ -113,6 +114,8 @@ namespace aiko::renderer::vulkan
 
             binding.imageView = imageView;
 
+            binding.lifetime = vulkanTexture.lifetime();
+
             const VkSampler vkSampler = m_samplerCache->getOrCreate(sampler);
 
             binding.descriptorSet = ImGui_ImplVulkan_AddTexture(vkSampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -121,5 +124,21 @@ namespace aiko::renderer::vulkan
         }
 
         return static_cast<ImguiTextureId>(reinterpret_cast<uintptr_t>( binding.descriptorSet ));
+    }
+
+    void VulkanImguiImpl::removeExpiredTextureBindings()
+    {
+        VulkanContext& ctx = VulkanContext::current();
+
+        for (auto it = m_textureBindings.begin(); it != m_textureBindings.end();)
+        {
+            if (!it->second.lifetime.expired())
+            {
+                ++it;
+                continue;
+            }
+            ctx.retireDescriptorSet(it->second.descriptorSet,ImGui_ImplVulkan_RemoveTexture);
+            it = m_textureBindings.erase(it);
+        }
     }
 }

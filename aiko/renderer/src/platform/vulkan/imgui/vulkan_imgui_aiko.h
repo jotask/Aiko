@@ -27,6 +27,7 @@ namespace aiko::renderer::vulkan
         {
             VkImageView imageView = VK_NULL_HANDLE;
             VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+            std::weak_ptr<const u8> lifetime;
         };
 
         struct TextureBindingKey
@@ -51,6 +52,8 @@ namespace aiko::renderer::vulkan
         std::unique_ptr<VulkanSamplerCache> m_samplerCache;
 
         std::unordered_map<TextureBindingKey, TextureBinding, TextureBindingKeyHash> m_textureBindings;
+
+        void removeExpiredTextureBindings();
     };
 
 }
