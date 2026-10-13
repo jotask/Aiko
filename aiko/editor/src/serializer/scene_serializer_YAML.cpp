@@ -2,6 +2,10 @@
 
 #include "scene/scene.h"
 
+#include <exception>
+#include <filesystem>
+#include <fstream>
+
 #include <core/file.h>
 #include <logger/logger.h>
 
@@ -20,71 +24,141 @@
 namespace aiko::editor
 {
 
-    void SceneSerializerYAML::serializeScene(const Scene& scene, const string& path)
+    bool SceneSerializerYAML::serializeScene(const Scene& scene, const string& path, string& error)
     {
-        YAML::Emitter out;
 
-        out << YAML::BeginMap;
-        out << YAML::Key << "clearColor" << YAML::Value << YAML::convert<Color>::encode(scene.clearColor());
-        out << YAML::Key << "ambientLight" << YAML::Value << YAML::BeginMap;
-        out << YAML::Key << "color" << YAML::Value << YAML::convert<Color>::encode(scene.ambientLight().color);
-        out << YAML::Key << "intensity" << YAML::Value << scene.ambientLight().intensity;
-        out << YAML::EndMap;
+        error.clear();
+        std::filesystem::path temporaryPath;
 
-        out << YAML::Key << "activeCamera" << YAML::Value;
-
-        if (const GameObject* camera = scene.getActiveCamera())
+        const auto fail = [&](string message)
         {
-            out << camera->uuid();
-        }
-        else
-        {
-            out << YAML::Null;
-        }
+            error = std::move(message);
 
-        out << YAML::Key << "objects" << YAML::Value << YAML::BeginSeq;
-        for (const GameObject* obj : scene.getObjects())
-        {
-            out << YAML::BeginMap;
-            out << YAML::Key << "uuid" << YAML::Value << obj->uuid();
-            out << YAML::Key << "name" << YAML::Value << obj->getName();
-
-            out << YAML::Key << "active" << YAML::Value << obj->isActiveSelf();
-            out << YAML::Key << "parent" << YAML::Value;
-
-            if (const GameObject* parent = obj->getParent())
+            if (temporaryPath.empty() == false)
             {
-                out << parent->uuid();
+                std::error_code cleanupError;
+                std::filesystem::remove(temporaryPath, cleanupError);
+            }
+
+            return false;
+        };
+
+        try
+        {
+            YAML::Emitter out;
+
+            out << YAML::BeginMap;
+            out << YAML::Key << "clearColor" << YAML::Value << YAML::convert<Color>::encode(scene.clearColor());
+            out << YAML::Key << "ambientLight" << YAML::Value << YAML::BeginMap;
+            out << YAML::Key << "color" << YAML::Value << YAML::convert<Color>::encode(scene.ambientLight().color);
+            out << YAML::Key << "intensity" << YAML::Value << scene.ambientLight().intensity;
+            out << YAML::EndMap;
+
+            out << YAML::Key << "activeCamera" << YAML::Value;
+
+            if (const GameObject* camera = scene.getActiveCamera())
+            {
+                out << camera->uuid();
             }
             else
             {
                 out << YAML::Null;
             }
 
-            out << YAML::Key << "components" << YAML::Value;
-            out << YAML::BeginSeq;
-            for (const Component* sceneComponent : obj->getComponents())
+            out << YAML::Key << "objects" << YAML::Value << YAML::BeginSeq;
+            for (const GameObject* obj : scene.getObjects())
             {
-                YAML::Node componentNode;
+                out << YAML::BeginMap;
+                out << YAML::Key << "uuid" << YAML::Value << obj->uuid();
+                out << YAML::Key << "name" << YAML::Value << obj->getName();
 
-                const bool serialized = component::serializeComponent(*sceneComponent, componentNode);
+                out << YAML::Key << "active" << YAML::Value << obj->isActiveSelf();
+                out << YAML::Key << "parent" << YAML::Value;
 
-                AIKO_ASSERT(serialized, "Component is not supported by the editor serializer");
-
-                if (serialized)
+                if (const GameObject* parent = obj->getParent())
                 {
-                    out << componentNode;
+                    out << parent->uuid();
                 }
+                else
+                {
+                    out << YAML::Null;
+                }
+
+                out << YAML::Key << "components" << YAML::Value;
+                out << YAML::BeginSeq;
+                for (const Component* sceneComponent : obj->getComponents())
+                {
+                    YAML::Node componentNode;
+
+                    if (!component::serializeComponent(*sceneComponent, componentNode))
+                    {
+                        return fail("Cannot save an unsupported component on object: " + obj->getName());
+                    }
+
+                    out << componentNode;
+
+                }
+                out << YAML::EndSeq;
+                out << YAML::EndMap;
             }
             out << YAML::EndSeq;
             out << YAML::EndMap;
-        }
-        out << YAML::EndSeq;
-        out << YAML::EndMap;
 
-        std::ofstream file(path, std::ios::out);
-        file << out.c_str();
-        file.close();
+            if (!out.good())
+            {
+                return fail("Could not encode scene YAML: " + out.GetLastError());
+            }
+
+            if (path.empty())
+            {
+                return fail("The scene save path is empty.");
+            }
+
+            const std::filesystem::path destination(path);
+
+            temporaryPath = destination;
+            temporaryPath += ".tmp-" + uuid::Uuid{}.get();
+
+            bool writeSucceeded = false;
+            bool closeSucceeded = false;
+
+            {
+                std::ofstream file(temporaryPath,std::ios::out | std::ios::binary | std::ios::trunc);
+
+                if (file.is_open() == false)
+                {
+                    return fail("Could not open a temporary scene file for: " + path);
+                }
+
+                file.write(out.c_str(), static_cast<std::streamsize>(out.size()));
+                file.flush();
+                writeSucceeded = file.good();
+
+                file.close();
+                closeSucceeded = !file.fail();
+            }
+
+            if (!writeSucceeded || !closeSucceeded)
+            {
+                return fail("Could not finish writing the scene file: " + path);
+            }
+
+            std::error_code renameError;
+            std::filesystem::rename(temporaryPath, destination, renameError);
+
+            if (renameError)
+            {
+                return fail("Could not replace the scene file: " + path + "\n" + renameError.message());
+            }
+
+            temporaryPath.clear();
+            return true;
+
+        }
+        catch (const std::exception& exception)
+        {
+            return fail("Could not save the scene: " + path + "\n" + exception.what());
+        }
 
     }
 

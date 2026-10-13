@@ -23,6 +23,13 @@ namespace aiko
 
         private:
 
+            enum class SaveResult
+            {
+                Saved,
+                AwaitingPath,
+                Failed
+            };
+
             enum class PendingAction
             {
                 None,
@@ -40,12 +47,17 @@ namespace aiko
             void renderUnsavedChangesPopup(EditorContext& context);
             void renderSimulationControls();
 
-            bool saveScene(EditorContext& context);
+
+            SaveResult saveScene(EditorContext& context);
+            bool saveSceneToPath(EditorContext& context, const string& path);
+            void renderSaveError();
             void openSaveDialog(EditorContext& context);
             void duplicateSelected(EditorContext& context);
 
             EditorWorkspace* m_workspace = nullptr;
             RuntimeContext* m_runtime = nullptr;
+
+            string m_saveError;
 
             PendingAction m_pendingAction = PendingAction::None;
         };

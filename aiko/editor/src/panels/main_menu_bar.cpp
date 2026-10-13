@@ -103,19 +103,19 @@ namespace aiko::editor
 
             if (ImGui::Button("Save"))
             {
-                if (saveScene(context))
+                const SaveResult result = saveScene(context);
+
+                if (result == SaveResult::Saved)
                 {
                     const PendingAction action = m_pendingAction;
                     m_pendingAction = PendingAction::None;
 
                     ImGui::CloseCurrentPopup();
-
                     performAction(context, action);
                 }
-                else
+                else if (result == SaveResult::AwaitingPath)
                 {
-                    // Save As dialog is now open.
-                    // Keep m_pendingAction so it can continue after saving.
+                    // Continue only after Save As succeeds.
                     ImGui::CloseCurrentPopup();
                 }
             }
@@ -198,17 +198,57 @@ namespace aiko::editor
         ImGui::EndDisabled();
     }
 
-    bool MainMenuBar::saveScene(EditorContext& context)
+    MainMenuBar::SaveResult MainMenuBar::saveScene(EditorContext& context)
     {
-        if (context.document().hasPath())
+        if (!context.document().hasPath())
         {
-            const Scene& scene = context.sceneSystem().getScene();
-            SceneSerializerYAML::serializeScene(scene, context.document().path());
-            context.document().markSaved();
-            return true;
+            openSaveDialog(context);
+            return SaveResult::AwaitingPath;
         }
-        openSaveDialog(context);
-        return false;
+
+        return saveSceneToPath(context, context.document().path()) ? SaveResult::Saved : SaveResult::Failed;
+    }
+
+    bool MainMenuBar::saveSceneToPath(EditorContext& context, const string& path)
+    {
+        string error;
+        if (SceneSerializerYAML::serializeScene(context.sceneSystem().getScene(), path, error) == false)
+        {
+            m_saveError = std::move(error);
+            return false;
+        }
+
+        context.document().setPath(path);
+        context.document().markSaved();
+        m_saveError.clear();
+        return true;
+    }
+
+    void MainMenuBar::renderSaveError()
+    {
+        if (m_saveError.empty())
+        {
+            return;
+        }
+
+        bool open = true;
+
+        if (ImGui::Begin("Scene Save Error", &open, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextWrapped("%s", m_saveError.c_str());
+
+            if (ImGui::Button("Dismiss"))
+            {
+                open = false;
+            }
+        }
+
+        ImGui::End();
+
+        if (!open)
+        {
+            m_saveError.clear();
+        }
     }
 
     void MainMenuBar::openSaveDialog(EditorContext& context)
@@ -455,17 +495,21 @@ namespace aiko::editor
         if (ImGuiFileDialog::Instance()->Display("saveSceneDlg"))
         {
             PendingAction action = PendingAction::None;
+
             if (ImGuiFileDialog::Instance()->IsOk())
             {
                 const string path = ImGuiFileDialog::Instance()->GetFilePathName();
-                const Scene& scene = context.sceneSystem().getScene();
-                SceneSerializerYAML::serializeScene(scene, path);
-                context.document().setPath(path);
-                context.document().markSaved();
-                action = m_pendingAction;
+
+                if (saveSceneToPath(context, path))
+                {
+                    action = m_pendingAction;
+                }
             }
+
+            // Failure or cancellation aborts the dependent action.
             m_pendingAction = PendingAction::None;
             ImGuiFileDialog::Instance()->Close();
+
             if (action != PendingAction::None)
             {
                 performAction(context, action);
@@ -491,6 +535,9 @@ namespace aiko::editor
 
             ImGuiFileDialog::Instance()->Close();
         }
+
+        renderSaveError();
+
     }
 
 }

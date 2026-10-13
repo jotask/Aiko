@@ -12,7 +12,7 @@ namespace aiko::editor
         SceneSerializerYAML() = delete;
         ~SceneSerializerYAML() = delete;
 
-        static void serializeScene(const Scene& scene, const string& path);
+        static bool serializeScene(const Scene& scene, const string& path, string& error);
         static void deserializeScene(Scene& scene, const string& path);
 
     };
