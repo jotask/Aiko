@@ -44,11 +44,9 @@ namespace aiko
         {
             const auto timer = Time::it().secondSinceStart();
 
-            const float camX =
-                static_cast<float>(sin(timer) * component.radius());
+            const float camX = static_cast<float>(sin(timer) * component.radius());
 
-            const float camZ =
-                static_cast<float>(cos(timer) * component.radius());
+            const float camZ = static_cast<float>(cos(timer) * component.radius());
 
             camera.position = {
                 camX,
@@ -62,11 +60,9 @@ namespace aiko
         {
             const auto dt = Time::it().getDeltaTime();
 
-            vec3 forward =
-                math::normalize(camera.target - camera.position);
+            vec3 forward = math::normalize(camera.target - camera.position);
 
-            vec3 right =
-                math::normalize(math::cross(forward, camera.getUp()));
+            vec3 right = math::normalize(math::cross(forward, camera.getUp()));
 
             if (m_inputSystem->isKeyJustPressed(Key::KEY_F1))
             {
@@ -75,26 +71,16 @@ namespace aiko
 
             if (m_inputSystem->isMouseCaptured() == true)
             {
-                const vec2 mouseDelta =
-                    m_inputSystem->getMouseDelta();
+                const vec2 mouseDelta = m_inputSystem->getMouseDelta();
 
-                const float sensitivity = 3.5f;
-                const float yaw = mouseDelta.x * sensitivity;
-                const float pitch = mouseDelta.y * sensitivity;
+                constexpr float sensitivityDegrees = 0.06f;
+                const float yawDegrees = mouseDelta.x * sensitivityDegrees;
+                const float pitchDegrees = mouseDelta.y * sensitivityDegrees;
 
-                forward = math::rotate(
-                    forward,
-                    math::radians(-pitch),
-                    right
-                );
-
-                forward = math::rotate(
-                    forward,
-                    math::radians(-yaw),
-                    camera.getUp()
-                );
-
+                forward = math::rotate(forward, math::radians(-pitchDegrees), right);
+                forward = math::rotate(forward, math::radians(-yawDegrees), camera.getUp());
                 forward = math::normalize(forward);
+
                 camera.target = camera.position + forward;
             }
 
@@ -142,9 +128,7 @@ namespace aiko
             break;
 
         default:
-            logger::Log::error(
-                "CAMERA :: UPDATE :: UNKNOW CONTROLLER"
-            );
+            logger::Log::error("CAMERA :: UPDATE :: UNKNOW CONTROLLER");
             break;
         }
     }
