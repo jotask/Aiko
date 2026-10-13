@@ -2,6 +2,7 @@
 
 #include <random>
 #include <sstream>
+#include <mutex>
 
 #include <aiko_types.h>
 
@@ -44,6 +45,9 @@ namespace aiko
 
             static Id generate_uuid_v4()
             {
+
+                static std::mutex generatorMutex;
+                std::scoped_lock lock(generatorMutex);
 
                 static std::random_device              rd;
                 static std::mt19937                    gen(rd());
