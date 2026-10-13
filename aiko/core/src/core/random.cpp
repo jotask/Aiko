@@ -1,56 +1,55 @@
 #include "random.h"
 
-#if defined(AIKO_WINDOWS)
-    #include <windows.h>
-#elif defined(AIKO_LINUX)
-    #include <limits.h>
-    #include <unistd.h>
-#else
-    #error OS unsupported!
-#endif
-
+#include <mutex>
 #include <random>
-#include <algorithm>
 
-namespace aiko
+namespace aiko::utils
 {
-    namespace utils
+    namespace
     {
-
-        std::mt19937* getRandomDevice()
+        std::mutex& getRandomMutex()
         {
-            static bool init = false;
-            uint seed = RND_SEED;
-            if (init == false)
-            {
-                init = true;
-                if (RND_RANDOM_SEED)
+            static std::mutex mutex;
+            return mutex;
+        }
+
+        // Caller must hold getRandomMutex().
+        std::mt19937& getRandomDevice()
+        {
+            static std::mt19937 generator(
+                []
                 {
-                    static std::random_device rd;     // Only used once to initialise (seed) engine
-                    seed = rd();
-                }
-            }
-            static std::mt19937 rng(seed);    // Random-number engine used (Mersenne-Twister in this case
-            return &rng;
-        }
+                    if (RND_RANDOM_SEED)
+                    {
+                        std::random_device device;
+                        return device();
+                    }
 
-        int getRandomValue(int min, int max)
-        {
-            std::uniform_int_distribution<int> uni(min, max);
-            return uni(*getRandomDevice());
-        }
+                    return RND_SEED;
+                }());
 
-        float getRandomValue(float min, float max)
-        {
-            std::uniform_real_distribution<float> uni(min, max);
-            return uni(*getRandomDevice());
+            return generator;
         }
+    }
 
-        bool getRandomBool()
-        {
-            std::uniform_int_distribution<int> distribution(0, 1);
-            return distribution(*getRandomDevice()) == 1;
-        }
+    int getRandomValue(int min, int max)
+    {
+        std::scoped_lock lock(getRandomMutex());
+        std::uniform_int_distribution<int> distribution(min, max);
+        return distribution(getRandomDevice());
+    }
 
+    float getRandomValue(float min, float max)
+    {
+        std::scoped_lock lock(getRandomMutex());
+        std::uniform_real_distribution<float> distribution(min, max);
+        return distribution(getRandomDevice());
+    }
+
+    bool getRandomBool()
+    {
+        std::scoped_lock lock(getRandomMutex());
+        std::uniform_int_distribution<int> distribution(0, 1);
+        return distribution(getRandomDevice()) == 1;
     }
 }
