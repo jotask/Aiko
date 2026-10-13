@@ -51,6 +51,7 @@ namespace aiko
             SaveResult saveScene(EditorContext& context);
             bool saveSceneToPath(EditorContext& context, const string& path);
             void renderSaveError();
+            void renderLoadError();
             void openSaveDialog(EditorContext& context);
             void duplicateSelected(EditorContext& context);
 
@@ -58,6 +59,7 @@ namespace aiko
             RuntimeContext* m_runtime = nullptr;
 
             string m_saveError;
+            string m_loadError;
 
             PendingAction m_pendingAction = PendingAction::None;
         };

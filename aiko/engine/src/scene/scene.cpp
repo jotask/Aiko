@@ -10,7 +10,11 @@ namespace aiko
 {
 
     Scene::Scene() = default;
-    Scene::~Scene() = default;
+
+    Scene::~Scene()
+    {
+        clear();
+    }
 
     GameObject* Scene::create(string name)
     {
@@ -115,6 +119,33 @@ namespace aiko
         m_objects.erase(it);
 
         return true;
+    }
+
+    void Scene::swap(Scene& other)
+    {
+        if (this == &other)
+        {
+            return;
+        }
+
+        m_objects.swap(other.m_objects);
+        m_componentIndex.swap(other.m_componentIndex);
+        m_objectIndex.swap(other.m_objectIndex);
+        m_transformOwners.swap(other.m_transformOwners);
+
+        std::swap(m_activeCamera, other.m_activeCamera);
+        std::swap(m_clearColor, other.m_clearColor);
+        std::swap(m_ambientLight, other.m_ambientLight);
+
+        for (const auto& object : m_objects)
+        {
+            object->m_scene = this;
+        }
+
+        for (const auto& object : other.m_objects)
+        {
+            object->m_scene = &other;
+        }
     }
 
     void Scene::clear()

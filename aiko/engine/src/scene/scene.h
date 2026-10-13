@@ -36,6 +36,7 @@ namespace aiko
 
         bool remove(const GameObject* obj);
 
+        void swap(Scene& other);
         void clear();
 
         vector<GameObject*> getObjects();

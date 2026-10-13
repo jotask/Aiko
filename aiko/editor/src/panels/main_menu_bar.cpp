@@ -251,6 +251,33 @@ namespace aiko::editor
         }
     }
 
+    void MainMenuBar::renderLoadError()
+    {
+        if (m_loadError.empty())
+        {
+            return;
+        }
+
+        bool open = true;
+
+        if (ImGui::Begin("Scene Load Error", &open, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextWrapped("%s", m_loadError.c_str());
+
+            if (ImGui::Button("Dismiss"))
+            {
+                open = false;
+            }
+        }
+
+        ImGui::End();
+
+        if (!open)
+        {
+            m_loadError.clear();
+        }
+    }
+
     void MainMenuBar::openSaveDialog(EditorContext& context)
     {
         IGFD::FileDialogConfig config;
@@ -522,21 +549,27 @@ namespace aiko::editor
             {
                 const string path = ImGuiFileDialog::Instance()->GetFilePathName();
 
-                context.clearSelection();
-                context.commands().clear();
+                string error;
 
-                Scene& scene = context.sceneSystem().getScene();
-
-                SceneSerializerYAML::deserializeScene(scene, path);
-
-                context.document().setPath(path);
-                context.document().markSaved();
+                if (SceneSerializerYAML::deserializeScene(context.sceneSystem().getScene(), path, error))
+                {
+                    context.clearSelection();
+                    context.commands().clear();
+                    context.document().setPath(path);
+                    context.document().markSaved();
+                    m_loadError.clear();
+                }
+                else
+                {
+                    m_loadError = std::move(error);
+                }
             }
 
             ImGuiFileDialog::Instance()->Close();
         }
 
         renderSaveError();
+        renderLoadError();
 
     }
 
