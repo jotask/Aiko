@@ -132,24 +132,17 @@ namespace aiko
             return toAiko(m);
         }
 
-        mat4 rotate(mat4 matrix, float angle, vec3 axis)
+        mat4 rotate(mat4 matrix, float angleRadians, vec3 axis)
         {
-            glm::mat4 m = toGlm(matrix);
-            m = glm::rotate(m, angle, toGlm(axis));
-            return toAiko(m);
+            const glm::mat4 result = glm::rotate(toGlm(matrix), angleRadians, toGlm(axis));
+            return toAiko(result);
         }
 
-        vec3 rotate(vec3 v, float angle, vec3 axis)
+        vec3 rotate(vec3 vector, float angleRadians, vec3 axis)
         {
-
-            // Create a rotation matrix
-            glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(angle), toGlm(axis));
-
-            // Rotate the vector by applying the rotation matrix
-            glm::vec4 glmVec4(toGlm(v), 1.0f); // Convert to vec4 for matrix multiplication
-            glm::vec4 rotatedVec4 = rotationMatrix * glmVec4;
-
-            return toAiko(glm::vec3(rotatedVec4));
+            const glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), angleRadians, toGlm(axis));
+            const glm::vec4 result = rotationMatrix * glm::vec4(toGlm(vector), 0.0f);
+            return toAiko(glm::vec3(result));
         }
 
         mat4 lookAt(vec3 position, vec3 target, vec3 up)

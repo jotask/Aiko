@@ -144,8 +144,8 @@ namespace aiko::editor
                         const float yaw = mouseDelta.x * lookSensitivity;
                         const float pitch = mouseDelta.y * lookSensitivity;
 
-                        forward = math::rotate(forward, pitch, right);
-                        forward = math::rotate(forward, yaw, m_camera.getUp());
+                        forward = math::rotate(forward, math::radians(pitch), right);
+                        forward = math::rotate(forward, math::radians(yaw), m_camera.getUp());
                         forward = math::normalize(forward);
                         right = math::normalize(math::cross(forward, m_camera.getUp()));
 

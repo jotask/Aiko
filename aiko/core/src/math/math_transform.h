@@ -36,8 +36,8 @@ namespace aiko
 
         mat4 scale(mat4, vec3);
         mat4 translate(mat4, vec3);
-        mat4 rotate(mat4, float, vec3);
-        vec3 rotate(vec3, float, vec3);
+        mat4 rotate(mat4 matrix, float angleRadians, vec3 axis);
+        vec3 rotate(vec3 vector, float angleRadians, vec3 axis);
         mat4 lookAt(vec3, vec3, vec3);
         mat4 inverse(const mat4& matrix);
 
