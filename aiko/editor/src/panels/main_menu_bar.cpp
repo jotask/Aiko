@@ -224,60 +224,6 @@ namespace aiko::editor
         return true;
     }
 
-    void MainMenuBar::renderSaveError()
-    {
-        if (m_saveError.empty())
-        {
-            return;
-        }
-
-        bool open = true;
-
-        if (ImGui::Begin("Scene Save Error", &open, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            ImGui::TextWrapped("%s", m_saveError.c_str());
-
-            if (ImGui::Button("Dismiss"))
-            {
-                open = false;
-            }
-        }
-
-        ImGui::End();
-
-        if (!open)
-        {
-            m_saveError.clear();
-        }
-    }
-
-    void MainMenuBar::renderLoadError()
-    {
-        if (m_loadError.empty())
-        {
-            return;
-        }
-
-        bool open = true;
-
-        if (ImGui::Begin("Scene Load Error", &open, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            ImGui::TextWrapped("%s", m_loadError.c_str());
-
-            if (ImGui::Button("Dismiss"))
-            {
-                open = false;
-            }
-        }
-
-        ImGui::End();
-
-        if (!open)
-        {
-            m_loadError.clear();
-        }
-    }
-
     void MainMenuBar::openSaveDialog(EditorContext& context)
     {
         IGFD::FileDialogConfig config;
@@ -295,6 +241,33 @@ namespace aiko::editor
         }
         DuplicateGameObjectCommand& command = context.commands().execute<DuplicateGameObjectCommand>(context.sceneSystem(), *selected);
         context.select(command.duplicatedObject());
+    }
+
+    void MainMenuBar::renderError(const char* tittle, string& error)
+    {
+        if (error.empty())
+        {
+            return;
+        }
+
+        bool open = true;
+
+        if (ImGui::Begin(tittle, &open, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextWrapped("%s", error.c_str());
+
+            if (ImGui::Button("Dismiss"))
+            {
+                open = false;
+            }
+        }
+
+        ImGui::End();
+
+        if (!open)
+        {
+            error.clear();
+        }
     }
 
     void MainMenuBar::handleShortcuts(EditorContext& context)
@@ -568,8 +541,8 @@ namespace aiko::editor
             ImGuiFileDialog::Instance()->Close();
         }
 
-        renderSaveError();
-        renderLoadError();
+        renderError("Scene Save Error", m_saveError);
+        renderError("Scene Load Error", m_loadError);
 
     }
 
