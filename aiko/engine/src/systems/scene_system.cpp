@@ -32,12 +32,8 @@ namespace aiko
         SceneView view = m_sceneViewBuilder.build(m_scene);
 
         m_renderModule->setMainCamera(view.camera);
-
-        if (view.camera != nullptr)
-        {
-            m_renderModule->setClearColor(view.clearColor);
-            m_renderModule->submitLights(view.ambientLight, view.lights);
-        }
+        m_renderModule->setClearColor(view.clearColor);
+        m_renderModule->submitLights(view.ambientLight, view.lights);
 
         for (MeshComponent* component : m_scene.components<MeshComponent>())
         {
@@ -132,49 +128,21 @@ namespace aiko
     void SceneSystem::clear()
     {
         m_scene.clear();
-        m_renderModule->setMainCamera(nullptr);
     }
 
     Camera* SceneSystem::getMainCamera()
     {
-        for (CameraComponent* component : m_scene.components<CameraComponent>())
-        {
-            if (component == nullptr || component->isActiveAndEnabled() == false)
-            {
-                continue;
-            }
-
-            return &component->getCamera();
-        }
-
-        return nullptr;
+        return m_scene.resolveCamera();
     }
 
     const Camera* SceneSystem::getMainCamera() const
     {
-        for (const CameraComponent* component : m_scene.components<CameraComponent>())
-        {
-            if (component == nullptr || component->isActiveAndEnabled() == false)
-            {
-                continue;
-            }
 
-            return &component->getCamera();
-        }
-
-        return nullptr;
+        return m_scene.resolveCamera();
     }
 
     void SceneSystem::setActiveCamera(GameObject* obj)
     {
         m_scene.setActiveCamera(obj);
-        if (obj == nullptr)
-        {
-            m_renderModule->setMainCamera(nullptr);
-            return;
-        }
-        CameraComponent* camera = obj->getComponent<CameraComponent>();
-        AIKO_ASSERT(camera != nullptr, "Active camera GameObject has no CameraComponent");
-        m_renderModule->setMainCamera(camera != nullptr ? &camera->getCamera() : nullptr);
     }
 }

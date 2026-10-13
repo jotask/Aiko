@@ -13,6 +13,8 @@
 namespace aiko
 {
 
+    class Camera;
+
     class Scene
     {
         friend class GameObject;
@@ -42,6 +44,9 @@ namespace aiko
         void setActiveCamera(GameObject* obj);
         GameObject* getActiveCamera() { return m_activeCamera; }
         const GameObject* getActiveCamera() const { return m_activeCamera; }
+
+        Camera* resolveCamera();
+        const Camera* resolveCamera() const;
 
         template<class T>
         vector<T*> components();

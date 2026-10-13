@@ -3,7 +3,9 @@
 #include <assets/asset_id.h>
 #include "modules/base_module.h"
 #include <models/texture_region.h>
-#include "models/light.h"
+#include <models/camera.h>
+#include <optional>
+#include <models/light.h>
 
 namespace aiko
 {
@@ -85,7 +87,7 @@ namespace aiko
 
         DisplayModule* m_displayModule = nullptr;
         AssetsManagerModule* m_assetManager = nullptr;
-        const Camera* m_mainCamera = nullptr;
+        std::optional<Camera> m_mainCamera;
 
         vector<InstanceItem> m_instances;
 

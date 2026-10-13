@@ -2,7 +2,6 @@
 
 #include "scene.h"
 #include "models/game_object.h"
-#include "components/camera_component.h"
 #include "components/light_component.h"
 
 namespace aiko
@@ -11,47 +10,11 @@ namespace aiko
     {
         SceneView view;
         view.clear();
-        view.camera = findActiveCamera(scene);
+        view.camera = scene.resolveCamera();
         view.clearColor = scene.clearColor();
         view.ambientLight = scene.ambientLight();
         gatherLights(scene, view);
         return view;
-    }
-
-    const Camera* SceneViewBuilder::findActiveCamera(Scene& scene)
-    {
-        if (GameObject* active = scene.getActiveCamera())
-        {
-            if (active->isActiveInHierarchy())
-            {
-                CameraComponent* component =
-                    active->getComponent<CameraComponent>();
-
-                AIKO_ASSERT(
-                    component != nullptr,
-                    "Active camera GameObject has no CameraComponent");
-
-                if (component != nullptr &&
-                    component->isEnabled())
-                {
-                    return &component->getCamera();
-                }
-            }
-        }
-
-        for (CameraComponent* component :
-             scene.components<CameraComponent>())
-        {
-            if (component == nullptr ||
-                component->isActiveAndEnabled() == false)
-            {
-                continue;
-            }
-
-            return &component->getCamera();
-        }
-
-        return nullptr;
     }
 
     void SceneViewBuilder::gatherLights(Scene& scene, SceneView& out)

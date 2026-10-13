@@ -12,7 +12,7 @@ namespace aiko
 {
     RenderModule::RenderModule(Aiko* aiko)
         : BaseModule(aiko)
-        , m_mainCamera(nullptr)
+        , m_mainCamera(std::nullopt)
         , m_renderer(nullptr)
     {
     }
@@ -24,7 +24,14 @@ namespace aiko
 
     void RenderModule::setMainCamera(const Camera* camera)
     {
-        m_mainCamera = camera;
+        if (camera != nullptr)
+        {
+            m_mainCamera = *camera;
+        }
+        else
+        {
+            m_mainCamera.reset();
+        }
     }
 
     void RenderModule::submitLights(const AmbientLight& ambient, const vector<LightData>& data)
@@ -209,14 +216,14 @@ namespace aiko
 
     void RenderModule::beginFrame()
     {
+        m_mainCamera.reset();
         m_instances.clear();
         m_renderer->beginFrame();
     }
 
     void RenderModule::endFrame()
     {
-        AIKO_ASSERT(m_mainCamera != nullptr, "Main camera not set. Forgot to call set Main camera?");
-        m_renderer->render(*m_mainCamera);
+        m_renderer->render(m_mainCamera ? &*m_mainCamera : nullptr);
         m_renderer->endFrame();
         m_instances.clear();
     }

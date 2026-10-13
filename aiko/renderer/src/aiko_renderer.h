@@ -73,6 +73,7 @@ namespace aiko
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
 
         void render(const Camera& camera);
+        void render(const Camera* camera);
 
         void setDebugTexture(const Texture* texture);
         void setUiShader(AssetId shaderId);

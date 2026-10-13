@@ -198,35 +198,47 @@ namespace aiko
 
     void AikoRenderer::render(const Camera& camera)
     {
+        render(&camera);
+    }
+
+    void AikoRenderer::render(const Camera* camera)
+    {
         AIKO_FUNCTION_PROFILE
 
-        const renderer::FrameData frameData = buildSceneFrameData(camera, m_sceneTarget.size());
+        Camera fallbackCamera;
+        fallbackCamera.setCameraType(Camera::Perspective);
+
+        const Camera& frameCamera = camera != nullptr ? *camera : fallbackCamera;
+
+        const renderer::FrameData frameData = buildSceneFrameData(frameCamera, m_sceneTarget.size());
 
         m_renderer->bindFrame(COMPUTE_VIEW, frameData);
         executeComputePasses();
 
-        // Secondary cameras first.
         for (SceneRenderRequest& request : m_sceneRenderRequests)
         {
             AIKO_ASSERT(request.target != nullptr, "Scene render request has no target");
             AIKO_ASSERT(request.target->isValid(), "Scene render request target is invalid");
 
             const renderer::FrameData requestFrame = buildSceneFrameData(request.camera, request.target->size());
-
             const PreparedScenePass requestPass = request.queue.buildScenePass();
 
             submitScenePass(requestFrame, requestPass, *request.target);
         }
 
-        // Main camera.
-        const PreparedScenePass scenePass = m_renderQueue.buildScenePass();
-
-        submitScenePass(frameData, scenePass, m_sceneTarget);
+        if (camera != nullptr)
+        {
+            const PreparedScenePass scenePass = m_renderQueue.buildScenePass();
+            submitScenePass(frameData, scenePass, m_sceneTarget);
+        }
+        else
+        {
+            const PreparedScenePass emptyPass{};
+            submitScenePass(frameData, emptyPass, m_sceneTarget);
+        }
 
         submitPresentPass(m_sceneTarget.colorTexture());
-
         submitUiPass();
-
         submitImguiPass();
 
     }

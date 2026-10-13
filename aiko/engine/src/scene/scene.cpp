@@ -163,19 +163,53 @@ namespace aiko
             return;
         }
 
-        const bool exists = std::any_of(
-            m_objects.begin(),
-            m_objects.end(),
-            [obj](const AikoUPtr<GameObject>& go)
+        const bool exists = std::any_of(m_objects.begin(), m_objects.end(),
+            [obj](const AikoUPtr<GameObject>& object)
             {
-                return go != nullptr && go.get() == obj;
-            }
-        );
+                return object.get() == obj;
+            });
 
         AIKO_ASSERT(exists, "Active camera GameObject does not belong to this Scene");
-        AIKO_ASSERT(obj->getComponent<CameraComponent>() != nullptr, "Active camera GameObject has no CameraComponent");
+        if (exists == false)
+        {
+            return;
+        }
+
+        const bool hasCamera = obj->getComponent<CameraComponent>() != nullptr;
+        AIKO_ASSERT(hasCamera, "Active camera GameObject has no CameraComponent");
+        if (hasCamera == false)
+        {
+            return;
+        }
 
         m_activeCamera = obj;
+    }
+
+    Camera* Scene::resolveCamera()
+    {
+        return const_cast<Camera*>(std::as_const(*this).resolveCamera());
+    }
+
+    const Camera* Scene::resolveCamera() const
+    {
+        if (const GameObject* active = m_activeCamera)
+        {
+            const CameraComponent* component = active->getComponent<CameraComponent>();
+            if (component != nullptr && component->isActiveAndEnabled())
+            {
+                return &component->getCamera();
+            }
+        }
+
+        for (const CameraComponent* component : components<CameraComponent>())
+        {
+            if (component != nullptr && component->isActiveAndEnabled())
+            {
+                return &component->getCamera();
+            }
+        }
+
+        return nullptr;
     }
 
     void Scene::destroyObject(GameObject& object)
@@ -203,6 +237,11 @@ namespace aiko
         if (component == nullptr)
         {
             return;
+        }
+
+        if (type == std::type_index(typeid(CameraComponent)) && component->getGameObject() == m_activeCamera)
+        {
+            m_activeCamera = nullptr;
         }
 
         auto it = m_componentIndex.find(type);
