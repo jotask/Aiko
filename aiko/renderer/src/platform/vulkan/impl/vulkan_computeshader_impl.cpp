@@ -3,6 +3,8 @@
 #include "platform/vulkan/vulkan_context.h"
 
 #include <cstring>
+#include <atomic>
+#include <cstdlib>
 
 #include <logger/logger.h>
 #include <core/file.h>
@@ -13,6 +15,21 @@
 
 namespace aiko::renderer::vulkan
 {
+
+    namespace
+    {
+        RenderResourceId nextComputeShaderId()
+        {
+            static std::atomic<RenderResourceId> nextId{1};
+            const RenderResourceId id = nextId.fetch_add(1, std::memory_order_relaxed);
+            if (id == InvalidRenderResourceId)
+            {
+                std::abort();
+            }
+            return id;
+        }
+    }
+
     VulkanComputeShaderImpl::VulkanComputeShaderImpl()
     {
     }
@@ -63,12 +80,23 @@ namespace aiko::renderer::vulkan
         const VkResult result = vkCreateShaderModule(ctx.device(), &createInfo, nullptr, &m_module);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan compute shader module");
 
+        if (result != VK_SUCCESS)
+        {
+            m_module = VK_NULL_HANDLE;
+            m_reflection.clear();
+            return;
+        }
+
+        m_id = nextComputeShaderId();
         m_file = file;
 
     }
 
     void VulkanComputeShaderImpl::unload()
     {
+
+        m_id = InvalidRenderResourceId;
+
         if (m_module == VK_NULL_HANDLE)
         {
             m_file.clear();
@@ -87,7 +115,7 @@ namespace aiko::renderer::vulkan
 
     RenderResourceId VulkanComputeShaderImpl::id() const
     {
-        return static_cast<RenderResourceId>(reinterpret_cast<uintptr_t>(m_module));
+        return m_id;
     }
 
 

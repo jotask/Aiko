@@ -46,7 +46,10 @@ namespace aiko::renderer::vulkan
         const VkShaderModule shaderModule = shader.module();
         AIKO_ASSERT(shaderModule != VK_NULL_HANDLE, "Invalid compute shader module");
 
-        const auto it = m_pipelines.find(shaderModule);
+        const RenderResourceId shaderId = shader.id();
+        AIKO_ASSERT(shaderId != InvalidRenderResourceId, "Compute shader has no valid resource ID");
+
+        const auto it = m_pipelines.find(shaderId);
 
         if (it != m_pipelines.end())
         {
@@ -75,7 +78,7 @@ namespace aiko::renderer::vulkan
         const VkResult result = vkCreateComputePipelines(m_context.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan compute pipeline");
 
-        m_pipelines.emplace(shaderModule, pipeline);
+        m_pipelines.emplace(shaderId, pipeline);
 
         return pipeline;
     }
@@ -84,9 +87,9 @@ namespace aiko::renderer::vulkan
     {
         VkDevice device = m_context.device();
 
-        for (const auto& [shaderModule, pipeline] : m_pipelines)
+        for (const auto& [shaderId, pipeline] : m_pipelines)
         {
-            AIKO_UNUSED(shaderModule);
+            AIKO_UNUSED(shaderId);
 
             if (pipeline != VK_NULL_HANDLE)
             {

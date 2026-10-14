@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types/render_types.h"
+
 #include <unordered_map>
 
 #include <volk.h>
@@ -32,6 +34,6 @@ namespace aiko::renderer::vulkan
 
         VkPipelineLayout m_layout = VK_NULL_HANDLE;
 
-        std::unordered_map<VkShaderModule, VkPipeline> m_pipelines;
+        std::unordered_map<RenderResourceId, VkPipeline> m_pipelines;
     };
 }

@@ -31,6 +31,7 @@ namespace aiko::renderer::vulkan
     private:
 
         string m_file;
+        RenderResourceId m_id = InvalidRenderResourceId;
         VkShaderModule m_module = VK_NULL_HANDLE;
         VulkanShaderReflection m_reflection;
 
