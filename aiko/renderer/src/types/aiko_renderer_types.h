@@ -76,6 +76,7 @@ namespace aiko
     {
         MeshDrawPacket draw{};
         const TransientDrawDesc* transient = nullptr;
+        InstancedDrawPacket instanced{};
         float depth = 0.0f;
     };
 

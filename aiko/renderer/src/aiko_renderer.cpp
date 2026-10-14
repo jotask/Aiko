@@ -535,7 +535,18 @@ namespace aiko
 
         for (const PreparedTransparentPacket& packet : passData.transparent)
         {
-            prepareMaterial(packet.transient != nullptr ? packet.transient->material : packet.draw.material);
+            if (packet.transient != nullptr)
+            {
+                prepareMaterial(packet.transient->material);
+            }
+            else if (packet.instanced.data != nullptr)
+            {
+                prepareMaterial(packet.instanced.material);
+            }
+            else
+            {
+                prepareMaterial(packet.draw.material);
+            }
         }
 
         m_renderer->beginPass(SCENE_VIEW, pass, &frameBuffer);
@@ -614,6 +625,10 @@ namespace aiko
                 if (packet.transient != nullptr)
                 {
                     m_renderer->submitTransient(SCENE_VIEW, *packet.transient);
+                }
+                else if (packet.instanced.data != nullptr)
+                {
+                    m_renderer->submitInstanced(SCENE_VIEW, packet.instanced);
                 }
                 else
                 {

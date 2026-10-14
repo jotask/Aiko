@@ -6,6 +6,8 @@
 #include "models/material.h"
 #include "models/mesh.h"
 
+#include <cstring>
+
 namespace aiko
 {
     void RenderQueue::submit(const Mesh& mesh, const Material& material, const mat4& transform)
@@ -199,6 +201,49 @@ namespace aiko
 
                 AIKO_ASSERT(item.dataOffset + item.byteCount <= m_instanceData.size(), "Instanced data range out of bounds");
                 AIKO_ASSERT(item.byteCount == size_t(item.count) * size_t(item.stride), "Instanced byteCount mismatch");
+
+                if (item.material->m_renderState.blend)
+                {
+                    AIKO_ASSERT(item.stride >= sizeof(InstanceData), "Transparent instance stride is smaller than InstanceData");
+
+                    if (item.stride < sizeof(InstanceData))
+                    {
+                        continue;
+                    }
+
+                    for (u32 i = 0; i < item.count; ++i)
+                    {
+                        const size_t offset = item.dataOffset + size_t(i) * item.stride;
+
+                        const u8* data = m_instanceData.data() + offset;
+
+                        InstanceData instance{};
+                        std::memcpy(&instance, data, sizeof(instance));
+
+                        const float depth = -(
+                            view(2, 0) * instance.position.x +
+                            view(2, 1) * instance.position.y +
+                            view(2, 2) * instance.position.z +
+                            view(2, 3));
+
+                        passData.transparent.push_back(PreparedTransparentPacket
+                        {
+                            .draw = {},
+                            .transient = nullptr,
+                            .instanced =
+                            {
+                                .mesh = item.mesh,
+                                .material = item.material,
+                                .data = data,
+                                .instanceCount = 1,
+                                .stride = item.stride
+                            },
+                            .depth = depth
+                        });
+                    }
+
+                    continue;
+                }
 
                 totalInstancedBytes += item.byteCount;
 
