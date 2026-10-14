@@ -90,10 +90,20 @@ namespace aiko
         m_transientDraws.clear();
     }
 
-    PreparedScenePass RenderQueue::buildScenePass()
+    PreparedScenePass RenderQueue::buildScenePass(const mat4& view)
     {
         AIKO_FUNCTION_PROFILE
+
         PreparedScenePass passData;
+
+        const auto depthOf = [&view](const mat4& world)
+        {
+            return -(
+                view(2, 0) * world(0, 3) +
+                view(2, 1) * world(1, 3) +
+                view(2, 2) * world(2, 3) +
+                view(2, 3) * world(3, 3));
+        };
 
         passData.fullscreen.reserve(m_fullscreenDraws.size());
         for (const Material* material : m_fullscreenDraws)
@@ -127,6 +137,23 @@ namespace aiko
         {
             if (item.mesh == nullptr || item.material == nullptr)
             {
+                continue;
+            }
+
+            if (item.material->m_renderState.blend)
+            {
+                passData.transparent.push_back(PreparedTransparentPacket
+                {
+                    .draw =
+                    {
+                        .mesh = item.mesh,
+                        .material = item.material,
+                        .world = item.transform
+                    },
+                    .transient = nullptr,
+                    .depth = depthOf(item.transform)
+                });
+
                 continue;
             }
 
@@ -281,6 +308,18 @@ namespace aiko
                     continue;
                 }
 
+                if (item.material->m_renderState.blend)
+                {
+                    passData.transparent.push_back(PreparedTransparentPacket
+                    {
+                        .draw = {},
+                        .transient = &item,
+                        .depth = depthOf(item.mtx)
+                    });
+
+                    continue;
+                }
+
                 passData.transient.push_back(PreparedTransientPacket
                 {
                     .item = &item,
@@ -302,6 +341,12 @@ namespace aiko
             });
 
         }
+
+        std::stable_sort(passData.transparent.begin(), passData.transparent.end(),
+        [](const PreparedTransparentPacket& a, const PreparedTransparentPacket& b)
+        {
+            return a.depth > b.depth;
+        });
 
         return passData;
     }

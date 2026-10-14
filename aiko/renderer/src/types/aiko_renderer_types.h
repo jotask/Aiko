@@ -72,6 +72,13 @@ namespace aiko
         u64 materialId = 0;
     };
 
+    struct PreparedTransparentPacket
+    {
+        MeshDrawPacket draw{};
+        const TransientDrawDesc* transient = nullptr;
+        float depth = 0.0f;
+    };
+
     struct PreparedScenePass
     {
         vector<const Material*> fullscreen;
@@ -83,5 +90,6 @@ namespace aiko
         vector<PreparedRenderPacket> opaque;
         vector<PreparedInstancedPacket> instanced;
         vector<PreparedTransientPacket> transient;
+        vector<PreparedTransparentPacket> transparent;
     };
 }

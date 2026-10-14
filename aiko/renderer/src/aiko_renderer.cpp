@@ -276,14 +276,14 @@ namespace aiko
             AIKO_ASSERT(request.target->isValid(), "Scene render request target is invalid");
 
             const renderer::FrameData requestFrame = buildSceneFrameData(request.camera, request.target->size());
-            const PreparedScenePass requestPass = request.queue.buildScenePass();
+            const PreparedScenePass requestPass = request.queue.buildScenePass(requestFrame.view);
 
             submitScenePass(requestFrame, requestPass, *request.target);
         }
 
         if (camera != nullptr)
         {
-            const PreparedScenePass scenePass = m_renderQueue.buildScenePass();
+            const PreparedScenePass scenePass = m_renderQueue.buildScenePass(frameData.view);
             submitScenePass(frameData, scenePass, m_sceneTarget);
         }
         else
@@ -533,6 +533,11 @@ namespace aiko
             }
         }
 
+        for (const PreparedTransparentPacket& packet : passData.transparent)
+        {
+            prepareMaterial(packet.transient != nullptr ? packet.transient->material : packet.draw.material);
+        }
+
         m_renderer->beginPass(SCENE_VIEW, pass, &frameBuffer);
         m_renderer->bindFrame(SCENE_VIEW, frameData);
 
@@ -600,6 +605,20 @@ namespace aiko
             {
                 AIKO_ASSERT(packet.item != nullptr, "Prepared transient packet has null item");
                 m_renderer->submitTransient(SCENE_VIEW, *packet.item);
+            }
+        }
+
+        {
+            for (const PreparedTransparentPacket& packet : passData.transparent)
+            {
+                if (packet.transient != nullptr)
+                {
+                    m_renderer->submitTransient(SCENE_VIEW, *packet.transient);
+                }
+                else
+                {
+                    m_renderer->submitMesh(SCENE_VIEW, packet.draw);
+                }
             }
         }
 

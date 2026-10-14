@@ -25,7 +25,7 @@ namespace aiko
         void submitGpuBillboards(const GpuBillboardDrawDesc& desc);
         void submitGpuVertices(const GpuVertexDrawDesc& desc);
 
-        PreparedScenePass buildScenePass();
+        PreparedScenePass buildScenePass(const mat4& view);
 
     private:
         std::vector<RenderItem> m_renderItems;
