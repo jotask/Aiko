@@ -29,8 +29,8 @@
         friend class RenderModule;
         friend class RenderSystem;
 
-        Material(const Material&) = delete;
-        Material& operator=(const Material&) = delete;
+        Material(const Material&) = default;
+        Material& operator=(const Material&) = default;
 
         Material(Material&&) noexcept = default;
         Material& operator=(Material&&) noexcept = default;

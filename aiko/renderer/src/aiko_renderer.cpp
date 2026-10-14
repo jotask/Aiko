@@ -90,12 +90,13 @@ namespace aiko
 
         m_renderer->beginFrame();
 
-        m_frameMaterials.clear();
-        m_frameMaterialCache.clear();
-        m_frameTransientGeometries.clear();
         m_renderQueue.clear();
-        m_computeQueue.clear();
         m_sceneRenderRequests.clear();
+        m_computeQueue.clear();
+
+        m_frameMaterialCache.clear();
+        m_frameMaterials.clear();
+        m_frameTransientGeometries.clear();
         m_lights.clear();
         m_uiDrawList.clear();
         m_uiRenderer.beginFrame();
@@ -134,7 +135,8 @@ namespace aiko
     void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const Material& material)
     {
         AIKO_FUNCTION_PROFILE
-        m_renderQueue.submit(mesh, material, transform.getWorldMatrix());
+        m_frameMaterials.push_back(material);
+        m_renderQueue.submit(mesh, m_frameMaterials.back(), transform.getWorldMatrix());
     }
 
     void AikoRenderer::submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride)
@@ -147,7 +149,7 @@ namespace aiko
     {
         AIKO_FUNCTION_PROFILE
         Material& stagedMaterial = stageMaterial(materialAsset, materialInstance);
-        submit(transform, mesh, stagedMaterial);
+        m_renderQueue.submit(mesh, stagedMaterial, transform.getWorldMatrix());
     }
 
     void AikoRenderer::submitFullscreen(const Material& material)
@@ -159,9 +161,10 @@ namespace aiko
     void AikoRenderer::submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology)
     {
         AIKO_FUNCTION_PROFILE
-        TransientDrawDesc draw = {};
+        m_frameMaterials.push_back(material);
+        TransientDrawDesc draw{};
         draw.mtx = transform.getWorldMatrix();
-        draw.material = &material;
+        draw.material = &m_frameMaterials.back();
         draw.geometry = &stageTransientGeometry(meshAsset, topology);
         m_renderQueue.submitTransient(std::move(draw));
     }
