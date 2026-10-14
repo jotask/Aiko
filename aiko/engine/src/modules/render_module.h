@@ -47,8 +47,9 @@ namespace aiko
 
         void submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology);
 
-        void requestReadback(const ComputeReadbackRequest& req);
-        bool pollReadback(ComputeReadbackResult& out);
+        ReadbackId requestReadback(const ComputeReadbackRequest& request);
+        bool pollReadback(ReadbackId id, ComputeReadbackResult& result);
+        void cancelReadback(ReadbackId id);
 
         void renderToTarget(const Camera& camera, RenderTarget& target);
         const FrameBuffer& getTargetTexture() const;

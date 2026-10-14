@@ -227,17 +227,16 @@ namespace aiko
 
         }
 
-        if (cmp.usesOutputTexture() == false && cmp.consumeReadbackRequest() == true && state->readbackRequested == false)
+        if (cmp.usesOutputTexture() == false && state->readbackRequested == false && cmp.consumeReadbackRequest() == true)
         {
-            state->readbackId = m_nextReadbackId++;
 
             AIKO_ASSERT(state->buffer.isValid(), "Attempting readback from invalid compute buffer");
 
             ComputeReadbackRequest req = {};
-            req.id = state->readbackId;
             req.buffer = &state->buffer;
             req.byteSize =  count * sizeof(vec4);
-            m_renderSystem->requestReadback(req);
+
+            state->readbackId = m_renderSystem->requestReadback(req);
             state->readbackRequested = true;
 
         }
@@ -245,12 +244,13 @@ namespace aiko
         if (state->readbackRequested == true)
         {
             ComputeReadbackResult result = {};
-            if (m_renderSystem->pollReadback(result) == true)
+            if (m_renderSystem->pollReadback(state->readbackId, result) == true)
             {
                 if (result.ready == true && result.id == state->readbackId)
                 {
                     cmp.setLastReadback(std::move(result));
                     state->readbackRequested = false;
+                    state->readbackId = InvalidReadbackId;
                 }
             }
         }
@@ -368,6 +368,11 @@ namespace aiko
 
     void ComputeSystem::destroyState(RuntimeState& state)
     {
+
+        m_renderSystem->cancelReadback(state.readbackId);
+        state.readbackId = InvalidReadbackId;
+        state.readbackRequested = false;
+
         state.buffer.unload();
 
         if (state.output.isValid())

@@ -94,14 +94,19 @@ namespace aiko
         m_renderer->submitTransient(transform, material, meshAsset, topology);
     }
 
-    void RenderModule::requestReadback(const ComputeReadbackRequest& req)
+    ReadbackId RenderModule::requestReadback(const ComputeReadbackRequest& request)
     {
-        m_renderer->requestReadback(req);
+        return m_renderer->requestReadback(request);
     }
 
-    bool RenderModule::pollReadback(ComputeReadbackResult& out)
+    bool RenderModule::pollReadback(ReadbackId id, ComputeReadbackResult& result)
     {
-        return m_renderer->pollReadback(out);
+        return m_renderer->pollReadback(id, result);
+    }
+
+    void RenderModule::cancelReadback(ReadbackId id)
+    {
+        m_renderer->cancelReadback(id);
     }
 
     void RenderModule::renderToTarget(const Camera& camera, RenderTarget& target)

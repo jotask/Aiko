@@ -70,7 +70,6 @@ namespace aiko
         void clearOutputReferences(const RuntimeState& state);
 
         std::unordered_map<const ComputeShaderComponent*, AikoUPtr<RuntimeState>> m_runtime;
-        ReadbackId m_nextReadbackId = InvalidReadbackId + 1;
 
         RenderSystem* m_renderSystem;
         SceneSystem* m_sceneSystem;

@@ -383,16 +383,21 @@ namespace aiko
         dispatch(pass, component.getShaderId());
     }
 
-    void RenderSystem::requestReadback(const ComputeReadbackRequest& req)
+    ReadbackId RenderSystem::requestReadback(const ComputeReadbackRequest& request)
     {
         AIKO_FUNCTION_PROFILE
-        m_renderModule->requestReadback(req);
+        return m_renderModule->requestReadback(request);
     }
 
-    bool RenderSystem::pollReadback(ComputeReadbackResult& req)
+    bool RenderSystem::pollReadback(ReadbackId id, ComputeReadbackResult& result)
     {
         AIKO_FUNCTION_PROFILE
-        return m_renderModule->pollReadback(req);
+        return m_renderModule->pollReadback(id, result);
+    }
+
+    void RenderSystem::cancelReadback(ReadbackId id)
+    {
+        m_renderModule->cancelReadback(id);
     }
 
     void RenderSystem::renderToTarget(const Camera& camera, RenderTarget& target)

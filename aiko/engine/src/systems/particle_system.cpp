@@ -11,6 +11,7 @@
 #include "systems/system_connector.h"
 #include "systems/asset_system.h"
 
+#include <cstring>
 #include <algorithm>
 
 namespace aiko
@@ -102,6 +103,7 @@ namespace aiko
 
         if (emitter.consumeResetRequest() == true)
         {
+            m_renderSystem->cancelReadback(state.readbackId);
             state.initDispatched = false;
             state.readbackRequested = false;
             state.readbackId = InvalidReadbackId;
@@ -198,33 +200,35 @@ namespace aiko
         {
             if (state->readbackRequested == false)
             {
-                state->readbackId = m_nextReadbackId++;
 
                 ComputeReadbackRequest req{};
-                req.id = state->readbackId;
                 req.buffer = &state->positionBuffer;
                 req.byteSize = std::min<uint32_t>(count, 8) * sizeof(vec4);
 
-                m_renderSystem->requestReadback(req);
+                state->readbackId = m_renderSystem->requestReadback(req);
                 state->readbackRequested = true;
             }
 
             if (state->readbackRequested == true)
             {
                 ComputeReadbackResult result{};
-                if (m_renderSystem->pollReadback(result) == true)
+                if (m_renderSystem->pollReadback(state->readbackId, result) == true)
                 {
                     if (result.ready && result.id == state->readbackId)
                     {
 
-                        const vec4* values = reinterpret_cast<const vec4*>(result.data.data());
+                        const size_t sampleCount = std::min<size_t>(3, result.data.size() / sizeof(vec4));
 
-                        logger::Log::info("particle[0] = (%f, %f, %f, %f)", values[0].x, values[0].y, values[0].z, values[0].w);
-                        logger::Log::info("particle[1] = (%f, %f, %f, %f)", values[1].x, values[1].y, values[1].z, values[1].w);
-                        logger::Log::info("particle[2] = (%f, %f, %f, %f)", values[2].x, values[2].y, values[2].z, values[2].w);
+                        for (size_t i = 0; i < sampleCount; ++i)
+                        {
+                            vec4 value{};
+                            std::memcpy(&value, result.data.data() + i * sizeof(vec4), sizeof(value));
+                            logger::Log::info("particle[{}] = ({}, {}, {}, {})", i, value.x, value.y, value.z, value.w);
+                        }
 
                         state->lastReadback = std::move(result);
                         state->readbackRequested = false;
+                        state->readbackId = InvalidReadbackId;
                     }
                 }
             }
@@ -310,6 +314,10 @@ namespace aiko
 
     void ParticleSystem::destroyState(RuntimeState& state)
     {
+        m_renderSystem->cancelReadback(state.readbackId);
+        state.readbackId = InvalidReadbackId;
+        state.readbackRequested = false;
+
         if (state.particleMesh.isValid())
         {
             state.particleMesh.unload();

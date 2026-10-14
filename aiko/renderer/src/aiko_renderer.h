@@ -65,8 +65,9 @@ namespace aiko
         void submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology);
 
         void enqueueCompute(const ComputePass& pass);
-        void requestReadback(const ComputeReadbackRequest& req);
-        bool pollReadback(ComputeReadbackResult& out);
+        ReadbackId requestReadback(const ComputeReadbackRequest& req);
+        bool pollReadback(ReadbackId id, ComputeReadbackResult& out);
+        void cancelReadback(ReadbackId id);
 
         void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
         void drawBillboards(const GpuBillboardDrawDesc& desc);
@@ -141,6 +142,9 @@ namespace aiko
         std::optional<ivec2> m_pendingSurfaceResize = std::nullopt;
 
         std::vector<SceneRenderRequest> m_sceneRenderRequests;
+
+        ReadbackId m_nextReadbackId = 1;
+        std::unordered_map<ReadbackId, ComputeReadbackResult> m_readbacks;
 
         UIRenderer m_uiRenderer;
         UIDrawList m_uiDrawList;

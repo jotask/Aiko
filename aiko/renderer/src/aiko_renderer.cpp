@@ -19,6 +19,9 @@
 #include "time/time.h"
 #include "imgui/aiko_imgui.h"
 
+#include <cstdlib>
+#include <utility>
+
 namespace aiko
 {
     AikoRenderer::AikoRenderer(IAssetProvider& assets)
@@ -90,6 +93,18 @@ namespace aiko
 
         m_renderer->beginFrame();
 
+        ComputeReadbackResult completed;
+
+        while (m_renderer->pollReadback(completed))
+        {
+            const auto it = m_readbacks.find(completed.id);
+
+            if (it != m_readbacks.end())
+            {
+                it->second = std::move(completed);
+            }
+        }
+
         m_renderQueue.clear();
         m_sceneRenderRequests.clear();
         m_computeQueue.clear();
@@ -118,6 +133,7 @@ namespace aiko
         m_sceneTarget.unload();
         m_resources.clear();
         m_renderer->shutdown();
+        m_readbacks.clear();
     }
 
     void AikoRenderer::setClearColor(Color color)
@@ -174,14 +190,50 @@ namespace aiko
         m_computeQueue.push_back(pass);
     }
 
-    void AikoRenderer::requestReadback(const ComputeReadbackRequest& req)
+    ReadbackId AikoRenderer::requestReadback(const ComputeReadbackRequest& req)
     {
-        m_renderer->requestReadback(req);
+        if (m_nextReadbackId == InvalidReadbackId)
+        {
+            std::abort();
+        }
+
+        const ReadbackId id = m_nextReadbackId++;
+
+        ComputeReadbackRequest submitted = req;
+        submitted.id = id;
+
+        m_readbacks.emplace(id, ComputeReadbackResult{});
+
+        try
+        {
+            m_renderer->requestReadback(submitted);
+        }
+        catch (...)
+        {
+            m_readbacks.erase(id);
+            throw;
+        }
+
+        return id;
     }
 
-    bool AikoRenderer::pollReadback(ComputeReadbackResult& out)
+    bool AikoRenderer::pollReadback(ReadbackId id, ComputeReadbackResult& out)
     {
-        return m_renderer->pollReadback(out);
+        const auto it = m_readbacks.find(id);
+
+        if (it == m_readbacks.end() || !it->second.ready)
+        {
+            return false;
+        }
+
+        out = std::move(it->second);
+        m_readbacks.erase(it);
+        return true;
+    }
+
+    void AikoRenderer::cancelReadback(ReadbackId id)
+    {
+        m_readbacks.erase(id);
     }
 
     void AikoRenderer::drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc)

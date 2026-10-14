@@ -106,8 +106,6 @@ namespace aiko
         AssetId m_initShaderId = InvalidAssetId;
         AssetId m_updateShaderId = InvalidAssetId;
 
-        ReadbackId m_nextReadbackId = InvalidReadbackId + 1;
-
         std::unordered_map<const ParticleEmitterComponent*, AikoUPtr<RuntimeState>> m_runtime;
 
         const bool m_debugReadbackEnabled = false;

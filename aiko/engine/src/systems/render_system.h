@@ -58,8 +58,9 @@ namespace aiko
         void dispatch(const ComputePass& pass, const AssetId& shaderId);
         void dispatch(const ComputePass& pass, const ComputeShaderComponent& component);
 
-        void requestReadback(const ComputeReadbackRequest&);
-        bool pollReadback(ComputeReadbackResult&);
+        ReadbackId requestReadback(const ComputeReadbackRequest& request);
+        bool pollReadback(ReadbackId id, ComputeReadbackResult& result);
+        void cancelReadback(ReadbackId id);
 
         void renderToTarget(const Camera& camera, RenderTarget& target);
         const FrameBuffer& getTargetTexture() const;
