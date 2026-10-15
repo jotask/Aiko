@@ -39,21 +39,20 @@ namespace aiko::physics
 
         inline JPH::Quat toJoltRotation(const vec3& eulerDegrees)
         {
-            return JPH::Quat::sEulerAngles(JPH::Vec3(
-                math::radians(eulerDegrees.x),
-                math::radians(eulerDegrees.y),
-                math::radians(eulerDegrees.z)
-            ));
+            const JPH::Quat x = JPH::Quat::sRotation(JPH::Vec3::sAxisX(), math::radians(eulerDegrees.x));
+            const JPH::Quat y = JPH::Quat::sRotation(JPH::Vec3::sAxisY(), math::radians(eulerDegrees.y));
+            const JPH::Quat z = JPH::Quat::sRotation(JPH::Vec3::sAxisZ(), math::radians(eulerDegrees.z));
+
+            return x * y * z;
         }
 
         inline vec3 fromJoltRotation(JPH::QuatArg q)
         {
-            const JPH::Vec3 eulerRadians = q.GetEulerAngles();
-
+            const JPH::Vec3 inverseEuler = q.Conjugated().GetEulerAngles();
             return vec3(
-                math::degrees(eulerRadians.GetX()),
-                math::degrees(eulerRadians.GetY()),
-                math::degrees(eulerRadians.GetZ())
+                -math::degrees(inverseEuler.GetX()),
+                -math::degrees(inverseEuler.GetY()),
+                -math::degrees(inverseEuler.GetZ())
             );
         }
 
