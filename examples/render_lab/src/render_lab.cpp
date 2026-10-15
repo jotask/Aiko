@@ -47,9 +47,10 @@ namespace aiko::lab
         constexpr bool EnableComputeTests = true;
         constexpr bool EnableGpuVertexTests = true;
         constexpr bool EnableRenderTargetTests = true;
-        constexpr bool EnableUI = true;
+        constexpr bool EnableUI = false;
         constexpr bool EnableTextTests = true;
         constexpr bool EnableRenderTargetResizeStress = true;
+        constexpr bool EnableMaterialSnapshotTests = true;
     }
 
     void RenderLab::connect(SystemConnector& systemConnector)
@@ -124,6 +125,11 @@ namespace aiko::lab
         {
             initUI();
         }
+
+        if constexpr (EnableMaterialSnapshotTests)
+        {
+            initMaterialSnapshotTests();
+        }
     }
 
     void RenderLab::update()
@@ -190,6 +196,11 @@ namespace aiko::lab
         if constexpr (EnableGpuVertexTests)
         {
             renderGpuVertices();
+        }
+
+        if constexpr (EnableMaterialSnapshotTests)
+        {
+            renderMaterialSnapshotTests();
         }
 
         if constexpr (EnableRenderTargetTests)
@@ -1322,6 +1333,22 @@ namespace aiko::lab
 
     }
 
+    void RenderLab::initMaterialSnapshotTests()
+    {
+        m_snapshotTestMesh.upload(mesh::factory::generateQuad());
+
+        m_snapshotTestMaterial.m_shaderId = assets().loadShader(renderer::BuiltinShader::Model);
+
+        m_snapshotTestMaterial.m_baseColor = WHITE;
+        m_snapshotTestMaterial.m_useVertexColor = false;
+        m_snapshotTestMaterial.m_lit = false;
+
+        m_snapshotTestMaterial.m_renderState.cullMode = CullMode::None;
+        m_snapshotTestMaterial.m_renderState.depthTest = true;
+        m_snapshotTestMaterial.m_renderState.depthWrite = true;
+        m_snapshotTestMaterial.m_renderState.blend = false;
+    }
+
     // --------------------------------------------------
     // Updates
     // --------------------------------------------------
@@ -1781,6 +1808,74 @@ namespace aiko::lab
             0.0f
         };
         renderer().drawText(m_debugFont, "Aiko World Text", textTransform, 0.5f, WHITE);
+    }
+
+    void RenderLab::renderMaterialSnapshotTests()
+    {
+        const vec3 offset{14.0f, 0.0f, 0.0f};
+
+        Material material = m_snapshotTestMaterial;
+
+        const auto drawInstance =
+            [this, &material, offset](const vec3& position, const vec3& size)
+            {
+                const InstanceData instance
+                {
+                    .position = position + offset,
+                    .rotation = {0.0f, 0.0f, 0.0f},
+                    .scale = size,
+                    .color = WHITE
+                };
+
+                renderer().drawMeshInstanced(m_snapshotTestMesh, material, &instance, 1);
+            };
+
+        // Top row: two compatible opaque submissions, then a changed material.
+        material.m_baseColor = Color{1.0f, 0.0f, 0.0f};
+
+        drawInstance({-2.0f, 2.0f, 0.0f}, {1.5f, 1.5f, 1.0f});
+        drawInstance({ 0.0f, 2.0f, 0.0f}, {1.5f, 1.5f, 1.0f});
+
+        material.m_baseColor = Color{0.0f, 0.0f, 1.0f};
+
+        drawInstance({2.0f, 2.0f, 0.0f}, {1.5f, 1.5f, 1.0f});
+
+        material.m_renderState.blend = true;
+        material.m_renderState.depthWrite = false;
+
+        // Bottom left: transparent CPU instances, submitted near-to-far.
+        material.m_baseColor = Color{1.0f, 0.0f, 0.0f, 0.5f};
+        drawInstance({-2.0f, -1.0f, 1.0f}, {2.2f, 2.2f, 1.0f});
+
+        material.m_baseColor = Color{0.0f, 1.0f, 0.0f, 0.5f};
+        drawInstance({-2.0f, -1.0f, 0.0f}, {2.2f, 2.2f, 1.0f});
+
+        material.m_baseColor = Color{0.0f, 0.0f, 1.0f, 0.5f};
+        drawInstance({-2.0f, -1.0f, -1.0f}, {2.2f, 2.2f, 1.0f});
+
+        // Bottom right: a regular mesh, transient rectangle, and CPU instance.
+        Transform red;
+        red.position = vec3{2.0f, -1.0f, 1.0f} + offset;
+        red.scale = {2.2f, 2.2f, 1.0f};
+
+        material.m_baseColor = Color{1.0f, 0.0f, 0.0f, 0.5f};
+
+        renderer().drawMesh(red, m_snapshotTestMesh, material);
+
+        material.m_baseColor = Color{0.0f, 1.0f, 0.0f, 0.5f};
+
+        m_renderSystem->renderRectangle(
+            vec3{2.0f, -1.0f, 0.0f} + offset,
+            {2.2f, 2.2f, 1.0f},
+            &material);
+
+        material.m_baseColor = Color{0.0f, 0.0f, 1.0f, 0.5f};
+        drawInstance({2.0f, -1.0f, -1.0f}, {2.2f, 2.2f, 1.0f});
+
+        // Already submitted draws must retain their captured state.
+        material.m_baseColor = MAGENTA;
+        material.m_renderState.blend = false;
+        material.m_renderState.depthWrite = true;
     }
 
 }

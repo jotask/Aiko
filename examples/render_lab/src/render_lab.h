@@ -59,6 +59,7 @@ namespace aiko::lab
         void initGpuVertices();
         void initRenderTarget();
         void initUI();
+        void initMaterialSnapshotTests();
 
         // --------------------------------------------------
         // Update
@@ -84,6 +85,7 @@ namespace aiko::lab
         void renderRenderTargetTest();
         void renderUI();
         void renderTextTests();
+        void renderMaterialSnapshotTests();
 
     private:
         RenderSystem* m_renderSystem = nullptr;
@@ -157,6 +159,10 @@ namespace aiko::lab
 
         Font m_debugFont;
         SpriteComponent* m_uiTestSprite = nullptr;
+
+        // Opaque batching, transparent CPU instances
+        Mesh m_snapshotTestMesh;
+        Material m_snapshotTestMaterial;
 
     };
 }

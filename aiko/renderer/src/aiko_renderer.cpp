@@ -110,6 +110,7 @@ namespace aiko
         m_computeQueue.clear();
 
         m_frameMaterialCache.clear();
+        m_frameInstancedMaterials.clear();
         m_frameMaterials.clear();
         m_frameTransientGeometries.clear();
         m_lights.clear();
@@ -158,7 +159,12 @@ namespace aiko
     void AikoRenderer::submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride)
     {
         AIKO_FUNCTION_PROFILE
-        m_renderQueue.submitInstanced(mesh, material, data, instanceCount, stride);
+        if (data == nullptr || instanceCount == 0 || stride == 0)
+        {
+            return;
+        }
+        Material& staged = stageInstancedMaterial(material);
+        m_renderQueue.submitInstanced(mesh, staged, data, instanceCount, stride);
     }
 
     void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const MaterialAsset& materialAsset, const MaterialInstance& materialInstance)
@@ -839,5 +845,24 @@ namespace aiko
         geometry.indices = meshAsset.m_indices;
 
         return geometry;
+    }
+
+    Material& AikoRenderer::stageInstancedMaterial(const Material& material)
+    {
+        auto& candidates = m_frameInstancedMaterials[material.id()];
+
+        for (Material* candidate : candidates)
+        {
+            if (candidate->hasSameState(material))
+            {
+                return *candidate;
+            }
+        }
+
+        m_frameMaterials.push_back(material);
+        Material& staged = m_frameMaterials.back();
+
+        candidates.push_back(&staged);
+        return staged;
     }
 }

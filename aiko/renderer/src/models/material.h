@@ -83,6 +83,8 @@
             return m_uniforms;
         }
 
+        bool hasSameState(const Material& other) const;
+
     public:
 
         AssetId m_shaderId = InvalidAssetId;

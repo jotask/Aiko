@@ -18,6 +18,7 @@
 #include <types/render_types.h>
 
 #include <aiko_types.h>
+#include <vector>
 #include <deque>
 #include <optional>
 #include <unordered_map>
@@ -145,6 +146,10 @@ namespace aiko
 
         ReadbackId m_nextReadbackId = 1;
         std::unordered_map<ReadbackId, ComputeReadbackResult> m_readbacks;
+
+        Material& stageInstancedMaterial(const Material& material);
+
+        std::unordered_map<MaterialId, std::vector<Material*>> m_frameInstancedMaterials;
 
         UIRenderer m_uiRenderer;
         UIDrawList m_uiDrawList;

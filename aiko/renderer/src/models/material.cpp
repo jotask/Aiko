@@ -3,9 +3,82 @@
 #include <core/utils.h>
 
 #include <utility>
+#include <type_traits>
 
 namespace aiko
 {
+
+    namespace
+    {
+        bool sameUniformValue(const UniformValue& a, const UniformValue& b)
+        {
+            if (a.index() != b.index())
+            {
+                return false;
+            }
+
+            return std::visit(
+                [&b](const auto& value) -> bool
+                {
+                    using T = std::decay_t<decltype(value)>;
+                    const T& other = std::get<T>(b);
+
+                    if constexpr (std::is_arithmetic_v<T>)
+                    {
+                        return value == other;
+                    }
+                    else if constexpr (std::is_same_v<T, mat4>)
+                    {
+                        for (int i = 0; i < 16; ++i)
+                        {
+                            if (value.data()[i] != other.data()[i])
+                            {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }
+                    else if constexpr (std::is_same_v<T, FloatArray>)
+                    {
+                        return value.values == other.values;
+                    }
+                    else if constexpr (std::is_same_v<T, Vec3Array>)
+                    {
+                        if (value.values.size() != other.values.size())
+                        {
+                            return false;
+                        }
+
+                        for (size_t i = 0; i < value.values.size(); ++i)
+                        {
+                            const vec3& left = value.values[i];
+                            const vec3& right = other.values[i];
+
+                            if (left.x != right.x || left.y != right.y || left.z != right.z)
+                            {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }
+                    else if constexpr (std::is_same_v<T, bvec2> || std::is_same_v<T, ivec2> || std::is_same_v<T, uvec2> || std::is_same_v<T, vec2>)
+                    {
+                        return value.x == other.x && value.y == other.y;
+                    }
+                    else if constexpr (std::is_same_v<T, bvec3> || std::is_same_v<T, ivec3> || std::is_same_v<T, uvec3> || std::is_same_v<T, vec3>)
+                    {
+                        return value.x == other.x && value.y == other.y && value.z == other.z;
+                    }
+                    else
+                    {
+                        return value.x == other.x && value.y == other.y && value.z == other.z && value.w == other.w;
+                    }
+                },
+                a);
+        }
+    }
 
     Material::Material()
 		: m_baseColor(WHITE)
@@ -117,6 +190,51 @@ namespace aiko
         auto [it, inserted] = m_textureBindings.try_emplace(name);
         AIKO_UNUSED(inserted);
         it->second.sampler = sampler;
+    }
+
+    bool Material::hasSameState(const Material& other) const
+    {
+        if (m_shaderId != other.m_shaderId ||
+                m_gpuInstanceBuffer != other.m_gpuInstanceBuffer ||
+                m_useVertexColor != other.m_useVertexColor ||
+                m_lit != other.m_lit ||
+                m_baseColor.r != other.m_baseColor.r ||
+                m_baseColor.g != other.m_baseColor.g ||
+                m_baseColor.b != other.m_baseColor.b ||
+                m_baseColor.a != other.m_baseColor.a)
+        {
+            return false;
+        }
+
+        const RenderState& a = m_renderState;
+        const RenderState& b = other.m_renderState;
+
+        if (a.cullMode != b.cullMode ||
+            a.fillMode != b.fillMode ||
+            a.depthTest != b.depthTest ||
+            a.depthWrite != b.depthWrite ||
+            a.depthCompare != b.depthCompare ||
+            a.blend != b.blend)
+        {
+            return false;
+        }
+
+        if (m_textureBindings != other.m_textureBindings || m_uniforms.size() != other.m_uniforms.size())
+        {
+            return false;
+        }
+
+        for (const auto& [name, value] : m_uniforms)
+        {
+            const auto it = other.m_uniforms.find(name);
+
+            if (it == other.m_uniforms.end() || !sameUniformValue(value, it->second))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     void Material::setTexture(const string& name, AssetId textureId, const SamplerState& sampler)
