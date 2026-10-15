@@ -3096,11 +3096,28 @@ namespace aiko::renderer::vulkan
 
         AIKO_ASSERT(m_activeRenderPassCompatibility.colorFormat != VK_FORMAT_UNDEFINED, "Graphics pipeline requires an active render-pass compatibility key");
 
+        VulkanShaderImpl* shaderImpl = nullptr;
+        RenderResourceId shaderResourceId = InvalidRenderResourceId;
+
+        if (!instanced)
+        {
+            AIKO_ASSERT(shaderId != InvalidAssetId, "Model material has invalid shader id");
+
+            Shader& shader = getResources()->getShader(shaderId);
+
+            shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
+            AIKO_ASSERT(shaderImpl != nullptr && shaderImpl->isValid(), "Invalid Vulkan material shader");
+
+            shaderResourceId = shaderImpl->id();
+            AIKO_ASSERT(shaderResourceId != InvalidRenderResourceId, "Graphics shader has no valid resource ID");
+        }
+
         const ModelPipelineKey key =
         {
             .renderPass = m_activeRenderPassCompatibility,
             .topology = topology,
             .shaderId = instanced ? InvalidAssetId : shaderId,
+            .shaderResourceId = shaderResourceId,
             .fillMode = renderState.fillMode,
             .cullMode = renderState.cullMode,
             .depthTest = renderState.depthTest,
@@ -3113,7 +3130,6 @@ namespace aiko::renderer::vulkan
         if (m_cachedModelPipelineKey.has_value() && *m_cachedModelPipelineKey == key)
         {
             AIKO_ASSERT(m_cachedModelPipeline != VK_NULL_HANDLE, "Cached model pipeline is invalid");
-
             return m_cachedModelPipeline;
         }
 
@@ -3125,13 +3141,6 @@ namespace aiko::renderer::vulkan
         }
         else
         {
-            AIKO_ASSERT(shaderId != InvalidAssetId, "Model material has invalid shader id");
-
-            Shader& shader = getResources()->getShader(shaderId);
-
-            auto* shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
-            AIKO_ASSERT(shaderImpl != nullptr && shaderImpl->isValid(), "Invalid Vulkan material shader");
-
             pipeline = m_modelPipelines.getOrCreate(key, renderPass, *shaderImpl);
         }
 

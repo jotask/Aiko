@@ -33,6 +33,8 @@ namespace aiko::renderer::vulkan
         string vertex_file;
         string fragment_file;
 
+        RenderResourceId m_id = InvalidRenderResourceId;
+
         VkShaderModule m_vertexModule = VK_NULL_HANDLE;
         VkShaderModule m_fragmentModule = VK_NULL_HANDLE;
 

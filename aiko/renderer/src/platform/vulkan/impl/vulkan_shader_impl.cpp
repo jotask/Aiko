@@ -1,15 +1,34 @@
 #include "vulkan_shader_impl.h"
 
 #include "platform/vulkan/vulkan_context.h"
-
-#include <core/file.h>
-
 #include "platform/vulkan/vulkan_platform_helper.h"
 #include "platform/vulkan/vulkan_types.h"
 #include "platform/vulkan/vulkan_shader_reflector.h"
 
+#include <core/file.h>
+
+#include <atomic>
+#include <cstdlib>
+
 namespace aiko::renderer::vulkan
 {
+
+    namespace
+    {
+        RenderResourceId nextGraphicsShaderId()
+        {
+            static std::atomic<RenderResourceId> nextId{1};
+
+            const RenderResourceId id = nextId.fetch_add(1, std::memory_order_relaxed);
+
+            if (id == InvalidRenderResourceId)
+            {
+                std::abort();
+            }
+
+            return id;
+        }
+    }
 
     VulkanShaderImpl::VulkanShaderImpl()
     {
@@ -61,12 +80,18 @@ namespace aiko::renderer::vulkan
         {
             AIKO_ASSERT(false, "Failed to load vulkan shader.");
             unload();
+            return;
         }
+
+        m_id = nextGraphicsShaderId();
 
     }
 
     void VulkanShaderImpl::unload()
     {
+
+        m_id = InvalidRenderResourceId;
+
         if (m_vertexModule == VK_NULL_HANDLE && m_fragmentModule == VK_NULL_HANDLE)
         {
             vertex_file.clear();
@@ -97,7 +122,7 @@ namespace aiko::renderer::vulkan
 
     RenderResourceId VulkanShaderImpl::id() const
     {
-        return {};
+        return m_id;
     }
 
     bool VulkanShaderImpl::isValid() const
