@@ -440,40 +440,6 @@ namespace aiko::renderer::vulkan
             return descriptors;
         }
 
-        bool sameRenderState(const RenderState& a, const RenderState& b)
-        {
-            return
-                a.cullMode == b.cullMode &&
-                a.fillMode == b.fillMode &&
-                a.depthTest == b.depthTest &&
-                a.depthWrite == b.depthWrite &&
-                a.depthCompare == b.depthCompare &&
-                a.blend == b.blend;
-        }
-
-        bool sameUniformState(const Material& a, const Material& b)
-        {
-            if (a.uniforms().empty() && b.uniforms().empty())
-            {
-                return true;
-            }
-            return false;
-        }
-
-        bool sameMaterialState(const Material& a, const Material& b)
-        {
-            return
-                a.m_shaderId == b.m_shaderId &&
-                a.m_useVertexColor == b.m_useVertexColor &&
-                a.m_lit == b.m_lit &&
-                a.m_pointSize == b.m_pointSize &&
-                a.m_lineWidth == b.m_lineWidth &&
-                a.m_baseColor.rgba() == b.m_baseColor.rgba() &&
-                sameRenderState(a.m_renderState, b.m_renderState) &&
-                sameUniformState(a, b) &&
-                a.textureBindings() == b.textureBindings();
-        }
-
     }
 
     VulkanRenderDevice::VulkanRenderDevice(RenderResourceManager* resources)
@@ -1910,7 +1876,7 @@ namespace aiko::renderer::vulkan
                 AIKO_ASSERT(prepared.material != nullptr, "Prepared material state has null material");
                 AIKO_ASSERT(prepared.binding != nullptr, "Prepared material state has null binding");
 
-                if (sameMaterialState(material, *prepared.material))
+                if (material.hasSameState(*prepared.material))
                 {
                     const auto [it, inserted] = m_preparedMaterialBindings.emplace(&material, prepared.binding);
                     AIKO_UNUSED(it);
