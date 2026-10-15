@@ -151,8 +151,7 @@ void main()
             else if (shape == 2u)
             {
                 vec3 rnd = hash3(seed1);
-                vec3 ext = spawnBoxExtents;
-                spawnOffset = spawnBoxExtents;
+                spawnOffset = (rnd * 2.0 - 1.0) * spawnBoxExtents;
             }
             else if (shape == 3u)
             {
@@ -210,7 +209,7 @@ void main()
             float speedJitter = mix(0.8, 1.2, hash1(seed3));
 
             pos.xyz = emitterPosition + spawnOffset;
-            vel.xyz = randDir * (startSpeed * speedJitter);
+            vel.xyz = dir * (startSpeed * speedJitter);
             life.x = lifetime;
             life.y = lifetime;
         }
