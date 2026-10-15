@@ -20,7 +20,7 @@ namespace aiko
         bool isPhysicsInitialized() const { return m_initialized; }
         physics::BodyId getBodyId() const { return m_bodyId; }
 
-        const Transform& getWorldTransform() const;
+        Transform getWorldTransform() const;
 
         PhysicsDebugProxy& debug() { return m_debug; }
         const PhysicsDebugProxy& debug() const { return m_debug; }

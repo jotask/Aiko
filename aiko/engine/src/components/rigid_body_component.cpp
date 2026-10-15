@@ -41,9 +41,14 @@ namespace aiko
         }
     }
 
-    const Transform& RigidBodyComponent::getWorldTransform() const
+    Transform RigidBodyComponent::getWorldTransform() const
     {
-        return gameobject->transform();
+        if (m_initialized)
+        {
+            return m_world->getTransform(m_bodyId);
+        }
+
+        return physics::toPhysicsTransform(gameobject->transform());
     }
 
     void RigidBodyComponent::ensurePhysicsInitialized(physics::AikoPhysics& world)

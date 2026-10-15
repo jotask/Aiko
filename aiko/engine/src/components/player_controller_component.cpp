@@ -2,6 +2,8 @@
 
 #include "models/game_object.h"
 
+#include <physics_transform.h>
+
 namespace aiko
 {
     PlayerControllerComponent::PlayerControllerComponent()
@@ -55,12 +57,8 @@ namespace aiko
 
     vec3 PlayerControllerComponent::getEyePosition() const
     {
-        if (m_initialized == false)
-        {
-            return gameobject->transform().position + vec3(0.0f, m_eyeHeight, 0.0f);
-        }
-
-        return m_controller.getPosition() + vec3(0.0f, m_eyeHeight, 0.0f);
+        const vec3 position = m_initialized ? m_controller.getPosition() : physics::toPhysicsTransform(gameobject->transform()).position;
+        return position + vec3(0.0f, m_eyeHeight, 0.0f);
     }
 
     float PlayerControllerComponent::getYaw() const
@@ -73,9 +71,17 @@ namespace aiko
         return m_pitchRadians;
     }
 
-    const Transform& PlayerControllerComponent::getWorldTransform() const
+    Transform PlayerControllerComponent::getWorldTransform() const
     {
-        return gameobject->transform();
+        Transform pose = physics::toPhysicsTransform(gameobject->transform());
+
+        if (m_initialized)
+        {
+            pose.position = m_controller.getPosition();
+        }
+
+        pose.rotation = vec3(0.0f, math::degrees(m_yawRadians), 0.0f);
+        return pose;
     }
 
     void PlayerControllerComponent::ensurePhysicsInitialized(physics::AikoPhysics& world)
@@ -85,7 +91,9 @@ namespace aiko
             return;
         }
 
-        m_desc.physics.position = gameobject->transform().position;
+        const Transform pose = physics::toPhysicsTransform(gameobject->transform());
+
+        m_desc.physics.position = pose.position;
         m_desc.physics.yawRadians = m_yawRadians;
 
         m_controller.init(world, m_desc.physics);
@@ -114,15 +122,18 @@ namespace aiko
         m_controller.setYaw(m_yawRadians);
         m_controller.update(m_pendingInput, dt);
 
-        gameobject->transform().position = m_controller.getPosition();
-        gameobject->transform().rotation.y = math::degrees(m_yawRadians);
+        Transform pose{};
+        pose.position = m_controller.getPosition();
+        pose.rotation.y = math::degrees(m_yawRadians);
+
+        physics::applyPhysicsTransform(gameobject->transform(), pose);
 
         m_pendingInput.jumpPressed = false;
     }
 
     vec3 PlayerControllerComponent::getCameraLookTarget() const
     {
-        return gameobject->transform().position + vec3(0.0f, m_eyeHeight, 0.0f);
+        return getEyePosition();
     }
 
     vec3 PlayerControllerComponent::getThirdPersonCameraPosition() const
@@ -146,7 +157,7 @@ namespace aiko
 
     vec3 PlayerControllerComponent::getCameraPosition() const
     {
-        return gameobject->transform().position + vec3(0.0f, m_eyeHeight, 0.0f);
+        return getEyePosition();
     }
 
     vec3 PlayerControllerComponent::getCameraForward() const

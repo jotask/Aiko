@@ -32,7 +32,7 @@ namespace aiko
         float getPitch() const;
 
         bool isPhysicsInitialized() const { return m_initialized; }
-        const Transform& getWorldTransform() const;
+        Transform getWorldTransform() const;
 
         physics::PlayerController& getController() { return m_controller; }
         const physics::PlayerController& getController() const { return m_controller; }
