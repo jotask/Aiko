@@ -24,16 +24,29 @@ namespace aiko::physics
     PlayerController::PlayerController(PlayerController&&) noexcept = default;
     PlayerController& PlayerController::operator=(PlayerController&&) noexcept = default;
 
-    void PlayerController::init(AikoPhysics& physics, const PlayerControllerDesc& desc)
+    bool PlayerController::init(AikoPhysics& physics, const PlayerControllerDesc& desc)
     {
         if (m_impl != nullptr)
         {
-            return;
+            return true;
         }
 
-        AIKO_ASSERT(physics.m_impl != nullptr, "AikoPhysics must be initialized before PlayerController");
-        AIKO_ASSERT(physics.m_impl->physicsSystem != nullptr, "PhysicsSystem is null");
-        AIKO_ASSERT(physics.m_impl->tempAllocator != nullptr, "TempAllocator is null");
+        const bool worldReady =
+            physics.m_impl != nullptr &&
+            physics.m_impl->physicsSystem != nullptr &&
+            physics.m_impl->tempAllocator != nullptr;
+
+        AIKO_ASSERT(worldReady, "PlayerController requires an initialized physics world");
+
+        if (worldReady == false)
+        {
+            return false;
+        }
+
+        if (!std::isfinite(desc.radius) || desc.radius <= 0.0f || !std::isfinite(desc.halfHeight) || desc.halfHeight <= 0.0f)
+        {
+            return false;
+        }
 
         m_impl = std::make_unique<PlayerControllerImpl>();
         m_impl->world = &physics;
@@ -59,6 +72,9 @@ namespace aiko::physics
             desc.userData,
             m_impl->worldImpl->physicsSystem.get()
         );
+
+        return true;
+
     }
 
     void PlayerController::shutdown()

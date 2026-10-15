@@ -23,7 +23,7 @@ namespace aiko::physics
         PlayerController(const PlayerController&) = delete;
         PlayerController& operator=(const PlayerController&) = delete;
 
-        void init(AikoPhysics& physics, const PlayerControllerDesc& desc);
+        bool init(AikoPhysics& physics, const PlayerControllerDesc& desc);
         void shutdown();
 
         void setPosition(const vec3& position);

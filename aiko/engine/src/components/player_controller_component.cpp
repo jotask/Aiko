@@ -96,8 +96,8 @@ namespace aiko
         m_desc.physics.position = pose.position;
         m_desc.physics.yawRadians = m_yawRadians;
 
-        m_controller.init(world, m_desc.physics);
-        m_initialized = true;
+        m_initialized = m_controller.init(world, m_desc.physics);
+        AIKO_ASSERT(m_initialized, "PlayerController creation failed");
     }
 
     void PlayerControllerComponent::physicsShutdown()
