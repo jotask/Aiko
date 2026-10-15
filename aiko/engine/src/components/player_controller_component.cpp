@@ -13,6 +13,8 @@ namespace aiko
 
     void PlayerControllerComponent::create(const PlayerControllerComponentDesc& desc)
     {
+        physicsShutdown();
+
         m_desc = desc;
         m_yawRadians = desc.physics.yawRadians;
         m_pitchRadians = desc.pitchRadians;
