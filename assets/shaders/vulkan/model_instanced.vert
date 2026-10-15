@@ -74,4 +74,6 @@ void main()
     gl_Position =
         aikoViewProj() *
         vec4(worldPos, 1.0);
+
+    gl_PointSize = u_flags.w;
 }
