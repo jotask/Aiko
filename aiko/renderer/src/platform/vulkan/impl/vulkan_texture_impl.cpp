@@ -4,6 +4,7 @@
 #include <random>
 #include <cstring>
 
+#include <intrumentor/profiler.h>
 #include <logger/logger.h>
 #include <core/file.h>
 
@@ -204,36 +205,15 @@ namespace aiko::renderer::vulkan
 
     void VulkanTextureImpl::setPixels(const vector<Color>& pixels)
     {
+        AIKO_FUNCTION_PROFILE
+
         AIKO_ASSERT(isValid(), "Invalid texture");
         AIKO_ASSERT(m_info.type == TextureType::Sampled, "setPixels only supports sampled textures for now");
         AIKO_ASSERT(m_info.format == TextureFormat::RGBA8 || m_info.format == TextureFormat::BGRA8, "Unsupported sampled texture format");
 
-        const uint32_t pixelCount = m_info.width * m_info.height;
-        AIKO_ASSERT(pixels.size() == pixelCount, "Mismatch pixels count and texture size");
+        const size_t pixelCount = size_t(m_info.width) * size_t(m_info.height);
 
-        std::vector<uint8_t> packed(pixelCount * 4);
-
-        auto toByte = [](float v) -> uint8_t
-        {
-            return static_cast<uint8_t>(std::clamp(v, 0.0f, 1.0f) * 255.0f);
-        };
-
-        const bool bgra = m_info.format == TextureFormat::BGRA8;
-
-        for (uint32_t i = 0; i < pixelCount; ++i)
-        {
-            const Color& c = pixels[i];
-
-            const uint8_t r = toByte(c.r);
-            const uint8_t g = toByte(c.g);
-            const uint8_t b = toByte(c.b);
-            const uint8_t a = toByte(c.a);
-
-            packed[i * 4 + 0] = bgra ? b : r;
-            packed[i * 4 + 1] = g;
-            packed[i * 4 + 2] = bgra ? r : b;
-            packed[i * 4 + 3] = a;
-        }
+        AIKO_ASSERT(pixels.size() == pixelCount,"Mismatch pixels count and texture size");
 
         VulkanContext& ctx = VulkanContext::current();
 
@@ -253,23 +233,42 @@ namespace aiko::renderer::vulkan
 
         VkBuffer stagingBuffer = VK_NULL_HANDLE;
         VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
+        void* mapped = nullptr;
 
-        const VkDeviceSize imageSize = packed.size();
+        const VkDeviceSize imageSize = VkDeviceSize(pixelCount) * 4;
 
         ctx.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
 
-        void* data = nullptr;
-
-        const VkResult mapResult = vkMapMemory(ctx.device(), stagingMemory, 0, imageSize, 0, &data);
+        const VkResult mapResult = vkMapMemory(ctx.device(), stagingMemory, 0, imageSize, 0, &mapped);
         AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map texture staging memory");
 
-        std::memcpy(data, packed.data(), packed.size());
+        auto* destination = static_cast<uint8_t*>(mapped);
+
+        const auto toByte = [](float value) -> uint8_t
+        {
+            return static_cast<uint8_t>(std::clamp(value, 0.0f, 1.0f) * 255.0f);
+        };
+
+        const bool bgra = m_info.format == TextureFormat::BGRA8;
+
+        for (size_t i = 0; i < pixelCount; ++i)
+        {
+            const Color& color = pixels[i];
+
+            const uint8_t r = toByte(color.r);
+            const uint8_t g = toByte(color.g);
+            const uint8_t b = toByte(color.b);
+            const uint8_t a = toByte(color.a);
+
+            const size_t offset = i * 4;
+
+            destination[offset + 0] = bgra ? b : r;
+            destination[offset + 1] = g;
+            destination[offset + 2] = bgra ? r : b;
+            destination[offset + 3] = a;
+        }
 
         vkUnmapMemory(ctx.device(), stagingMemory);
-
-        // ---------------------------------------------------------
-        // Record the entire texture upload in one command buffer.
-        // ---------------------------------------------------------
 
         VkCommandBuffer commandBuffer = ctx.beginSingleTimeCommands();
 
