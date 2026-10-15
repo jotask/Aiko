@@ -68,6 +68,9 @@ namespace aiko
         float getEndLifeScale() const { return m_endLifeScale; }
         void setEndLifeScale(float value) { m_endLifeScale = value; }
 
+        bool isTransparent() const { return m_transparent; }
+        void setTransparent(bool value) { m_transparent = value; }
+
     private:
 
         // Spawn
@@ -92,6 +95,9 @@ namespace aiko
         Color m_endColorLife = YELLOW;
         float m_startLifeScale = 0.05f;
         float m_endLifeScale = 0.0f;
+
+        bool m_transparent = false;
+
     };
 
 }

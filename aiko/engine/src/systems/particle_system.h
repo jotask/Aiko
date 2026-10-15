@@ -105,6 +105,8 @@ namespace aiko
 
         AssetId m_initShaderId = InvalidAssetId;
         AssetId m_updateShaderId = InvalidAssetId;
+        AssetId m_opaqueParticleShaderId = InvalidAssetId;
+        AssetId m_transparentParticleShaderId = InvalidAssetId;
 
         std::unordered_map<const ParticleEmitterComponent*, AikoUPtr<RuntimeState>> m_runtime;
 

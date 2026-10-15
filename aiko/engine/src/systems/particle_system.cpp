@@ -30,6 +30,11 @@ namespace aiko
     {
         m_initShaderId = m_assetSystem->registerAndLoadAsset<ComputeShaderAsset>("particles_init");
         m_updateShaderId = m_assetSystem->registerAndLoadAsset<ComputeShaderAsset>("particles_update");
+
+        auto* manager = m_assetManagerModule->getManager();
+
+        m_opaqueParticleShaderId = manager->registerShader("particles_gpuinst.vs", "model.fs");
+        m_transparentParticleShaderId = manager->registerShader("particles_gpuinst_sorted.vs", "model.fs");
     }
 
     void ParticleSystem::update()
@@ -93,7 +98,7 @@ namespace aiko
             auto meshData = mesh::factory::generateCube();
             state.particleMesh.upload(meshData);
 
-            state.particleMaterial.m_shaderId = m_assetManagerModule->getManager()->registerShader("particles_gpuinst.vs", "model.fs");
+            state.particleMaterial.m_shaderId = m_opaqueParticleShaderId;
             state.particleMaterial.m_baseColor = WHITE;
             state.particleMaterial.m_lit = false;
             state.particleMaterial.m_useVertexColor = true;
@@ -115,7 +120,6 @@ namespace aiko
 
     void ParticleSystem::renderEmitter(GameObject* obj, ParticleEmitterComponent& emitter)
     {
-        AIKO_UNUSED(obj);
 
         RuntimeState* state = tryGetState(&emitter);
         if (state == nullptr || emitter.isPlaying() == false)
@@ -124,7 +128,7 @@ namespace aiko
         }
 
         const uint32_t count = emitter.getMaxParticles();
-        const vec3 emitterPos = obj->transform().position;
+        const vec3 emitterPos = math::transformPoint(obj->transform().getWorldMatrix(), vec3{0.0f});
 
         if (count == 0)
         {
@@ -236,17 +240,40 @@ namespace aiko
 
         if (state->renderInitialized)
         {
+            const bool transparent = emitter.isTransparent();
+            Material& material = state->particleMaterial;
 
-            state->particleMaterial.setVec4("u_particleSizeLife", vec4(emitter.getStartLifeScale(), emitter.getEndLifeScale(), 0.0f, 0.0f));
-            state->particleMaterial.setVec4("u_particleStartColor", emitter.getStartLifeColor().toVec4());
-            state->particleMaterial.setVec4("u_particleEndColor", emitter.getEndLifeColor().toVec4());
+            material.m_shaderId = transparent ? m_transparentParticleShaderId : m_opaqueParticleShaderId;
+
+            material.m_renderState.blend = transparent;
+            material.m_renderState.depthWrite = !transparent;
+
+            material.setVec4(
+                "u_particleSizeLife",
+                vec4{
+                    emitter.getStartLifeScale(),
+                    emitter.getEndLifeScale(),
+                    0.0f,
+                    0.0f
+                });
+
+            material.setVec4("u_particleStartColor",  emitter.getStartLifeColor().toVec4());
+            material.setVec4("u_particleEndColor", emitter.getEndLifeColor().toVec4());
 
             GpuInstanceDrawDesc draw{};
             draw.mesh = &state->particleMesh;
-            draw.material = &state->particleMaterial;
-            draw.readBuffers.push_back({7, &state->positionBuffer});
-            draw.readBuffers.push_back({8, &state->lifeBuffer});
+            draw.material = &material;
+            draw.readBuffers = {
+                {7, &state->positionBuffer},
+                {8, &state->lifeBuffer}
+            };
             draw.instanceCount = count;
+
+            if (transparent)
+            {
+                draw.transparencySortPosition = emitterPos;
+                draw.transparencyPositions = &state->positionBuffer;
+            }
 
             m_renderModule->drawMeshInstancedGpu(draw);
         }
