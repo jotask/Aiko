@@ -59,6 +59,8 @@ namespace aiko
 
         void setClearColor(Color);
 
+        bool isFrameActive() const;
+
         void submit(const AmbientLight& ambient, const vector<LightData>& data);
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
         void submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride);

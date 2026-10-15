@@ -22,6 +22,11 @@ namespace aiko
         m_renderer->setClearColor(color);
     }
 
+    bool RenderModule::isFrameActive() const
+    {
+        return m_renderer->isFrameActive();
+    }
+
     void RenderModule::setMainCamera(const Camera* camera)
     {
         if (camera != nullptr)

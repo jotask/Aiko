@@ -49,6 +49,8 @@ namespace aiko::renderer::vulkan
 
         virtual void resize(u32 width, u32 height) override;
 
+        bool isFrameActive() const override { return m_frameActive; }
+
         virtual void beginFrame() override;
         virtual void endFrame() override;
 

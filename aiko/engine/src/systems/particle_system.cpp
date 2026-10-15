@@ -54,6 +54,11 @@ namespace aiko
 
     void ParticleSystem::render()
     {
+        if (m_renderModule->isFrameActive() == false)
+        {
+            return;
+        }
+
         for (ParticleEmitterComponent* emitter : m_sceneSystem->getScene().components<ParticleEmitterComponent>())
         {
             if (emitter == nullptr || emitter->isActiveAndEnabled() == false)

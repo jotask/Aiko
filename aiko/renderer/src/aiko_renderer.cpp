@@ -146,6 +146,11 @@ namespace aiko
         m_clearColor = color;
     }
 
+    bool AikoRenderer::isFrameActive() const
+    {
+        return m_renderer->isFrameActive();
+    }
+
     void AikoRenderer::submit(const AmbientLight& ambient, const vector<LightData>& data)
     {
         AIKO_FUNCTION_PROFILE

@@ -28,6 +28,8 @@ namespace aiko
 
         void setClearColor(Color color);
 
+        bool isFrameActive() const;
+
         void setMainCamera(const Camera* camera);
         void submitLights(const AmbientLight& ambient, const vector<LightData>& data);
 
