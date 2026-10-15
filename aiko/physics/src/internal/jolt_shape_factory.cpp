@@ -75,6 +75,11 @@ namespace aiko::physics
 
                 for (const vec3& v : srcVertices)
                 {
+                    if (!std::isfinite(v.x) || !std::isfinite(v.y) || !std::isfinite(v.z))
+                    {
+                        return nullptr;
+                    }
+
                     vertices.emplace_back(v.x, v.y, v.z);
                 }
 
