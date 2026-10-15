@@ -2,6 +2,8 @@
 
 #include "models/game_object.h"
 
+#include <physics_transform.h>
+
 namespace aiko
 {
     RigidBodyComponent::RigidBodyComponent()
@@ -51,7 +53,7 @@ namespace aiko
             return;
         }
 
-        m_desc.transform = gameobject->transform();
+        m_desc.transform = physics::toPhysicsTransform(gameobject->transform());
         m_bodyId = world.createBody(m_desc);
 
         AIKO_ASSERT(m_bodyId != physics::InvalidBodyId, "RigidBody creation failed");
@@ -73,9 +75,7 @@ namespace aiko
         }
 
         const Transform physicsTransform = world.getTransform(m_bodyId);
-
-        gameobject->transform().position = physicsTransform.position;
-        gameobject->transform().rotation = physicsTransform.rotation;
+        physics::applyPhysicsTransform(gameobject->transform(), physicsTransform);
     }
 
     void RigidBodyComponent::physicsShutdown(physics::AikoPhysics& world)
