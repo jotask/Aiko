@@ -774,6 +774,7 @@ namespace aiko::renderer::vulkan
 
     bool VulkanContext::beginFrame()
     {
+        m_activeCommandBuffer = VK_NULL_HANDLE;
 
         if (m_framebufferResized)
         {

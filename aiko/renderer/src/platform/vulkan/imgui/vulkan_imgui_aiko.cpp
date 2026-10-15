@@ -64,7 +64,14 @@ namespace aiko::renderer::vulkan
 
     void VulkanImguiImpl::endFrame(const ViewId id, int width, int height)
     {
-        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), VulkanContext::current().activeCommandBuffer() );
+        const VkCommandBuffer commandBuffer = VulkanContext::current().activeCommandBuffer();
+
+        if (commandBuffer == VK_NULL_HANDLE)
+        {
+            return;
+        }
+
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
     }
 
     void VulkanImguiImpl::dispose()
