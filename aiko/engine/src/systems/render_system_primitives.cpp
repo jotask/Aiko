@@ -9,9 +9,107 @@
 
 namespace aiko
 {
+    Material RenderSystem::makePrimitiveMaterial(Color color) const
+    {
+        Material material = m_materialPrimitives;
+
+        material.m_baseColor = color;
+        material.m_useVertexColor = false;
+        material.m_lit = false;
+
+        material.m_renderState.blend = color.a < 1.0f;
+        material.m_renderState.depthWrite = !material.m_renderState.blend;
+
+        return material;
+    }
+
     Material& RenderSystem::resolvePrimitiveMaterial(Material* material)
     {
         return (material == nullptr) ? m_materialPrimitives : *material;
+    }
+
+    void RenderSystem::renderPoint(vec3 pos, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderPoint(pos, &material);
+    }
+
+    void RenderSystem::renderLine(vec3 start, vec3 end, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderLine(start, end, &material);
+    }
+
+    void RenderSystem::renderTriangle(vec3 pos, vec3 size, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderTriangle(pos, size, &material);
+    }
+
+    void RenderSystem::renderRectangle(vec3 pos, vec3 size, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderRectangle(pos, size, &material);
+    }
+
+    void RenderSystem::renderCircle(vec3 pos, vec3 size, uint segments, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderCircle(pos, size, segments, &material);
+    }
+
+    void RenderSystem::renderNgon(vec3 pos, vec3 size, uint polygons, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderNgon(pos, size, polygons, &material);
+    }
+
+    void RenderSystem::renderGrid(vec3 pos, vec3 size, ivec2 resolution, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderGrid(pos, size, resolution, &material);
+    }
+
+    void RenderSystem::renderPyramid(vec3 pos, vec3 size, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderPyramid(pos, size, &material);
+    }
+
+    void RenderSystem::renderCube(vec3 pos, vec3 size, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderCube(pos, size, &material);
+    }
+
+    void RenderSystem::renderSphere(vec3 pos, vec3 size, Color color, int segments)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderSphere(pos, size, segments, &material);
+    }
+
+    void RenderSystem::renderPolygon(vec3 pos, vec3 size, int rings, int sectors, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderPolygon(pos, size, rings, sectors, &material);
+    }
+
+    void RenderSystem::renderCylinder(vec3 pos, vec3 size, uint sectors, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderCylinder(pos, size, sectors, &material);
+    }
+
+    void RenderSystem::renderTorus(vec3 pos, vec3 size, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderTorus(pos, size, &material);
+    }
+
+    void RenderSystem::renderKnot(vec3 pos, vec3 size, Color color)
+    {
+        Material material = makePrimitiveMaterial(color);
+        renderKnot(pos, size, &material);
     }
 
     void RenderSystem::renderPoint(vec3 pos, Material* material)

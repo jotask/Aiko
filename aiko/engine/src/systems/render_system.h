@@ -100,10 +100,26 @@ namespace aiko
         Material m_materialPrimitives;
         std::unordered_map<u32, Material> m_gizmoMaterials;
 
+        Material makePrimitiveMaterial(Color color) const;
         Material& resolvePrimitiveMaterial(Material* material);
         Material& resolveGizmoMaterial(Color color);
 
     public:
+
+        void renderPoint(vec3 pos, Color color);
+        void renderLine(vec3 start, vec3 end, Color color);
+        void renderTriangle(vec3 pos, vec3 size, Color color);
+        void renderRectangle(vec3 pos, vec3 size, Color color);
+        void renderCircle(vec3 pos, vec3 size, uint segments, Color color);
+        void renderNgon(vec3 pos, vec3 size, uint polygons, Color color);
+        void renderGrid(vec3 pos, vec3 size, ivec2 resolution, Color color);
+        void renderPyramid(vec3 pos, vec3 size, Color color);
+        void renderCube(vec3 pos, vec3 size, Color color);
+        void renderSphere(vec3 pos, vec3 size, Color color, int segments = 25);
+        void renderPolygon(vec3 pos, vec3 size, int rings, int sectors, Color color);
+        void renderCylinder(vec3 pos, vec3 size, uint sectors, Color color);
+        void renderTorus(vec3 pos, vec3 size, Color color);
+        void renderKnot(vec3 pos, vec3 size, Color color);
 
         void renderPoint(vec3 pos, Material* material = nullptr);
         void renderLine(vec3 start, vec3 end, Material* material = nullptr);
