@@ -20,6 +20,7 @@
 #include <array>
 #include <cstring>
 #include <cmath>
+#include <algorithm>
 
 namespace aiko::renderer::vulkan
 {
@@ -466,6 +467,7 @@ namespace aiko::renderer::vulkan
                 a.m_useVertexColor == b.m_useVertexColor &&
                 a.m_lit == b.m_lit &&
                 a.m_pointSize == b.m_pointSize &&
+                a.m_lineWidth == b.m_lineWidth &&
                 a.m_baseColor.rgba() == b.m_baseColor.rgba() &&
                 sameRenderState(a.m_renderState, b.m_renderState) &&
                 sameUniformState(a, b) &&
@@ -846,6 +848,17 @@ namespace aiko::renderer::vulkan
         {
             return;
         }
+
+        AIKO_ASSERT(std::isfinite(material.m_lineWidth) && material.m_lineWidth > 0.0f, "Material line width must be finite and greater than zero");
+
+        const auto& capabilities = m_context.capabilities();
+
+        const float lineWidth = capabilities.wideLines ? std::clamp( material.m_lineWidth, capabilities.minLineWidth, capabilities.maxLineWidth) : 1.0f;
+
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+        AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Material binding requires an active graphics command buffer");
+
+        vkCmdSetLineWidth(commandBuffer, lineWidth);
 
         VulkanMaterialBinding* binding = nullptr;
 

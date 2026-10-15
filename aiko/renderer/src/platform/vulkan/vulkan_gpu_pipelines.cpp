@@ -191,10 +191,11 @@ namespace aiko::renderer::vulkan
             .pAttachments = &colorBlendAttachment,
         };
 
-        const std::array<VkDynamicState, 2> dynamicStates =
+        const std::array<VkDynamicState, 3> dynamicStates =
         {
             VK_DYNAMIC_STATE_VIEWPORT,
             VK_DYNAMIC_STATE_SCISSOR,
+            VK_DYNAMIC_STATE_LINE_WIDTH,
         };
 
         const VkPipelineDynamicStateCreateInfo dynamicState =
@@ -351,10 +352,11 @@ namespace aiko::renderer::vulkan
             .pAttachments = &colorBlendAttachment,
         };
 
-        const std::array<VkDynamicState, 2> dynamicStates =
+        const std::array<VkDynamicState, 3> dynamicStates =
         {
             VK_DYNAMIC_STATE_VIEWPORT,
             VK_DYNAMIC_STATE_SCISSOR,
+            VK_DYNAMIC_STATE_LINE_WIDTH,
         };
 
         const VkPipelineDynamicStateCreateInfo dynamicState =

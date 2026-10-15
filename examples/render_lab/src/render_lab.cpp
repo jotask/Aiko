@@ -422,12 +422,13 @@ namespace aiko::lab
         m_wireframeMaterial.m_baseColor = YELLOW;
         m_wireframeMaterial.m_lit = false;
         m_wireframeMaterial.m_renderState.fillMode = FillMode::Wireframe;
-
+        m_wireframeMaterial.m_lineWidth = 1.0f;
 
         m_pointMaterial.m_shaderId = modelShader;
         m_pointMaterial.m_baseColor = MAGENTA;
         m_pointMaterial.m_lit = false;
         m_pointMaterial.m_renderState.fillMode = FillMode::Point;
+        m_pointMaterial.m_pointSize = 4.0f;
 
         // --------------------------------------------------
         // Culling
