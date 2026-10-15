@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <vector>
+#include <optional>
 
 #include <aiko_types.h>
 #include <math/math_vector.h>
@@ -35,6 +36,9 @@ namespace aiko
         const ComputeBuffer* indirectBuffer = nullptr;
 
         TransientTopology topology = TransientTopology::Points;
+
+        // World-space draw anchor, required when blending is enabled.
+        std::optional<vec3> transparencySortPosition;
     };
 
     struct GpuInstanceDrawDesc
@@ -45,6 +49,9 @@ namespace aiko
         std::vector<GpuReadBufferBinding> readBuffers;
 
         uint32_t instanceCount = 0;
+
+        // World-space draw anchor, required when blending is enabled.
+        std::optional<vec3> transparencySortPosition;
     };
 
     struct GpuBillboardDrawDesc
@@ -52,6 +59,9 @@ namespace aiko
         const Material* material = nullptr;
         const ComputeBuffer* positionBuffer = nullptr;
         uint32_t instanceCount = 0;
+
+        // World-space draw anchor, required when blending is enabled.
+        std::optional<vec3> transparencySortPosition;
     };
 
     struct RenderItem

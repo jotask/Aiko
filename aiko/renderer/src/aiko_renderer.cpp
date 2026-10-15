@@ -554,6 +554,11 @@ namespace aiko
 
         for (const PreparedTransparentPacket& packet : passData.transparent)
         {
+            if (packet.gpuVertex != nullptr || packet.gpuInstance != nullptr || packet.gpuBillboard != nullptr)
+            {
+                continue;
+            }
+
             if (packet.transient != nullptr)
             {
                 prepareMaterial(packet.transient->material);
@@ -582,7 +587,7 @@ namespace aiko
         {
             for (const GpuVertexDrawDesc* desc : passData.gpuVertices)
             {
-                if (desc != nullptr)
+                if (desc != nullptr && desc->material != nullptr && desc->material->m_renderState.blend == false)
                 {
                     m_renderer->submitGpuVertices(SCENE_VIEW, *desc);
                 }
@@ -592,7 +597,7 @@ namespace aiko
         {
             for (const GpuInstanceDrawDesc* desc : passData.gpuInstances)
             {
-                if (desc != nullptr)
+                if (desc != nullptr && desc->material != nullptr && desc->material->m_renderState.blend == false)
                 {
                     m_renderer->submitGpuInstanced(SCENE_VIEW, *desc);
                 }
@@ -602,7 +607,7 @@ namespace aiko
         {
             for (const GpuBillboardDrawDesc* desc : passData.gpuBillboards)
             {
-                if (desc != nullptr)
+                if (desc != nullptr && desc->material != nullptr && desc->material->m_renderState.blend == false)
                 {
                     m_renderer->submitBillboards(SCENE_VIEW, *desc);
                 }
@@ -641,7 +646,19 @@ namespace aiko
         {
             for (const PreparedTransparentPacket& packet : passData.transparent)
             {
-                if (packet.transient != nullptr)
+                if (packet.gpuVertex != nullptr)
+                {
+                    m_renderer->submitGpuVertices(SCENE_VIEW, *packet.gpuVertex);
+                }
+                else if (packet.gpuInstance != nullptr)
+                {
+                    m_renderer->submitGpuInstanced(SCENE_VIEW, *packet.gpuInstance);
+                }
+                else if (packet.gpuBillboard != nullptr)
+                {
+                    m_renderer->submitBillboards(SCENE_VIEW, *packet.gpuBillboard);
+                }
+                else if (packet.transient != nullptr)
                 {
                     m_renderer->submitTransient(SCENE_VIEW, *packet.transient);
                 }

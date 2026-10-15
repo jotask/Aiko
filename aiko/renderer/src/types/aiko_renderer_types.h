@@ -77,6 +77,9 @@ namespace aiko
         MeshDrawPacket draw{};
         const TransientDrawDesc* transient = nullptr;
         InstancedDrawPacket instanced{};
+        const GpuVertexDrawDesc* gpuVertex = nullptr;
+        const GpuInstanceDrawDesc* gpuInstance = nullptr;
+        const GpuBillboardDrawDesc* gpuBillboard = nullptr;
         float depth = 0.0f;
     };
 

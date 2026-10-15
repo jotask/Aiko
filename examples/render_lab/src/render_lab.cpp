@@ -758,6 +758,8 @@ namespace aiko::lab
         m_gpuVertexMaterial.m_lit = false;
         m_gpuVertexMaterial.m_useVertexColor = false;
         m_gpuVertexMaterial.m_baseColor = WHITE;
+        m_gpuVertexMaterial.m_renderState.blend = true;
+        m_gpuVertexMaterial.m_renderState.depthWrite = false;
 
     }
 
@@ -1743,6 +1745,7 @@ namespace aiko::lab
             .indexCount = 6,
             .indirectBuffer = &m_gpuIndirectBuffer,
             .topology = TransientTopology::Triangles,
+            .transparencySortPosition = vec3{0.0f, 0.0f, -8.0f},
         };
         renderer().drawVerticesGpu(draw);
     }

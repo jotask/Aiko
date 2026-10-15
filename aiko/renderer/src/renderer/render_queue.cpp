@@ -6,6 +6,7 @@
 #include "models/material.h"
 #include "models/mesh.h"
 
+#include <cmath>
 #include <cstring>
 
 namespace aiko
@@ -107,6 +108,24 @@ namespace aiko
                 view(2, 3) * world(3, 3));
         };
 
+        const auto gpuTransparentDepth = [&view](const auto& desc)
+        {
+            AIKO_ASSERT(desc.transparencySortPosition.has_value(), "Blended GPU draws require a world-space transparency sort position");
+
+            const vec3& position = *desc.transparencySortPosition;
+            AIKO_ASSERT(std::isfinite(position.x) && std::isfinite(position.y) && std::isfinite(position.z), "GPU transparency sort position must be finite");
+
+            const float depth = -(
+                view(2, 0) * position.x +
+                view(2, 1) * position.y +
+                view(2, 2) * position.z +
+                view(2, 3));
+
+            AIKO_ASSERT(std::isfinite(depth), "GPU transparency depth must be finite");
+
+            return depth;
+        };
+
         passData.fullscreen.reserve(m_fullscreenDraws.size());
         for (const Material* material : m_fullscreenDraws)
         {
@@ -120,18 +139,42 @@ namespace aiko
         for (const GpuInstanceDrawDesc& desc : m_gpuInstanceDraws)
         {
             passData.gpuInstances.push_back(&desc);
+
+            if (desc.material != nullptr && desc.material->m_renderState.blend)
+            {
+                PreparedTransparentPacket packet{};
+                packet.gpuInstance = &desc;
+                packet.depth = gpuTransparentDepth(desc);
+                passData.transparent.push_back(packet);
+            }
         }
 
         passData.gpuBillboards.reserve(m_gpuBillboardDraws.size());
         for (const GpuBillboardDrawDesc& desc : m_gpuBillboardDraws)
         {
             passData.gpuBillboards.push_back(&desc);
+
+            if (desc.material != nullptr && desc.material->m_renderState.blend)
+            {
+                PreparedTransparentPacket packet{};
+                packet.gpuBillboard = &desc;
+                packet.depth = gpuTransparentDepth(desc);
+                passData.transparent.push_back(packet);
+            }
         }
 
         passData.gpuVertices.reserve(m_gpuVertexDraws.size());
         for (const GpuVertexDrawDesc& desc : m_gpuVertexDraws)
         {
             passData.gpuVertices.push_back(&desc);
+
+            if (desc.material != nullptr && desc.material->m_renderState.blend)
+            {
+                PreparedTransparentPacket packet{};
+                packet.gpuVertex = &desc;
+                packet.depth = gpuTransparentDepth(desc);
+                passData.transparent.push_back(packet);
+            }
         }
 
         passData.opaque.reserve(m_renderItems.size());
