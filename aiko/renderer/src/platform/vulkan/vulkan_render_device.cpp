@@ -518,6 +518,7 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::shutdown()
     {
         waitIdle();
+        m_cachedComputeDescriptorSet = VK_NULL_HANDLE;
         m_materialResources.destroy();
         m_whiteTexture.unload();
         m_gpuPipelines.destroy();
@@ -544,6 +545,9 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::beginFrame()
     {
         AIKO_FUNCTION_PROFILE
+
+        m_cachedComputeDescriptorSet = VK_NULL_HANDLE;
+
         m_preparedMaterialBindings.clear();
         m_preparedMaterialStates.clear();
         m_frameActive = m_context.beginFrame();
@@ -1178,8 +1182,6 @@ namespace aiko::renderer::vulkan
         const VkPipeline pipeline = m_computePipelines.getOrCreate(*shaderImpl);
         const VkPipelineLayout pipelineLayout = m_computePipelines.layout();
 
-        const VkDescriptorSet descriptorSet = m_computeDescriptors.allocate(m_context.currentFrameIndex());
-
         const bool useDedicatedCompute = m_context.hasDedicatedComputeQueue();
 
         VkCommandBuffer commandBuffer = useDedicatedCompute ? m_context.computeCommandBuffer() : m_context.activeCommandBuffer();
@@ -1263,7 +1265,7 @@ namespace aiko::renderer::vulkan
             }
         }
 
-        updateComputeDescriptors(descriptorSet, pass.buffers, pass.images);
+        const VkDescriptorSet descriptorSet = resolveComputeDescriptors(pass.buffers, pass.images);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
@@ -2134,7 +2136,7 @@ namespace aiko::renderer::vulkan
         vkCmdDrawIndexed(commandBuffer, meshImpl->indexCount(), 1, 0, 0, 0);
     }
 
-    void VulkanRenderDevice::updateComputeDescriptors(VkDescriptorSet descriptorSet, const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images)
+    VkDescriptorSet VulkanRenderDevice::resolveComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images)
     {
 
         AIKO_ASSERT(bindings.size() <= abi::MaxComputeBufferBindings, "Too many Vulkan compute buffer bindings");
@@ -2172,7 +2174,6 @@ namespace aiko::renderer::vulkan
             writes[writeCount] =
             {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = descriptorSet,
                 .dstBinding = binding.stage,
                 .dstArrayElement = 0,
                 .descriptorCount = 1,
@@ -2207,7 +2208,6 @@ namespace aiko::renderer::vulkan
             imageWrites[imageWriteCount] =
             {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = descriptorSet,
                 .dstBinding = abi::ComputeImageBindingBase + binding.stage,
                 .dstArrayElement = 0,
                 .descriptorCount = 1,
@@ -2233,7 +2233,6 @@ namespace aiko::renderer::vulkan
         const VkWriteDescriptorSet frameWrite =
         {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = descriptorSet,
             .dstBinding = abi::ComputeFrameBinding,
             .dstArrayElement = 0,
             .descriptorCount = 1,
@@ -2256,7 +2255,48 @@ namespace aiko::renderer::vulkan
 
         allWrites.push_back(frameWrite);
 
+        ComputeDescriptorState state{};
+        state.frameUniformBuffer = frameInfo.buffer;
+
+        for (uint32_t i = 0; i < writeCount; ++i)
+        {
+            const uint32_t binding = writes[i].dstBinding;
+            state.buffers[binding] = bufferInfos[i].buffer;
+            state.ranges[binding] = bufferInfos[i].range;
+        }
+
+        const bool canReuse =
+            images.empty() &&
+            m_cachedComputeDescriptorSet != VK_NULL_HANDLE &&
+            state.buffers == m_cachedComputeDescriptorState.buffers &&
+            state.ranges == m_cachedComputeDescriptorState.ranges &&
+            state.frameUniformBuffer == m_cachedComputeDescriptorState.frameUniformBuffer;
+
+        if (canReuse)
+        {
+            return m_cachedComputeDescriptorSet;
+        }
+
+        const VkDescriptorSet descriptorSet = m_computeDescriptors.allocate(frame);
+
+        for (VkWriteDescriptorSet& write : allWrites)
+        {
+            write.dstSet = descriptorSet;
+        }
+
         vkUpdateDescriptorSets(m_context.device(), static_cast<uint32_t>(allWrites.size()), allWrites.data(), 0, nullptr);
+
+        if (images.empty())
+        {
+            m_cachedComputeDescriptorState = state;
+            m_cachedComputeDescriptorSet = descriptorSet;
+        }
+        else
+        {
+            m_cachedComputeDescriptorSet = VK_NULL_HANDLE;
+        }
+
+        return descriptorSet;
 
     }
 

@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
+#include <array>
 
 #include "aiko_types.h"
 #include "vulkan_context.h"
@@ -140,7 +141,7 @@ namespace aiko::renderer::vulkan
         VulkanComputeDescriptors m_computeDescriptors;
         VulkanComputePipelines m_computePipelines;
 
-        void updateComputeDescriptors(VkDescriptorSet descriptorSet, const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images);
+        VkDescriptorSet resolveComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images);
         void transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings, bool useDedicatedCompute);
         VulkanImageState computeImageState(ComputeAccess access, uint32_t queueFamily) const;
         void transitionTexture(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination);
@@ -183,6 +184,16 @@ namespace aiko::renderer::vulkan
         };
 
         std::unordered_map<MaterialId, std::vector<PreparedMaterialState>> m_preparedMaterialStates;
+
+        struct ComputeDescriptorState
+        {
+            std::array<VkBuffer, abi::MaxComputeBufferBindings> buffers{};
+            std::array<VkDeviceSize, abi::MaxComputeBufferBindings> ranges{};
+            VkBuffer frameUniformBuffer = VK_NULL_HANDLE;
+        };
+
+        ComputeDescriptorState m_cachedComputeDescriptorState{};
+        VkDescriptorSet m_cachedComputeDescriptorSet = VK_NULL_HANDLE;
 
         const Texture* resolveTextureBinding(const TextureBinding& binding);
         void refreshMaterialTextureBindings(VulkanMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings);
