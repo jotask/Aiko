@@ -44,13 +44,19 @@ namespace aiko
         vector<RigidBodyComponent*> rigidBodies = scene.components<RigidBodyComponent>();
         vector<PlayerControllerComponent*> playerControllers = scene.components<PlayerControllerComponent>();
 
-        std::unordered_map<physics::BodyId, RigidBodyComponent*> bodyLookup;
+        std::unordered_map<physics::BodyId, PhysicsContactParticipant> bodyLookup;
 
         for (RigidBodyComponent* body : rigidBodies)
         {
             if (body != nullptr && body->isPhysicsInitialized())
             {
-                bodyLookup.emplace(body->getBodyId(), body);
+                bodyLookup.emplace(
+                    body->getBodyId(),
+                    PhysicsContactParticipant{
+                        .objectId = body->getGameObject()->uuid(),
+                        .componentId = body->uuid,
+                        .bodyId = body->getBodyId()
+                    });
             }
         }
 
@@ -93,7 +99,11 @@ namespace aiko
                     body->ensurePhysicsInitialized(m_physics);
                     if (body->isPhysicsInitialized())
                     {
-                        bodyLookup[body->getBodyId()] = body;
+                        bodyLookup[body->getBodyId()] = PhysicsContactParticipant{
+                            .objectId = body->getGameObject()->uuid(),
+                            .componentId = body->uuid,
+                            .bodyId = body->getBodyId()
+                        };
                     }
                 }
             }
@@ -165,55 +175,42 @@ namespace aiko
                         logger::Log::trace("Body activated: {}", event.bodyA);
                     }
                     break;
+
                 case physics::PhysicsEventType::BodyDeactivated:
                     {
                         logger::Log::trace("Body deactivated: {}", event.bodyA);
                     }
                     break;
+
                 case physics::PhysicsEventType::ContactAdded:
+                {
+                    const auto a = bodyLookup.find(event.bodyA);
+                    const auto b = bodyLookup.find(event.bodyB);
+
+                    if (a == bodyLookup.end() || b == bodyLookup.end())
                     {
-                        const auto bodyAIt = bodyLookup.find(event.bodyA);
-                        const auto bodyBIt = bodyLookup.find(event.bodyB);
-
-                        if (bodyAIt == bodyLookup.end() || bodyBIt == bodyLookup.end())
-                        {
-                            break;
-                        }
-
-                        RigidBodyComponent* bodyA = bodyAIt->second;
-                        RigidBodyComponent* bodyB = bodyBIt->second;
-
-                        if (bodyA == nullptr || bodyB == nullptr)
-                        {
-                            break;
-                        }
-
-                        PhysicsContactStartedEvent contactEvent(bodyA->getGameObject(), bodyB->getGameObject(), bodyA, bodyB);
-                        EventSystem::it().sendEvent(contactEvent);
+                        break;
                     }
-                    break;
+
+                    PhysicsContactStartedEvent contactEvent(a->second, b->second);
+                    EventSystem::it().sendEvent(contactEvent);
+                }
+                break;
+
                 case physics::PhysicsEventType::ContactRemoved:
+                {
+                    const auto a = bodyLookup.find(event.bodyA);
+                    const auto b = bodyLookup.find(event.bodyB);
+
+                    if (a == bodyLookup.end() || b == bodyLookup.end())
                     {
-                        const auto bodyAIt = bodyLookup.find(event.bodyA);
-                        const auto bodyBIt = bodyLookup.find(event.bodyB);
-
-                        if (bodyAIt == bodyLookup.end() || bodyBIt == bodyLookup.end())
-                        {
-                            break;
-                        }
-
-                        RigidBodyComponent* bodyA = bodyAIt->second;
-                        RigidBodyComponent* bodyB = bodyBIt->second;
-
-                        if (bodyA == nullptr || bodyB == nullptr)
-                        {
-                            break;
-                        }
-
-                        PhysicsContactEndedEvent contactEvent(bodyA->getGameObject(), bodyB->getGameObject(), bodyA, bodyB);
-                        EventSystem::it().sendEvent(contactEvent);
+                        break;
                     }
-                    break;
+
+                    PhysicsContactEndedEvent contactEvent(a->second, b->second);
+                    EventSystem::it().sendEvent(contactEvent);
+                }
+                break;
             }
         }
     }

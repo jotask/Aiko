@@ -1,45 +1,43 @@
 #pragma once
 
+#include <aiko_physics_types.h>
+#include <core/uuid.h>
 #include <events/event.hpp>
 
 namespace aiko
 {
-    class GameObject;
-    class RigidBodyComponent;
+    struct PhysicsContactParticipant
+    {
+        uuid::Uuid objectId;
+        uuid::Uuid componentId;
+        physics::BodyId bodyId = physics::InvalidBodyId;
+    };
 
     class PhysicsContactStartedEvent final : public Event
     {
     public:
-        PhysicsContactStartedEvent(GameObject* objectA, GameObject* objectB, RigidBodyComponent* bodyA, RigidBodyComponent* bodyB)
-            : objectA(objectA)
-            , objectB(objectB)
-            , bodyA(bodyA)
-            , bodyB(bodyB)
+        PhysicsContactStartedEvent(
+            const PhysicsContactParticipant& a,
+            const PhysicsContactParticipant& b)
+            : a(a), b(b)
         {
         }
 
-        GameObject* objectA = nullptr;
-        GameObject* objectB = nullptr;
-
-        RigidBodyComponent* bodyA = nullptr;
-        RigidBodyComponent* bodyB = nullptr;
+        PhysicsContactParticipant a;
+        PhysicsContactParticipant b;
     };
 
     class PhysicsContactEndedEvent final : public Event
     {
     public:
-        PhysicsContactEndedEvent(GameObject* objectA, GameObject* objectB, RigidBodyComponent* bodyA, RigidBodyComponent* bodyB)
-            : objectA(objectA)
-            , objectB(objectB)
-            , bodyA(bodyA)
-            , bodyB(bodyB)
+        PhysicsContactEndedEvent(
+            const PhysicsContactParticipant& a,
+            const PhysicsContactParticipant& b)
+            : a(a), b(b)
         {
         }
 
-        GameObject* objectA = nullptr;
-        GameObject* objectB = nullptr;
-
-        RigidBodyComponent* bodyA = nullptr;
-        RigidBodyComponent* bodyB = nullptr;
+        PhysicsContactParticipant a;
+        PhysicsContactParticipant b;
     };
 }
