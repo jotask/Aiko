@@ -1450,6 +1450,11 @@ namespace aiko::renderer::vulkan
 
         if (vkAllocateMemory(m_device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
         {
+            vkDestroyBuffer(m_device, buffer, nullptr);
+
+            buffer = VK_NULL_HANDLE;
+            bufferMemory = VK_NULL_HANDLE;
+
             throw std::runtime_error("failed to allocate buffer memory!");
         }
 
