@@ -171,7 +171,8 @@ namespace aiko
     void AikoRenderer::submitFullscreen(const Material& material)
     {
         AIKO_FUNCTION_PROFILE
-        m_renderQueue.submitFullscreen(material);
+        m_frameMaterials.push_back(material);
+        m_renderQueue.submitFullscreen(m_frameMaterials.back());
     }
 
     void AikoRenderer::submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology)
@@ -238,17 +239,29 @@ namespace aiko
 
     void AikoRenderer::drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc)
     {
-        m_renderQueue.submitGpuInstances(desc);
+        AIKO_ASSERT(desc.material != nullptr, "GPU instance draw has no material");
+        m_frameMaterials.push_back(*desc.material);
+        GpuInstanceDrawDesc staged = desc;
+        staged.material = &m_frameMaterials.back();
+        m_renderQueue.submitGpuInstances(staged);
     }
 
     void AikoRenderer::drawBillboards(const GpuBillboardDrawDesc& desc)
     {
-        m_renderQueue.submitGpuBillboards(desc);
+        AIKO_ASSERT(desc.material != nullptr, "GPU billboard draw has no material");
+        m_frameMaterials.push_back(*desc.material);
+        GpuBillboardDrawDesc staged = desc;
+        staged.material = &m_frameMaterials.back();
+        m_renderQueue.submitGpuBillboards(staged);
     }
 
     void AikoRenderer::drawVerticesGpu(const GpuVertexDrawDesc& desc)
     {
-        m_renderQueue.submitGpuVertices(desc);
+        AIKO_ASSERT(desc.material != nullptr, "GPU vertex draw has no material");
+        m_frameMaterials.push_back(*desc.material);
+        GpuVertexDrawDesc staged = desc;
+        staged.material = &m_frameMaterials.back();
+        m_renderQueue.submitGpuVertices(staged);
     }
 
     void AikoRenderer::render(const Camera& camera)
