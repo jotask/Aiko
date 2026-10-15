@@ -2,6 +2,7 @@
 #include "physics_lab.h"
 
 #include <cstdlib>
+#include <memory>
 
 int main()
 {

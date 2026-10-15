@@ -5,6 +5,7 @@
 #include "systems/base_system.h"
 #include "components/rigid_body_component.h"
 #include "components/player_controller_component.h"
+#include "models/material.h"
 
 namespace aiko
 {
