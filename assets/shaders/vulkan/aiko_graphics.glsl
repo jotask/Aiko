@@ -3,7 +3,6 @@
 
 #extension GL_GOOGLE_include_directive : require
 
-#include "aiko_constants.glsl"
 #include "aiko_descriptor_abi.glsl"
 
 #define MAX_LIGHTS 8
