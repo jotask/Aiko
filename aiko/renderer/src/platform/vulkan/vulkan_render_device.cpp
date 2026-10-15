@@ -944,6 +944,13 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(instanceCount > 0, "Instanced draw has zero instances");
         AIKO_ASSERT(instanceStrideBytes >= sizeof(InstanceData), "Instanced draw stride is smaller than InstanceData");
 
+        AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "CPU-instanced material has no shader");
+
+        Shader& shader = getResources()->getShader(material.m_shaderId);
+
+        const auto* shaderImpl = static_cast<const VulkanShaderImpl*>(getShaderBackend(shader));
+        AIKO_ASSERT(shaderImpl != nullptr && shaderImpl->isBuiltinModelShader(), "CPU instancing currently supports only the built-in Model shader");
+
         auto* meshImpl = static_cast<VulkanMeshImpl*>(getMeshBackend(mesh));
 
         AIKO_ASSERT(meshImpl != nullptr, "Instanced mesh has no Vulkan implementation");

@@ -28,6 +28,8 @@ namespace aiko::renderer::vulkan
         VkShaderModule fragmentModule() const { return m_fragmentModule; }
         const VulkanShaderReflection& reflection() const { return m_reflection; }
 
+        bool isBuiltinModelShader() const;
+
     private:
 
         string vertex_file;

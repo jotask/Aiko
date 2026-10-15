@@ -116,6 +116,11 @@ namespace aiko::renderer::vulkan
         return false;
     }
 
+    bool VulkanShaderImpl::isBuiltinModelShader() const
+    {
+        return isValid() && vertex_file == "model.vert" && fragment_file == "model.frag";
+    }
+
     VkShaderModule VulkanShaderImpl::createShaderModule(VkDevice device, const vector<uint8_t>& code)
     {
 
