@@ -3,6 +3,7 @@
 #include "imgui/aiko_imgui.h"
 #include "models/light.h"
 #include "models/material.h"
+#include "models/mesh.h"
 #include "models/render_target.h"
 #include "renderer/render_queue.h"
 #include "renderer/scene_render_request.h"
@@ -80,6 +81,7 @@ namespace aiko
 
         void setDebugTexture(const Texture* texture);
         void setUiShader(AssetId shaderId);
+        void setBillboardShaders(const AssetId& opaque, const AssetId& transparent);
 
         void renderToTarget(const Camera& camera, RenderTarget& target);
         const RenderTarget& sceneRenderTarget() const { return m_sceneTarget; }
@@ -156,6 +158,12 @@ namespace aiko
 
         UIRenderer m_uiRenderer;
         UIDrawList m_uiDrawList;
+
+        Mesh& resolveBillboardMesh();
+
+        Mesh m_billboardMesh;
+        AssetId m_billboardOpaqueShaderId = InvalidAssetId;
+        AssetId m_billboardTransparentShaderId = InvalidAssetId;
 
     };
 

@@ -24,6 +24,7 @@ namespace aiko
     class AssetSystem;
     class RenderTarget;
     class Font;
+    struct GpuBillboardDrawDesc;
 
     class RenderSystem : public BaseSystem
     {
@@ -51,6 +52,7 @@ namespace aiko
         void renderInstanced( const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
         void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
+        void drawBillboards(const GpuBillboardDrawDesc& desc);
 
         void drawFullscreen(const Material& material);
         ivec2 getRenderSize() const;

@@ -16,6 +16,7 @@ namespace aiko
     class Camera;
     class Mesh;
     class Shader;
+    struct GpuBillboardDrawDesc;
 
     class RenderModule : public BaseModule
     {
@@ -44,6 +45,7 @@ namespace aiko
 
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
         void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
+        void drawBillboards(const GpuBillboardDrawDesc& desc);
 
         void submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology);
 

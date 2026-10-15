@@ -89,6 +89,11 @@ namespace aiko
         m_renderer->drawMeshInstancedGpu(desc);
     }
 
+    void RenderModule::drawBillboards(const GpuBillboardDrawDesc& desc)
+    {
+        m_renderer->drawBillboards(desc);
+    }
+
     void RenderModule::submitTransient(const Transform& transform, const Material& material, const MeshAsset& meshAsset, TransientTopology topology)
     {
         m_renderer->submitTransient(transform, material, meshAsset, topology);
@@ -212,6 +217,11 @@ namespace aiko
 
         m_renderer = std::make_unique<AikoRenderer>(*assetManager);
         m_renderer->init(getAiko()->getConfig().renderer, surface);
+
+        const AssetId billboardOpaque = assetManager->registerShader("gpu_billboard_default.vs", "model.fs");
+        const AssetId billboardTransparent = assetManager->registerShader("gpu_billboard_default_sorted.vs", "model.fs");
+
+        m_renderer->setBillboardShaders(billboardOpaque, billboardTransparent);
     }
 
     void RenderModule::update()

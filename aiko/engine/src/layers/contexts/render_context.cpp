@@ -47,6 +47,11 @@ namespace aiko
         m_renderSystem->drawMeshInstancedGpu(desc);
     }
 
+    void RenderContext::drawBillboards(const GpuBillboardDrawDesc& desc)
+    {
+        m_renderSystem->drawBillboards(desc);
+    }
+
     void RenderContext::renderToTarget(const Camera& camera, RenderTarget& target)
     {
         m_renderSystem->renderToTarget(camera, target);

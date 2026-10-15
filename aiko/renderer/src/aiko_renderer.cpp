@@ -131,6 +131,7 @@ namespace aiko
     {
         m_renderer->waitIdle();
         m_gpuInstanceSorter.dispose();
+        m_billboardMesh.unload();
         m_imgui.dispose();
         m_frameTransientGeometries.clear();
         m_screenPresenter.dispose();
@@ -257,11 +258,42 @@ namespace aiko
 
     void AikoRenderer::drawBillboards(const GpuBillboardDrawDesc& desc)
     {
+        if (desc.instanceCount == 0)
+        {
+            return;
+        }
+
         AIKO_ASSERT(desc.material != nullptr, "GPU billboard draw has no material");
+        AIKO_ASSERT(desc.positionBuffer != nullptr, "GPU billboard draw has no position buffer");
+        AIKO_ASSERT(desc.positionBuffer->isValid(), "Invalid GPU billboard position buffer");
+
         m_frameMaterials.push_back(*desc.material);
-        GpuBillboardDrawDesc staged = desc;
-        staged.material = &m_frameMaterials.back();
-        m_renderQueue.submitGpuBillboards(staged);
+        Material& material = m_frameMaterials.back();
+
+        const bool transparent = material.m_renderState.blend;
+
+        if (material.m_shaderId == InvalidAssetId)
+        {
+            material.m_shaderId = transparent ? m_billboardTransparentShaderId : m_billboardOpaqueShaderId;
+
+            AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "Default billboard shaders have not been configured");
+        }
+
+        GpuInstanceDrawDesc draw{};
+        draw.mesh = &resolveBillboardMesh();
+        draw.material = &material;
+        draw.readBuffers = {
+            {7, desc.positionBuffer}
+        };
+        draw.instanceCount = desc.instanceCount;
+        draw.transparencySortPosition = desc.transparencySortPosition;
+
+        if (transparent)
+        {
+            draw.transparencyPositions = desc.positionBuffer;
+        }
+
+        m_renderQueue.submitGpuInstances(draw);
     }
 
     void AikoRenderer::drawVerticesGpu(const GpuVertexDrawDesc& desc)
@@ -328,6 +360,15 @@ namespace aiko
     void AikoRenderer::setUiShader(AssetId shaderId)
     {
         m_uiRenderer.setShader(shaderId);
+    }
+
+    void AikoRenderer::setBillboardShaders(const AssetId& opaque, const AssetId& transparent)
+    {
+        AIKO_ASSERT(opaque != InvalidAssetId, "Invalid opaque billboard shader");
+        AIKO_ASSERT(transparent != InvalidAssetId, "Invalid transparent billboard shader");
+
+        m_billboardOpaqueShaderId = opaque;
+        m_billboardTransparentShaderId = transparent;
     }
 
     void AikoRenderer::renderToTarget(const Camera& camera, RenderTarget& target)
@@ -899,5 +940,35 @@ namespace aiko
 
         candidates.push_back(&staged);
         return staged;
+    }
+
+    Mesh& AikoRenderer::resolveBillboardMesh()
+    {
+        if (!m_billboardMesh.isValid())
+        {
+            MeshAsset mesh{};
+
+            mesh.m_vertices = {
+                {-0.5f, -0.5f, 0.0f},
+                { 0.5f, -0.5f, 0.0f},
+                { 0.5f,  0.5f, 0.0f},
+                {-0.5f,  0.5f, 0.0f}
+            };
+
+            mesh.m_textCoord = {
+                {0.0f, 1.0f},
+                {1.0f, 1.0f},
+                {1.0f, 0.0f},
+                {0.0f, 0.0f}
+            };
+
+            mesh.m_normals.assign(4, vec3{0.0f, 0.0f, 1.0f});
+            mesh.m_colors.assign(4, WHITE);
+            mesh.m_indices = {0, 1, 2, 0, 2, 3};
+
+            m_billboardMesh.upload(mesh);
+        }
+
+        return m_billboardMesh;
     }
 }

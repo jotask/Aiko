@@ -32,6 +32,7 @@ namespace aiko::lab
         void init() override;
         void update() override;
         void render() override;
+        void dispose() override;
         void connect(SystemConnector& systemConnector) override;
 
     private:
@@ -60,6 +61,7 @@ namespace aiko::lab
         void initRenderTarget();
         void initUI();
         void initMaterialSnapshotTests();
+        void initGpuBillboards();
 
         // --------------------------------------------------
         // Update
@@ -86,6 +88,7 @@ namespace aiko::lab
         void renderUI();
         void renderTextTests();
         void renderMaterialSnapshotTests();
+        void renderGpuBillboards();
 
     private:
         RenderSystem* m_renderSystem = nullptr;
@@ -163,6 +166,10 @@ namespace aiko::lab
         // Opaque batching, transparent CPU instances
         Mesh m_snapshotTestMesh;
         Material m_snapshotTestMaterial;
+
+        // GPU billboard
+        Material m_gpuBillboardMaterial;
+        ComputeBuffer m_gpuBillboardPositions;
 
     };
 }

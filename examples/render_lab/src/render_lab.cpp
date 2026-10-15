@@ -51,6 +51,7 @@ namespace aiko::lab
         constexpr bool EnableTextTests = true;
         constexpr bool EnableRenderTargetResizeStress = true;
         constexpr bool EnableMaterialSnapshotTests = true;
+        constexpr bool EnableGPUBillboard = true;
     }
 
     void RenderLab::connect(SystemConnector& systemConnector)
@@ -130,6 +131,11 @@ namespace aiko::lab
         {
             initMaterialSnapshotTests();
         }
+
+        if constexpr (EnableGPUBillboard)
+        {
+            initGpuBillboards();
+        }
     }
 
     void RenderLab::update()
@@ -203,6 +209,11 @@ namespace aiko::lab
             renderMaterialSnapshotTests();
         }
 
+        if constexpr (EnableGPUBillboard)
+        {
+            renderGpuBillboards();
+        }
+
         if constexpr (EnableRenderTargetTests)
         {
             renderRenderTargetTest();
@@ -218,6 +229,13 @@ namespace aiko::lab
             renderTextTests();
         }
 
+    }
+    void RenderLab::dispose()
+    {
+        if constexpr (EnableGPUBillboard)
+        {
+            m_gpuBillboardPositions.unload();
+        }
     }
 
     // --------------------------------------------------
@@ -1352,6 +1370,28 @@ namespace aiko::lab
         m_snapshotTestMaterial.m_renderState.blend = false;
     }
 
+    void RenderLab::initGpuBillboards()
+    {
+        const std::array<vec4, 3> positions{
+            vec4{7.0f, 4.0f, -6.0f, 0.75f},
+            vec4{7.0f, 4.0f, -8.0f, 1.25f},
+            vec4{7.0f, 4.0f, -7.0f, 2.0f}
+        };
+
+        m_gpuBillboardPositions.createVec4(3, positions.data());
+
+        Material& material = m_gpuBillboardMaterial;
+
+        // Leaving the shader unassigned selects the renderer's default.
+        material.m_shaderId = InvalidAssetId;
+        material.m_baseColor = Color{0.0f, 0.8f, 1.0f, 0.35f};
+        material.m_useVertexColor = false;
+        material.m_lit = false;
+        material.m_renderState.cullMode = CullMode::None;
+        material.m_renderState.blend = true;
+        material.m_renderState.depthWrite = false;
+    }
+
     // --------------------------------------------------
     // Updates
     // --------------------------------------------------
@@ -1880,6 +1920,17 @@ namespace aiko::lab
         material.m_baseColor = MAGENTA;
         material.m_renderState.blend = false;
         material.m_renderState.depthWrite = true;
+    }
+
+    void RenderLab::renderGpuBillboards()
+    {
+        GpuBillboardDrawDesc draw{};
+        draw.material = &m_gpuBillboardMaterial;
+        draw.positionBuffer = &m_gpuBillboardPositions;
+        draw.instanceCount = 3;
+        draw.transparencySortPosition = vec3{7.0f, 4.0f, -7.0f};
+
+        renderer().drawBillboards(draw);
     }
 
 }

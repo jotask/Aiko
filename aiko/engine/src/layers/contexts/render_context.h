@@ -19,6 +19,7 @@ namespace aiko
     class RenderTarget;
     class Font;
     struct GpuInstanceDrawDesc;
+    struct GpuBillboardDrawDesc;
 
     class RenderContext
     {
@@ -28,6 +29,7 @@ namespace aiko
         void drawMeshInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
         void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
+        void drawBillboards(const GpuBillboardDrawDesc& desc);
         void drawFullscreen(const Material& material);
         ivec2 getRenderSize() const;
         void renderToTarget(const Camera& camera, RenderTarget& target);

@@ -8,10 +8,12 @@ layout(std430, set = 2, binding = 7) readonly buffer BillboardPositions
     vec4 positions[];
 };
 
+#ifndef AIKO_BILLBOARD_MATERIAL_COLOR
 layout(std430, set = 2, binding = 8) readonly buffer BillboardColors
 {
     vec4 colors[];
 };
+#endif
 
 layout(location = 0) out vec2 v_texcoord0;
 layout(location = 1) out vec4 v_color0;
@@ -33,10 +35,19 @@ void main()
         u_view[1][1],
         u_view[2][1]);
 
-    vec3 worldPosition = instance.xyz + cameraRight * a_position.x * instance.w + cameraUp * a_position.y * instance.w;
+    vec3 worldPosition =
+        instance.xyz +
+        cameraRight * a_position.x * instance.w +
+        cameraUp * a_position.y * instance.w;
 
     v_texcoord0 = a_texcoord0;
+
+#ifdef AIKO_BILLBOARD_MATERIAL_COLOR
+    v_color0 = vec4(1.0);
+#else
     v_color0 = colors[index];
+#endif
+
     v_normal = normalize(cross(cameraRight, cameraUp));
     v_worldPos = worldPosition;
 

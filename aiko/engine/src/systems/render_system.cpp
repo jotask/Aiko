@@ -349,6 +349,11 @@ namespace aiko
         m_renderModule->drawMeshInstancedGpu(desc);
     }
 
+    void RenderSystem::drawBillboards(const GpuBillboardDrawDesc& desc)
+    {
+        m_renderModule->drawBillboards(desc);
+    }
+
     void RenderSystem::drawFullscreen(const Material& material)
     {
         AIKO_FUNCTION_PROFILE
