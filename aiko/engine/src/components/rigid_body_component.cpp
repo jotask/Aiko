@@ -66,7 +66,6 @@ namespace aiko
 
         gameobject->transform().position = physicsTransform.position;
         gameobject->transform().rotation = physicsTransform.rotation;
-        gameobject->transform().scale = physicsTransform.scale;
     }
 
     void RigidBodyComponent::physicsShutdown(physics::AikoPhysics& world)
