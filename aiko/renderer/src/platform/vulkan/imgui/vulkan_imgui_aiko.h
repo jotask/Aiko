@@ -53,6 +53,8 @@ namespace aiko::renderer::vulkan
 
         std::unordered_map<TextureBindingKey, TextureBinding, TextureBindingKeyHash> m_textureBindings;
 
+        VkFormat m_pipelineColorFormat = VK_FORMAT_UNDEFINED;
+
         void removeExpiredTextureBindings();
     };
 

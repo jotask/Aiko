@@ -52,11 +52,30 @@ namespace aiko::renderer::vulkan
         {
             logger::Log::error("Failed to initialize ImGui Vulkan backend!");
         }
+
+        m_pipelineColorFormat = ctx.swapChainImageFormat();
         m_samplerCache = std::make_unique<VulkanSamplerCache>(ctx);
     }
 
     void VulkanImguiImpl::beginFrame(const ViewId id, int width, int height)
     {
+        VulkanContext& ctx = VulkanContext::current();
+
+        const VkFormat colorFormat = ctx.swapChainImageFormat();
+
+        if (colorFormat != m_pipelineColorFormat)
+        {
+            const ImGui_ImplVulkan_PipelineInfo pipelineInfo =
+            {
+                .RenderPass = ctx.clearRenderPass(),
+                .Subpass = 0,
+                .MSAASamples = VK_SAMPLE_COUNT_1_BIT,
+            };
+
+            ImGui_ImplVulkan_CreateMainPipeline(&pipelineInfo);
+            m_pipelineColorFormat = colorFormat;
+        }
+
         removeExpiredTextureBindings();
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -82,6 +101,8 @@ namespace aiko::renderer::vulkan
         ctx.releaseRetiredDescriptorSets();
 
         ImGui_ImplVulkan_Shutdown();
+
+        m_pipelineColorFormat = VK_FORMAT_UNDEFINED;
 
         m_textureBindings.clear();
 
