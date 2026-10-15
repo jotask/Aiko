@@ -525,6 +525,8 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::shutdown()
     {
         waitIdle();
+        m_cachedModelPipelineKey.reset();
+        m_cachedModelPipeline = VK_NULL_HANDLE;
         m_cachedComputeDescriptorSet = VK_NULL_HANDLE;
         m_materialResources.destroy();
         m_whiteTexture.unload();
