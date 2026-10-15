@@ -4,31 +4,12 @@
 #include "platform/vulkan/vulkan_platform_helper.h"
 #include "platform/vulkan/vulkan_types.h"
 #include "platform/vulkan/vulkan_shader_reflector.h"
+#include "platform/vulkan/vulkan_resource_id.h"
 
 #include <core/file.h>
 
-#include <atomic>
-#include <cstdlib>
-
 namespace aiko::renderer::vulkan
 {
-
-    namespace
-    {
-        RenderResourceId nextGraphicsShaderId()
-        {
-            static std::atomic<RenderResourceId> nextId{1};
-
-            const RenderResourceId id = nextId.fetch_add(1, std::memory_order_relaxed);
-
-            if (id == InvalidRenderResourceId)
-            {
-                std::abort();
-            }
-
-            return id;
-        }
-    }
 
     VulkanShaderImpl::VulkanShaderImpl()
     {
@@ -83,7 +64,7 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        m_id = nextGraphicsShaderId();
+        m_id = allocateRenderResourceId();
 
     }
 
