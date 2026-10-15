@@ -80,7 +80,8 @@ namespace aiko
         }
 
         const Transform physicsTransform = world.getTransform(m_bodyId);
-        physics::applyPhysicsTransform(gameobject->transform(), physicsTransform);
+        const bool applied = physics::applyPhysicsTransform(gameobject->transform(), physicsTransform);
+        AIKO_ASSERT(applied, "Cannot synchronize rigid body through an invalid parent transform");
     }
 
     void RigidBodyComponent::physicsShutdown(physics::AikoPhysics& world)

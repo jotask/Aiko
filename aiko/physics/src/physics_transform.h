@@ -6,5 +6,5 @@ namespace aiko::physics
 {
     Transform toPhysicsTransform(const Transform& transform);
 
-    void applyPhysicsTransform(Transform& transform, const Transform& physicsTransform);
+    bool applyPhysicsTransform(Transform& transform, const Transform& physicsTransform);
 }

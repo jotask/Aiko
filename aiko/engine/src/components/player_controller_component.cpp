@@ -126,7 +126,8 @@ namespace aiko
         pose.position = m_controller.getPosition();
         pose.rotation.y = math::degrees(m_yawRadians);
 
-        physics::applyPhysicsTransform(gameobject->transform(), pose);
+        const bool applied = physics::applyPhysicsTransform(gameobject->transform(), pose);
+        AIKO_ASSERT(applied, "Cannot synchronize controller through an invalid parent transform");
 
         m_pendingInput.jumpPressed = false;
     }
