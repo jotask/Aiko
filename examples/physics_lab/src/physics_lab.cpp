@@ -696,7 +696,14 @@ namespace aiko::lab
         m_renderSystem->renderLine(m_ray.from, m_rayHasHit ? m_rayHit.position : m_ray.to, m_rayHasHit ? GREEN : RED);
         if (m_rayHasHit)
         {
+            m_renderSystem->renderLine(m_ray.from, m_rayHit.position, GREEN);
+            m_renderSystem->renderLine(m_rayHit.position, m_ray.to, Color{0.4f, 0.4f, 0.4f, 1.0f});
+            m_renderSystem->renderSphere(m_rayHit.position, vec3{0.15f}, YELLOW, 12);
             m_renderSystem->renderLine(m_rayHit.position, m_rayHit.position + m_rayHit.normal, YELLOW);
+        }
+        else
+        {
+            m_renderSystem->renderLine(m_ray.from, m_ray.to, RED);
         }
         m_renderSystem->renderSphere(m_sphereQuery.center, vec3{2.0f * m_sphereQuery.radius}, Color{0.2f, 0.5f, 1.0f, 0.12f}, 16);
 
