@@ -76,20 +76,32 @@ namespace aiko
     void ParticleSystem::updateEmitter(ParticleEmitterComponent& emitter)
     {
 
+        const uint32_t count = emitter.getMaxParticles();
+
+        if (RuntimeState* previous = tryGetState(&emitter); previous != nullptr && previous->allocatedCount != count)
+        {
+            destroyState(*previous);
+            m_runtime.erase(&emitter);
+        }
+
+        if (count == 0)
+        {
+            return;
+        }
+
         RuntimeState& state = getOrCreateState(&emitter);
 
         if (state.initialized == false)
         {
-            const uint32_t count = emitter.getMaxParticles();
-
             state.positionBuffer.createVec4(count, nullptr);
             state.velocityBuffer.createVec4(count, nullptr);
             state.lifeBuffer.createVec4(count, nullptr);
 
+            state.allocatedCount = count;
             state.initialized = true;
             state.initDispatched = false;
             state.readbackRequested = false;
-            state.readbackId = 0;
+            state.readbackId = InvalidReadbackId;
         }
 
         if (state.renderInitialized == false)
@@ -127,7 +139,7 @@ namespace aiko
             return;
         }
 
-        const uint32_t count = emitter.getMaxParticles();
+        const uint32_t count = state->allocatedCount;
         const vec3 emitterPos = math::transformPoint(obj->transform().getWorldMatrix(), vec3{0.0f});
 
         if (count == 0)

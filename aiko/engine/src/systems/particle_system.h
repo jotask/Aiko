@@ -69,6 +69,7 @@ namespace aiko
             bool initDispatched = false;
 
             uint32_t spawnSeed = 0;
+            uint32_t allocatedCount = 0;
 
             float spawnAccumulator = 0.0f;
             uint32_t spawnThisFrame = 0;

@@ -74,9 +74,9 @@ namespace aiko
     private:
 
         // Spawn
-        ParticleSpawnShape m_spawnShape;
-        float m_spawnRadius;
-        vec3 m_spawnBoxExtents;
+        ParticleSpawnShape m_spawnShape = ParticleSpawnShape::Point;
+        float m_spawnRadius = 1.0f;
+        vec3 m_spawnBoxExtents{0.5f};
 
         vec3 m_direction = {0.0f, 0.0f, 0.0f};
         float directionRandomness = 0.0f;
