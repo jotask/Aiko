@@ -104,7 +104,7 @@ namespace aiko::lab
         m_sceneSystem->clear();
         m_contactsStarted = m_contactsEnded = m_missingInObserver = 0;
         m_platformTime = 0.0f;
-        m_selected = 1;
+        m_selected = 5;
 
         scene().clearColor() = BLACK;
         scene().ambientLight().color = WHITE;
@@ -117,6 +117,25 @@ namespace aiko::lab
         m_camera->getCamera().target = {0.0f, 2.0f, 0.0f};
 
         addBody("Floor", boxDesc({0.0f, -0.5f, 0.0f}, {22.0f, 0.5f, 16.0f}, physics::MotionType::Static), GRAY);
+
+        constexpr float wallHeight = 6.0f;
+        constexpr float wallThickness = 0.5f;
+
+        const auto addWall = [this](const char* name, vec3 position, vec3 halfExtent)
+        {
+            physics::BodyDesc wall = boxDesc( position, halfExtent, physics::MotionType::Static);
+
+            wall.friction = 0.4f;
+            wall.restitution = 0.6f;
+
+            addBody(name, wall, Color{0.25f, 0.3f, 0.4f, 0.2f});
+        };
+
+        addWall("Left boundary", {-22.0f, wallHeight * 0.5f, 0.0f}, {wallThickness, wallHeight * 0.5f, 16.5f});
+        addWall("Right boundary", {22.0f, wallHeight * 0.5f, 0.0f}, {wallThickness, wallHeight * 0.5f, 16.5f});
+        addWall("Back boundary", {0.0f, wallHeight * 0.5f, -16.0f}, {22.5f, wallHeight * 0.5f, wallThickness});
+        addWall("Front boundary", {0.0f, wallHeight * 0.5f, 16.0f}, {22.5f, wallHeight * 0.5f, wallThickness});
+
         physics::BodyDesc box = boxDesc({0.0f, 8.0f, 0.0f}, {0.75f, 1.0f, 0.5f});
         box.transform.rotation = {20.0f, 35.0f, 15.0f};
         addBody("Force / recreation box", box, BLUE);
