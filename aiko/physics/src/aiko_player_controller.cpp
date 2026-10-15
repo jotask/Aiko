@@ -239,7 +239,7 @@ namespace aiko::physics
 
         move *= m_impl->desc.walkSpeed;
 
-        const JPH::Vec3 gravity(0.0f, -9.81f, 0.0f);
+        const JPH::Vec3 gravity = m_impl->worldImpl->physicsSystem->GetGravity();
 
         JPH::Vec3 currentVelocity = m_impl->character->GetLinearVelocity();
         JPH::Vec3 newVelocity = currentVelocity;
