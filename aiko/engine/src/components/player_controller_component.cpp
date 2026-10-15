@@ -43,7 +43,7 @@ namespace aiko
 
     void PlayerControllerComponent::setJumpPressed(bool pressed)
     {
-        m_pendingInput.jumpPressed = pressed;
+        m_pendingInput.jumpPressed = m_pendingInput.jumpPressed || pressed;
     }
 
     void PlayerControllerComponent::addLookDelta(float yawDelta, float pitchDelta)
@@ -102,6 +102,8 @@ namespace aiko
 
     void PlayerControllerComponent::physicsShutdown()
     {
+        m_pendingInput = {};
+
         if (m_initialized == false)
         {
             return;
