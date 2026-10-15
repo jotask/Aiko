@@ -15,6 +15,11 @@ namespace aiko
 
     void RigidBodyComponent::create(const physics::BodyDesc& desc)
     {
+        if (m_world != nullptr)
+        {
+            physicsShutdown(*m_world);
+        }
+
         m_desc = desc;
         m_initialized = false;
         m_bodyId = physics::InvalidBodyId;
