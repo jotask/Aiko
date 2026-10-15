@@ -1800,6 +1800,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(commandBuffer != VK_NULL_HANDLE, "Fullscreen draw requires an active command buffer");
 
         bindGraphicsPipeline(pipeline);
+        bindMaterial(material);
 
         vkCmdDraw(commandBuffer, 3, 1, 0, 0);
     }
