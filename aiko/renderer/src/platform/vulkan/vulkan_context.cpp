@@ -359,9 +359,11 @@ namespace aiko::renderer::vulkan
         vkGetPhysicalDeviceFeatures(m_physicalDevice, &supportedFeatures);
 
         m_capabilities.nonSolidFill = supportedFeatures.fillModeNonSolid == VK_TRUE;
+        m_capabilities.largePoints = supportedFeatures.largePoints == VK_TRUE;
 
         VkPhysicalDeviceFeatures deviceFeatures{};
         deviceFeatures.fillModeNonSolid = m_capabilities.nonSolidFill ? VK_TRUE : VK_FALSE;
+        deviceFeatures.largePoints = m_capabilities.largePoints ? VK_TRUE : VK_FALSE;
 
         const VkDeviceCreateInfo createInfo =
         {

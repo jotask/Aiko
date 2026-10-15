@@ -198,6 +198,7 @@ namespace aiko
                 m_gpuInstanceBuffer != other.m_gpuInstanceBuffer ||
                 m_useVertexColor != other.m_useVertexColor ||
                 m_lit != other.m_lit ||
+                m_pointSize != other.m_pointSize ||
                 m_baseColor.r != other.m_baseColor.r ||
                 m_baseColor.g != other.m_baseColor.g ||
                 m_baseColor.b != other.m_baseColor.b ||

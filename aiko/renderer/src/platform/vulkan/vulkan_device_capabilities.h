@@ -5,5 +5,6 @@ namespace aiko::renderer::vulkan
     struct VulkanDeviceCapabilities
     {
         bool nonSolidFill = false;
+        bool largePoints = false;
     };
 }

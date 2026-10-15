@@ -94,6 +94,7 @@
         RenderState m_renderState;
         bool m_useVertexColor;
         bool m_lit;
+        float m_pointSize = 4.0f;
 
         Color m_baseColor;
 

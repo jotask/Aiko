@@ -19,6 +19,7 @@
 
 #include <array>
 #include <cstring>
+#include <cmath>
 
 namespace aiko::renderer::vulkan
 {
@@ -370,12 +371,15 @@ namespace aiko::renderer::vulkan
                 }
                 else if (member.name == "u_flags")
                 {
-                    builtInValue = vec4
-                    {
+                    AIKO_ASSERT(std::isfinite(material.m_pointSize) && material.m_pointSize > 0.0f, "Material point size must be finite and greater than zero");
+
+                    const auto& capabilities = VulkanContext::current().capabilities();
+
+                    builtInValue = vec4{
                         hasTexture ? 1.0f : 0.0f,
                         material.m_useVertexColor ? 1.0f : 0.0f,
                         material.m_lit ? 1.0f : 0.0f,
-                        0.0f
+                        capabilities.largePoints ? material.m_pointSize : 1.0f
                     };
 
                     value = &builtInValue;
@@ -461,6 +465,7 @@ namespace aiko::renderer::vulkan
                 a.m_shaderId == b.m_shaderId &&
                 a.m_useVertexColor == b.m_useVertexColor &&
                 a.m_lit == b.m_lit &&
+                a.m_pointSize == b.m_pointSize &&
                 a.m_baseColor.rgba() == b.m_baseColor.rgba() &&
                 sameRenderState(a.m_renderState, b.m_renderState) &&
                 sameUniformState(a, b) &&
