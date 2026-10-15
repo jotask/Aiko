@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <thread>
+#include <cmath>
 
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyInterface.h>
@@ -116,6 +117,10 @@ namespace aiko::physics
         const JPH::ObjectLayer layer = convert::toJoltLayer(desc.layer);
 
         AIKO_ASSERT(desc.motionType != MotionType::Dynamic || desc.shape.type != ShapeType::TriangleMesh, "Dynamic triangle mesh bodies are not supported");
+        if (desc.motionType == MotionType::Dynamic && desc.shape.type == ShapeType::TriangleMesh)
+        {
+            return InvalidBodyId;
+        }
 
         JPH::RefConst<JPH::Shape> shape = createJoltShape(desc.shape);
         if (shape == nullptr)
@@ -137,7 +142,14 @@ namespace aiko::physics
 
         if (desc.motionType == MotionType::Dynamic)
         {
-            AIKO_ASSERT(desc.mass > 0.0f, "Dynamic body mass must be greater than zero");
+            const bool validMass = std::isfinite(desc.mass) && desc.mass > 0.0f;
+
+            AIKO_ASSERT(validMass, "Dynamic body mass must be finite and greater than zero");
+            if (validMass == false)
+            {
+                return InvalidBodyId;
+            }
+
             settings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
             settings.mMassPropertiesOverride.mMass = desc.mass;
         }
