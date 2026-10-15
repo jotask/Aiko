@@ -6,29 +6,53 @@
 
 #include "Jolt/Physics/Collision/Shape/MeshShape.h"
 
+#include <cmath>
+
 namespace aiko::physics
 {
+
+    namespace
+    {
+        bool validDimension(float value)
+        {
+            return std::isfinite(value) && value > 0.0f;
+        }
+    }
+
     JPH::RefConst<JPH::Shape> createJoltShape(const ShapeDesc& desc)
     {
         switch (desc.type)
         {
-        case ShapeType::Sphere:
+            case ShapeType::Sphere:
             {
+                if (!validDimension(desc.sphere.radius))
+                {
+                    return nullptr;
+                }
+
                 return new JPH::SphereShape(desc.sphere.radius);
             }
 
-        case ShapeType::Box:
+            case ShapeType::Box:
             {
                 const vec3& he = desc.box.halfExtent;
+
+                if (!validDimension(he.x) || !validDimension(he.y) || !validDimension(he.z))
+                {
+                    return nullptr;
+                }
+
                 return new JPH::BoxShape(JPH::Vec3(he.x, he.y, he.z));
             }
 
-        case ShapeType::Capsule:
+            case ShapeType::Capsule:
             {
-                return new JPH::CapsuleShape(
-                    desc.capsule.halfHeight,
-                    desc.capsule.radius
-                );
+                if (!validDimension(desc.capsule.halfHeight) || !validDimension(desc.capsule.radius))
+                {
+                    return nullptr;
+                }
+
+                return new JPH::CapsuleShape(desc.capsule.halfHeight, desc.capsule.radius);
             }
 
         case ShapeType::TriangleMesh:
