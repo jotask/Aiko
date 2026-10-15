@@ -51,12 +51,17 @@ namespace aiko
             return;
         }
 
-        m_world = &world;
-
         m_desc.transform = gameobject->transform();
         m_bodyId = world.createBody(m_desc);
 
         AIKO_ASSERT(m_bodyId != physics::InvalidBodyId, "RigidBody creation failed");
+
+        if (m_bodyId == physics::InvalidBodyId)
+        {
+            return;
+        }
+
+        m_world = &world;
         m_initialized = true;
     }
 
