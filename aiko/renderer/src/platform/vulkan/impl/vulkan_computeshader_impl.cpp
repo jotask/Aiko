@@ -58,7 +58,7 @@ namespace aiko::renderer::vulkan
         };
 
         using stdpath = std::filesystem::path;
-        const stdpath base = stdpath(global::GLOBAL_PATH) / "build/assets/shaders/vulkan";
+        const stdpath base(AIKO_VULKAN_SHADER_BINARY_DIR);
         const stdpath computeShaderPath = base / (replacePrefix(file.c_str(), ".comp") + std::string(".spv"));
 
         const auto code = files::readFileBytes(computeShaderPath);

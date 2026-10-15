@@ -50,6 +50,7 @@ target_sources(AikoRenderer PRIVATE ${AIKORENDERER_VULKAN_SRC})
 target_sources(imgui PRIVATE ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp)
 
 target_compile_definitions(AikoRenderer PRIVATE VK_NO_PROTOTYPES GLFW_INCLUDE_NONE)
+target_compile_definitions(AikoRenderer PRIVATE AIKO_VULKAN_SHADER_BINARY_DIR="${AIKO_VULKAN_SHADER_BINARY_DIR}")
 target_compile_definitions(imgui PUBLIC IMGUI_IMPL_VULKAN_USE_VOLK VK_NO_PROTOTYPES GLFW_INCLUDE_NONE)
 
 target_link_libraries(AikoRenderer PRIVATE volk::volk Vulkan::Headers spirv-reflect-static)

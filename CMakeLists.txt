@@ -20,9 +20,11 @@ aiko_setup_options()
 aiko_detect_platform()
 
 if(AIKO_RENDER STREQUAL "AIKO_VULKAN")
+    set(AIKO_VULKAN_SHADER_BINARY_DIR "${CMAKE_BINARY_DIR}/assets/shaders/vulkan")
+
     aiko_add_vulkan_shader_target(AikoVulkanShaders
             SOURCE_DIR "${CMAKE_SOURCE_DIR}/assets/shaders/vulkan"
-            BINARY_DIR "${CMAKE_SOURCE_DIR}/build/assets/shaders/vulkan"
+            BINARY_DIR "${AIKO_VULKAN_SHADER_BINARY_DIR}"
             TARGET_ENV vulkan1.0
     )
 endif()
