@@ -7,6 +7,7 @@
 #include "renderer/render_queue.h"
 #include "renderer/scene_render_request.h"
 #include "renderer/screen_presenter.h"
+#include "renderer/gpu_instance_sorter.h"
 #include "resources/render_resource_manager.h"
 #include "types/aiko_renderer_types.h"
 #include "types/compute_pass.h"
@@ -123,7 +124,7 @@ namespace aiko
         RenderQueue m_renderQueue;
 
         renderer::FrameData buildSceneFrameData(const Camera& camera, const ivec2& targetSize) const;
-        void executeComputePasses();
+        void executeComputePasses(const mat4* mainView);
         void submitScenePass(const renderer::FrameData& frameData, const PreparedScenePass& passData, const RenderTarget& target);
         void submitPresentPass(const Texture& texture);
         void submitUiPass();
@@ -150,6 +151,8 @@ namespace aiko
         Material& stageInstancedMaterial(const Material& material);
 
         std::unordered_map<MaterialId, std::vector<Material*>> m_frameInstancedMaterials;
+
+        GpuInstanceSorter m_gpuInstanceSorter;
 
         UIRenderer m_uiRenderer;
         UIDrawList m_uiDrawList;

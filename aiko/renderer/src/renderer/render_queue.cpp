@@ -5,6 +5,7 @@
 
 #include "models/material.h"
 #include "models/mesh.h"
+#include "renderer/gpu_instance_sorter.h"
 
 #include <cmath>
 #include <cstring>
@@ -75,6 +76,14 @@ namespace aiko
     void RenderQueue::submitGpuVertices(const GpuVertexDrawDesc& desc)
     {
         m_gpuVertexDraws.push_back(desc);
+    }
+
+    void RenderQueue::prepareGpuInstanceSorts(GpuInstanceSorter& sorter, renderer::IRenderDevice& device, const mat4& view)
+    {
+        for (GpuInstanceDrawDesc& draw : m_gpuInstanceDraws)
+        {
+            sorter.prepare(device, draw, view);
+        }
     }
 
     void RenderQueue::clear()

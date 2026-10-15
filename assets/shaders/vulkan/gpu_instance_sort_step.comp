@@ -1,0 +1,58 @@
+#version 450
+
+layout(local_size_x = 256) in;
+
+layout(std430, set = 0, binding = 0) buffer SortEntries
+{
+    uvec2 entries[];
+};
+
+layout(push_constant) uniform SortStepParameters
+{
+    uint paddedCount;
+    uint sequenceLength;
+    uint comparisonDistance;
+} parameters;
+
+bool comesBefore(uvec2 a, uvec2 b)
+{
+    float depthA = uintBitsToFloat(a.x);
+    float depthB = uintBitsToFloat(b.x);
+
+    if (depthA != depthB)
+    {
+        return depthA > depthB;
+    }
+
+    return a.y < b.y;
+}
+
+void main()
+{
+    uint index = gl_GlobalInvocationID.x;
+
+    if (index >= parameters.paddedCount)
+    {
+        return;
+    }
+
+    uint partner = index ^ parameters.comparisonDistance;
+
+    if (partner <= index || partner >= parameters.paddedCount)
+    {
+        return;
+    }
+
+    uvec2 a = entries[index];
+    uvec2 b = entries[partner];
+
+    bool forward = (index & parameters.sequenceLength) == 0u;
+
+    bool swapEntries = forward ? comesBefore(b, a) : comesBefore(a, b);
+
+    if (swapEntries)
+    {
+        entries[index] = b;
+        entries[partner] = a;
+    }
+}

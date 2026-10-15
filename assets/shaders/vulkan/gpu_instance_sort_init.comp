@@ -1,0 +1,50 @@
+#version 450
+
+layout(local_size_x = 256) in;
+
+layout(std430, set = 0, binding = 0) readonly buffer Positions
+{
+    vec4 positions[];
+};
+
+layout(std430, set = 0, binding = 1) writeonly buffer SortEntries
+{
+    uvec2 entries[];
+};
+
+layout(push_constant) uniform SortInitParameters
+{
+    mat4 view;
+    uint instanceCount;
+    uint paddedCount;
+} parameters;
+
+void main()
+{
+    uint index = gl_GlobalInvocationID.x;
+
+    if (index >= parameters.paddedCount)
+    {
+        return;
+    }
+
+    float depth = uintBitsToFloat(0xff800000u);
+    uint sourceIndex = 0xffffffffu;
+
+    if (index < parameters.instanceCount)
+    {
+        sourceIndex = index;
+
+        depth = -(
+            parameters.view *
+            vec4(positions[index].xyz, 1.0)
+        ).z;
+
+        if (isnan(depth) || isinf(depth))
+        {
+            depth = uintBitsToFloat(0xff800000u);
+        }
+    }
+
+    entries[index] = uvec2(floatBitsToUint(depth), sourceIndex);
+}

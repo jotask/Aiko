@@ -10,6 +10,12 @@ namespace aiko
 {
     class Mesh;
     class Material;
+    class GpuInstanceSorter;
+
+    namespace renderer
+    {
+        class IRenderDevice;
+    }
 
     class RenderQueue
     {
@@ -24,6 +30,8 @@ namespace aiko
         void submitGpuInstances(const GpuInstanceDrawDesc& desc);
         void submitGpuBillboards(const GpuBillboardDrawDesc& desc);
         void submitGpuVertices(const GpuVertexDrawDesc& desc);
+
+        void prepareGpuInstanceSorts(GpuInstanceSorter& sorter, renderer::IRenderDevice& device, const mat4& view);
 
         PreparedScenePass buildScenePass(const mat4& view);
 

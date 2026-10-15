@@ -108,6 +108,7 @@ namespace aiko
         m_renderQueue.clear();
         m_sceneRenderRequests.clear();
         m_computeQueue.clear();
+        m_gpuInstanceSorter.beginFrame();
 
         m_frameMaterialCache.clear();
         m_frameInstancedMaterials.clear();
@@ -128,6 +129,8 @@ namespace aiko
 
     void AikoRenderer::dispose()
     {
+        m_renderer->waitIdle();
+        m_gpuInstanceSorter.dispose();
         m_imgui.dispose();
         m_frameTransientGeometries.clear();
         m_screenPresenter.dispose();
@@ -287,7 +290,7 @@ namespace aiko
         const renderer::FrameData frameData = buildSceneFrameData(frameCamera, m_sceneTarget.size());
 
         m_renderer->bindFrame(COMPUTE_VIEW, frameData);
-        executeComputePasses();
+        executeComputePasses(camera != nullptr ? &frameData.view : nullptr);
 
         for (SceneRenderRequest& request : m_sceneRenderRequests)
         {
@@ -434,11 +437,11 @@ namespace aiko
         };
     }
 
-    void AikoRenderer::executeComputePasses()
+    void AikoRenderer::executeComputePasses(const mat4* mainView)
     {
         AIKO_FUNCTION_PROFILE
-        const renderer::PassDescription computePass
-        {
+
+        const renderer::PassDescription computePass{
             .width = 1,
             .height = 1
         };
@@ -448,6 +451,21 @@ namespace aiko
         for (const ComputePass& pass : m_computeQueue)
         {
             m_renderer->execute(COMPUTE_VIEW, pass);
+        }
+
+        for (SceneRenderRequest& request : m_sceneRenderRequests)
+        {
+            AIKO_ASSERT(request.target != nullptr, "Scene render request has no target");
+            AIKO_ASSERT(request.target->isValid(), "Scene render request target is invalid");
+
+            const mat4 view = request.camera.getViewMatrix();
+
+            request.queue.prepareGpuInstanceSorts(m_gpuInstanceSorter, *m_renderer, view);
+        }
+
+        if (mainView != nullptr)
+        {
+            m_renderQueue.prepareGpuInstanceSorts(m_gpuInstanceSorter, *m_renderer, *mainView);
         }
 
         m_renderer->endPass();

@@ -17,6 +17,8 @@ namespace aiko
     class Mesh;
     class Material;
 
+    inline constexpr uint8_t GpuInstanceOrderBinding = 15;
+
     struct GpuReadBufferBinding
     {
         uint8_t slot = 0;
@@ -52,6 +54,9 @@ namespace aiko
 
         // World-space draw anchor, required when blending is enabled.
         std::optional<vec3> transparencySortPosition;
+
+        // Optional world-space vec4 positions; requires an order-aware vertex shader.
+        const ComputeBuffer* transparencyPositions = nullptr;
     };
 
     struct GpuBillboardDrawDesc
