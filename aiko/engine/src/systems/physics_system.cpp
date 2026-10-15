@@ -11,6 +11,7 @@
 #include <events/events.hpp>
 
 #include <unordered_map>
+#include <cmath>
 
 namespace aiko
 {
@@ -25,6 +26,7 @@ namespace aiko
 
     void PhysicsSystem::init()
     {
+        m_physicsAccumulator = 0.0f;
         m_physics.init();
 
         m_debugMaterial.m_shaderId = m_assetSystem->registerAsset<ShaderAsset>("model");
@@ -130,6 +132,11 @@ namespace aiko
 
             m_physicsAccumulator -= physics::kPhysicsDeltaTime;
             ++subSteps;
+        }
+
+        if (m_physicsAccumulator >= physics::kPhysicsDeltaTime)
+        {
+            m_physicsAccumulator = std::fmod(m_physicsAccumulator, physics::kPhysicsDeltaTime);
         }
 
         for (RigidBodyComponent* body : rigidBodies)
