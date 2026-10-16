@@ -109,9 +109,16 @@ namespace aiko
 
         if (m_texture.isLoading())
         {
-            const AssetId& textureId = m_texture.id();
+            const AssetId textureId = m_texture.id();
+            const AssetLoadState state = context.getLoadState<TextureAsset>(textureId);
 
-            if (context.isLoaded<TextureAsset>(textureId) == false)
+            if (state == AssetLoadState::Failed)
+            {
+                m_texture.fail();
+                return;
+            }
+
+            if (state != AssetLoadState::Ready)
             {
                 return;
             }

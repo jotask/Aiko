@@ -113,9 +113,16 @@ namespace aiko
 
         if (m_mesh.isLoading())
         {
-            const AssetId& id = m_mesh.id();
+            const AssetId id = m_mesh.id();
+            const AssetLoadState state = context.getLoadState<MeshAsset>(id);
 
-            if (context.isLoaded<MeshAsset>(id) == false)
+            if (state == AssetLoadState::Failed)
+            {
+                m_mesh.fail();
+                return;
+            }
+
+            if (state != AssetLoadState::Ready)
             {
                 return;
             }

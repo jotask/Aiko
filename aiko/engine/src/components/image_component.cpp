@@ -17,24 +17,19 @@ namespace aiko
 
     const AssetId& ImageComponent::getTextureId() const
     {
-        return m_texture.isReady()
-            ? m_texture.id()
-            : InvalidAssetId;
+        return m_texture.isReady() ? m_texture.id() : InvalidAssetId;
     }
 
     bool ImageComponent::hasTexture() const
     {
-        return m_texture.isRequested() ||
-               m_texture.isLoading() ||
-               m_texture.isReady();
+        return m_texture.isRequested() || m_texture.isLoading() || m_texture.isReady();
     }
 
     void ImageComponent::resolveAssetBinding(AssetBindingContext& context)
     {
         if (m_texture.isRequested())
         {
-            const AssetId textureId =
-                context.load<TextureAsset>(m_texture.source());
+            const AssetId textureId = context.load<TextureAsset>(m_texture.source());
 
             if (textureId == InvalidAssetId)
             {
@@ -49,9 +44,16 @@ namespace aiko
 
         if (m_texture.isLoading())
         {
-            const AssetId& textureId = m_texture.id();
+            const AssetId textureId = m_texture.id();
+            const AssetLoadState state = context.getLoadState<TextureAsset>(textureId);
 
-            if (context.isLoaded<TextureAsset>(textureId) == false)
+            if (state == AssetLoadState::Failed)
+            {
+                m_texture.fail();
+                return;
+            }
+
+            if (state != AssetLoadState::Ready)
             {
                 return;
             }

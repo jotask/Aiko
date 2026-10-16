@@ -67,9 +67,16 @@ namespace aiko
 
         if (m_shader.isLoading())
         {
-            const AssetId& id = m_shader.id();
+            const AssetId id = m_shader.id();
+            const AssetLoadState state = context.getLoadState<ComputeShaderAsset>(id);
 
-            if (context.isLoaded<ComputeShaderAsset>(id) == false)
+            if (state == AssetLoadState::Failed)
+            {
+                m_shader.fail();
+                return;
+            }
+
+            if (state != AssetLoadState::Ready)
             {
                 return;
             }

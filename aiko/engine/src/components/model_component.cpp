@@ -39,9 +39,16 @@ namespace aiko
 
         if (m_model.isLoading())
         {
-            const AssetId& id = m_model.id();
+            const AssetId id = m_model.id();
+            const AssetLoadState state = context.getLoadState<ModelAsset>(id);
 
-            if (context.isLoaded<ModelAsset>(id) == false)
+            if (state == AssetLoadState::Failed)
+            {
+                m_model.fail();
+                return;
+            }
+
+            if (state != AssetLoadState::Ready)
             {
                 return;
             }

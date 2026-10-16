@@ -4,6 +4,7 @@
 
 #include "assets/asset_id.h"
 #include "assets/asset_traits.h"
+#include "assets/asset_load_state.h"
 
 namespace aiko
 {
@@ -36,6 +37,12 @@ namespace aiko
             return isLoaded(assetTypeOf<T>(), id);
         }
 
+        template<typename T>
+        AssetLoadState getLoadState(const AssetId& id) const
+        {
+            return getLoadState(assetTypeOf<T>(), id);
+        }
+
         AssetId create(const MeshAsset& asset);
         AssetId create(const TextureAsset& asset);
         TextureAsset& getMutableTexture(const AssetId& id);
@@ -47,6 +54,7 @@ namespace aiko
         AssetId load(AssetType type, string_view source);
         void loadAsset(AssetType type, const AssetId& id);
         bool isLoaded(AssetType type, const AssetId& id) const;
+        AssetLoadState getLoadState(AssetType type, const AssetId& id) const;
 
         AssetSystem* m_assetSystem = nullptr;
     };

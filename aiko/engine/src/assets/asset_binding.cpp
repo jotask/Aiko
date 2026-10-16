@@ -95,4 +95,23 @@ namespace aiko
                 return false;
         }
     }
+
+    AssetLoadState AssetBindingContext::getLoadState(AssetType type, const AssetId& id) const
+    {
+        switch (type)
+        {
+            case AssetType::Texture:        return m_assetSystem->getLoadState<TextureAsset>(id);
+            case AssetType::Mesh:           return m_assetSystem->getLoadState<MeshAsset>(id);
+            case AssetType::Model:          return m_assetSystem->getLoadState<ModelAsset>(id);
+            case AssetType::Shader:         return m_assetSystem->getLoadState<ShaderAsset>(id);
+            case AssetType::ComputeShader:  return m_assetSystem->getLoadState<ComputeShaderAsset>(id);
+
+            case AssetType::Material:
+            case AssetType::Unknown:
+            default:
+                AIKO_ASSERT(false, "Unsupported asset type");
+                return AssetLoadState::Unloaded;
+        }
+    }
+
 }
