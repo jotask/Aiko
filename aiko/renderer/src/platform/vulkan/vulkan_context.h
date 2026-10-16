@@ -163,7 +163,8 @@ namespace aiko::renderer::vulkan
         void generateMipmaps(VkImage image, VkFormat format, uint32_t width, uint32_t height, uint32_t mipLevel);
         void generateMipmaps(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, uint32_t width, uint32_t height, uint32_t mipLevels);
 
-        void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE, const uint32_t* queueFamilyIndices = nullptr, uint32_t queueFamilyIndexCount = 0);
+        [[nodiscard]] VkResult createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE, const uint32_t* queueFamilyIndices = nullptr, uint32_t queueFamilyIndexCount = 0);
+        void createBufferOrAbort(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE, const uint32_t* queueFamilyIndices = nullptr, uint32_t queueFamilyIndexCount = 0);
         void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
         void copyBuffer(VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
         void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t baseMipLevel = 0, uint32_t levelCount = 1);

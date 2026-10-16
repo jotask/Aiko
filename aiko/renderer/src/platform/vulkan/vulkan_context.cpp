@@ -13,7 +13,6 @@
 #include <limits>
 #include <set>
 #include <cstdlib>
-#include <stdexcept>
 
 namespace aiko::renderer::vulkan
 {
@@ -1472,8 +1471,11 @@ namespace aiko::renderer::vulkan
 
     }
 
-    void VulkanContext::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkSharingMode sharingMode, const uint32_t* queueFamilyIndices, uint32_t queueFamilyIndexCount)
+    VkResult VulkanContext::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkSharingMode sharingMode, const uint32_t* queueFamilyIndices, uint32_t queueFamilyIndexCount)
     {
+        AIKO_ASSERT(buffer == VK_NULL_HANDLE && bufferMemory == VK_NULL_HANDLE, "Vulkan buffer outputs must be empty");
+        AIKO_ASSERT(size > 0, "Vulkan buffer size must be positive");
+
         if (sharingMode == VK_SHARING_MODE_CONCURRENT)
         {
             AIKO_ASSERT(queueFamilyIndices != nullptr, "Concurrent Vulkan buffer requires queue families");
@@ -1490,37 +1492,68 @@ namespace aiko::renderer::vulkan
             .pQueueFamilyIndices = sharingMode == VK_SHARING_MODE_CONCURRENT ? queueFamilyIndices : nullptr,
         };
 
-        if (vkCreateBuffer(m_device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+        VkBuffer createdBuffer = VK_NULL_HANDLE;
+
+        const VkResult createResult = vkCreateBuffer(m_device, &bufferInfo, nullptr, &createdBuffer);
+
+        if (createResult != VK_SUCCESS)
         {
-            logger::Log::error("Failed to create buffer!");
-            std::exit(-1);
+            return createResult;
         }
 
-        VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements(m_device, buffer, &memRequirements);
+        VkMemoryRequirements requirements{};
+        vkGetBufferMemoryRequirements(m_device, createdBuffer, &requirements);
 
-        const uint32_t memoryType = findMemoryType(memRequirements.memoryTypeBits, properties);
-        AIKO_ASSERT(memoryType != InvalidMemoryType, "Failed to find memory type.");
+        const uint32_t memoryType = findMemoryType(requirements.memoryTypeBits, properties);
 
-        const VkMemoryAllocateInfo allocInfo =
+        if (memoryType == InvalidMemoryType)
+        {
+            vkDestroyBuffer(m_device, createdBuffer, nullptr);
+            return VK_ERROR_FEATURE_NOT_PRESENT;
+        }
+
+        const VkMemoryAllocateInfo allocationInfo =
         {
             .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .allocationSize = memRequirements.size,
+            .allocationSize = requirements.size,
             .memoryTypeIndex = memoryType,
         };
 
-        if (vkAllocateMemory(m_device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+        VkDeviceMemory allocatedMemory = VK_NULL_HANDLE;
+
+        const VkResult allocationResult = vkAllocateMemory(m_device, &allocationInfo, nullptr, &allocatedMemory);
+
+        if (allocationResult != VK_SUCCESS)
         {
-            vkDestroyBuffer(m_device, buffer, nullptr);
-
-            buffer = VK_NULL_HANDLE;
-            bufferMemory = VK_NULL_HANDLE;
-
-            throw std::runtime_error("failed to allocate buffer memory!");
+            vkDestroyBuffer(m_device, createdBuffer, nullptr);
+            return allocationResult;
         }
 
-        const VkResult bindResult = vkBindBufferMemory(m_device, buffer, bufferMemory, 0);
-        AIKO_ASSERT(bindResult == VK_SUCCESS, "Failed to bind Vulkan buffer memory");
+        const VkResult bindResult = vkBindBufferMemory(m_device, createdBuffer, allocatedMemory, 0);
+
+        if (bindResult != VK_SUCCESS)
+        {
+            vkDestroyBuffer(m_device, createdBuffer, nullptr);
+            vkFreeMemory(m_device, allocatedMemory, nullptr);
+            return bindResult;
+        }
+
+        buffer = createdBuffer;
+        bufferMemory = allocatedMemory;
+
+        return VK_SUCCESS;
+    }
+
+
+    void VulkanContext::createBufferOrAbort(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkSharingMode sharingMode, const uint32_t* queueFamilyIndices, uint32_t queueFamilyIndexCount)
+    {
+        const VkResult result = createBuffer(size, usage, properties, buffer, bufferMemory, sharingMode, queueFamilyIndices, queueFamilyIndexCount);
+
+        if (result != VK_SUCCESS)
+        {
+            logger::Log::critical("Failed to create Vulkan buffer (VkResult %d)", static_cast<int>(result));
+            std::abort();
+        }
     }
 
     void VulkanContext::retireBuffer(VkBuffer buffer, VkDeviceMemory memory)

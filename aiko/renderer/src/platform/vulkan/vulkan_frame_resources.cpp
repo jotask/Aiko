@@ -97,11 +97,11 @@ namespace aiko::renderer::vulkan
 
             if (m_context.hasDedicatedComputeQueue())
             {
-                m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory, VK_SHARING_MODE_CONCURRENT, queueFamilies.data(), static_cast<uint32_t>(queueFamilies.size()));
+                m_context.createBufferOrAbort(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory, VK_SHARING_MODE_CONCURRENT, queueFamilies.data(), static_cast<uint32_t>(queueFamilies.size()));
             }
             else
             {
-                m_context.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory);
+                m_context.createBufferOrAbort(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory);
             }
 
             const VkResult mapResult = vkMapMemory(m_context.device(), binding.uniformMemory, 0, bufferSize, 0, &binding.uniformMapped);

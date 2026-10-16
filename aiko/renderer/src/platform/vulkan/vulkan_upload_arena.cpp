@@ -67,11 +67,11 @@ namespace aiko::renderer::vulkan
                 m_context.computeQueueFamily(),
             };
 
-            m_context.createBuffer(capacity, usageFlags, propertiesFlags, chunk.buffer, chunk.memory, VK_SHARING_MODE_CONCURRENT, queueFamilies.data(), static_cast<uint32_t>(queueFamilies.size()));
+            m_context.createBufferOrAbort(capacity, usageFlags, propertiesFlags, chunk.buffer, chunk.memory, VK_SHARING_MODE_CONCURRENT, queueFamilies.data(), static_cast<uint32_t>(queueFamilies.size()));
         }
         else
         {
-            m_context.createBuffer(capacity, usageFlags, propertiesFlags, chunk.buffer, chunk.memory);
+            m_context.createBufferOrAbort(capacity, usageFlags, propertiesFlags, chunk.buffer, chunk.memory);
         }
 
         const VkResult mapResult = vkMapMemory(m_context.device(), chunk.memory, 0, capacity, 0, &chunk.mapped);

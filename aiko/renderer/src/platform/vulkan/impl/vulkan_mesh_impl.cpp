@@ -97,7 +97,7 @@ namespace aiko::renderer::vulkan
         VkBuffer stagingVertexBuffer = VK_NULL_HANDLE;
         VkDeviceMemory stagingVertexMemory = VK_NULL_HANDLE;
 
-        ctx.createBuffer(vertexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingVertexBuffer, stagingVertexMemory);
+        ctx.createBufferOrAbort(vertexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingVertexBuffer, stagingVertexMemory);
 
         void* data = nullptr;
 
@@ -108,7 +108,7 @@ namespace aiko::renderer::vulkan
 
         vkUnmapMemory(device, stagingVertexMemory);
 
-        ctx.createBuffer(vertexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexMemory);
+        ctx.createBufferOrAbort(vertexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexMemory);
 
         // ---------------------------------------------------------
         // Index staging
@@ -121,7 +121,7 @@ namespace aiko::renderer::vulkan
         VkBuffer stagingIndexBuffer = VK_NULL_HANDLE;
         VkDeviceMemory stagingIndexMemory = VK_NULL_HANDLE;
 
-        ctx.createBuffer( indexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingIndexBuffer, stagingIndexMemory);
+        ctx.createBufferOrAbort( indexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingIndexBuffer, stagingIndexMemory);
 
         data = nullptr;
 
@@ -132,7 +132,7 @@ namespace aiko::renderer::vulkan
 
         vkUnmapMemory(device, stagingIndexMemory);
 
-        ctx.createBuffer(indexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexMemory);
+        ctx.createBufferOrAbort(indexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexMemory);
 
         // ---------------------------------------------------------
         // Record both GPU copies into one submission.

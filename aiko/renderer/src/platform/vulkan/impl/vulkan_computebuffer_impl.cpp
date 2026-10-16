@@ -47,7 +47,7 @@ namespace aiko::renderer::vulkan
 
         const VkBufferUsageFlags usageFlags = buildUsageFlags(desc.usage);
 
-        ctx.createBuffer(size, usageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_buffer, m_memory);
+        ctx.createBufferOrAbort(size, usageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_buffer, m_memory);
 
         m_state =
         {

@@ -21,7 +21,7 @@ namespace aiko::renderer::vulkan
         readback.byteSize = byteSize;
         readback.frameIndex = frameIndex;
 
-        m_context.createBuffer(byteSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, readback.stagingBuffer, readback.stagingMemory);
+        m_context.createBufferOrAbort(byteSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, readback.stagingBuffer, readback.stagingMemory);
 
         AIKO_ASSERT(readback.stagingBuffer != VK_NULL_HANDLE, "Failed to create Vulkan readback staging buffer");
         AIKO_ASSERT(readback.stagingMemory != VK_NULL_HANDLE, "Failed to allocate Vulkan readback staging memory");

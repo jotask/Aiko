@@ -245,7 +245,7 @@ namespace aiko::renderer::vulkan
 
         const VkDeviceSize imageSize = VkDeviceSize(pixelCount) * 4;
 
-        ctx.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
+        ctx.createBufferOrAbort(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
 
         const VkResult mapResult = vkMapMemory(ctx.device(), stagingMemory, 0, imageSize, 0, &mapped);
         AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map texture staging memory");
