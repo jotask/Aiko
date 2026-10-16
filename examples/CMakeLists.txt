@@ -10,6 +10,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/nes6502")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/loop_recorder")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/nbody")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/sort_lab")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/planet_earth")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/life_particles")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/voxel_world")
 
