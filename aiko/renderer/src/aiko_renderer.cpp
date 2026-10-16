@@ -161,6 +161,10 @@ namespace aiko
     void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const Material& material)
     {
         AIKO_FUNCTION_PROFILE
+        if (!mesh.isValid())
+        {
+            return;
+        }
         m_frameMaterials.push_back(material);
         m_renderQueue.submit(mesh, m_frameMaterials.back(), transform.getWorldMatrix());
     }
@@ -168,7 +172,7 @@ namespace aiko
     void AikoRenderer::submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride)
     {
         AIKO_FUNCTION_PROFILE
-        if (data == nullptr || instanceCount == 0 || stride == 0)
+        if (!mesh.isValid() || data == nullptr || instanceCount == 0 || stride == 0)
         {
             return;
         }
@@ -179,6 +183,10 @@ namespace aiko
     void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const MaterialAsset& materialAsset, const MaterialInstance& materialInstance)
     {
         AIKO_FUNCTION_PROFILE
+        if (!mesh.isValid())
+        {
+            return;
+        }
         Material& stagedMaterial = stageMaterial(materialAsset, materialInstance);
         m_renderQueue.submit(mesh, stagedMaterial, transform.getWorldMatrix());
     }
@@ -255,6 +263,11 @@ namespace aiko
     void AikoRenderer::drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc)
     {
         AIKO_ASSERT(desc.material != nullptr, "GPU instance draw has no material");
+        AIKO_ASSERT(desc.mesh != nullptr, "GPU instance draw has no mesh");
+        if (!desc.mesh->isValid())
+        {
+            return;
+        }
         m_frameMaterials.push_back(*desc.material);
         GpuInstanceDrawDesc staged = desc;
         staged.material = &m_frameMaterials.back();

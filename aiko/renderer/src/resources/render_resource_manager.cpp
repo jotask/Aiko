@@ -34,23 +34,38 @@ namespace aiko
         return ref;
     }
 
+
     Mesh& RenderResourceManager::getMesh(const AssetId& id)
     {
-
         auto it = m_meshes.find(id);
+
         if (it != m_meshes.end())
         {
-            return *it->second;
+            Mesh& mesh = *it->second;
+
+            if (!mesh.isValid())
+            {
+                // The previous upload failed.
+                // Retry without replacing the cached Mesh object.
+                const MeshAsset& asset = m_assetProvider.getMeshAsset(id);
+                mesh.upload(asset);
+            }
+
+            return mesh;
         }
+
         const MeshAsset& asset = m_assetProvider.getMeshAsset(id);
 
         auto mesh = std::make_unique<Mesh>();
         mesh->upload(asset);
 
         Mesh& ref = *mesh;
+
         m_meshes.emplace(id, std::move(mesh));
+
         return ref;
     }
+
 
     Model& RenderResourceManager::getModel(const AssetId& id)
     {
