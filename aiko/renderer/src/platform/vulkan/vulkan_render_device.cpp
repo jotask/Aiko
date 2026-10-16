@@ -594,9 +594,6 @@ namespace aiko::renderer::vulkan
         m_boundGraphicsPipeline = VK_NULL_HANDLE;
         m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
 
-        m_boundVertexBuffer = VK_NULL_HANDLE;
-        m_boundIndexBuffer = VK_NULL_HANDLE;
-
         AIKO_ASSERT(m_computePassActive == false, "Graphics pass cannot begin while compute pass is active");
 
         VkRenderPass renderPass;
@@ -1026,9 +1023,6 @@ namespace aiko::renderer::vulkan
 
         vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
         vkCmdBindIndexBuffer( commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT16);
-
-        m_boundVertexBuffer = meshImpl->vertexBuffer();
-        m_boundIndexBuffer = meshImpl->indexBuffer();
 
         vkCmdDrawIndexed( commandBuffer, meshImpl->indexCount(), instanceCount, 0, 0, 0);
     }
@@ -1723,7 +1717,6 @@ namespace aiko::renderer::vulkan
         const VkDeviceSize vertexOffset = vertexSlice.offset;
 
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, &vertexOffset);
-
         vkCmdBindIndexBuffer(commandBuffer, indexSlice.buffer, indexSlice.offset, VK_INDEX_TYPE_UINT16);
 
         const uint32_t totalIndexCount = static_cast<uint32_t>(desc.geometry->indices.size());
@@ -2102,24 +2095,13 @@ namespace aiko::renderer::vulkan
         vkCmdPushConstants(commandBuffer, m_modelPipelines.layout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
 
         const VkBuffer vertexBuffer = meshImpl->vertexBuffer();
+        const VkDeviceSize vertexOffset = 0;
 
-        if (m_boundVertexBuffer != vertexBuffer)
-        {
-            const VkDeviceSize offset = 0;
-
-            vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, &offset);
-
-            m_boundVertexBuffer = vertexBuffer;
-        }
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, &vertexOffset);
 
         const VkBuffer indexBuffer = meshImpl->indexBuffer();
 
-        if (m_boundIndexBuffer != indexBuffer)
-        {
-            vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-
-            m_boundIndexBuffer = indexBuffer;
-        }
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
         vkCmdDrawIndexed(commandBuffer, meshImpl->indexCount(), 1, 0, 0, 0);
     }
