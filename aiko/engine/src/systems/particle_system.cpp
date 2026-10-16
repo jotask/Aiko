@@ -95,8 +95,13 @@ namespace aiko
         {
             return;
         }
-
+        
         RuntimeState& state = getOrCreateState(&emitter);
+
+        // Track the requested count even if initialization fails.
+        // This avoids destroying and recreating the RuntimeState on
+        // every retry.
+        state.allocatedCount = count;
 
         if (state.initialized == false)
         {
@@ -104,7 +109,17 @@ namespace aiko
             state.velocityBuffer.createVec4(count, nullptr);
             state.lifeBuffer.createVec4(count, nullptr);
 
-            state.allocatedCount = count;
+            if (!state.positionBuffer.isValid() || !state.velocityBuffer.isValid() || !state.lifeBuffer.isValid())
+            {
+                // Do not retain a partially initialized buffer set.
+                state.positionBuffer.unload();
+                state.velocityBuffer.unload();
+                state.lifeBuffer.unload();
+
+                // Retry on the next update.
+                return;
+            }
+
             state.initialized = true;
             state.initDispatched = false;
             state.readbackRequested = false;
@@ -116,6 +131,12 @@ namespace aiko
             // Generate Quad and add billboard
             auto meshData = mesh::factory::generateCube();
             state.particleMesh.upload(meshData);
+
+            if (!state.particleMesh.isValid())
+            {
+                // Mesh allocation failed. Retry on the next update.
+                return;
+            }
 
             state.particleMaterial.m_shaderId = m_opaqueParticleShaderId;
             state.particleMaterial.m_baseColor = WHITE;
@@ -150,6 +171,16 @@ namespace aiko
         const vec3 emitterPos = math::transformPoint(obj->transform().getWorldMatrix(), vec3{0.0f});
 
         if (count == 0)
+        {
+            return;
+        }
+
+        if (!state->initialized ||
+            !state->renderInitialized ||
+            !state->positionBuffer.isValid() ||
+            !state->velocityBuffer.isValid() ||
+            !state->lifeBuffer.isValid() ||
+            !state->particleMesh.isValid())
         {
             return;
         }
