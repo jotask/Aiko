@@ -4,6 +4,8 @@
 #include "platform/vulkan/vulkan_context.h"
 #include "platform/vulkan/vulkan_types.h"
 
+#include <logger/logger.h>
+
 #include <cstring>
 
 namespace aiko::renderer::vulkan
@@ -79,80 +81,135 @@ namespace aiko::renderer::vulkan
 
     void VulkanMeshImpl::refresh(const MeshAsset& asset)
     {
-        unload();
-
         AIKO_ASSERT(!asset.m_vertices.empty(), "Mesh has no vertices");
         AIKO_ASSERT(!asset.m_indices.empty(), "Mesh has no indices");
 
         VulkanContext& ctx = VulkanContext::current();
-        VkDevice device = ctx.device();
-
-        // ---------------------------------------------------------
-        // Vertex staging
-        // ---------------------------------------------------------
+        const VkDevice device = ctx.device();
 
         const vector<VulkanVertex> vertices = buildVertices(asset);
+
         const VkDeviceSize vertexSize = sizeof(VulkanVertex) * vertices.size();
-
-        VkBuffer stagingVertexBuffer = VK_NULL_HANDLE;
-        VkDeviceMemory stagingVertexMemory = VK_NULL_HANDLE;
-
-        ctx.createBufferOrAbort(vertexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingVertexBuffer, stagingVertexMemory);
-
-        void* data = nullptr;
-
-        const VkResult mapResult1 = vkMapMemory(device, stagingVertexMemory, 0, vertexSize, 0, &data);
-        AIKO_ASSERT(mapResult1 == VK_SUCCESS, "Failed to map vertex staging memory");
-
-        std::memcpy(data, vertices.data(), static_cast<size_t>(vertexSize));
-
-        vkUnmapMemory(device, stagingVertexMemory);
-
-        ctx.createBufferOrAbort(vertexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexMemory);
-
-        // ---------------------------------------------------------
-        // Index staging
-        // ---------------------------------------------------------
-
-        m_indexCount = static_cast<u32>(asset.m_indices.size());
-
         const VkDeviceSize indexSize = sizeof(uint16_t) * asset.m_indices.size();
 
-        VkBuffer stagingIndexBuffer = VK_NULL_HANDLE;
-        VkDeviceMemory stagingIndexMemory = VK_NULL_HANDLE;
+        struct BufferAllocation
+        {
+            VkBuffer buffer = VK_NULL_HANDLE;
+            VkDeviceMemory memory = VK_NULL_HANDLE;
+        };
 
-        ctx.createBufferOrAbort( indexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingIndexBuffer, stagingIndexMemory);
+        BufferAllocation vertexStaging;
+        BufferAllocation indexStaging;
+        BufferAllocation newVertex;
+        BufferAllocation newIndex;
 
-        data = nullptr;
+        const auto destroy = [device](BufferAllocation& allocation)
+        {
+            if (allocation.buffer != VK_NULL_HANDLE)
+            {
+                vkDestroyBuffer(device, allocation.buffer, nullptr);
+            }
 
-        const VkResult mapResult2 = vkMapMemory(device, stagingIndexMemory, 0, indexSize, 0, &data);
-        AIKO_ASSERT(mapResult2 == VK_SUCCESS, "Failed to map index staging memory");
+            if (allocation.memory != VK_NULL_HANDLE)
+            {
+                vkFreeMemory(device, allocation.memory, nullptr);
+            }
 
-        std::memcpy(data, asset.m_indices.data(), static_cast<size_t>(indexSize));
+            allocation = {};
+        };
 
-        vkUnmapMemory(device, stagingIndexMemory);
+        const auto cleanup = [&]()
+        {
+            destroy(vertexStaging);
+            destroy(indexStaging);
+            destroy(newVertex);
+            destroy(newIndex);
+        };
 
-        ctx.createBufferOrAbort(indexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexMemory);
+        const auto allocate = [&](BufferAllocation& allocation, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, const char* label) -> bool
+        {
+            const VkResult result = ctx.createBuffer(size, usage, properties, allocation.buffer, allocation.memory);
 
-        // ---------------------------------------------------------
-        // Record both GPU copies into one submission.
-        // ---------------------------------------------------------
+            if (result != VK_SUCCESS)
+            {
+                logger::Log::error("Failed to create Vulkan mesh %s buffer (VkResult %d)", label, static_cast<int>(result));
+                return false;
+            }
 
+            return true;
+        };
+
+        constexpr VkMemoryPropertyFlags stagingProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+        constexpr VkMemoryPropertyFlags deviceProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+        // Allocate all resources before modifying the current mesh.
+        if (!allocate(vertexStaging, vertexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, stagingProperties, "vertex staging") ||
+            !allocate(newVertex, vertexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, deviceProperties, "vertex") ||
+            !allocate(indexStaging, indexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, stagingProperties, "index staging") ||
+            !allocate(newIndex, indexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, deviceProperties, "index"))
+        {
+            cleanup();
+            return;
+        }
+
+        // Upload vertex data into staging memory.
+        void* mapped = nullptr;
+
+        VkResult mapResult = vkMapMemory(device, vertexStaging.memory, 0, vertexSize, 0, &mapped);
+
+        if (mapResult != VK_SUCCESS)
+        {
+            logger::Log::error("Failed to map Vulkan vertex staging memory (VkResult %d)", static_cast<int>(mapResult));
+            cleanup();
+            return;
+        }
+
+        std::memcpy(mapped, vertices.data(), static_cast<size_t>(vertexSize));
+
+        vkUnmapMemory(device, vertexStaging.memory);
+
+        // Upload index data into staging memory.
+        mapped = nullptr;
+
+        mapResult = vkMapMemory(device, indexStaging.memory, 0, indexSize, 0, &mapped);
+
+        if (mapResult != VK_SUCCESS)
+        {
+            logger::Log::error("Failed to map Vulkan index staging memory (VkResult %d)", static_cast<int>(mapResult));
+            cleanup();
+            return;
+        }
+
+        std::memcpy(mapped, asset.m_indices.data(), static_cast<size_t>(indexSize));
+
+        vkUnmapMemory(device, indexStaging.memory);
+
+        // Submit both copies and wait for completion.
         VkCommandBuffer commandBuffer = ctx.beginSingleTimeCommands();
-        ctx.copyBuffer(commandBuffer, stagingVertexBuffer, m_vertexBuffer,vertexSize);
-        ctx.copyBuffer( commandBuffer, stagingIndexBuffer, m_indexBuffer, indexSize);
+
+        ctx.copyBuffer(commandBuffer, vertexStaging.buffer, newVertex.buffer, vertexSize);
+        ctx.copyBuffer(commandBuffer, indexStaging.buffer, newIndex.buffer, indexSize);
+
         ctx.endSingleTimeCommands(commandBuffer);
 
-        // ---------------------------------------------------------
-        // Safe now: the fence wait above guarantees both copies
-        // have completed.
-        // ---------------------------------------------------------
+        // The GPU copies have completed.
+        destroy(vertexStaging);
+        destroy(indexStaging);
 
-        vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
-        vkFreeMemory(device, stagingVertexMemory, nullptr);
+        // Commit the replacement only after successful upload.
+        // Existing buffers are retired through Aiko's frame lifecycle.
+        unload();
 
-        vkDestroyBuffer(device, stagingIndexBuffer, nullptr);
-        vkFreeMemory(device, stagingIndexMemory, nullptr);
+        m_vertexBuffer = newVertex.buffer;
+        m_vertexMemory = newVertex.memory;
+        m_indexBuffer = newIndex.buffer;
+        m_indexMemory = newIndex.memory;
+        m_indexCount = static_cast<u32>(asset.m_indices.size());
+
+        // Ownership now belongs to this VulkanMeshImpl.
+        newVertex = {};
+        newIndex = {};
     }
 
     RenderResourceId VulkanMeshImpl::id()
