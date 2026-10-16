@@ -175,13 +175,13 @@ namespace aiko
             {
                 case physics::PhysicsEventType::BodyActivated:
                     {
-                        logger::Log::trace("Body activated: {}", event.bodyA);
+                        logger::Log::traceFmt("Body activated: {}", event.bodyA);
                     }
                     break;
 
                 case physics::PhysicsEventType::BodyDeactivated:
                     {
-                        logger::Log::trace("Body deactivated: {}", event.bodyA);
+                        logger::Log::traceFmt("Body deactivated: {}", event.bodyA);
                     }
                     break;
 
@@ -333,8 +333,8 @@ namespace aiko
 
         const physics::BodyMeshData meshData = m_physics.getBodyMeshData(component->getBodyId(), false);
 
-        logger::Log::trace(
-            "Rigid debug mesh build: body={%zu}, verts={%zu}, indices={%zu}",
+        logger::Log::traceFmt(
+            "Rigid debug mesh build: body={}, verts={}, indices={}",
             component->getBodyId(),
             meshData.vertices.size(),
             meshData.indices.size()
@@ -364,8 +364,8 @@ namespace aiko
 
         const physics::BodyMeshData meshData = component->getController().getMeshData(false);
 
-        logger::Log::trace(
-            "Player debug mesh build: verts={%zu}, indices={%zu}",
+        logger::Log::traceFmt(
+            "Player debug mesh build: verts={}, indices={}",
             meshData.vertices.size(),
             meshData.indices.size()
         );

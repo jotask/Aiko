@@ -44,13 +44,14 @@ namespace aiko::lab
         if (condition)
         {
             ++checksPassed;
+            logger::Log::infoFmt("[Physics Lab] PASS: {}", name);
         }
         else
         {
             ++checksFailed;
             failures.push_back(name);
+            logger::Log::errorFmt("[Physics Lab] FAIL: {}", name);
         }
-        logger::Log::info("[Physics Lab] {} {}", (condition ? "PASS: " : "FAIL: "), name);
         return condition;
     }
 
@@ -453,7 +454,14 @@ namespace aiko::lab
         }
         world.shutdown();
 
-        logger::Log::info("[Physics Lab] {} passed, {} failed", checksPassed, checksFailed);
+        if (checksFailed == 0)
+        {
+            logger::Log::infoFmt("[Physics Lab] {} passed, {} failed", checksPassed, checksFailed);
+        }
+        else
+        {
+            logger::Log::errorFmt("[Physics Lab] {} passed, {} failed", checksPassed, checksFailed);
+        }
 
     }
 }
