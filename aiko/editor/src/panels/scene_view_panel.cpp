@@ -408,12 +408,15 @@ namespace aiko::editor
                     {
                         const TransformState finalTransform = captureTransform(transform);
 
-                        context.commands()
-                            .pushExecuted<TransformCommand>(
-                                context.sceneSystem(),
-                                selected->uuid(),
-                                m_gizmoStartTransform,
-                                finalTransform);
+                        if (!(finalTransform == m_gizmoStartTransform))
+                        {
+                            context.commands()
+                                .pushExecuted<TransformCommand>(
+                                    context.sceneSystem(),
+                                    selected->uuid(),
+                                    m_gizmoStartTransform,
+                                    finalTransform);
+                        }
                     }
 
                     m_wasUsingGizmo = usingGizmo;
