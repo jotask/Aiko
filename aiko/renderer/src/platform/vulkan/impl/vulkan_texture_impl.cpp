@@ -132,7 +132,8 @@ namespace aiko::renderer::vulkan
 
         AIKO_ASSERT((formatProperties.optimalTilingFeatures & requiredFeatures) == requiredFeatures, "Texture format does not support the requested Vulkan usage");
 
-        ctx.createImage(
+
+        const VkResult result = ctx.createImage(
             static_cast<uint32_t>(desc.width),
             static_cast<uint32_t>(desc.height),
             m_mipLevels,
@@ -143,6 +144,13 @@ namespace aiko::renderer::vulkan
             m_image,
             m_memory
         );
+
+        if (result != VK_SUCCESS)
+        {
+            logger::Log::error("Failed to create Vulkan texture image (VkResult %d)", static_cast<int>(result));
+            unload();
+            return;
+        }
 
         m_view = ctx.createImageView(m_image, m_vkFormat, aspect, m_mipLevels);
 

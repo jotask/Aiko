@@ -659,9 +659,27 @@ namespace aiko::renderer::vulkan
 
         for (size_t i = 0; i < imageCount; ++i)
         {
-            createImage(m_swapChainExtent.width, m_swapChainExtent.height, 1, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_swapChainDepthImages[i], m_swapChainDepthMemories[i]);
+            const VkResult result = createImage(
+                m_swapChainExtent.width,
+                m_swapChainExtent.height,
+                1,
+                depthFormat,
+                VK_IMAGE_TILING_OPTIMAL,
+                VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                m_swapChainDepthImages[i],
+                m_swapChainDepthMemories[i]
+            );
+
+            if (result != VK_SUCCESS)
+            {
+                logger::Log::critical("Failed to create Vulkan swapchain depth image (VkResult %d)", static_cast<int>(result));
+                std::abort();
+            }
+
             m_swapChainDepthViews[i] = createImageView(m_swapChainDepthImages[i], depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
         }
+
     }
 
     void VulkanContext::createSwapChainFramebuffers()
@@ -1277,14 +1295,17 @@ namespace aiko::renderer::vulkan
         return indices;
     }
 
-    void VulkanContext::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
+    VkResult VulkanContext::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
     {
+        AIKO_ASSERT(image == VK_NULL_HANDLE && imageMemory == VK_NULL_HANDLE, "Vulkan image outputs must be empty");
+
         const VkImageCreateInfo imageInfo =
         {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .imageType = VK_IMAGE_TYPE_2D,
             .format = format,
-            .extent = VkExtent3D{
+            .extent = VkExtent3D
+            {
                 .width = width,
                 .height = height,
                 .depth = 1,
@@ -1298,31 +1319,56 @@ namespace aiko::renderer::vulkan
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         };
 
-        if (vkCreateImage(m_device, &imageInfo, nullptr, &image) != VK_SUCCESS)
+        VkImage createdImage = VK_NULL_HANDLE;
+
+        const VkResult createResult = vkCreateImage(m_device, &imageInfo, nullptr, &createdImage);
+
+        if (createResult != VK_SUCCESS)
         {
-            throw std::runtime_error("failed to create image!");
+            return createResult;
         }
 
-        VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(m_device, image, &memRequirements);
+        VkMemoryRequirements requirements{};
+        vkGetImageMemoryRequirements(m_device, createdImage, &requirements);
 
-        const uint32_t memoryType = findMemoryType(memRequirements.memoryTypeBits, properties);
-        AIKO_ASSERT(memoryType != InvalidMemoryType, "Failed to find memory type.");
+        const uint32_t memoryType = findMemoryType(requirements.memoryTypeBits, properties);
 
-        const VkMemoryAllocateInfo allocInfo =
+        if (memoryType == InvalidMemoryType)
+        {
+            vkDestroyImage(m_device, createdImage, nullptr);
+            return VK_ERROR_FEATURE_NOT_PRESENT;
+        }
+
+        const VkMemoryAllocateInfo allocationInfo =
         {
             .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .allocationSize = memRequirements.size,
+            .allocationSize = requirements.size,
             .memoryTypeIndex = memoryType,
         };
 
-        if (vkAllocateMemory(m_device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
+        VkDeviceMemory allocatedMemory = VK_NULL_HANDLE;
+
+        const VkResult allocationResult = vkAllocateMemory(m_device, &allocationInfo, nullptr, &allocatedMemory);
+
+        if (allocationResult != VK_SUCCESS)
         {
-            throw std::runtime_error("failed to allocate image memory!");
+            vkDestroyImage(m_device, createdImage, nullptr);
+            return allocationResult;
         }
 
-        const VkResult bindResult = vkBindImageMemory(m_device, image, imageMemory, 0);
-        AIKO_ASSERT(bindResult == VK_SUCCESS, "Failed to bind Vulkan image memory");
+        const VkResult bindResult = vkBindImageMemory(m_device, createdImage, allocatedMemory, 0);
+
+        if (bindResult != VK_SUCCESS)
+        {
+            vkDestroyImage(m_device, createdImage, nullptr);
+            vkFreeMemory(m_device, allocatedMemory, nullptr);
+            return bindResult;
+        }
+
+        image = createdImage;
+        imageMemory = allocatedMemory;
+
+        return VK_SUCCESS;
 
     }
 
@@ -1815,7 +1861,6 @@ namespace aiko::renderer::vulkan
                 return i;
             }
         }
-        AIKO_ASSERT(false, "failed to find suitable memory type!");
         return InvalidMemoryType;
     }
 

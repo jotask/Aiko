@@ -42,6 +42,13 @@ namespace aiko
                 .mipmaps = 1,
                 .computeWrite = true,
             });
+
+        if (colorTexture.isValid() == false)
+        {
+            unload();
+            return;
+        }
+
         depthTexture.create(
             {
                 .type = TextureType::DepthStencil,
@@ -50,6 +57,13 @@ namespace aiko
                 .height = height,
                 .mipmaps = 1,
             });
+
+        if (depthTexture.isValid() == false)
+        {
+            unload();
+            return;
+        }
+
         backend->create(*colorTexture.backend, *depthTexture.backend);
     }
 

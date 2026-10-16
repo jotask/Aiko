@@ -69,6 +69,10 @@ namespace aiko
     void Texture::upload(const TextureAsset& asset)
     {
         create(asset.desc);
+        if (isValid() == false)
+        {
+            return;
+        }
         setPixels(asset.pixels);
     }
 

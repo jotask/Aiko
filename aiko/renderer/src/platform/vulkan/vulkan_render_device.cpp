@@ -483,6 +483,7 @@ namespace aiko::renderer::vulkan
         m_gpuPipelines.create(m_modelPipelines.layout());
         m_materialResources.create(m_modelPipelines.materialLayout());
         m_whiteTexture.create();
+        AIKO_ASSERT(m_whiteTexture.isValid(), "Failed to create the required Vulkan white texture");
         m_whiteTexture.setPixels({WHITE});
 
         return true;
