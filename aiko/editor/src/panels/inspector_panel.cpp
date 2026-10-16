@@ -6,6 +6,10 @@
 #include "registry/components_functionality.h"
 #include "registry/components_render.h"
 #include "commands/game_object/rename_game_object_command.h"
+#include "commands/transform/transform_command.h"
+#include <components/transform_component.h>
+#include <models/game_object.h>
+#include <systems/scene_system.h>
 
 #include <aiko_includes.h>
 #include <imgui.h>
@@ -15,14 +19,62 @@ namespace aiko
     namespace editor
     {
 
+        namespace
+        {
+            TransformState captureTransform(const Transform& transform)
+            {
+                return
+                {
+                    transform.position,
+                    transform.rotation,
+                    transform.scale
+                };
+            }
+        }
+
         InspectorPanel::InspectorPanel()
             : EditorPanel("Inspector")
         {
         }
 
+        void InspectorPanel::finishTransformEdit(EditorContext& context, const TransformState& after)
+        {
+            if (m_transformEditObjectId)
+            {
+                GameObject* object = context.sceneSystem().findGameObject(*m_transformEditObjectId);
+
+                if (object == m_transformEditObject && !(m_transformEditBefore == after))
+                {
+                    context.commands().pushExecuted<TransformCommand>(context.sceneSystem(), *m_transformEditObjectId, m_transformEditBefore, after);
+                }
+            }
+
+            m_transformEditObjectId.reset();
+            m_transformEditObject = nullptr;
+        }
+
+
         void InspectorPanel::render(EditorContext& context)
         {
             GameObject* selectedGameObject = context.selectedGameObject();
+
+            if (m_transformEditObjectId && selectedGameObject != m_transformEditObject)
+            {
+                GameObject* previous = context.sceneSystem().findGameObject(*m_transformEditObjectId);
+
+                if (previous == m_transformEditObject)
+                {
+                    finishTransformEdit(context, captureTransform(previous->transform()));
+                }
+                else
+                {
+                    m_transformEditObjectId.reset();
+                    m_transformEditObject = nullptr;
+                }
+            }
+
+            bool transformRendered = false;
+
             vector<Component*> componentsToRemove;
             if (ImGui::Begin("Inspector"))
             {
@@ -57,10 +109,46 @@ namespace aiko
                                 continue;
                             }
                             ImGui::PopID();
-                            if (component::drawComponent(comp))
+
+                            bool changed = false;
+
+                            if (comp == selectedGameObject->getComponent<TransformComponent>())
+                            {
+                                transformRendered = true;
+
+                                const TransformState beforeDraw = captureTransform(selectedGameObject->transform());
+
+                                ImGui::BeginGroup();
+                                changed = component::drawComponent(comp);
+                                ImGui::EndGroup();
+
+                                const bool deactivated = ImGui::IsItemDeactivated();
+                                const bool activated = ImGui::IsItemActivated();
+
+                                if (deactivated && m_transformEditObjectId && m_transformEditObject == selectedGameObject)
+                                {
+                                    const TransformState after = activated ? beforeDraw : captureTransform(selectedGameObject->transform());
+
+                                    finishTransformEdit(context, after);
+                                }
+
+                                if (activated)
+                                {
+                                    m_transformEditObjectId = selectedGameObject->uuid();
+                                    m_transformEditObject = selectedGameObject;
+                                    m_transformEditBefore = beforeDraw;
+                                }
+                            }
+                            else
+                            {
+                                changed = component::drawComponent(comp);
+                            }
+
+                            if (changed)
                             {
                                 context.document().markDirty();
                             }
+
                         }
                     }
                     ImGui::Spacing();
@@ -109,6 +197,21 @@ namespace aiko
                     {
                         component::removeComponent(context, *component);
                     }
+                }
+            }
+
+            if (m_transformEditObjectId && !transformRendered)
+            {
+                GameObject* object = context.sceneSystem().findGameObject(*m_transformEditObjectId);
+
+                if (object == m_transformEditObject)
+                {
+                    finishTransformEdit(context, captureTransform(object->transform()));
+                }
+                else
+                {
+                    m_transformEditObjectId.reset();
+                    m_transformEditObject = nullptr;
                 }
             }
 
