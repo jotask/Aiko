@@ -485,6 +485,7 @@ namespace aiko::renderer::vulkan
         m_whiteTexture.create();
         AIKO_ASSERT(m_whiteTexture.isValid(), "Failed to create the required Vulkan white texture");
         m_whiteTexture.setPixels({WHITE});
+        AIKO_ASSERT(m_whiteTexture.isValid(), "Failed to upload the required Vulkan white texture");
 
         return true;
     }

@@ -227,16 +227,11 @@ namespace aiko::renderer::vulkan
 
         const bool computeOwned = m_state.queueFamily != VK_QUEUE_FAMILY_IGNORED && m_state.queueFamily != ctx.graphicsQueueFamily();
 
+        const bool hadExistingContents = m_state.layout != VK_IMAGE_LAYOUT_UNDEFINED;
+
         if (m_state.layout == VK_IMAGE_LAYOUT_GENERAL || computeOwned)
         {
             AIKO_ASSERT(ctx.activeCommandBuffer() == VK_NULL_HANDLE, "Cannot replace compute texture pixels during an active frame yet");
-        }
-
-        if (computeOwned)
-        {
-            AIKO_ASSERT(ctx.hasDedicatedComputeQueue() && m_state.queueFamily == ctx.computeQueueFamily(), "Texture has unexpected queue ownership");
-            ctx.waitIdle();
-            m_state = {};
         }
 
         VkBuffer stagingBuffer = VK_NULL_HANDLE;
@@ -245,10 +240,36 @@ namespace aiko::renderer::vulkan
 
         const VkDeviceSize imageSize = VkDeviceSize(pixelCount) * 4;
 
-        ctx.createBufferOrAbort(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
+        const VkResult allocationResult = ctx.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
+
+        if (allocationResult != VK_SUCCESS)
+        {
+            logger::Log::error("Failed to allocate texture staging buffer (VkResult %d)", static_cast<int>(allocationResult));
+
+            if (!hadExistingContents)
+            {
+                unload();
+            }
+
+            return;
+        }
 
         const VkResult mapResult = vkMapMemory(ctx.device(), stagingMemory, 0, imageSize, 0, &mapped);
-        AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map texture staging memory");
+
+        if (mapResult != VK_SUCCESS)
+        {
+            logger::Log::error("Failed to map texture staging memory (VkResult %d)", static_cast<int>(mapResult));
+
+            vkDestroyBuffer(ctx.device(), stagingBuffer, nullptr);
+            vkFreeMemory(ctx.device(), stagingMemory, nullptr);
+
+            if (!hadExistingContents)
+            {
+                unload();
+            }
+
+            return;
+        }
 
         auto* destination = static_cast<uint8_t*>(mapped);
 
@@ -277,6 +298,13 @@ namespace aiko::renderer::vulkan
         }
 
         vkUnmapMemory(ctx.device(), stagingMemory);
+
+        if (computeOwned)
+        {
+            AIKO_ASSERT(ctx.hasDedicatedComputeQueue() && m_state.queueFamily == ctx.computeQueueFamily(), "Texture has unexpected queue ownership");
+            ctx.waitIdle();
+            m_state = {};
+        }
 
         VkCommandBuffer commandBuffer = ctx.beginSingleTimeCommands();
 
