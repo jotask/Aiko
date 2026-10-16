@@ -24,8 +24,8 @@ namespace aiko::physics
         AikoPhysics();
         ~AikoPhysics();
 
-        AikoPhysics(AikoPhysics&&) noexcept;
-        AikoPhysics& operator=(AikoPhysics&&) noexcept;
+        AikoPhysics(AikoPhysics&&) noexcept = delete;
+        AikoPhysics& operator=(AikoPhysics&&) noexcept = delete;
 
         AikoPhysics(const AikoPhysics&) = delete;
         AikoPhysics& operator=(const AikoPhysics&) = delete;
