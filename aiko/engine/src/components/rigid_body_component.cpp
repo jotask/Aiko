@@ -29,8 +29,9 @@ namespace aiko
         m_debug.enabled = desc.debugDraw;
         m_debug.built = false;
 
-        gameobject->transform().position = desc.transform.position;
-
+        Transform& transform = gameobject->transform();
+        transform.position = desc.transform.position;
+        transform.rotation = desc.transform.rotation;
     }
 
     void RigidBodyComponent::dispose()

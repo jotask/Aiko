@@ -240,25 +240,45 @@ namespace aiko::lab
             Scene scene;
             GameObject* object = scene.create("Recreation check");
             object->transform().scale = {2.0f, 0.5f, 1.0f};
+
             RigidBodyComponent* body = object->addComponent<RigidBodyComponent>();
+
             physics::BodyDesc spawn = boxDesc({20.0f, 5.0f, 0.0f}, vec3{0.5f});
+
+            spawn.transform.rotation = {20.0f, 35.0f, 15.0f};
+
             body->create(spawn);
             body->ensurePhysicsInitialized(world);
+
             const physics::BodyId oldId = body->getBodyId();
+
             check(body->isPhysicsInitialized(), "component initializes body", checksPassed, checksFailed, failures);
+            check(samePose(spawn.transform, world.getTransform(oldId)), "body creation applies descriptor position and rotation", checksPassed, checksFailed, failures);
+
             body->syncFromPhysics(world);
+
             check(near(object->transform().scale, {2.0f, 0.5f, 1.0f}), "synchronization preserves visual scale", checksPassed, checksFailed, failures);
+
             spawn.transform.position.x = 25.0f;
+            spawn.transform.rotation = {-15.0f, 60.0f, 10.0f};
+
             body->create(spawn);
             body->ensurePhysicsInitialized(world);
-            check(body->isPhysicsInitialized() && body->getBodyId() != oldId, "recreation replaces body identity", checksPassed, checksFailed, failures);
+
+            const physics::BodyId newId = body->getBodyId();
+
+            check(body->isPhysicsInitialized() && newId != oldId, "recreation replaces body identity", checksPassed, checksFailed, failures);
+            check(samePose(spawn.transform, world.getTransform(newId)), "body recreation applies new descriptor rotation", checksPassed, checksFailed, failures);
+
             physics::SphereOverlapDesc query{};
             query.center = {20.0f, 5.0f, 0.0f};
             query.radius = 0.2f;
+
             check(!contains(world.overlapSphere(query), oldId), "recreation removes original collider", checksPassed, checksFailed, failures);
-            const physics::BodyId newId = body->getBodyId();
+
             query.center = spawn.transform.position;
             scene.remove(object);
+
             check(!contains(world.overlapSphere(query), newId), "scene removal releases collider", checksPassed, checksFailed, failures);
         }
 

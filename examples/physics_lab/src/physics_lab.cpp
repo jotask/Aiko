@@ -83,7 +83,6 @@ namespace aiko::lab
     GameObject* PhysicsLab::addBody(const char* name, physics::BodyDesc desc, Color color, GameObject* parent)
     {
         GameObject* object = parent ? Instantiate(parent, name) : Instantiate(name);
-        object->transform().rotation = desc.transform.rotation;
         auto* mesh = object->addComponent<MeshComponent>();
         mesh->load(visualMesh(desc.shape));
         configureMaterial(mesh->getMaterial(), m_modelShader, color);
@@ -256,7 +255,6 @@ namespace aiko::lab
         {
             return;
         }
-        object->transform().rotation = entry.initial.transform.rotation;
         body->create(entry.initial);
         body->debug().enabled = m_debug;
     }
