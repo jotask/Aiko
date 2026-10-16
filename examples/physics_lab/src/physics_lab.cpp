@@ -397,12 +397,15 @@ namespace aiko::lab
             case Action::Static:
             case Action::Kinematic:
             case Action::Dynamic:
-                if (entry.initial.motionType != physics::MotionType::Static)
+            {
+                const physics::MotionType next = action == Action::Static ? physics::MotionType::Static : action == Action::Kinematic ? physics::MotionType::Kinematic : physics::MotionType::Dynamic;
+                if (!world.setMotionType(id, next))
                 {
-                    const auto next = action == Action::Static ? physics::MotionType::Static : action == Action::Kinematic ? physics::MotionType::Kinematic : physics::MotionType::Dynamic;
-                    world.setMotionType(id, next);
+                    logger::Log::warning("Physics Lab: selected body does not support that motion type");
                 }
+
                 break;
+            }
             default: break;
         }
     }
@@ -628,7 +631,7 @@ namespace aiko::lab
                     ImGui::SliderFloat("Gravity factor", &m_gravityFactor, 0.0f, 3.0f);
                     button("Apply gravity factor", Action::Gravity);
                     button("Toggle sensor", Action::ToggleSensor);
-                    if (m_bodies[m_selected].initial.motionType != physics::MotionType::Static)
+                    if (m_bodies[m_selected].initial.shape.type != physics::ShapeType::TriangleMesh)
                     {
                         button("Static", Action::Static);
                         ImGui::SameLine();

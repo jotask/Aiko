@@ -51,7 +51,7 @@ namespace aiko::physics
         void addAngularImpulse(BodyId id, const vec3& angularImpulse);
 
         void moveKinematic(BodyId id, const Transform& target, float deltaTime);
-        void setMotionType(BodyId id, MotionType motionType, bool activate = true);
+        bool setMotionType(BodyId id, MotionType motionType, bool activate = true);
         MotionType getMotionType(BodyId id) const;
 
         void setIsSensor(BodyId id, bool isSensor);

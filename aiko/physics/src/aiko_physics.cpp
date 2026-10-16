@@ -20,6 +20,7 @@
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/CollideShape.h>
+#include <Jolt/Physics/Body/BodyLock.h>
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 
 namespace aiko::physics
@@ -106,57 +107,53 @@ namespace aiko::physics
             return InvalidBodyId;
         }
 
-        JPH::BodyInterface& bodyInterface = m_impl->physicsSystem->GetBodyInterface();
+        const bool supportsMotionChanges = desc.shape.type != ShapeType::TriangleMesh;
 
-        const JPH::RVec3 position = convert::toJoltVec3(desc.transform.position);
-        const JPH::Quat rotation = convert::toJoltRotation(desc.transform.rotation);
-        const JPH::EMotionType motionType = convert::toJoltMotionType(desc.motionType);
-        const JPH::ObjectLayer layer = convert::toJoltLayer(desc.layer);
+        if (!supportsMotionChanges && desc.motionType != MotionType::Static)
+        {
+            return InvalidBodyId;
+        }
 
-        AIKO_ASSERT(desc.motionType != MotionType::Dynamic || desc.shape.type != ShapeType::TriangleMesh, "Dynamic triangle mesh bodies are not supported");
-        if (desc.motionType == MotionType::Dynamic && desc.shape.type == ShapeType::TriangleMesh)
+        // Primitive bodies retain mass properties so they can become dynamic later.
+        if (supportsMotionChanges && (!std::isfinite(desc.mass) || desc.mass <= 0.0f))
         {
             return InvalidBodyId;
         }
 
         JPH::RefConst<JPH::Shape> shape = createJoltShape(desc.shape);
+
         if (shape == nullptr)
         {
             return InvalidBodyId;
         }
 
-        JPH::BodyCreationSettings settings(
-            shape,
-            position,
-            rotation,
-            motionType,
-            layer
-        );
+        const JPH::RVec3 position = convert::toJoltVec3(desc.transform.position);
+
+        const JPH::Quat rotation = convert::toJoltRotation(desc.transform.rotation);
+
+        const JPH::EMotionType motionType = convert::toJoltMotionType(desc.motionType);
+
+        const JPH::ObjectLayer layer = desc.motionType == MotionType::Static ? convert::toJoltLayer(desc.layer) : Layers::MOVING;
+
+        JPH::BodyCreationSettings settings(shape, position, rotation, motionType, layer);
 
         settings.mRestitution = desc.restitution;
         settings.mFriction = desc.friction;
         settings.mIsSensor = desc.isSensor;
+        settings.mAllowDynamicOrKinematic = supportsMotionChanges;
 
-        if (desc.motionType == MotionType::Dynamic)
+        if (supportsMotionChanges)
         {
-            const bool validMass = std::isfinite(desc.mass) && desc.mass > 0.0f;
-
-            AIKO_ASSERT(validMass, "Dynamic body mass must be finite and greater than zero");
-            if (validMass == false)
-            {
-                return InvalidBodyId;
-            }
-
             settings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
             settings.mMassPropertiesOverride.mMass = desc.mass;
         }
 
-        const JPH::EActivation activation =
-            (desc.activate && desc.motionType != MotionType::Static)
-                ? JPH::EActivation::Activate
-                : JPH::EActivation::DontActivate;
+        const JPH::EActivation activation = desc.activate && desc.motionType != MotionType::Static ? JPH::EActivation::Activate : JPH::EActivation::DontActivate;
+
+        JPH::BodyInterface& bodyInterface = m_impl->physicsSystem->GetBodyInterface();
 
         const JPH::BodyID bodyId = bodyInterface.CreateAndAddBody(settings, activation);
+
         return convert::toAikoBodyId(bodyId);
     }
 
@@ -382,24 +379,43 @@ namespace aiko::physics
         );
     }
 
-    void AikoPhysics::setMotionType(BodyId id, MotionType motionType, bool activate)
+    bool AikoPhysics::setMotionType(BodyId id, MotionType motionType, bool activate)
     {
-        if (m_impl == nullptr || m_impl->physicsSystem == nullptr)
+        if (m_impl == nullptr || m_impl->physicsSystem == nullptr || id == InvalidBodyId)
         {
-            return;
+            return false;
         }
 
-        if (id == InvalidBodyId)
+        const JPH::BodyID bodyId = convert::toJoltBodyId(id);
+
+        const JPH::EMotionType target = convert::toJoltMotionType(motionType);
+
         {
-            return;
+            JPH::BodyLockRead lock(m_impl->physicsSystem->GetBodyLockInterface(), bodyId);
+
+            if (!lock.Succeeded())
+            {
+                return false;
+            }
+
+            const JPH::Body& body = lock.GetBody();
+
+            if (target != JPH::EMotionType::Static && body.GetMotionPropertiesUnchecked() == nullptr)
+            {
+                return false;
+            }
         }
 
         JPH::BodyInterface& bodyInterface = m_impl->physicsSystem->GetBodyInterface();
-        bodyInterface.SetMotionType(
-            convert::toJoltBodyId(id),
-            convert::toJoltMotionType(motionType),
-            activate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate
-        );
+
+        if (motionType != MotionType::Static)
+        {
+            bodyInterface.SetObjectLayer(bodyId, Layers::MOVING);
+        }
+
+        bodyInterface.SetMotionType(bodyId, target, activate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+
+        return true;
     }
 
     MotionType AikoPhysics::getMotionType(BodyId id) const
