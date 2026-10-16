@@ -51,7 +51,7 @@ namespace aiko
     void AikoImgui::init(GLFWwindow* window)
     {
 
-        logger::Log::info("ImGui v.%s", IMGUI_VERSION);
+        logger::Log::info() << "ImGui Version : " << IMGUI_VERSION << " (" << IMGUI_VERSION_NUM << ")";
 
         AIKO_ASSERT(m_isInitialized == false, "Imgui already initialized");
         AIKO_ASSERT(window != nullptr, "Invalid GLFW window or not supported");
@@ -72,8 +72,6 @@ namespace aiko
         backend->init(m_viewId, window);
 
         m_isInitialized = true;
-
-        logger::Log::info() << "ImGui Version : " << IMGUI_VERSION << " (" << IMGUI_VERSION_NUM << ")";
 
     }
 
