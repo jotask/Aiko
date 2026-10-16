@@ -2,6 +2,9 @@
 
 #include <limits>
 #include <array>
+#include <cstdlib>
+
+#include <logger/logger.h>
 
 #include "vulkan_context.h"
 
@@ -16,17 +19,41 @@ namespace aiko::renderer::vulkan
 
     UploadSlice VulkanUploadArena::allocate(uint32_t frameIndex, VkDeviceSize size, VkDeviceSize alignment)
     {
+        UploadSlice slice{};
+
+        if (!tryAllocate(frameIndex, size, alignment, slice))
+        {
+            logger::Log::critical("Failed to allocate Vulkan upload arena slice");
+            std::abort();
+        }
+
+        return slice;
+    }
+
+    bool VulkanUploadArena::tryAllocate(uint32_t frameIndex, VkDeviceSize size, VkDeviceSize alignment, UploadSlice& out)
+    {
         AIKO_ASSERT(frameIndex < m_chunks.size(), "Invalid Vulkan upload arena frame index");
         AIKO_ASSERT(size > 0, "Cannot allocate empty Vulkan upload slice");
         AIKO_ASSERT(alignment > 0, "Invalid Vulkan upload alignment");
-        AIKO_ASSERT( (alignment & (alignment - 1)) == 0,"Vulkan upload alignment must be a power of two");
+        AIKO_ASSERT((alignment & (alignment - 1)) == 0, "Vulkan upload alignment must be a power of two");
 
-        const auto alignUp = [](VkDeviceSize value, VkDeviceSize align) { return (value + align - 1) & ~(align - 1); };
+        out = {};
+
+        const auto alignUp = [](VkDeviceSize value, VkDeviceSize align)
+        {
+            return (value + align - 1) & ~(align - 1);
+        };
 
         std::vector<UploadArenaChunk>& chunks = m_chunks[frameIndex];
 
+        // Reuse an existing, successfully mapped chunk.
         for (UploadArenaChunk& chunk : chunks)
         {
+            if (chunk.offset > std::numeric_limits<VkDeviceSize>::max() - (alignment - 1))
+            {
+                continue;
+            }
+
             const VkDeviceSize alignedOffset = alignUp(chunk.offset, alignment);
 
             if (alignedOffset > chunk.capacity || size > chunk.capacity - alignedOffset)
@@ -34,7 +61,9 @@ namespace aiko::renderer::vulkan
                 continue;
             }
 
-            const UploadSlice slice =
+            AIKO_ASSERT(chunk.buffer != VK_NULL_HANDLE && chunk.mapped != nullptr, "Invalid Vulkan upload arena chunk");
+
+            out =
             {
                 .buffer = chunk.buffer,
                 .offset = alignedOffset,
@@ -42,22 +71,33 @@ namespace aiko::renderer::vulkan
             };
 
             chunk.offset = alignedOffset + size;
-
-            return slice;
+            return true;
         }
 
+        // Allocate a new chunk.
         VkDeviceSize capacity = DefaultChunkSize;
 
         while (capacity < size)
         {
-            AIKO_ASSERT(capacity <= std::numeric_limits<VkDeviceSize>::max() / 2, "Vulkan upload arena size overflow");
+            if (capacity > std::numeric_limits<VkDeviceSize>::max() / 2)
+            {
+                logger::Log::error("Vulkan upload arena size overflow");
+                return false;
+            }
+
             capacity *= 2;
         }
+
+        // Reserve host storage before acquiring Vulkan resources.
+        chunks.reserve(chunks.size() + 1);
 
         UploadArenaChunk chunk{};
 
         const VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+
         const VkMemoryPropertyFlags propertiesFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+        VkResult result = VK_SUCCESS;
 
         if (m_context.hasDedicatedComputeQueue())
         {
@@ -67,29 +107,45 @@ namespace aiko::renderer::vulkan
                 m_context.computeQueueFamily(),
             };
 
-            m_context.createBufferOrAbort(capacity, usageFlags, propertiesFlags, chunk.buffer, chunk.memory, VK_SHARING_MODE_CONCURRENT, queueFamilies.data(), static_cast<uint32_t>(queueFamilies.size()));
+            result = m_context.createBuffer(capacity, usageFlags, propertiesFlags, chunk.buffer, chunk.memory, VK_SHARING_MODE_CONCURRENT, queueFamilies.data(), static_cast<uint32_t>(queueFamilies.size()));
         }
         else
         {
-            m_context.createBufferOrAbort(capacity, usageFlags, propertiesFlags, chunk.buffer, chunk.memory);
+            result = m_context.createBuffer(capacity, usageFlags, propertiesFlags, chunk.buffer, chunk.memory);
         }
 
-        const VkResult mapResult = vkMapMemory(m_context.device(), chunk.memory, 0, capacity, 0, &chunk.mapped);
-        AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map Vulkan upload arena");
+        if (result != VK_SUCCESS)
+        {
+            logger::Log::error("Failed to create Vulkan upload arena buffer (VkResult %d)", static_cast<int>(result));
+            return false;
+        }
+
+        result = vkMapMemory(m_context.device(), chunk.memory, 0, capacity, 0, &chunk.mapped);
+
+        if (result != VK_SUCCESS)
+        {
+            logger::Log::error("Failed to map Vulkan upload arena memory (VkResult %d)", static_cast<int>(result));
+
+            vkDestroyBuffer(m_context.device(), chunk.buffer, nullptr);
+            vkFreeMemory(m_context.device(), chunk.memory, nullptr);
+
+            return false;
+        }
 
         chunk.capacity = capacity;
         chunk.offset = size;
 
-        const UploadSlice slice =
+        // Publish only a fully initialized chunk.
+        chunks.push_back(chunk);
+
+        out =
         {
             .buffer = chunk.buffer,
             .offset = 0,
             .mapped = chunk.mapped,
         };
 
-        chunks.push_back(chunk);
-
-        return slice;
+        return true;
     }
 
     void VulkanUploadArena::resetFrame(uint32_t frameIndex)

@@ -21,6 +21,7 @@ namespace aiko::renderer::vulkan
         VulkanUploadArena(VulkanContext& context, uint32_t frameCount);
 
         UploadSlice allocate(uint32_t frameIndex, VkDeviceSize size, VkDeviceSize alignment);
+        [[nodiscard]] bool tryAllocate(uint32_t frameIndex, VkDeviceSize size, VkDeviceSize alignment, UploadSlice& out);
 
         void resetFrame(uint32_t frameIndex);
         void destroy();
