@@ -284,15 +284,22 @@ namespace aiko::editor
 
                 renderSystem.renderToTarget(m_camera, m_renderTarget);
 
-                ImGui::Image(
-                    (ImTextureID)renderSystem.getTextureId(
-                        m_renderTarget.colorTexture()),
-                    {
-                        imageWidth,
-                        imageHeight
-                    },
-                    {0, 1},
-                    {1, 0});
+                const ImguiTextureId textureId = renderSystem.getTextureId(m_renderTarget.colorTexture());
+
+                if (textureId != 0)
+                {
+                    ImGui::Image(
+                        static_cast<ImTextureID>(textureId),
+                        {imageWidth, imageHeight},
+                        {0, 1},
+                        {1, 0});
+                }
+                else
+                {
+                    // Preserve the viewport layout when
+                    // the texture is unavailable.
+                    ImGui::Dummy({imageWidth, imageHeight});
+                }
 
                 //
                 // ImGuizmo viewport

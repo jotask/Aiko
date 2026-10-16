@@ -54,13 +54,19 @@ namespace aiko
 
                             const ImVec2 pos = ImGui::GetCursorScreenPos();
 
-                            ImGui::GetWindowDrawList()->AddImage(
-                                (ImTextureID)renderSystem.getTargetTextureId(),
-                                ImVec2(pos.x, pos.y),
-                                ImVec2(pos.x + imageWidth, pos.y + imageHeight),
-                                ImVec2(0, 1),
-                                ImVec2(1, 0)
-                            );
+                            const ImguiTextureId textureId = renderSystem.getTargetTextureId();
+
+                            if (textureId != 0)
+                            {
+                                ImGui::GetWindowDrawList()->AddImage(
+                                    static_cast<ImTextureID>(textureId),
+                                    ImVec2(pos.x, pos.y),
+                                    ImVec2(pos.x + imageWidth, pos.y + imageHeight),
+                                    ImVec2(0, 1),
+                                    ImVec2(1, 0)
+                                );
+                            }
+
                         }
                     }
                 }

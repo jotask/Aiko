@@ -114,7 +114,13 @@ namespace aiko
 
     ImguiTextureId AikoImgui::textureId(const Texture& texture, const SamplerState& sampler)
     {
-        AIKO_ASSERT(texture.isValid(), "Cannot register invalid ImGui texture");
+        if (!texture.isValid())
+        {
+            // The GPU texture is unavailable.
+            // Never register an invalid backend texture.
+            return 0;
+        }
+
         return backend->textureId(*texture.backend, sampler);
     }
 
