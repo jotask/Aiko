@@ -19,65 +19,55 @@ namespace aiko
 
         void GameViewPanel::render(EditorContext& context)
         {
-
             RenderSystem& renderSystem = context.renderSystem();
-            if(ImGui::Begin("Game"))
+
+            if (ImGui::Begin("Game"))
             {
-
-                const FrameBuffer& aikoTarget = renderSystem.getTargetTexture();
-
-                const Texture& texture = aikoTarget.getColorTexture();
-                // Using a Child allow to fill all the space of the window.
-                // It also allows customization
-                ImGui::BeginChild("GameRender");
-                // Get the size of the child (i.e. the whole draw size of the windows).
-
-                // Get the dimensions of the texture
-                ImVec2 textureSize = ImVec2(texture.getInfo().width, texture.getInfo().height);
-
-                // Calculate aspect ratio of the image
-                float aspectRatio = textureSize.x / textureSize.y;
-
-                // Get available space in the window
-                ImVec2 availableSpace = ImGui::GetContentRegionAvail();
-
-                // Calculate the maximum size of the image while maintaining the aspect ratio
-                float maxWidth = availableSpace.x;
-                float maxHeight = availableSpace.y;
-                float imageWidth, imageHeight;
-
-                if (maxWidth / maxHeight > aspectRatio)
+                if (ImGui::BeginChild("GameRender"))
                 {
-                    // Height is the limiting factor
-                    imageHeight = maxHeight;
-                    imageWidth = maxHeight * aspectRatio;
+                    const ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+
+                    if (availableSpace.x > 0.0f && availableSpace.y > 0.0f)
+                    {
+                        const FrameBuffer& target = renderSystem.getTargetTexture();
+                        const Texture& texture = target.getColorTexture();
+
+                        const ImVec2 textureSize(texture.getInfo().width, texture.getInfo().height);
+
+                        if (textureSize.x > 0.0f && textureSize.y > 0.0f)
+                        {
+                            const float aspectRatio = textureSize.x / textureSize.y;
+
+                            float imageWidth;
+                            float imageHeight;
+
+                            if (availableSpace.x / availableSpace.y > aspectRatio)
+                            {
+                                imageHeight = availableSpace.y;
+                                imageWidth = imageHeight * aspectRatio;
+                            }
+                            else
+                            {
+                                imageWidth = availableSpace.x;
+                                imageHeight = imageWidth / aspectRatio;
+                            }
+
+                            const ImVec2 pos = ImGui::GetCursorScreenPos();
+
+                            ImGui::GetWindowDrawList()->AddImage(
+                                (ImTextureID)renderSystem.getTargetTextureId(),
+                                ImVec2(pos.x, pos.y),
+                                ImVec2(pos.x + imageWidth, pos.y + imageHeight),
+                                ImVec2(0, 1),
+                                ImVec2(1, 0)
+                            );
+                        }
+                    }
                 }
-                else
-                {
-                    // Width is the limiting factor
-                    imageWidth = maxWidth;
-                    imageHeight = maxWidth / aspectRatio;
-                }
-
-                // Ensure that the image does not exceed the available space
-                imageWidth = std::min(imageWidth, maxWidth);
-                imageHeight = std::min(imageHeight, maxHeight);
-
-                // we get the screen position of the window
-                ImVec2 pos = ImGui::GetCursorScreenPos();
-
-                // and here we can add our created texture as image to ImGui
-                // unfortunately we need to use the cast to void* or I didn't find another way tbh
-                ImGui::GetWindowDrawList()->AddImage(
-                    (ImTextureID)renderSystem.getTargetTextureId(),
-                    ImVec2(pos.x, pos.y),
-                    ImVec2(pos.x + imageWidth, pos.y + imageHeight),
-                    ImVec2(0, 1),
-                    ImVec2(1, 0)
-                );
 
                 ImGui::EndChild();
             }
+
             ImGui::End();
         }
 
