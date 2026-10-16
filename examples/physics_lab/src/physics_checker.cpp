@@ -360,6 +360,88 @@ namespace aiko::lab
         {
             world.destroyBody(sensorId);
         }
+
+        {
+            const physics::BodyDesc platformDesc = boxDesc(
+                {40.0f, -0.5f, 0.0f},
+                {4.0f, 0.5f, 4.0f},
+                physics::MotionType::Kinematic
+            );
+
+            const physics::BodyId platformId = world.createBody(platformDesc);
+
+            if (check(platformId != physics::InvalidBodyId, "moving-platform creation", checksPassed, checksFailed, failures))
+            {
+                physics::PlayerController player;
+
+                physics::PlayerControllerDesc playerDesc{};
+                playerDesc.position = {40.0f, 3.0f, 0.0f};
+                playerDesc.radius = 0.3f;
+                playerDesc.halfHeight = 0.6f;
+                playerDesc.jumpSpeed = 5.0f;
+
+                if (check(player.init(world, playerDesc), "moving-platform controller initialization", checksPassed, checksFailed, failures))
+                {
+                    for (int i = 0; i < 180; ++i)
+                    {
+                        player.update({}, physics::kPhysicsDeltaTime);
+                        world.step();
+                    }
+
+                    check(player.isOnGround(), "controller lands on kinematic platform", checksPassed, checksFailed, failures);
+
+                    const float initialOffsetX = player.getPosition().x - world.getTransform(platformId).position.x;
+
+                    world.setLinearVelocity(platformId, {2.0f, 0.0f, 0.0f});
+
+                    for (int i = 0; i < 60; ++i)
+                    {
+                        player.update({}, physics::kPhysicsDeltaTime);
+                        world.step();
+                    }
+
+                    const float finalOffsetX = player.getPosition().x - world.getTransform(platformId).position.x;
+
+                    check(player.isOnGround() && std::abs(finalOffsetX - initialOffsetX) < 0.05f, "idle controller follows horizontal platform", checksPassed, checksFailed, failures);
+
+                    const float initialOffsetY = player.getPosition().y - world.getTransform(platformId).position.y;
+
+                    world.setLinearVelocity(platformId, {0.0f, 1.0f, 0.0f});
+
+                    for (int i = 0; i < 60; ++i)
+                    {
+                        player.update({}, physics::kPhysicsDeltaTime);
+                        world.step();
+                    }
+
+                    const float finalOffsetY = player.getPosition().y - world.getTransform(platformId).position.y;
+
+                    check(player.isOnGround() && std::abs(finalOffsetY - initialOffsetY) < 0.05f, "idle controller follows vertical platform", checksPassed, checksFailed, failures);
+
+                    const float groundedOffsetY = finalOffsetY;
+
+                    physics::PlayerInput jump{};
+                    jump.jumpPressed = true;
+
+                    player.update(jump, physics::kPhysicsDeltaTime);
+                    world.step();
+
+                    for (int i = 0; i < 10; ++i)
+                    {
+                        player.update({}, physics::kPhysicsDeltaTime);
+                        world.step();
+                    }
+
+                    const float jumpedOffsetY = player.getPosition().y - world.getTransform(platformId).position.y;
+
+                    check(jumpedOffsetY > groundedOffsetY + 0.1f, "controller jumps from moving platform", checksPassed, checksFailed, failures);
+                }
+
+                player.shutdown();
+                world.destroyBody(platformId);
+            }
+        }
+
         world.shutdown();
         world.shutdown();
         world.init();

@@ -217,8 +217,7 @@ namespace aiko::physics
 
     void PlayerController::update(const PlayerInput& input, float dt)
     {
-
-        if (m_impl == nullptr || m_impl->character == nullptr || dt <= 0.0f)
+        if (m_impl == nullptr || m_impl->character == nullptr || !std::isfinite(dt) || dt <= 0.0f)
         {
             return;
         }
@@ -226,64 +225,66 @@ namespace aiko::physics
         const float sy = std::sin(m_impl->yawRadians);
         const float cy = std::cos(m_impl->yawRadians);
 
-        const vec3 forward = vec3(sy, 0.0f, cy);
-        const vec3 right   = vec3(cy, 0.0f, -sy);
+        const vec3 forward{sy, 0.0f, cy};
+        const vec3 right{cy, 0.0f, -sy};
 
         vec3 move = right * input.move.x + forward * input.move.y;
-        const float moveLenSq = move.x * move.x + move.y * move.y + move.z * move.z;
+
+        const float moveLenSq =
+            move.x * move.x +
+            move.y * move.y +
+            move.z * move.z;
+
         if (moveLenSq > 1.0f)
         {
-            const float invLen = 1.0f / std::sqrt(moveLenSq);
-            move *= invLen;
+            move *= 1.0f / std::sqrt(moveLenSq);
         }
 
         move *= m_impl->desc.walkSpeed;
 
-        const JPH::Vec3 gravity = m_impl->worldImpl->physicsSystem->GetGravity();
+        JPH::CharacterVirtual& character = *m_impl->character;
 
-        JPH::Vec3 currentVelocity = m_impl->character->GetLinearVelocity();
-        JPH::Vec3 newVelocity = currentVelocity;
+        character.SetRotation(convert::toYawRotation(m_impl->yawRadians));
+        character.UpdateGroundVelocity();
 
-        // horizontal movement from input
-        newVelocity.SetX(move.x);
-        newVelocity.SetZ(move.z);
+        const JPH::Vec3 up = character.GetUp();
+        const JPH::Vec3 currentVelocity = character.GetLinearVelocity();
+        const JPH::Vec3 verticalVelocity = up * currentVelocity.Dot(up);
 
-        // gravity affects vertical velocity every frame
-        newVelocity += gravity * dt;
+        const JPH::Vec3 groundVelocity = character.GetGroundVelocity();
 
-        // jump overrides vertical velocity when grounded
-        if (input.jumpPressed && m_impl->character->IsSupported())
+        const bool movingTowardsGround = (currentVelocity - groundVelocity).Dot(up) < 0.1f;
+
+        const bool grounded = character.GetGroundState() == JPH::CharacterVirtual::EGroundState::OnGround;
+
+        JPH::Vec3 newVelocity = verticalVelocity;
+
+        if (grounded && movingTowardsGround)
         {
-            newVelocity.SetY(m_impl->desc.jumpSpeed);
+            newVelocity = groundVelocity;
+
+            if (input.jumpPressed)
+            {
+                newVelocity += up * m_impl->desc.jumpSpeed;
+            }
         }
 
-        m_impl->character->SetRotation(convert::toYawRotation(m_impl->yawRadians));
-        m_impl->character->SetLinearVelocity(newVelocity);
+        const JPH::Vec3 gravity = m_impl->worldImpl->physicsSystem->GetGravity();
 
-        const JPH::DefaultBroadPhaseLayerFilter broadPhaseFilter(
-            m_impl->worldImpl->objectVsBroadPhaseLayerFilter,
-            Layers::MOVING
-        );
+        newVelocity += convert::toJoltVec3(move);
+        newVelocity += gravity * dt;
 
-        const JPH::DefaultObjectLayerFilter objectLayerFilter(
-            m_impl->worldImpl->objectLayerPairFilter,
-            Layers::MOVING
-        );
+        character.SetLinearVelocity(newVelocity);
+
+        const JPH::DefaultBroadPhaseLayerFilter broadPhaseFilter(m_impl->worldImpl->objectVsBroadPhaseLayerFilter, Layers::MOVING);
+        const JPH::DefaultObjectLayerFilter objectLayerFilter(m_impl->worldImpl->objectLayerPairFilter, Layers::MOVING);
 
         const JPH::BodyFilter bodyFilter;
         const JPH::ShapeFilter shapeFilter;
 
         JPH::CharacterVirtual::ExtendedUpdateSettings updateSettings;
 
-        m_impl->character->ExtendedUpdate(
-            dt,
-            gravity,
-            updateSettings,
-            broadPhaseFilter,
-            objectLayerFilter,
-            bodyFilter,
-            shapeFilter,
-            *m_impl->worldImpl->tempAllocator
+        character.ExtendedUpdate(dt, gravity, updateSettings, broadPhaseFilter, objectLayerFilter, bodyFilter, shapeFilter, *m_impl->worldImpl->tempAllocator
         );
     }
 
