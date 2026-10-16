@@ -65,14 +65,26 @@ namespace aiko::editor::component
 
                 .serialize = [serialize](const Component& component)
                 {
-                    return serialize(static_cast<const T*>(&component));
+                    YAML::Node node = serialize(static_cast<const T*>(&component));
+                    node["enabled"] = component.isEnabled();
+                    return node;
                 },
 
                 .deserialize =
                     [deserialize](const YAML::Node& node, GameObject& object)
                     {
-                        const bool hadComponent =
-                            object.hasComponent<T>();
+
+                        bool enabled = true;
+
+                        if (const YAML::Node enabledNode = node["enabled"])
+                        {
+                            if (!YAML::convert<bool>::decode(enabledNode, enabled))
+                            {
+                                return false;
+                            }
+                        }
+
+                        const bool hadComponent = object.hasComponent<T>();
 
                         T* component = object.getComponent<T>();
 
@@ -90,7 +102,11 @@ namespace aiko::editor::component
 
                         const bool result = deserialize(node, component);
 
-                        if (result == false && hadComponent == false)
+                        if (result)
+                        {
+                            component->setEnabled(enabled);
+                        }
+                        else if (!hadComponent)
                         {
                             object.removeComponent(component);
                         }
