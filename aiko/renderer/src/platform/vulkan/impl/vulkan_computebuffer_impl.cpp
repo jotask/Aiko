@@ -30,24 +30,53 @@ namespace aiko::renderer::vulkan
     void VulkanComputeBufferImpl::create(const ComputeBufferDesc& desc, const void* initialData)
     {
         AIKO_ASSERT(m_readbackRetainCount == 0, "Cannot recreate compute buffer while readback is pending");
-
-        destroy();
-
         AIKO_ASSERT(desc.count > 0, "Invalid compute buffer count");
 
-        m_format = desc.format;
-        buildLayout(desc.format, desc.stride);
-
-        m_count = desc.count;
-        m_usage = desc.usage;
-
-        const VkDeviceSize size = m_elementSize * static_cast<VkDeviceSize>(m_count);
-
-        VulkanContext& ctx = VulkanContext::current();
+        const VkDeviceSize elementSize = buildLayout(desc.format, desc.stride);
+        const VkDeviceSize size = elementSize * static_cast<VkDeviceSize>(desc.count);
 
         const VkBufferUsageFlags usageFlags = buildUsageFlags(desc.usage);
 
-        ctx.createBufferOrAbort(size, usageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_buffer, m_memory);
+        // Prepare initial uploads without changing the current buffer.
+        std::vector<PendingUpload> pendingUploads;
+
+        if (initialData != nullptr)
+        {
+            AIKO_ASSERT(hasFlag(desc.usage, ComputeBufferUsage::TransferDst), "Compute buffer initial data requires transfer-destination usage");
+
+            PendingUpload upload{};
+            upload.offset = 0;
+            upload.data.resize(static_cast<size_t>(size));
+
+            std::memcpy(upload.data.data(), initialData, static_cast<size_t>(size));
+
+            pendingUploads.push_back(std::move(upload));
+        }
+
+        VulkanContext& ctx = VulkanContext::current();
+
+        VkBuffer newBuffer = VK_NULL_HANDLE;
+        VkDeviceMemory newMemory = VK_NULL_HANDLE;
+
+        const VkResult result = ctx.createBuffer(size, usageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, newBuffer, newMemory);
+
+        if (result != VK_SUCCESS)
+        {
+            logger::Log::error("Failed to create Vulkan compute buffer (VkResult %d)", static_cast<int>(result));
+            return;
+        }
+
+        // Allocation succeeded: retire the previous buffer.
+        destroyNow();
+
+        // Commit the complete replacement state.
+        m_buffer = newBuffer;
+        m_memory = newMemory;
+
+        m_elementSize = elementSize;
+        m_count = desc.count;
+        m_format = desc.format;
+        m_usage = desc.usage;
 
         m_state =
         {
@@ -55,23 +84,7 @@ namespace aiko::renderer::vulkan
             .access = 0,
         };
 
-        if (initialData != nullptr)
-        {
-            AIKO_ASSERT( hasFlag( m_usage, ComputeBufferUsage::TransferDst), "Compute buffer initial data requires transfer-destination usage");
-
-            PendingUpload upload{};
-            upload.offset = 0;
-            upload.data.resize(static_cast<size_t>(size));
-
-            std::memcpy( upload.data.data(), initialData, static_cast<size_t>(size));
-            m_pendingUploads.push_back(std::move(upload));
-
-            m_state =
-            {
-                .stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                .access = 0,
-            };
-        }
+        m_pendingUploads = std::move(pendingUploads);
     }
 
     void VulkanComputeBufferImpl::update(uint32_t start, uint32_t count, const void* data)
@@ -170,29 +183,28 @@ namespace aiko::renderer::vulkan
         VulkanContext::current().retireBuffer(buffer, memory);
     }
 
-    void VulkanComputeBufferImpl::buildLayout(ComputeBufferFormat format, uint32_t stride)
+
+    VkDeviceSize VulkanComputeBufferImpl::buildLayout(ComputeBufferFormat format, uint32_t stride)
     {
         switch (format)
         {
             case ComputeBufferFormat::Vec4f:
-                m_elementSize = sizeof(vec4);
-                break;
+                return sizeof(vec4);
 
             case ComputeBufferFormat::Uint32:
-                m_elementSize = sizeof(uint32_t);
-                break;
+                return sizeof(uint32_t);
 
             case ComputeBufferFormat::Structured:
                 AIKO_ASSERT(stride > 0, "Structured compute buffer requires a stride");
                 AIKO_ASSERT(stride % 4 == 0, "Structured compute buffer stride must be 4-byte aligned");
-                m_elementSize = stride;
-                break;
+                return stride;
 
             default:
                 AIKO_ASSERT(false, "Unsupported Vulkan compute buffer format");
-                break;
+                return 0;
         }
     }
+
 
     VkBufferUsageFlags VulkanComputeBufferImpl::buildUsageFlags(ComputeBufferUsage usage) const
     {

@@ -75,7 +75,7 @@ namespace aiko::renderer::vulkan
 
         void destroyNow();
 
-        void buildLayout(ComputeBufferFormat format, uint32_t stride);
+        [[nodiscard]] static VkDeviceSize buildLayout(ComputeBufferFormat format, uint32_t stride);
         VkBufferUsageFlags buildUsageFlags(ComputeBufferUsage usage) const;
 
     };
