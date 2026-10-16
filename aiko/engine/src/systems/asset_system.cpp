@@ -7,10 +7,6 @@
 #include "system_connector.h"
 #include "assets/asset_importer.h"
 
-#include <logger/logger.h>
-
-#include <exception>
-#include <optional>
 #include <functional>
 #include <future>
 #include <type_traits>
@@ -22,51 +18,34 @@ namespace aiko
     namespace
     {
         template<typename Work, typename Completion>
-        void submitJob(JobSystem& jobs, std::unordered_map<AssetId, AssetLoadState>& loadStates, AssetId id, string source, Work&& work, Completion&& completion)
+        void submitJob(JobSystem& jobs, std::unordered_map<AssetId, AssetLoadState>& loadStates, AssetId id, Work&& work, Completion&& completion)
         {
             using WorkType = std::decay_t<Work>;
             using CompletionType = std::decay_t<Completion>;
             using Result = std::invoke_result_t<WorkType&>;
 
-            static_assert(!std::is_void_v<Result>, "Asset job must return a result");
-
             auto* states = &loadStates;
 
             jobs.submit(
                 JobSystem::BackgroundJob(
-                    [&jobs, states, id, source = std::move(source), work = WorkType(std::forward<Work>(work)), completion = CompletionType(std::forward<Completion>(completion))]
+                    [&jobs, states, id, work = WorkType(std::forward<Work>(work)), completion = CompletionType(std::forward<Completion>(completion))]
                     () mutable
                     {
-                        std::optional<Result> result;
-                        string error;
-
-                        try
-                        {
-                            result.emplace(std::invoke(work));
-                        }
-                        catch (const std::exception& exception)
-                        {
-                            error = exception.what();
-                        }
-                        catch (...)
-                        {
-                            error = "Unknown asset import error";
-                        }
+                        Result result = std::invoke(work);
 
                         jobs.dispatchMainThread(
                             JobSystem::MainThreadJob(
-                                [states, id, source = std::move(source), completion = std::move(completion), result = std::move(result), error = std::move(error)]
+                                [states, id, result = std::move(result), completion = std::move(completion)]
                                 () mutable
                                 {
-                                    if (result.has_value())
+                                    if (!result)
                                     {
-                                        std::invoke(completion, std::move(*result));
+                                        (*states)[id] = AssetLoadState::Failed;
                                         return;
                                     }
 
-                                    (*states)[id] = AssetLoadState::Failed;
+                                    std::invoke(completion, std::move(*result));
 
-                                    logger::Log::errorFmt("Failed to import asset '{}': {}", source, error);
                                 }
                             )
                         );
@@ -74,6 +53,7 @@ namespace aiko
                 )
             );
         }
+
     }
 
     AssetSystem::AssetSystem()
@@ -245,7 +225,6 @@ namespace aiko
             *m_jobSystem,
             m_loadStates,
             id,
-            source,
             [source]()
             {
                 return AssetImporter::loadTexture(source);
@@ -278,7 +257,6 @@ namespace aiko
             *m_jobSystem,
             m_loadStates,
             id,
-            source,
             [source]()
             {
                 return AssetImporter::loadMesh(source);
@@ -311,7 +289,6 @@ namespace aiko
             *m_jobSystem,
             m_loadStates,
             id,
-            source,
             [source]()
             {
                 return AssetImporter::loadModel(source);
@@ -380,10 +357,9 @@ namespace aiko
             *m_jobSystem,
             m_loadStates,
             id,
-            source,
             [source]()
             {
-                return AssetImporter::loadShader(source);
+                return AssetImportResult<ShaderAsset>::success(AssetImporter::loadShader(source));
             },
             [this, id](ShaderAsset asset)
             {
@@ -413,10 +389,9 @@ namespace aiko
             *m_jobSystem,
             m_loadStates,
             id,
-            source,
             [source]()
             {
-                return AssetImporter::loadComputeShader(source);
+                return AssetImportResult<ComputeShaderAsset>::success(AssetImporter::loadComputeShader(source));
             },
             [this, id](ComputeShaderAsset asset)
             {

@@ -26,9 +26,9 @@ namespace aiko
         virtual const ShaderAsset& getShaderAsset(const AssetId& id) override;
         virtual const ComputeShaderAsset& getComputeShaderAsset(const AssetId& id) override;
 
-        void loadTextureAsset(const AssetId& id);
-        void loadMeshAsset(const AssetId& id);
-        void loadModelAsset(const AssetId& id);
+        bool loadTextureAsset(const AssetId& id);
+        bool loadMeshAsset(const AssetId& id);
+        bool loadModelAsset(const AssetId& id);
         void loadShaderAsset(const AssetId& id);
         void loadComputeShaderAsset(const AssetId& id);
 

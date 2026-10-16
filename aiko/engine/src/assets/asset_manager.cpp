@@ -57,56 +57,77 @@ namespace aiko
         return it->second;
     }
 
-    void AssetManager::loadTextureAsset(const AssetId& id)
+    bool AssetManager::loadTextureAsset(const AssetId& id)
     {
         AIKO_ASSERT(id != InvalidAssetId, "Attempting to load texture from invalid UUID");
 
         if (m_textureAssets.find(id) != m_textureAssets.end())
         {
-            return;
+            return true;
         }
 
         const AssetRecord* record = m_registry.find(id);
+
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Texture, "Texture asset id not registered");
 
-        TextureAsset asset = AssetImporter::loadTexture(record->source);
-        m_textureAssets.emplace(id, std::move(asset));
+        auto result = AssetImporter::loadTexture(record->source);
+
+        if (!result)
+        {
+            return false;
+        }
+
+        m_textureAssets.emplace(id, std::move(*result));
+        return true;
     }
 
-    void AssetManager::loadMeshAsset(const AssetId& id)
+    bool AssetManager::loadMeshAsset(const AssetId& id)
     {
         AIKO_ASSERT(id != InvalidAssetId, "Attempting to load mesh from invalid UUID");
 
         if (m_meshAssets.find(id) != m_meshAssets.end())
         {
-            return;
+            return true;
         }
 
         const AssetRecord* record = m_registry.find(id);
+
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Mesh, "Mesh asset id not registered");
 
-        MeshAsset asset = AssetImporter::loadMesh(record->source);
-        m_meshAssets.emplace(id, std::move(asset));
+        auto result = AssetImporter::loadMesh(record->source);
+
+        if (!result)
+        {
+            return false;
+        }
+
+        m_meshAssets.emplace(id, std::move(*result));
+        return true;
     }
 
-    void AssetManager::loadModelAsset(const AssetId& id)
+    bool AssetManager::loadModelAsset(const AssetId& id)
     {
         AIKO_ASSERT(id != InvalidAssetId, "Attempting to load model from invalid UUID");
 
         if (m_modelAssets.find(id) != m_modelAssets.end())
         {
-            return;
+            return true;
         }
 
         const AssetRecord* record = m_registry.find(id);
 
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Model, "Model asset id not registered");
 
-        ImportedModel imported = AssetImporter::loadModel(record->source);
+        auto imported = AssetImporter::loadModel(record->source);
+
+        if (!imported)
+        {
+            return false;
+        }
 
         ModelAsset asset{};
 
-        for (ImportedModelSubMesh& importedSubmesh : imported.submeshes)
+        for (ImportedModelSubMesh& importedSubmesh : imported->submeshes)
         {
             ModelAsset::SubMesh submesh{};
 
@@ -130,7 +151,10 @@ namespace aiko
         {
             AIKO_ASSERT(submesh.meshId != InvalidAssetId, "Model submesh has invalid mesh asset id");
 
-            loadMeshAsset(submesh.meshId);
+            if (!loadMeshAsset(submesh.meshId))
+            {
+                return false;
+            }
 
             AIKO_ASSERT(submesh.material.shaderId != InvalidAssetId, "Model submesh has invalid shader asset id");
 
@@ -138,11 +162,15 @@ namespace aiko
 
             if (submesh.material.diffuseTextureId != InvalidAssetId)
             {
-                loadTextureAsset(submesh.material.diffuseTextureId);
+                if (!loadTextureAsset(submesh.material.diffuseTextureId))
+                {
+                    return false;
+                }
             }
         }
 
         m_modelAssets.emplace(id, std::move(asset));
+        return true;
     }
 
     void AssetManager::loadShaderAsset(const AssetId& id)

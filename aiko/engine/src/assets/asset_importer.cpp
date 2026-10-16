@@ -4,7 +4,6 @@
 
 #include <filesystem>
 #include <memory>
-#include <stdexcept>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -17,7 +16,7 @@
 namespace aiko
 {
 
-    TextureAsset AssetImporter::loadTexture(const string& file_path)
+    AssetImportResult<TextureAsset> AssetImporter::loadTexture(const string& file_path)
     {
 
         std::string base = global::GLOBAL_ASSET_PATH;
@@ -35,12 +34,24 @@ namespace aiko
         if (!data)
         {
             const char* reason = stbi_failure_reason();
-            throw std::runtime_error("Failed to load texture '" + base + "': " + (reason != nullptr ? reason : "Unknown decoding error"));
+
+            std::error_code fsError;
+            const bool exists = std::filesystem::exists(base, fsError);
+
+            if (!fsError && !exists)
+            {
+                return AssetImportResult<TextureAsset>::failure(AssetImportError::FileNotFound, "Failed to load texture '" + base + "': " + (reason != nullptr ? reason : "Unknown decoding error"));
+            }
+            else
+            {
+                return AssetImportResult<TextureAsset>::failure(AssetImportError::DecodeFailed, "Failed to load texture '" + base + "': " + (reason != nullptr ? reason : "Unknown decoding error"));
+            }
+
         }
 
         if (width <= 0 || height <= 0)
         {
-            throw std::runtime_error("Texture has invalid dimensions: " + base);
+            return AssetImportResult<TextureAsset>::failure(AssetImportError::InvalidData, "Texture has invalid dimensions: " + base);
         }
 
         TextureAsset asset = {};
@@ -71,7 +82,7 @@ namespace aiko
             }
         }
 
-        return asset;
+        return AssetImportResult<TextureAsset>::success(std::move(asset));
 
     }
 
@@ -128,7 +139,7 @@ namespace aiko
 
     }
 
-    MeshAsset AssetImporter::loadMesh(const string& file_path)
+    AssetImportResult<MeshAsset> AssetImporter::loadMesh(const string& file_path)
     {
         auto final_file_path = global::getAssetPath(file_path.c_str());
 
@@ -145,16 +156,16 @@ namespace aiko
 
         if (scene == nullptr || scene->mNumMeshes == 0 || scene->mMeshes == nullptr || scene->mMeshes[0] == nullptr)
         {
-            throw std::runtime_error("Failed to load mesh '" + final_file_path + "': " + importer.GetErrorString());
+            return AssetImportResult<MeshAsset>::failure(AssetImportError::DecodeFailed, "Failed to load mesh '" + final_file_path + "': " + importer.GetErrorString());
         }
 
         const aiMesh* paiMesh = scene->mMeshes[0];
 
-        return importAiMesh(paiMesh);
+        return AssetImportResult<MeshAsset>::success(importAiMesh(paiMesh));
 
     }
 
-    ImportedModel AssetImporter::loadModel(const string& filePath)
+    AssetImportResult<ImportedModel> AssetImporter::loadModel(const string& filePath)
     {
 
         const string finalFilePath = global::getAssetPath(filePath.c_str());
@@ -170,9 +181,9 @@ namespace aiko
 
         const aiScene* scene = importer.ReadFile(finalFilePath, post);
 
-        if (scene == nullptr || scene->mNumMeshes == 0 || scene->mMeshes == nullptr)
+        if (scene == nullptr || scene->mNumMeshes == 0 || scene->mMeshes == nullptr || scene->mMaterials == nullptr)
         {
-            throw std::runtime_error("Failed to load model '" + finalFilePath + "': " + importer.GetErrorString());
+            return AssetImportResult<ImportedModel>::failure(AssetImportError::DecodeFailed, "Failed to load model '" + finalFilePath + "': " + importer.GetErrorString());
         }
 
         ImportedModel result{};
@@ -180,6 +191,12 @@ namespace aiko
         for (uint i = 0; i < scene->mNumMeshes; ++i)
         {
             const aiMesh* aiMesh = scene->mMeshes[i];
+
+            if (aiMesh == nullptr || aiMesh->mMaterialIndex >= scene->mNumMaterials || scene->mMaterials[aiMesh->mMaterialIndex] == nullptr)
+            {
+                return AssetImportResult<ImportedModel>::failure(AssetImportError::InvalidData, "Model contains an invalid mesh or material: " + finalFilePath);
+            }
+
             const aiMaterial* aiMaterial = scene->mMaterials[aiMesh->mMaterialIndex];
 
             ImportedModelSubMesh submesh{};
@@ -219,7 +236,7 @@ namespace aiko
             result.submeshes.push_back(std::move(submesh));
         }
 
-        return result;
+        return AssetImportResult<ImportedModel>::success(std::move(result));
 
     }
 
