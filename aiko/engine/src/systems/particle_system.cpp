@@ -254,7 +254,7 @@ namespace aiko
 
                                 std::memcpy(&value, result.data.data() + i * sizeof(vec4), sizeof(value));
 
-                                logger::Log::info("particle[{}] = ({}, {}, {}, {})", i, value.x, value.y, value.z, value.w);
+                                logger::Log::infoFmt("particle[{}] = ({}, {}, {}, {})", i, value.x, value.y, value.z, value.w);
                             }
                         }
 
