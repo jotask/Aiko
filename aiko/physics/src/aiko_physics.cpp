@@ -9,6 +9,7 @@
 #include <array>
 #include <thread>
 #include <cmath>
+#include <utility>
 
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyInterface.h>
@@ -33,7 +34,17 @@ namespace aiko::physics
     }
 
     AikoPhysics::AikoPhysics(AikoPhysics&&) noexcept = default;
-    AikoPhysics& AikoPhysics::operator=(AikoPhysics&&) noexcept = default;
+
+    AikoPhysics& AikoPhysics::operator=(AikoPhysics&& other) noexcept
+    {
+        if (this != &other)
+        {
+            shutdown();
+            m_impl = std::move(other.m_impl);
+        }
+
+        return *this;
+    }
 
     void AikoPhysics::init(const WorldDesc& desc)
     {
