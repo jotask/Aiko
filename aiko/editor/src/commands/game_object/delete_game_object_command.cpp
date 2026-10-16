@@ -14,6 +14,7 @@ namespace aiko::editor
         , m_objectId(object.uuid())
         , m_name(object.getName())
         , m_active(object.isActiveSelf())
+        , m_wasActiveCamera(sceneSystem.getActiveCamera() == &object)
     {
         if (GameObject* parent = object.getParent())
         {
@@ -96,6 +97,11 @@ namespace aiko::editor
             {
                 child->transform().setParent(&object->transform());
             }
+        }
+
+        if (m_wasActiveCamera)
+        {
+            m_sceneSystem->setActiveCamera(object);
         }
 
     }

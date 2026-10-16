@@ -33,6 +33,7 @@ namespace aiko::editor
 
         string m_name;
         bool m_active = true;
+        bool m_wasActiveCamera = false;
 
         vector<YAML::Node> m_components;
         vector<uuid::Uuid> m_childIds;
