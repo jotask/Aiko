@@ -95,17 +95,25 @@ namespace aiko
 
         const uint32_t count = cmp.getElementCount();
 
+
         if (state.initialized == false)
         {
             if (cmp.usesOutputTexture() == false)
             {
                 state.buffer.createVec4(count, nullptr);
+
+                if (state.buffer.isValid() == false)
+                {
+                    // Allocation failed. Keep the state uninitialized
+                    // so the next update can retry.
+                    return;
+                }
             }
 
             state.initialized = true;
             state.dispatched = false;
             state.readbackRequested = false;
-            state.readbackId = 0;
+            state.readbackId = InvalidReadbackId;
         }
 
         if (cmp.usesOutputTexture() == true)
@@ -174,10 +182,31 @@ namespace aiko
 
         const uint32_t count = cmp.getElementCount();
 
+
         const AssetId& shaderId = cmp.getShaderId();
         if (shaderId == InvalidAssetId)
         {
             return;
+        }
+
+        if (state->initialized == false)
+        {
+            return;
+        }
+
+        if (cmp.usesOutputTexture())
+        {
+            if (state->output.isValid() == false)
+            {
+                return;
+            }
+        }
+        else
+        {
+            if (state->buffer.isValid() == false)
+            {
+                return;
+            }
         }
 
         if (shouldDispatch(cmp, *state) == true)
