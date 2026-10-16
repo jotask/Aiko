@@ -3,6 +3,7 @@
 #include "scene.h"
 #include "models/game_object.h"
 #include "components/light_component.h"
+#include <math/math_transform.h>
 
 namespace aiko
 {
@@ -29,10 +30,12 @@ namespace aiko
             GameObject* object = component->getGameObject();
             AIKO_ASSERT(object != nullptr, "LightComponent is not attached to a GameObject");
 
+            const vec3 worldPosition = math::transformPoint(object->transform().getWorldMatrix(), vec3(0.0f));
+
             const LightData light =
             {
                 .type = component->type,
-                .position = object->transform().position,
+                .position = worldPosition,
                 .direction = component->direction,
                 .color = component->color,
                 .intensity = component->intensity,

@@ -13,6 +13,7 @@
 #include "systems/render_system.h"
 #include "systems/scene_system.h"
 #include "systems/system_connector.h"
+#include <math/math_transform.h>
 
 #include <display/display_events.hpp>
 #include <events/events.hpp>
@@ -105,7 +106,8 @@ namespace aiko::editor
 
                 const Color color = selectedLight ? Color(1.0f, 0.6f, 0.1f, 1.0f) : light->color;
 
-                m_context.renderSystem().renderLightGizmo(object->transform().position, vec3(0.15f), color);
+                const vec3 worldPosition = math::transformPoint(object->transform().getWorldMatrix(), vec3(0.0f));
+                m_context.renderSystem().renderLightGizmo(worldPosition, vec3(0.15f), color);
             }
         }
 
