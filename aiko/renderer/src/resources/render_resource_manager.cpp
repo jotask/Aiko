@@ -17,23 +17,37 @@ namespace aiko
 
     RenderResourceManager::~RenderResourceManager() = default;
 
+
     Texture& RenderResourceManager::getTexture(const AssetId& id)
     {
         auto it = m_textures.find(id);
+
         if (it != m_textures.end())
         {
-            return *it->second;
+            Texture& texture = *it->second;
+
+            if (!texture.isValid())
+            {
+                // The previous upload failed.
+                // Retry without replacing the cached Texture object.
+                const TextureAsset& asset = m_assetProvider.getTextureAsset(id);
+                texture.upload(asset);
+            }
+
+            return texture;
         }
+
         const TextureAsset& asset = m_assetProvider.getTextureAsset(id);
 
         auto texture = std::make_unique<Texture>();
         texture->upload(asset);
 
         Texture& ref = *texture;
+
         m_textures.emplace(id, std::move(texture));
+
         return ref;
     }
-
 
     Mesh& RenderResourceManager::getMesh(const AssetId& id)
     {
@@ -65,7 +79,6 @@ namespace aiko
 
         return ref;
     }
-
 
     Model& RenderResourceManager::getModel(const AssetId& id)
     {

@@ -2964,12 +2964,24 @@ namespace aiko::renderer::vulkan
     {
         if (binding.runtimeTexture != nullptr)
         {
-            return binding.runtimeTexture;
+            if (binding.runtimeTexture->isValid())
+            {
+                return binding.runtimeTexture;
+            }
+
+            return &m_whiteTexture;
         }
 
         if (binding.textureId != InvalidAssetId)
         {
-            return &getResources()->getTexture(binding.textureId);
+            const Texture& texture = getResources()->getTexture(binding.textureId);
+
+            if (texture.isValid())
+            {
+                return &texture;
+            }
+
+            return &m_whiteTexture;
         }
 
         return &m_whiteTexture;
