@@ -10,6 +10,7 @@
 
 #include <events/events.hpp>
 
+#include <algorithm>
 #include <unordered_map>
 #include <cmath>
 
@@ -27,6 +28,8 @@ namespace aiko
     void PhysicsSystem::init()
     {
         m_physicsAccumulator = 0.0f;
+        m_activeContacts.clear();
+
         m_physics.init();
 
         m_debugMaterial.m_shaderId = m_assetSystem->registerAsset<ShaderAsset>("model");
@@ -192,22 +195,48 @@ namespace aiko
                         break;
                     }
 
-                    PhysicsContactStartedEvent contactEvent(a->second, b->second);
+                    const std::pair<physics::BodyId, physics::BodyId> key = std::minmax(event.bodyA, event.bodyB);
+
+                    const auto inserted = m_activeContacts.try_emplace(
+                        key,
+                        ActiveContact{
+                            .a = a->second,
+                            .b = b->second,
+                            .count = 0
+                        }
+                    );
+
+                    ActiveContact& contact = inserted.first->second;
+                    ++contact.count;
+
+                    PhysicsContactStartedEvent contactEvent(contact.a, contact.b);
                     EventSystem::it().sendEvent(contactEvent);
                 }
                 break;
 
                 case physics::PhysicsEventType::ContactRemoved:
                 {
-                    const auto a = bodyLookup.find(event.bodyA);
-                    const auto b = bodyLookup.find(event.bodyB);
+                    const std::pair<physics::BodyId, physics::BodyId> key = std::minmax(event.bodyA, event.bodyB);
 
-                    if (a == bodyLookup.end() || b == bodyLookup.end())
+                    const auto it = m_activeContacts.find(key);
+
+                    if (it == m_activeContacts.end())
                     {
                         break;
                     }
 
-                    PhysicsContactEndedEvent contactEvent(a->second, b->second);
+                    ActiveContact& contact = it->second;
+
+                    // The event owns its copies before the cached contact is released.
+                    PhysicsContactEndedEvent contactEvent(contact.a, contact.b);
+
+                    --contact.count;
+
+                    if (contact.count == 0)
+                    {
+                        m_activeContacts.erase(it);
+                    }
+
                     EventSystem::it().sendEvent(contactEvent);
                 }
                 break;
@@ -266,6 +295,7 @@ namespace aiko
         }
 
         m_physics.shutdown();
+        m_activeContacts.clear();
         BaseSystem::dispose();
     }
 

@@ -102,7 +102,10 @@ namespace aiko::lab
         m_deleteOnContact.reset();
         m_bodies.clear();
         m_sceneSystem->clear();
-        m_contactsStarted = m_contactsEnded = m_missingInObserver = 0;
+        m_contactsStarted = 0;
+        m_contactsEnded = 0;
+        m_missingInObserver = 0;
+        m_endedWithRemovedParticipant = 0;
         m_platformTime = 0.0f;
         m_selected = 5;
 
@@ -541,9 +544,14 @@ namespace aiko::lab
         }
     }
 
-    void PhysicsLab::onContactEnded(const PhysicsContactEndedEvent&)
+    void PhysicsLab::onContactEnded(const PhysicsContactEndedEvent& event)
     {
         ++m_contactsEnded;
+
+        if (find(event.a.objectId) == nullptr || find(event.b.objectId) == nullptr)
+        {
+            ++m_endedWithRemovedParticipant;
+        }
     }
 
     void PhysicsLab::render()
@@ -686,6 +694,7 @@ namespace aiko::lab
         ImGui::Separator();
         ImGui::Text("Contacts started / ended: %llu / %llu", static_cast<unsigned long long>(m_contactsStarted), static_cast<unsigned long long>(m_contactsEnded));
         ImGui::Text("Second listener saw removed participant: %llu", static_cast<unsigned long long>(m_missingInObserver));
+        ImGui::Text("Ended contacts with removed objects: %llu", static_cast<unsigned long long>(m_endedWithRemovedParticipant));
         ImGui::TextUnformatted("Invalid inputs that intentionally assert require a separate process.");
         ImGui::End();
     }

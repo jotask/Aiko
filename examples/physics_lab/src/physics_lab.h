@@ -104,6 +104,7 @@ namespace aiko::lab
         std::uint64_t m_contactsStarted = 0;
         std::uint64_t m_contactsEnded = 0;
         std::uint64_t m_missingInObserver = 0;
+        std::uint64_t m_endedWithRemovedParticipant = 0;
         int m_checksPassed = 0;
         int m_checksFailed = 0;
         std::vector<std::string> m_failures;

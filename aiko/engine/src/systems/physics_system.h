@@ -6,6 +6,10 @@
 #include "components/rigid_body_component.h"
 #include "components/player_controller_component.h"
 #include "models/material.h"
+#include "events/physics_events.h"
+
+#include <map>
+#include <utility>
 
 namespace aiko
 {
@@ -45,5 +49,14 @@ namespace aiko
 
         float m_physicsAccumulator = 0.0f;
         Material m_debugMaterial;
+
+        struct ActiveContact
+        {
+            PhysicsContactParticipant a;
+            PhysicsContactParticipant b;
+            u32 count = 0;
+        };
+
+        std::map< std::pair<physics::BodyId, physics::BodyId>, ActiveContact> m_activeContacts;
     };
 }
