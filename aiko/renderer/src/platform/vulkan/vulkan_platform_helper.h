@@ -2,6 +2,7 @@
 
 #include <map>
 #include <set>
+#include <cstdlib>
 
 #include <aiko_types.h>
 
@@ -247,7 +248,8 @@ namespace aiko::renderer::vulkan
                 return format;
             }
         }
-        throw std::runtime_error("failed to find supported format!");
+        logger::Log::critical("No Vulkan format supports the required image tiling and features");
+        std::abort();
     }
 
     static VkFormat findDepthFormat(VkPhysicalDevice physicalDevice)

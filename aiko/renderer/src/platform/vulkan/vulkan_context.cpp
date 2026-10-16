@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <limits>
 #include <set>
+#include <cstdlib>
 #include <stdexcept>
 
 namespace aiko::renderer::vulkan
@@ -619,9 +620,12 @@ namespace aiko::renderer::vulkan
         // one per swapchain image.
         for (size_t i = 0; i < m_swapChainImages.size(); ++i)
         {
-            if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i] ) != VK_SUCCESS)
+            const VkResult result = vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]);
+
+            if (result != VK_SUCCESS)
             {
-                throw std::runtime_error("failed to create render finished semaphore!");
+                logger::Log::critical("Failed to create Vulkan render-finished semaphore (VkResult %d)", static_cast<int>(result));
+                std::abort();
             }
         }
 
