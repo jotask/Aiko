@@ -86,6 +86,13 @@ namespace aiko
     using ReadbackId = uint64_t;
     static constexpr ReadbackId InvalidReadbackId = 0;
 
+    enum class ReadbackStatus
+    {
+        Pending,
+        Succeeded,
+        Failed
+    };
+
     struct ComputeReadbackRequest
     {
         ReadbackId id = 0;                 // filled by caller or device
@@ -95,9 +102,9 @@ namespace aiko
 
     struct ComputeReadbackResult
     {
-        ReadbackId id = 0;                 // filled by caller or device
-        bool ready = false;
-        vector<uint8_t> data; // raw bytes
+        ReadbackId id = InvalidReadbackId;
+        ReadbackStatus status = ReadbackStatus::Pending;
+        vector<uint8_t> data;
     };
 
     struct ComputeBufferBinding

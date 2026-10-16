@@ -6,6 +6,8 @@
 #include "systems/render_system.h"
 #include "time/time.h"
 
+#include <logger/logger.h>
+
 #include <algorithm>
 
 namespace aiko
@@ -243,12 +245,20 @@ namespace aiko
 
         if (state->readbackRequested == true)
         {
-            ComputeReadbackResult result = {};
-            if (m_renderSystem->pollReadback(state->readbackId, result) == true)
+            ComputeReadbackResult result{};
+
+            if (m_renderSystem->pollReadback(state->readbackId, result))
             {
-                if (result.ready == true && result.id == state->readbackId)
+                if (result.id == state->readbackId && result.status != ReadbackStatus::Pending)
                 {
+                    if (result.status == ReadbackStatus::Failed)
+                    {
+                        logger::Log::error("Compute readback failed");
+                    }
+
+                    // Preserve the terminal status for callers.
                     cmp.setLastReadback(std::move(result));
+
                     state->readbackRequested = false;
                     state->readbackId = InvalidReadbackId;
                 }

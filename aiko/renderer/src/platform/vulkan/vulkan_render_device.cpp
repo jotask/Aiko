@@ -2752,6 +2752,13 @@ namespace aiko::renderer::vulkan
 
             const VulkanReadbackAllocation staging = m_readbackResources.allocate(request.id, request.byteSize, frame);
 
+            if (staging.buffer == VK_NULL_HANDLE)
+            {
+                // Allocation failed. A failed result was already queued.
+                // Do not transition the source or record a GPU copy.
+                continue;
+            }
+
             const VulkanBufferState readbackState =
             {
                 .stage = VK_PIPELINE_STAGE_TRANSFER_BIT,

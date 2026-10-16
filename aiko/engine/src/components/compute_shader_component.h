@@ -38,7 +38,7 @@ namespace aiko
 
         void setLastReadback(ComputeReadbackResult result) { m_lastReadback = std::move(result); }
         const ComputeReadbackResult& getLastReadback() const { return m_lastReadback; }
-        bool hasReadback() const { return m_lastReadback.ready; }
+        bool hasReadback() const { return m_lastReadback.status == ReadbackStatus::Succeeded; }
         void clearReadback() { m_lastReadback = {}; }
 
         void setOutputSize(uint32_t width, uint32_t height);

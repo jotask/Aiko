@@ -237,7 +237,7 @@ namespace aiko
     {
         const auto it = m_readbacks.find(id);
 
-        if (it == m_readbacks.end() || !it->second.ready)
+        if (it == m_readbacks.end() || it->second.status == ReadbackStatus::Pending)
         {
             return false;
         }

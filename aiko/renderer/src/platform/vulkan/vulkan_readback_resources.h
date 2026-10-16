@@ -48,6 +48,7 @@ namespace aiko::renderer::vulkan
         struct CompletedReadback
         {
             ReadbackId id = InvalidReadbackId;
+            ReadbackStatus status = ReadbackStatus::Succeeded;
             vector<uint8_t> data;
         };
 

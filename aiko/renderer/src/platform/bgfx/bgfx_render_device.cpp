@@ -539,7 +539,7 @@ namespace aiko::renderer::bgfx
 
             ComputeReadbackResult r;
             r.id = rb.id;
-            r.ready = true;
+            r.status = ReadbackStatus::Succeeded;
             r.data = std::move(rb.cpu);
 
             m_completedReadbacks.push_back(std::move(r));

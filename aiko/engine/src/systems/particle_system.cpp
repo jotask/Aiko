@@ -11,6 +11,8 @@
 #include "systems/system_connector.h"
 #include "systems/asset_system.h"
 
+#include <logger/logger.h>
+
 #include <cstring>
 #include <algorithm>
 
@@ -235,22 +237,34 @@ namespace aiko
                 ComputeReadbackResult result{};
                 if (m_renderSystem->pollReadback(state->readbackId, result) == true)
                 {
-                    if (result.ready && result.id == state->readbackId)
+
+                    if (result.id == state->readbackId && result.status != ReadbackStatus::Pending)
                     {
-
-                        const size_t sampleCount = std::min<size_t>(3, result.data.size() / sizeof(vec4));
-
-                        for (size_t i = 0; i < sampleCount; ++i)
+                        if (result.status == ReadbackStatus::Failed)
                         {
-                            vec4 value{};
-                            std::memcpy(&value, result.data.data() + i * sizeof(vec4), sizeof(value));
-                            logger::Log::info("particle[{}] = ({}, {}, {}, {})", i, value.x, value.y, value.z, value.w);
+                            logger::Log::error("Particle readback failed");
+                        }
+                        else
+                        {
+                            const size_t sampleCount = std::min<size_t>(3, result.data.size() / sizeof(vec4));
+
+                            for (size_t i = 0; i < sampleCount; ++i)
+                            {
+                                vec4 value{};
+
+                                std::memcpy(&value, result.data.data() + i * sizeof(vec4), sizeof(value));
+
+                                logger::Log::info("particle[{}] = ({}, {}, {}, {})", i, value.x, value.y, value.z, value.w);
+                            }
                         }
 
+                        // Store success or failure, never stale data.
                         state->lastReadback = std::move(result);
+
                         state->readbackRequested = false;
                         state->readbackId = InvalidReadbackId;
                     }
+
                 }
             }
         }
