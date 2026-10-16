@@ -26,6 +26,16 @@
 namespace aiko::physics
 {
 
+    namespace
+    {
+        bool finiteVector(const vec3& value)
+        {
+            return std::isfinite(value.x) &&
+                   std::isfinite(value.y) &&
+                   std::isfinite(value.z);
+        }
+    }
+
     AikoPhysics::AikoPhysics() = default;
 
     AikoPhysics::~AikoPhysics()
@@ -87,17 +97,17 @@ namespace aiko::physics
 
     void AikoPhysics::step(const StepDesc& desc)
     {
-        if (m_impl == nullptr) return;
-        if (m_impl->physicsSystem == nullptr) return;
-        if (m_impl->tempAllocator == nullptr) return;
-        if (m_impl->jobSystem == nullptr) return;
+        if (m_impl == nullptr || m_impl->physicsSystem == nullptr || m_impl->tempAllocator == nullptr || m_impl->jobSystem == nullptr)
+        {
+            return;
+        }
 
-        m_impl->physicsSystem->Update(
-            desc.deltaTime,
-            desc.collisionSteps,
-            m_impl->tempAllocator.get(),
-            m_impl->jobSystem.get()
-        );
+        if (!std::isfinite(desc.deltaTime) || desc.deltaTime <= 0.0f || desc.collisionSteps < 1)
+        {
+            return;
+        }
+
+        m_impl->physicsSystem->Update(desc.deltaTime, desc.collisionSteps, m_impl->tempAllocator.get(), m_impl->jobSystem.get());
     }
 
     BodyId AikoPhysics::createBody(const BodyDesc& desc)
@@ -355,28 +365,19 @@ namespace aiko::physics
 
     void AikoPhysics::moveKinematic(BodyId id, const Transform& target, float deltaTime)
     {
-        if (m_impl == nullptr || m_impl->physicsSystem == nullptr)
+        if (m_impl == nullptr || m_impl->physicsSystem == nullptr || id == InvalidBodyId)
         {
             return;
         }
 
-        if (id == InvalidBodyId)
-        {
-            return;
-        }
-
-        if (deltaTime <= 0.0f)
+        if (!std::isfinite(deltaTime) || deltaTime <= 0.0f || !finiteVector(target.position) || !finiteVector(target.rotation))
         {
             return;
         }
 
         JPH::BodyInterface& bodyInterface = m_impl->physicsSystem->GetBodyInterface();
-        bodyInterface.MoveKinematic(
-            convert::toJoltBodyId(id),
-            convert::toJoltVec3(target.position),
-            convert::toJoltRotation(target.rotation),
-            deltaTime
-        );
+
+        bodyInterface.MoveKinematic(convert::toJoltBodyId(id), convert::toJoltVec3(target.position), convert::toJoltRotation(target.rotation), deltaTime);
     }
 
     bool AikoPhysics::setMotionType(BodyId id, MotionType motionType, bool activate)
@@ -586,13 +587,14 @@ namespace aiko::physics
     {
         outHit = {};
 
-        if (m_impl == nullptr || m_impl->physicsSystem == nullptr)
+        if (m_impl == nullptr || m_impl->physicsSystem == nullptr || !finiteVector(desc.from) || !finiteVector(desc.to))
         {
             return false;
         }
 
         const vec3 delta = desc.to - desc.from;
-        if (delta.x == 0.0f && delta.y == 0.0f && delta.z == 0.0f)
+
+        if (!finiteVector(delta) || (delta.x == 0.0f && delta.y == 0.0f && delta.z == 0.0f))
         {
             return false;
         }
@@ -642,7 +644,7 @@ namespace aiko::physics
             return result;
         }
 
-        if (desc.radius <= 0.0f)
+        if (!finiteVector(desc.center) || !std::isfinite(desc.radius) || desc.radius <= 0.0f)
         {
             return result;
         }
@@ -686,7 +688,7 @@ namespace aiko::physics
             return result;
         }
 
-        if (desc.halfExtent.x <= 0.0f || desc.halfExtent.y <= 0.0f || desc.halfExtent.z <= 0.0f)
+        if (!finiteVector(desc.center) || !finiteVector(desc.halfExtent) || !finiteVector(desc.rotation) || desc.halfExtent.x <= 0.0f || desc.halfExtent.y <= 0.0f || desc.halfExtent.z <= 0.0f)
         {
             return result;
         }

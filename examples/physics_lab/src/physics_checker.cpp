@@ -7,6 +7,8 @@
 
 #include <physics_transform.h>
 
+#include <limits>
+
 namespace aiko::lab
 {
 
@@ -472,6 +474,126 @@ namespace aiko::lab
         {
             world.destroyBody(id);
         }
+
+        {
+            const float infinity = std::numeric_limits<float>::infinity();
+            const float nan = std::numeric_limits<float>::quiet_NaN();
+
+            const physics::BodyDesc probeDesc = boxDesc({60.0f, 10.0f, 0.0f}, vec3{0.5f}, physics::MotionType::Kinematic);
+
+            const physics::BodyId probeId = world.createBody(probeDesc);
+
+            if (check(probeId != physics::InvalidBodyId, "validation probe creation", checksPassed, checksFailed, failures))
+            {
+                world.setLinearVelocity(probeId, {1.0f, 0.0f, 0.0f});
+                world.setAngularVelocity(probeId, {0.0f, 0.5f, 0.0f});
+
+                const Transform originalPose = world.getTransform(probeId);
+                const vec3 originalLinear = world.getLinearVelocity(probeId);
+                const vec3 originalAngular = world.getAngularVelocity(probeId);
+
+                Transform target{};
+                target.position = {65.0f, 12.0f, 0.0f};
+                target.rotation = {10.0f, 20.0f, 30.0f};
+
+                for (float invalid : {0.0f, -1.0f, infinity, -infinity, nan})
+                {
+                    world.step(physics::StepDesc{
+                        .deltaTime = invalid,
+                        .collisionSteps = 1
+                    });
+
+                    check(samePose(world.getTransform(probeId), originalPose) && near(world.getLinearVelocity(probeId), originalLinear) && near(world.getAngularVelocity(probeId), originalAngular), "invalid simulation time leaves body unchanged", checksPassed, checksFailed, failures);
+
+                    world.moveKinematic(probeId, target, invalid);
+
+                    check(samePose(world.getTransform(probeId), originalPose) && near(world.getLinearVelocity(probeId), originalLinear) && near(world.getAngularVelocity(probeId), originalAngular), "invalid kinematic time leaves body unchanged", checksPassed, checksFailed, failures);
+
+                    physics::SphereOverlapDesc sphere{};
+                    sphere.center = originalPose.position;
+                    sphere.radius = invalid;
+
+                    check(world.overlapSphere(sphere).empty(), "reject invalid overlap sphere radius", checksPassed, checksFailed, failures);
+
+                    physics::BoxOverlapDesc box{};
+                    box.center = originalPose.position;
+                    box.halfExtent.z = invalid;
+
+                    check(world.overlapBox(box).empty(), "reject invalid overlap box extent", checksPassed, checksFailed, failures);
+                }
+
+                for (int invalidSteps : {0, -1})
+                {
+                    world.step(physics::StepDesc{
+                        .deltaTime = physics::kPhysicsDeltaTime,
+                        .collisionSteps = invalidSteps
+                    });
+
+                    check(samePose(world.getTransform(probeId), originalPose) && near(world.getLinearVelocity(probeId), originalLinear) && near(world.getAngularVelocity(probeId), originalAngular), "reject invalid collision-step count", checksPassed, checksFailed, failures);
+                }
+
+                for (float invalid : {infinity, -infinity, nan})
+                {
+                    physics::RayCastDesc ray{};
+                    ray.from = {invalid, 12.0f, 0.0f};
+                    ray.to = {60.0f, 8.0f, 0.0f};
+
+                    physics::RayCastHit hit{};
+                    hit.body = probeId;
+
+                    check(!world.castRay(ray, hit) && hit.body == physics::InvalidBodyId, "reject non-finite ray origin and clear result", checksPassed, checksFailed, failures);
+
+                    ray.from = {60.0f, 12.0f, 0.0f};
+                    ray.to.y = invalid;
+
+                    check(!world.castRay(ray, hit), "reject non-finite ray endpoint", checksPassed, checksFailed, failures);
+
+                    physics::SphereOverlapDesc sphere{};
+                    sphere.center = originalPose.position;
+                    sphere.center.x = invalid;
+
+                    check(world.overlapSphere(sphere).empty(), "reject non-finite sphere center", checksPassed, checksFailed, failures);
+
+                    physics::BoxOverlapDesc box{};
+                    box.center = originalPose.position;
+                    box.center.y = invalid;
+
+                    check(world.overlapBox(box).empty(), "reject non-finite box center", checksPassed, checksFailed, failures);
+
+                    box.center = originalPose.position;
+                    box.rotation.z = invalid;
+
+                    check(world.overlapBox(box).empty(), "reject non-finite box rotation", checksPassed, checksFailed, failures);
+
+                    Transform invalidTarget = target;
+                    invalidTarget.position.x = invalid;
+                    world.moveKinematic(probeId, invalidTarget, physics::kPhysicsDeltaTime);
+
+                    check(near(world.getLinearVelocity(probeId), originalLinear) && near(world.getAngularVelocity(probeId), originalAngular), "reject non-finite kinematic position", checksPassed, checksFailed, failures);
+
+                    invalidTarget = target;
+                    invalidTarget.rotation.y = invalid;
+                    world.moveKinematic(probeId, invalidTarget, physics::kPhysicsDeltaTime);
+
+                    check(near(world.getLinearVelocity(probeId), originalLinear) && near(world.getAngularVelocity(probeId), originalAngular), "reject non-finite kinematic rotation", checksPassed, checksFailed, failures);
+                }
+
+                physics::RayCastDesc zeroRay{};
+                zeroRay.from = originalPose.position;
+                zeroRay.to = originalPose.position;
+
+                physics::RayCastHit hit{};
+
+                check(!world.castRay(zeroRay, hit), "reject zero-length ray", checksPassed, checksFailed, failures);
+
+                world.step();
+
+                check(near( world.getTransform(probeId).position, originalPose.position + originalLinear * physics::kPhysicsDeltaTime), "valid simulation continues after rejected inputs", checksPassed, checksFailed, failures);
+
+                world.destroyBody(probeId);
+            }
+        }
+
         world.shutdown();
 
         if (checksFailed == 0)
