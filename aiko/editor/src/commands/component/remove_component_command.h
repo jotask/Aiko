@@ -4,6 +4,7 @@
 #include "models/component.h"
 #include "models/game_object.h"
 #include "registry/components_functionality.h"
+#include "components/camera_component.h"
 #include "systems/scene_system.h"
 
 #include <yaml-cpp/yaml.h>
@@ -49,6 +50,10 @@ namespace aiko::editor
                     return;
                 }
                 m_hasSnapshot = true;
+                if constexpr (std::is_same_v<T, CameraComponent>)
+                {
+                    m_wasActiveCamera = m_sceneSystem->getActiveCamera() == object;
+                }
             }
             object->removeComponent(component);
         }
@@ -65,6 +70,14 @@ namespace aiko::editor
             AIKO_ASSERT(object->hasComponent<T>() == false, "GameObject already has this component");
             const bool restored = component::deserializeComponent(m_snapshot, *object);
             AIKO_ASSERT(restored, "Component could not be restored");
+
+            if constexpr (std::is_same_v<T, CameraComponent>)
+            {
+                if (restored && m_wasActiveCamera)
+                {
+                    m_sceneSystem->setActiveCamera(object);
+                }
+            }
         }
 
     private:
@@ -73,6 +86,7 @@ namespace aiko::editor
 
         YAML::Node m_snapshot;
         bool m_hasSnapshot = false;
+        bool m_wasActiveCamera = false;
     };
 
 }
