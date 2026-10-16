@@ -3,6 +3,8 @@
 #include "constants.h"
 
 #include <filesystem>
+#include <memory>
+#include <stdexcept>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -21,15 +23,25 @@ namespace aiko
         std::string base = global::GLOBAL_ASSET_PATH;
         base += std::string(file_path);
 
-        AIKO_ASSERT(std::filesystem::exists(base), "Texture don't exist");
+        int width = 0;
+        int height = 0;
+        int channels = 0;
 
-        int width;
-        int height;
-        int channels;
+        std::unique_ptr<stbi_uc, decltype(&stbi_image_free)> data(
+            stbi_load(base.c_str(), &width, &height, &channels, 4),
+            &stbi_image_free
+        );
 
-        unsigned char* data = stbi_load(base.c_str(), &width, &height, &channels, 4); // force RGBA
+        if (!data)
+        {
+            const char* reason = stbi_failure_reason();
+            throw std::runtime_error("Failed to load texture '" + base + "': " + (reason != nullptr ? reason : "Unknown decoding error"));
+        }
 
-        AIKO_ASSERT(data, "Texture Failed to load texture.");
+        if (width <= 0 || height <= 0)
+        {
+            throw std::runtime_error("Texture has invalid dimensions: " + base);
+        }
 
         TextureAsset asset = {};
         asset.desc.type = TextureType::Sampled;
@@ -51,15 +63,13 @@ namespace aiko
                 const size_t targetOffset = y * static_cast<size_t>(width) + x;
                 asset.pixels[targetOffset] =
                     Color::fromBytes(
-                        data[sourceOffset + 0],
-                        data[sourceOffset + 1],
-                        data[sourceOffset + 2],
-                        data[sourceOffset + 3]
+                        data.get()[sourceOffset + 0],
+                        data.get()[sourceOffset + 1],
+                        data.get()[sourceOffset + 2],
+                        data.get()[sourceOffset + 3]
                     );
             }
         }
-
-        stbi_image_free(data);
 
         return asset;
 
@@ -132,7 +142,11 @@ namespace aiko
             aiProcess_FlipWindingOrder;
 
         const aiScene* scene = importer.ReadFile(final_file_path, post);
-        AIKO_ASSERT(scene != nullptr && scene->mNumMeshes > 0, "Failed to load mesh");
+
+        if (scene == nullptr || scene->mNumMeshes == 0 || scene->mMeshes == nullptr || scene->mMeshes[0] == nullptr)
+        {
+            throw std::runtime_error("Failed to load mesh '" + final_file_path + "': " + importer.GetErrorString());
+        }
 
         const aiMesh* paiMesh = scene->mMeshes[0];
 
@@ -156,7 +170,10 @@ namespace aiko
 
         const aiScene* scene = importer.ReadFile(finalFilePath, post);
 
-        AIKO_ASSERT(scene != nullptr && scene->mNumMeshes > 0, "Failed to load model");
+        if (scene == nullptr || scene->mNumMeshes == 0 || scene->mMeshes == nullptr)
+        {
+            throw std::runtime_error("Failed to load model '" + finalFilePath + "': " + importer.GetErrorString());
+        }
 
         ImportedModel result{};
 
