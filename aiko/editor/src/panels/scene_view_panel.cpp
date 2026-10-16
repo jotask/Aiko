@@ -89,7 +89,7 @@ namespace aiko::editor
             const float imageWidth = availableSpace.x;
             const float imageHeight = availableSpace.y;
 
-            if (imageWidth > 0.0f && imageHeight > 0.0f)
+            if (imageWidth >= 1.0f && imageHeight >= 1.0f)
             {
                 const u32 targetWidth = static_cast<u32>(imageWidth);
                 const u32 targetHeight = static_cast<u32>(imageHeight);
