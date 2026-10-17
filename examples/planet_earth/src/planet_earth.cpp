@@ -38,7 +38,7 @@ namespace pe
         m_sunLight = aiko::LightData{
             .type = aiko::LightType::Directional,
             .direction = {1.0f, -0.2f, 0.0f},
-            .color = aiko::Color(1.0f, 0.96f, 0.90f, 1.0f),
+            .color = aiko::WHITE,
             .intensity = 1.5f
         };
 
