@@ -17,7 +17,7 @@ namespace pe
 
         aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Fly);
         camera->getCamera().position = { 0.0f, 1.0f, 2.5f };
-        camera->speed() *= 4.0f;
+        camera->speed() *= 8.0f;
 
         scene().clearColor() = aiko::BLACK;
 
@@ -38,20 +38,6 @@ namespace pe
 
     void PlanetEarth::render()
     {
-
-        if (m_worldMesh.isValid() == true)
-        {
-
-            renderer().submitLight(aiko::LightData{
-                .type = aiko::LightType::Directional,
-                .direction = {1.0f, -1.0f, 0.3f},
-                .color = aiko::WHITE,
-                .intensity = 1.5f
-            });
-
-            aiko::Transform transform;
-            renderer().drawMesh(transform, m_worldMesh, m_defaultMaterial);
-        }
 
         if (ImGui::Begin("Planet Earth"))
         {
@@ -96,14 +82,38 @@ namespace pe
             ImGui::SeparatorText("File Generate Mesh");
             if (ImGui::Button("Generate Earth Height Map data"))
             {
+                m_worldChunks.clear();
                 const EarthHeightmap data = m_downloader.generateHeighMapData(m_mapResolution);
-                const aiko::MeshAsset asset = m_generator.generateMeshAsset(data);
-                m_worldMesh.upload(asset);
+                const std::vector<GeneratedTerrainChunk> assets = m_generator.generateWorldMeshAssets(data);
+                for (const GeneratedTerrainChunk& generatedChunk : assets)
+                {
+                    m_worldChunks.emplace_back(generatedChunk);
+                }
+
             }
             ImGui::Spacing();
 
         }
         ImGui::End();
+
+        // Render World
+
+        renderer().submitLight(aiko::LightData{
+            .type = aiko::LightType::Directional,
+            .direction = {1.0f, -1.0f, 0.3f},
+            .color = aiko::WHITE,
+            .intensity = 1.5f
+        });
+
+        for (const TerrainChunk& chunk : m_worldChunks)
+        {
+            if (chunk.mesh.isValid() == false)
+            {
+                continue;
+            }
+            renderer().drawMesh(chunk.transform, chunk.mesh, m_defaultMaterial);
+        }
+
     }
 
 }

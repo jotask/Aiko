@@ -10,27 +10,63 @@
 namespace pe
 {
 
-    aiko::MeshAsset DataGenerator::generateMeshAsset(const EarthHeightmap& heightmap)
+
+    std::vector<GeneratedTerrainChunk> DataGenerator::generateWorldMeshAssets(const EarthHeightmap& heightmap)
+    {
+
+        AIKO_ASSERT(heightmap.latitudes.size() == heightmap.height, "Invalid heightmap data. Latitudes size don't match map dimensions");
+        AIKO_ASSERT(heightmap.longitudes.size() == heightmap.width, "Invalid heightmap data. Longitudes size don't match map dimensions");
+        AIKO_ASSERT(heightmap.elevations.size() == heightmap.width * heightmap.height, "Invalid heightmap data. Elevations size don't match map dimensions");
+
+        const std::vector<TerrainChunkRegion> regions = generateChunkRegions(heightmap);
+        std::vector<GeneratedTerrainChunk> assets;
+        for (const TerrainChunkRegion& region : regions)
+        {
+            assets.push_back(GeneratedTerrainChunk{
+                .region = region,
+                .asset = generateMeshAsset(region, heightmap),
+            });
+        }
+        return assets;
+    }
+
+    std::vector<TerrainChunkRegion> DataGenerator::generateChunkRegions(const EarthHeightmap& heightmap)
     {
 
         AIKO_ASSERT(heightmap.width  > 2 , "Invalid heightmap data. Width too small");
         AIKO_ASSERT(heightmap.height > 2 , "Invalid heightmap data. Height too small");
+        AIKO_ASSERT(CHUNK_SIZE > 0, "Invalid chunk size");
 
-        AIKO_ASSERT(heightmap.latitudes.size() == heightmap.height, "Invalid heightmap data. Latitudes size don't match map dimensions");
-        AIKO_ASSERT(heightmap.longitudes.size() == heightmap.width, "Invalid heightmap data. Longitudes size don't match map dimensions");
+        const size_t totalCellsWidth  = heightmap.width - 1;
+        const size_t totalCellsHeight = heightmap.height - 1;
 
-        AIKO_ASSERT(heightmap.elevations.size() == heightmap.width * heightmap.height, "Invalid heightmap data. Elevations size don't match map dimensions");
+        const size_t chunksX = (totalCellsWidth - 1) / CHUNK_SIZE + 1;
+        const size_t chunksY = (totalCellsHeight - 1) / CHUNK_SIZE + 1;
 
-        constexpr size_t maxColumns = 360;
-        constexpr size_t maxRows = 180;
+        std::vector<TerrainChunkRegion> regions;
+        regions.reserve(chunksX * chunksY);
 
-        const size_t stride = std::max({size_t{1}, (heightmap.width + maxColumns - 1) / maxColumns, (heightmap.height + maxRows - 1) / maxRows});
+        for (size_t y = 0 ; y < totalCellsHeight; y += CHUNK_SIZE)
+        {
+            for (size_t x = 0 ; x < totalCellsWidth; x += CHUNK_SIZE)
+            {
+                const size_t cellWidth = std::min(CHUNK_SIZE, totalCellsWidth - x);
+                const size_t cellHeight = std::min(CHUNK_SIZE, totalCellsHeight - y);
+                regions.push_back(TerrainChunkRegion{
+                    .startX = x,
+                    .startY = y,
+                    .cellWidth = cellWidth,
+                    .cellHeight = cellHeight,
+                });
+            }
+        }
+        return regions;
+    }
 
-        const size_t columns = (heightmap.width + stride - 1) / stride;
-        const size_t rows = (heightmap.height + stride - 1) / stride;
+    aiko::MeshAsset DataGenerator::generateMeshAsset(const TerrainChunkRegion& region, const EarthHeightmap& heightmap)
+    {
 
-        const size_t rowStride = columns;
-        const size_t vertexCount = rowStride * rows;
+        const size_t vertexCount = (region.cellWidth + 1) * (region.cellHeight + 1);
 
         AIKO_ASSERT(vertexCount <= static_cast<size_t>(std::numeric_limits<uint16_t>::max()) + 1, "Generated mesh exceeds uint16 index limits");
 
@@ -41,31 +77,54 @@ namespace pe
         asset.m_vertices.reserve(vertexCount);
         asset.m_textCoord.reserve(vertexCount);
         asset.m_colors.reserve(vertexCount);
-        asset.m_indices.reserve((rows - 1) * (columns - 1) * 6);
+        asset.m_normals.reserve(vertexCount);
+        // asset.m_indices.reserve((rows - 1) * (columns - 1) * 6);
 
-        for (size_t y = 0 ; y < rows; ++y)
+        constexpr float amplitude = 10.0f;
+        auto getElevation = [&](size_t sourceX, size_t sourceY) -> float
         {
-            for (size_t x = 0 ; x < columns; ++x)
+            const size_t elevationIdx = sourceY * heightmap.width + sourceX;
+            const float elevation = heightmap.elevations[elevationIdx];
+            const float finalElevation = aiko::math::map(elevation, data.minElevation, data.maxElevation, 0.0f, 1.0f);
+            return finalElevation;
+        };
+
+        for (size_t y = 0; y <= region.cellHeight; ++y)
+        {
+            for (size_t x = 0; x <= region.cellWidth; ++x)
             {
 
-                const size_t sourceX = x * stride;
-                const size_t sourceY = y * stride;
+                const size_t sourceX = region.startX + x;
+                const size_t sourceY = region.startY + y;
 
-                const size_t elevationIdx = sourceY * heightmap.width + sourceX;
-                const float elevation = heightmap.elevations[elevationIdx];
+                const float finalElevation = getElevation(sourceX, sourceY);
 
-                const float finalElevation = aiko::math::map(elevation, data.minElevation, data.maxElevation, 0.0f, 1.0f);
-                const float amplitude = 10.0f;
+                asset.m_vertices.push_back(aiko::vec3(static_cast<float>(x), finalElevation * amplitude, static_cast<float>(y)));
 
-                asset.m_vertices.push_back(aiko::vec3(x * stride, finalElevation * amplitude, y * stride));
-
-                const float u = static_cast<float>(x) / static_cast<float>(columns);
-                const float v = static_cast<float>(y) / static_cast<float>(rows - 1);
+                const float u = static_cast<float>(x) / static_cast<float>(region.cellWidth);
+                const float v = static_cast<float>(y) / static_cast<float>(region.cellHeight);
                 asset.m_textCoord.push_back({u, v});
 
                 const aiko::Color vertexColor = aiko::Color::lerp(aiko::BLUE, aiko::GREEN, finalElevation);
 
                 asset.m_colors.push_back(vertexColor);
+
+                const size_t xLeft = sourceX > 0 ? sourceX - 1 : sourceX;
+                const size_t xRight = std::min(sourceX + 1, heightmap.width - 1);
+                const float hLeft = getElevation(xLeft, sourceY);
+                const float hRight = getElevation(xRight, sourceY);
+
+                const size_t zDown = std::min(sourceY + 1, heightmap.height - 1);
+                const size_t zUp = sourceY > 0 ? sourceY - 1 : sourceY;
+                const float hDown = getElevation(sourceX, zDown);
+                const float hUp = getElevation(sourceX, zUp);
+
+                const float slopeX = ((hRight - hLeft) * amplitude) / static_cast<float>(xRight - xLeft);
+                const float slopeZ = ((hDown - hUp) * amplitude) / static_cast<float>(zDown - zUp);
+
+                const aiko::vec3 normal = aiko::math::normalize({-slopeX, 1.0f, -slopeZ});
+                asset.m_normals.push_back(normal);
+
             }
         }
 
@@ -76,9 +135,10 @@ namespace pe
         const bool sameDirection = latitudeAscending == longitudeAscending;
 
         // Connect adjacent grid cells with two triangles each.
-        for (size_t y = 0; y + 1 < rows; ++y)
+        const size_t rowStride = region.cellWidth + 1;
+        for (size_t y = 0; y < region.cellHeight; ++y)
         {
-            for (size_t x = 0; x + 1 < columns; ++x)
+            for (size_t x = 0; x < region.cellWidth; ++x)
             {
                 const auto a = static_cast<uint16_t>(y * rowStride + x);
                 const auto b = static_cast<uint16_t>(y * rowStride + x + 1);
@@ -95,8 +155,6 @@ namespace pe
                 }
             }
         }
-
-        aiko::mesh::factory::recalculateNormals(asset);
 
         aiko::logger::Log::infoFmt("Generated Earth mesh: {} vertices, {} triangles", asset.m_vertices.size(), asset.m_indices.size() / 3);
 

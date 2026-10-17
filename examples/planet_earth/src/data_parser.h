@@ -11,7 +11,9 @@ namespace pe
     class DataGenerator
     {
     public:
-        aiko::MeshAsset generateMeshAsset(const EarthHeightmap&);
+
+        std::vector<GeneratedTerrainChunk> generateWorldMeshAssets(const EarthHeightmap&);
+
     private:
 
         struct MapElevationData
@@ -22,6 +24,8 @@ namespace pe
 
         MapElevationData calculateElevationData(const EarthHeightmap&);
 
+        std::vector<TerrainChunkRegion> generateChunkRegions(const EarthHeightmap&);
+        aiko::MeshAsset generateMeshAsset(const TerrainChunkRegion&, const EarthHeightmap&);
 
     };
 

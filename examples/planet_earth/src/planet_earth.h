@@ -10,6 +10,7 @@
 #include <models/mesh.h>
 
 #include <string>
+#include <deque>
 
 namespace pe
 {
@@ -28,7 +29,7 @@ namespace pe
         DataGenerator m_generator;
 
         aiko::Material m_defaultMaterial;
-        aiko::Mesh m_worldMesh;
+        std::deque<TerrainChunk> m_worldChunks;
 
     };
 
