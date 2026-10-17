@@ -104,8 +104,6 @@ namespace pe
                 const size_t sourceX = (region.startX + x) % heightmap.width;
                 const size_t sourceY = region.startY + y;
 
-                const float finalElevation = getElevation(sourceX, sourceY);
-
                 const aiko::vec3 position = getSphericalPosition(heightmap, sourceX, sourceY);
 
                 asset.m_vertices.push_back(position);
@@ -114,9 +112,8 @@ namespace pe
                 const float v = static_cast<float>(y) / static_cast<float>(region.cellHeight);
                 asset.m_textCoord.push_back({u, v});
 
-                const aiko::Color vertexColor = aiko::Color::lerp(aiko::BLUE, aiko::GREEN, finalElevation);
-
-                asset.m_colors.push_back(vertexColor);
+                const float elevationMeters = heightmap.elevations[sourceY * heightmap.width + sourceX];
+                asset.m_colors.push_back(getTerrainColor(elevationMeters));
 
                 const size_t xLeft = sourceX > 0 ? sourceX - 1 : heightmap.width - 1;
                 const size_t xRight = (sourceX + 1) % heightmap.width;
@@ -186,6 +183,17 @@ namespace pe
         const float sphericalZ = -radius * aiko::math::cos(radianLatitude) * aiko::math::sin(radianLongitude);
 
         return {sphericalX, sphericalY, sphericalZ};
+    }
+
+    aiko::Color DataGenerator::getTerrainColor(float elevation)
+    {
+        if (elevation < -4000.0f)   return aiko::DARKBLUE;
+        if (elevation < 0.0f)       return aiko::Color::lerp(aiko::DARKBLUE, aiko::BLUE, (elevation + 4000.0f) / 4000.0f);
+        if (elevation < 100.0f)     return aiko::Color::lerp( aiko::BEIGE, aiko::GREEN, elevation / 100.0f);
+        if (elevation < 1000.0f)    return aiko::Color::lerp(aiko::GREEN, aiko::BROWN, (elevation - 100.0f) / 900.0f);
+        if (elevation < 2500.0f)    return aiko::Color::lerp(aiko::BROWN, aiko::DARKBROWN, (elevation - 1000.0f) / 1500.0f);
+        if (elevation < 4000.0f)    return aiko::Color::lerp(aiko::DARKBROWN, aiko::LIGHTGRAY, (elevation - 2500.0f) / 1500.0f);
+        return aiko::LIGHTGRAY;
     }
 
     DataGenerator::MapElevationData DataGenerator::calculateElevationData(const EarthHeightmap& data)

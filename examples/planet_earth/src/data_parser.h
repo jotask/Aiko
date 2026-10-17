@@ -22,6 +22,8 @@ namespace pe
             float maxElevation = std::numeric_limits<float>::lowest();
         };
 
+        aiko::Color getTerrainColor(float elevation);
+
         MapElevationData calculateElevationData(const EarthHeightmap&);
 
         std::vector<TerrainChunkRegion> generateChunkRegions(const EarthHeightmap&);

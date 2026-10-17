@@ -40,7 +40,7 @@ namespace pe
         m_earthMaterial.m_lit = true;
         m_earthMaterial.m_useVertexColor = true;
 
-        m_oceanMesh.upload(aiko::mesh::factory::generateMeshSphere(64, 64));
+        m_oceanMesh.upload(aiko::mesh::factory::generateMeshSphere(192, 192));
 
         m_oceanMaterial.m_shaderId = assets().loadShader(aiko::renderer::BuiltinShader::Model);
         m_oceanMaterial.m_baseColor = aiko::Color(0.04f, 0.20f, 0.65f, 0.4f);
