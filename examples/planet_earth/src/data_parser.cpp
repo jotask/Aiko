@@ -60,7 +60,15 @@ namespace pe
                     .cellHeight = cellHeight,
                 });
             }
+            regions.push_back(TerrainChunkRegion{
+                .startX = heightmap.width - 1,
+                .startY = y,
+                .cellWidth = 1,
+                .cellHeight = std::min(CHUNK_SIZE, totalCellsHeight - y),
+            });
         }
+
+
         return regions;
     }
 
@@ -93,12 +101,24 @@ namespace pe
             for (size_t x = 0; x <= region.cellWidth; ++x)
             {
 
-                const size_t sourceX = region.startX + x;
+                const size_t sourceX = (region.startX + x) % heightmap.width;
                 const size_t sourceY = region.startY + y;
+
+                const float radianLatitude  = aiko::math::radians( heightmap.latitudes [sourceY] );
+                const float radianLongitude = aiko::math::radians( heightmap.longitudes[sourceX] );
+
+                const float elevationMeters = heightmap.elevations[sourceY * heightmap.width + sourceX];
+                const float radius = WorldRadius + elevationMeters * elevationScale * TerrainExaggeration;
+
+                const float sphericalX = radius * aiko::math::cos(radianLatitude) * aiko::math::cos(radianLongitude);
+                const float sphericalY = radius * aiko::math::sin(radianLatitude);
+                const float sphericalZ = radius * aiko::math::cos(radianLatitude) * aiko::math::sin(radianLongitude);
 
                 const float finalElevation = getElevation(sourceX, sourceY);
 
-                asset.m_vertices.push_back(aiko::vec3(static_cast<float>(x), finalElevation * amplitude, static_cast<float>(y)));
+                const aiko::vec3 position = {sphericalX, sphericalY, sphericalZ};
+
+                asset.m_vertices.push_back(position);
 
                 const float u = static_cast<float>(x) / static_cast<float>(region.cellWidth);
                 const float v = static_cast<float>(y) / static_cast<float>(region.cellHeight);
@@ -108,20 +128,7 @@ namespace pe
 
                 asset.m_colors.push_back(vertexColor);
 
-                const size_t xLeft = sourceX > 0 ? sourceX - 1 : sourceX;
-                const size_t xRight = std::min(sourceX + 1, heightmap.width - 1);
-                const float hLeft = getElevation(xLeft, sourceY);
-                const float hRight = getElevation(xRight, sourceY);
-
-                const size_t zDown = std::min(sourceY + 1, heightmap.height - 1);
-                const size_t zUp = sourceY > 0 ? sourceY - 1 : sourceY;
-                const float hDown = getElevation(sourceX, zDown);
-                const float hUp = getElevation(sourceX, zUp);
-
-                const float slopeX = ((hRight - hLeft) * amplitude) / static_cast<float>(xRight - xLeft);
-                const float slopeZ = ((hDown - hUp) * amplitude) / static_cast<float>(zDown - zUp);
-
-                const aiko::vec3 normal = aiko::math::normalize({-slopeX, 1.0f, -slopeZ});
+                const aiko::vec3 normal = aiko::math::normalize(position);
                 asset.m_normals.push_back(normal);
 
             }

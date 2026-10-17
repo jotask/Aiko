@@ -15,9 +15,10 @@ namespace pe
     void PlanetEarth::init()
     {
 
-        aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Fly);
-        camera->getCamera().position = { 0.0f, 1.0f, 2.5f };
+        aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Orbit);
+        camera->getCamera().position = { 0.0f, 0.0f, 0.f };
         camera->speed() *= 8.0f;
+        camera->radius() = 300.0f;
 
         scene().clearColor() = aiko::BLACK;
 

@@ -43,12 +43,7 @@ namespace pe
         explicit TerrainChunk(const GeneratedTerrainChunk& generated)
             : mesh(generated.asset)
         {
-            transform.position =
-            {
-                static_cast<float>(generated.region.startX),
-                0.0f,
-                static_cast<float>(generated.region.startY),
-            };
+            transform.position = {};
         }
 
         ~TerrainChunk()

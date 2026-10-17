@@ -22,6 +22,12 @@ namespace pe
             float maxElevation = std::numeric_limits<float>::lowest();
         };
 
+        static constexpr float WorldRadius = 100.0f;
+        static constexpr float EarthRadiusMeters = 6'371'000.0f;
+        static constexpr float elevationScale = WorldRadius / EarthRadiusMeters;
+
+        static constexpr float TerrainExaggeration = 50.0f;
+
         MapElevationData calculateElevationData(const EarthHeightmap&);
 
         std::vector<TerrainChunkRegion> generateChunkRegions(const EarthHeightmap&);
