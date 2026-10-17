@@ -41,6 +41,10 @@ namespace pe
         bool m_animateSun = true;
         float m_sunSpeed = 0.05f; // Radians per second
 
+        bool m_showSun = true;
+        aiko::Mesh m_sunMesh;
+        aiko::Material m_sunMaterial;
+
         aiko::Mesh m_oceanMesh;
         aiko::Material m_oceanMaterial;
 

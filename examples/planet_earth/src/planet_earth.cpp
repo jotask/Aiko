@@ -29,6 +29,12 @@ namespace pe
         scene().ambientLight().color = aiko::WHITE;
         scene().ambientLight().intensity = 0.05f;
 
+        m_sunMesh.upload(aiko::mesh::factory::generateMeshSphere(32, 32));
+        m_sunMaterial.m_shaderId = assets().loadShader(aiko::renderer::BuiltinShader::Model);
+        m_sunMaterial.m_baseColor = aiko::WHITE;
+        m_sunMaterial.m_lit = false;
+        m_sunMaterial.m_useVertexColor = false;
+
         m_sunLight = aiko::LightData{
             .type = aiko::LightType::Directional,
             .direction = {1.0f, -0.2f, 0.0f},
@@ -142,6 +148,7 @@ namespace pe
             ImGui::Checkbox("Render Ocean", &m_showOcean);
             ImGui::ColorEdit4("Ocean Color", &m_oceanMaterial.m_baseColor.r);
             ImGui::Text("Sun");
+            ImGui::Checkbox("Show Sun", &m_showSun);
             ImGui::SliderFloat("Sun Intensity", &m_sunLight.intensity, 0.0f, 2.0f);
             ImGui::ColorEdit4("Sun Color", &m_sunLight.color.r);
             ImGui::Checkbox("Animate Sun", &m_animateSun);
@@ -177,6 +184,15 @@ namespace pe
             constexpr float oceanDiameter = WorldRadius * 2.0f;
             oceanTransform.scale = { oceanDiameter, oceanDiameter, oceanDiameter};
             renderer().drawMesh(oceanTransform, m_oceanMesh, m_oceanMaterial);
+        }
+
+        if (m_showSun == true)
+        {
+            constexpr float SunDistance = 500.0f;
+            aiko::Transform sunTransform;
+            sunTransform.position = aiko::math::normalize(m_sunLight.direction) * -SunDistance;
+            sunTransform.scale = {20.0f, 20.0f, 20.0f};
+            renderer().drawMesh(sunTransform, m_sunMesh, m_sunMaterial);
         }
 
     }
