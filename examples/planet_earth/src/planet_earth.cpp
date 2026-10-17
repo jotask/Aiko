@@ -38,7 +38,7 @@ namespace pe
         m_sunLight = aiko::LightData{
             .type = aiko::LightType::Directional,
             .direction = {1.0f, -0.2f, 0.0f},
-            .color = aiko::WHITE,
+            .color = aiko::Color(1.0f, 0.96f, 0.90f, 1.0f),
             .intensity = 1.5f
         };
 
@@ -50,7 +50,8 @@ namespace pe
         m_oceanMesh.upload(aiko::mesh::factory::generateMeshSphere(192, 192));
 
         m_oceanMaterial.m_shaderId = assets().loadShader(aiko::renderer::BuiltinShader::Model);
-        m_oceanMaterial.m_baseColor = aiko::Color(0.04f, 0.20f, 0.65f, 0.4f);
+        m_oceanMaterial.m_baseColor = aiko::Color(0.02f, 0.10f, 0.25f, 0.70f);
+        m_oceanMaterial.setVec4( "u_specularParams", 0.25f, 160.0f, 0.0f, 0.0f);
         m_oceanMaterial.m_lit = true;
         m_oceanMaterial.m_useVertexColor = false;
         m_oceanMaterial.m_renderState.blend = true;
