@@ -51,6 +51,17 @@ namespace pe
         aiko::Material m_earthMaterial;
         std::deque<TerrainChunk> m_worldChunks;
 
+        bool m_showAtmosphere = true;
+        aiko::Material m_atmosphereMaterial;
+        float m_atmosphereThickness = 0.08f;
+        float m_atmosphereIntensity = 0.48f;
+        float m_atmosphereFalloff = 3.0f;
+        float m_atmosphereSunsetStrength = 0.75f;
+
+        bool m_useScatteringAtmosphere = true;
+        aiko::Material m_scatteringAtmosphereMaterial;
+        float m_scatteringExposure = 8.0f;
+
     };
 
 }

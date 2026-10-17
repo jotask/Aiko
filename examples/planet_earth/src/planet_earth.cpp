@@ -59,6 +59,42 @@ namespace pe
         m_oceanMaterial.m_renderState.depthWrite = false;
         m_oceanMaterial.m_renderState.cullMode = aiko::CullMode::Back;
 
+        // Atmosphere
+        m_atmosphereMaterial.m_shaderId = assets().loadShader("model.vs", "atmosphere.fs");
+
+        m_atmosphereMaterial.m_baseColor = aiko::Color(0.22f, 0.52f, 1.0f, 1.0f);
+
+        m_atmosphereMaterial.m_lit = false;
+        m_atmosphereMaterial.m_useVertexColor = false;
+
+        m_atmosphereMaterial.m_renderState.blend = true;
+        m_atmosphereMaterial.m_renderState.depthTest = true;
+        m_atmosphereMaterial.m_renderState.depthWrite = false;
+        m_atmosphereMaterial.m_renderState.cullMode = aiko::CullMode::Back;
+
+        m_atmosphereMaterial.setVec4(
+            "u_atmosphereParams",
+            m_atmosphereIntensity,
+            m_atmosphereFalloff,
+            m_atmosphereSunsetStrength,
+            0.0f
+        );
+
+        m_atmosphereMaterial.setVec4("u_sunsetColor", 1.0f, 0.42f, 0.12f, 1.0f);
+
+
+        m_scatteringAtmosphereMaterial.m_shaderId = assets().loadShader("model.vs", "atmosphere_scattering.fs");
+
+        m_scatteringAtmosphereMaterial.m_baseColor = aiko::WHITE;
+
+        m_scatteringAtmosphereMaterial.m_lit = false;
+        m_scatteringAtmosphereMaterial.m_useVertexColor = false;
+
+        m_scatteringAtmosphereMaterial.m_renderState.blend = true;
+        m_scatteringAtmosphereMaterial.m_renderState.depthTest = true;
+        m_scatteringAtmosphereMaterial.m_renderState.depthWrite = false;
+        m_scatteringAtmosphereMaterial.m_renderState.cullMode = aiko::CullMode::Back;
+
     }
 
     void PlanetEarth::update()
@@ -163,6 +199,22 @@ namespace pe
             }
             ImGui::Spacing();
 
+            ImGui::SeparatorText("Atmosphere");
+            ImGui::Checkbox("Show Atmosphere", &m_showAtmosphere);
+            ImGui::Checkbox("Use Scattering Atmosphere", &m_useScatteringAtmosphere);
+            ImGui::SliderFloat("Atmosphere Thickness", &m_atmosphereThickness, 0.005f, 0.10f);
+            if (m_useScatteringAtmosphere)
+            {
+                ImGui::SliderFloat("Scattering Exposure", &m_scatteringExposure, 0.5f, 20.0f);
+            }
+            else
+            {
+                ImGui::SliderFloat("Atmosphere Intensity", &m_atmosphereIntensity, 0.0f, 1.0f);
+                ImGui::SliderFloat("Atmosphere Falloff", &m_atmosphereFalloff, 1.0f, 8.0f);
+                ImGui::SliderFloat("Sunset Strength", &m_atmosphereSunsetStrength, 0.0f, 1.0f);
+                ImGui::ColorEdit3("Atmosphere Color", &m_atmosphereMaterial.m_baseColor.r);
+            }
+
         }
         ImGui::End();
 
@@ -194,6 +246,42 @@ namespace pe
             sunTransform.position = aiko::math::normalize(m_sunLight.direction) * -SunDistance;
             sunTransform.scale = {20.0f, 20.0f, 20.0f};
             renderer().drawMesh(sunTransform, m_sunMesh, m_sunMaterial);
+        }
+
+        if (m_showAtmosphere)
+        {
+            const float groundRadius = WorldRadius;
+            const float atmosphereRadius = groundRadius * (1.0f + m_atmosphereThickness);
+
+            aiko::Transform atmosphereTransform;
+            atmosphereTransform.scale =
+            {
+                atmosphereRadius * 2.0f,
+                atmosphereRadius * 2.0f,
+                atmosphereRadius * 2.0f
+            };
+
+            if (m_useScatteringAtmosphere)
+            {
+                m_scatteringAtmosphereMaterial.setVec4("u_planetCenterRadius", 0.0f, 0.0f, 0.0f, groundRadius);
+                m_scatteringAtmosphereMaterial.setVec4("u_atmosphereSettings", atmosphereRadius, WorldRadius * 0.0077f, WorldRadius * 0.0028f, m_scatteringExposure);
+                m_scatteringAtmosphereMaterial.setVec4("u_rayleighScattering", 0.015f, 0.038f, 0.090f, 0.0f);
+
+                m_scatteringAtmosphereMaterial.setVec4(
+                    "u_mieSettings",
+                    0.015f,  // Mie scattering coefficient
+                    0.76f,   // Anisotropy
+                    1.0f,    // Opacity scale
+                    0.85f   // Maximum alpha
+                );
+
+                renderer().drawMesh(atmosphereTransform, m_oceanMesh, m_scatteringAtmosphereMaterial);
+            }
+            else
+            {
+                m_atmosphereMaterial.setVec4("u_atmosphereParams", m_atmosphereIntensity, m_atmosphereFalloff, m_atmosphereSunsetStrength, 0.0f);
+                renderer().drawMesh(atmosphereTransform, m_oceanMesh, m_atmosphereMaterial);
+            }
         }
 
     }
