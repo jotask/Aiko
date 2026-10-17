@@ -25,7 +25,7 @@ namespace pe
         MapElevationData calculateElevationData(const EarthHeightmap&);
 
         std::vector<TerrainChunkRegion> generateChunkRegions(const EarthHeightmap&);
-        aiko::MeshAsset generateMeshAsset(const TerrainChunkRegion&, const EarthHeightmap&);
+        aiko::MeshAsset generateMeshAsset(const MapElevationData&, const TerrainChunkRegion&, const EarthHeightmap&);
 
     };
 

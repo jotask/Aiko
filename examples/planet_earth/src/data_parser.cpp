@@ -18,13 +18,14 @@ namespace pe
         AIKO_ASSERT(heightmap.longitudes.size() == heightmap.width, "Invalid heightmap data. Longitudes size don't match map dimensions");
         AIKO_ASSERT(heightmap.elevations.size() == heightmap.width * heightmap.height, "Invalid heightmap data. Elevations size don't match map dimensions");
 
+        const MapElevationData data = calculateElevationData(heightmap);
         const std::vector<TerrainChunkRegion> regions = generateChunkRegions(heightmap);
         std::vector<GeneratedTerrainChunk> assets;
         for (const TerrainChunkRegion& region : regions)
         {
             assets.push_back(GeneratedTerrainChunk{
                 .region = region,
-                .asset = generateMeshAsset(region, heightmap),
+                .asset = generateMeshAsset(data, region, heightmap),
             });
         }
         return assets;
@@ -63,14 +64,12 @@ namespace pe
         return regions;
     }
 
-    aiko::MeshAsset DataGenerator::generateMeshAsset(const TerrainChunkRegion& region, const EarthHeightmap& heightmap)
+    aiko::MeshAsset DataGenerator::generateMeshAsset(const MapElevationData& data, const TerrainChunkRegion& region, const EarthHeightmap& heightmap)
     {
 
         const size_t vertexCount = (region.cellWidth + 1) * (region.cellHeight + 1);
 
         AIKO_ASSERT(vertexCount <= static_cast<size_t>(std::numeric_limits<uint16_t>::max()) + 1, "Generated mesh exceeds uint16 index limits");
-
-        const MapElevationData data = calculateElevationData(heightmap);
 
         aiko::MeshAsset asset;
 
