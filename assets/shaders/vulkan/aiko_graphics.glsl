@@ -36,6 +36,11 @@ layout(
 {
     vec4 u_baseColor;
     vec4 u_flags;
+    vec4 u_specularParams;
+
+#ifdef AIKO_MATERIAL_EXTRA_FIELDS
+    AIKO_MATERIAL_EXTRA_FIELDS
+#endif
 };
 
 #endif

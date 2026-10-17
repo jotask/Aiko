@@ -132,6 +132,7 @@ namespace aiko::lab
         // Lighting validation
         Material m_litMaterial;
         Material m_unlitMaterial;
+        Material m_specularMaterial;
 
         // Render state validation
         Material m_solidMaterial;

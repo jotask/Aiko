@@ -35,7 +35,9 @@ vec3 applyLight(
     vec3 lightColor,
     float intensity,
     float innerCos,
-    float outerCos)
+    float outerCos,
+    float specularStrength,
+    float shininess)
 {
     vec3 L;
     float att = 1.0;
@@ -65,7 +67,40 @@ vec3 applyLight(
     }
 
     float NdotL = max(dot(N, L), 0.0);
-    return albedo * (lightColor * intensity) * NdotL * att;
+
+    vec3 diffuse = albedo * lightColor * intensity * NdotL * att;
+
+    // Preserve the previous diffuse-only behavior.
+    if (specularStrength <= 0.0 || NdotL <= 0.0)
+    {
+        return diffuse;
+    }
+
+    vec3 toCamera = camPos - P;
+    float viewLengthSquared = dot(toCamera, toCamera);
+
+    if (viewLengthSquared <= 1e-8)
+    {
+        return diffuse;
+    }
+
+    vec3 V = toCamera * inversesqrt(viewLengthSquared);
+
+    vec3 halfVector = L + V;
+    float halfLengthSquared = dot(halfVector, halfVector);
+
+    if (halfLengthSquared <= 1e-8)
+    {
+        return diffuse;
+    }
+
+    vec3 H = halfVector * inversesqrt(halfLengthSquared);
+
+    float specularFactor = pow(max(dot(N, H), 0.0), max(shininess, 1.0));
+
+    vec3 specular = lightColor * intensity * att * specularStrength * specularFactor;
+
+    return diffuse + specular;
 }
 
 void main()
@@ -110,7 +145,7 @@ void main()
             float innerCos = u_lightSpotCos[i].x;
             float outerCos = u_lightSpotCos[i].y;
 
-            sum += applyLight(type, P, N, albedo, camPos, lpos, range, ldir, lcol, lint, innerCos, outerCos);
+            sum += applyLight(type, P, N, albedo, camPos, lpos, range, ldir, lcol, lint, innerCos, outerCos, u_specularParams.x, u_specularParams.y);
         }
 
         base.rgb = sum;

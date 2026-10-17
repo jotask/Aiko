@@ -1,30 +1,18 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
 
-#define AIKO_CUSTOM_MATERIAL_UBO
-#include "aiko_graphics.glsl"
-
-layout(
-set = AIKO_GRAPHICS_MATERIAL_SET,
-binding = AIKO_MATERIAL_UBO_BINDING
-) uniform MaterialUbo
-{
-    vec4 u_baseColor;
-    vec4 u_flags;
-
-    float u_particleDiameter;
-    uint u_particleColorMode;
-    float u_velocityColorScale;
-    float u_pressureColorScale;
-
-    vec4 u_particleColor;
-
-    vec4 u_velocityStartColor;
-    vec4 u_velocityEndColor;
-
-    vec4 u_pressureStartColor;
+#define AIKO_MATERIAL_EXTRA_FIELDS \
+    float u_particleDiameter; \
+    uint u_particleColorMode; \
+    float u_velocityColorScale; \
+    float u_pressureColorScale; \
+    vec4 u_particleColor; \
+    vec4 u_velocityStartColor; \
+    vec4 u_velocityEndColor; \
+    vec4 u_pressureStartColor; \
     vec4 u_pressureEndColor;
-};
+
+#include "aiko_graphics.glsl"
 
 layout(std430, set = 2, binding = 8)
 readonly buffer ParticleVelocityBuffer

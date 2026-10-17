@@ -427,6 +427,9 @@ namespace aiko::lab
         m_unlitMaterial.m_lit = false;
         m_unlitMaterial.m_useVertexColor = false;
 
+        m_specularMaterial = m_litMaterial;
+        m_specularMaterial.setVec4("u_specularParams", 0.8f, 96.0f, 0.0f, 0.0f);
+
         // --------------------------------------------------
         // Fill modes
         // --------------------------------------------------
@@ -1767,6 +1770,8 @@ namespace aiko::lab
 
         m_renderSystem->renderCube({-1.5f, -2.0f, -12.0f}, 0.75f, &m_litMaterial);
         m_renderSystem->renderCube({1.5f, -2.0f, -12.0f}, 0.75f, &m_unlitMaterial);
+
+        m_renderSystem->renderSphere({4.5f, 0.0f, -12.0f}, 1.0f, 32, &m_specularMaterial);
 
         // Light position markers.
         for (const LightInstance& light : m_lights)
