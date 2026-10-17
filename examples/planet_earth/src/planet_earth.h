@@ -12,6 +12,11 @@
 #include <string>
 #include <deque>
 
+namespace aiko
+{
+    class CameraComponent;
+}
+
 namespace pe
 {
 
@@ -19,16 +24,24 @@ namespace pe
     {
     protected:
         virtual void init() override;
-        virtual void update() override;
         virtual void render() override;
     private:
 
         HeightMapResolution m_mapResolution = HeightMapResolution::R360x180;
 
+        aiko::CameraComponent* m_camera;
+        bool m_rotateCamera = true;
+
         MapDataRequest m_downloader;
         DataGenerator m_generator;
+        bool m_showOcean = true;
 
-        aiko::Material m_defaultMaterial;
+        aiko::LightData m_sunLight;
+
+        aiko::Mesh m_oceanMesh;
+        aiko::Material m_oceanMaterial;
+
+        aiko::Material m_earthMaterial;
         std::deque<TerrainChunk> m_worldChunks;
 
     };

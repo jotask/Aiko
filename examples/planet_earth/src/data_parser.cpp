@@ -131,7 +131,7 @@ namespace pe
                 const aiko::vec3 longitudeTangent = rightPosition - leftPosition;
                 const aiko::vec3 latitudeTangent = downPosition - upPosition;
 
-                const aiko::vec3 surfaceNormal = aiko::math::cross(latitudeTangent, longitudeTangent);
+                const aiko::vec3 surfaceNormal = aiko::math::cross(longitudeTangent, latitudeTangent);
                 const aiko::vec3 normal = aiko::math::lengthSquared(surfaceNormal) > 1e-12f ? aiko::math::normalize(surfaceNormal) : aiko::math::normalize(position);
 
                 asset.m_normals.push_back(normal);
@@ -183,7 +183,7 @@ namespace pe
 
         const float sphericalX = radius * aiko::math::cos(radianLatitude) * aiko::math::cos(radianLongitude);
         const float sphericalY = radius * aiko::math::sin(radianLatitude);
-        const float sphericalZ = radius * aiko::math::cos(radianLatitude) * aiko::math::sin(radianLongitude);
+        const float sphericalZ = -radius * aiko::math::cos(radianLatitude) * aiko::math::sin(radianLongitude);
 
         return {sphericalX, sphericalY, sphericalZ};
     }

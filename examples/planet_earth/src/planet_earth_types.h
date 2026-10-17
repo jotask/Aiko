@@ -11,6 +11,12 @@ namespace pe
 
     constexpr const size_t CHUNK_SIZE = 128;
 
+    constexpr float WorldRadius = 100.0f;
+    constexpr float EarthRadiusMeters = 6'371'000.0f;
+    constexpr float elevationScale = WorldRadius / EarthRadiusMeters;
+
+    constexpr float TerrainExaggeration = 50.0f;
+
     struct EarthHeightmap
     {
         size_t width = 0;
