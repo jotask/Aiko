@@ -32,6 +32,7 @@ namespace aiko
 
         void setMainCamera(const Camera* camera);
         void submitLights(const AmbientLight& ambient, const vector<LightData>& data);
+        void submitLight(const LightData& light);
 
         Mesh& getMesh(const AssetId& id);
         Model& getModel(const AssetId& id);

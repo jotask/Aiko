@@ -39,6 +39,7 @@ namespace aiko
         virtual void init() override;
         virtual void dispose() override;
 
+        void submitLight(const LightData& light);
 
         void submitMesh(const Transform& trans, const AssetId&, const Material&);
 

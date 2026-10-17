@@ -44,6 +44,11 @@ namespace aiko
         m_renderer->submit(ambient, data);
     }
 
+    void RenderModule::submitLight(const LightData& light)
+    {
+        m_renderer->submit(light);
+    }
+
     Mesh& RenderModule::getMesh(const AssetId& id)
     {
         return m_renderer->resources().getMesh(id);

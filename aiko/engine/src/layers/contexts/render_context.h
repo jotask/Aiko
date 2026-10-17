@@ -17,6 +17,7 @@ namespace aiko
     struct GpuVertexDrawDesc;
     class Camera;
     class RenderTarget;
+    struct LightData;
     class Font;
     struct GpuInstanceDrawDesc;
     struct GpuBillboardDrawDesc;
@@ -36,6 +37,8 @@ namespace aiko
         ImguiTextureId getTextureId(const AssetId& textureId) const;
         ImguiTextureId getTextureId(const AssetId& textureId, const SamplerState& sampler) const;
         void drawText(const Font& font, string_view text, const Transform& transform, float fontSize, Color color = WHITE);
+
+        void submitLight(const LightData& light);
 
     private:
         friend class LayerContext;

@@ -158,6 +158,11 @@ namespace aiko
         m_lights.insert(m_lights.end(), data.begin(), data.end());
     }
 
+    void AikoRenderer::submit(const LightData& light)
+    {
+        m_lights.push_back(light);
+    }
+
     void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const Material& material)
     {
         AIKO_FUNCTION_PROFILE

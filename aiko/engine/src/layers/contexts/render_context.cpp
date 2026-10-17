@@ -72,4 +72,9 @@ namespace aiko
         m_renderSystem->drawText(font, text, transform, fontSize, color);
     }
 
+    void RenderContext::submitLight(const LightData& light)
+    {
+        m_renderSystem->submitLight(light);
+    }
+
 }

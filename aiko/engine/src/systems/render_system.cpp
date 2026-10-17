@@ -46,6 +46,11 @@ namespace aiko
         clearCaches();
     }
 
+    void RenderSystem::submitLight(const LightData& light)
+    {
+        m_renderModule->submitLight(light);
+    }
+
     void RenderSystem::submitMesh(const Transform& trans, const AssetId& meshId, const Material& material)
     {
         AIKO_FUNCTION_PROFILE
