@@ -24,6 +24,7 @@ namespace pe
     {
     protected:
         virtual void init() override;
+        virtual void update() override;
         virtual void render() override;
     private:
 
@@ -37,6 +38,8 @@ namespace pe
         bool m_showOcean = true;
 
         aiko::LightData m_sunLight;
+        bool m_animateSun = true;
+        float m_sunSpeed = 0.05f; // Radians per second
 
         aiko::Mesh m_oceanMesh;
         aiko::Material m_oceanMaterial;

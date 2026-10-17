@@ -5,6 +5,7 @@
 #include "layers/contexts/scene_context.h"
 #include "models/mesh_factory.h"
 #include "types/builtin_shaders.h"
+#include <time/time.h>
 
 #include <magic_enum/magic_enum.hpp>
 
@@ -26,11 +27,11 @@ namespace pe
         scene().clearColor() = aiko::BLACK;
 
         scene().ambientLight().color = aiko::WHITE;
-        scene().ambientLight().intensity = 1.0f;
+        scene().ambientLight().intensity = 0.05f;
 
         m_sunLight = aiko::LightData{
             .type = aiko::LightType::Directional,
-            .direction = {1.0f, -1.0f, 0.3f},
+            .direction = {1.0f, -0.2f, 0.0f},
             .color = aiko::WHITE,
             .intensity = 1.5f
         };
@@ -51,6 +52,23 @@ namespace pe
         m_oceanMaterial.m_renderState.depthWrite = false;
         m_oceanMaterial.m_renderState.cullMode = aiko::CullMode::Back;
 
+    }
+
+    void PlanetEarth::update()
+    {
+        if (m_animateSun)
+        {
+
+            const float dt = aiko::Time::it().getDeltaTime();
+
+            m_sunLight.direction = aiko::math::normalize(
+                aiko::math::rotate(
+                    m_sunLight.direction,
+                    m_sunSpeed * dt,
+                    {0.0f, 1.0f, 0.0f}
+                )
+            );
+        }
     }
 
     void PlanetEarth::render()
@@ -124,9 +142,17 @@ namespace pe
             ImGui::Checkbox("Render Ocean", &m_showOcean);
             ImGui::ColorEdit4("Ocean Color", &m_oceanMaterial.m_baseColor.r);
             ImGui::Text("Sun");
-            ImGui::SliderFloat3("Sun direction", &m_sunLight.direction.x, -1.0f, 1.0f);
             ImGui::SliderFloat("Sun Intensity", &m_sunLight.intensity, 0.0f, 2.0f);
             ImGui::ColorEdit4("Sun Color", &m_sunLight.color.r);
+            ImGui::Checkbox("Animate Sun", &m_animateSun);
+            if (m_animateSun)
+            {
+                ImGui::SliderFloat("Sun Speed", &m_sunSpeed, 0.0f, 0.2f);
+            }
+            else
+            {
+                ImGui::SliderFloat3("Sun Direction", &m_sunLight.direction.x, -1.0f, 1.0f);
+            }
             ImGui::Spacing();
 
         }
