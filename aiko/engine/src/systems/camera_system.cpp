@@ -42,16 +42,23 @@ namespace aiko
         {
         case camera::CameraController::Orbit:
         {
-            const auto timer = Time::it().secondSinceStart();
 
-            const float camX = static_cast<float>(sin(timer) * component.radius());
+            const float dt = Time::it().getDeltaTime();
+            const float radius = component.radius();
 
-            const float camZ = static_cast<float>(cos(timer) * component.radius());
+            if (radius <= 0.0f)
+            {
+                break;
+            }
+
+            component.orbitAngle() += (component.speed() / radius) * dt;
+
+            const float angle = component.orbitAngle();
 
             camera.position = {
-                camX,
+                std::sin(angle) * radius,
                 camera.position.y,
-                camZ
+                std::cos(angle) * radius
             };
         }
         break;

@@ -29,6 +29,9 @@ namespace aiko
         float& speed() { return m_speed; }
         const float speed() const { return m_speed; }
 
+        float& orbitAngle() { return m_orbitAngle; }
+        const float& orbitAngle() const { return m_orbitAngle; }
+
         const Camera& getCamera() const { return m_camera; }
         Camera& getCamera() { return m_camera; }
 
@@ -41,6 +44,7 @@ namespace aiko
 
         // Orbit
         float m_radius = 3.5f;
+        float m_orbitAngle = 0.0f;
 
         // Fly
         float m_speed = 3.5f;
