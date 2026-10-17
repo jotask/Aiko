@@ -104,19 +104,9 @@ namespace pe
                 const size_t sourceX = (region.startX + x) % heightmap.width;
                 const size_t sourceY = region.startY + y;
 
-                const float radianLatitude  = aiko::math::radians( heightmap.latitudes [sourceY] );
-                const float radianLongitude = aiko::math::radians( heightmap.longitudes[sourceX] );
-
-                const float elevationMeters = heightmap.elevations[sourceY * heightmap.width + sourceX];
-                const float radius = WorldRadius + elevationMeters * elevationScale * TerrainExaggeration;
-
-                const float sphericalX = radius * aiko::math::cos(radianLatitude) * aiko::math::cos(radianLongitude);
-                const float sphericalY = radius * aiko::math::sin(radianLatitude);
-                const float sphericalZ = radius * aiko::math::cos(radianLatitude) * aiko::math::sin(radianLongitude);
-
                 const float finalElevation = getElevation(sourceX, sourceY);
 
-                const aiko::vec3 position = {sphericalX, sphericalY, sphericalZ};
+                const aiko::vec3 position = getSphericalPosition(heightmap, sourceX, sourceY);
 
                 asset.m_vertices.push_back(position);
 
@@ -128,7 +118,22 @@ namespace pe
 
                 asset.m_colors.push_back(vertexColor);
 
-                const aiko::vec3 normal = aiko::math::normalize(position);
+                const size_t xLeft = sourceX > 0 ? sourceX - 1 : heightmap.width - 1;
+                const size_t xRight = (sourceX + 1) % heightmap.width;
+                const size_t yUp = sourceY > 0 ? sourceY - 1 : sourceY;
+                const size_t yDown = std::min(sourceY + 1, heightmap.height - 1);
+
+                const aiko::vec3 leftPosition = getSphericalPosition(heightmap, xLeft, sourceY);
+                const aiko::vec3 rightPosition = getSphericalPosition(heightmap, xRight, sourceY);
+                const aiko::vec3 upPosition = getSphericalPosition(heightmap, sourceX, yUp);
+                const aiko::vec3 downPosition = getSphericalPosition(heightmap, sourceX, yDown);
+
+                const aiko::vec3 longitudeTangent = rightPosition - leftPosition;
+                const aiko::vec3 latitudeTangent = downPosition - upPosition;
+
+                const aiko::vec3 surfaceNormal = aiko::math::cross(latitudeTangent, longitudeTangent);
+                const aiko::vec3 normal = aiko::math::lengthSquared(surfaceNormal) > 1e-12f ? aiko::math::normalize(surfaceNormal) : aiko::math::normalize(position);
+
                 asset.m_normals.push_back(normal);
 
             }
@@ -166,6 +171,21 @@ namespace pe
 
         return asset;
 
+    }
+
+    aiko::vec3 DataGenerator::getSphericalPosition(const EarthHeightmap& heightmap, size_t sourceX, size_t sourceY)
+    {
+        const float radianLatitude  = aiko::math::radians( heightmap.latitudes [sourceY] );
+        const float radianLongitude = aiko::math::radians( heightmap.longitudes[sourceX] );
+
+        const float elevationMeters = heightmap.elevations[sourceY * heightmap.width + sourceX];
+        const float radius = WorldRadius + elevationMeters * elevationScale * TerrainExaggeration;
+
+        const float sphericalX = radius * aiko::math::cos(radianLatitude) * aiko::math::cos(radianLongitude);
+        const float sphericalY = radius * aiko::math::sin(radianLatitude);
+        const float sphericalZ = radius * aiko::math::cos(radianLatitude) * aiko::math::sin(radianLongitude);
+
+        return {sphericalX, sphericalY, sphericalZ};
     }
 
     DataGenerator::MapElevationData DataGenerator::calculateElevationData(const EarthHeightmap& data)

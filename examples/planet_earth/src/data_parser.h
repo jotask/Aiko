@@ -33,6 +33,8 @@ namespace pe
         std::vector<TerrainChunkRegion> generateChunkRegions(const EarthHeightmap&);
         aiko::MeshAsset generateMeshAsset(const MapElevationData&, const TerrainChunkRegion&, const EarthHeightmap&);
 
+        aiko::vec3 getSphericalPosition(const EarthHeightmap&, size_t, size_t);
+
     };
 
 }
