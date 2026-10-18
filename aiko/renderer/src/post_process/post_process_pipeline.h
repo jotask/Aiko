@@ -65,6 +65,9 @@ namespace aiko
 
         const std::vector<std::unique_ptr<PostProcessEffect>>& effects() const { return m_effects; }
 
+        void setEnabled(bool enabled) { m_enabled = enabled; }
+        bool enabled() const { return m_enabled; }
+
         void setDisplayConversionShader(AssetId shaderId);
 
     private:
@@ -84,5 +87,7 @@ namespace aiko
 
         u32 m_width = 0;
         u32 m_height = 0;
+
+        bool m_enabled = true;
     };
 }

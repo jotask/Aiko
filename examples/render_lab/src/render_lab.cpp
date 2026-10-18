@@ -70,6 +70,8 @@ namespace aiko::lab
 
         initCamera();
 
+        renderer().postProcessing().setEnabled(tru);
+
         if constexpr (EnableUI || EnableTextTests)
         {
             m_debugFont = assets().loadFont("fonts/RobotoMono-Regular.ttf", 48.0f);

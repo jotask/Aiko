@@ -1,4 +1,3 @@
-
 #include "post_process_system.h"
 
 #include "modules/render_module.h"

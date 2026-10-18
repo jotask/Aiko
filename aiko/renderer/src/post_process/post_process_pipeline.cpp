@@ -215,6 +215,12 @@ namespace aiko
     const Texture& PostProcessPipeline::execute(renderer::IRenderDevice& device, std::deque<Material>& frameMaterials, const RenderTarget& scene)
     {
         AIKO_ASSERT(scene.isValid(), "Post-processing requires a valid scene target");
+
+        if (!m_enabled)
+        {
+            return scene.colorTexture();
+        }
+
         AIKO_ASSERT(m_displayConversion != nullptr, "Display conversion is not initialized");
 
         const ivec2 size = scene.size();
