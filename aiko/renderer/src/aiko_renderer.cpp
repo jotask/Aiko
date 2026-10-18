@@ -867,6 +867,8 @@ namespace aiko
         key.baseColor = materialAsset.baseColor;
         key.specularStrength = materialAsset.specularStrength;
         key.shininess = materialAsset.shininess;
+        key.metallic = materialAsset.metallic;
+        key.roughness = materialAsset.roughness;
 
         if (auto it = m_frameMaterialCache.find(key); it != m_frameMaterialCache.end())
         {
@@ -884,6 +886,8 @@ namespace aiko
         material.m_lit = key.lit;
         material.m_baseColor = key.baseColor;
         material.setSpecular(key.specularStrength, key.shininess);
+        material.setMetallic(key.metallic);
+        material.setRoughness(key.roughness);
 
         if (key.runtimeDiffuseTexture != nullptr)
         {

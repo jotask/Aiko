@@ -97,6 +97,8 @@ namespace aiko
         utils::hashCombine(std::hash<bool>{}(m_lit), seed);
         utils::hashCombine(std::hash<float>{}(m_specularStrength), seed);
         utils::hashCombine(std::hash<float>{}(m_shininess), seed);
+        utils::hashCombine(std::hash<float>{}(m_metallic), seed);
+        utils::hashCombine(std::hash<float>{}(m_roughness), seed);
         utils::hashCombine(std::hash<u32>{}(m_baseColor.rgba()), seed);
         utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(m_renderState.cullMode)), seed);
         utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(m_renderState.fillMode)), seed);
@@ -203,6 +205,8 @@ namespace aiko
             m_lit != other.m_lit ||
             m_specularStrength != other.m_specularStrength ||
             m_shininess != other.m_shininess ||
+            m_metallic != other.m_metallic ||
+            m_roughness != other.m_roughness ||
             m_pointSize != other.m_pointSize ||
             m_lineWidth != other.m_lineWidth ||
             m_baseColor.r != other.m_baseColor.r ||
@@ -250,6 +254,18 @@ namespace aiko
         AIKO_ASSERT(std::isfinite(shininess) && shininess >= 1.0f, "Specular shininess must be finite and at least 1");
         m_specularStrength = strength;
         m_shininess = shininess;
+    }
+
+    void Material::setMetallic(float metallic)
+    {
+        AIKO_ASSERT(std::isfinite(metallic) && metallic >= 0.0f && metallic <= 1.0f, "Metallic must be finite and between 0 and 1");
+        m_metallic = metallic;
+    }
+
+    void Material::setRoughness(float roughness)
+    {
+        AIKO_ASSERT(std::isfinite(roughness) && roughness >= 0.0f && roughness <= 1.0f, "Roughness must be finite and between 0 and 1");
+        m_roughness = roughness;
     }
 
     void Material::setTexture(const string& name, AssetId textureId, const SamplerState& sampler)

@@ -26,6 +26,8 @@ namespace aiko
 
         float specularStrength = 0.0f;
         float shininess = 32.0f;
+        float metallic = 0.0f;
+        float roughness = 0.5f;
 
         bool operator==(const FrameMaterialKey& other) const
         {
@@ -36,7 +38,9 @@ namespace aiko
                 && lit == other.lit
                 && baseColor.rgba() == other.baseColor.rgba()
                 && specularStrength == other.specularStrength
-                && shininess == other.shininess;
+                && shininess == other.shininess
+                && metallic == other.metallic
+                && roughness == other.roughness;
         }
     };
 
@@ -53,6 +57,8 @@ namespace aiko
             utils::hashCombine(std::hash<u32>{}(key.baseColor.rgba()), seed);
             utils::hashCombine(std::hash<float>{}(key.specularStrength), seed);
             utils::hashCombine(std::hash<float>{}(key.shininess), seed);
+            utils::hashCombine(std::hash<float>{}(key.metallic), seed);
+            utils::hashCombine(std::hash<float>{}(key.roughness), seed);
             return seed;
         }
     };

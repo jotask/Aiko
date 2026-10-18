@@ -18,6 +18,8 @@ namespace aiko
         material->m_lit = materialAsset.lit;
         material->m_baseColor = materialAsset.baseColor;
         material->setSpecular(materialAsset.specularStrength, materialAsset.shininess);
+        material->setMetallic(materialAsset.metallic);
+        material->setRoughness(materialAsset.roughness);
 
         material->m_shaderId = materialAsset.shaderId;
         if (materialAsset.diffuseTextureId != InvalidAssetId)

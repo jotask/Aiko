@@ -14,5 +14,7 @@ namespace aiko
         bool lit = true;
         float specularStrength = 0.0f;
         float shininess = 32.0f;
+        float metallic = 0.0f;
+        float roughness = 0.5f;
     };
 }

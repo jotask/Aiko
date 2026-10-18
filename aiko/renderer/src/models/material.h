@@ -89,6 +89,12 @@
         float specularStrength() const { return m_specularStrength; }
         float shininess() const { return m_shininess; }
 
+        void setMetallic(float metallic);
+        void setRoughness(float roughness);
+
+        float metallic() const { return m_metallic; }
+        float roughness() const { return m_roughness; }
+
     public:
 
         AssetId m_shaderId = InvalidAssetId;
@@ -110,6 +116,9 @@
 
         float m_specularStrength = 0.0f;
         float m_shininess = 32.0f;
+
+        float m_metallic = 0.0f;
+        float m_roughness = 0.5f;
 
     };
 
