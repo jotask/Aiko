@@ -526,6 +526,28 @@ namespace aiko::lab
         m_customShaderMaterial.m_lit = true;
         m_customShaderMaterial.m_useVertexColor = true;
 
+
+        // --------------------------------------------------
+        // PBR Material
+        // --------------------------------------------------
+
+        const AssetId pbrShader = assets().loadShader("pbr");
+
+        constexpr float roughnessValues[] = {0.1f, 0.4f, 0.85f};
+
+        for (size_t i = 0; i < m_pbrMaterials.size(); ++i)
+        {
+            Material& material = m_pbrMaterials[i];
+
+            material.m_shaderId = pbrShader;
+            material.m_baseColor = Color(0.9f, 0.65f, 0.25f);
+            material.m_lit = true;
+            material.m_useVertexColor = false;
+
+            material.setMetallic(1.0f);
+            material.setRoughness(roughnessValues[i]);
+        }
+
     }
 
     // --------------------------------------------------
@@ -1772,6 +1794,13 @@ namespace aiko::lab
         m_renderSystem->renderCube({1.5f, -2.0f, -12.0f}, 0.75f, &m_unlitMaterial);
 
         m_renderSystem->renderSphere({4.5f, 0.0f, -12.0f}, 1.0f, 32, &m_specularMaterial);
+
+        // PBR
+        for (size_t i = 0; i < m_pbrMaterials.size(); ++i)
+        {
+            const vec3 position{ -3.0f + static_cast<float>(i) * 2.0f, -3.0f, -12.0f};
+            m_renderSystem->renderSphere(position, 0.8f, 32, &m_pbrMaterials[i]);
+        }
 
         // Light position markers.
         for (const LightInstance& light : m_lights)

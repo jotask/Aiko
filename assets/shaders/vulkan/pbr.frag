@@ -1,0 +1,200 @@
+
+#version 450
+#extension GL_GOOGLE_include_directive : require
+
+#define AIKO_MATERIAL_EXTRA_FIELDS vec4 u_pbrParams;
+#include "aiko_graphics.glsl"
+
+layout(location = 0) in vec2 v_texcoord0;
+layout(location = 1) in vec4 v_color0;
+layout(location = 2) in vec3 v_normal;
+layout(location = 3) in vec3 v_worldPos;
+
+layout(location = 0) out vec4 outColor;
+
+const float PI = 3.14159265358979323846;
+
+// GGX / Trowbridge-Reitz normal distribution.
+float distributionGGX(vec3 N, vec3 H, float roughness)
+{
+    float r = max(roughness, 0.045);
+    float a = r * r;
+    float a2 = a * a;
+
+    float NdotH = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH * NdotH;
+
+    float d = NdotH2 * (a2 - 1.0) + 1.0;
+
+    return a2 / max(PI * d * d, 1e-7);
+}
+
+// Schlick-GGX geometry approximation for direct lighting.
+float geometrySchlickGGX(float NdotX, float roughness)
+{
+    float r = roughness + 1.0;
+    float k = (r * r) / 8.0;
+
+    return NdotX / max(
+        NdotX * (1.0 - k) + k,
+        1e-5
+    );
+}
+
+float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+
+    return geometrySchlickGGX(NdotV, roughness) * geometrySchlickGGX(NdotL, roughness);
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+    return F0 + (vec3(1.0) - F0) *
+        pow(1.0 - clamp(cosTheta, 0.0, 1.0), 5.0);
+}
+
+float pointAttenuation(float distance, float range)
+{
+    float x = clamp(1.0 - distance / range, 0.0, 1.0);
+    return x * x;
+}
+
+float spotAttenuation(vec3 L, vec3 direction, float innerCos, float outerCos)
+{
+    float cd = dot(-L, normalize(direction));
+
+    return clamp(
+        (cd - outerCos) / max(innerCos - outerCos, 1e-5),
+        0.0,
+        1.0
+    );
+}
+
+vec3 evaluatePBRLight(int index, vec3 P, vec3 N, vec3 V, vec3 albedo, float metallic, float roughness)
+{
+    int type = int(u_lightType[index].x);
+
+    vec3 lightPosition = u_lightPosRange[index].xyz;
+    float range = u_lightPosRange[index].w;
+
+    vec3 lightDirection = u_lightDir[index].xyz;
+    vec3 lightColor = u_lightColorInt[index].rgb;
+    float intensity = u_lightColorInt[index].w;
+
+    vec3 L;
+    float attenuation = 1.0;
+
+    if (type == 0)
+    {
+        L = normalize(-lightDirection);
+    }
+    else
+    {
+        vec3 toLight = lightPosition - P;
+        float distance = length(toLight);
+
+        if (range <= 0.0 || distance >= range)
+        {
+            return vec3(0.0);
+        }
+
+        L = toLight / max(distance, 1e-5);
+        attenuation = pointAttenuation(distance, range);
+
+        if (type == 2)
+        {
+            attenuation *= spotAttenuation(L, lightDirection, u_lightSpotCos[index].x, u_lightSpotCos[index].y);
+        }
+    }
+
+    float NdotL = max(dot(N, L), 0.0);
+    float NdotV = max(dot(N, V), 0.0);
+
+    if (NdotL <= 0.0 || NdotV <= 0.0)
+    {
+        return vec3(0.0);
+    }
+
+    vec3 halfway = V + L;
+    float halfwayLength2 = dot(halfway, halfway);
+
+    if (halfwayLength2 <= 1e-8)
+    {
+        return vec3(0.0);
+    }
+
+    vec3 H = halfway * inversesqrt(halfwayLength2);
+
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
+
+    float D = distributionGGX(N, H, roughness);
+    float G = geometrySmith(N, V, L, roughness);
+    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+
+    vec3 numerator = D * G * F;
+    float denominator = max(4.0 * NdotV * NdotL, 1e-5);
+
+    vec3 specular = numerator / denominator;
+
+    // Energy-conserving diffuse contribution.
+    vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);
+    vec3 diffuse = kD * albedo / PI;
+
+    vec3 radiance = lightColor * intensity * attenuation;
+
+    return (diffuse + specular) * radiance * NdotL;
+}
+
+vec3 shadePBR(vec3 P, vec3 normal, vec3 albedo)
+{
+    vec3 N = normalize(normal);
+
+    vec3 toCamera = u_cameraPos.xyz - P;
+    float distance2 = dot(toCamera, toCamera);
+
+    float metallic = clamp(u_pbrParams.x, 0.0, 1.0);
+    float roughness = clamp(u_pbrParams.y, 0.0, 1.0);
+
+    // Approximation until environment lighting / IBL is added.
+    vec3 result = albedo * (1.0 - metallic) * u_ambientColor.rgb * u_ambientIntensity.x;
+
+    if (distance2 <= 1e-8)
+    {
+        return result;
+    }
+
+    vec3 V = toCamera * inversesqrt(distance2);
+
+    int count = min(int(u_lightCount.x), MAX_LIGHTS);
+
+    for (int i = 0; i < count; ++i)
+    {
+        result += evaluatePBRLight(i, P, N, V, albedo, metallic, roughness);
+    }
+
+    return result;
+}
+
+void main()
+{
+    vec4 base = u_baseColor;
+
+    if (u_flags.x > 0.5)
+    {
+        base *= texture(u_texture, v_texcoord0);
+    }
+
+    if (u_flags.y > 0.5)
+    {
+        base *= v_color0;
+    }
+
+    if (u_flags.z > 0.5)
+    {
+        base.rgb = shadePBR(v_worldPos, v_normal, base.rgb);
+    }
+
+    outColor = base;
+}

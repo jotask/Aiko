@@ -389,6 +389,11 @@ namespace aiko::renderer::vulkan
                     builtInValue = vec4{material.specularStrength(), material.shininess(), 0.0f, 0.0f};
                     value = &builtInValue;
                 }
+                else if (member.name == "u_pbrParams")
+                {
+                    builtInValue = vec4{material.metallic(), material.roughness(), 0.0f, 0.0f};
+                    value = &builtInValue;
+                }
                 else
                 {
                     const UniformMap& materialUniforms = material.uniforms();

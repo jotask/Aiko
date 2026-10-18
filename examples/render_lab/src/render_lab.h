@@ -10,6 +10,8 @@
 #include "models/render_target.h"
 #include "models/camera.h"
 
+#include <array>
+
 namespace aiko
 {
     class ComputeShaderComponent;
@@ -171,6 +173,8 @@ namespace aiko::lab
         // GPU billboard
         Material m_gpuBillboardMaterial;
         ComputeBuffer m_gpuBillboardPositions;
+
+        std::array<Material, 3> m_pbrMaterials;
 
     };
 }

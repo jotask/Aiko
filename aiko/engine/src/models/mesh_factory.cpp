@@ -147,8 +147,11 @@ namespace aiko
                     float u = float(j) / slices;
                     float v = float(i) / rings;
 
-                    data.m_vertices.push_back({x, y, z});
-                    data.m_textCoord.push_back({ u, v });
+                    const vec3 position{x, y, z};
+
+                    data.m_vertices.push_back(position);
+                    data.m_normals.push_back(math::normalize(position));
+                    data.m_textCoord.push_back({u, v});
                     data.m_colors.push_back(WHITE);
 
                 }
@@ -171,7 +174,6 @@ namespace aiko
                     data.m_indices.push_back(first + 1);
                 }
             }
-            recalculateNormals(data);
             return data;
         }
 
