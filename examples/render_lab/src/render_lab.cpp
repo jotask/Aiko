@@ -428,7 +428,7 @@ namespace aiko::lab
         m_unlitMaterial.m_useVertexColor = false;
 
         m_specularMaterial = m_litMaterial;
-        m_specularMaterial.setVec4("u_specularParams", 0.8f, 96.0f, 0.0f, 0.0f);
+        m_specularMaterial.setSpecular(0.8f, 96.0f);
 
         // --------------------------------------------------
         // Fill modes

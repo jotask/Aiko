@@ -4,6 +4,7 @@
 
 #include <utility>
 #include <type_traits>
+#include <cmath>
 
 namespace aiko
 {
@@ -94,6 +95,8 @@ namespace aiko
         utils::hashCombine(std::hash<AssetId>{}(m_shaderId), seed);
         utils::hashCombine(std::hash<bool>{}(m_useVertexColor), seed);
         utils::hashCombine(std::hash<bool>{}(m_lit), seed);
+        utils::hashCombine(std::hash<float>{}(m_specularStrength), seed);
+        utils::hashCombine(std::hash<float>{}(m_shininess), seed);
         utils::hashCombine(std::hash<u32>{}(m_baseColor.rgba()), seed);
         utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(m_renderState.cullMode)), seed);
         utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(m_renderState.fillMode)), seed);
@@ -195,15 +198,17 @@ namespace aiko
     bool Material::hasSameState(const Material& other) const
     {
         if (m_shaderId != other.m_shaderId ||
-                m_gpuInstanceBuffer != other.m_gpuInstanceBuffer ||
-                m_useVertexColor != other.m_useVertexColor ||
-                m_lit != other.m_lit ||
-                m_pointSize != other.m_pointSize ||
-                m_lineWidth != other.m_lineWidth ||
-                m_baseColor.r != other.m_baseColor.r ||
-                m_baseColor.g != other.m_baseColor.g ||
-                m_baseColor.b != other.m_baseColor.b ||
-                m_baseColor.a != other.m_baseColor.a)
+            m_gpuInstanceBuffer != other.m_gpuInstanceBuffer ||
+            m_useVertexColor != other.m_useVertexColor ||
+            m_lit != other.m_lit ||
+            m_specularStrength != other.m_specularStrength ||
+            m_shininess != other.m_shininess ||
+            m_pointSize != other.m_pointSize ||
+            m_lineWidth != other.m_lineWidth ||
+            m_baseColor.r != other.m_baseColor.r ||
+            m_baseColor.g != other.m_baseColor.g ||
+            m_baseColor.b != other.m_baseColor.b ||
+            m_baseColor.a != other.m_baseColor.a)
         {
             return false;
         }
@@ -237,6 +242,14 @@ namespace aiko
         }
 
         return true;
+    }
+
+    void Material::setSpecular(float strength, float shininess)
+    {
+        AIKO_ASSERT(std::isfinite(strength) && strength >= 0.0f, "Specular strength must be finite and non-negative");
+        AIKO_ASSERT(std::isfinite(shininess) && shininess >= 1.0f, "Specular shininess must be finite and at least 1");
+        m_specularStrength = strength;
+        m_shininess = shininess;
     }
 
     void Material::setTexture(const string& name, AssetId textureId, const SamplerState& sampler)

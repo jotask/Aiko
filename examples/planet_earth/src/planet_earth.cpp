@@ -52,7 +52,7 @@ namespace pe
 
         m_oceanMaterial.m_shaderId = assets().loadShader(aiko::renderer::BuiltinShader::Model);
         m_oceanMaterial.m_baseColor = aiko::Color(0.02f, 0.10f, 0.25f, 0.70f);
-        m_oceanMaterial.setVec4( "u_specularParams", 0.25f, 160.0f, 0.0f, 0.0f);
+        m_oceanMaterial.setSpecular(0.25f, 160.0f);
         m_oceanMaterial.m_lit = true;
         m_oceanMaterial.m_useVertexColor = false;
         m_oceanMaterial.m_renderState.blend = true;

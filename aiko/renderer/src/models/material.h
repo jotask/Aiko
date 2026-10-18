@@ -85,6 +85,10 @@
 
         bool hasSameState(const Material& other) const;
 
+        void setSpecular(float strength, float shininess);
+        float specularStrength() const { return m_specularStrength; }
+        float shininess() const { return m_shininess; }
+
     public:
 
         AssetId m_shaderId = InvalidAssetId;
@@ -103,6 +107,9 @@
 
         UniformMap m_uniforms;
         std::unordered_map<string, TextureBinding> m_textureBindings;
+
+        float m_specularStrength = 0.0f;
+        float m_shininess = 32.0f;
 
     };
 
