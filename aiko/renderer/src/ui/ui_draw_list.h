@@ -33,7 +33,7 @@ namespace aiko
             return m_vertices;
         }
 
-        const vector<uint16_t>& indices() const
+        const vector<uint32_t>& indices() const
         {
             return m_indices;
         }
@@ -47,7 +47,7 @@ namespace aiko
 
         vector<UIDrawCommand> m_commands;
         vector<UIVertex> m_vertices;
-        vector<uint16_t> m_indices;
+        vector<uint32_t> m_indices;
 
         vector<UIRect> m_clipStack;
 
