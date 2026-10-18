@@ -14,6 +14,7 @@ namespace aiko
         virtual ~IAssetProvider() = default;
 
         virtual const TextureAsset& getTextureAsset(const AssetId& id) = 0;
+        virtual bool isTextureAssetLoaded(const AssetId& id) const = 0;
         virtual const MeshAsset& getMeshAsset(const AssetId& id) = 0;
         virtual const ModelAsset& getModelAsset(const AssetId& id) = 0;
         virtual const ShaderAsset& getShaderAsset(const AssetId& id) = 0;

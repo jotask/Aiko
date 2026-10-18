@@ -175,6 +175,7 @@ namespace aiko::lab
         ComputeBuffer m_gpuBillboardPositions;
 
         std::array<Material, 3> m_pbrMaterials;
+        Material m_texturedPbrMaterial;
 
     };
 }

@@ -2965,11 +2965,11 @@ namespace aiko::renderer::vulkan
 
         if (binding.textureId != InvalidAssetId)
         {
-            const Texture& texture = getResources()->getTexture(binding.textureId);
+            const Texture* texture = getResources()->tryGetTexture(binding.textureId);
 
-            if (texture.isValid())
+            if (texture != nullptr && texture->isValid())
             {
-                return &texture;
+                return texture;
             }
 
             return &m_whiteTexture;

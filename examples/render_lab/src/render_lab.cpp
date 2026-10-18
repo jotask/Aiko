@@ -548,6 +548,15 @@ namespace aiko::lab
             material.setRoughness(roughnessValues[i]);
         }
 
+        // Textured PBR validation.
+        m_texturedPbrMaterial = m_pbrMaterials[1];
+
+        m_texturedPbrMaterial.m_baseColor = WHITE;
+        m_texturedPbrMaterial.setMetallic(0.0f);
+        m_texturedPbrMaterial.setRoughness(0.55f);
+
+        assets().setAlbedoMap(m_texturedPbrMaterial,"texel_checker.png");
+
     }
 
     // --------------------------------------------------
@@ -1801,6 +1810,9 @@ namespace aiko::lab
             const vec3 position{ -3.0f + static_cast<float>(i) * 2.0f, -3.0f, -12.0f};
             m_renderSystem->renderSphere(position, 0.8f, 32, &m_pbrMaterials[i]);
         }
+
+        // Textured PBR sphere.
+        m_renderSystem->renderSphere({5.0f, -3.0f, -12.0f}, 0.8f, 32, &m_texturedPbrMaterial);
 
         // Light position markers.
         for (const LightInstance& light : m_lights)

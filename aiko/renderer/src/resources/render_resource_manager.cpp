@@ -49,6 +49,16 @@ namespace aiko
         return ref;
     }
 
+    Texture* RenderResourceManager::tryGetTexture(const AssetId& id)
+    {
+        if (id == InvalidAssetId || !m_assetProvider.isTextureAssetLoaded(id))
+        {
+            return nullptr;
+        }
+
+        return &getTexture(id);
+    }
+
     Mesh& RenderResourceManager::getMesh(const AssetId& id)
     {
         auto it = m_meshes.find(id);

@@ -50,7 +50,7 @@ namespace aiko
         bool hasShaderAsset(const AssetId& id) const;
         bool hasComputeShaderAsset(const AssetId& id) const;
 
-        bool isTextureAssetLoaded(const AssetId& id) const;
+        bool isTextureAssetLoaded(const AssetId& id) const override;
         bool isMeshAssetLoaded(const AssetId& id) const;
         bool isModelAssetLoaded(const AssetId& id) const;
         bool isShaderAssetLoaded(const AssetId& id) const;

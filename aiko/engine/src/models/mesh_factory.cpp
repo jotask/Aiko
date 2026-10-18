@@ -144,8 +144,8 @@ namespace aiko
                     float x = r * cos(theta);
                     float z = r * sin(theta);
 
-                    float u = float(j) / slices;
-                    float v = float(i) / rings;
+                    float u = 1.0f - float(j) / slices;
+                    float v = 1.0f - float(i) / rings;
 
                     const vec3 position{x, y, z};
 

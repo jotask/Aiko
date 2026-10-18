@@ -22,6 +22,7 @@ namespace aiko
         ~RenderResourceManager();
 
         Texture& getTexture(const AssetId& id);
+        Texture* tryGetTexture(const AssetId& id);
         Mesh& getMesh(const AssetId& id);
         Model& getModel(const AssetId& id);
         Shader& getShader(const AssetId& id);
