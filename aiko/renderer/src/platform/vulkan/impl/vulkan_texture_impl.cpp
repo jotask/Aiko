@@ -45,6 +45,11 @@ namespace aiko::renderer::vulkan
 
         AIKO_ASSERT(desc.width > 0 && desc.height > 0, "Invalid texture size");
 
+        if (desc.format == TextureFormat::RGBA8_SRGB)
+        {
+            AIKO_ASSERT(desc.type == TextureType::Sampled && !desc.computeWrite, "sRGB textures must be sampled non-storage textures");
+        }
+
         VulkanContext& ctx = VulkanContext::current();
 
         m_vkFormat = convertToVkFormat(desc.format);
@@ -217,7 +222,7 @@ namespace aiko::renderer::vulkan
 
         AIKO_ASSERT(isValid(), "Invalid texture");
         AIKO_ASSERT(m_info.type == TextureType::Sampled, "setPixels only supports sampled textures for now");
-        AIKO_ASSERT(m_info.format == TextureFormat::RGBA8 || m_info.format == TextureFormat::BGRA8, "Unsupported sampled texture format");
+        AIKO_ASSERT(m_info.format == TextureFormat::RGBA8 || m_info.format == TextureFormat::BGRA8 || m_info.format == TextureFormat::RGBA8_SRGB, "Unsupported sampled texture format");
 
         const size_t pixelCount = size_t(m_info.width) * size_t(m_info.height);
 
@@ -342,10 +347,11 @@ namespace aiko::renderer::vulkan
     {
         switch (format)
         {
-            case TextureFormat::BGRA8: return VkFormat::VK_FORMAT_B8G8R8A8_UNORM;
-            case TextureFormat::RGBA8: return VkFormat::VK_FORMAT_R8G8B8A8_UNORM;
-            case TextureFormat::D24S8: return VkFormat::VK_FORMAT_D24_UNORM_S8_UINT;
-            case TextureFormat::D32F: return VkFormat::VK_FORMAT_D32_SFLOAT;
+            case TextureFormat::BGRA8:          return VkFormat::VK_FORMAT_B8G8R8A8_UNORM;
+            case TextureFormat::RGBA8:          return VkFormat::VK_FORMAT_R8G8B8A8_UNORM;
+            case TextureFormat::D24S8:          return VkFormat::VK_FORMAT_D24_UNORM_S8_UINT;
+            case TextureFormat::D32F:           return VkFormat::VK_FORMAT_D32_SFLOAT;
+            case TextureFormat::RGBA8_SRGB:     return VK_FORMAT_R8G8B8A8_SRGB;
             case TextureFormat::INVALID:
             default:
                 AIKO_ASSERT(false, "Texture format not supported!");

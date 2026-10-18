@@ -10,6 +10,7 @@ namespace aiko
         RGBA8,
         D24S8,
         D32F,
+        RGBA8_SRGB,
     };
 
     enum class TextureType
@@ -46,6 +47,7 @@ namespace aiko
         {
         case TextureFormat::RGBA8:
         case TextureFormat::BGRA8:
+        case TextureFormat::RGBA8_SRGB:
             return 4;
 
         case TextureFormat::D24S8:
