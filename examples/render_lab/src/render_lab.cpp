@@ -555,7 +555,7 @@ namespace aiko::lab
         m_texturedPbrMaterial.setMetallic(0.0f);
         m_texturedPbrMaterial.setRoughness(0.55f);
 
-        m_texturedPbrMaterial.setAlbedoMap(assets().loadAlbedo("texel_checker.png"));
+        m_texturedPbrMaterial.setAlbedoMap(assets().loadTexture("texel_checker.png"));
 
         // Packed metallic/roughness validation.
         constexpr uint Width = 256;

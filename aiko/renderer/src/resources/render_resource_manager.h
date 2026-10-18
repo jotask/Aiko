@@ -4,6 +4,7 @@
 
 #include <aiko_types.h>
 #include <assets/asset_id.h>
+#include <types/texture_types.h>
 
 namespace aiko
 {
@@ -22,7 +23,9 @@ namespace aiko
         ~RenderResourceManager();
 
         Texture& getTexture(const AssetId& id);
+        Texture& getTexture(const AssetId& id, TextureColorSpace colorSpace);
         Texture* tryGetTexture(const AssetId& id);
+        Texture* tryGetTexture(const AssetId& id, TextureColorSpace colorSpace);
         Mesh& getMesh(const AssetId& id);
         Model& getModel(const AssetId& id);
         Shader& getShader(const AssetId& id);
@@ -49,6 +52,8 @@ namespace aiko
         IAssetProvider& m_assetProvider;
 
         std::unordered_map<AssetId, AikoUPtr<Texture>> m_textures;
+        std::unordered_map<AssetId, AikoUPtr<Texture>> m_srgbTextures;
+
         std::unordered_map<AssetId, AikoUPtr<Mesh>> m_meshes;
         std::unordered_map<AssetId, AikoUPtr<Model>> m_models;
         std::unordered_map<AssetId, AikoUPtr<Shader>> m_shaders;

@@ -62,20 +62,6 @@ namespace aiko
         m_assetSystem->invalidateTexture(textureId);
     }
 
-    AssetId AssetContext::loadAlbedo(string_view source)
-    {
-        const AssetId id = m_assetSystem->registerTexture(source, TextureColorSpace::SRGB);
-        m_assetSystem->loadAsset<TextureAsset>(id);
-        return id;
-    }
-
-    AssetId AssetContext::loadMetallicRoughness(string_view source)
-    {
-        const AssetId id = m_assetSystem->registerTexture(source, TextureColorSpace::Linear);
-        m_assetSystem->loadAsset<TextureAsset>(id);
-        return id;
-    }
-
     AssetId AssetContext::createMesh(const MeshAsset& mesh)
     {
         return m_assetSystem->create(mesh);

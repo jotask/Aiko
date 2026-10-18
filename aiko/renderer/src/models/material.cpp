@@ -120,6 +120,7 @@ namespace aiko
         TextureBinding& binding = m_textureBindings[name];
         binding.textureId = textureId;
         binding.runtimeTexture = nullptr;
+        binding.colorSpace = TextureColorSpace::Linear;
     }
 
     void Material::setBool(const string& name, bool value)
@@ -251,6 +252,7 @@ namespace aiko
     {
         AIKO_ASSERT(textureId != InvalidAssetId, "Albedo texture id cannot be invalid");
         setTexture("u_texture", textureId);
+        m_textureBindings.at("u_texture").colorSpace = TextureColorSpace::SRGB;
     }
 
     void Material::setMetallicRoughnessMap(AssetId textureId)
@@ -299,6 +301,7 @@ namespace aiko
         TextureBinding& binding = m_textureBindings[name];
         binding.textureId = InvalidAssetId;
         binding.runtimeTexture = texture;
+        binding.colorSpace = TextureColorSpace::Linear;
     }
 
     void Material::setTexture(const string& name, const Texture* texture, const SamplerState& sampler)

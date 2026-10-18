@@ -44,6 +44,7 @@ namespace aiko::renderer::vulkan
         const Texture* runtimeTexture = nullptr;
 
         SamplerState sampler{};
+        TextureColorSpace colorSpace = TextureColorSpace::Linear;
 
         bool operator==(const MaterialTextureBindingKey& other) const = default;
     };
@@ -89,6 +90,7 @@ namespace aiko::renderer::vulkan
                 utils::hashCombine(std::hash<AssetId>{}(texture.textureId), seed);
                 utils::hashCombine(std::hash<const Texture*>{}(texture.runtimeTexture), seed);
                 utils::hashCombine(SamplerStateHash{}(texture.sampler), seed);
+                utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(texture.colorSpace)), seed);
             }
 
             for (const uint8_t value : key.uniformData)

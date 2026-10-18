@@ -6,6 +6,7 @@
 #include "models/shader.h"
 #include "models/compute_shader.h"
 #include <assets/iasset_provider.h>
+#include <assets/types/texture_asset.h>
 
 namespace aiko
 {
@@ -49,6 +50,33 @@ namespace aiko
         return ref;
     }
 
+    Texture& RenderResourceManager::getTexture(const AssetId& id, TextureColorSpace colorSpace)
+    {
+        if (colorSpace == TextureColorSpace::Linear)
+        {
+            return getTexture(id);
+        }
+
+        AIKO_ASSERT(colorSpace == TextureColorSpace::SRGB, "Unsupported texture color space");
+
+        auto& texture = m_srgbTextures[id];
+
+        if (texture == nullptr)
+        {
+            texture = std::make_unique<Texture>();
+        }
+
+        if (!texture->isValid())
+        {
+            TextureAsset asset = m_assetProvider.getTextureAsset(id);
+            AIKO_ASSERT(asset.desc.type == TextureType::Sampled && (asset.desc.format == TextureFormat::RGBA8 || asset.desc.format == TextureFormat::RGBA8_SRGB), "sRGB variant requires an RGBA8 sampled texture");
+            asset.desc.format = TextureFormat::RGBA8_SRGB;
+            texture->upload(asset);
+        }
+
+        return *texture;
+    }
+
     Texture* RenderResourceManager::tryGetTexture(const AssetId& id)
     {
         if (id == InvalidAssetId || !m_assetProvider.isTextureAssetLoaded(id))
@@ -57,6 +85,16 @@ namespace aiko
         }
 
         return &getTexture(id);
+    }
+
+    Texture* RenderResourceManager::tryGetTexture(const AssetId& id, TextureColorSpace colorSpace)
+    {
+        if (id == InvalidAssetId || !m_assetProvider.isTextureAssetLoaded(id))
+        {
+            return nullptr;
+        }
+
+        return &getTexture(id, colorSpace);
     }
 
     Mesh& RenderResourceManager::getMesh(const AssetId& id)
@@ -146,7 +184,7 @@ namespace aiko
 
     bool RenderResourceManager::hasTexture(const AssetId& id) const
     {
-        return m_textures.find(id) != m_textures.end();
+        return m_textures.contains(id) || m_srgbTextures.contains(id);
     }
 
     bool RenderResourceManager::hasMesh(const AssetId& id) const
@@ -171,13 +209,28 @@ namespace aiko
 
     void RenderResourceManager::updateTexture(const AssetId& id)
     {
-        auto it = m_textures.find(id);
-        if (it == m_textures.end())
+        auto linearIt = m_textures.find(id);
+        auto srgbIt = m_srgbTextures.find(id);
+
+        if (linearIt == m_textures.end() && srgbIt == m_srgbTextures.end())
         {
             return;
         }
+
         const TextureAsset& asset = m_assetProvider.getTextureAsset(id);
-        it->second->update(asset);
+
+        if (linearIt != m_textures.end())
+        {
+            linearIt->second->update(asset);
+        }
+
+        if (srgbIt != m_srgbTextures.end())
+        {
+            TextureAsset srgbAsset = asset;
+            AIKO_ASSERT(srgbAsset.desc.type == TextureType::Sampled && (srgbAsset.desc.format == TextureFormat::RGBA8 || srgbAsset.desc.format == TextureFormat::RGBA8_SRGB), "sRGB variant requires an RGBA8 sampled texture");
+            srgbAsset.desc.format = TextureFormat::RGBA8_SRGB;
+            srgbIt->second->update(srgbAsset);
+        }
     }
 
     void RenderResourceManager::unloadTexture(const AssetId& id)
@@ -187,6 +240,13 @@ namespace aiko
         {
             it->second->unload();
             m_textures.erase(it);
+        }
+
+        auto srgbIt = m_srgbTextures.find(id);
+        if (srgbIt != m_srgbTextures.end())
+        {
+            srgbIt->second->unload();
+            m_srgbTextures.erase(srgbIt);
         }
     }
 
@@ -239,6 +299,13 @@ namespace aiko
                 texture.second->unload();
             }
         }
+        for (auto& texture: m_srgbTextures)
+        {
+            if (texture.second != nullptr)
+            {
+                texture.second->unload();
+            }
+        }
         for (auto& mesh : m_meshes)
         {
             if (mesh.second != nullptr)
@@ -268,6 +335,7 @@ namespace aiko
             }
         }
         m_textures.clear();
+        m_srgbTextures.clear();
         m_meshes.clear();
         m_models.clear();
         m_shaders.clear();

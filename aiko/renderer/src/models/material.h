@@ -18,6 +18,7 @@
          AssetId textureId = InvalidAssetId;
          const Texture* runtimeTexture = nullptr;
          SamplerState sampler{};
+         TextureColorSpace colorSpace = TextureColorSpace::Linear;
 
          bool operator==(const TextureBinding& other) const = default;
      };

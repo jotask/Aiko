@@ -1964,6 +1964,7 @@ namespace aiko::renderer::vulkan
                 .textureId = textureBinding.textureId,
                 .runtimeTexture = textureBinding.runtimeTexture,
                 .sampler = textureBinding.sampler,
+                .colorSpace = textureBinding.colorSpace,
             });
 
             textureBindings.push_back(textureBinding);
@@ -2965,7 +2966,7 @@ namespace aiko::renderer::vulkan
 
         if (binding.textureId != InvalidAssetId)
         {
-            const Texture* texture = getResources()->tryGetTexture(binding.textureId);
+            const Texture* texture = getResources()->tryGetTexture(binding.textureId, binding.colorSpace);
 
             if (texture != nullptr && texture->isValid())
             {

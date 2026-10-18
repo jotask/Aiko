@@ -25,9 +25,6 @@ namespace aiko
         TextureAsset& getMutableTexture(const AssetId& textureId);
         void invalidateTexture(const AssetId& textureId);
 
-        AssetId loadAlbedo(string_view source);
-        AssetId loadMetallicRoughness(string_view source);
-
         Font loadFont(string_view source, float pixelSize = 48.0f);
     private:
         friend class LayerContext;
