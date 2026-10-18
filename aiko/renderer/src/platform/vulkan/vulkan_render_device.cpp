@@ -920,7 +920,7 @@ namespace aiko::renderer::vulkan
         const VkDeviceSize offsets[] = { 0 };
 
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
         vkCmdDrawIndexed(commandBuffer, meshImpl->indexCount(), 1, 0, 0, 0);
     }
@@ -1031,7 +1031,7 @@ namespace aiko::renderer::vulkan
         };
 
         vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer( commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer( commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
         vkCmdDrawIndexed( commandBuffer, meshImpl->indexCount(), instanceCount, 0, 0, 0);
     }
@@ -1384,7 +1384,7 @@ namespace aiko::renderer::vulkan
         };
 
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(commandBuffer, meshImpl->indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
         vkCmdDrawIndexed(commandBuffer, meshImpl->indexCount(), desc.instanceCount, 0, 0, 0);
 
     }
@@ -1679,11 +1679,11 @@ namespace aiko::renderer::vulkan
 
         const VkDeviceSize vertexBytes = sizeof(VulkanVertex) * desc.geometry->vertices.size();
 
-        const VkDeviceSize indexBytes = sizeof(uint16_t) * desc.geometry->indices.size();
+        const VkDeviceSize indexBytes = sizeof(uint32_t) * desc.geometry->indices.size();
 
         const UploadSlice vertexSlice = m_uploadArena.allocate(frame, vertexBytes, alignof(VulkanVertex));
 
-        const UploadSlice indexSlice = m_uploadArena.allocate(frame, indexBytes, alignof(uint16_t));
+        const UploadSlice indexSlice = m_uploadArena.allocate(frame, indexBytes, alignof(uint32_t));
 
         auto* vertices = static_cast<VulkanVertex*>(vertexSlice.mapped);
 
@@ -1727,7 +1727,7 @@ namespace aiko::renderer::vulkan
         const VkDeviceSize vertexOffset = vertexSlice.offset;
 
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, &vertexOffset);
-        vkCmdBindIndexBuffer(commandBuffer, indexSlice.buffer, indexSlice.offset, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(commandBuffer, indexSlice.buffer, indexSlice.offset, VK_INDEX_TYPE_UINT32);
 
         const uint32_t totalIndexCount = static_cast<uint32_t>(desc.geometry->indices.size());
 
@@ -2118,7 +2118,7 @@ namespace aiko::renderer::vulkan
 
         const VkBuffer indexBuffer = meshImpl->indexBuffer();
 
-        vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
         vkCmdDrawIndexed(commandBuffer, meshImpl->indexCount(), 1, 0, 0, 0);
     }

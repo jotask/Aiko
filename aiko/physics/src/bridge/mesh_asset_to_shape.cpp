@@ -43,9 +43,9 @@ namespace aiko::physics
         out.vertices = asset.m_vertices;
         out.indices.reserve(asset.m_indices.size());
 
-        for (const u16 index : asset.m_indices)
+        for (const u32 index : asset.m_indices)
         {
-            out.indices.push_back(static_cast<u32>(index));
+            out.indices.push_back(index);
         }
 
         return out;

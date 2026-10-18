@@ -96,13 +96,18 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(!asset.m_indices.empty(), "Mesh has no indices");
         AIKO_ASSERT(asset.m_tangents.empty() || asset.m_tangents.size() == asset.m_vertices.size(), "Mesh tangent count must match vertex count");
 
+        for (const uint32_t index : asset.m_indices)
+        {
+            AIKO_ASSERT(index < asset.m_vertices.size(), "Mesh index out of vertex range");
+        }
+
         VulkanContext& ctx = VulkanContext::current();
         const VkDevice device = ctx.device();
 
         const vector<VulkanVertex> vertices = buildVertices(asset);
 
         const VkDeviceSize vertexSize = sizeof(VulkanVertex) * vertices.size();
-        const VkDeviceSize indexSize = sizeof(uint16_t) * asset.m_indices.size();
+        const VkDeviceSize indexSize = sizeof(uint32_t) * asset.m_indices.size();
 
         struct BufferAllocation
         {
