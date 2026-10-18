@@ -68,7 +68,9 @@ namespace aiko
             m_sceneTarget.unload();
         }
 
-        m_sceneTarget.create(surface.width, surface.height);
+        m_sceneTarget.create(surface.width, surface.height, TextureFormat::RGBA16F);
+
+        AIKO_ASSERT(m_sceneTarget.isValid(), "Failed to create HDR scene target");
 
         m_screenPresenter.init();
         AIKO_ASSERT(m_screenPresenter.isValid(), "Screen presenter invalid");
@@ -89,6 +91,7 @@ namespace aiko
             m_renderSurface = *m_pendingSurfaceResize;
             m_renderer->resize(m_renderSurface.x, m_renderSurface.y);
             m_sceneTarget.resize(m_renderSurface.x, m_renderSurface.y);
+            m_postProcessing.resize(static_cast<u32>(m_renderSurface.x), static_cast<u32>(m_renderSurface.y));
             m_pendingSurfaceResize.reset();
         }
 

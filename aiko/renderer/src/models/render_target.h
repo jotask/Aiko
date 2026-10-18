@@ -21,6 +21,7 @@ namespace aiko
         bool isValid() const;
 
         void create(u32 width, u32 height);
+        void create(u32 width, u32 height, TextureFormat colorFormat);
         void resize(u32 width, u32 height);
         void unload();
 
@@ -52,5 +53,6 @@ namespace aiko
     private:
         FrameBuffer m_frameBuffer;
         ivec2 m_size = {0, 0};
+        TextureFormat m_colorFormat = TextureFormat::RGBA8;
     };
 }

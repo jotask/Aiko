@@ -352,6 +352,7 @@ namespace aiko::renderer::vulkan
             case TextureFormat::D24S8:          return VkFormat::VK_FORMAT_D24_UNORM_S8_UINT;
             case TextureFormat::D32F:           return VkFormat::VK_FORMAT_D32_SFLOAT;
             case TextureFormat::RGBA8_SRGB:     return VK_FORMAT_R8G8B8A8_SRGB;
+            case TextureFormat::RGBA16F:        return VK_FORMAT_R16G16B16A16_SFLOAT;
             case TextureFormat::INVALID:
             default:
                 AIKO_ASSERT(false, "Texture format not supported!");

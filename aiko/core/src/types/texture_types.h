@@ -11,6 +11,7 @@ namespace aiko
         D24S8,
         D32F,
         RGBA8_SRGB,
+        RGBA16F,
     };
 
     enum class TextureType

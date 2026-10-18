@@ -29,36 +29,40 @@ namespace aiko
 
     void FrameBuffer::create(int width, int height)
     {
+        create(width, height, TextureFormat::RGBA8);
+    }
+
+    void FrameBuffer::create(int width, int height, TextureFormat colorFormat)
+    {
         AIKO_ASSERT(width > 0 && height > 0, "Framebuffer size must be greater than zero");
+        AIKO_ASSERT(colorFormat == TextureFormat::RGBA8 || colorFormat == TextureFormat::RGBA16F, "Unsupported framebuffer color format");
 
         unload();
 
-        colorTexture.create(
-            {
-                .type = TextureType::RenderTarget,
-                .format = TextureFormat::RGBA8,
-                .width = width,
-                .height = height,
-                .mipmaps = 1,
-                .computeWrite = true,
-            });
+        colorTexture.create({
+            .type = TextureType::RenderTarget,
+            .format = colorFormat,
+            .width = width,
+            .height = height,
+            .mipmaps = 1,
+            .computeWrite = colorFormat == TextureFormat::RGBA8,
+        });
 
-        if (colorTexture.isValid() == false)
+        if (!colorTexture.isValid())
         {
             unload();
             return;
         }
 
-        depthTexture.create(
-            {
-                .type = TextureType::DepthStencil,
-                .format = backend->preferredDepthFormat(),
-                .width = width,
-                .height = height,
-                .mipmaps = 1,
-            });
+        depthTexture.create({
+            .type = TextureType::DepthStencil,
+            .format = backend->preferredDepthFormat(),
+            .width = width,
+            .height = height,
+            .mipmaps = 1,
+        });
 
-        if (depthTexture.isValid() == false)
+        if (!depthTexture.isValid())
         {
             unload();
             return;

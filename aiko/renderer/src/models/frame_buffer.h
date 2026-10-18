@@ -40,6 +40,7 @@ namespace aiko::interfaces
 
         // load
         void create(int width, int height);
+        void create(int width, int height, TextureFormat colorFormat);
         void unload();
 
         Texture& getColorTexture() { return colorTexture; }

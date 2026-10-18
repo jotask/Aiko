@@ -15,6 +15,7 @@
 #include "models/texture_region.h"
 #include "ui/ui_renderer.h"
 #include "ui/ui_draw_list.h"
+#include "post_process/post_process_pipeline.h"
 
 #include <types/color.h>
 #include <types/render_types.h>
@@ -89,6 +90,9 @@ namespace aiko
         void renderToTarget(const Camera& camera, RenderTarget& target);
         const RenderTarget& sceneRenderTarget() const { return m_sceneTarget; }
 
+        PostProcessPipeline& postProcessing() { return m_postProcessing; }
+        const PostProcessPipeline& postProcessing() const{ return m_postProcessing; }
+
         RenderResourceManager& resources() { return m_resources; }
 
         void waitIdle();
@@ -118,6 +122,7 @@ namespace aiko
 
         RenderTarget m_sceneTarget;
         ScreenPresenter m_screenPresenter;
+        PostProcessPipeline m_postProcessing;
 
         std::vector<ComputePass> m_computeQueue;
 
