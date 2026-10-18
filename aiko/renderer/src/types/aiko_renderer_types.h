@@ -24,6 +24,9 @@ namespace aiko
         bool lit = false;
         Color baseColor = WHITE;
 
+        float specularStrength = 0.0f;
+        float shininess = 32.0f;
+
         bool operator==(const FrameMaterialKey& other) const
         {
             return shaderId == other.shaderId
@@ -31,7 +34,9 @@ namespace aiko
                 && runtimeDiffuseTexture == other.runtimeDiffuseTexture
                 && useVertexColor == other.useVertexColor
                 && lit == other.lit
-                && baseColor.rgba() == other.baseColor.rgba();
+                && baseColor.rgba() == other.baseColor.rgba()
+                && specularStrength == other.specularStrength
+                && shininess == other.shininess;
         }
     };
 
@@ -46,6 +51,8 @@ namespace aiko
             utils::hashCombine(std::hash<bool>{}(key.useVertexColor), seed);
             utils::hashCombine(std::hash<bool>{}(key.lit), seed);
             utils::hashCombine(std::hash<u32>{}(key.baseColor.rgba()), seed);
+            utils::hashCombine(std::hash<float>{}(key.specularStrength), seed);
+            utils::hashCombine(std::hash<float>{}(key.shininess), seed);
             return seed;
         }
     };

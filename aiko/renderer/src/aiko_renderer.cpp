@@ -865,6 +865,8 @@ namespace aiko
         key.useVertexColor = materialAsset.useVertexColor;
         key.lit = materialAsset.lit;
         key.baseColor = materialAsset.baseColor;
+        key.specularStrength = materialAsset.specularStrength;
+        key.shininess = materialAsset.shininess;
 
         if (auto it = m_frameMaterialCache.find(key); it != m_frameMaterialCache.end())
         {
@@ -881,6 +883,7 @@ namespace aiko
         material.m_useVertexColor = key.useVertexColor;
         material.m_lit = key.lit;
         material.m_baseColor = key.baseColor;
+        material.setSpecular(key.specularStrength, key.shininess);
 
         if (key.runtimeDiffuseTexture != nullptr)
         {

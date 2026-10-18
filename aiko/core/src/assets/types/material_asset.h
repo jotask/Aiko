@@ -12,5 +12,7 @@ namespace aiko
         Color baseColor = WHITE;
         bool useVertexColor = false;
         bool lit = true;
+        float specularStrength = 0.0f;
+        float shininess = 32.0f;
     };
 }
