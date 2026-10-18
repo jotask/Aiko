@@ -70,7 +70,7 @@ namespace aiko
 
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Texture, "Texture asset id not registered");
 
-        auto result = AssetImporter::loadTexture(record->source);
+        auto result = AssetImporter::loadTexture(record->source, record->textureColorSpace);
 
         if (!result)
         {
@@ -225,6 +225,11 @@ namespace aiko
         AssetId id;
         m_textureAssets.emplace(id, asset);
         return id;
+    }
+
+    AssetId AssetManager::registerTexture(std::string_view path, TextureColorSpace colorSpace)
+    {
+        return m_registry.registerAsset(AssetType::Texture, path, colorSpace);
     }
 
     AssetId AssetManager::registerMesh(std::string_view path)

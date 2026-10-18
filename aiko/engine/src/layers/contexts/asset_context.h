@@ -11,6 +11,7 @@ namespace aiko
     class Font;
     struct MeshAsset;
     struct TextureAsset;
+    class Material;
 
     class AssetContext
     {
@@ -24,6 +25,10 @@ namespace aiko
         AssetId createTexture(const TextureAsset& texture);
         TextureAsset& getMutableTexture(const AssetId& textureId);
         void invalidateTexture(const AssetId& textureId);
+
+        AssetId loadAlbedoTexture(string_view source);
+
+        void setAlbedoMap(Material& material, string_view source);
 
         Font loadFont(string_view source, float pixelSize = 48.0f);
     private:

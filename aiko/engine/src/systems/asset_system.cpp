@@ -217,7 +217,12 @@ namespace aiko
 
         AssetManager* manager = m_assetModule->getManager();
 
-        const string source = manager->getAssetSource(id, AssetType::Texture);
+        const AssetRecord* record = manager->m_registry.find(id);
+
+        AIKO_ASSERT(record != nullptr && record->type == AssetType::Texture, "Texture asset is not registered");
+
+        const string source = record->source;
+        const TextureColorSpace colorSpace = record->textureColorSpace;
 
         m_loadStates[id] = AssetLoadState::Queued;
 
@@ -225,9 +230,9 @@ namespace aiko
             *m_jobSystem,
             m_loadStates,
             id,
-            [source]()
+            [source, colorSpace]()
             {
-                return AssetImporter::loadTexture(source);
+                return AssetImporter::loadTexture(source, colorSpace);
             },
             [this, id](TextureAsset asset)
             {
@@ -460,6 +465,11 @@ namespace aiko
     AssetId AssetSystem::create(const MeshAsset& asset)
     {
         return m_assetModule->getManager()->registerMesh(asset);
+    }
+
+    AssetId AssetSystem::registerTexture(string_view source, TextureColorSpace colorSpace)
+    {
+        return m_assetModule->getManager()->registerTexture(source, colorSpace);
     }
 
     TextureAsset& AssetSystem::getMutableTextureAsset(const AssetId& id)

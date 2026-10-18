@@ -4,6 +4,7 @@
 
 #include "assets/asset_id.h"
 #include "assets/asset_type.h"
+#include "types/texture_types.h"
 
 namespace aiko
 {
@@ -13,6 +14,7 @@ namespace aiko
         AssetId id = InvalidAssetId;
         AssetType type = AssetType::Unknown;
         string source;
+        TextureColorSpace textureColorSpace = TextureColorSpace::Linear;
     };
 
 }

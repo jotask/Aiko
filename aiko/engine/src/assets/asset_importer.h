@@ -15,7 +15,7 @@ namespace aiko
     class AssetImporter
     {
     public:
-        static AssetImportResult<TextureAsset> loadTexture(const string& path);
+        static AssetImportResult<TextureAsset> loadTexture(const string& path, TextureColorSpace colorSpace = TextureColorSpace::Linear);
         static AssetImportResult<MeshAsset> loadMesh(const string& path);
         static AssetImportResult<ImportedModel> loadModel(const string& path);
 

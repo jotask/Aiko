@@ -18,7 +18,7 @@ namespace aiko
 
         using Json = nlohmann::ordered_json;
 
-        constexpr u32 ASSET_REGISTRY_VERSION = 1;
+        constexpr u32 ASSET_REGISTRY_VERSION = 2;
 
         const char* assetTypeToString(AssetType type)
         {
@@ -191,6 +191,11 @@ namespace aiko
                     return lhs->source < rhs->source;
                 }
 
+                if (lhs->textureColorSpace != rhs->textureColorSpace)
+                {
+                    return static_cast<int>(lhs->textureColorSpace) < static_cast<int>(rhs->textureColorSpace);
+                }
+
                 return lhs->id.get() < rhs->id.get();
             });
 
@@ -203,12 +208,18 @@ namespace aiko
                 return false;
             }
 
-            root["assets"].push_back(
-            {
+            Json entry = {
                 { "id", record->id.get() },
                 { "type", assetTypeToString(record->type) },
                 { "source", record->source }
-            });
+            };
+
+            if (record->type == AssetType::Texture)
+            {
+                entry["colorSpace"] = record->textureColorSpace == TextureColorSpace::SRGB ? "SRGB" : "Linear";
+            }
+
+            root["assets"].push_back(std::move(entry));
         }
 
         if (path.has_parent_path())
@@ -275,10 +286,12 @@ namespace aiko
         const auto versionIt = root.find("version");
         const auto assetsIt = root.find("assets");
 
-        if (versionIt == root.end() || !versionIt->is_number_integer() || *versionIt != ASSET_REGISTRY_VERSION)
+        if (versionIt == root.end() || !versionIt->is_number_integer() || (*versionIt != 1 && *versionIt != ASSET_REGISTRY_VERSION))
         {
             return fail("Unsupported or invalid registry version");
         }
+
+        const int registryVersion = versionIt->get<int>();
 
         if (assetsIt == root.end() || !assetsIt->is_array())
         {
@@ -333,6 +346,37 @@ namespace aiko
                 return fail("Unknown asset type");
             }
 
+            TextureColorSpace colorSpace = TextureColorSpace::Linear;
+
+            const auto colorSpaceIt = assetJson.find("colorSpace");
+
+            if (type == AssetType::Texture && registryVersion == 2)
+            {
+                if (colorSpaceIt == assetJson.end() || !colorSpaceIt->is_string())
+                {
+                    return fail("Texture has missing or invalid color space");
+                }
+
+                const string value = colorSpaceIt->get<string>();
+
+                if (value == "Linear")
+                {
+                    colorSpace = TextureColorSpace::Linear;
+                }
+                else if (value == "SRGB")
+                {
+                    colorSpace = TextureColorSpace::SRGB;
+                }
+                else
+                {
+                    return fail("Unknown texture color space");
+                }
+            }
+            else if (colorSpaceIt != assetJson.end())
+            {
+                return fail("Unexpected asset color space");
+            }
+
             // Validate uniqueness before calling registerAsset().
             // registerAsset() asserts if its invariants are violated.
             if (loadedRegistry.find(assetId) != nullptr)
@@ -340,16 +384,17 @@ namespace aiko
                 return fail("Duplicate asset ID");
             }
 
-            if (loadedRegistry.find(type, source) != nullptr)
+            if (loadedRegistry.find(type, source, colorSpace) != nullptr)
             {
-                return fail("Duplicate asset type/source");
+                return fail("Duplicate asset type/source/color space");
             }
 
             const AssetRecord record
             {
                 .id = assetId,
                 .type = type,
-                .source = source
+                .source = source,
+                .textureColorSpace = colorSpace
             };
 
             loadedRegistry.registerAsset(record);

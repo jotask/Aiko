@@ -14,6 +14,7 @@
 #include "assets/types/mesh_asset.h"
 #include "systems/system_connector.h"
 #include "systems/asset_system.h"
+#include <models/material.h>
 
 namespace aiko
 {
@@ -60,6 +61,18 @@ namespace aiko
     void AssetContext::invalidateTexture(const AssetId& textureId)
     {
         m_assetSystem->invalidateTexture(textureId);
+    }
+
+    AssetId AssetContext::loadAlbedoTexture(string_view source)
+    {
+        const AssetId id = m_assetSystem->registerTexture(source, TextureColorSpace::SRGB);
+        m_assetSystem->loadAsset<TextureAsset>(id);
+        return id;
+    }
+
+    void AssetContext::setAlbedoMap(Material& material, string_view source)
+    {
+        material.setAlbedoMap(loadAlbedoTexture(source));
     }
 
     AssetId AssetContext::createMesh(const MeshAsset& mesh)

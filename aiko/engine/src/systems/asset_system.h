@@ -71,6 +71,8 @@ namespace aiko
         AssetId create(const TextureAsset& asset);
         AssetId create(const MeshAsset& asset);
 
+        AssetId registerTexture(string_view source, TextureColorSpace colorSpace);
+
         TextureAsset& getMutableTextureAsset(const AssetId& id);
 
         void invalidateTexture(const AssetId& id);

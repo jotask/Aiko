@@ -41,6 +41,12 @@ namespace aiko
         Mirror,
     };
 
+    enum class TextureColorSpace
+    {
+        Linear,
+        SRGB
+    };
+
     inline int getChannelCount(TextureFormat format)
     {
         switch (format)

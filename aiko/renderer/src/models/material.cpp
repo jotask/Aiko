@@ -247,6 +247,12 @@ namespace aiko
         return true;
     }
 
+    void Material::setAlbedoMap(AssetId textureId)
+    {
+        AIKO_ASSERT(textureId != InvalidAssetId, "Albedo texture id cannot be invalid");
+        setTexture("u_texture", textureId);
+    }
+
     void Material::setSpecular(float strength, float shininess)
     {
         AIKO_ASSERT(math::isfinite(strength) && strength >= 0.0f, "Specular strength must be finite and non-negative");

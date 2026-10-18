@@ -16,7 +16,7 @@
 namespace aiko
 {
 
-    AssetImportResult<TextureAsset> AssetImporter::loadTexture(const string& file_path)
+    AssetImportResult<TextureAsset> AssetImporter::loadTexture(const string& file_path, TextureColorSpace colorSpace)
     {
 
         std::string base = global::GLOBAL_ASSET_PATH;
@@ -56,7 +56,22 @@ namespace aiko
 
         TextureAsset asset = {};
         asset.desc.type = TextureType::Sampled;
-        asset.desc.format = TextureFormat::RGBA8;
+        switch (colorSpace)
+        {
+            case TextureColorSpace::Linear:
+                asset.desc.format = TextureFormat::RGBA8;
+                break;
+
+            case TextureColorSpace::SRGB:
+                asset.desc.format = TextureFormat::RGBA8_SRGB;
+                break;
+
+            default:
+                return AssetImportResult<TextureAsset>::failure(
+                    AssetImportError::InvalidData,
+                    "Invalid texture color space: " + file_path
+                );
+        }
         asset.desc.width = width;
         asset.desc.height = height;
         asset.desc.mipmaps = 1;
