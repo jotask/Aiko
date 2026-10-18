@@ -14,6 +14,7 @@
 #include "models/material.h"
 #include "models/render_target.h"
 #include "post_process_effect.h"
+#include "display_conversion.h"
 
 namespace aiko::renderer
 {
@@ -64,6 +65,8 @@ namespace aiko
 
         const std::vector<std::unique_ptr<PostProcessEffect>>& effects() const { return m_effects; }
 
+        void setDisplayConversionShader(AssetId shaderId);
+
     private:
         using EffectList = std::vector<std::unique_ptr<PostProcessEffect>>;
 
@@ -76,6 +79,8 @@ namespace aiko
 
         std::array<std::unique_ptr<RenderTarget>, 2> m_hdrTargets;
         std::array<std::unique_ptr<RenderTarget>, 2> m_ldrTargets;
+
+        std::unique_ptr<DisplayConversion> m_displayConversion;
 
         u32 m_width = 0;
         u32 m_height = 0;

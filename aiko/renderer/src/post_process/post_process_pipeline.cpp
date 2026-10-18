@@ -145,6 +145,8 @@ namespace aiko
     {
         clear();
 
+        m_displayConversion.reset();
+
         for (auto& target : m_hdrTargets)
         {
             if (target)
@@ -213,10 +215,11 @@ namespace aiko
     const Texture& PostProcessPipeline::execute(renderer::IRenderDevice& device, std::deque<Material>& frameMaterials, const RenderTarget& scene)
     {
         AIKO_ASSERT(scene.isValid(), "Post-processing requires a valid scene target");
+        AIKO_ASSERT(m_displayConversion != nullptr, "Display conversion is not initialized");
 
         const ivec2 size = scene.size();
 
-        AIKO_ASSERT(size.x > 0 && size.y > 0, "Invalid scene target dimensions");
+        AIKO_ASSERT(size.x > 0 && size.y > 0, "Invalid scene dimensions");
 
         const u32 width = static_cast<u32>(size.x);
         const u32 height = static_cast<u32>(size.y);
@@ -226,10 +229,8 @@ namespace aiko
             resize(width, height);
         }
 
-        const Texture* current = &scene.colorTexture();
-        PostProcessDomain currentDomain = PostProcessDomain::HDR;
-
-        bool transitionedToLdr = false;
+        // Validate the enabled chain before recording commands.
+        PostProcessDomain validatedDomain = PostProcessDomain::HDR;
 
         for (const auto& effect : m_effects)
         {
@@ -240,17 +241,20 @@ namespace aiko
                 continue;
             }
 
-            AIKO_ASSERT(effect->inputDomain() == currentDomain, "Invalid post-process input domain");
+            AIKO_ASSERT(effect->inputDomain() == validatedDomain, "Post-process effect input domain does not match");
+            AIKO_ASSERT(!(effect->inputDomain() == PostProcessDomain::LDR && effect->outputDomain() == PostProcessDomain::HDR), "LDR-to-HDR post-processing is unsupported");
 
-            if (effect->inputDomain() == PostProcessDomain::LDR && effect->outputDomain() == PostProcessDomain::HDR)
-            {
-                AIKO_ASSERT(false, "Post-processing cannot transition from LDR to HDR");
-            }
+            validatedDomain = effect->outputDomain();
+        }
 
-            if (currentDomain == PostProcessDomain::HDR && effect->outputDomain() == PostProcessDomain::LDR)
+        const Texture* current = &scene.colorTexture();
+        PostProcessDomain currentDomain = PostProcessDomain::HDR;
+
+        for (const auto& effect : m_effects)
+        {
+            if (!effect->enabled())
             {
-                AIKO_ASSERT(!transitionedToLdr, "Duplicate HDR-to-LDR transition");
-                transitionedToLdr = true;
+                continue;
             }
 
             RenderTarget& output = acquireTarget(effect->outputDomain(), *current, width, height);
@@ -263,7 +267,25 @@ namespace aiko
             currentDomain = effect->outputDomain();
         }
 
+        // Always return an LDR texture for presentation.
+        if (currentDomain == PostProcessDomain::HDR)
+        {
+            RenderTarget& output = acquireTarget(PostProcessDomain::LDR, *current, width, height);
+
+            PostProcessContext context(device, frameMaterials, *current, scene.depthTexture(), output);
+
+            m_displayConversion->execute(context);
+
+            current = &output.colorTexture();
+        }
+
         return *current;
+    }
+
+    void PostProcessPipeline::setDisplayConversionShader(AssetId shaderId)
+    {
+        AIKO_ASSERT(shaderId != InvalidAssetId, "Invalid display conversion shader");
+        m_displayConversion = std::make_unique<DisplayConversion>(shaderId);
     }
 
     std::vector<std::unique_ptr<PostProcessEffect>>::iterator  PostProcessPipeline::findIterator(const std::string& name)

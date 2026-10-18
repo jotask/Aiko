@@ -26,11 +26,23 @@ namespace aiko
         return m_renderModule->postProcessing();
     }
 
+
     void PostProcessSystem::init()
     {
-        const AssetId shaderId = m_assetSystem->registerAsset<ShaderAsset>("post_process/post_tonemap");
-        m_assetSystem->loadAsset<ShaderAsset>(shaderId);
-        auto& toneMapping = pipeline().addEffect<ToneMappingEffect>(shaderId);
+        // Internal display conversion, independent of the effect list.
+        const AssetId displayShader = m_assetSystem->registerAsset<ShaderAsset>("post_process/post_display");
+
+        m_assetSystem->loadAsset<ShaderAsset>(displayShader);
+        pipeline().setDisplayConversionShader(displayShader);
+
+        // Aiko's default, user-configurable tone-mapping effect.
+        const AssetId toneMappingShader = m_assetSystem->registerAsset<ShaderAsset>("post_process/post_tonemap");
+
+        m_assetSystem->loadAsset<ShaderAsset>(toneMappingShader);
+
+        auto& toneMapping = pipeline().addEffect<ToneMappingEffect>(toneMappingShader);
+
         toneMapping.setExposure(1.0f);
     }
+
 }
