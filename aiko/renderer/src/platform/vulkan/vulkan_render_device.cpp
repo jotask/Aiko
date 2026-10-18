@@ -355,7 +355,7 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(false, "Unsupported material uniform type");
         }
 
-        std::vector<uint8_t> buildMaterialUniformData(const VulkanShaderUniformBlock& block, const Shader& shader, const Material& material, bool hasTexture)
+        std::vector<uint8_t> buildMaterialUniformData(const VulkanShaderUniformBlock& block, const Shader& shader, const Material& material, bool hasTexture, bool hasNormalMap)
         {
             std::vector<uint8_t> data(block.size, 0);
 
@@ -391,7 +391,7 @@ namespace aiko::renderer::vulkan
                 }
                 else if (member.name == "u_pbrParams")
                 {
-                    builtInValue = vec4{material.metallic(), material.roughness(), 0.0f, 0.0f};
+                    builtInValue = vec4{material.metallic(), material.roughness(), hasNormalMap ? 1.0f : 0.0f, 0.0f};
                     value = &builtInValue;
                 }
                 else
@@ -1697,6 +1697,7 @@ namespace aiko::renderer::vulkan
                 .normal = source.normal,
                 .uv = source.uv,
                 .color = source.color,
+                .tangent = source.tangent,
             };
         }
 
@@ -1936,6 +1937,7 @@ namespace aiko::renderer::vulkan
         textureKeys.reserve(textureDescriptors.size());
 
         bool hasTexture = false;
+        bool hasNormalMap = false;
 
         for (const VulkanShaderDescriptorBinding* descriptor : textureDescriptors)
         {
@@ -1958,6 +1960,11 @@ namespace aiko::renderer::vulkan
                 hasTexture = texture != &m_whiteTexture;
             }
 
+            if (descriptor->name == "u_normalTexture")
+            {
+                hasNormalMap = texture != &m_whiteTexture;
+            }
+
             textureKeys.push_back(
             {
                 .binding = descriptor->binding,
@@ -1970,7 +1977,7 @@ namespace aiko::renderer::vulkan
             textureBindings.push_back(textureBinding);
         }
 
-        std::vector<uint8_t> uniformData = buildMaterialUniformData(uniformBlock, shader, material, hasTexture);
+        std::vector<uint8_t> uniformData = buildMaterialUniformData(uniformBlock, shader, material, hasTexture, hasNormalMap);
 
         const MaterialBindingKey key = makeMaterialBindingKey(material, std::move(textureKeys), std::move(uniformData));
 

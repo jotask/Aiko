@@ -18,6 +18,7 @@
 #include "render_factory.h"
 #include "time/time.h"
 #include "imgui/aiko_imgui.h"
+#include <assets/mesh_tangents.h>
 
 #include <cstdlib>
 #include <utility>
@@ -913,6 +914,17 @@ namespace aiko
 
         AIKO_FUNCTION_PROFILE
 
+        AIKO_ASSERT(meshAsset.m_tangents.empty() || meshAsset.m_tangents.size() == meshAsset.m_vertices.size(), "Transient mesh tangent count must match vertex count");
+
+        vector<vec4> generatedTangents;
+
+        if (topology == TransientTopology::Triangles && meshAsset.m_tangents.empty())
+        {
+            generatedTangents = mesh::calculateTangents(meshAsset);
+        }
+
+        const vector<vec4>& tangents = meshAsset.m_tangents.empty() ? generatedTangents : meshAsset.m_tangents;
+
         m_frameTransientGeometries.emplace_back();
 
         TransientGeometry& geometry = m_frameTransientGeometries.back();
@@ -945,7 +957,13 @@ namespace aiko
                 vertex.color = WHITE;
             }
 
+            if (!tangents.empty())
+            {
+                vertex.tangent = tangents[i];
+            }
+
             geometry.vertices.push_back(vertex);
+
         }
 
         geometry.indices = meshAsset.m_indices;

@@ -4,6 +4,7 @@
 #include "platform/vulkan/vulkan_context.h"
 #include "platform/vulkan/vulkan_types.h"
 
+#include <assets/mesh_tangents.h>
 #include <logger/logger.h>
 
 #include <cstring>
@@ -19,6 +20,15 @@ namespace aiko::renderer::vulkan
             vector<VulkanVertex> vertices;
             vertices.reserve(asset.m_vertices.size());
 
+            vector<vec4> generatedTangents;
+
+            if (asset.m_tangents.empty())
+            {
+                generatedTangents = mesh::calculateTangents(asset);
+            }
+
+            const vector<vec4>& tangents = asset.m_tangents.empty() ? generatedTangents : asset.m_tangents;
+
             for (size_t i = 0; i < asset.m_vertices.size(); ++i)
             {
                 VulkanVertex v{};
@@ -26,6 +36,7 @@ namespace aiko::renderer::vulkan
                 v.normal = i < asset.m_normals.size() ? asset.m_normals[i] : vec3{0.0f, 0.0f, 1.0f};
                 v.uv = i < asset.m_textCoord.size() ? asset.m_textCoord[i] : vec2{0.0f, 0.0f};
                 v.color = i < asset.m_colors.size() ? asset.m_colors[i] : WHITE;
+                v.tangent = tangents.empty() ? vec4{0.0f, 0.0f, 0.0f, 1.0f} : tangents[i];
                 vertices.push_back(v);
             }
 
@@ -83,6 +94,7 @@ namespace aiko::renderer::vulkan
     {
         AIKO_ASSERT(!asset.m_vertices.empty(), "Mesh has no vertices");
         AIKO_ASSERT(!asset.m_indices.empty(), "Mesh has no indices");
+        AIKO_ASSERT(asset.m_tangents.empty() || asset.m_tangents.size() == asset.m_vertices.size(), "Mesh tangent count must match vertex count");
 
         VulkanContext& ctx = VulkanContext::current();
         const VkDevice device = ctx.device();

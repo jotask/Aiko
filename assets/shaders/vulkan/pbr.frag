@@ -13,10 +13,16 @@ layout(
     binding = AIKO_MATERIAL_TEXTURE_BINDING + 1
 ) uniform sampler2D u_metallicRoughnessTexture;
 
+layout(
+    set = AIKO_GRAPHICS_MATERIAL_SET,
+    binding = AIKO_MATERIAL_TEXTURE_BINDING + 2
+) uniform sampler2D u_normalTexture;
+
 layout(location = 0) in vec2 v_texcoord0;
 layout(location = 1) in vec4 v_color0;
 layout(location = 2) in vec3 v_normal;
 layout(location = 3) in vec3 v_worldPos;
+layout(location = 4) in vec4 v_tangent;
 
 layout(location = 0) out vec4 outColor;
 
@@ -155,9 +161,56 @@ vec3 evaluatePBRLight(int index, vec3 P, vec3 N, vec3 V, vec3 albedo, float meta
     return (diffuse + specular) * radiance * NdotL;
 }
 
+vec3 resolvePBRNormal(vec3 interpolatedNormal)
+{
+    vec3 N = normalize(interpolatedNormal);
+
+    // No normal map assigned, or the texture is still loading.
+    if (u_pbrParams.z < 0.5)
+    {
+        return N;
+    }
+
+    // Orthogonalize the tangent against the interpolated normal.
+    vec3 T = v_tangent.xyz - N * dot(N, v_tangent.xyz);
+
+    float tangentLength2 = dot(T, T);
+
+    // This mesh has no usable tangent basis.
+    if (tangentLength2 <= 1e-8)
+    {
+        return N;
+    }
+
+    T *= inversesqrt(tangentLength2);
+
+    float handedness = v_tangent.w < 0.0 ? -1.0 : 1.0;
+
+    vec3 B = cross(N, T) * handedness;
+
+    // Tangent-space normal maps contain signed vector directions
+    // encoded into the unsigned [0, 1] RGB range.
+    vec3 mappedNormal = texture(u_normalTexture, v_texcoord0).rgb * 2.0 - 1.0;
+
+    float mappedLength2 = dot(mappedNormal, mappedNormal);
+
+    if (mappedLength2 <= 1e-8)
+    {
+        return N;
+    }
+
+    mappedNormal *= inversesqrt(mappedLength2);
+
+    return normalize(
+        T * mappedNormal.x +
+        B * mappedNormal.y +
+        N * mappedNormal.z
+    );
+}
+
 vec3 shadePBR(vec3 P, vec3 normal, vec3 albedo)
 {
-    vec3 N = normalize(normal);
+    vec3 N = resolvePBRNormal(normal);
 
     vec3 toCamera = u_cameraPos.xyz - P;
     float distance2 = dot(toCamera, toCamera);

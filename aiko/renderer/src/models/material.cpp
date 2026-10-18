@@ -261,6 +261,12 @@ namespace aiko
         setTexture("u_metallicRoughnessTexture", textureId);
     }
 
+    void Material::setNormalMap(AssetId textureId)
+    {
+        AIKO_ASSERT(textureId != InvalidAssetId, "Normal texture id cannot be invalid");
+        setTexture("u_normalTexture", textureId);
+    }
+
     void Material::setSpecular(float strength, float shininess)
     {
         AIKO_ASSERT(math::isfinite(strength) && strength >= 0.0f, "Specular strength must be finite and non-negative");

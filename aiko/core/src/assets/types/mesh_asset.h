@@ -13,6 +13,7 @@ namespace aiko
         vector<vec2>       m_textCoord;
         vector<vec3>       m_normals;
         vector<Color>      m_colors;
+        vector<vec4>       m_tangents;
         vector<uint16_t>   m_indices;
     };
 

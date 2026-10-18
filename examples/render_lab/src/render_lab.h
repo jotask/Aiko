@@ -177,6 +177,8 @@ namespace aiko::lab
         std::array<Material, 3> m_pbrMaterials;
         Material m_texturedPbrMaterial;
         Material m_metallicRoughnessTestMaterial;
+        std::array<Material, 3> m_normalMapTestMaterials;
+        Mesh m_normalMapTestMesh;
 
     };
 }

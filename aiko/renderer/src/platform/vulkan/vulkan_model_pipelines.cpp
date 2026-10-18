@@ -351,7 +351,7 @@ namespace aiko::renderer::vulkan
         const auto meshAttributes = VulkanVertex::attributeDescriptions();
 
         std::vector<VkVertexInputAttributeDescription> supportedAttributes;
-        supportedAttributes.reserve(8);
+        supportedAttributes.reserve(9);
 
         supportedAttributes.insert(
             supportedAttributes.end(),

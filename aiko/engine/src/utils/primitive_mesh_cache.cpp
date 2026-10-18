@@ -3,17 +3,32 @@
 #include "assets/types/mesh_asset.h"
 #include "models/mesh_factory.h"
 
+#include <assets/mesh_tangents.h>
+#include <utility>
+
 namespace aiko
 {
 
+    namespace
+    {
+        AikoUPtr<MeshAsset> makeCachedMesh(MeshAsset asset)
+        {
+            if (asset.m_tangents.empty())
+            {
+                asset.m_tangents = mesh::calculateTangents(asset);
+            }
+            return std::make_unique<MeshAsset>(std::move(asset));
+        }
+    }
+
     void PrimitiveMeshCache::init()
     {
-        m_triangleMesh = std::make_unique<MeshAsset>( mesh::factory::generateTriangle());
-        m_rectangleMesh = std::make_unique<MeshAsset>( mesh::factory::generateQuad());
-        m_pyramidMesh = std::make_unique<MeshAsset>( mesh::factory::generatePyramid());
-        m_cubeMesh = std::make_unique<MeshAsset>( mesh::factory::generateCube());
-        m_torusMesh = std::make_unique<MeshAsset>( mesh::factory::generateMeshTorus());
-        m_knotMesh = std::make_unique<MeshAsset>( mesh::factory::generateMeshKnot());
+        m_triangleMesh = makeCachedMesh(mesh::factory::generateTriangle());
+        m_rectangleMesh = makeCachedMesh(mesh::factory::generateQuad());
+        m_pyramidMesh = makeCachedMesh(mesh::factory::generatePyramid());
+        m_cubeMesh = makeCachedMesh(mesh::factory::generateCube());
+        m_torusMesh = makeCachedMesh(mesh::factory::generateMeshTorus());
+        m_knotMesh = makeCachedMesh(mesh::factory::generateMeshKnot());
     }
 
     MeshAsset& PrimitiveMeshCache::getOrCreateCircleMesh(uint segments)
@@ -24,7 +39,7 @@ namespace aiko
         {
             return *it->second;
         }
-        AikoUPtr<MeshAsset> mesh = std::make_unique<MeshAsset>(mesh::factory::generateCircle(segments));
+        AikoUPtr<MeshAsset> mesh = makeCachedMesh(mesh::factory::generateCircle(segments));
         MeshAsset& ref = *mesh;
         m_circleCache.emplace(segments, std::move(mesh));
         return ref;
@@ -44,7 +59,7 @@ namespace aiko
             return *it->second;
         }
 
-        AikoUPtr<MeshAsset> mesh = std::make_unique<MeshAsset>(mesh::factory::generateMeshPlane(1.0f, 1.0f, resolution.x, resolution.y));
+        AikoUPtr<MeshAsset> mesh = makeCachedMesh(mesh::factory::generateMeshPlane(1.0f, 1.0f, resolution.x, resolution.y));
         MeshAsset& ref = *mesh;
         m_gridCache.emplace(key, std::move(mesh));
         return ref;
@@ -65,7 +80,7 @@ namespace aiko
         {
             return *it->second;
         }
-        AikoUPtr<MeshAsset> mesh = std::make_unique<MeshAsset>(mesh::factory::generateMeshSphere(rings, sectors));
+        AikoUPtr<MeshAsset> mesh = makeCachedMesh(mesh::factory::generateMeshSphere(rings, sectors));
         MeshAsset& ref = *mesh;
         m_sphereCache.emplace(key, std::move(mesh));
         return ref;
@@ -79,7 +94,7 @@ namespace aiko
         {
             return *it->second;
         }
-        AikoUPtr<MeshAsset> mesh = std::make_unique<MeshAsset>(mesh::factory::generateMeshCylinder(sectors));
+        AikoUPtr<MeshAsset> mesh = makeCachedMesh(mesh::factory::generateMeshCylinder(sectors));
         MeshAsset& ref = *mesh;
         m_cylinderCache.emplace(sectors, std::move(mesh));
         return ref;

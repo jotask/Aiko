@@ -586,6 +586,52 @@ namespace aiko::lab
 
         m_metallicRoughnessTestMaterial.setMetallicRoughnessMap(assets().createTexture(mrTexture));
 
+        // Tangent-space normal map validation.
+        constexpr uint NormalSize = 256;
+        constexpr float TwoPi = 6.28318530718f;
+
+        TextureAsset flatNormal = texture::factory::generateBlank(NormalSize, NormalSize, Color{0.5f, 0.5f, 1.0f, 1.0f});
+
+        TextureAsset waveNormal = flatNormal;
+
+        for (uint y = 0; y < NormalSize; ++y)
+        {
+            for (uint x = 0; x < NormalSize; ++x)
+            {
+                const float u = static_cast<float>(x) / NormalSize;
+                const float v = static_cast<float>(y) / NormalSize;
+
+                const float nx = 0.65f * std::sin(TwoPi * 8.0f * u);
+                const float ny = 0.25f * std::sin(TwoPi * 6.0f * v);
+                const float nz = std::sqrt(1.0f - nx * nx - ny * ny);
+
+                waveNormal.pixels[y * NormalSize + x] = Color{
+                    nx * 0.5f + 0.5f,
+                    ny * 0.5f + 0.5f,
+                    nz * 0.5f + 0.5f,
+                    1.0f
+                };
+            }
+        }
+
+        // Identical material properties for all three spheres.
+        for (Material& material : m_normalMapTestMaterials)
+        {
+            material = m_pbrMaterials[1];
+            material.setMetallic(0.0f);
+            material.setRoughness(0.35f);
+        }
+
+        // First sphere: no normal map.
+        // Second sphere: neutral normal map.
+        m_normalMapTestMaterials[1].setNormalMap(assets().createTexture(flatNormal));
+
+        // Third sphere: procedurally perturbed normal map.
+        m_normalMapTestMaterials[2].setNormalMap(assets().createTexture(waveNormal));
+
+        // Persistent mesh: uses VulkanMeshImpl tangent generation.
+        m_normalMapTestMesh.upload(mesh::factory::generateMeshSphere(32, 32));
+
     }
 
     // --------------------------------------------------
@@ -672,7 +718,7 @@ namespace aiko::lab
         GameObject* root = Instantiate("Lights");
 
         constexpr float SpawnRadius = 6.0f;
-        constexpr size_t LightCount = 8;
+        constexpr size_t LightCount = 1;
 
         for (size_t i = 0; i < LightCount; ++i)
         {
@@ -687,8 +733,13 @@ namespace aiko::lab
 
             LightComponent* light = object->addComponent<LightComponent>();
 
-            light->setPointLight(Color::getRandomColor(), LightRange);
-            light->intensity = LightIntensity;
+            light->setDirectional(
+                WHITE,
+                {0.5f, -0.4f, -1.0f},
+                LightRange
+            );
+
+            light->intensity = 2.0f;
 
             LightInstance instance;
             instance.object = object;
@@ -1849,6 +1900,23 @@ namespace aiko::lab
         {
             m_renderSystem->renderSphere(light.object->transform().position, 0.08f, 12, &m_primitiveYellowMaterial);
         }
+
+        // Normal mapping comparison: none, flat, procedural waves.
+        for (size_t i = 0; i < m_normalMapTestMaterials.size(); ++i)
+        {
+            const vec3 position{ -2.0f + static_cast<float>(i) * 2.0f, -5.0f, -12.0f};
+            m_renderSystem->renderSphere(position, 0.8f, 32, &m_normalMapTestMaterials[i]);
+        }
+
+        // Normal mapping comparison using persistent meshes.
+        for (size_t i = 0; i < m_normalMapTestMaterials.size(); ++i)
+        {
+            Transform transform;
+            transform.position = { -2.0f + static_cast<float>(i) * 2.0f, -6.5f, -12.0f};
+            transform.scale = {0.8f, 0.8f, 0.8f};
+            m_renderSystem->render(transform, m_normalMapTestMesh, m_normalMapTestMaterials[i]);
+        }
+
     }
 
     void RenderLab::renderGpuVertices()

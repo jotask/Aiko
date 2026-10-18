@@ -23,6 +23,7 @@ namespace aiko
         vec3 normal;
         vec2 uv;
         Color color;
+        vec4 tangent;
 
         static VkVertexInputBindingDescription bindingDescription()
         {
@@ -33,14 +34,15 @@ namespace aiko
             };
         }
 
-        static std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions()
+        static std::array<VkVertexInputAttributeDescription, 5> attributeDescriptions()
         {
-            std::array<VkVertexInputAttributeDescription, 4> attributes{};
+            std::array<VkVertexInputAttributeDescription, 5> attributes{};
 
             attributes[0] = { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VulkanVertex, position) };
             attributes[1] = { 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VulkanVertex, normal) };
             attributes[2] = { 2, 0, VK_FORMAT_R32G32_SFLOAT,    offsetof(VulkanVertex, uv) };
             attributes[3] = { 3, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VulkanVertex, color) };
+            attributes[4] = { 8, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VulkanVertex, tangent)};
 
             return attributes;
         }

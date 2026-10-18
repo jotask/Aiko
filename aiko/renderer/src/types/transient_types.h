@@ -27,6 +27,7 @@ namespace aiko
         vec2 uv = vec2(0.0f);
         vec3 normal = vec3(0.0f);
         Color color = WHITE;
+        vec4 tangent = vec4{0.0f, 0.0f, 0.0f, 1.0f};
     };
 
     struct TransientGeometry
