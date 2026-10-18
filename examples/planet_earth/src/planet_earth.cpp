@@ -18,7 +18,7 @@ namespace pe
     {
 
         m_camera = scene().createCamera(aiko::camera::CameraController::Fly);
-        m_camera->getCamera().position = { 0.0f, 1.0f, 2.5f };
+        m_camera->getCamera().position = {0.0f, 0.0f, WorldRadius * 3.0f};
         m_camera->speed() = 28.0f;
         m_camera->radius() = 300.0f;
 
@@ -41,6 +41,7 @@ namespace pe
             .color = aiko::WHITE,
             .intensity = 1.5f
         };
+        m_sunLight.direction = aiko::math::normalize(m_sunLight.direction);
 
         m_earthMaterial.m_shaderId = assets().loadShader(aiko::renderer::BuiltinShader::Model);
         m_earthMaterial.m_baseColor = aiko::WHITE;
@@ -94,6 +95,10 @@ namespace pe
         m_scatteringAtmosphereMaterial.m_renderState.depthTest = true;
         m_scatteringAtmosphereMaterial.m_renderState.depthWrite = false;
         m_scatteringAtmosphereMaterial.m_renderState.cullMode = aiko::CullMode::Back;
+
+        m_scatteringAtmosphereMaterial.setVec4("u_planetCenterRadius", 0.0f, 0.0f, 0.0f, WorldRadius);
+        m_scatteringAtmosphereMaterial.setVec4("u_rayleighScattering", 0.015f, 0.038f, 0.090f, 0.0f);
+        m_scatteringAtmosphereMaterial.setVec4("u_mieSettings", 0.015f, 0.76f, 1.0f, 0.85f);
 
     }
 
@@ -181,41 +186,72 @@ namespace pe
             }
             ImGui::Spacing();
 
-            ImGui::SeparatorText("Rendering Setting");
+            ImGui::SeparatorText("Ocean");
+
             ImGui::Checkbox("Render Ocean", &m_showOcean);
-            ImGui::ColorEdit4("Ocean Color", &m_oceanMaterial.m_baseColor.r);
-            ImGui::Text("Sun");
+
+            if (m_showOcean)
+            {
+                ImGui::ColorEdit4("Ocean Color", &m_oceanMaterial.m_baseColor.r);
+            }
+
+            ImGui::Spacing();
+
+            ImGui::SeparatorText("Sun");
+
             ImGui::Checkbox("Show Sun", &m_showSun);
+
             ImGui::SliderFloat("Sun Intensity", &m_sunLight.intensity, 0.0f, 2.0f);
-            ImGui::ColorEdit4("Sun Color", &m_sunLight.color.r);
+            ImGui::ColorEdit3("Sun Color", &m_sunLight.color.r);
+
             ImGui::Checkbox("Animate Sun", &m_animateSun);
+
             if (m_animateSun)
             {
                 ImGui::SliderFloat("Sun Speed", &m_sunSpeed, 0.0f, 0.2f);
             }
             else
             {
-                ImGui::SliderFloat3("Sun Direction", &m_sunLight.direction.x, -1.0f, 1.0f);
+                const aiko::vec3 previousDirection = m_sunLight.direction;
+
+                if (ImGui::SliderFloat3("Sun Direction", &m_sunLight.direction.x, -1.0f, 1.0f))
+                {
+                    if (aiko::math::lengthSquared(m_sunLight.direction) <= 1e-8f)
+                    {
+                        m_sunLight.direction = previousDirection;
+                    }
+                    else
+                    {
+                        m_sunLight.direction = aiko::math::normalize(m_sunLight.direction);
+                    }
+                }
             }
+
             ImGui::Spacing();
 
             ImGui::SeparatorText("Atmosphere");
-            ImGui::Checkbox("Show Atmosphere", &m_showAtmosphere);
-            ImGui::Checkbox("Use Scattering Atmosphere", &m_useScatteringAtmosphere);
-            ImGui::SliderFloat("Atmosphere Thickness", &m_atmosphereThickness, 0.005f, 0.10f);
-            if (m_useScatteringAtmosphere)
-            {
-                ImGui::SliderFloat("Scattering Exposure", &m_scatteringExposure, 0.5f, 20.0f);
-            }
-            else
-            {
-                ImGui::SliderFloat("Atmosphere Intensity", &m_atmosphereIntensity, 0.0f, 1.0f);
-                ImGui::SliderFloat("Atmosphere Falloff", &m_atmosphereFalloff, 1.0f, 8.0f);
-                ImGui::SliderFloat("Sunset Strength", &m_atmosphereSunsetStrength, 0.0f, 1.0f);
-                ImGui::ColorEdit3("Atmosphere Color", &m_atmosphereMaterial.m_baseColor.r);
-            }
 
+            ImGui::Checkbox("Show Atmosphere", &m_showAtmosphere);
+
+            if (m_showAtmosphere)
+            {
+                ImGui::Checkbox("Use Scattering Atmosphere", &m_useScatteringAtmosphere);
+                ImGui::SliderFloat("Atmosphere Thickness", &m_atmosphereThickness, 0.005f, 0.10f);
+
+                if (m_useScatteringAtmosphere)
+                {
+                    ImGui::SliderFloat("Scattering Exposure", &m_scatteringExposure, 0.5f, 20.0f);
+                }
+                else
+                {
+                    ImGui::SliderFloat("Atmosphere Intensity", &m_atmosphereIntensity, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Atmosphere Falloff", &m_atmosphereFalloff, 1.0f, 8.0f);
+                    ImGui::SliderFloat("Sunset Strength", &m_atmosphereSunsetStrength, 0.0f, 1.0f);
+                    ImGui::ColorEdit3("Atmosphere Color", &m_atmosphereMaterial.m_baseColor.r);
+                }
+            }
         }
+
         ImGui::End();
 
         // Render World
@@ -263,16 +299,12 @@ namespace pe
 
             if (m_useScatteringAtmosphere)
             {
-                m_scatteringAtmosphereMaterial.setVec4("u_planetCenterRadius", 0.0f, 0.0f, 0.0f, groundRadius);
-                m_scatteringAtmosphereMaterial.setVec4("u_atmosphereSettings", atmosphereRadius, WorldRadius * 0.0077f, WorldRadius * 0.0028f, m_scatteringExposure);
-                m_scatteringAtmosphereMaterial.setVec4("u_rayleighScattering", 0.015f, 0.038f, 0.090f, 0.0f);
-
                 m_scatteringAtmosphereMaterial.setVec4(
-                    "u_mieSettings",
-                    0.015f,  // Mie scattering coefficient
-                    0.76f,   // Anisotropy
-                    1.0f,    // Opacity scale
-                    0.85f   // Maximum alpha
+                    "u_atmosphereSettings",
+                    atmosphereRadius,
+                    WorldRadius * 0.0077f,
+                    WorldRadius * 0.0028f,
+                    m_scatteringExposure
                 );
 
                 renderer().drawMesh(atmosphereTransform, m_oceanMesh, m_scatteringAtmosphereMaterial);
@@ -283,8 +315,6 @@ namespace pe
                 renderer().drawMesh(atmosphereTransform, m_oceanMesh, m_atmosphereMaterial);
             }
         }
-
     }
-
 }
 
