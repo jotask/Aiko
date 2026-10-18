@@ -12,6 +12,8 @@
 
 #include <magic_enum/magic_enum.hpp>
 
+#include <cmath>
+
 namespace YAML
 {
 
@@ -146,10 +148,16 @@ namespace YAML
         static Node encode(const aiko::Material& rhs)
         {
             Node node(NodeType::Map);
+
             node["baseColor"] = rhs.m_baseColor;
             node["lit"] = rhs.m_lit;
             node["useVertexColor"] = rhs.m_useVertexColor;
+
+            node["specularStrength"] = rhs.specularStrength();
+            node["shininess"] = rhs.shininess();
+
             node["renderState"] = rhs.m_renderState;
+
             return node;
         }
 
@@ -174,6 +182,26 @@ namespace YAML
             {
                 rhs.m_useVertexColor = node["useVertexColor"].as<bool>();
             }
+
+            float specularStrength = rhs.specularStrength();
+            float shininess = rhs.shininess();
+
+            if (node["specularStrength"])
+            {
+                specularStrength = node["specularStrength"].as<float>();
+            }
+
+            if (node["shininess"])
+            {
+                shininess = node["shininess"].as<float>();
+            }
+
+            if (!std::isfinite(specularStrength) || specularStrength < 0.0f || !std::isfinite(shininess) || shininess < 1.0f)
+            {
+                return false;
+            }
+
+            rhs.setSpecular(specularStrength, shininess);
 
             if (node["renderState"])
             {

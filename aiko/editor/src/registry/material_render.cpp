@@ -69,6 +69,21 @@ namespace aiko::editor::component
 
         changed |= ImGui::Checkbox("Lit", &material.m_lit);
 
+        if (material.m_lit)
+        {
+            float specularStrength = material.specularStrength();
+            float shininess = material.shininess();
+
+            const bool strengthChanged = ImGui::SliderFloat("Specular Strength", &specularStrength, 0.0f, 2.0f);
+            const bool shininessChanged = ImGui::SliderFloat("Shininess", &shininess, 1.0f, 256.0f);
+
+            if (strengthChanged || shininessChanged)
+            {
+                material.setSpecular(specularStrength, shininess);
+                changed = true;
+            }
+        }
+
         changed |= ImGui::Checkbox("Use Vertex Color", &material.m_useVertexColor);
 
         ImGui::Spacing();
