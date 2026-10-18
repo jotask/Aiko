@@ -89,6 +89,7 @@
         void setAlbedoMap(AssetId textureId);
         void setMetallicRoughnessMap(AssetId textureId);
         void setNormalMap(AssetId textureId);
+        void setAmbientOcclusionMap(AssetId textureId);
 
         void setSpecular(float strength, float shininess);
         float specularStrength() const { return m_specularStrength; }

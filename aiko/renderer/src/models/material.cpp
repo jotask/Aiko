@@ -267,6 +267,12 @@ namespace aiko
         setTexture("u_normalTexture", textureId);
     }
 
+    void Material::setAmbientOcclusionMap(AssetId textureId)
+    {
+        AIKO_ASSERT(textureId != InvalidAssetId, "Ambient occlusion texture id cannot be invalid");
+        setTexture("u_occlusionTexture", textureId);
+    }
+
     void Material::setSpecular(float strength, float shininess)
     {
         AIKO_ASSERT(math::isfinite(strength) && strength >= 0.0f, "Specular strength must be finite and non-negative");

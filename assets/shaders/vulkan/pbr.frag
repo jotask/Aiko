@@ -18,6 +18,13 @@ layout(
     binding = AIKO_MATERIAL_TEXTURE_BINDING + 2
 ) uniform sampler2D u_normalTexture;
 
+// Ambient occlusion texture.
+// R = occlusion factor.
+layout(
+    set = AIKO_GRAPHICS_MATERIAL_SET,
+    binding = AIKO_MATERIAL_TEXTURE_BINDING + 3
+) uniform sampler2D u_occlusionTexture;
+
 layout(location = 0) in vec2 v_texcoord0;
 layout(location = 1) in vec4 v_color0;
 layout(location = 2) in vec3 v_normal;
@@ -221,10 +228,13 @@ vec3 shadePBR(vec3 P, vec3 normal, vec3 albedo)
 
     float roughness = clamp(u_pbrParams.y * mrSample.g, 0.0, 1.0);
 
+    // Ambient occlusion affects indirect lighting, not direct lights.
+    float occlusion = clamp(texture(u_occlusionTexture, v_texcoord0).r, 0.0, 1.0);
+
     // Approximation until environment lighting / IBL is added.
     vec3 ambientColor = aikoSrgbToLinear(u_ambientColor.rgb);
 
-    vec3 result = albedo * (1.0 - metallic) * ambientColor * u_ambientIntensity.x;
+    vec3 result = albedo * (1.0 - metallic) * ambientColor * u_ambientIntensity.x * occlusion;
 
     if (distance2 <= 1e-8)
     {
