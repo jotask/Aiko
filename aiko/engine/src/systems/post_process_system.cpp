@@ -5,6 +5,7 @@
 
 #include "systems/asset_system.h"
 #include "systems/system_connector.h"
+#include <post_process/bloom_effect.h>
 
 #include <post_process/post_process_pipeline.h>
 #include <post_process/tone_mapping_effect.h>
@@ -29,19 +30,33 @@ namespace aiko
     void PostProcessSystem::init()
     {
         // Internal display conversion, independent of the effect list.
-        const AssetId displayShader = m_assetSystem->registerAsset<ShaderAsset>("post_process/post_display");
+        const AssetId displayShader = m_assetSystem->registerShader("post_process/fullscreen.vert", "post_process/post_display");
 
         m_assetSystem->loadAsset<ShaderAsset>(displayShader);
         pipeline().setDisplayConversionShader(displayShader);
 
+        // Bloom
+        const AssetId bloomExtractShader = m_assetSystem->registerShader("post_process/fullscreen.vert", "post_process/post_bloom_extract");
+        const AssetId bloomDownsampleShader = m_assetSystem->registerShader("post_process/fullscreen.vert", "post_process/post_bloom_downsample");
+        const AssetId bloomUpsampleShader = m_assetSystem->registerShader("post_process/fullscreen.vert", "post_process/post_bloom_upsample");
+        const AssetId bloomCompositeShader = m_assetSystem->registerShader("post_process/fullscreen.vert", "post_process/post_bloom_composite");
+
+        m_assetSystem->loadAsset<ShaderAsset>(bloomExtractShader);
+        m_assetSystem->loadAsset<ShaderAsset>(bloomDownsampleShader);
+        m_assetSystem->loadAsset<ShaderAsset>(bloomUpsampleShader);
+        m_assetSystem->loadAsset<ShaderAsset>(bloomCompositeShader);
+
+        auto& bloom = pipeline().addEffect<BloomEffect>(bloomExtractShader, bloomDownsampleShader, bloomUpsampleShader, bloomCompositeShader);
+
+        bloom.setThreshold(1.0f);
+        bloom.setIntensity(0.5f);
+
         // Aiko's default, user-configurable tone-mapping effect.
-        const AssetId toneMappingShader = m_assetSystem->registerAsset<ShaderAsset>("post_process/post_tonemap");
-
+        const AssetId toneMappingShader = m_assetSystem->registerShader("post_process/fullscreen.vert", "post_process/post_tonemap");
         m_assetSystem->loadAsset<ShaderAsset>(toneMappingShader);
-
         auto& toneMapping = pipeline().addEffect<ToneMappingEffect>(toneMappingShader);
-
         toneMapping.setExposure(1.0f);
+
     }
 
 }

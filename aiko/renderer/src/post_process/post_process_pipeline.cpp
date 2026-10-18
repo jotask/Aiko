@@ -127,6 +127,18 @@ namespace aiko
             }
         }
 
+        for (auto& scratch : m_scratchTargets)
+        {
+            if (scratch.target)
+            {
+                scratch.target->unload();
+            }
+
+            scratch.width = 0;
+            scratch.height = 0;
+            scratch.usedThisFrame = false;
+        }
+
         for (auto& target : m_ldrTargets)
         {
             if (target)
@@ -164,6 +176,16 @@ namespace aiko
                 target.reset();
             }
         }
+
+        for (auto& scratch : m_scratchTargets)
+        {
+            if (scratch.target)
+            {
+                scratch.target->unload();
+            }
+        }
+
+        m_scratchTargets.clear();
 
         m_width = 0;
         m_height = 0;
@@ -212,6 +234,50 @@ namespace aiko
         std::abort();
     }
 
+
+    RenderTarget& PostProcessPipeline::acquireScratch(u32 slot, u32 width, u32 height, PostProcessDomain domain)
+    {
+        AIKO_ASSERT(width > 0 && height > 0, "Invalid scratch dimensions");
+
+        if (slot >= m_scratchTargets.size())
+        {
+            m_scratchTargets.resize(static_cast<size_t>(slot) + 1);
+        }
+
+        ScratchTarget& scratch = m_scratchTargets[slot];
+
+        const TextureFormat format = domain == PostProcessDomain::HDR ? TextureFormat::RGBA16F : TextureFormat::RGBA8;
+
+        if (!scratch.target)
+        {
+            scratch.target = std::make_unique<RenderTarget>();
+        }
+
+        const bool specificationChanged = scratch.width != width || scratch.height != height || scratch.domain != domain;
+
+        AIKO_ASSERT(!scratch.usedThisFrame || !specificationChanged, "Scratch slot specification changed during frame execution");
+
+        if (scratch.target->isValid() && (scratch.width != width || scratch.height != height || scratch.domain != domain))
+        {
+            scratch.target->unload();
+        }
+
+        if (!scratch.target->isValid())
+        {
+            scratch.target->create(width, height, format);
+
+            AIKO_ASSERT(scratch.target->isValid(), "Failed to create post-process scratch target");
+
+            scratch.width = width;
+            scratch.height = height;
+            scratch.domain = domain;
+        }
+
+        scratch.usedThisFrame = true;
+
+        return *scratch.target;
+    }
+
     const Texture& PostProcessPipeline::execute(renderer::IRenderDevice& device, std::deque<Material>& frameMaterials, const RenderTarget& scene)
     {
         AIKO_ASSERT(scene.isValid(), "Post-processing requires a valid scene target");
@@ -233,6 +299,21 @@ namespace aiko
         if (width != m_width || height != m_height)
         {
             resize(width, height);
+        }
+
+        auto scratchAllocator =
+            [this](
+                u32 slot,
+                u32 width,
+                u32 height,
+                PostProcessDomain domain) -> RenderTarget&
+            {
+                return acquireScratch(slot, width, height, domain);
+            };
+
+        for (auto& scratch : m_scratchTargets)
+        {
+            scratch.usedThisFrame = false;
         }
 
         // Validate the enabled chain before recording commands.
@@ -265,7 +346,7 @@ namespace aiko
 
             RenderTarget& output = acquireTarget(effect->outputDomain(), *current, width, height);
 
-            PostProcessContext context(device, frameMaterials, *current, scene.depthTexture(), output);
+            PostProcessContext context(device, frameMaterials, *current, scene.depthTexture(), output, scratchAllocator);
 
             effect->execute(context);
 
@@ -278,7 +359,7 @@ namespace aiko
         {
             RenderTarget& output = acquireTarget(PostProcessDomain::LDR, *current, width, height);
 
-            PostProcessContext context(device, frameMaterials, *current, scene.depthTexture(), output);
+            PostProcessContext context(device, frameMaterials, *current, scene.depthTexture(), output, scratchAllocator);
 
             m_displayConversion->execute(context);
 

@@ -198,6 +198,14 @@ namespace aiko::renderer::vulkan
             "Vulkan Graphics Pass 5 GPU ms",
             "Vulkan Graphics Pass 6 GPU ms",
             "Vulkan Graphics Pass 7 GPU ms",
+            "Vulkan Graphics Pass 8 GPU ms",
+            "Vulkan Graphics Pass 9 GPU ms",
+            "Vulkan Graphics Pass 10 GPU ms",
+            "Vulkan Graphics Pass 11 GPU ms",
+            "Vulkan Graphics Pass 12 GPU ms",
+            "Vulkan Graphics Pass 13 GPU ms",
+            "Vulkan Graphics Pass 14 GPU ms",
+            "Vulkan Graphics Pass 15 GPU ms",
         };
 
         for (uint32_t pass = 0; pass < passCount; ++pass)

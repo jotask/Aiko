@@ -46,7 +46,7 @@ namespace aiko::renderer::vulkan
 
     private:
         #ifdef AIKO_PROFILER
-        static constexpr uint32_t MaxGraphicsPasses = 8;
+        static constexpr uint32_t MaxGraphicsPasses = 16;
         static constexpr uint32_t GraphicsTimestampCountPerFrame = 2 + MaxGraphicsPasses * 2;
 
         static constexpr uint32_t MaxComputePasses = 256;

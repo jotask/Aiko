@@ -77,6 +77,7 @@ namespace aiko
         EffectList::const_iterator findIterator(const std::string& name) const;
 
         RenderTarget& acquireTarget(PostProcessDomain domain, const Texture& input, u32 width,u32 height);
+        RenderTarget& acquireScratch(u32 slot, u32 width, u32 height, PostProcessDomain domain);
 
         EffectList m_effects;
 
@@ -89,5 +90,17 @@ namespace aiko
         u32 m_height = 0;
 
         bool m_enabled = true;
+
+        struct ScratchTarget
+        {
+            std::unique_ptr<RenderTarget> target;
+            u32 width = 0;
+            u32 height = 0;
+            PostProcessDomain domain = PostProcessDomain::HDR;
+            bool usedThisFrame = false;
+        };
+
+        std::vector<ScratchTarget> m_scratchTargets;
+
     };
 }
