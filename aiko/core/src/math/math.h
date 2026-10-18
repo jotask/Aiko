@@ -27,6 +27,16 @@ namespace aiko
     namespace math
     {
 
+        inline bool isfinite(float v)
+        {
+            return std::isfinite(v);
+        }
+
+        inline bool isfinite(const vec3& v)
+        {
+            return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z);
+        }
+
         inline float sqrt(float v)
         {
             return std::sqrt(v);

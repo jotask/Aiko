@@ -4,7 +4,6 @@
 
 #include <utility>
 #include <type_traits>
-#include <cmath>
 
 namespace aiko
 {
@@ -250,21 +249,21 @@ namespace aiko
 
     void Material::setSpecular(float strength, float shininess)
     {
-        AIKO_ASSERT(std::isfinite(strength) && strength >= 0.0f, "Specular strength must be finite and non-negative");
-        AIKO_ASSERT(std::isfinite(shininess) && shininess >= 1.0f, "Specular shininess must be finite and at least 1");
+        AIKO_ASSERT(math::isfinite(strength) && strength >= 0.0f, "Specular strength must be finite and non-negative");
+        AIKO_ASSERT(math::isfinite(shininess) && shininess >= 1.0f, "Specular shininess must be finite and at least 1");
         m_specularStrength = strength;
         m_shininess = shininess;
     }
 
     void Material::setMetallic(float metallic)
     {
-        AIKO_ASSERT(std::isfinite(metallic) && metallic >= 0.0f && metallic <= 1.0f, "Metallic must be finite and between 0 and 1");
+        AIKO_ASSERT(math::isfinite(metallic) && metallic >= 0.0f && metallic <= 1.0f, "Metallic must be finite and between 0 and 1");
         m_metallic = metallic;
     }
 
     void Material::setRoughness(float roughness)
     {
-        AIKO_ASSERT(std::isfinite(roughness) && roughness >= 0.0f && roughness <= 1.0f, "Roughness must be finite and between 0 and 1");
+        AIKO_ASSERT(math::isfinite(roughness) && roughness >= 0.0f && roughness <= 1.0f, "Roughness must be finite and between 0 and 1");
         m_roughness = roughness;
     }
 

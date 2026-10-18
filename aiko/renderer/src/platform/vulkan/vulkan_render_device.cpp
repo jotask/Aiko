@@ -19,7 +19,6 @@
 
 #include <array>
 #include <cstring>
-#include <cmath>
 #include <algorithm>
 
 namespace aiko::renderer::vulkan
@@ -372,7 +371,7 @@ namespace aiko::renderer::vulkan
                 }
                 else if (member.name == "u_flags")
                 {
-                    AIKO_ASSERT(std::isfinite(material.m_pointSize) && material.m_pointSize > 0.0f, "Material point size must be finite and greater than zero");
+                    AIKO_ASSERT(math::isfinite(material.m_pointSize) && material.m_pointSize > 0.0f, "Material point size must be finite and greater than zero");
 
                     const auto& capabilities = VulkanContext::current().capabilities();
 
@@ -821,7 +820,7 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        AIKO_ASSERT(std::isfinite(material.m_lineWidth) && material.m_lineWidth > 0.0f, "Material line width must be finite and greater than zero");
+        AIKO_ASSERT(math::isfinite(material.m_lineWidth) && material.m_lineWidth > 0.0f, "Material line width must be finite and greater than zero");
 
         const auto& capabilities = m_context.capabilities();
 

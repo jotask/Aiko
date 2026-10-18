@@ -1,5 +1,7 @@
 #include "mesh_asset_to_shape.h"
 
+#include <math/math.h>
+
 namespace aiko::physics
 {
 
@@ -17,7 +19,7 @@ namespace aiko::physics
 
         for (const vec3& v : asset.m_vertices)
         {
-            AIKO_ASSERT(std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z), "Mesh vertex is NaN/Inf");
+            AIKO_ASSERT(math::isfinite(v), "Mesh vertex is NaN/Inf");
         }
 
         TriangleMeshShapeDesc out{};

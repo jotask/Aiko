@@ -1,12 +1,12 @@
 #include "jolt_shape_factory.h"
 
+#include <math/math.h>
+
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 
 #include "Jolt/Physics/Collision/Shape/MeshShape.h"
-
-#include <cmath>
 
 namespace aiko::physics
 {
@@ -15,7 +15,7 @@ namespace aiko::physics
     {
         bool validDimension(float value)
         {
-            return std::isfinite(value) && value > 0.0f;
+            return math::isfinite(value) && value > 0.0f;
         }
     }
 
@@ -75,7 +75,7 @@ namespace aiko::physics
 
                 for (const vec3& v : srcVertices)
                 {
-                    if (!std::isfinite(v.x) || !std::isfinite(v.y) || !std::isfinite(v.z))
+                    if (!math::isfinite(v.x) || !math::isfinite(v.y) || !math::isfinite(v.z))
                     {
                         return nullptr;
                     }

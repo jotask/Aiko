@@ -3,8 +3,6 @@
 #include <Jolt/Jolt.h>
 #include <Jolt/Math/Quat.h>
 
-#include <cmath>
-
 #include "internal/job_aiko_converters.h"
 
 namespace aiko::physics
@@ -23,10 +21,6 @@ namespace aiko::physics
             return rotation.Normalized();
         }
 
-        bool finiteVector(const vec3& value)
-        {
-            return std::isfinite(value.x) && std::isfinite(value.y) && std::isfinite(value.z);
-        }
     }
 
     Transform toPhysicsTransform(const Transform& transform)
@@ -41,7 +35,7 @@ namespace aiko::physics
 
     bool applyPhysicsTransform(Transform& transform, const Transform& physicsTransform)
     {
-        if (!finiteVector(physicsTransform.position) || !finiteVector(physicsTransform.rotation))
+        if (!math::isfinite(physicsTransform.position) || !math::isfinite(physicsTransform.rotation))
         {
             return false;
         }
@@ -71,14 +65,14 @@ namespace aiko::physics
 
             const float determinant = math::dot(x, math::cross(y, z));
 
-            if (!std::isfinite(determinant) || determinant == 0.0f)
+            if (!math::isfinite(determinant) || determinant == 0.0f)
             {
                 return false;
             }
 
             position = math::transformPoint(math::inverse(parentWorld), physicsTransform.position);
 
-            if (!finiteVector(position))
+            if (!math::isfinite(position))
             {
                 return false;
             }
@@ -88,7 +82,7 @@ namespace aiko::physics
             rotation = convert::fromJoltRotation(localRotation.Normalized());
         }
 
-        if (!finiteVector(rotation))
+        if (!math::isfinite(rotation))
         {
             return false;
         }

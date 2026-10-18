@@ -6,8 +6,6 @@
 #include "internal/player_controller_impl.h"
 #include "internal/job_aiko_converters.h"
 
-#include <cmath>
-
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Math/Quat.h>
 #include <Jolt/Physics/Body/BodyFilter.h>
@@ -43,7 +41,7 @@ namespace aiko::physics
             return false;
         }
 
-        if (!std::isfinite(desc.radius) || desc.radius <= 0.0f || !std::isfinite(desc.halfHeight) || desc.halfHeight <= 0.0f)
+        if (!math::isfinite(desc.radius) || desc.radius <= 0.0f || !math::isfinite(desc.halfHeight) || desc.halfHeight <= 0.0f)
         {
             return false;
         }
@@ -217,7 +215,7 @@ namespace aiko::physics
 
     void PlayerController::update(const PlayerInput& input, float dt)
     {
-        if (m_impl == nullptr || m_impl->character == nullptr || !std::isfinite(dt) || dt <= 0.0f)
+        if (m_impl == nullptr || m_impl->character == nullptr || !math::isfinite(dt) || dt <= 0.0f)
         {
             return;
         }

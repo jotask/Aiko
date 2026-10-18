@@ -12,8 +12,6 @@
 
 #include <magic_enum/magic_enum.hpp>
 
-#include <cmath>
-
 namespace YAML
 {
 
@@ -196,7 +194,7 @@ namespace YAML
                 shininess = node["shininess"].as<float>();
             }
 
-            if (!std::isfinite(specularStrength) || specularStrength < 0.0f || !std::isfinite(shininess) || shininess < 1.0f)
+            if (!math::isfinite(specularStrength) || specularStrength < 0.0f || !math::isfinite(shininess) || shininess < 1.0f)
             {
                 return false;
             }

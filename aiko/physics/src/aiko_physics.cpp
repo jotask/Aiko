@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <array>
 #include <thread>
-#include <cmath>
 
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyInterface.h>
@@ -26,15 +25,6 @@
 namespace aiko::physics
 {
 
-    namespace
-    {
-        bool finiteVector(const vec3& value)
-        {
-            return std::isfinite(value.x) &&
-                   std::isfinite(value.y) &&
-                   std::isfinite(value.z);
-        }
-    }
 
     AikoPhysics::AikoPhysics() = default;
 
@@ -102,7 +92,7 @@ namespace aiko::physics
             return;
         }
 
-        if (!std::isfinite(desc.deltaTime) || desc.deltaTime <= 0.0f || desc.collisionSteps < 1)
+        if (!math::isfinite(desc.deltaTime) || desc.deltaTime <= 0.0f || desc.collisionSteps < 1)
         {
             return;
         }
@@ -125,7 +115,7 @@ namespace aiko::physics
         }
 
         // Primitive bodies retain mass properties so they can become dynamic later.
-        if (supportsMotionChanges && (!std::isfinite(desc.mass) || desc.mass <= 0.0f))
+        if (supportsMotionChanges && (!math::isfinite(desc.mass) || desc.mass <= 0.0f))
         {
             return InvalidBodyId;
         }
@@ -370,7 +360,7 @@ namespace aiko::physics
             return;
         }
 
-        if (!std::isfinite(deltaTime) || deltaTime <= 0.0f || !finiteVector(target.position) || !finiteVector(target.rotation))
+        if (!math::isfinite(deltaTime) || deltaTime <= 0.0f || !math::isfinite(target.position) || !math::isfinite(target.rotation))
         {
             return;
         }
@@ -587,14 +577,14 @@ namespace aiko::physics
     {
         outHit = {};
 
-        if (m_impl == nullptr || m_impl->physicsSystem == nullptr || !finiteVector(desc.from) || !finiteVector(desc.to))
+        if (m_impl == nullptr || m_impl->physicsSystem == nullptr || !math::isfinite(desc.from) || !math::isfinite(desc.to))
         {
             return false;
         }
 
         const vec3 delta = desc.to - desc.from;
 
-        if (!finiteVector(delta) || (delta.x == 0.0f && delta.y == 0.0f && delta.z == 0.0f))
+        if (!math::isfinite(delta) || (delta.x == 0.0f && delta.y == 0.0f && delta.z == 0.0f))
         {
             return false;
         }
@@ -644,7 +634,7 @@ namespace aiko::physics
             return result;
         }
 
-        if (!finiteVector(desc.center) || !std::isfinite(desc.radius) || desc.radius <= 0.0f)
+        if (!math::isfinite(desc.center) || !math::isfinite(desc.radius) || desc.radius <= 0.0f)
         {
             return result;
         }
@@ -688,7 +678,7 @@ namespace aiko::physics
             return result;
         }
 
-        if (!finiteVector(desc.center) || !finiteVector(desc.halfExtent) || !finiteVector(desc.rotation) || desc.halfExtent.x <= 0.0f || desc.halfExtent.y <= 0.0f || desc.halfExtent.z <= 0.0f)
+        if (!math::isfinite(desc.center) || !math::isfinite(desc.halfExtent) || !math::isfinite(desc.rotation) || desc.halfExtent.x <= 0.0f || desc.halfExtent.y <= 0.0f || desc.halfExtent.z <= 0.0f)
         {
             return result;
         }

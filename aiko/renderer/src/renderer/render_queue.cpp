@@ -7,7 +7,6 @@
 #include "models/mesh.h"
 #include "renderer/gpu_instance_sorter.h"
 
-#include <cmath>
 #include <cstring>
 
 namespace aiko
@@ -122,7 +121,7 @@ namespace aiko
             AIKO_ASSERT(desc.transparencySortPosition.has_value(), "Blended GPU draws require a world-space transparency sort position");
 
             const vec3& position = *desc.transparencySortPosition;
-            AIKO_ASSERT(std::isfinite(position.x) && std::isfinite(position.y) && std::isfinite(position.z), "GPU transparency sort position must be finite");
+            AIKO_ASSERT(math::isfinite(position), "GPU transparency sort position must be finite");
 
             const float depth = -(
                 view(2, 0) * position.x +
@@ -130,7 +129,7 @@ namespace aiko
                 view(2, 2) * position.z +
                 view(2, 3));
 
-            AIKO_ASSERT(std::isfinite(depth), "GPU transparency depth must be finite");
+            AIKO_ASSERT(math::isfinite(depth), "GPU transparency depth must be finite");
 
             return depth;
         };
