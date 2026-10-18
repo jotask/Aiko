@@ -70,7 +70,7 @@ namespace aiko::lab
 
         initCamera();
 
-        renderer().postProcessing().setEnabled(tru);
+        renderer().postProcessing().setEnabled(true);
 
         if constexpr (EnableUI || EnableTextTests)
         {
@@ -753,7 +753,7 @@ namespace aiko::lab
         GameObject* root = Instantiate("Lights");
 
         constexpr float SpawnRadius = 6.0f;
-        constexpr size_t LightCount = 1;
+        constexpr size_t LightCount = 8;
 
         for (size_t i = 0; i < LightCount; ++i)
         {
@@ -767,14 +767,8 @@ namespace aiko::lab
             };
 
             LightComponent* light = object->addComponent<LightComponent>();
-
-            light->setDirectional(
-                WHITE,
-                {0.5f, -0.4f, -1.0f},
-                LightRange
-            );
-
-            light->intensity = 2.0f;
+            light->setPointLight(Color::getRandomColor(), LightRange);
+            light->intensity = LightIntensity;
 
             LightInstance instance;
             instance.object = object;
