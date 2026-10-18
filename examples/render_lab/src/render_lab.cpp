@@ -23,6 +23,7 @@
 #include "systems/system_connector.h"
 #include "types/builtin_shaders.h"
 #include "types/color.h"
+#include "assets/asset_importer.h"
 #include "types/render_state.h"
 
 #include <core/random.h>
@@ -631,6 +632,24 @@ namespace aiko::lab
 
         // Persistent mesh: uses VulkanMeshImpl tangent generation.
         m_normalMapTestMesh.upload(mesh::factory::generateMeshSphere(32, 32));
+
+        // Full PBR material integration test.
+        m_fullPbrMaterial = m_pbrMaterials[1];
+
+        auto albedo = assets().loadTexture("textures/pbr/fire_hydrant/albedo.png");
+        auto normal = assets().loadTexture("textures/pbr/fire_hydrant/normal.png");
+        auto orm = assets().loadTexture("textures/pbr/fire_hydrant/orm.png");
+
+        m_fullPbrMaterial.setAlbedoMap(albedo);
+        m_fullPbrMaterial.setNormalMap(normal);
+        m_fullPbrMaterial.setMetallicRoughnessMap(orm);
+        m_fullPbrMaterial.setAmbientOcclusionMap(orm);
+
+        m_fullPbrMaterial.setMetallic(1.0f);
+        m_fullPbrMaterial.setRoughness(1.0f);
+
+        const AssetImportResult<MeshAsset> fireHydrantResult = AssetImporter::loadMesh("models/FireHydrantMesh.obj");
+        m_fireHydrantMesh.upload(*fireHydrantResult);
 
     }
 
@@ -1916,6 +1935,16 @@ namespace aiko::lab
             transform.scale = {0.8f, 0.8f, 0.8f};
             m_renderSystem->render(transform, m_normalMapTestMesh, m_normalMapTestMaterials[i]);
         }
+
+
+        if (m_fireHydrantMesh.isValid())
+        {
+            Transform transform;
+            transform.position = {5.0f, -5.0f, -12.0f};
+            transform.scale = {1.0f, 1.0f, 1.0f};
+            m_renderSystem->render(transform, m_fireHydrantMesh, m_fullPbrMaterial);
+        }
+
 
     }
 

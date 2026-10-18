@@ -180,5 +180,8 @@ namespace aiko::lab
         std::array<Material, 3> m_normalMapTestMaterials;
         Mesh m_normalMapTestMesh;
 
+        Mesh m_fireHydrantMesh;
+        Material m_fullPbrMaterial;
+
     };
 }
