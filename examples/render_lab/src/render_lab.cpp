@@ -64,7 +64,7 @@ namespace aiko::lab
 
     void RenderLab::init()
     {
-        scene().clearColor() = BLACK;
+        scene().clearColor() = RAYWHITE;
         scene().ambientLight().color = WHITE;
         scene().ambientLight().intensity = 0.15f;
 
