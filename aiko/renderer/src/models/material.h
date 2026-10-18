@@ -86,6 +86,7 @@
         bool hasSameState(const Material& other) const;
 
         void setAlbedoMap(AssetId textureId);
+        void setMetallicRoughnessMap(AssetId textureId);
 
         void setSpecular(float strength, float shininess);
         float specularStrength() const { return m_specularStrength; }

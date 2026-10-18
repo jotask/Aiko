@@ -555,7 +555,36 @@ namespace aiko::lab
         m_texturedPbrMaterial.setMetallic(0.0f);
         m_texturedPbrMaterial.setRoughness(0.55f);
 
-        assets().setAlbedoMap(m_texturedPbrMaterial,"texel_checker.png");
+        m_texturedPbrMaterial.setAlbedoMap(assets().loadAlbedo("texel_checker.png"));
+
+        // Packed metallic/roughness validation.
+        constexpr uint Width = 256;
+        constexpr uint Height = 256;
+
+        TextureAsset mrTexture = texture::factory::generateBlank(Width, Height, WHITE);
+
+        for (uint y = 0; y < Height; ++y)
+        {
+            for (uint x = 0; x < Width; ++x)
+            {
+                const float metallic = ((x / 32) % 2 == 0) ? 0.0f : 1.0f;
+                const float roughness = y < Height / 2 ? 0.2f : 0.85f;
+
+                mrTexture.pixels[y * Width + x] = Color(
+                    1.0f,       // R: unused
+                    roughness,   // G: roughness
+                    metallic,    // B: metallic
+                    1.0f
+                );
+            }
+        }
+
+        m_metallicRoughnessTestMaterial = m_pbrMaterials[1];
+
+        m_metallicRoughnessTestMaterial.setMetallic(1.0f);
+        m_metallicRoughnessTestMaterial.setRoughness(1.0f);
+
+        m_metallicRoughnessTestMaterial.setMetallicRoughnessMap(assets().createTexture(mrTexture));
 
     }
 
@@ -1813,6 +1842,7 @@ namespace aiko::lab
 
         // Textured PBR sphere.
         m_renderSystem->renderSphere({5.0f, -3.0f, -12.0f}, 0.8f, 32, &m_texturedPbrMaterial);
+        m_renderSystem->renderSphere({3.0f, -3.0f, -12.0f}, 0.8f, 32, &m_metallicRoughnessTestMaterial);
 
         // Light position markers.
         for (const LightInstance& light : m_lights)
