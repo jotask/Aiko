@@ -1899,14 +1899,16 @@ namespace aiko::renderer::vulkan
 
     VkSurfaceFormatKHR VulkanContext::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
     {
-        for (const auto& availableFormat : availableFormats)
+        AIKO_ASSERT(!availableFormats.empty(), "Vulkan surface returned no supported formats");
+        for (const VkSurfaceFormatKHR& format : availableFormats)
         {
-            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+            if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
             {
-                return availableFormat;
+                return format;
             }
         }
-        return availableFormats[0];
+        AIKO_ASSERT(false, "Aiko's current linear-output pipeline requires a B8G8R8A8 sRGB swapchain");
+        return availableFormats.front();
     }
 
     VkPresentModeKHR VulkanContext::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync)
