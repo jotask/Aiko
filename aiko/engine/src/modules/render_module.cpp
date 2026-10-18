@@ -206,6 +206,12 @@ namespace aiko
         m_renderer->popUiClipRect();
     }
 
+    PostProcessPipeline& RenderModule::postProcessing()
+    {
+        AIKO_ASSERT(m_renderer != nullptr, "Renderer is not initialized");
+        return m_renderer->postProcessing();
+    }
+
     void RenderModule::connect(ModuleConnector* moduleConnector)
     {
         BIND_MODULE_REQUIRED(DisplayModule, moduleConnector, m_displayModule);

@@ -139,6 +139,7 @@ namespace aiko
         m_imgui.dispose();
         m_frameTransientGeometries.clear();
         m_screenPresenter.dispose();
+        m_postProcessing.dispose();
         m_sceneTarget.unload();
         m_resources.clear();
         m_renderer->shutdown();
@@ -373,7 +374,9 @@ namespace aiko
             submitScenePass(frameData, emptyPass, m_sceneTarget);
         }
 
-        submitPresentPass(m_sceneTarget.colorTexture());
+        const Texture& finalTexture = m_postProcessing.execute(*m_renderer, m_frameMaterials, m_sceneTarget);
+
+        submitPresentPass(finalTexture);
         submitUiPass();
         submitImguiPass();
 

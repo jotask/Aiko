@@ -17,6 +17,7 @@ namespace aiko
     class Mesh;
     class Shader;
     struct GpuBillboardDrawDesc;
+    class PostProcessPipeline;
 
     class RenderModule : public BaseModule
     {
@@ -77,6 +78,8 @@ namespace aiko
 
         void pushUiClipRect(const vec2& position, const vec2& size);
         void popUiClipRect();
+
+        PostProcessPipeline& postProcessing();
 
     protected:
 

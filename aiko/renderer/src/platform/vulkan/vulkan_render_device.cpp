@@ -1050,7 +1050,7 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        if (viewId != SCENE_VIEW && viewId != UI_VIEW && viewId != COMPUTE_VIEW)
+        if (viewId != SCENE_VIEW && viewId != POST_PROCESS_VIEW && viewId != UI_VIEW && viewId != COMPUTE_VIEW)
         {
             return;
         }
@@ -1149,7 +1149,7 @@ namespace aiko::renderer::vulkan
 
         const VulkanFrameBinding& binding = m_frameResources.allocate(frame, ubo);
 
-        if (viewId == SCENE_VIEW || viewId == UI_VIEW)
+        if (viewId == SCENE_VIEW || viewId == POST_PROCESS_VIEW || viewId == UI_VIEW)
         {
             vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsFrameSet, 1, &binding.descriptorSet, 0, nullptr);
         }
@@ -1792,11 +1792,8 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        if (viewId != SCENE_VIEW || m_renderPassActive == false)
-        {
-            return;
-        }
-
+        AIKO_ASSERT(viewId == SCENE_VIEW || viewId == POST_PROCESS_VIEW, "Fullscreen drawing requires a scene or post-process view");
+        AIKO_ASSERT(m_renderPassActive, "Fullscreen drawing requires an active render pass");
         AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "Fullscreen material has invalid shader id");
 
         const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, material.m_shaderId, material.m_renderState, false);

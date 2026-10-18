@@ -7,7 +7,7 @@
 
 namespace aiko
 {
-    class AikoRenderer;
+    class PostProcessContext;
 
     enum class PostProcessDomain
     {
@@ -26,6 +26,8 @@ namespace aiko
         }
 
         virtual ~PostProcessEffect() = default;
+
+        virtual void execute(PostProcessContext& context) = 0;
 
         const std::string& name() const
         {

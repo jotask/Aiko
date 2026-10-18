@@ -21,6 +21,8 @@ namespace aiko
     class Font;
     struct GpuInstanceDrawDesc;
     struct GpuBillboardDrawDesc;
+    class PostProcessSystem;
+    class PostProcessPipeline;
 
     class RenderContext
     {
@@ -40,11 +42,14 @@ namespace aiko
 
         void submitLight(const LightData& light);
 
+        PostProcessPipeline& postProcessing() const;
+
     private:
         friend class LayerContext;
 
         explicit RenderContext(SystemConnector& connector);
 
         RenderSystem* m_renderSystem = nullptr;
+        PostProcessSystem* m_postProcessSystem = nullptr;
     };
 }

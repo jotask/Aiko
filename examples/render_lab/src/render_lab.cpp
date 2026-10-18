@@ -14,6 +14,8 @@
 #include "layers/contexts/render_context.h"
 #include "layers/contexts/scene_context.h"
 #include "layers/contexts/ui_context.h"
+#include <post_process/post_process_pipeline.h>
+#include <post_process/tone_mapping_effect.h>
 #include "models/camera.h"
 #include "models/game_object.h"
 #include "models/mesh_factory.h"

@@ -2,6 +2,7 @@
 
 #include "systems/render_system.h"
 #include "systems/system_connector.h"
+#include "systems/post_process_system.h"
 
 namespace aiko
 {
@@ -10,6 +11,8 @@ namespace aiko
     {
         m_renderSystem = connector.find<RenderSystem>();
         AIKO_ASSERT(m_renderSystem != nullptr, "Required system RenderSystem not found");
+        m_postProcessSystem = connector.find<PostProcessSystem>();
+        AIKO_ASSERT(m_postProcessSystem != nullptr, "PostProcessSystem not found");
     }
 
     void RenderContext::drawRectangle(const vec3& position, const vec3& size)
@@ -75,6 +78,12 @@ namespace aiko
     void RenderContext::submitLight(const LightData& light)
     {
         m_renderSystem->submitLight(light);
+    }
+
+    PostProcessPipeline& RenderContext::postProcessing() const
+    {
+        AIKO_ASSERT(m_postProcessSystem != nullptr, "PostProcessSystem not initialized");
+        return m_postProcessSystem->pipeline();
     }
 
 }

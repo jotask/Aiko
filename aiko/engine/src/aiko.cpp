@@ -32,6 +32,7 @@
 #include "systems/job_system.h"
 #include "systems/system_registry.h"
 #include "systems/ui_system.h"
+#include "systems/post_process_system.h"
 
 namespace aiko
 {
@@ -99,6 +100,7 @@ namespace aiko
         systemRegistry.add<JobSystem>();
         systemRegistry.add<SceneSystem>();
         systemRegistry.add<RenderSystem>();
+        systemRegistry.add<PostProcessSystem>();
         systemRegistry.add<UISystem>();
         systemRegistry.add<AssetSystem>();
         systemRegistry.add<ComputeSystem>();
