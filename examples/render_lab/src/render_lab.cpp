@@ -651,6 +651,18 @@ namespace aiko::lab
         const AssetImportResult<MeshAsset> fireHydrantResult = AssetImporter::loadMesh("models/FireHydrantMesh.obj");
         m_fireHydrantMesh.upload(*fireHydrantResult);
 
+
+        // Emissive color without a texture.
+        m_emissiveColorMaterial = m_pbrMaterials[1];
+        m_emissiveColorMaterial.m_baseColor = Color{ 0.05f, 0.05f, 0.05f, 1.0f };
+        m_emissiveColorMaterial.setEmissiveColor( Color{1.0f, 0.15f, 0.02f, 1.0f} );
+        m_emissiveColorMaterial.setEmissiveStrength(2.0f);
+
+        // Emissive texture with the same base parameters.
+        m_emissiveTextureMaterial = m_emissiveColorMaterial;
+        m_emissiveTextureMaterial.setEmissiveMap(assets().loadTexture("texel_checker.png"));
+
+
     }
 
     // --------------------------------------------------
@@ -1780,6 +1792,10 @@ namespace aiko::lab
         m_renderSystem->renderCube({-5.0f, 0.0f, -5.0f}, 0.75f, &m_defaultMaterial);
         m_renderSystem->renderCube({-3.0f, 0.0f, -5.0f}, 0.75f, &m_uniformMaterial);
         m_renderSystem->renderCube({-1.0f, 0.0f, -5.0f}, 0.75f, &m_customShaderMaterial);
+
+        m_renderSystem->renderSphere({-3.0f, -8.0f, -12.0f}, 0.8f, 32, &m_emissiveColorMaterial);
+        m_renderSystem->renderSphere({-1.0f, -8.0f, -12.0f}, 0.8f, 32, &m_emissiveTextureMaterial);
+
     }
 
     // --------------------------------------------------

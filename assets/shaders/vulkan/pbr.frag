@@ -2,7 +2,9 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
 
-#define AIKO_MATERIAL_EXTRA_FIELDS vec4 u_pbrParams;
+#define AIKO_MATERIAL_EXTRA_FIELDS \
+    vec4 u_pbrParams; \
+    vec4 u_emissiveParams;
 #include "aiko_graphics.glsl"
 #include "aiko_color.glsl"
 
@@ -24,6 +26,11 @@ layout(
     set = AIKO_GRAPHICS_MATERIAL_SET,
     binding = AIKO_MATERIAL_TEXTURE_BINDING + 3
 ) uniform sampler2D u_occlusionTexture;
+
+layout(
+    set = AIKO_GRAPHICS_MATERIAL_SET,
+    binding = AIKO_MATERIAL_TEXTURE_BINDING + 4
+) uniform sampler2D u_emissiveTexture;
 
 layout(location = 0) in vec2 v_texcoord0;
 layout(location = 1) in vec4 v_color0;
@@ -272,5 +279,12 @@ void main()
         base.rgb = shadePBR(v_worldPos, v_normal, base.rgb);
     }
 
+    vec3 emissiveColor = aikoSrgbToLinear(u_emissiveParams.rgb);
+
+    vec3 emissiveTexture = texture(u_emissiveTexture, v_texcoord0).rgb;
+
+    base.rgb += emissiveColor * emissiveTexture * u_emissiveParams.a;
+
     outColor = base;
+
 }

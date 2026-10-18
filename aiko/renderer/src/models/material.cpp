@@ -98,6 +98,8 @@ namespace aiko
         utils::hashCombine(std::hash<float>{}(m_shininess), seed);
         utils::hashCombine(std::hash<float>{}(m_metallic), seed);
         utils::hashCombine(std::hash<float>{}(m_roughness), seed);
+        utils::hashCombine(std::hash<u32>{}(m_emissiveColor.rgba()), seed);
+        utils::hashCombine(std::hash<float>{}(m_emissiveStrength), seed);
         utils::hashCombine(std::hash<u32>{}(m_baseColor.rgba()), seed);
         utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(m_renderState.cullMode)), seed);
         utils::hashCombine(std::hash<uint32_t>{}(static_cast<uint32_t>(m_renderState.fillMode)), seed);
@@ -207,6 +209,11 @@ namespace aiko
             m_shininess != other.m_shininess ||
             m_metallic != other.m_metallic ||
             m_roughness != other.m_roughness ||
+            m_emissiveColor.r != other.m_emissiveColor.r ||
+            m_emissiveColor.g != other.m_emissiveColor.g ||
+            m_emissiveColor.b != other.m_emissiveColor.b ||
+            m_emissiveColor.a != other.m_emissiveColor.a ||
+            m_emissiveStrength != other.m_emissiveStrength ||
             m_pointSize != other.m_pointSize ||
             m_lineWidth != other.m_lineWidth ||
             m_baseColor.r != other.m_baseColor.r ||
@@ -291,6 +298,25 @@ namespace aiko
     {
         AIKO_ASSERT(math::isfinite(roughness) && roughness >= 0.0f && roughness <= 1.0f, "Roughness must be finite and between 0 and 1");
         m_roughness = roughness;
+    }
+
+    void Material::setEmissiveColor(const Color& color)
+    {
+        AIKO_ASSERT( math::isfinite(color.r) && math::isfinite(color.g) && math::isfinite(color.b) && math::isfinite(color.a), "Emissive color must be finite");
+        m_emissiveColor = color;
+    }
+
+    void Material::setEmissiveStrength(float strength)
+    {
+        AIKO_ASSERT(math::isfinite(strength) && strength >= 0.0f, "Emissive strength must be finite and non-negative");
+        m_emissiveStrength = strength;
+    }
+
+    void Material::setEmissiveMap(AssetId textureId)
+    {
+        AIKO_ASSERT(textureId != InvalidAssetId, "Emissive texture id cannot be invalid");
+        setTexture("u_emissiveTexture", textureId);
+        m_textureBindings.at("u_emissiveTexture").colorSpace = TextureColorSpace::SRGB;
     }
 
     void Material::setTexture(const string& name, AssetId textureId, const SamplerState& sampler)

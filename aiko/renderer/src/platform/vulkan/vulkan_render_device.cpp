@@ -394,6 +394,12 @@ namespace aiko::renderer::vulkan
                     builtInValue = vec4{material.metallic(), material.roughness(), hasNormalMap ? 1.0f : 0.0f, 0.0f};
                     value = &builtInValue;
                 }
+                else if (member.name == "u_emissiveParams")
+                {
+                    const Color& color = material.emissiveColor();
+                    builtInValue = vec4{ color.r, color.g, color.b, material.emissiveStrength()};
+                    value = &builtInValue;
+                }
                 else
                 {
                     const UniformMap& materialUniforms = material.uniforms();

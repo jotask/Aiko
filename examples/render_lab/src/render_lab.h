@@ -183,5 +183,8 @@ namespace aiko::lab
         Mesh m_fireHydrantMesh;
         Material m_fullPbrMaterial;
 
+        Material m_emissiveColorMaterial;
+        Material m_emissiveTextureMaterial;
+
     };
 }

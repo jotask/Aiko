@@ -98,6 +98,13 @@
         void setMetallic(float metallic);
         void setRoughness(float roughness);
 
+        void setEmissiveColor(const Color& color);
+        void setEmissiveStrength(float strength);
+        void setEmissiveMap(AssetId textureId);
+
+        const Color& emissiveColor() const { return m_emissiveColor; }
+        float emissiveStrength() const { return m_emissiveStrength; }
+
         float metallic() const { return m_metallic; }
         float roughness() const { return m_roughness; }
 
@@ -125,6 +132,9 @@
 
         float m_metallic = 0.0f;
         float m_roughness = 0.5f;
+
+        Color m_emissiveColor = WHITE;
+        float m_emissiveStrength = 0.0f;
 
     };
 
