@@ -4,6 +4,7 @@
 
 #define AIKO_MATERIAL_EXTRA_FIELDS vec4 u_pbrParams;
 #include "aiko_graphics.glsl"
+#include "aiko_color.glsl"
 
 layout(location = 0) in vec2 v_texcoord0;
 layout(location = 1) in vec4 v_color0;
@@ -80,7 +81,7 @@ vec3 evaluatePBRLight(int index, vec3 P, vec3 N, vec3 V, vec3 albedo, float meta
     float range = u_lightPosRange[index].w;
 
     vec3 lightDirection = u_lightDir[index].xyz;
-    vec3 lightColor = u_lightColorInt[index].rgb;
+    vec3 lightColor = aikoSrgbToLinear(u_lightColorInt[index].rgb);
     float intensity = u_lightColorInt[index].w;
 
     vec3 L;
@@ -158,7 +159,9 @@ vec3 shadePBR(vec3 P, vec3 normal, vec3 albedo)
     float roughness = clamp(u_pbrParams.y, 0.0, 1.0);
 
     // Approximation until environment lighting / IBL is added.
-    vec3 result = albedo * (1.0 - metallic) * u_ambientColor.rgb * u_ambientIntensity.x;
+    vec3 ambientColor = aikoSrgbToLinear(u_ambientColor.rgb);
+
+    vec3 result = albedo * (1.0 - metallic) * ambientColor * u_ambientIntensity.x;
 
     if (distance2 <= 1e-8)
     {
@@ -179,7 +182,7 @@ vec3 shadePBR(vec3 P, vec3 normal, vec3 albedo)
 
 void main()
 {
-    vec4 base = u_baseColor;
+    vec4 base = vec4( aikoSrgbToLinear(u_baseColor.rgb), u_baseColor.a);
 
     if (u_flags.x > 0.5)
     {
