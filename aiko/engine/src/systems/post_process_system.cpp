@@ -26,7 +26,6 @@ namespace aiko
         return m_renderModule->postProcessing();
     }
 
-
     void PostProcessSystem::init()
     {
         // Internal display conversion, independent of the effect list.

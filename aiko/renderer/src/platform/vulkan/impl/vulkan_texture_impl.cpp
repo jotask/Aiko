@@ -94,7 +94,7 @@ namespace aiko::renderer::vulkan
                 break;
 
             case TextureType::DepthStencil:
-                usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+                usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
                 aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
                 break;
 
@@ -128,7 +128,7 @@ namespace aiko::renderer::vulkan
             break;
 
         case TextureType::DepthStencil:
-            requiredFeatures |= VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+                requiredFeatures |= VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
             break;
 
         default:
@@ -136,7 +136,6 @@ namespace aiko::renderer::vulkan
         }
 
         AIKO_ASSERT((formatProperties.optimalTilingFeatures & requiredFeatures) == requiredFeatures, "Texture format does not support the requested Vulkan usage");
-
 
         const VkResult result = ctx.createImage(
             static_cast<uint32_t>(desc.width),

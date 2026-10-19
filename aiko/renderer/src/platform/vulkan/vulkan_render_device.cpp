@@ -789,13 +789,9 @@ namespace aiko::renderer::vulkan
         {
             m_activeDepthAttachment->setState(
             {
-                .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                .stage =
-                    VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-                    VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-                .access =
-                    VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-                    VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+                .stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                .access = VK_ACCESS_SHADER_READ_BIT,
                 .queueFamily = m_context.graphicsQueueFamily(),
             });
 
@@ -1821,14 +1817,15 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(texture.isValid(), "Cannot prepare invalid texture");
 
         const TextureInfo info = texture.getInfo();
-        AIKO_ASSERT(info.type != TextureType::DepthStencil, "Depth texture sampling is not supported yet");
 
         auto* textureImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(texture));
         AIKO_ASSERT(textureImpl != nullptr, "Invalid Vulkan texture implementation");
 
+        const bool isDepth = info.type == TextureType::DepthStencil;
+
         const VulkanImageState sampledState =
         {
-            .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .layout = isDepth ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             .stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
             .access = VK_ACCESS_SHADER_READ_BIT,
             .queueFamily = m_context.graphicsQueueFamily(),
@@ -3022,6 +3019,10 @@ namespace aiko::renderer::vulkan
 
             const bool hasTexture = texture != &m_whiteTexture;
 
+            const bool isDepth = texture->getInfo().type == TextureType::DepthStencil;
+
+            const VkImageLayout imageLayout = isDepth ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
             VulkanMaterialTextureState& cached = binding.textures[i];
 
             if (
@@ -3038,7 +3039,7 @@ namespace aiko::renderer::vulkan
             {
                 .sampler = sampler,
                 .imageView = imageView,
-                .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                .imageLayout = imageLayout,
             };
 
             const VkWriteDescriptorSet write =

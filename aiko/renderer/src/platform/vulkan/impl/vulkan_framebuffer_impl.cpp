@@ -37,9 +37,11 @@ namespace aiko::renderer::vulkan
 
         VkFormatProperties properties{};
 
+        const VkFormatFeatureFlags requiredFeatures = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
+
         vkGetPhysicalDeviceFormatProperties(ctx.physicalDevice(), VK_FORMAT_D32_SFLOAT, &properties);
 
-        if (properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+        if ((properties.optimalTilingFeatures & requiredFeatures) == requiredFeatures)
         {
             return TextureFormat::D32F;
         }
@@ -48,7 +50,7 @@ namespace aiko::renderer::vulkan
 
         vkGetPhysicalDeviceFormatProperties(ctx.physicalDevice(), VK_FORMAT_D24_UNORM_S8_UINT, &properties);
 
-        AIKO_ASSERT(properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, "No supported Aiko depth format");
+        AIKO_ASSERT((properties.optimalTilingFeatures & requiredFeatures) == requiredFeatures, "No supported sampleable Aiko depth format");
 
         return TextureFormat::D24S8;
     }
@@ -86,11 +88,11 @@ namespace aiko::renderer::vulkan
             .format = depthImpl.format(),
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-            .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
         };
 
         const VkAttachmentReference colorRef =
