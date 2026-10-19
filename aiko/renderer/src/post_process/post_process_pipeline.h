@@ -15,6 +15,7 @@
 #include "models/render_target.h"
 #include "post_process_effect.h"
 #include "display_conversion.h"
+#include "post_process_types.h"
 
 namespace aiko::renderer
 {
@@ -33,18 +34,20 @@ namespace aiko
         PostProcessPipeline& operator=(const PostProcessPipeline&) = delete;
 
         template<typename T, typename... Args>
-        T& addEffect(Args&&... args)
+        T& addEffect(PostProcessOrder order, Args&&... args)
         {
             static_assert(std::is_base_of_v<PostProcessEffect, T>, "T must derive from PostProcessEffect");
 
             auto effect = std::make_unique<T>(std::forward<Args>(args)...);
 
             T& result = *effect;
-            addEffect(std::move(effect));
+            addEffect(std::move(effect), order);
             return result;
         }
 
-        void addEffect(std::unique_ptr<PostProcessEffect> effect);
+        bool setOrder(const std::string& effectName, PostProcessOrder order);
+
+        void addEffect(std::unique_ptr<PostProcessEffect> effect, PostProcessOrder order);
 
         bool removeEffect(const std::string& name);
         void clear();

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "post_process_types.h"
+
 #include <string>
 #include <utility>
 
@@ -49,6 +51,11 @@ namespace aiko
             return m_builtIn;
         }
 
+        PostProcessOrder order() const
+        {
+            return m_order;
+        }
+
         virtual PostProcessDomain inputDomain() const = 0;
         virtual PostProcessDomain outputDomain() const = 0;
 
@@ -59,8 +66,14 @@ namespace aiko
         }
 
     private:
+
+        friend class PostProcessPipeline;
+
         std::string m_name;
         bool m_enabled = true;
         bool m_builtIn = false;
+
+        void setOrder(PostProcessOrder order) { m_order = order; }
+        PostProcessOrder m_order = PostProcessOrder::HDR_Default;
     };
 }

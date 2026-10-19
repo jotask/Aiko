@@ -46,7 +46,7 @@ namespace aiko
         m_assetSystem->loadAsset<ShaderAsset>(bloomUpsampleShader);
         m_assetSystem->loadAsset<ShaderAsset>(bloomCompositeShader);
 
-        auto& bloom = pipeline().addEffect<BloomEffect>(bloomExtractShader, bloomDownsampleShader, bloomUpsampleShader, bloomCompositeShader);
+        auto& bloom = pipeline().addEffect<BloomEffect>(PostProcessOrder::HDR_Default, bloomExtractShader, bloomDownsampleShader, bloomUpsampleShader, bloomCompositeShader);
 
         bloom.setThreshold(1.0f);
         bloom.setIntensity(0.5f);
@@ -54,7 +54,7 @@ namespace aiko
         // Aiko's default, user-configurable tone-mapping effect.
         const AssetId toneMappingShader = m_assetSystem->registerShader("post_process/fullscreen.vert", "post_process/post_tonemap");
         m_assetSystem->loadAsset<ShaderAsset>(toneMappingShader);
-        auto& toneMapping = pipeline().addEffect<ToneMappingEffect>(toneMappingShader);
+        auto& toneMapping = pipeline().addEffect<ToneMappingEffect>(PostProcessOrder::LDR_Early, toneMappingShader);
         toneMapping.setExposure(1.0f);
 
     }

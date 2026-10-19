@@ -7,13 +7,61 @@
 
 namespace aiko
 {
-    void PostProcessPipeline::addEffect(std::unique_ptr<PostProcessEffect> effect)
+
+    bool PostProcessPipeline::setOrder(const std::string& effectName, PostProcessOrder order)
+    {
+        auto it = findIterator(effectName);
+
+        if (it == m_effects.end())
+        {
+            return false;
+        }
+
+        if ((*it)->order() == order)
+        {
+            return true;
+        }
+
+        auto effect = std::move(*it);
+        m_effects.erase(it);
+
+        effect->setOrder(order);
+
+        auto insertion = std::upper_bound(
+            m_effects.begin(), m_effects.end(),
+            order,
+            [](PostProcessOrder value,
+               const std::unique_ptr<PostProcessEffect>& existing)
+            {
+                return static_cast<int>(value) < static_cast<int>(existing->order());
+            }
+        );
+
+        m_effects.insert(insertion, std::move(effect));
+
+        return true;
+    }
+
+    void PostProcessPipeline::addEffect(std::unique_ptr<PostProcessEffect> effect, PostProcessOrder order)
     {
         AIKO_ASSERT(effect != nullptr, "Post-process effect cannot be null");
         AIKO_ASSERT(findEffect(effect->name()) == nullptr, "Duplicate post-process effect name");
 
-        m_effects.push_back(std::move(effect));
+        effect->setOrder(order);
+
+        auto insertion = std::upper_bound(
+            m_effects.begin(), m_effects.end(),
+            order,
+            [](PostProcessOrder value,
+               const std::unique_ptr<PostProcessEffect>& existing)
+            {
+                return static_cast<int>(value) < static_cast<int>(existing->order());
+            }
+        );
+
+        m_effects.insert(insertion, std::move(effect));
     }
+
 
     bool PostProcessPipeline::removeEffect(const std::string& name)
     {
@@ -73,6 +121,11 @@ namespace aiko
             return false;
         }
 
+        if ((*from)->order() != (*to)->order())
+        {
+            return false;
+        }
+
         auto node = std::move(*from);
         m_effects.erase(from);
 
@@ -92,6 +145,11 @@ namespace aiko
         auto to = findIterator(afterName);
 
         if (from == m_effects.end() || to == m_effects.end())
+        {
+            return false;
+        }
+
+        if ((*from)->order() != (*to)->order())
         {
             return false;
         }
