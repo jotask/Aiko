@@ -2,25 +2,6 @@
 
 #include "aiko_includes.h"
 #include "layers/layer.h"
-#include "models/material.h"
-#include "models/mesh.h"
-#include "models/texture.h"
-#include "models/compute_buffer.h"
-#include "models/font.h"
-#include "models/render_target.h"
-#include "models/camera.h"
-
-#include <array>
-
-namespace aiko
-{
-    class ComputeShaderComponent;
-    class GameObject;
-    class LightComponent;
-    class RenderSystem;
-    class SystemConnector;
-    class SpriteComponent;
-}
 
 namespace aiko::lab
 {
@@ -35,7 +16,18 @@ namespace aiko::lab
         void update() override;
         void render() override;
         void dispose() override;
-        void connect(SystemConnector& systemConnector) override;
 
+    private:
+        static constexpr int GridSize = 5;
+        static constexpr int MaterialCount = GridSize * GridSize;
+
+        void initCamera();
+        void initLighting();
+        void initPbrMaterials();
+
+        void renderPbrMatrix();
+
+        std::array<Material, MaterialCount> m_pbrMaterials;
+        Mesh m_sphereMesh;
     };
 }
