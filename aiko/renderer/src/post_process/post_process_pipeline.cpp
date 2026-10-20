@@ -340,11 +340,6 @@ namespace aiko
     {
         AIKO_ASSERT(scene.isValid(), "Post-processing requires a valid scene target");
 
-        if (!m_enabled)
-        {
-            return scene.colorTexture();
-        }
-
         AIKO_ASSERT(m_displayConversion != nullptr, "Display conversion is not initialized");
 
         const ivec2 size = scene.size();
@@ -377,39 +372,45 @@ namespace aiko
         // Validate the enabled chain before recording commands.
         PostProcessDomain validatedDomain = PostProcessDomain::HDR;
 
-        for (const auto& effect : m_effects)
+        if (m_enabled)
         {
-            AIKO_ASSERT(effect != nullptr, "Null post-process effect");
-
-            if (!effect->enabled())
+            for (const auto& effect : m_effects)
             {
-                continue;
+                AIKO_ASSERT(effect != nullptr, "Null post-process effect");
+
+                if (!effect->enabled())
+                {
+                    continue;
+                }
+
+                AIKO_ASSERT(effect->inputDomain() == validatedDomain, "Post-process effect input domain does not match");
+                AIKO_ASSERT(!(effect->inputDomain() == PostProcessDomain::LDR && effect->outputDomain() == PostProcessDomain::HDR), "LDR-to-HDR post-processing is unsupported");
+
+                validatedDomain = effect->outputDomain();
             }
-
-            AIKO_ASSERT(effect->inputDomain() == validatedDomain, "Post-process effect input domain does not match");
-            AIKO_ASSERT(!(effect->inputDomain() == PostProcessDomain::LDR && effect->outputDomain() == PostProcessDomain::HDR), "LDR-to-HDR post-processing is unsupported");
-
-            validatedDomain = effect->outputDomain();
         }
 
         const Texture* current = &scene.colorTexture();
         PostProcessDomain currentDomain = PostProcessDomain::HDR;
 
-        for (const auto& effect : m_effects)
+        if (m_enabled)
         {
-            if (!effect->enabled())
+            for (const auto& effect : m_effects)
             {
-                continue;
+                if (!effect->enabled())
+                {
+                    continue;
+                }
+
+                RenderTarget& output = acquireTarget(effect->outputDomain(), *current, width, height);
+
+                PostProcessContext context(device, frameMaterials, *current, scene.depthTexture(), output, scratchAllocator);
+
+                effect->execute(context);
+
+                current = &output.colorTexture();
+                currentDomain = effect->outputDomain();
             }
-
-            RenderTarget& output = acquireTarget(effect->outputDomain(), *current, width, height);
-
-            PostProcessContext context(device, frameMaterials, *current, scene.depthTexture(), output, scratchAllocator);
-
-            effect->execute(context);
-
-            current = &output.colorTexture();
-            currentDomain = effect->outputDomain();
         }
 
         // Always return an LDR texture for presentation.
