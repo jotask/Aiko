@@ -6,7 +6,7 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <stb_truetype.h>
 
-#include <constants.h>
+#include <logger/logger.h>
 #include <core/file.h>
 
 #include "models/font.h"
@@ -36,13 +36,16 @@ namespace aiko
         const AssetId id =
         m_assetSystem->registerShader(vertexSource, fragmentSource);
         m_assetSystem->loadAsset<ShaderAsset>(id);
-
         return id;
     }
 
     AssetId AssetContext::loadTexture(string_view source)
     {
         const AssetId id = m_assetSystem->registerAsset<TextureAsset>(source);
+        if (id == InvalidAssetId)
+        {
+            return InvalidAssetId;
+        }
         m_assetSystem->loadAsset<TextureAsset>(id);
         return id;
     }
@@ -67,13 +70,33 @@ namespace aiko
         return m_assetSystem->create(mesh);
     }
 
+    AssetImportResult<MeshAsset> AssetContext::importMesh(string_view source) const
+    {
+        const AssetResolveResult resolved = m_assetSystem->resolveAsset(source);
+
+        if (!resolved)
+        {
+            const AssetImportError error = resolved.error == AssetResolveError::NotFound ? AssetImportError::FileNotFound : AssetImportError::InvalidData;
+            return AssetImportResult<MeshAsset>::failure(error, "Failed to resolve mesh '" + std::string(source) + "': " + resolved.message);
+        }
+
+        return AssetImporter::loadMesh(resolved.asset.physicalPath);
+    }
+
     Font AssetContext::loadFont(string_view source, float pixelSize)
     {
         AIKO_ASSERT(source.empty() == false, "Font source cannot be empty");
         AIKO_ASSERT(pixelSize > 0.0f, "Font pixel size must be greater than zero");
 
-        const std::filesystem::path path = std::filesystem::path(global::GLOBAL_ASSET_PATH) / source;
-        const vector<uint8_t> fontData = files::readFileBytes(path);
+        const AssetResolveResult resolved = m_assetSystem->resolveAsset(source);
+
+        if (!resolved)
+        {
+            logger::Log::errorFmt("Failed to resolve font '{}': {}", source, resolved.message);
+            return Font{};
+        }
+
+        const vector<uint8_t> fontData = files::readFileBytes(resolved.asset.physicalPath);
         AIKO_ASSERT(fontData.empty() == false, "Font file is empty");
 
         constexpr int AtlasWidth = 512;

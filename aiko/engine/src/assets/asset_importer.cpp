@@ -1,7 +1,5 @@
 #include "asset_importer.h"
 
-#include "constants.h"
-
 #include <filesystem>
 #include <memory>
 
@@ -16,11 +14,10 @@
 namespace aiko
 {
 
-    AssetImportResult<TextureAsset> AssetImporter::loadTexture(const string& file_path, TextureColorSpace colorSpace)
+    AssetImportResult<TextureAsset> AssetImporter::loadTexture(const std::filesystem::path& file_path, TextureColorSpace colorSpace)
     {
 
-        std::string base = global::GLOBAL_ASSET_PATH;
-        base += std::string(file_path);
+        const std::string base = file_path.string();
 
         int width = 0;
         int height = 0;
@@ -67,10 +64,7 @@ namespace aiko
                 break;
 
             default:
-                return AssetImportResult<TextureAsset>::failure(
-                    AssetImportError::InvalidData,
-                    "Invalid texture color space: " + file_path
-                );
+                return AssetImportResult<TextureAsset>::failure(AssetImportError::InvalidData, "Invalid texture color space: " + file_path.string());
         }
         asset.desc.width = width;
         asset.desc.height = height;
@@ -154,9 +148,9 @@ namespace aiko
 
     }
 
-    AssetImportResult<MeshAsset> AssetImporter::loadMesh(const string& file_path)
+    AssetImportResult<MeshAsset> AssetImporter::loadMesh(const std::filesystem::path& file_path)
     {
-        auto final_file_path = global::getAssetPath(file_path.c_str());
+        const std::string final_file_path = file_path.string();
 
         Assimp::Importer importer;
 
@@ -180,10 +174,10 @@ namespace aiko
 
     }
 
-    AssetImportResult<ImportedModel> AssetImporter::loadModel(const string& filePath)
+    AssetImportResult<ImportedModel> AssetImporter::loadModel(const std::filesystem::path& filePath)
     {
 
-        const string finalFilePath = global::getAssetPath(filePath.c_str());
+        const std::string finalFilePath = filePath.string();
 
         Assimp::Importer importer;
 
@@ -225,7 +219,7 @@ namespace aiko
 
             if (aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS)
             {
-                submesh.diffuseTextureSource = string("models/") + texturePath.C_Str();
+                submesh.diffuseTextureSource = texturePath.C_Str();
             }
 
             aiColor3D diffuse(1.0f, 1.0f, 1.0f);

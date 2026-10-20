@@ -2,6 +2,8 @@
 
 #include "assets/asset_manager.h"
 #include "modules/base_module.h"
+#include "assets/asset_configuration.h"
+#include "assets/asset_resolver.h"
 
 namespace aiko
 {
@@ -16,6 +18,8 @@ namespace aiko
 
         AssetManager* getManager() { return &m_manager; }
 
+        const AssetResolver& getResolver() const { return m_resolver; }
+
     protected:
 
         virtual void preInit() override;
@@ -26,6 +30,10 @@ namespace aiko
         virtual void dispose() override;
 
     private:
+
+        AssetConfiguration m_configuration;
+        AssetResolver m_resolver;
+        std::filesystem::path m_registryPath;
 
         AssetManager m_manager;
 

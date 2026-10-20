@@ -7,10 +7,13 @@
 #include "system_connector.h"
 #include "assets/asset_importer.h"
 
+#include <logger/logger.h>
+
 #include <functional>
 #include <future>
 #include <type_traits>
 #include <utility>
+#include <filesystem>
 
 namespace aiko
 {
@@ -60,6 +63,11 @@ namespace aiko
         : m_assetModule(nullptr)
     {
 
+    }
+
+    AssetResolveResult AssetSystem::resolveAsset(std::string_view source) const
+    {
+        return m_assetModule->getResolver().resolve(source);
     }
 
     AssetId AssetSystem::registerShader(string_view vertexSource, string_view fragmentSource)
@@ -221,8 +229,18 @@ namespace aiko
 
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Texture, "Texture asset is not registered");
 
-        const string source = record->source;
         const TextureColorSpace colorSpace = record->textureColorSpace;
+
+        const AssetResolveResult resolved = manager->resolveAsset(record->source);
+
+        if (!resolved)
+        {
+            logger::Log::errorFmt("Failed to resolve texture '{}': {}", record->source, resolved.message);
+            m_loadStates[id] = AssetLoadState::Failed;
+            return;
+        }
+
+        const std::filesystem::path path = resolved.asset.physicalPath;
 
         m_loadStates[id] = AssetLoadState::Queued;
 
@@ -230,9 +248,9 @@ namespace aiko
             *m_jobSystem,
             m_loadStates,
             id,
-            [source, colorSpace]()
+            [path, colorSpace]()
             {
-                return AssetImporter::loadTexture(source, colorSpace);
+                return AssetImporter::loadTexture(path, colorSpace);
             },
             [this, id](TextureAsset asset)
             {
@@ -256,15 +274,26 @@ namespace aiko
 
         const string source = manager->getAssetSource(id, AssetType::Mesh);
 
+        const AssetResolveResult resolved = manager->resolveAsset(source);
+
+        if (!resolved)
+        {
+            logger::Log::errorFmt("Failed to resolve mesh '{}': {}", source, resolved.message);
+            m_loadStates[id] = AssetLoadState::Failed;
+            return;
+        }
+
+        const std::filesystem::path path = resolved.asset.physicalPath;
+
         m_loadStates[id] = AssetLoadState::Queued;
 
         submitJob(
             *m_jobSystem,
             m_loadStates,
             id,
-            [source]()
+            [path]()
             {
-                return AssetImporter::loadMesh(source);
+                return AssetImporter::loadMesh(path);
             },
             [this, id](MeshAsset asset)
             {
@@ -288,17 +317,28 @@ namespace aiko
 
         const string source = manager->getAssetSource(id, AssetType::Model);
 
+        const AssetResolveResult resolved = manager->resolveAsset(source);
+
+        if (!resolved)
+        {
+            logger::Log::errorFmt("Failed to resolve model '{}': {}", source, resolved.message);
+            m_loadStates[id] = AssetLoadState::Failed;
+            return;
+        }
+
+        const std::filesystem::path path = resolved.asset.physicalPath;
+
         m_loadStates[id] = AssetLoadState::Queued;
 
         submitJob(
             *m_jobSystem,
             m_loadStates,
             id,
-            [source]()
+            [path]()
             {
-                return AssetImporter::loadModel(source);
+                return AssetImporter::loadModel(path);
             },
-            [this, id](ImportedModel imported)
+            [this, id, modelSource = resolved.asset](ImportedModel imported)
             {
                 m_loadStates[id] = AssetLoadState::Finalizing;
 
@@ -314,11 +354,18 @@ namespace aiko
                     submesh.material.lit = importedSubmesh.lit;
                     submesh.material.baseColor = importedSubmesh.baseColor;
                     submesh.material.shaderId = manager->registerShader(importedSubmesh.shaderSource);
-                    submesh.material.diffuseTextureId = InvalidAssetId;
 
+                    submesh.material.diffuseTextureId = InvalidAssetId;
                     if (!importedSubmesh.diffuseTextureSource.empty())
                     {
-                        submesh.material.diffuseTextureId = manager->registerTexture(importedSubmesh.diffuseTextureSource);
+                        submesh.material.diffuseTextureId = manager->registerModelTexture(modelSource, importedSubmesh.diffuseTextureSource );
+
+                        if (submesh.material.diffuseTextureId == InvalidAssetId)
+                        {
+                            logger::Log::errorFmt("Failed to register texture '{}' for model '{}'", importedSubmesh.diffuseTextureSource, modelSource.identity);
+                            m_loadStates[id] = AssetLoadState::Failed;
+                            return;
+                        }
                     }
 
                     model.submeshes.push_back(std::move(submesh));

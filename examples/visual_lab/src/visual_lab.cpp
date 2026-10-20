@@ -284,7 +284,7 @@ namespace aiko::lab
         m_fullPbrMaterials[2].setMetallic(0.0f);
         m_fullPbrMaterials[2].setRoughness(0.5f);
 
-        const AssetImportResult<MeshAsset> result = AssetImporter::loadMesh("models/FireHydrantMesh.obj");
+        const auto result = assets().importMesh("models/FireHydrantMesh.obj");
         AIKO_ASSERT(static_cast<bool>(result), "Failed to import Fire Hydrant mesh");
 
         m_fireHydrantMesh.upload(*result);

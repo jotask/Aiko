@@ -1,29 +1,64 @@
+
 #include "assets_manager_module.h"
 
+#include "aiko.h"
 #include "constants.h"
 
 #include <filesystem>
 
 namespace aiko
 {
-
     namespace
     {
-        const std::filesystem::path ASSET_REGISTRY_PATH = std::filesystem::path(global::GLOBAL_ASSET_PATH) / ".aiko" / "asset_registry.json";
+        AssetConfiguration makeAssetConfiguration(const AikoConfig& config)
+        {
+            AssetConfiguration result = config.assets;
+
+            // Temporary development compatibility:
+            // existing applications have not yet configured
+            // project-local asset roots.
+            if (result.engineRoot.empty())
+            {
+                result.engineRoot = std::filesystem::path(global::GLOBAL_ASSET_PATH);
+            }
+
+            return result;
+        }
+
+        std::filesystem::path registryPath(const AssetConfiguration& configuration)
+        {
+            // The project registry takes precedence when a
+            // project root has explicitly been configured.
+            const auto& root = configuration.projectRoot.empty() ? configuration.engineRoot : configuration.projectRoot;
+
+            return root / ".aiko" / "asset_registry.json";
+        }
     }
 
     AssetsManagerModule::AssetsManagerModule(Aiko* aiko)
-       : BaseModule(aiko)
+        : BaseModule(aiko)
+        , m_configuration(makeAssetConfiguration(aiko->getConfig()))
+        , m_resolver(m_configuration)
+        , m_registryPath(registryPath(m_configuration))
+        , m_manager(m_resolver)
     {
     }
 
     void AssetsManagerModule::preInit()
     {
-        if (std::filesystem::exists(ASSET_REGISTRY_PATH) == false)
+        std::error_code error;
+
+        const bool exists = std::filesystem::exists(m_registryPath, error);
+
+        AIKO_ASSERT(!error, "Failed to inspect asset registry path");
+
+        if (error || !exists)
         {
             return;
         }
-        const bool loaded = m_manager.loadRegistry(ASSET_REGISTRY_PATH);
+
+        const bool loaded = m_manager.loadRegistry(m_registryPath);
+
         AIKO_ASSERT(loaded, "Failed to load asset registry");
     }
 
@@ -45,9 +80,8 @@ namespace aiko
 
     void AssetsManagerModule::dispose()
     {
-        const bool saved = m_manager.saveRegistry(ASSET_REGISTRY_PATH);
+        const bool saved = m_manager.saveRegistry(m_registryPath);
         AIKO_ASSERT(saved, "Failed to save asset registry");
         m_manager.clear();
     }
-
 }

@@ -652,8 +652,11 @@ namespace aiko::lab
         m_fullPbrMaterial.setMetallic(1.0f);
         m_fullPbrMaterial.setRoughness(1.0f);
 
-        const AssetImportResult<MeshAsset> fireHydrantResult = AssetImporter::loadMesh("models/FireHydrantMesh.obj");
-        m_fireHydrantMesh.upload(*fireHydrantResult);
+        const auto result = assets().importMesh("models/FireHydrantMesh.obj");
+        AIKO_ASSERT(static_cast<bool>(result), "Failed to import Fire Hydrant mesh");
+
+        m_fireHydrantMesh.upload(*result);
+        AIKO_ASSERT(m_fireHydrantMesh.isValid(), "Fire Hydrant mesh upload failed");
 
 
         // Emissive color without a texture.

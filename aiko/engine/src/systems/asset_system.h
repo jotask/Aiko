@@ -7,6 +7,7 @@
 #include "assets/types/shader_asset.h"
 #include "assets/types/texture_asset.h"
 #include "assets/asset_load_state.h"
+#include "assets/asset_resolver.h"
 
 #include <unordered_map>
 #include <type_traits>
@@ -27,6 +28,8 @@ namespace aiko
         AssetSystem();
         virtual ~AssetSystem() = default;
 
+        [[nodiscard]]
+        AssetResolveResult resolveAsset(std::string_view source) const;
 
         AssetId registerShader(string_view vertexSource, string_view fragmentSource);
 
@@ -45,9 +48,13 @@ namespace aiko
         template<typename T>
         AssetId registerAndLoadAsset(const string& path)
         {
-            const AssetId assetId = registerAsset<T>(path);
-            loadAsset<T>(assetId);
-            return assetId;
+            const AssetId id = registerAsset<T>(path);
+            if (id == InvalidAssetId)
+            {
+                return InvalidAssetId;
+            }
+            loadAsset<T>(id);
+            return id;
         }
 
         template<typename T>

@@ -1,7 +1,6 @@
 #include "material_resolver.h"
 
 #include "aiko_renderer.h"
-#include "../../../engine/src/assets/asset_manager.h"
 
 namespace aiko
 {

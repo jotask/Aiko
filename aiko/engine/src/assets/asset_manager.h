@@ -5,6 +5,7 @@
 #include "assets/types/mesh_asset.h"
 #include "assets/types/texture_asset.h"
 #include "assets/types/shader_asset.h"
+#include "assets/asset_resolver.h"
 
 #include <aiko_types.h>
 #include <assets/iasset_provider.h>
@@ -19,6 +20,13 @@ namespace aiko
     {
         friend class AssetSystem;
     public:
+        explicit AssetManager(const AssetResolver& resolver);
+
+        [[nodiscard]]
+        AssetResolveResult resolveAsset(std::string_view source) const;
+
+        [[nodiscard]]
+        AssetId registerModelTexture(const ResolvedAsset& model, std::string_view textureSource);
 
         virtual const TextureAsset& getTextureAsset(const AssetId& id) override;
         virtual const MeshAsset& getMeshAsset(const AssetId& id) override;
@@ -70,6 +78,7 @@ namespace aiko
 
         AssetId registerShaderAsset(const ShaderAsset& asset);
 
+        const AssetResolver& m_resolver;
         AssetRegistry m_registry;
 
         std::unordered_map<AssetId, TextureAsset> m_textureAssets;
@@ -87,6 +96,8 @@ namespace aiko
         void installModelAsset(const AssetId& id, ModelAsset asset);
         void installShaderAsset(const AssetId& id, ShaderAsset asset);
         void installComputeShaderAsset(const AssetId& id, ComputeShaderAsset asset);
+
+        AssetId registerFileAsset(AssetType type, std::string_view source, TextureColorSpace colorSpace = TextureColorSpace::Linear);
 
     };
 

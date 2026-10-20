@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assets/asset_importer.h"
 #include <aiko_types.h>
 #include <assets/asset_id.h>
 
@@ -19,6 +20,7 @@ namespace aiko
         AssetId loadShader(string_view vertexSource, string_view fragmentSource);
 
         AssetId createMesh(const MeshAsset& mesh);
+        [[nodiscard]] AssetImportResult<MeshAsset> importMesh(string_view source) const;
 
         AssetId loadTexture(string_view source);
         AssetId createTexture(const TextureAsset& texture);

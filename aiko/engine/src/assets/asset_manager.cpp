@@ -3,8 +3,43 @@
 #include "asset_importer.h"
 #include "asset_registry_serializer.h"
 
+#include <logger/logger.h>
+
 namespace aiko
 {
+
+    AssetManager::AssetManager(const AssetResolver& resolver)
+        : m_resolver(resolver)
+    {
+    }
+
+    AssetResolveResult AssetManager::resolveAsset(std::string_view source) const
+    {
+        return m_resolver.resolve(source);
+    }
+
+    AssetId AssetManager::registerModelTexture(const ResolvedAsset& model, std::string_view textureSource)
+    {
+        const std::filesystem::path texturePath(textureSource);
+
+        if (textureSource.empty() ||
+            texturePath.is_absolute() ||
+            texturePath.has_root_name() ||
+            texturePath.has_root_directory() ||
+            textureSource.find("://") != std::string_view::npos ||
+            textureSource.front() == '*' ||
+            textureSource.find('\\') != std::string_view::npos)
+        {
+            logger::Log::errorFmt("Unsupported model texture reference '{}'", textureSource);
+            return InvalidAssetId;
+        }
+
+        const std::filesystem::path relative = (std::filesystem::path(model.logicalPath).parent_path() / texturePath).lexically_normal();
+
+        const std::string prefix = model.owner == AssetOwner::Project ? "project://" : "engine://";
+
+        return registerTexture(prefix + relative.generic_string());
+    }
 
     const TextureAsset& AssetManager::getTextureAsset(const AssetId& id)
     {
@@ -70,7 +105,15 @@ namespace aiko
 
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Texture, "Texture asset id not registered");
 
-        auto result = AssetImporter::loadTexture(record->source, record->textureColorSpace);
+        const AssetResolveResult resolved = resolveAsset(record->source);
+
+        if (!resolved)
+        {
+            logger::Log::errorFmt("Failed to resolve texture '{}': {}", record->source, resolved.message);
+            return false;
+        }
+
+        auto result = AssetImporter::loadTexture(resolved.asset.physicalPath, record->textureColorSpace);
 
         if (!result)
         {
@@ -94,7 +137,15 @@ namespace aiko
 
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Mesh, "Mesh asset id not registered");
 
-        auto result = AssetImporter::loadMesh(record->source);
+        const AssetResolveResult resolved = resolveAsset(record->source);
+
+        if (!resolved)
+        {
+            logger::Log::errorFmt("Failed to resolve mesh '{}': {}", record->source, resolved.message);
+            return false;
+        }
+
+        auto result = AssetImporter::loadMesh(resolved.asset.physicalPath);
 
         if (!result)
         {
@@ -118,7 +169,15 @@ namespace aiko
 
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Model, "Model asset id not registered");
 
-        auto imported = AssetImporter::loadModel(record->source);
+        const AssetResolveResult resolved = resolveAsset(record->source);
+
+        if (!resolved)
+        {
+            logger::Log::errorFmt("Failed to resolve model '{}': {}", record->source, resolved.message);
+            return false;
+        }
+
+        auto imported = AssetImporter::loadModel(resolved.asset.physicalPath);
 
         if (!imported)
         {
@@ -141,7 +200,13 @@ namespace aiko
 
             if (!importedSubmesh.diffuseTextureSource.empty())
             {
-                submesh.material.diffuseTextureId = registerTexture(importedSubmesh.diffuseTextureSource);
+                submesh.material.diffuseTextureId = registerModelTexture(resolved.asset, importedSubmesh.diffuseTextureSource);
+
+                if (submesh.material.diffuseTextureId == InvalidAssetId)
+                {
+                    logger::Log::errorFmt("Failed to register texture '{}' for model '{}'", importedSubmesh.diffuseTextureSource, record->source);
+                    return false;
+                }
             }
 
             asset.submeshes.push_back(std::move(submesh));
@@ -217,7 +282,7 @@ namespace aiko
 
     AssetId AssetManager::registerTexture(std::string_view path)
     {
-        return m_registry.registerAsset(AssetType::Texture, path);
+        return registerFileAsset(AssetType::Texture, path);
     }
 
     AssetId AssetManager::registerTexture(const TextureAsset& asset)
@@ -229,12 +294,12 @@ namespace aiko
 
     AssetId AssetManager::registerTexture(std::string_view path, TextureColorSpace colorSpace)
     {
-        return m_registry.registerAsset(AssetType::Texture, path, colorSpace);
+        return registerFileAsset(AssetType::Texture, path, colorSpace);
     }
 
     AssetId AssetManager::registerMesh(std::string_view path)
     {
-        return m_registry.registerAsset(AssetType::Mesh, path);
+        return registerFileAsset(AssetType::Mesh, path);
     }
 
     AssetId AssetManager::registerMesh(const MeshAsset& asset)
@@ -246,7 +311,7 @@ namespace aiko
 
     AssetId AssetManager::registerModel(std::string_view path)
     {
-        return m_registry.registerAsset(AssetType::Model, path);
+        return registerFileAsset(AssetType::Model, path);
     }
 
     AssetId AssetManager::registerShader(std::string_view vsPath, std::string_view fsPath)
@@ -459,6 +524,20 @@ namespace aiko
         m_computeShaderAssets.insert_or_assign(
             id,
             std::move(asset)
+        );
+    }
+
+    AssetId AssetManager::registerFileAsset(AssetType type, std::string_view source, TextureColorSpace colorSpace)
+    {
+        const AssetResolveResult result = resolveAsset(source);
+
+        if (!result)
+        {
+            logger::Log::errorFmt("Failed to register asset '{}': {}", source, result.message);
+            return InvalidAssetId;
+        }
+
+        return m_registry.registerAsset(type, result.asset.identity, colorSpace
         );
     }
 
