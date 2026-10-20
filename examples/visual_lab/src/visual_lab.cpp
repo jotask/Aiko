@@ -1,5 +1,7 @@
 #include "visual_lab.h"
 
+#include "assets/asset_importer.h"
+
 #include "components/camera_component.h"
 #include "components/light_component.h"
 
@@ -26,7 +28,8 @@ namespace aiko::lab
         enum class VisualTest
         {
             MaterialMatrix,
-            TextureMaps
+            TextureMaps,
+            FullPBR
         };
 
         constexpr float SphereRadius = 0.8f;
@@ -52,6 +55,7 @@ namespace aiko::lab
         initLighting();
         initPbrMaterials();
         initTextureTests();
+        initFullPbrTest();
 
         // Avoid Bloom masking small differences between materials.
         renderer().postProcessing().setEnabled("Bloom", false);
@@ -75,12 +79,17 @@ namespace aiko::lab
             case VisualTest::TextureMaps:
                 renderTextureTests();
                 break;
+
+            case VisualTest::FullPBR:
+                renderFullPbrTest();
+                break;
         }
     }
 
     void VisualLab::dispose()
     {
         m_sphereMesh.unload();
+        m_fireHydrantMesh.unload();
     }
 
     void VisualLab::initLighting()
@@ -222,6 +231,54 @@ namespace aiko::lab
         m_textureTestMaterials[8].setEmissiveMap(assets().loadTexture("texel_checker.png"));
     }
 
+    void VisualLab::initFullPbrTest()
+    {
+        const AssetId pbrShader = assets().loadShader("pbr");
+
+        // Reuse the same Fire Hydrant assets already tested in RenderLab.
+        const AssetId albedo = assets().loadTexture("textures/pbr/fire_hydrant/albedo.png");
+
+        const AssetId normal = assets().loadTexture("textures/pbr/fire_hydrant/normal.png");
+
+        const AssetId orm = assets().loadTexture("textures/pbr/fire_hydrant/orm.png");
+
+        // Base material: complete texture set.
+        Material& complete = m_fullPbrMaterials[0];
+
+        complete.m_shaderId = pbrShader;
+        complete.m_baseColor = WHITE;
+        complete.m_lit = true;
+        complete.m_useVertexColor = false;
+
+        complete.setMetallic(1.0f);
+        complete.setRoughness(1.0f);
+
+        complete.setAlbedoMap(albedo);
+        complete.setNormalMap(normal);
+        complete.setMetallicRoughnessMap(orm);
+        complete.setAmbientOcclusionMap(orm);
+
+        // Same material without tangent-space normal mapping.
+        m_fullPbrMaterials[1] = complete;
+        m_fullPbrMaterials[1].clearTexture("u_normalTexture");
+
+        // Same material without ORM.
+        m_fullPbrMaterials[2] = complete;
+        m_fullPbrMaterials[2].clearTexture("u_metallicRoughnessTexture");
+        m_fullPbrMaterials[2].clearTexture("u_occlusionTexture");
+
+        // Explicit neutral properties for the no-ORM comparison.
+        m_fullPbrMaterials[2].setMetallic(0.0f);
+        m_fullPbrMaterials[2].setRoughness(0.5f);
+
+        const AssetImportResult<MeshAsset> result = AssetImporter::loadMesh("models/FireHydrantMesh.obj");
+        AIKO_ASSERT(static_cast<bool>(result), "Failed to import Fire Hydrant mesh");
+
+        m_fireHydrantMesh.upload(*result);
+        AIKO_ASSERT(m_fireHydrantMesh.isValid(), "Fire Hydrant mesh upload failed");
+
+    }
+
     void VisualLab::renderImgui()
     {
         if (ImGui::BeginCombo("VisualMode##Test", magic_enum::enum_name(ActiveTest).data()))
@@ -300,6 +357,26 @@ namespace aiko::lab
 
                 renderer().drawMesh(transform, m_sphereMesh, m_textureTestMaterials[index]);
             }
+        }
+    }
+
+    void VisualLab::renderFullPbrTest()
+    {
+        if (!m_fireHydrantMesh.isValid())
+        {
+            return;
+        }
+
+        constexpr float Spacing = 3.5f;
+        constexpr float ModelScale = 1.0f;
+        constexpr float Z = -12.0f;
+
+        for (int i = 0; i < FullPbrTestCount; ++i)
+        {
+            Transform transform{};
+            transform.position = { (static_cast<float>(i) - 1.0f) * Spacing, 0.0f, Z};
+            transform.scale = { ModelScale, ModelScale, ModelScale };
+            renderer().drawMesh(transform, m_fireHydrantMesh, m_fullPbrMaterials[i]);
         }
     }
 

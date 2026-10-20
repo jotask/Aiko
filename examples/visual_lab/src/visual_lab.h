@@ -21,19 +21,25 @@ namespace aiko::lab
         static constexpr int GridSize = 5;
         static constexpr int MaterialCount = GridSize * GridSize;
         static constexpr int TextureTestCount = 9;
+        static constexpr int FullPbrTestCount = 3;
 
         void initCamera();
         void initLighting();
         void initPbrMaterials();
         void initTextureTests();
+        void initFullPbrTest();
 
         void renderImgui();
         void renderPbrMatrix();
         void renderTextureTests();
+        void renderFullPbrTest();
 
         std::array<Material, MaterialCount> m_pbrMaterials;
         Mesh m_sphereMesh;
 
         std::array<Material, TextureTestCount> m_textureTestMaterials;
+
+        std::array<Material, FullPbrTestCount> m_fullPbrMaterials;
+        Mesh m_fireHydrantMesh;
     };
 }
