@@ -11,6 +11,22 @@
 namespace aiko
 {
 
+    namespace
+    {
+        TextureAsset makeLinearTextureAsset(const TextureAsset& source)
+        {
+            TextureAsset result = source;
+
+            if (result.desc.type == TextureType::Sampled &&
+                result.desc.format == TextureFormat::RGBA8_SRGB)
+            {
+                result.desc.format = TextureFormat::RGBA8;
+            }
+
+            return result;
+        }
+    }
+
     RenderResourceManager::RenderResourceManager(IAssetProvider& assets)
         : m_assetProvider(assets)
     {
@@ -29,19 +45,19 @@ namespace aiko
 
             if (!texture.isValid())
             {
-                // The previous upload failed.
-                // Retry without replacing the cached Texture object.
-                const TextureAsset& asset = m_assetProvider.getTextureAsset(id);
-                texture.upload(asset);
+                const TextureAsset& source = m_assetProvider.getTextureAsset(id);
+
+                texture.upload(makeLinearTextureAsset(source));
             }
 
             return texture;
         }
 
-        const TextureAsset& asset = m_assetProvider.getTextureAsset(id);
+        const TextureAsset& source = m_assetProvider.getTextureAsset(id);
 
         auto texture = std::make_unique<Texture>();
-        texture->upload(asset);
+
+        texture->upload(makeLinearTextureAsset(source));
 
         Texture& ref = *texture;
 
@@ -221,7 +237,7 @@ namespace aiko
 
         if (linearIt != m_textures.end())
         {
-            linearIt->second->update(asset);
+            linearIt->second->update(makeLinearTextureAsset(asset));
         }
 
         if (srgbIt != m_srgbTextures.end())
