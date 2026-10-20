@@ -29,7 +29,8 @@ namespace aiko::lab
         {
             MaterialMatrix,
             TextureMaps,
-            FullPBR
+            FullPBR,
+            ColorSpace,
         };
 
         constexpr float SphereRadius = 0.8f;
@@ -56,6 +57,7 @@ namespace aiko::lab
         initPbrMaterials();
         initTextureTests();
         initFullPbrTest();
+        initColorSpaceTest();
 
         // Avoid Bloom masking small differences between materials.
         renderer().postProcessing().setEnabled("Bloom", false);
@@ -83,6 +85,10 @@ namespace aiko::lab
             case VisualTest::FullPBR:
                 renderFullPbrTest();
                 break;
+
+            case VisualTest::ColorSpace:
+                renderColorSpaceTest();
+                break;
         }
     }
 
@@ -90,6 +96,7 @@ namespace aiko::lab
     {
         m_sphereMesh.unload();
         m_fireHydrantMesh.unload();
+        m_colorSpaceQuad.unload();
     }
 
     void VisualLab::initLighting()
@@ -279,6 +286,33 @@ namespace aiko::lab
 
     }
 
+    void VisualLab::initColorSpaceTest()
+    {
+        constexpr uint Size = 4;
+
+        TextureAsset grayTexture = texture::factory::generateBlank(Size, Size, Color::fromBytes(128, 128, 128, 255));
+
+        const AssetId grayTextureId = assets().createTexture(grayTexture);
+
+        m_colorSpaceQuad.upload(mesh::factory::generateQuad());
+
+        const AssetId shader = assets().loadShader("color_space_validation.vert","color_space_validation.frag");
+
+        m_colorSpaceMaterial.m_shaderId = shader;
+        m_colorSpaceMaterial.m_lit = false;
+        m_colorSpaceMaterial.m_useVertexColor = false;
+        m_colorSpaceMaterial.m_renderState.depthTest = false;
+        m_colorSpaceMaterial.m_renderState.depthWrite = false;
+
+        // Same asset ID, sRGB GPU variant.
+        m_colorSpaceMaterial.setAlbedoMap(grayTextureId);
+
+        // Same asset ID, linear GPU variant.
+        m_colorSpaceMaterial.setTexture("u_secondaryTexture", grayTextureId);
+        m_colorSpaceMaterial.setFloat("u_expectedLinear", 128.0f / 255.0f);
+        m_colorSpaceMaterial.setFloat("u_expectedSrgb", 0.215861f);
+    }
+
     void VisualLab::renderImgui()
     {
         if (ImGui::BeginCombo("VisualMode##Test", magic_enum::enum_name(ActiveTest).data()))
@@ -378,6 +412,16 @@ namespace aiko::lab
             transform.scale = { ModelScale, ModelScale, ModelScale };
             renderer().drawMesh(transform, m_fireHydrantMesh, m_fullPbrMaterials[i]);
         }
+    }
+
+    void VisualLab::renderColorSpaceTest()
+    {
+        Transform transform{};
+
+        transform.position = {0.0f, 0.0f, -12.0f};
+        transform.scale = {10.0f, 5.0f, 1.0f};
+
+        renderer().drawMesh(transform, m_colorSpaceQuad, m_colorSpaceMaterial);
     }
 
 }
