@@ -78,6 +78,33 @@ function(aiko_collect_target_sources_flat output_variable root_dir)
     set(${output_variable} ${collected_sources} PARENT_SCOPE)
 endfunction()
 
+function(aiko_configure_project_assets target_name)
+    if(NOT TARGET ${target_name})
+        message(FATAL_ERROR "Cannot configure assets: target '${target_name}' does not exist")
+    endif()
+
+    get_target_property(target_type ${target_name} TYPE)
+
+    if(NOT target_type STREQUAL "EXECUTABLE")
+        message(FATAL_ERROR "Project asset configuration requires an executable target: ${target_name}")
+    endif()
+
+    set(asset_root "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+
+    # No project assets directory means engine-only asset resolution.
+    if(NOT IS_DIRECTORY "${asset_root}")
+        set(asset_root "")
+    endif()
+
+    set(AIKO_CONFIGURED_ASSET_ROOT "${asset_root}")
+
+    set(generated_source "${CMAKE_CURRENT_BINARY_DIR}/${target_name}_project_assets.cpp")
+
+    configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ProjectAssets.cpp.in" "${generated_source}" @ONLY)
+
+    target_sources(${target_name} PRIVATE "${generated_source}")
+endfunction()
+
 function(aiko_apply_defaults target_name)
 
     target_compile_features(${target_name} PUBLIC cxx_std_20)

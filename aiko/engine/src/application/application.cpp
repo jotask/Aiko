@@ -6,11 +6,12 @@
 namespace aiko
 {
 
+    AikoConfig makeBuildApplicationConfig();
+
     Application::~Application() = default;
 
     Application::Application()
-        : m_aiko(std::make_unique<Aiko>(this))
-        , m_layers(std::make_unique<LayerStack>())
+        : Application(makeBuildApplicationConfig())
     {
 
     }

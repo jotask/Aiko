@@ -13,9 +13,11 @@ function(aiko_add_dependency target)
 endfunction()
 
 function(aiko_add_example target)
-    if(TARGET ${target})
-        set_property(TARGET ${target} PROPERTY FOLDER "AikoExamples")
-    else()
+    if(NOT TARGET ${target})
         message(FATAL_ERROR "aiko_add_example: target '${target}' does not exist")
     endif()
+
+    set_property(TARGET ${target} PROPERTY FOLDER "AikoExamples")
+
+    aiko_configure_project_assets(${target})
 endfunction()
