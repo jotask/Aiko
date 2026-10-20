@@ -31,6 +31,7 @@ namespace aiko::lab
             TextureMaps,
             FullPBR,
             ColorSpace,
+            MaterialColor,
         };
 
         constexpr float SphereRadius = 0.8f;
@@ -58,6 +59,7 @@ namespace aiko::lab
         initTextureTests();
         initFullPbrTest();
         initColorSpaceTest();
+        initMaterialColorTest();
 
         // Avoid Bloom masking small differences between materials.
         renderer().postProcessing().setEnabled("Bloom", false);
@@ -88,6 +90,10 @@ namespace aiko::lab
 
             case VisualTest::ColorSpace:
                 renderColorSpaceTest();
+                break;
+
+            case VisualTest::MaterialColor:
+                renderMaterialColorTest();
                 break;
         }
     }
@@ -313,6 +319,30 @@ namespace aiko::lab
         m_colorSpaceMaterial.setFloat("u_expectedSrgb", 0.215861f);
     }
 
+    void VisualLab::initMaterialColorTest()
+    {
+        constexpr uint Size = 4;
+
+        const Color gray = Color::fromBytes(128, 128, 128, 255);
+
+        TextureAsset grayTexture = texture::factory::generateBlank( Size, Size, gray);
+
+        const AssetId textureId = assets().createTexture(grayTexture);
+
+        const AssetId shaderId = assets().loadShader("multi_texture_validation.vert", "material_color_validation.frag");
+
+        m_materialColorMaterial.m_shaderId = shaderId;
+        m_materialColorMaterial.m_baseColor = gray;
+        m_materialColorMaterial.m_lit = false;
+        m_materialColorMaterial.m_useVertexColor = false;
+
+        m_materialColorMaterial.m_renderState.depthTest = false;
+        m_materialColorMaterial.m_renderState.depthWrite = false;
+
+        // Force the hardware sRGB sampling variant.
+        m_materialColorMaterial.setAlbedoMap(textureId);
+    }
+
     void VisualLab::renderImgui()
     {
         if (ImGui::BeginCombo("VisualMode##Test", magic_enum::enum_name(ActiveTest).data()))
@@ -422,6 +452,16 @@ namespace aiko::lab
         transform.scale = {10.0f, 5.0f, 1.0f};
 
         renderer().drawMesh(transform, m_colorSpaceQuad, m_colorSpaceMaterial);
+    }
+
+    void VisualLab::renderMaterialColorTest()
+    {
+        Transform transform{};
+
+        transform.position = {0.0f, 0.0f, -12.0f};
+        transform.scale = {10.0f, 5.0f, 1.0f};
+
+        renderer().drawMesh(transform, m_colorSpaceQuad, m_materialColorMaterial);
     }
 
 }

@@ -29,12 +29,14 @@ namespace aiko::lab
         void initTextureTests();
         void initFullPbrTest();
         void initColorSpaceTest();
+        void initMaterialColorTest();
 
         void renderImgui();
         void renderPbrMatrix();
         void renderTextureTests();
         void renderFullPbrTest();
         void renderColorSpaceTest();
+        void renderMaterialColorTest();
 
         std::array<Material, MaterialCount> m_pbrMaterials;
         Mesh m_sphereMesh;
@@ -44,8 +46,9 @@ namespace aiko::lab
         std::array<Material, FullPbrTestCount> m_fullPbrMaterials;
         Mesh m_fireHydrantMesh;
 
-
         Material m_colorSpaceMaterial;
         Mesh m_colorSpaceQuad;
+
+        Material m_materialColorMaterial;
     };
 }
