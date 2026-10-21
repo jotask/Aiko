@@ -8,6 +8,47 @@
 namespace aiko
 {
 
+    namespace
+    {
+        string shaderBinaryName(std::string_view source, std::string_view extension)
+        {
+            const std::string_view projectPrefix = "project://";
+            const std::string_view enginePrefix = "engine://";
+
+            std::string prefix;
+            std::string_view name = source;
+
+            if (source.starts_with(projectPrefix))
+            {
+                prefix = projectPrefix;
+                name.remove_prefix(projectPrefix.size());
+            }
+            else if (source.starts_with(enginePrefix))
+            {
+                prefix = enginePrefix;
+                name.remove_prefix(enginePrefix.size());
+            }
+
+            std::filesystem::path path{name};
+
+            // Handles both "model" and legacy "model.vs" / "model.fs".
+            path.replace_extension(extension);
+
+            return prefix + path.generic_string() + ".spv";
+        }
+
+        string shaderIdentity(const ResolvedAsset& resolved, std::string_view logicalName)
+        {
+            const std::string_view name = logicalName.starts_with("project://")
+                ? logicalName.substr(sizeof("project://") - 1)
+                : logicalName.starts_with("engine://")
+                    ? logicalName.substr(sizeof("engine://") - 1)
+                    : logicalName;
+
+            return (resolved.owner == AssetOwner::Engine ? "engine://" : "project://") + std::string(name);
+        }
+    }
+
     AssetManager::AssetManager(const AssetResolver& resolver)
         : m_resolver(resolver)
     {
@@ -240,34 +281,44 @@ namespace aiko
 
     void AssetManager::loadShaderAsset(const AssetId& id)
     {
-        AIKO_ASSERT(id != InvalidAssetId, "Attempting to load shader from invalid UUID");
-
-        if (m_shaderAssets.find(id) != m_shaderAssets.end())
+        if (m_shaderAssets.contains(id))
         {
             return;
         }
 
         const AssetRecord* record = m_registry.find(id);
+
         AIKO_ASSERT(record != nullptr && record->type == AssetType::Shader, "Shader asset id not registered");
 
-        ShaderAsset asset = AssetImporter::loadShader(record->source);
-        m_shaderAssets.emplace(id, std::move(asset));
+        const auto resolved = resolveShaderAsset(shaderBinaryName(record->source, ".vert"), shaderBinaryName(record->source, ".frag"));
+
+        if (!resolved)
+        {
+            return;
+        }
+
+        installShaderAsset(id, std::move(*resolved));
     }
 
     void AssetManager::loadComputeShaderAsset(const AssetId& id)
     {
-        AIKO_ASSERT(id != InvalidAssetId, "Attempting to load compute shader from invalid UUID");
-
-        if (m_computeShaderAssets.find(id) != m_computeShaderAssets.end())
+        if (m_computeShaderAssets.contains(id))
         {
             return;
         }
 
         const AssetRecord* record = m_registry.find(id);
+
         AIKO_ASSERT(record != nullptr && record->type == AssetType::ComputeShader, "Compute shader asset id not registered");
 
-        ComputeShaderAsset asset = AssetImporter::loadComputeShader(record->source);
-        m_computeShaderAssets.emplace(id, std::move(asset));
+        const auto resolved = resolveComputeShaderAsset(shaderBinaryName(record->source, ".comp"));
+
+        if (!resolved)
+        {
+            return;
+        }
+
+        installComputeShaderAsset(id, std::move(*resolved));
     }
 
     TextureAsset& AssetManager::getMutableTextureAsset(const AssetId& id)
@@ -316,27 +367,47 @@ namespace aiko
 
     AssetId AssetManager::registerShader(std::string_view vsPath, std::string_view fsPath)
     {
-        ShaderAsset asset{};
-        asset.vertexPath = string(vsPath);
-        asset.fragmentPath = string(fsPath);
-        return registerShaderAsset(asset);
+        const auto resolved = resolveShaderAsset(shaderBinaryName(vsPath, ".vert"), shaderBinaryName(fsPath, ".frag"));
+
+        if (!resolved)
+        {
+            return InvalidAssetId;
+        }
+
+        return registerShaderAsset(*resolved);
     }
 
     AssetId AssetManager::registerShader(std::string_view path)
     {
-        const string p(path);
-        const string explicitKey = p + ".vs|" + p + ".fs";
-        auto explicitIt = m_shaderExplicitKeys.find(explicitKey);
-        if (explicitIt != m_shaderExplicitKeys.end())
+        const string vertex = shaderBinaryName(path, ".vert");
+        const string fragment = shaderBinaryName(path, ".frag");
+
+        const ShaderPairResolveResult pair = m_resolver.resolveShaderPair(vertex, fragment);
+
+        if (!pair)
         {
-            return explicitIt->second;
+            logger::Log::errorFmt("Cannot register shader '{}': {}", path, pair.message);
+            return InvalidAssetId;
         }
-        return m_registry.registerAsset(AssetType::Shader, path);
+
+        const string identity = shaderIdentity(pair.vertex, path);
+
+        return m_registry.registerAsset(AssetType::Shader, identity);
     }
 
     AssetId AssetManager::registerComputeShader(std::string_view path)
     {
-        return m_registry.registerAsset(AssetType::ComputeShader, path);
+        const AssetResolveResult resolved = m_resolver.resolveShaderBinary(shaderBinaryName(path, ".comp"));
+
+        if (!resolved)
+        {
+            logger::Log::errorFmt("Cannot register compute shader '{}': {}", path, resolved.message);
+            return InvalidAssetId;
+        }
+
+        const string identity = shaderIdentity(resolved.asset, path);
+
+        return m_registry.registerAsset(AssetType::ComputeShader, identity);
     }
 
     bool AssetManager::hasTextureAsset(const AssetId& id) const
@@ -469,6 +540,39 @@ namespace aiko
     void AssetManager::unloadComputeShader(const AssetId& id)
     {
         m_computeShaderAssets.erase(id);
+    }
+
+    std::optional<ShaderAsset> AssetManager::resolveShaderAsset(std::string_view vertexBinary, std::string_view fragmentBinary) const
+    {
+        const ShaderPairResolveResult result = m_resolver.resolveShaderPair(vertexBinary, fragmentBinary);
+
+        if (!result)
+        {
+            logger::Log::errorFmt("Failed to resolve graphics shader '{}' + '{}': {}", vertexBinary, fragmentBinary, result.message);
+            return std::nullopt;
+        }
+
+        ShaderAsset asset;
+        asset.vertexPath = result.vertex.physicalPath.string();
+        asset.fragmentPath = result.fragment.physicalPath.string();
+
+        return asset;
+    }
+
+    std::optional<ComputeShaderAsset> AssetManager::resolveComputeShaderAsset(std::string_view computeBinary) const
+    {
+        const AssetResolveResult result = m_resolver.resolveShaderBinary(computeBinary);
+
+        if (!result)
+        {
+            logger::Log::errorFmt("Failed to resolve compute shader '{}': {}", computeBinary, result.message);
+            return std::nullopt;
+        }
+
+        ComputeShaderAsset asset;
+        asset.computePath = result.asset.physicalPath.string();
+
+        return asset;
     }
 
     AssetId AssetManager::registerShaderAsset(const ShaderAsset& asset)

@@ -392,66 +392,61 @@ namespace aiko
 
     void AssetSystem::loadAsset(const AssetId& id, std::type_identity<ShaderAsset>)
     {
+        if (id == InvalidAssetId)
+        {
+            return;
+        }
+
         const AssetLoadState state = getLoadState<ShaderAsset>(id);
 
-        if (state != AssetLoadState::Unloaded && state != AssetLoadState::Failed)
+        if (state == AssetLoadState::Ready || state == AssetLoadState::Queued || state == AssetLoadState::Finalizing)
         {
             return;
         }
 
         AssetManager* manager = m_assetModule->getManager();
 
-        const string source = manager->getAssetSource(id, AssetType::Shader);
+        // Explicit shader pairs are already installed at registration.
+        if (manager->isShaderAssetLoaded(id))
+        {
+            m_loadStates[id] = AssetLoadState::Ready;
+            return;
+        }
 
-        m_loadStates[id] = AssetLoadState::Queued;
+        m_loadStates[id] = AssetLoadState::Finalizing;
 
-        submitJob(
-            *m_jobSystem,
-            m_loadStates,
-            id,
-            [source]()
-            {
-                return AssetImportResult<ShaderAsset>::success(AssetImporter::loadShader(source));
-            },
-            [this, id](ShaderAsset asset)
-            {
-                m_loadStates[id] = AssetLoadState::Finalizing;
-                m_assetModule->getManager()->installShaderAsset(id, std::move(asset));
-                m_loadStates[id] = AssetLoadState::Ready;
-            }
-        );
+        manager->loadShaderAsset(id);
+
+        m_loadStates[id] = manager->isShaderAssetLoaded(id) ? AssetLoadState::Ready : AssetLoadState::Failed;
     }
 
     void AssetSystem::loadAsset(const AssetId& id, std::type_identity<ComputeShaderAsset>)
     {
+        if (id == InvalidAssetId)
+        {
+            return;
+        }
+
         const AssetLoadState state = getLoadState<ComputeShaderAsset>(id);
 
-        if (state != AssetLoadState::Unloaded && state != AssetLoadState::Failed)
+        if (state == AssetLoadState::Ready || state == AssetLoadState::Queued || state == AssetLoadState::Finalizing)
         {
             return;
         }
 
         AssetManager* manager = m_assetModule->getManager();
 
-        const string source = manager->getAssetSource(id, AssetType::ComputeShader);
+        if (manager->isComputeShaderAssetLoaded(id))
+        {
+            m_loadStates[id] = AssetLoadState::Ready;
+            return;
+        }
 
-        m_loadStates[id] = AssetLoadState::Queued;
+        m_loadStates[id] = AssetLoadState::Finalizing;
 
-        submitJob(
-            *m_jobSystem,
-            m_loadStates,
-            id,
-            [source]()
-            {
-                return AssetImportResult<ComputeShaderAsset>::success(AssetImporter::loadComputeShader(source));
-            },
-            [this, id](ComputeShaderAsset asset)
-            {
-                m_loadStates[id] = AssetLoadState::Finalizing;
-                m_assetModule->getManager()->installComputeShaderAsset(id, std::move(asset));
-                m_loadStates[id] = AssetLoadState::Ready;
-            }
-        );
+        manager->loadComputeShaderAsset(id);
+
+        m_loadStates[id] = manager->isComputeShaderAssetLoaded(id) ? AssetLoadState::Ready : AssetLoadState::Failed;
     }
 
     AssetLoadState AssetSystem::getLoadState(const AssetId& id, std::type_identity<TextureAsset>) const

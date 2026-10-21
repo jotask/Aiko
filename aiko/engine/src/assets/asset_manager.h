@@ -11,6 +11,7 @@
 #include <assets/iasset_provider.h>
 
 #include <filesystem>
+#include <optional>
 
 namespace aiko
 {
@@ -73,6 +74,12 @@ namespace aiko
         void unloadModel(const AssetId& id);
         void unloadShader(const AssetId& id);
         void unloadComputeShader(const AssetId& id);
+
+        [[nodiscard]]
+        std::optional<ShaderAsset> resolveShaderAsset(std::string_view vertexBinary, std::string_view fragmentBinary) const;
+
+        [[nodiscard]]
+        std::optional<ComputeShaderAsset> resolveComputeShaderAsset(std::string_view computeBinary) const;
 
     private:
 

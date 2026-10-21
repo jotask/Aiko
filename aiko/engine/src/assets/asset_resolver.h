@@ -43,6 +43,20 @@ namespace aiko
         }
     };
 
+    struct ShaderPairResolveResult
+    {
+        AssetResolveError error = AssetResolveError::None;
+        std::string message;
+
+        ResolvedAsset vertex;
+        ResolvedAsset fragment;
+
+        explicit operator bool() const noexcept
+        {
+            return error == AssetResolveError::None;
+        }
+    };
+
     class AssetResolver final
     {
     public:
@@ -50,6 +64,12 @@ namespace aiko
 
         [[nodiscard]]
         AssetResolveResult resolve(std::string_view source) const;
+
+        [[nodiscard]]
+        AssetResolveResult resolveShaderBinary(std::string_view source) const;
+
+        [[nodiscard]]
+        ShaderPairResolveResult resolveShaderPair(std::string_view vertexSource, std::string_view fragmentSource) const;
 
     private:
         AssetConfiguration m_configuration;

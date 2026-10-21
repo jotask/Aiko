@@ -25,21 +25,16 @@ namespace aiko::renderer::vulkan
 
         unload();
 
-        auto replacePrefix = [](const char* file, const char* ext) -> string
-        {
-            std::filesystem::path path(file);
-            path.replace_extension(ext);
-            return path.generic_string();
-        };
+        AIKO_ASSERT(vs != nullptr && fs != nullptr, "Shader paths must not be null");
 
-        vertex_file = replacePrefix(vs, ".vert");
-        fragment_file = replacePrefix(fs, ".frag");
+        const std::filesystem::path vshaderPath(vs);
+        const std::filesystem::path fshaderPath(fs);
 
-        using stdpath = std::filesystem::path;
+        AIKO_ASSERTF(std::filesystem::is_regular_file(vshaderPath), "Vertex shader binary does not exist: %s", vshaderPath.string().c_str());
+        AIKO_ASSERTF(std::filesystem::is_regular_file(fshaderPath), "Fragment shader binary does not exist: %s", fshaderPath.string().c_str());
 
-        const stdpath base(AIKO_VULKAN_SHADER_BINARY_DIR);
-        const stdpath vshaderPath = base / (vertex_file + std::string(".spv"));
-        const stdpath fshaderPath = base / (fragment_file + std::string(".spv"));
+        vertex_file = vshaderPath.generic_string();
+        fragment_file = fshaderPath.generic_string();
 
         AIKO_ASSERTF(std::filesystem::exists(vshaderPath), "Vertex shader file not found! %s", vshaderPath.string().c_str());
         AIKO_ASSERTF(std::filesystem::exists(fshaderPath), "Fragment shader file not found! %s", fshaderPath.string().c_str());
@@ -118,7 +113,9 @@ namespace aiko::renderer::vulkan
 
     bool VulkanShaderImpl::isBuiltinModelShader() const
     {
-        return isValid() && vertex_file == "model.vert" && fragment_file == "model.frag";
+        return isValid() &&
+               std::filesystem::path(vertex_file).filename() == "model.vert.spv" &&
+               std::filesystem::path(fragment_file).filename() == "model.frag.spv";
     }
 
     VkShaderModule VulkanShaderImpl::createShaderModule(VkDevice device, const vector<uint8_t>& code)

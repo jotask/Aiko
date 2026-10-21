@@ -98,11 +98,36 @@ function(aiko_configure_project_assets target_name)
 
     set(AIKO_CONFIGURED_ASSET_ROOT "${asset_root}")
 
+    set(AIKO_CONFIGURED_ENGINE_SHADER_BINARY_ROOT "${CMAKE_BINARY_DIR}/assets/shaders/vulkan")
+
+    set(AIKO_CONFIGURED_PROJECT_SHADER_BINARY_ROOT "")
+
+    if(NOT asset_root STREQUAL "")
+        if(IS_DIRECTORY "${asset_root}/shaders")
+            set(AIKO_CONFIGURED_PROJECT_SHADER_BINARY_ROOT "${CMAKE_CURRENT_BINARY_DIR}/assets/shaders/vulkan")
+        endif()
+    endif()
+
     set(generated_source "${CMAKE_CURRENT_BINARY_DIR}/${target_name}_project_assets.cpp")
 
     configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ProjectAssets.cpp.in" "${generated_source}" @ONLY)
 
     target_sources(${target_name} PRIVATE "${generated_source}")
+
+    # Project shaders are renderer-dependent, but their source directory
+    # is not platform-specific.
+    if(NOT asset_root STREQUAL "")
+        set(shader_source_dir "${asset_root}/shaders")
+
+        if(IS_DIRECTORY "${shader_source_dir}")
+            set(shader_target "${target_name}Shaders")
+
+            aiko_add_shader_target(${shader_target} SOURCE_DIR "${shader_source_dir}" BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assets/shaders")
+
+            add_dependencies(${target_name} ${shader_target})
+        endif()
+    endif()
+
 endfunction()
 
 function(aiko_apply_defaults target_name)
@@ -130,6 +155,26 @@ endfunction()
 
 function(aiko_set_common_source_layout target_name root_dir)
     source_group(TREE ${root_dir} FILES ${ARGN})
+endfunction()
+
+function(aiko_add_shader_target target_name)
+    set(oneValueArgs SOURCE_DIR BINARY_DIR)
+    cmake_parse_arguments(AIKO_SHADER "" "${oneValueArgs}" "" ${ARGN})
+
+    if(NOT AIKO_SHADER_SOURCE_DIR OR NOT AIKO_SHADER_BINARY_DIR)
+        message(FATAL_ERROR "aiko_add_shader_target requires SOURCE_DIR and BINARY_DIR")
+    endif()
+
+    if(NOT IS_DIRECTORY "${AIKO_SHADER_SOURCE_DIR}")
+        message(FATAL_ERROR "Shader source directory does not exist: ${AIKO_SHADER_SOURCE_DIR}"
+        )
+    endif()
+
+    if(AIKO_RENDER STREQUAL "AIKO_VULKAN")
+        aiko_add_vulkan_shader_target(${target_name} SOURCE_DIR "${AIKO_SHADER_SOURCE_DIR}" BINARY_DIR "${AIKO_SHADER_BINARY_DIR}/vulkan" TARGET_ENV vulkan1.0)
+    else()
+        message(FATAL_ERROR "Shader compilation is not implemented for renderer '${AIKO_RENDER}'")
+    endif()
 endfunction()
 
 function(aiko_add_vulkan_shader_target target_name)
@@ -163,7 +208,7 @@ function(aiko_add_vulkan_shader_target target_name)
     file(GLOB_RECURSE AIKO_SHADERTOY_SHADERS CONFIGURE_DEPENDS
             "${AIKO_SHADER_SOURCE_DIR}/*.shadertoy"
     )
-    set(AIKO_SHADER_GENERATED_DIR  "${CMAKE_BINARY_DIR}/generated/shaders/vulkan")
+    set(AIKO_SHADER_GENERATED_DIR "${AIKO_SHADER_BINARY_DIR}/_generated")
     list(
             FILTER
             AIKO_SHADERTOY_SHADERS
@@ -275,12 +320,12 @@ function(aiko_add_vulkan_shader_target target_name)
                 "-DINPUT_FILE=${SHADER}"
                 "-DOUTPUT_FILE=${GENERATED_FRAGMENT}"
                 ${SHADERTOY_COMMON_ARGS}
-                -P "${CMAKE_SOURCE_DIR}/cmake/GenerateShaderToyFragment.cmake"
+                -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/GenerateShaderToyFragment.cmake"
 
                 DEPENDS
                 "${SHADER}"
                 ${SHADERTOY_COMMON_DEPENDS}
-                "${CMAKE_SOURCE_DIR}/cmake/GenerateShaderToyFragment.cmake"
+                "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/GenerateShaderToyFragment.cmake"
 
                 COMMENT "Generating Vulkan ShaderToy fragment ${SHADER_REL}"
                 VERBATIM

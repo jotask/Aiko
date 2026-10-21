@@ -27,14 +27,25 @@ namespace aiko
     AssetId AssetContext::loadShader(string_view source)
     {
         const AssetId id = m_assetSystem->registerAsset<ShaderAsset>(source);
+
+        if (id == InvalidAssetId)
+        {
+            return InvalidAssetId;
+        }
+
         m_assetSystem->loadAsset<ShaderAsset>(id);
         return id;
     }
 
     AssetId AssetContext::loadShader(string_view vertexSource, string_view fragmentSource)
     {
-        const AssetId id =
-        m_assetSystem->registerShader(vertexSource, fragmentSource);
+        const AssetId id = m_assetSystem->registerShader(vertexSource, fragmentSource);
+
+        if (id == InvalidAssetId)
+        {
+            return InvalidAssetId;
+        }
+
         m_assetSystem->loadAsset<ShaderAsset>(id);
         return id;
     }

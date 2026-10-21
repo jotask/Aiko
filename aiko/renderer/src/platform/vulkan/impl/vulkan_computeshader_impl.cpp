@@ -35,16 +35,10 @@ namespace aiko::renderer::vulkan
 
         VulkanContext& ctx = VulkanContext::current();
 
-        auto replacePrefix = [](const char* file, const char* ext) -> string
-        {
-            std::filesystem::path path(file);
-            path.replace_extension(ext);
-            return path.generic_string();
-        };
+        const std::filesystem::path computeShaderPath(file);
 
-        using stdpath = std::filesystem::path;
-        const stdpath base(AIKO_VULKAN_SHADER_BINARY_DIR);
-        const stdpath computeShaderPath = base / (replacePrefix(file.c_str(), ".comp") + std::string(".spv"));
+        AIKO_ASSERTF(std::filesystem::is_regular_file(computeShaderPath), "Compute shader binary does not exist: %s", computeShaderPath.string().c_str());
+        logger::Log::infoFmt("Loading Vulkan compute shader: '{}'", computeShaderPath.string());
 
         const auto code = files::readFileBytes(computeShaderPath);
         AIKO_ASSERT(code.empty() == false, "Failed to read compute shader file");

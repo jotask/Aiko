@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <filesystem>
 
 #include "vulkan_context.h"
 #include "vulkan_shader_reflector.h"
@@ -106,7 +107,15 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(m_pipelineLayout != VK_NULL_HANDLE, "Screen pipeline layout is invalid");
 
         VulkanShaderImpl shader;
-        shader.load("passthrough.vs", "passthrough.fs");
+
+        logger::Log::infoFmt("Vulkan internal shader root: '{}'", AIKO_VULKAN_SHADER_BINARY_DIR);
+
+        const auto vertex = std::filesystem::path(AIKO_VULKAN_SHADER_BINARY_DIR) / "passthrough.vert.spv";
+        logger::Log::infoFmt("Passthrough vertex path: '{}'", vertex.string());
+
+        const auto fragment = std::filesystem::path(AIKO_VULKAN_SHADER_BINARY_DIR) / "passthrough.frag.spv";
+
+        shader.load(vertex.string().c_str(), fragment.string().c_str());
 
         validateScreenShaderAbi(shader.reflection());
         validateScreenPushConstants(shader.reflection());

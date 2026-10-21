@@ -202,4 +202,123 @@ namespace aiko
 
         return resolveFromRoot(m_configuration.engineRoot, request.path, AssetOwner::Engine);
     }
+
+    AssetResolveResult AssetResolver::resolveShaderBinary(std::string_view source) const
+    {
+        ParsedRequest request;
+
+        if (!parseRequest(source, request))
+        {
+            return failure(AssetResolveError::InvalidPath, "Invalid shader reference: " + std::string(source));
+        }
+
+        if (request.owner == RequestedOwner::Project)
+        {
+            return resolveFromRoot(m_configuration.projectShaderBinaryRoot, request.path, AssetOwner::Project);
+        }
+
+        if (request.owner == RequestedOwner::Engine)
+        {
+            return resolveFromRoot(m_configuration.engineShaderBinaryRoot, request.path, AssetOwner::Engine);
+        }
+
+        if (!m_configuration.projectShaderBinaryRoot.empty())
+        {
+            AssetResolveResult project = resolveFromRoot(m_configuration.projectShaderBinaryRoot, request.path, AssetOwner::Project);
+
+            if (project.error != AssetResolveError::NotFound)
+            {
+                return project;
+            }
+        }
+
+        return resolveFromRoot(m_configuration.engineShaderBinaryRoot, request.path, AssetOwner::Engine);
+    }
+
+    ShaderPairResolveResult AssetResolver::resolveShaderPair(std::string_view vertexSource, std::string_view fragmentSource) const
+    {
+        ParsedRequest vertexRequest;
+        ParsedRequest fragmentRequest;
+
+        if (!parseRequest(vertexSource, vertexRequest) || !parseRequest(fragmentSource, fragmentRequest))
+        {
+            return {
+                .error = AssetResolveError::InvalidPath,
+                .message = "Invalid graphics shader reference"
+            };
+        }
+
+        if (vertexRequest.owner != fragmentRequest.owner)
+        {
+            return {
+                .error = AssetResolveError::InvalidPath,
+                .message = "Graphics shader stages must use the same ownership"
+            };
+        }
+
+        auto resolvePairFromRoot = [&](const std::filesystem::path& root, AssetOwner owner) -> ShaderPairResolveResult
+        {
+            const AssetResolveResult vertex = resolveFromRoot(root, vertexRequest.path, owner);
+
+            const AssetResolveResult fragment = resolveFromRoot(root, fragmentRequest.path, owner);
+
+            if (!vertex || !fragment)
+            {
+                const AssetResolveResult& failed = !vertex ? vertex : fragment;
+
+                return {
+                    .error = failed.error,
+                    .message = failed.message
+                };
+            }
+
+            return {
+                .vertex = vertex.asset,
+                .fragment = fragment.asset
+            };
+        };
+
+        if (vertexRequest.owner == RequestedOwner::Engine)
+        {
+            return resolvePairFromRoot(m_configuration.engineShaderBinaryRoot, AssetOwner::Engine);
+        }
+
+        if (vertexRequest.owner == RequestedOwner::Project)
+        {
+            return resolvePairFromRoot(m_configuration.projectShaderBinaryRoot, AssetOwner::Project);
+        }
+
+        if (!m_configuration.projectShaderBinaryRoot.empty())
+        {
+            const AssetResolveResult vertex = resolveFromRoot(m_configuration.projectShaderBinaryRoot, vertexRequest.path, AssetOwner::Project);
+
+            const AssetResolveResult fragment = resolveFromRoot(m_configuration.projectShaderBinaryRoot, fragmentRequest.path, AssetOwner::Project);
+
+            // No project implementation: use the engine pair.
+            if (vertex.error == AssetResolveError::NotFound && fragment.error == AssetResolveError::NotFound)
+            {
+                return resolvePairFromRoot(m_configuration.engineShaderBinaryRoot, AssetOwner::Engine);
+            }
+
+            // Otherwise the project has claimed this shader.
+            // Both stages must exist and be valid.
+            if (!vertex || !fragment)
+            {
+                const AssetResolveResult& failed = !vertex ? vertex : fragment;
+
+                return {
+                    .error = failed.error,
+                    .message = failed.message
+                };
+            }
+
+            return {
+                .vertex = vertex.asset,
+                .fragment = fragment.asset
+            };
+        }
+
+        return resolvePairFromRoot(m_configuration.engineShaderBinaryRoot, AssetOwner::Engine);
+    }
+
 }

@@ -20,32 +20,25 @@ aiko_setup_options()
 aiko_detect_platform()
 
 if(AIKO_RENDER STREQUAL "AIKO_VULKAN")
+    set(AIKO_ENGINE_SHADER_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/vulkan")
     set(AIKO_VULKAN_SHADER_BINARY_DIR "${CMAKE_BINARY_DIR}/assets/shaders/vulkan")
-
-    aiko_add_vulkan_shader_target(AikoVulkanShaders
-            SOURCE_DIR "${CMAKE_SOURCE_DIR}/assets/shaders/vulkan"
-            BINARY_DIR "${AIKO_VULKAN_SHADER_BINARY_DIR}"
-            TARGET_ENV vulkan1.0
-    )
+else()
+    message(FATAL_ERROR "Engine shader compilation is not implemented for '${AIKO_RENDER}'")
 endif()
+
+aiko_add_shader_target(AikoEngineShaders SOURCE_DIR "${AIKO_ENGINE_SHADER_SOURCE_DIR}" BINARY_DIR "${CMAKE_BINARY_DIR}/assets/shaders")
 
 add_subdirectory(aiko)
 
-if(TARGET AikoVulkanShaders)
-    if(TARGET Aiko)
-        add_dependencies(Aiko AikoVulkanShaders)
-    endif()
-
-    if(TARGET AikoRenderer)
-        add_dependencies(AikoRenderer AikoVulkanShaders)
-    endif()
+if(TARGET AikoEngineShaders)
+    add_dependencies(Aiko AikoEngineShaders)
+    add_dependencies(AikoRenderer AikoEngineShaders)
 
     if(TARGET AikoEditor)
-        add_dependencies(AikoEditor AikoVulkanShaders)
+        add_dependencies(AikoEditor AikoEngineShaders)
     endif()
 
-    aiko_add_target(AikoVulkanShaders)
-
+    aiko_add_target(AikoEngineShaders)
 endif()
 
 if(AIKO_BUILD_EXAMPLES)

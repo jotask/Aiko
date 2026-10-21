@@ -27,11 +27,11 @@ namespace aiko
 
     void RenderSystem::init()
     {
-        m_materialPrimitives.m_shaderId = m_assetSystem->registerAsset<ShaderAsset>(renderer::BuiltinShader::Model);
+        m_materialPrimitives.m_shaderId = m_assetSystem->registerAsset<ShaderAsset>("engine://model");
 
         m_assetSystem->loadAsset<ShaderAsset>(m_materialPrimitives.m_shaderId);
 
-        const AssetId uiShader = m_assetSystem->registerAsset<ShaderAsset>(renderer::BuiltinShader::UI);
+        const AssetId uiShader = m_assetSystem->registerAsset<ShaderAsset>("engine://ui");
 
         m_assetSystem->loadAsset<ShaderAsset>(uiShader);
 

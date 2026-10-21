@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <filesystem>
 
 #include "vulkan_context.h"
 #include "vulkan_descriptor_abi.h"
@@ -306,7 +307,11 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(m_layout != VK_NULL_HANDLE, "Model pipeline layout is invalid");
 
         VulkanShaderImpl shader;
-        shader.load("model_instanced.vs", "model_instanced.fs");
+
+        const auto vertex   = std::filesystem::path(AIKO_VULKAN_SHADER_BINARY_DIR) / "model_instanced.vert.spv";
+        const auto fragment = std::filesystem::path(AIKO_VULKAN_SHADER_BINARY_DIR) / "model_instanced.frag.spv";
+
+        shader.load(vertex.string().c_str(), fragment.string().c_str());
 
         validateModelShaderAbi(shader.reflection());
         validateModelPushConstants(shader.reflection());
