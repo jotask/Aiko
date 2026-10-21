@@ -77,11 +77,11 @@ namespace aiko
         m_gpuVertexDraws.push_back(desc);
     }
 
-    void RenderQueue::prepareGpuInstanceSorts(GpuInstanceSorter& sorter, renderer::IRenderDevice& device, const mat4& view)
+    void RenderQueue::prepareGpuInstanceSorts(GpuInstanceSorter& sorter, renderer::IRenderDevice& device, const mat4& view, const IResourceResolver& resources)
     {
         for (GpuInstanceDrawDesc& draw : m_gpuInstanceDraws)
         {
-            sorter.prepare(device, draw, view);
+            sorter.prepare(device, draw, view, resources);
         }
     }
 

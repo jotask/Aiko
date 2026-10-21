@@ -42,6 +42,8 @@ namespace aiko
         , m_registryPath(registryPath(m_configuration))
         , m_manager(m_resolver)
     {
+        const bool mounted = m_resourceResolver.mount("renderer", m_configuration.engineShaderBinaryRoot);
+        AIKO_ASSERT(mounted, "Failed to mount renderer binary resources");
     }
 
     void AssetsManagerModule::preInit()

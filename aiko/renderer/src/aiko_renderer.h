@@ -28,6 +28,7 @@
 
 namespace aiko
 {
+    class IResourceResolver;
 
     namespace renderer
     {
@@ -53,7 +54,7 @@ namespace aiko
         AikoRenderer(IAssetProvider& assets);
         ~AikoRenderer();
 
-        void init(const RendererConfig& config, const RenderSurfaceDesc& surface);
+        void init(const RendererConfig& config, const RenderSurfaceDesc& surface, const IResourceResolver& resolver);
         void beginFrame();
         void endFrame();
         void dispose();
@@ -130,6 +131,8 @@ namespace aiko
         AmbientLight m_ambientLight;
 
     private:
+
+        const IResourceResolver* m_resourceResolver = nullptr;
 
         RenderQueue m_renderQueue;
 

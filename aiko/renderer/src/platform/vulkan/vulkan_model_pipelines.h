@@ -1,10 +1,12 @@
 #pragma once
 
+#include "vulkan_pipeline_types.h"
+
 #include <unordered_map>
 
-#include <volk.h>
+#include <iresource_resolver.h>
 
-#include "vulkan_pipeline_types.h"
+#include <volk.h>
 
 namespace aiko::renderer::vulkan
 {
@@ -26,7 +28,7 @@ namespace aiko::renderer::vulkan
         void destroy();
 
         VkPipeline getOrCreate( const ModelPipelineKey& key, VkRenderPass renderPass, const VulkanShaderImpl& shader);
-        VkPipeline getOrCreateInstanced(const ModelPipelineKey& key, VkRenderPass renderPass);
+        VkPipeline getOrCreateInstanced(const ModelPipelineKey& key, VkRenderPass renderPass, const IResourceResolver& resources);
 
         VkPipelineLayout layout() const { return m_layout; }
         VkDescriptorSetLayout materialLayout() const { return m_materialLayout; }
@@ -38,7 +40,7 @@ namespace aiko::renderer::vulkan
 
         VkPipeline createModelPipeline(const ModelPipelineKey& key, VkRenderPass renderPass, const VulkanShaderImpl& shader);
 
-        VkPipeline createInstancedPipeline(const ModelPipelineKey& key, VkRenderPass renderPass);
+        VkPipeline createInstancedPipeline(const ModelPipelineKey& key, VkRenderPass renderPass, const IResourceResolver& resources);
 
         VulkanContext& m_context;
 

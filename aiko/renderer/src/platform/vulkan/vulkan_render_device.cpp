@@ -482,6 +482,9 @@ namespace aiko::renderer::vulkan
     bool VulkanRenderDevice::init(const DeviceInitDesc& desc)
     {
 
+        m_resourceResolver = desc.resources;
+        AIKO_ASSERT(m_resourceResolver != nullptr, "Renderer requires a resource resolver");
+
         const VkResult result = volkInitialize();
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to initialize Volk/Vulkan");
 
@@ -491,7 +494,7 @@ namespace aiko::renderer::vulkan
 
         m_computeDescriptors.create();
         m_computePipelines.create(m_computeDescriptors.layout());
-        m_screenResources.create();
+        m_screenResources.create(*m_resourceResolver);
         m_frameResources.create();
         m_gpuReadDescriptors.create();
         m_modelPipelines.create(m_frameResources.layout(), m_gpuReadDescriptors.layout());
@@ -562,7 +565,7 @@ namespace aiko::renderer::vulkan
 
         if (m_context.consumeSwapChainFormatChanged() == true)
         {
-            m_screenResources.recreatePipeline();
+            m_screenResources.recreatePipeline(*m_resourceResolver);
         }
 
         m_gpuReadDescriptors.resetFrame(frame);
@@ -3195,7 +3198,7 @@ namespace aiko::renderer::vulkan
 
         if (instanced)
         {
-            pipeline = m_modelPipelines.getOrCreateInstanced(key, renderPass);
+            pipeline = m_modelPipelines.getOrCreateInstanced(key, renderPass, *m_resourceResolver);
         }
         else
         {

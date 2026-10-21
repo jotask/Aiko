@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <vector>
 
+#include <iresource_resolver.h>
+
 #include <volk.h>
 
 namespace aiko::renderer::vulkan
@@ -19,10 +21,10 @@ namespace aiko::renderer::vulkan
 
         VulkanScreenResources(VulkanContext& context,uint32_t frameCount);
 
-        void create();
+        void create(const IResourceResolver& resources);
         void destroy();
 
-        void recreatePipeline();
+        void recreatePipeline(const IResourceResolver& resources);
 
         VkDescriptorSet descriptorSet( uint32_t frameIndex, VkImageView imageView, VkSampler sampler);
 
@@ -39,7 +41,7 @@ namespace aiko::renderer::vulkan
     private:
         void createDescriptorResources();
         void createPipelineLayout();
-        void createPipeline();
+        void createPipeline(const IResourceResolver& resources);
         void destroyPipeline();
 
         VulkanContext& m_context;

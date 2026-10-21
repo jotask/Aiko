@@ -4,6 +4,7 @@
 
 namespace aiko
 {
+    class IResourceResolver;
     using ViewId = uint16_t;
     using RenderResourceId = uint64_t;
     using MaterialId = uint64_t;
@@ -40,5 +41,7 @@ namespace aiko
         u32 height = 0;
 
         bool vsync = false;
+
+        const IResourceResolver* resources = nullptr;
     };
 }

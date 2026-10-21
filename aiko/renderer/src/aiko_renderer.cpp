@@ -2,6 +2,7 @@
 
 #include <events/events.hpp>
 #include <intrumentor/profiler.h>
+#include <iresource_resolver.h>
 
 #include "display/display_events.hpp"
 
@@ -37,8 +38,9 @@ namespace aiko
         EventSystem::it().unbindAll(this);
     }
 
-    void AikoRenderer::init(const RendererConfig& config, const RenderSurfaceDesc& surface)
+    void AikoRenderer::init(const RendererConfig& config, const RenderSurfaceDesc& surface, const IResourceResolver& resolver)
     {
+        m_resourceResolver = &resolver;
 
         AIKO_ASSERT(surface.nativeWindowHandle != nullptr, "No window created!");
 
@@ -54,6 +56,7 @@ namespace aiko
             .width = surface.width,
             .height = surface.height,
             .vsync = config.vsync,
+            .resources = &resolver,
         };
 
         if (m_renderer->init(description) == false)
@@ -531,12 +534,12 @@ namespace aiko
 
             const mat4 view = request.camera.getViewMatrix();
 
-            request.queue.prepareGpuInstanceSorts(m_gpuInstanceSorter, *m_renderer, view);
+            request.queue.prepareGpuInstanceSorts(m_gpuInstanceSorter, *m_renderer, view, *m_resourceResolver);
         }
 
         if (mainView != nullptr)
         {
-            m_renderQueue.prepareGpuInstanceSorts(m_gpuInstanceSorter, *m_renderer, *mainView);
+            m_renderQueue.prepareGpuInstanceSorts(m_gpuInstanceSorter, *m_renderer, *mainView, *m_resourceResolver);
         }
 
         m_renderer->endPass();

@@ -32,7 +32,7 @@ target_precompile_headers(AikoRenderer PRIVATE
 
 target_link_libraries(AikoRenderer
         PRIVATE AikoCore glfw imgui assimp Tracy::TracyClient
-        PUBLIC magic_enum
+        PUBLIC magic_enum AikoResources
 )
 
 if(AIKO_RENDER STREQUAL "AIKO_BGFX")

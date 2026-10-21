@@ -18,12 +18,12 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(frameCount > 0, "Vulkan screen resources require at least one frame");
     }
 
-    void VulkanScreenResources::create()
+    void VulkanScreenResources::create(const IResourceResolver& resources)
     {
         AIKO_ASSERT(m_descriptorSetLayout == VK_NULL_HANDLE, "Vulkan screen resources already created");
         createDescriptorResources();
         createPipelineLayout();
-        createPipeline();
+        createPipeline(resources);
     }
 
     void VulkanScreenResources::createDescriptorResources()
@@ -102,20 +102,21 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(result == VK_SUCCESS,"Failed to create screen pipeline layout");
     }
 
-    void VulkanScreenResources::createPipeline()
+    void VulkanScreenResources::createPipeline(const IResourceResolver& resources)
     {
         AIKO_ASSERT(m_pipelineLayout != VK_NULL_HANDLE, "Screen pipeline layout is invalid");
 
         VulkanShaderImpl shader;
 
-        logger::Log::infoFmt("Vulkan internal shader root: '{}'", AIKO_VULKAN_SHADER_BINARY_DIR);
+        const ResourceResult vertex = resources.resolve("renderer://passthrough.vert.spv");
+        const ResourceResult fragment = resources.resolve("renderer://passthrough.frag.spv");
 
-        const auto vertex = std::filesystem::path(AIKO_VULKAN_SHADER_BINARY_DIR) / "passthrough.vert.spv";
-        logger::Log::infoFmt("Passthrough vertex path: '{}'", vertex.string());
+        AIKO_ASSERTF(vertex && fragment, "Failed to resolve passthrough shader: vertex='%s', fragment='%s'", vertex.message.c_str(), fragment.message.c_str());
 
-        const auto fragment = std::filesystem::path(AIKO_VULKAN_SHADER_BINARY_DIR) / "passthrough.frag.spv";
+        const std::string vertexPath = vertex.path.string();
+        const std::string fragmentPath = fragment.path.string();
 
-        shader.load(vertex.string().c_str(), fragment.string().c_str());
+        shader.load(vertexPath.c_str(), fragmentPath.c_str());
 
         validateScreenShaderAbi(shader.reflection());
         validateScreenPushConstants(shader.reflection());
@@ -268,11 +269,11 @@ namespace aiko::renderer::vulkan
         }
     }
 
-    void VulkanScreenResources::recreatePipeline()
+    void VulkanScreenResources::recreatePipeline(const IResourceResolver& resources)
     {
         AIKO_ASSERT(m_pipelineLayout != VK_NULL_HANDLE, "Screen pipeline layout is invalid");
         destroyPipeline();
-        createPipeline();
+        createPipeline(resources);
     }
 
     VkDescriptorSet VulkanScreenResources::descriptorSet(uint32_t frameIndex, VkImageView imageView, VkSampler sampler)

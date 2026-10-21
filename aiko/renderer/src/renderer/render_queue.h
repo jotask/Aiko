@@ -11,6 +11,7 @@ namespace aiko
     class Mesh;
     class Material;
     class GpuInstanceSorter;
+    class IResourceResolver;
 
     namespace renderer
     {
@@ -31,7 +32,7 @@ namespace aiko
         void submitGpuBillboards(const GpuBillboardDrawDesc& desc);
         void submitGpuVertices(const GpuVertexDrawDesc& desc);
 
-        void prepareGpuInstanceSorts(GpuInstanceSorter& sorter, renderer::IRenderDevice& device, const mat4& view);
+        void prepareGpuInstanceSorts(GpuInstanceSorter& sorter, renderer::IRenderDevice& device, const mat4& view, const IResourceResolver& resources);
 
         PreparedScenePass buildScenePass(const mat4& view);
 

@@ -4,6 +4,8 @@
 #include "models/compute_shader.h"
 #include "types/draw_types.h"
 
+#include <iresource_resolver.h>
+
 #include <cstddef>
 #include <cstdint>
 #include <deque>
@@ -19,7 +21,7 @@ namespace aiko
     {
     public:
         void beginFrame();
-        void prepare(renderer::IRenderDevice& device, GpuInstanceDrawDesc& draw, const mat4& view);
+        void prepare(renderer::IRenderDevice& device, GpuInstanceDrawDesc& draw, const mat4& view, const IResourceResolver& resources);
         void dispose();
 
     private:

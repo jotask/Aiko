@@ -1,16 +1,17 @@
 #include "vulkan_model_pipelines.h"
 
+#include "impl/vulkan_shader_impl.h"
+#include "resource_result.h"
+#include "vulkan_context.h"
+#include "vulkan_descriptor_abi.h"
+#include "vulkan_render_state_utils.h"
+#include "vulkan_shader_reflector.h"
+#include "vulkan_types.h"
+
 #include <algorithm>
 #include <array>
 #include <cstddef>
 #include <filesystem>
-
-#include "vulkan_context.h"
-#include "vulkan_descriptor_abi.h"
-#include "vulkan_shader_reflector.h"
-#include "vulkan_types.h"
-#include "impl/vulkan_shader_impl.h"
-#include "vulkan_render_state_utils.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -117,14 +118,14 @@ namespace aiko::renderer::vulkan
         return pipeline;
     }
 
-    VkPipeline VulkanModelPipelines::getOrCreateInstanced(const ModelPipelineKey& key, VkRenderPass renderPass)
+    VkPipeline VulkanModelPipelines::getOrCreateInstanced(const ModelPipelineKey& key, VkRenderPass renderPass, const IResourceResolver& resources)
     {
         AIKO_ASSERT(key.instanced, "Instanced model pipeline requires instanced key");
         if (const auto it = m_pipelines.find(key); it != m_pipelines.end())
         {
             return it->second;
         }
-        const VkPipeline pipeline = createInstancedPipeline(key, renderPass);
+        const VkPipeline pipeline = createInstancedPipeline(key, renderPass, resources);
         AIKO_ASSERT(pipeline != VK_NULL_HANDLE, "Failed to create Vulkan model instanced pipeline");
         m_pipelines.emplace(key, pipeline);
         return pipeline;
@@ -301,17 +302,22 @@ namespace aiko::renderer::vulkan
         return pipeline;
     }
 
-    VkPipeline VulkanModelPipelines::createInstancedPipeline(const ModelPipelineKey& key, VkRenderPass renderPass)
+    VkPipeline VulkanModelPipelines::createInstancedPipeline(const ModelPipelineKey& key, VkRenderPass renderPass, const IResourceResolver& resources)
     {
         AIKO_ASSERT(renderPass != VK_NULL_HANDLE, "Model instanced render pass is invalid");
         AIKO_ASSERT(m_layout != VK_NULL_HANDLE, "Model pipeline layout is invalid");
 
         VulkanShaderImpl shader;
 
-        const auto vertex   = std::filesystem::path(AIKO_VULKAN_SHADER_BINARY_DIR) / "model_instanced.vert.spv";
-        const auto fragment = std::filesystem::path(AIKO_VULKAN_SHADER_BINARY_DIR) / "model_instanced.frag.spv";
+        const ResourceResult vertex = resources.resolve("renderer://model_instanced.vert.spv");
+        const ResourceResult fragment = resources.resolve("renderer://model_instanced.frag.spv");
 
-        shader.load(vertex.string().c_str(), fragment.string().c_str());
+        AIKO_ASSERTF(vertex && fragment, "Failed to resolve instanced model shader: vertex='%s', fragment='%s'", vertex.message.c_str(), fragment.message.c_str());
+
+        const std::string vertexPath = vertex.path.string();
+        const std::string fragmentPath = fragment.path.string();
+
+        shader.load(vertexPath.c_str(), fragmentPath.c_str());
 
         validateModelShaderAbi(shader.reflection());
         validateModelPushConstants(shader.reflection());

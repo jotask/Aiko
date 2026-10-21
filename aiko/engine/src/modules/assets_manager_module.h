@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem_resource_resolver.h>
+
 #include "assets/asset_manager.h"
 #include "modules/base_module.h"
 #include "assets/asset_configuration.h"
@@ -20,6 +22,8 @@ namespace aiko
 
         const AssetResolver& getResolver() const { return m_resolver; }
 
+        const IResourceResolver& getResourceResolver() const { return m_resourceResolver; }
+
     protected:
 
         virtual void preInit() override;
@@ -30,6 +34,8 @@ namespace aiko
         virtual void dispose() override;
 
     private:
+
+        FilesystemResourceResolver m_resourceResolver;
 
         AssetConfiguration m_configuration;
         AssetResolver m_resolver;

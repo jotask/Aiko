@@ -15,7 +15,7 @@ namespace aiko
         m_usedBuffers = 0;
     }
 
-    void GpuInstanceSorter::prepare(renderer::IRenderDevice& device, GpuInstanceDrawDesc& draw, const mat4& view)
+    void GpuInstanceSorter::prepare(renderer::IRenderDevice& device, GpuInstanceDrawDesc& draw, const mat4& view, const IResourceResolver& resources)
     {
         if (draw.transparencyPositions == nullptr || draw.instanceCount == 0)
         {
@@ -42,12 +42,16 @@ namespace aiko
 
         if (!m_initShader.isValid())
         {
-            m_initShader.load("gpu_instance_sort_init");
+            const auto init = resources.resolve("renderer://gpu_instance_sort_init.comp.spv");
+            AIKO_ASSERTF(init, "GPU sort init shader missing: %s", init.message.c_str());
+            m_initShader.load(init.path.string());
         }
 
         if (!m_stepShader.isValid())
         {
-            m_stepShader.load("gpu_instance_sort_step");
+            const auto init = resources.resolve("renderer://gpu_instance_sort_step.comp.spv");
+            AIKO_ASSERTF(init, "GPU sort step shader missing: %s", init.message.c_str());
+            m_stepShader.load(init.path.string());
         }
 
         AIKO_ASSERT(m_initShader.isValid(), "Invalid instance sort initialization shader");

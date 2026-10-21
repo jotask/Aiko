@@ -94,6 +94,8 @@ namespace aiko::renderer::vulkan
 
         static constexpr size_t FramesInFlight = 2;
 
+        const IResourceResolver* m_resourceResolver = nullptr;
+
         VulkanContext m_context;
 
         bool m_frameActive = false;

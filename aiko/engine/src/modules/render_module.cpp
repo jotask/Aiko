@@ -232,7 +232,7 @@ namespace aiko
         };
 
         m_renderer = std::make_unique<AikoRenderer>(*assetManager);
-        m_renderer->init(getAiko()->getConfig().renderer, surface);
+        m_renderer->init(getAiko()->getConfig().renderer, surface, m_assetManager->getResourceResolver());
 
         const AssetId billboardOpaque = assetManager->registerShader("gpu_billboard_default.vs", "model.fs");
         const AssetId billboardTransparent = assetManager->registerShader("gpu_billboard_default_sorted.vs", "model.fs");
