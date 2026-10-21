@@ -8,6 +8,7 @@ target_include_directories(AikoPublicHeaders INTERFACE
 )
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/core")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/resources")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/renderer")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/physics")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/engine")
