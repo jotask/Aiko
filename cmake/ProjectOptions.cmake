@@ -98,7 +98,7 @@ function(aiko_configure_project_assets target_name)
 
     set(AIKO_CONFIGURED_ASSET_ROOT "${asset_root}")
 
-    set(AIKO_CONFIGURED_ENGINE_ASSET_ROOT "${PROJECT_SOURCE_DIR}/assets")
+    set(AIKO_CONFIGURED_ENGINE_ASSET_ROOT "${PROJECT_SOURCE_DIR}/aiko/assets")
 
     set(AIKO_CONFIGURED_ENGINE_SHADER_BINARY_ROOT "${CMAKE_BINARY_DIR}/assets/shaders/vulkan")
 
@@ -234,7 +234,7 @@ function(aiko_add_vulkan_shader_target target_name)
                 COMMAND "${GLSLC_EXECUTABLE}"
                 "--target-env=${AIKO_SHADER_TARGET_ENV}"
                 -I "${AIKO_SHADER_SOURCE_DIR}"
-                -I "${PROJECT_SOURCE_DIR}/assets/shaders/vulkan"
+                -I "${PROJECT_SOURCE_DIR}/aiko/assets/shaders/vulkan"
                 -MD -MF "${DEP_FILE}"
                 "${SHADER}"
                 -o "${SPIRV_FILE}"
@@ -344,7 +344,7 @@ function(aiko_add_vulkan_shader_target target_name)
                 "${GLSLC_EXECUTABLE}"
                 "--target-env=${AIKO_SHADER_TARGET_ENV}"
                 -I "${AIKO_SHADER_SOURCE_DIR}"
-                -I "${PROJECT_SOURCE_DIR}/assets/shaders/vulkan"
+                -I "${PROJECT_SOURCE_DIR}/aiko/assets/shaders/vulkan"
                 -MD -MF "${DEP_FILE}"
                 "${GENERATED_FRAGMENT}"
                 -o "${SPIRV_FILE}"

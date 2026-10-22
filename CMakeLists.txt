@@ -20,7 +20,7 @@ aiko_setup_options()
 aiko_detect_platform()
 
 if(AIKO_RENDER STREQUAL "AIKO_VULKAN")
-    set(AIKO_ENGINE_SHADER_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/vulkan")
+    set(AIKO_ENGINE_SHADER_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/aiko/assets/shaders/vulkan")
 else()
     message(FATAL_ERROR "Engine shader compilation is not implemented for '${AIKO_RENDER}'")
 endif()

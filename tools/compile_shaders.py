@@ -160,7 +160,7 @@ def find_shader_files(shader_dir: Path, recursive : bool) -> list[Path]:
     return [f for f in it if f.is_file() and f.suffix in exts]
 
 def main():
-    shader_dir = getprojectrootdir() / "assets/shaders/bgfx"
+    shader_dir = getprojectrootdir() / "aiko/assets/shaders/bgfx"
     onlyfiles = find_shader_files(shader_dir, False)
 
     if not onlyfiles:

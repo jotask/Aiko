@@ -147,7 +147,7 @@ def compile_one(shader: Path, shaderc_path: Path, folder: str, platform_name: st
     return (shader, True, f"OK: {shader} -> {output_file}")
 
 def main():
-    shader_dir = getprojectrootdir() / "assets/shaders/bgfx"
+    shader_dir = getprojectrootdir() / "aiko/assets/shaders/bgfx"
     onlyfiles = find_shader_files(shader_dir, recursive=False)
 
     if not onlyfiles:
