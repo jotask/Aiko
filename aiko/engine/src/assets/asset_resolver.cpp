@@ -1,18 +1,20 @@
+
 #include "asset_resolver.h"
 
-#include <system_error>
+#include <iresource_resolver.h>
+
 #include <utility>
 
 namespace aiko
 {
     namespace
     {
-
         enum class RequestedOwner
         {
             Automatic,
             Project,
-            Engine
+            Engine,
+            Renderer
         };
 
         struct ParsedRequest
@@ -21,34 +23,44 @@ namespace aiko
             std::filesystem::path path;
         };
 
-        AssetResolveResult failure(AssetResolveError error, std::string message)
+        AssetResolveError convertError(ResourceError error)
         {
-            AssetResolveResult result;
-            result.error = error;
-            result.message = std::move(message);
-            return result;
-        }
-
-        bool isWithin(const std::filesystem::path& path, const std::filesystem::path& root)
-        {
-            auto pathIt = path.begin();
-            auto rootIt = root.begin();
-
-            for (; rootIt != root.end(); ++rootIt, ++pathIt)
+            switch (error)
             {
-                if (pathIt == path.end() || *pathIt != *rootIt)
-                {
-                    return false;
-                }
+                case ResourceError::None:
+                    return AssetResolveError::None;
+
+                case ResourceError::InvalidReference:
+                case ResourceError::OutsideMount:
+                    return AssetResolveError::InvalidPath;
+
+                case ResourceError::UnknownNamespace:
+                case ResourceError::InvalidMount:
+                    return AssetResolveError::InvalidConfiguration;
+
+                case ResourceError::NotFound:
+                    return AssetResolveError::NotFound;
+
+                case ResourceError::FilesystemError:
+                    return AssetResolveError::FilesystemError;
             }
 
-            return true;
+            return AssetResolveError::FilesystemError;
+        }
+
+        AssetResolveResult failure(AssetResolveError error, std::string message)
+        {
+            return {
+                .error = error,
+                .message = std::move(message)
+            };
         }
 
         bool parseRequest(std::string_view source, ParsedRequest& request)
         {
             constexpr std::string_view projectPrefix = "project://";
             constexpr std::string_view enginePrefix = "engine://";
+            constexpr std::string_view rendererPrefix = "renderer://";
 
             if (source.starts_with(projectPrefix))
             {
@@ -60,20 +72,24 @@ namespace aiko
                 request.owner = RequestedOwner::Engine;
                 source.remove_prefix(enginePrefix.size());
             }
+            else if (source.starts_with(rendererPrefix))
+            {
+                request.owner = RequestedOwner::Renderer;
+                source.remove_prefix(rendererPrefix.size());
+            }
             else if (source.find("://") != std::string_view::npos)
             {
                 return false;
             }
 
-            if (source.empty() || source.find('\\') != std::string_view::npos)
+            if (source.empty() || source.find('\\') != std::string_view::npos || source.find("://") != std::string_view::npos)
             {
                 return false;
             }
 
-            // Reject traversal instead of silently normalizing it.
             request.path = std::filesystem::path(source);
 
-            if (request.path.is_absolute() || request.path.has_root_name() || request.path.has_root_directory())
+            if (request.path.empty() || request.path.is_absolute() || request.path.has_root_name() || request.path.has_root_directory())
             {
                 return false;
             }
@@ -91,81 +107,53 @@ namespace aiko
             return request.path != "." && !request.path.empty();
         }
 
-        AssetResolveResult resolveFromRoot(const std::filesystem::path& root, const std::filesystem::path& relative, AssetOwner owner)
+        AssetResolveResult resolveMounted(const IResourceResolver& resources, std::string_view namespaceName, const std::filesystem::path& relative, AssetOwner owner)
         {
-            if (root.empty())
-            {
-                return failure(AssetResolveError::InvalidConfiguration, "Asset root is not configured");
-            }
-
-            std::error_code error;
-
-            const std::filesystem::path canonicalRoot = std::filesystem::canonical(root, error);
-
-            if (error)
-            {
-                return failure(AssetResolveError::InvalidConfiguration, "Invalid asset root '" + root.string() + "': " + error.message());
-            }
-
-            if (!std::filesystem::is_directory(canonicalRoot, error) || error)
-            {
-                return failure(AssetResolveError::InvalidConfiguration, "Asset root is not a directory: " + canonicalRoot.string());
-            }
-
-            const std::filesystem::path candidate = canonicalRoot / relative;
-
-            const std::filesystem::file_status status = std::filesystem::symlink_status(candidate, error);
-
-            if (error == std::errc::no_such_file_or_directory)
-            {
-                return failure(AssetResolveError::NotFound, "Asset not found: " + candidate.string());
-            }
-
-            if (error)
-            {
-                return failure(AssetResolveError::FilesystemError, "Cannot inspect asset '" + candidate.string() + "': " + error.message());
-            }
-
-            if (status.type() == std::filesystem::file_type::not_found)
-            {
-                return failure(AssetResolveError::NotFound, "Asset not found: " + candidate.string());
-            }
-
-            // Existing entries, including symlinks, must resolve
-            // successfully. Broken symlinks must not trigger fallback.
-            const std::filesystem::path canonicalFile = std::filesystem::canonical(candidate, error);
-
-            if (error)
-            {
-                return failure(AssetResolveError::FilesystemError, "Cannot resolve asset '" + candidate.string() + "': " + error.message());
-            }
-
-            if (!isWithin(canonicalFile, canonicalRoot))
-            {
-                return failure(AssetResolveError::InvalidPath, "Asset escapes its root: " + candidate.string());
-            }
-
-            if (!std::filesystem::is_regular_file(canonicalFile, error) || error)
-            {
-                return failure(AssetResolveError::InvalidPath, "Asset is not a regular file: " + canonicalFile.string());
-            }
-
             const std::string logicalPath = relative.generic_string();
 
-            const std::string prefix = owner == AssetOwner::Project ? "project://" : "engine://";
+            const std::string reference = std::string(namespaceName) + "://" + logicalPath;
 
-            AssetResolveResult result;
-            result.asset.owner = owner;
-            result.asset.logicalPath = logicalPath;
-            result.asset.identity = prefix + logicalPath;
-            result.asset.physicalPath = canonicalFile;
+            const ResourceResult result = resources.resolve(reference);
 
-            return result;
+            if (!result)
+            {
+                return failure(convertError(result.error), result.message);
+            }
+
+            std::string_view identityPrefix;
+
+            switch (owner)
+            {
+                case AssetOwner::Project:
+                    identityPrefix = "project://";
+                    break;
+
+                case AssetOwner::Engine:
+                    identityPrefix = "engine://";
+                    break;
+
+                case AssetOwner::Renderer:
+                    identityPrefix = "renderer://";
+                    break;
+            }
+
+            const std::string identity = std::string(identityPrefix) + logicalPath;
+
+            return {
+                .asset = {
+                    .owner = owner,
+                    .logicalPath = logicalPath,
+                    .identity = identity,
+                    .physicalPath = result.path
+                }
+            };
         }
     }
 
-    AssetResolver::AssetResolver(AssetConfiguration configuration)
-        : m_configuration(std::move(configuration))
+    AssetResolver::AssetResolver(const IResourceResolver& resources, const AssetConfiguration& configuration)
+        : m_resources(resources)
+        , m_hasProjectAssets(!configuration.projectRoot.empty())
+        , m_hasProjectShaders(!configuration.projectShaderBinaryRoot.empty())
     {
     }
 
@@ -180,19 +168,27 @@ namespace aiko
 
         if (request.owner == RequestedOwner::Project)
         {
-            return resolveFromRoot(m_configuration.projectRoot, request.path, AssetOwner::Project);
+            if (!m_hasProjectAssets)
+            {
+                return failure(AssetResolveError::InvalidConfiguration, "Project asset root is not configured");
+            }
+
+            return resolveMounted(m_resources, "project-assets", request.path, AssetOwner::Project);
         }
 
         if (request.owner == RequestedOwner::Engine)
         {
-            return resolveFromRoot(m_configuration.engineRoot, request.path, AssetOwner::Engine);
+            return resolveMounted(m_resources, "engine-assets", request.path, AssetOwner::Engine);
         }
 
-        // An application without a project root may still use
-        // the engine's built-in assets.
-        if (!m_configuration.projectRoot.empty())
+        if (request.owner == RequestedOwner::Renderer)
         {
-            AssetResolveResult project = resolveFromRoot(m_configuration.projectRoot, request.path, AssetOwner::Project);
+            return failure(AssetResolveError::InvalidPath, "Renderer namespace is reserved for internal shader resources");
+        }
+
+        if (m_hasProjectAssets)
+        {
+            AssetResolveResult project = resolveMounted(m_resources, "project-assets", request.path, AssetOwner::Project);
 
             if (project.error != AssetResolveError::NotFound)
             {
@@ -200,7 +196,7 @@ namespace aiko
             }
         }
 
-        return resolveFromRoot(m_configuration.engineRoot, request.path, AssetOwner::Engine);
+        return resolveMounted(m_resources, "engine-assets", request.path, AssetOwner::Engine);
     }
 
     AssetResolveResult AssetResolver::resolveShaderBinary(std::string_view source) const
@@ -214,17 +210,27 @@ namespace aiko
 
         if (request.owner == RequestedOwner::Project)
         {
-            return resolveFromRoot(m_configuration.projectShaderBinaryRoot, request.path, AssetOwner::Project);
+            if (!m_hasProjectShaders)
+            {
+                return failure(AssetResolveError::InvalidConfiguration, "Project shader root is not configured");
+            }
+
+            return resolveMounted(m_resources, "project-shaders", request.path, AssetOwner::Project);
         }
 
         if (request.owner == RequestedOwner::Engine)
         {
-            return resolveFromRoot(m_configuration.engineShaderBinaryRoot, request.path, AssetOwner::Engine);
+            return resolveMounted(m_resources, "engine-shaders", request.path, AssetOwner::Engine);
         }
 
-        if (!m_configuration.projectShaderBinaryRoot.empty())
+        if (request.owner == RequestedOwner::Renderer)
         {
-            AssetResolveResult project = resolveFromRoot(m_configuration.projectShaderBinaryRoot, request.path, AssetOwner::Project);
+            return resolveMounted(m_resources, "renderer", request.path, AssetOwner::Renderer);
+        }
+
+        if (m_hasProjectShaders)
+        {
+            AssetResolveResult project = resolveMounted(m_resources, "project-shaders", request.path, AssetOwner::Project);
 
             if (project.error != AssetResolveError::NotFound)
             {
@@ -232,7 +238,7 @@ namespace aiko
             }
         }
 
-        return resolveFromRoot(m_configuration.engineShaderBinaryRoot, request.path, AssetOwner::Engine);
+        return resolveMounted(m_resources, "engine-shaders", request.path, AssetOwner::Engine);
     }
 
     ShaderPairResolveResult AssetResolver::resolveShaderPair(std::string_view vertexSource, std::string_view fragmentSource) const
@@ -256,11 +262,11 @@ namespace aiko
             };
         }
 
-        auto resolvePairFromRoot = [&](const std::filesystem::path& root, AssetOwner owner) -> ShaderPairResolveResult
+        auto resolvePair = [&](std::string_view namespaceName, AssetOwner owner) -> ShaderPairResolveResult
         {
-            const AssetResolveResult vertex = resolveFromRoot(root, vertexRequest.path, owner);
+            const AssetResolveResult vertex = resolveMounted(m_resources, namespaceName, vertexRequest.path, owner);
 
-            const AssetResolveResult fragment = resolveFromRoot(root, fragmentRequest.path, owner);
+            const AssetResolveResult fragment = resolveMounted(m_resources, namespaceName, fragmentRequest.path, owner);
 
             if (!vertex || !fragment)
             {
@@ -278,30 +284,40 @@ namespace aiko
             };
         };
 
+        if (vertexRequest.owner == RequestedOwner::Renderer)
+        {
+            return resolvePair("renderer", AssetOwner::Renderer);
+        }
+
         if (vertexRequest.owner == RequestedOwner::Engine)
         {
-            return resolvePairFromRoot(m_configuration.engineShaderBinaryRoot, AssetOwner::Engine);
+            return resolvePair("engine-shaders", AssetOwner::Engine);
         }
 
         if (vertexRequest.owner == RequestedOwner::Project)
         {
-            return resolvePairFromRoot(m_configuration.projectShaderBinaryRoot, AssetOwner::Project);
-        }
-
-        if (!m_configuration.projectShaderBinaryRoot.empty())
-        {
-            const AssetResolveResult vertex = resolveFromRoot(m_configuration.projectShaderBinaryRoot, vertexRequest.path, AssetOwner::Project);
-
-            const AssetResolveResult fragment = resolveFromRoot(m_configuration.projectShaderBinaryRoot, fragmentRequest.path, AssetOwner::Project);
-
-            // No project implementation: use the engine pair.
-            if (vertex.error == AssetResolveError::NotFound && fragment.error == AssetResolveError::NotFound)
+            if (!m_hasProjectShaders)
             {
-                return resolvePairFromRoot(m_configuration.engineShaderBinaryRoot, AssetOwner::Engine);
+                return {
+                    .error = AssetResolveError::InvalidConfiguration,
+                    .message = "Project shader root is not configured"
+                };
             }
 
-            // Otherwise the project has claimed this shader.
-            // Both stages must exist and be valid.
+            return resolvePair("project-shaders", AssetOwner::Project);
+        }
+
+        if (m_hasProjectShaders)
+        {
+            const AssetResolveResult vertex = resolveMounted(m_resources, "project-shaders", vertexRequest.path, AssetOwner::Project);
+
+            const AssetResolveResult fragment = resolveMounted(m_resources, "project-shaders", fragmentRequest.path, AssetOwner::Project);
+
+            if (vertex.error == AssetResolveError::NotFound && fragment.error == AssetResolveError::NotFound)
+            {
+                return resolvePair("engine-shaders", AssetOwner::Engine);
+            }
+
             if (!vertex || !fragment)
             {
                 const AssetResolveResult& failed = !vertex ? vertex : fragment;
@@ -318,7 +334,6 @@ namespace aiko
             };
         }
 
-        return resolvePairFromRoot(m_configuration.engineShaderBinaryRoot, AssetOwner::Engine);
+        return resolvePair("engine-shaders", AssetOwner::Engine);
     }
-
 }

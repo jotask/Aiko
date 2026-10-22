@@ -1,6 +1,7 @@
 #pragma once
 
 #include "asset_configuration.h"
+#include "asset_resolver_types.h"
 
 #include <filesystem>
 #include <string>
@@ -8,59 +9,12 @@
 
 namespace aiko
 {
-    enum class AssetOwner
-    {
-        Project,
-        Engine
-    };
-
-    enum class AssetResolveError
-    {
-        None,
-        InvalidPath,
-        InvalidConfiguration,
-        NotFound,
-        FilesystemError
-    };
-
-    struct ResolvedAsset
-    {
-        AssetOwner owner;
-        std::string logicalPath;
-        std::string identity;
-        std::filesystem::path physicalPath;
-    };
-
-    struct AssetResolveResult
-    {
-        AssetResolveError error = AssetResolveError::None;
-        std::string message;
-        ResolvedAsset asset{};
-
-        explicit operator bool() const noexcept
-        {
-            return error == AssetResolveError::None;
-        }
-    };
-
-    struct ShaderPairResolveResult
-    {
-        AssetResolveError error = AssetResolveError::None;
-        std::string message;
-
-        ResolvedAsset vertex;
-        ResolvedAsset fragment;
-
-        explicit operator bool() const noexcept
-        {
-            return error == AssetResolveError::None;
-        }
-    };
+    class IResourceResolver;
 
     class AssetResolver final
     {
     public:
-        explicit AssetResolver(AssetConfiguration configuration);
+        AssetResolver(const IResourceResolver& resources, const AssetConfiguration& configuration);
 
         [[nodiscard]]
         AssetResolveResult resolve(std::string_view source) const;
@@ -72,6 +26,9 @@ namespace aiko
         ShaderPairResolveResult resolveShaderPair(std::string_view vertexSource, std::string_view fragmentSource) const;
 
     private:
-        AssetConfiguration m_configuration;
+        const IResourceResolver& m_resources;
+
+        bool m_hasProjectAssets = false;
+        bool m_hasProjectShaders = false;
     };
 }

@@ -487,15 +487,15 @@ namespace aiko
 
     void AikoRenderer::initializeBuiltinShaders()
     {
-        const AssetId uiShader = m_assetRegistry.registerShader("engine://ui.vs","engine://ui.fs");
+        const AssetId uiShader = m_assetRegistry.registerShader("renderer://ui.vs", "renderer://ui.fs");
         AIKO_ASSERT(uiShader != InvalidAssetId, "Failed to register built-in UI shader");
 
         m_uiRenderer.setShader(uiShader);
 
-        m_billboardOpaqueShaderId = m_assetRegistry.registerShader("engine://gpu_billboard_default.vs", "engine://model.fs");
+        m_billboardOpaqueShaderId = m_assetRegistry.registerShader("renderer://gpu_billboard_default.vs", "renderer://model.fs");
         AIKO_ASSERT(m_billboardOpaqueShaderId != InvalidAssetId, "Failed to register opaque billboard shader");
 
-        m_billboardTransparentShaderId = m_assetRegistry.registerShader("engine://gpu_billboard_default_sorted.vs", "engine://model.fs");
+        m_billboardTransparentShaderId = m_assetRegistry.registerShader("renderer://gpu_billboard_default_sorted.vs", "renderer://model.fs");
         AIKO_ASSERT(m_billboardTransparentShaderId != InvalidAssetId, "Failed to register transparent billboard shader");
     }
 

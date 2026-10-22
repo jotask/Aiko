@@ -39,8 +39,8 @@ namespace aiko
 
         AssetConfiguration m_configuration;
         AssetResolver m_resolver;
-        std::filesystem::path m_registryPath;
 
+        std::filesystem::path m_registryPath;
         AssetManager m_manager;
 
     };

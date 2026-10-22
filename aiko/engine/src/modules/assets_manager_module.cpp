@@ -38,12 +38,24 @@ namespace aiko
     AssetsManagerModule::AssetsManagerModule(Aiko* aiko)
         : BaseModule(aiko)
         , m_configuration(makeAssetConfiguration(aiko->getConfig()))
-        , m_resolver(m_configuration)
+        , m_resolver(m_resourceResolver, m_configuration)
         , m_registryPath(registryPath(m_configuration))
         , m_manager(m_resolver)
     {
-        const bool mounted = m_resourceResolver.mount("renderer", m_configuration.engineShaderBinaryRoot);
-        AIKO_ASSERT(mounted, "Failed to mount renderer binary resources");
+        const bool engineAssets = m_resourceResolver.mount("engine-assets", m_configuration.engineRoot);
+        const bool engineShaders = m_resourceResolver.mount("engine-shaders", m_configuration.engineShaderBinaryRoot);
+        const bool renderer = m_resourceResolver.mount("renderer", m_configuration.engineShaderBinaryRoot);
+        AIKO_ASSERT(engineAssets && engineShaders && renderer, "Failed to configure engine resource mounts");
+
+        if (!m_configuration.projectRoot.empty())
+        {
+            AIKO_ASSERT(m_resourceResolver.mount( "project-assets", m_configuration.projectRoot ), "Failed to configure project asset mount");
+        }
+
+        if (!m_configuration.projectShaderBinaryRoot.empty())
+        {
+            AIKO_ASSERT(m_resourceResolver.mount( "project-shaders", m_configuration.projectShaderBinaryRoot ), "Failed to configure project shader mount");
+        }
     }
 
     void AssetsManagerModule::preInit()

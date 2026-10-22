@@ -12,10 +12,11 @@ namespace aiko
     {
         string shaderBinaryName(std::string_view source, std::string_view extension)
         {
-            const std::string_view projectPrefix = "project://";
-            const std::string_view enginePrefix = "engine://";
+            constexpr std::string_view projectPrefix = "project://";
+            constexpr std::string_view enginePrefix = "engine://";
+            constexpr std::string_view rendererPrefix = "renderer://";
 
-            std::string prefix;
+            std::string_view prefix;
             std::string_view name = source;
 
             if (source.starts_with(projectPrefix))
@@ -28,24 +29,58 @@ namespace aiko
                 prefix = enginePrefix;
                 name.remove_prefix(enginePrefix.size());
             }
+            else if (source.starts_with(rendererPrefix))
+            {
+                prefix = rendererPrefix;
+                name.remove_prefix(rendererPrefix.size());
+            }
 
             std::filesystem::path path{name};
 
-            // Handles both "model" and legacy "model.vs" / "model.fs".
             path.replace_extension(extension);
 
-            return prefix + path.generic_string() + ".spv";
+            return std::string(prefix) + path.generic_string() + ".spv";
         }
 
         string shaderIdentity(const ResolvedAsset& resolved, std::string_view logicalName)
         {
-            const std::string_view name = logicalName.starts_with("project://")
-                ? logicalName.substr(sizeof("project://") - 1)
-                : logicalName.starts_with("engine://")
-                    ? logicalName.substr(sizeof("engine://") - 1)
-                    : logicalName;
+            constexpr std::string_view projectPrefix = "project://";
+            constexpr std::string_view enginePrefix = "engine://";
+            constexpr std::string_view rendererPrefix = "renderer://";
 
-            return (resolved.owner == AssetOwner::Engine ? "engine://" : "project://") + std::string(name);
+            std::string_view name = logicalName;
+
+            if (name.starts_with(projectPrefix))
+            {
+                name.remove_prefix(projectPrefix.size());
+            }
+            else if (name.starts_with(enginePrefix))
+            {
+                name.remove_prefix(enginePrefix.size());
+            }
+            else if (name.starts_with(rendererPrefix))
+            {
+                name.remove_prefix(rendererPrefix.size());
+            }
+
+            std::string_view prefix;
+
+            switch (resolved.owner)
+            {
+                case AssetOwner::Project:
+                    prefix = projectPrefix;
+                    break;
+
+                case AssetOwner::Engine:
+                    prefix = enginePrefix;
+                    break;
+
+                case AssetOwner::Renderer:
+                    prefix = rendererPrefix;
+                    break;
+            }
+
+            return std::string(prefix) + std::string(name);
         }
     }
 
