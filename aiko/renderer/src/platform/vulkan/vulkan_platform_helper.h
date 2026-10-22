@@ -6,8 +6,6 @@
 
 #include <aiko_types.h>
 
-#include "constants.h"
-
 #include <GLFW/glfw3.h>
 
 #include "vulkan_types.h"

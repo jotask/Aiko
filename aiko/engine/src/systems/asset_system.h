@@ -82,6 +82,8 @@ namespace aiko
 
         TextureAsset& getMutableTextureAsset(const AssetId& id);
 
+        const AssetConfiguration& assetConfiguration() const;
+
         void invalidateTexture(const AssetId& id);
         void invalidateMesh(const AssetId& id);
         void invalidateModel(const AssetId& id);

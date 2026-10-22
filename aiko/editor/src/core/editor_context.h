@@ -3,6 +3,7 @@
 #include "commands/editor_command_stack.h"
 #include "core/editor_view_settings.h"
 #include "core/editor_document.h"
+#include <assets/asset_configuration.h>
 
 namespace aiko
 {
@@ -43,6 +44,8 @@ namespace aiko::editor
 
         EditorDocument& document() { return m_document; }
         const EditorDocument& document() const { return m_document; }
+
+        const AssetConfiguration& assetConfiguration() const;
 
     private:
 

@@ -119,7 +119,7 @@ namespace aiko
                                 const TransformState beforeDraw = captureTransform(selectedGameObject->transform());
 
                                 ImGui::BeginGroup();
-                                changed = component::drawComponent(comp);
+                                changed = component::drawComponent(context, comp);
                                 ImGui::EndGroup();
 
                                 const bool deactivated = ImGui::IsItemDeactivated();
@@ -141,7 +141,7 @@ namespace aiko
                             }
                             else
                             {
-                                changed = component::drawComponent(comp);
+                                changed = component::drawComponent(context, comp);
                             }
 
                             if (changed)

@@ -519,6 +519,12 @@ namespace aiko
         return m_assetModule->getManager()->getMutableTextureAsset(id);
     }
 
+    const AssetConfiguration& AssetSystem::assetConfiguration() const
+    {
+        AIKO_ASSERT(m_assetModule != nullptr, "Asset module not connected");
+        return m_assetModule->getConfiguration();
+    }
+
     void AssetSystem::invalidateTexture(const AssetId& id)
     {
         m_renderModule->updateTexture(id);

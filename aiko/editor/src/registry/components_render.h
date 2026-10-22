@@ -12,16 +12,22 @@ namespace aiko
     class ModelComponent;
 }
 
-namespace aiko::editor::component
+namespace aiko::editor
 {
 
-    bool drawComponent(Component*);
+    class EditorContext;
 
-    bool drawTransform(TransformComponent*);
-    bool drawSprite(SpriteComponent*);
-    bool drawMesh(MeshComponent*);
-    bool drawModel(ModelComponent*);
-    bool drawLight(LightComponent*);
-    bool drawCamera(CameraComponent*);
+    namespace component
+    {
+
+        bool drawComponent(EditorContext& context, Component*);
+
+        bool drawTransform(EditorContext& context, TransformComponent*);
+        bool drawSprite(EditorContext& context, SpriteComponent*);
+        bool drawMesh(EditorContext& context, MeshComponent*);
+        bool drawModel(EditorContext& context, ModelComponent*);
+        bool drawLight(EditorContext& context, LightComponent*);
+        bool drawCamera(EditorContext& context, CameraComponent*);
+    }
 
 }

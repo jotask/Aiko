@@ -3,15 +3,16 @@
 #include "ImGuiFileDialog.h"
 #include "ImGuiFileDialogConfig.h"
 #include "components/model_component.h"
-#include "constants.h"
 #include "core/imgui_helper.h"
 #include "registry/material_render.h"
 #include "registry/component_registry.h"
+#include "core/editor_context.h"
 
 #include <magic_enum/magic_enum.hpp>
 
 #include <algorithm>
 #include <filesystem>
+#include <unordered_map>
 #include <imgui.h>
 
 namespace aiko::editor
@@ -22,13 +23,29 @@ namespace aiko::editor
         constexpr const float IMGUI_VELOCITY = .25f;
 
         template<class T>
-        bool drawAssetSource(T* component, const char* label, const char* dialogKey, const char* filter)
+        bool drawAssetSource(EditorContext& context, T* component, const char* label, const char* dialogKey, const char* filter)
         {
-            AIKO_ASSERT(component != nullptr, "Cannot draw asset source for null component");
+            AIKO_ASSERT(component != nullptr, "Null asset component");
 
             if (component == nullptr)
             {
                 return false;
+            }
+
+            namespace fs = std::filesystem;
+
+            const AssetConfiguration& assets = context.assetConfiguration();
+            const bool hasProject = !assets.projectRoot.empty();
+
+            // Dialog state is independent for sprite and model pickers.
+            static std::unordered_map<std::string, bool> engineSelections;
+            static std::unordered_map<std::string, bool> openedAsEngine;
+
+            bool& useEngine = engineSelections[dialogKey];
+
+            if (!hasProject)
+            {
+                useEngine = true;
             }
 
             bool changed = false;
@@ -37,47 +54,74 @@ namespace aiko::editor
 
             ImGui::Text("%s: %s", label, source.empty() ? "<None>" : source.c_str());
 
+            if (hasProject)
+            {
+                ImGui::Checkbox("Use engine assets", &useEngine);
+            }
+
+            const bool engineSelected = !hasProject || useEngine;
+
+            const fs::path& selectedRoot = engineSelected ? assets.engineRoot : assets.projectRoot;
+
             if (ImGui::Button("Select Asset"))
             {
-                IGFD::FileDialogConfig config;
-                config.path = global::GLOBAL_ASSET_PATH;
+                if (!selectedRoot.empty())
+                {
+                    IGFD::FileDialogConfig config;
+                    config.path = selectedRoot.string();
 
-                ImGuiFileDialog::Instance()->OpenDialog(dialogKey, "Choose Asset", filter, config);
+                    openedAsEngine[dialogKey] = engineSelected;
+
+                    ImGuiFileDialog::Instance()->OpenDialog(dialogKey, "Choose Asset", filter, config);
+                }
             }
 
             if (ImGuiFileDialog::Instance()->Display(dialogKey))
             {
                 if (ImGuiFileDialog::Instance()->IsOk())
                 {
-                    const std::filesystem::path selectedPath = ImGuiFileDialog::Instance()->GetFilePathName();
+                    const bool engineOwner = openedAsEngine[dialogKey];
 
-                    const std::filesystem::path assetRoot = global::GLOBAL_ASSET_PATH;
+                    const fs::path& root = engineOwner ? assets.engineRoot : assets.projectRoot;
 
-                    std::error_code error;
+                    const fs::path selected = ImGuiFileDialog::Instance()->GetFilePathName();
 
-                    const std::filesystem::path relativePath = std::filesystem::relative(selectedPath, assetRoot, error);
+                    std::error_code ec;
+                    const fs::path canonicalRoot = fs::canonical(root, ec);
 
-                    AIKO_ASSERT(error.value() == 0, "Failed to make selected asset path relative");
-
-                    if (error.value() == 0)
+                    if (!ec)
                     {
-                        const std::filesystem::path normalizedPath = relativePath.lexically_normal();
-                        const bool outsideAssetRoot = normalizedPath.empty() == false && *normalizedPath.begin() == "..";
-                        AIKO_ASSERT(outsideAssetRoot == false, "Selected file must be inside the asset directory");
-                        if (outsideAssetRoot == false)
+                        const fs::path canonicalFile = fs::canonical(selected, ec);
+
+                        if (!ec)
                         {
-                            component->load(normalizedPath.generic_string());
-                            changed = true;
+                            const fs::path relative = canonicalFile.lexically_relative(canonicalRoot);
+
+                            const bool valid =
+                                !relative.empty() &&
+                                relative != "." &&
+                                *relative.begin() != ".." &&
+                                fs::is_regular_file(canonicalFile, ec) &&
+                                !ec;
+
+                            if (valid)
+                            {
+                                const std::string reference = (engineOwner ? "engine://" : "project://") + relative.generic_string();
+
+                                component->load(reference);
+                                changed = true;
+                            }
                         }
                     }
                 }
 
                 ImGuiFileDialog::Instance()->Close();
             }
+
             return changed;
         }
 
-        bool drawComponent(Component* component)
+        bool drawComponent(EditorContext& context, Component* component)
         {
             AIKO_ASSERT(component != nullptr, "Cannot render null component");
 
@@ -95,10 +139,10 @@ namespace aiko::editor
                 return false;
             }
 
-            return entry->render(*component);
+            return entry->render(context, *component);
         }
 
-        bool drawTransform(TransformComponent* t)
+        bool drawTransform(EditorContext& context, TransformComponent* t)
         {
             bool changed = false;
             ImGui::PushID(t);
@@ -109,13 +153,13 @@ namespace aiko::editor
             return changed;
         }
 
-        bool drawSprite(aiko::SpriteComponent* sprite)
+        bool drawSprite(EditorContext& context, aiko::SpriteComponent* sprite)
         {
             bool changed = false;
 
             ImGui::PushID(sprite);
 
-            changed |= drawAssetSource(sprite, "Texture", "SpriteTextureDialog", "Image files{.png,.jpg,.jpeg,.bmp,.tga}");
+            changed |= drawAssetSource(context, sprite, "Texture", "SpriteTextureDialog", "Image files{.png,.jpg,.jpeg,.bmp,.tga}");
 
             ImGui::Spacing();
 
@@ -163,7 +207,7 @@ namespace aiko::editor
             return changed;
         }
 
-        bool drawMesh(MeshComponent* mesh)
+        bool drawMesh(EditorContext& context, MeshComponent* mesh)
         {
             bool changed = false;
 
@@ -204,16 +248,16 @@ namespace aiko::editor
             return changed;
         }
 
-        bool drawModel(ModelComponent* model)
+        bool drawModel(EditorContext& context, ModelComponent* model)
         {
             bool changed = false;
             ImGui::PushID(model);
-            changed |= drawAssetSource(model, "Model", "ModelAssetDialog", "Model files{.obj,.fbx,.gltf,.glb}");
+            changed |= drawAssetSource(context, model, "Model", "ModelAssetDialog", "Model files{.obj,.fbx,.gltf,.glb}");
             ImGui::PopID();
             return changed;
         }
 
-        bool drawLight(LightComponent* light)
+        bool drawLight(EditorContext& context, LightComponent* light)
         {
             bool changed = false;
 
@@ -288,7 +332,7 @@ namespace aiko::editor
             return changed;
         }
 
-        bool drawCamera(CameraComponent* camera)
+        bool drawCamera(EditorContext& context, CameraComponent* camera)
         {
             bool changed = false;
             ImGui::PushID(camera);

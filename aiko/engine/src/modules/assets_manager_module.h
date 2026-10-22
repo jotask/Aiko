@@ -24,6 +24,8 @@ namespace aiko
 
         const IResourceResolver& getResourceResolver() const { return m_resourceResolver; }
 
+        const AssetConfiguration& getConfiguration() const { return m_configuration; }
+
     protected:
 
         virtual void preInit() override;

@@ -8,7 +8,6 @@
 #include <logger/logger.h>
 #include <core/file.h>
 
-#include "constants.h"
 #include "platform/vulkan/vulkan_context.h"
 #include "platform/vulkan/vulkan_types.h"
 

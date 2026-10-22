@@ -4,6 +4,7 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <math/math.h>
 #include "serializer/nodes/core_nodes_ymal.h"
 #include "assets/types/material_asset.h"
 #include "metadata/material_instance.h"
@@ -194,7 +195,7 @@ namespace YAML
                 shininess = node["shininess"].as<float>();
             }
 
-            if (!math::isfinite(specularStrength) || specularStrength < 0.0f || !math::isfinite(shininess) || shininess < 1.0f)
+            if (!aiko::math::isfinite(specularStrength) || specularStrength < 0.0f || !aiko::math::isfinite(shininess) || shininess < 1.0f)
             {
                 return false;
             }

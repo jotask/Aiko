@@ -37,7 +37,7 @@ namespace aiko::editor::component
 
         std::function<void(EditorContext&, GameObject&)> remove;
 
-        std::function<bool(Component&)> render;
+        std::function<bool(EditorContext&, Component&)> render;
 
         std::function<YAML::Node(const Component&)> serialize;
 

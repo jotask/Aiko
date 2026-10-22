@@ -2,7 +2,6 @@
 #include "assets_manager_module.h"
 
 #include "aiko.h"
-#include "constants.h"
 
 #include <filesystem>
 
@@ -10,21 +9,6 @@ namespace aiko
 {
     namespace
     {
-        AssetConfiguration makeAssetConfiguration(const AikoConfig& config)
-        {
-            AssetConfiguration result = config.assets;
-
-            // Temporary development compatibility:
-            // existing applications have not yet configured
-            // project-local asset roots.
-            if (result.engineRoot.empty())
-            {
-                result.engineRoot = std::filesystem::path(global::GLOBAL_ASSET_PATH);
-            }
-
-            return result;
-        }
-
         std::filesystem::path registryPath(const AssetConfiguration& configuration)
         {
             // The project registry takes precedence when a
@@ -37,7 +21,7 @@ namespace aiko
 
     AssetsManagerModule::AssetsManagerModule(Aiko* aiko)
         : BaseModule(aiko)
-        , m_configuration(makeAssetConfiguration(aiko->getConfig()))
+        , m_configuration(aiko->getConfig().assets)
         , m_resolver(m_resourceResolver, m_configuration)
         , m_registryPath(registryPath(m_configuration))
         , m_manager(m_resolver)

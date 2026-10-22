@@ -98,6 +98,8 @@ function(aiko_configure_project_assets target_name)
 
     set(AIKO_CONFIGURED_ASSET_ROOT "${asset_root}")
 
+    set(AIKO_CONFIGURED_ENGINE_ASSET_ROOT "${PROJECT_SOURCE_DIR}/assets")
+
     set(AIKO_CONFIGURED_ENGINE_SHADER_BINARY_ROOT "${CMAKE_BINARY_DIR}/assets/shaders/vulkan")
 
     set(AIKO_CONFIGURED_PROJECT_SHADER_BINARY_ROOT "")

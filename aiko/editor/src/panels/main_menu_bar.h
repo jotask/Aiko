@@ -41,7 +41,7 @@ namespace aiko
             void handleShortcuts(EditorContext& context);
 
             void newScene(EditorContext& context);
-            void openSceneDialog();
+            void openSceneDialog(EditorContext& context);
             void requestAction(EditorContext& context, PendingAction action);
             void performAction(EditorContext& context, PendingAction action);
             void renderUnsavedChangesPopup(EditorContext& context);

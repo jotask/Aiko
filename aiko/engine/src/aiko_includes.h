@@ -2,7 +2,6 @@
 
 #include "aiko_types.h"
 #include "aiko.h"
-#include "constants.h"
 
 #include <core/uuid.h>
 #include <logger/logger.h>

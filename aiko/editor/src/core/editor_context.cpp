@@ -2,6 +2,7 @@
 
 #include "systems/render_system.h"
 #include "systems/scene_system.h"
+#include <systems/asset_system.h>
 
 namespace aiko::editor
 {
@@ -52,6 +53,11 @@ namespace aiko::editor
     {
         AIKO_ASSERT(m_assetSystem != nullptr, "EditorContext has no AssetSystem");
         return *m_assetSystem;
+    }
+
+    const AssetConfiguration& EditorContext::assetConfiguration() const
+    {
+        return assetSystem().assetConfiguration();
     }
 
 }

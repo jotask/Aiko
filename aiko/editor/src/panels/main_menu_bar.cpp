@@ -2,7 +2,6 @@
 
 #include "ImGuiFileDialog.h"
 #include "ImGuiFileDialogConfig.h"
-#include "constants.h"
 #include "core/editor_context.h"
 #include "core/editor_workspace.h"
 #include "serializer/scene_serializer_YAML.h"
@@ -19,6 +18,15 @@
 
 namespace aiko::editor
 {
+
+    namespace
+    {
+        std::filesystem::path sceneDirectory(const AssetConfiguration& assets)
+        {
+            const std::filesystem::path& root = assets.projectRoot.empty() ? assets.engineRoot : assets.projectRoot;
+            return root.parent_path() / "scenes";
+        }
+    }
 
     MainMenuBar::MainMenuBar()
         : EditorPanel("Main Menu")
@@ -47,10 +55,11 @@ namespace aiko::editor
         context.document().reset();
     }
 
-    void MainMenuBar::openSceneDialog()
+    void MainMenuBar::openSceneDialog(EditorContext& context)
     {
         IGFD::FileDialogConfig config;
-        config.path = global::GLOBAL_SCENE_FILES_PATH;
+        const auto directory = sceneDirectory(context.assetConfiguration());
+        config.path = std::filesystem::is_directory(directory) ? directory.string() : directory.parent_path().string();
         config.fileName = "editor.scene";
         ImGuiFileDialog::Instance()->OpenDialog("loadFileDlgKey", "Choose File", ".scene", config);
     }
@@ -78,7 +87,7 @@ namespace aiko::editor
                 break;
 
             case PendingAction::OpenScene:
-                openSceneDialog();
+                openSceneDialog(context);
                 break;
 
             case PendingAction::Exit:
@@ -227,7 +236,15 @@ namespace aiko::editor
     void MainMenuBar::openSaveDialog(EditorContext& context)
     {
         IGFD::FileDialogConfig config;
-        config.path = global::GLOBAL_SCENE_FILES_PATH;
+        const auto directory = sceneDirectory(context.assetConfiguration());
+        std::error_code ec;
+        std::filesystem::create_directories(directory, ec);
+        if (ec)
+        {
+            m_saveError = "Cannot create scene directory: " + ec.message();
+            return;
+        }
+        config.path = directory.string();
         config.fileName = context.document().hasPath() ? std::filesystem::path(context.document().path()).filename().string() : "untitled.scene";
         ImGuiFileDialog::Instance()->OpenDialog("saveSceneDlg", "Save Scene", ".scene", config);
     }

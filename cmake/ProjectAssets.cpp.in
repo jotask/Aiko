@@ -6,6 +6,7 @@ namespace aiko
     {
         AikoConfig config;
         config.assets.projectRoot = R"AIKO_ASSETS(@AIKO_CONFIGURED_ASSET_ROOT@)AIKO_ASSETS";
+        config.assets.engineRoot = R"AIKO_ASSETS(@AIKO_CONFIGURED_ENGINE_ASSET_ROOT@)AIKO_ASSETS";
         config.assets.projectShaderBinaryRoot = R"AIKO_ASSETS(@AIKO_CONFIGURED_PROJECT_SHADER_BINARY_ROOT@)AIKO_ASSETS";
         config.assets.engineShaderBinaryRoot = R"AIKO_ASSETS(@AIKO_CONFIGURED_ENGINE_SHADER_BINARY_ROOT@)AIKO_ASSETS";
         return config;
