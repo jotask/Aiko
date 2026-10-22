@@ -61,7 +61,7 @@ namespace pe
         m_oceanMaterial.m_renderState.cullMode = aiko::CullMode::Back;
 
         // Atmosphere
-        m_atmosphereMaterial.m_shaderId = assets().loadShader("model.vs", "atmosphere.fs");
+        m_atmosphereMaterial.m_shaderId = assets().loadShader("atmosphere.vs", "atmosphere.fs");
 
         m_atmosphereMaterial.m_baseColor = aiko::Color(0.22f, 0.52f, 1.0f, 1.0f);
 
@@ -84,7 +84,7 @@ namespace pe
         m_atmosphereMaterial.setVec4("u_sunsetColor", 1.0f, 0.42f, 0.12f, 1.0f);
 
 
-        m_scatteringAtmosphereMaterial.m_shaderId = assets().loadShader("model.vs", "atmosphere_scattering.fs");
+        m_scatteringAtmosphereMaterial.m_shaderId = assets().loadShader("atmosphere.vs", "atmosphere_scattering.fs");
 
         m_scatteringAtmosphereMaterial.m_baseColor = aiko::WHITE;
 

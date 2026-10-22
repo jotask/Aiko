@@ -344,6 +344,7 @@ function(aiko_add_vulkan_shader_target target_name)
                 "${GLSLC_EXECUTABLE}"
                 "--target-env=${AIKO_SHADER_TARGET_ENV}"
                 -I "${AIKO_SHADER_SOURCE_DIR}"
+                -I "${PROJECT_SOURCE_DIR}/assets/shaders/vulkan"
                 -MD -MF "${DEP_FILE}"
                 "${GENERATED_FRAGMENT}"
                 -o "${SPIRV_FILE}"

@@ -149,7 +149,7 @@ namespace nbody
 
         if (state.renderInitialized == false)
         {
-            state.bodyMaterial.m_shaderId = m_assetManagerModule->getManager()->registerShader("nbody_gpuinst.vs", "model.fs");
+            state.bodyMaterial.m_shaderId = m_assetManagerModule->getManager()->registerShader("nbody_gpuinst.vs", "nbody_gpuinst.fs");
             state.bodyMaterial.m_baseColor = aiko::RED;
             state.bodyMaterial.m_lit = true;
             state.bodyMaterial.m_useVertexColor = false;

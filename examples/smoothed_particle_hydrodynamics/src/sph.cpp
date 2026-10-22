@@ -37,7 +37,10 @@ namespace sph
         m_cameraComponent = scene().createCamera(aiko::camera::CameraController::Drag, aiko::Camera::CameraType::Orthographic);
         m_cameraComponent->getCamera().position = { 0.0f, 2.5f, 42.0f };
 
-        m_playground.init(assets().loadShader("model"), assets().loadShader("sph/sph_gpuinst.vs", "model.fs"), *m_assetSystem);
+        const aiko::AssetId shaderId = assets().loadShader("model");
+        const aiko::AssetId gpuShaderId = assets().loadShader("sph/sph_gpuinst.vs", "sph/sph_gpuinst.fs");
+
+        m_playground.init(shaderId, gpuShaderId, *m_assetSystem);
 
     }
 
