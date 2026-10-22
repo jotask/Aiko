@@ -1,0 +1,8 @@
+vec3 getSunsetColor(vec2 uv)
+{
+    return vec3(
+        uv.x,
+        0.2 + uv.y * 0.4,
+        1.0 - uv.y * 0.5
+    );
+}

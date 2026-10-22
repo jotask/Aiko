@@ -1,0 +1,14 @@
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
+{
+    vec2 uv = fragCoord / iResolution.xy;
+
+    vec3 source = texture(iChannel0, uv).rgb;
+
+    vec2 channelSize = iChannelResolution[0].xy;
+
+    float aspect = channelSize.x / max(channelSize.y, 1.0);
+
+    float pulse = 0.75 + 0.25 * sin(iTime + iChannelTime[0]);
+
+    fragColor = vec4(source * pulse * vec3(1.0, aspect, 1.0), 1.0);
+}

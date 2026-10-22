@@ -1,0 +1,44 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+layout(std430, binding = 0)
+buffer Positions
+{
+    vec4 positions[];
+};
+
+layout(std430, binding = 1)
+writeonly buffer PreviousPositions
+{
+    vec4 previousPositions[];
+};
+
+layout(std430, binding = 2)
+readonly buffer Velocities
+{
+    vec4 velocities[];
+};
+
+layout(push_constant)
+uniform PushConstants
+{
+    float dt;
+    uint particleCount;
+    uint padding0;
+    uint padding1;
+} pc;
+
+void main()
+{
+    uint i = gl_GlobalInvocationID.x;
+
+    if (i >= pc.particleCount)
+    {
+        return;
+    }
+
+    previousPositions[i] = positions[i];
+
+    positions[i].xyz += velocities[i].xyz * pc.dt;
+}

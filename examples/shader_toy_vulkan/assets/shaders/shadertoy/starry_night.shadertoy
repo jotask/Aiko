@@ -1,0 +1,390 @@
+#define TAU 6.28318530718
+#define PAINT_SCALE 1.0
+#define WATER_MOTION 0.32
+#define EXPOSURE 1.10
+
+float sat(float x) { return clamp(x, 0.0, 1.0); }
+float hash11(float p) { p = fract(p * 0.1031); p *= p + 33.33; return fract(p * (p + p)); }
+float hash21(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
+vec2 hash22(vec2 p) { vec3 q = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973)); q += dot(q, q.yzx + 33.33); return fract((q.xx + q.yz) * q.zy); }
+mat2 rot(float a) { float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
+
+float noise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash21(i), hash21(i + vec2(1.0, 0.0)), f.x), mix(hash21(i + vec2(0.0, 1.0)), hash21(i + 1.0), f.x), f.y);
+}
+
+float fbm(vec2 p) {
+    float n = 0.0, a = 0.5;
+    for (int i = 0; i < 4; i++) {
+        n += a * noise(p);
+        p = mat2(1.62, 1.17, -1.17, 1.62) * p + 17.31;
+        a *= 0.5;
+    }
+    return n;
+}
+
+float segment(vec2 p, vec2 a, vec2 b) {
+    vec2 v = p - a, w = b - a;
+    return length(v - w * sat(dot(v, w) / dot(w, w)));
+}
+
+float tapered(vec2 p, vec2 a, vec2 b, float ra, float rb) {
+    vec2 v = p - a, w = b - a;
+    float t = sat(dot(v, w) / dot(w, w));
+    return length(v - w * t) - mix(ra, rb, t);
+}
+
+float box(vec2 p, vec2 b) {
+    vec2 q = abs(p) - b;
+    return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
+}
+
+float coverage(float d) { return 1.0 - smoothstep(-0.0008, 0.0008, d); }
+vec3 ink(vec3 col, vec3 pigment, float d) { return mix(col, pigment, coverage(d)); }
+
+struct Brush {
+    vec2 center;
+    float seed;
+    float ridge;
+    float fiber;
+    float gap;
+};
+
+Brush brush(vec2 p, vec2 density, float angle) {
+    mat2 r = rot(angle);
+    vec2 g = r * p * density * PAINT_SCALE;
+    g += 0.54 * vec2(noise(g * 0.47 + 18.0), noise(g * 0.39 + 57.0));
+    g += vec2(0.21 * sin(g.y * 1.7), 0.13 * sin(g.x * 0.83));
+    vec2 cell = floor(g);
+    Brush b;
+    b.center = p;
+    b.seed = hash21(cell);
+    b.ridge = 0.0;
+    b.fiber = 0.0;
+    b.gap = 1.0;
+    float best = -1.0;
+    for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x <= 1; x++) {
+            vec2 id = cell + vec2(float(x), float(y));
+            vec2 h = hash22(id + 31.7);
+            vec2 center = id + 0.5 + (h - 0.5) * 0.85;
+            vec2 q = g - center;
+            float seed = hash21(id + 81.2);
+            q = (rot((h.y - 0.5) * 0.62) * (q / density)) * density;
+            q.y += q.x * (h.y - 0.5) * 0.28 + 0.11 * q.x * q.x;
+            q.y += 0.022 * sin(q.x * 17.0 + seed * 40.0);
+            vec2 size = vec2(0.53 + h.x * 0.25, 0.40 + h.y * 0.19);
+            float d = box(q, size - 0.09) - 0.09;
+            d += 0.009 * sin(q.x * 75.0 + seed * 12.0);
+            float mask = 1.0 - smoothstep(-0.025, 0.035, d);
+            float priority = seed + mask * 2.0;
+            if (priority > best) {
+                best = priority;
+                b.center = p + rot(-angle) * ((center - g) / (density * PAINT_SCALE));
+                b.seed = seed;
+                b.gap = 1.0 - mask;
+                float edge = exp(-pow((q.y + size.y - 0.045) / 0.065, 2.0));
+                edge *= 1.0 - smoothstep(size.x - 0.16, size.x, abs(q.x));
+                float fibers = sin(q.y * 43.0 + 1.6 * sin(q.x * 5.0 + seed * 25.0));
+                fibers += 0.35 * sin(q.y * 77.0 + 1.2 * sin(q.x * 6.0 + seed * 8.0));
+                b.ridge = edge * mask;
+                b.fiber = fibers * mask * (0.4 + 0.6 * sin(q.x * 8.0 + seed * 5.0) * sin(q.x * 8.0 + seed * 5.0));
+            }
+        }
+    }
+    return b;
+}
+
+vec3 impasto(vec3 color, Brush b, float amount) {
+    color *= 0.87 + 0.28 * b.seed;
+    color *= 1.0 - 0.24 * b.gap;
+    color += amount * (0.125 * b.ridge + 0.023 * b.fiber) * vec3(0.82, 0.91, 0.88);
+    return max(color, 0.0);
+}
+
+float horizon(float x) { return 0.557 + 0.004 * sin(x * 8.0) - 0.006 * x; }
+float shore(float x) { return 0.390 - 0.312 * x + 0.085 * exp(-pow((x - 0.625) / 0.11, 2.0)) + 0.003 * sin(x * 65.0); }
+
+const vec3 STARS[22] = vec3[22](
+    vec3(0.048, 0.814, 0.012), vec3(0.258, 0.833, 0.015), vec3(0.383, 0.879, 0.020),
+    vec3(0.478, 0.862, 0.018), vec3(0.550, 0.834, 0.021), vec3(0.624, 0.774, 0.017),
+    vec3(0.688, 0.795, 0.018), vec3(0.679, 0.877, 0.017), vec3(0.541, 0.985, 0.016),
+    vec3(0.685, 0.990, 0.014), vec3(0.919, 0.890, 0.008), vec3(0.977, 0.775, 0.012),
+    vec3(0.912, 0.803, 0.012), vec3(0.861, 0.705, 0.010), vec3(0.431, 0.744, 0.008),
+    vec3(0.395, 0.741, 0.012), vec3(0.410, 0.658, 0.008), vec3(0.664, 0.661, 0.010),
+    vec3(0.754, 0.662, 0.007), vec3(0.941, 0.646, 0.006), vec3(0.862, 0.925, 0.006),
+    vec3(0.127, 0.949, 0.005)
+);
+
+const vec2 LAMPS[15] = vec2[15](
+    vec2(0.026, 0.55), vec2(0.115, 0.36), vec2(0.176, 0.90), vec2(0.276, 0.86), vec2(0.378, 0.85),
+    vec2(0.459, 1.00), vec2(0.555, 0.80), vec2(0.577, 0.70), vec2(0.638, 0.77), vec2(0.662, 0.64),
+    vec2(0.687, 0.86), vec2(0.724, 0.48), vec2(0.805, 0.34), vec2(0.887, 0.85), vec2(0.938, 0.80)
+);
+
+vec3 stars(vec3 col, vec2 p) {
+    float t = iTime;
+    for (int i = 0; i < 22; i++) {
+        vec3 star = STARS[i];
+        float seed = float(i) * 13.17;
+        float twinkle = 0.86 + 0.22 * sin(t * (0.75 + 0.05 * float(i)) + seed * 1.7);
+        vec2 center = star.xy + 0.0025 * vec2(sin(t * 0.20 + seed), cos(t * 0.16 + seed * 1.3));
+        vec2 q = (p - center) * vec2(1.295, 1.0) / star.z;
+        if (dot(q, q) > 12.0) continue;
+        q = rot(0.10 * sin(t * 0.3 + seed)) * q;
+        q += 0.10 * vec2(noise(q * 4.0 + seed + t * 0.15), noise(q * 4.0 + seed + 71.0 - t * 0.11));
+        float r = length(q), a = atan(q.y, q.x);
+        float pigmentNoise = noise(q * 3.5 + seed + t * 0.07);
+        float glow = exp(-r * r * 1.55) * (0.68 + 0.7 * pigmentNoise) * twinkle;
+        col = mix(col, vec3(0.44, 0.47, 0.20), glow * 0.75);
+        float sectors = (a / TAU + 0.5) * (8.0 + floor(hash11(seed) * 6.0));
+        float id = floor(sectors), f = fract(sectors) - 0.5;
+        float h = hash11(id + seed);
+        float ray = abs(f + 0.09 * sin(r * 8.0 - t * 1.1 + h * 9.0));
+        float width = 0.15 + 0.15 * h;
+        float rays = (1.0 - smoothstep(width, width + 0.09, ray)) * smoothstep(0.16, 0.40, r);
+        rays *= 1.0 - smoothstep(0.50 + h * 0.60, 0.75 + h * 0.70, r);
+        float fiber = 0.72 + 0.28 * sin(f * 78.0 - t * 2.0 + h * 8.0);
+        col = mix(col, vec3(0.64, 0.65, 0.31) * fiber, rays * 0.69 * twinkle);
+        float coreShape = r - (0.195 + 0.055 * sin(a * 5.0 + seed + t * 0.5) + 0.035 * sin(a * 7.0 - t * 0.4));
+        float core = 1.0 - smoothstep(-0.055, 0.055, coreShape);
+        float glint = 1.0 - smoothstep(0.04, 0.13, length(q - vec2(-0.035, 0.045)));
+        col = mix(col, vec3(0.87, 0.85, 0.52) * (0.90 + pigmentNoise * 0.17), core * 0.96 * twinkle);
+        col = mix(col, vec3(0.99, 0.96, 0.76), glint * 0.88 * twinkle);
+    }
+    return col;
+}
+
+vec3 sky(vec2 p) {
+    float t = iTime * 0.22;
+    vec2 flow = vec2(
+        0.016 * sin(p.y * 8.0 + t * 1.8) + 0.010 * sin(p.y * 17.0 - t * 0.9),
+        0.010 * sin(p.x * 7.0 - t * 1.2) + 0.006 * sin((p.x + p.y) * 14.0 + t * 0.7)
+    );
+    vec2 w = p + flow;
+    for (int i = 0; i < 6; i++) {
+        vec2 v = w - STARS[i].xy;
+        float rr = dot(v, v);
+        w += 0.0013 * vec2(-v.y, v.x) / (0.03 + rr);
+    }
+    w += 0.008 * vec2(noise(w * 10.0 + t), noise(w * 11.0 + 17.0 - t));
+    Brush b = brush(w, vec2(36.0, 66.0), 0.08 * sin(iTime * 0.12));
+    vec2 c = mix(w, b.center, 0.8);
+    float low = sat((1.03 - c.y) / 0.5);
+    float cloud = fbm(c * vec2(5.0, 8.0) + vec2(t * 0.7, -t * 0.4));
+    float band = exp(-pow((c.y - 0.715 - 0.045 * sin(c.x * 6.0 - t * 0.8)) / 0.14, 2.0));
+    band *= exp(-pow((c.x - 0.52) / 0.5, 2.0));
+    vec3 col = mix(vec3(0.030, 0.058, 0.069), vec3(0.092, 0.152, 0.209), low);
+    col += vec3(0.058, 0.078, 0.107) * (cloud * 0.65 + band * 0.68);
+    col = mix(col, col * vec3(0.79, 0.97, 0.85), smoothstep(0.42, 0.75, cloud) * 0.38);
+    col *= 0.73 + 0.27 * exp(-pow((p.x - 0.48) / 0.46, 2.0));
+    return stars(impasto(col, b, 0.94), p);
+}
+
+vec3 water(vec2 p) {
+    float t = iTime * WATER_MOTION;
+    vec2 drift = vec2(
+        0.006 * sin((p.y - horizon(p.x)) * 70.0 + t * 2.3),
+        0.002 * sin(p.x * 25.0 - t * 1.6)
+    );
+    vec2 w = p + drift;
+    w += vec2(0.0012 * sin(p.y * 87.0 + t), 0.0006 * sin(p.x * 71.0 + t * 0.8));
+    Brush b = brush(w, vec2(76.0, 212.0), 0.0);
+    vec2 c = mix(w, b.center, 0.94);
+    float depth = max(horizon(c.x) - c.y, 0.0);
+    float blue = fbm(c * vec2(7.0, 12.0) + vec2(t * 0.6, -t * 0.2));
+    vec3 col = mix(vec3(0.021, 0.048, 0.061), vec3(0.106, 0.180, 0.253), blue * 0.77);
+    col += vec3(0.014, 0.021, 0.035) * sin(c.y * 220.0 + sin(c.x * 30.0) - t * 3.0);
+    col += vec3(0.010, 0.020, 0.028) * sin(c.x * 90.0 + c.y * 230.0 - t * 6.0);
+    float gold = 0.0;
+    for (int i = 0; i < 15; i++) {
+        float id = float(i), x = LAMPS[i].x;
+        float driftX = 0.003 * sin(c.y * 51.0 + id * 3.0 + t * 0.65) + 0.0035 * sin(c.y * 137.0 - id + t);
+        float width = 0.0025 + pow(depth, 0.8) * 0.040;
+        float d = (c.x - x - driftX) / width;
+        float broken = hash21(vec2(floor((c.y + 0.03 * sin(t + id)) * 220.0), id * 9.0));
+        float glimmer = (0.28 + 0.72 * smoothstep(0.10, 0.85, broken)) * (0.85 + 0.15 * sin(t * 5.0 + id * 3.1));
+        float streak = exp(-d * d * 1.7) * glimmer * LAMPS[i].y;
+        streak *= 1.0 - smoothstep(0.38, 0.60, depth);
+        gold = max(gold, streak);
+    }
+    float daubs = smoothstep(0.13, 0.40, b.seed) * (0.75 + 0.30 * hash11(b.seed * 127.0));
+    vec3 pigment = mix(vec3(0.38, 0.39, 0.14), vec3(0.80, 0.73, 0.30), hash11(b.seed * 71.0));
+    col = mix(col, pigment, sat(gold * daubs * 1.42));
+    return impasto(col, b, 0.83);
+}
+
+vec3 city(vec3 col, vec2 p) {
+    float h = horizon(p.x), id = floor(p.x * 101.0);
+    float bridge = 0.552 - 0.127 * pow(sat(1.0 - p.x / 0.55), 1.65);
+    bridge += 0.0008 * noise(p * 520.0);
+    if (p.x < 0.55 && p.y < h && p.y > bridge) {
+        float earth = noise(p * vec2(180.0, 330.0));
+        vec3 bank = mix(vec3(0.025, 0.043, 0.037), vec3(0.075, 0.091, 0.053), earth);
+        col = mix(col, bank, coverage(bridge + 0.003 - p.y));
+    }
+    float roof = h + 0.006 + 0.025 * pow(hash11(id + 3.0), 2.2);
+    roof += 0.006 * (1.0 - abs(fract(p.x * 101.0) - 0.5) * 2.0) * step(0.47, hash11(id));
+    float silhouette = coverage(p.y - roof) * coverage(h - 0.011 - p.y);
+    vec3 dark = vec3(0.032, 0.049, 0.045) * (0.65 + 0.65 * noise(p * 270.0));
+    col = mix(col, dark, silhouette);
+
+    vec2 grid = p * vec2(280.0, 260.0), cell = floor(grid), f = fract(grid);
+    float windows = step(0.90, hash21(cell)) * (1.0 - smoothstep(0.15, 0.29, abs(f.x - 0.5)));
+    windows *= (1.0 - smoothstep(0.19, 0.37, abs(f.y - 0.5))) * silhouette;
+    vec3 yellow = mix(vec3(0.25, 0.26, 0.10), vec3(0.61, 0.54, 0.18), hash21(cell + 15.0));
+    col = mix(col, yellow, windows * 0.83);
+
+    col = ink(col, vec3(0.074, 0.093, 0.086), max(abs(p.y - roof) - 0.0006, h - p.y));
+    col = ink(col, dark, box(p - vec2(0.118, h + 0.033), vec2(0.009, 0.033)));
+    float spire = max(abs(p.x - 0.118) - max(0.0, (h + 0.098 - p.y) * 0.21), max(h + 0.064 - p.y, p.y - h - 0.098));
+    col = ink(col, dark * 0.80, spire);
+    col = ink(col, dark, box(p - vec2(0.148, h + 0.019), vec2(0.017, 0.019)));
+    col = ink(col, vec3(0.10, 0.13, 0.12), segment(p, vec2(0.110, h + 0.012), vec2(0.110, h + 0.064)) - 0.0006);
+    col = ink(col, vec3(0.13, 0.16, 0.14), segment(p, vec2(0.110, h + 0.064), vec2(0.117, h + 0.092)) - 0.0005);
+    col = ink(col, vec3(0.020, 0.033, 0.029), box(p - vec2(0.120, h + 0.054), vec2(0.0026, 0.005)));
+
+    if (p.x < 0.59) {
+        float thickness = mix(0.009, 0.0032, sat(p.x / 0.59));
+        float band = abs(p.y - bridge);
+        col = ink(col, vec3(0.016, 0.032, 0.033), band - thickness * 1.65);
+        col = ink(col, vec3(0.17, 0.21, 0.17) * (0.52 + 0.48 * noise(p * 500.0)), abs(p.y - bridge - thickness * 0.62) - 0.0011);
+        col = ink(col, vec3(0.09, 0.14, 0.14), abs(p.y - bridge + thickness * 0.63) - 0.0009);
+        if (p.x > 0.25) {
+            float pier = abs(fract(p.x * 10.0 + 0.14) - 0.5) / 10.0;
+            float supports = max(pier - 0.006, max(p.y - bridge + 0.006, bridge - 0.037 - p.y));
+            col = ink(col, vec3(0.015, 0.031, 0.033), supports);
+        }
+    }
+
+    float t = iTime;
+    for (int i = 0; i < 15; i++) {
+        vec2 lamp = LAMPS[i];
+        float x = lamp.x, y = horizon(x) + 0.006;
+        vec2 q = p - vec2(x, y);
+        float pulse = 0.85 + 0.15 * sin(t * (1.8 + 0.1 * float(i)) + float(i) * 2.3);
+        float cluster = exp(-pow(q.x / 0.014, 2.0) - pow((q.y - 0.006) / 0.017, 2.0));
+        cluster *= (0.8 + 0.6 * noise(q * 310.0 + float(i))) * pulse;
+        vec2 wc = floor(p * vec2(230.0, 320.0));
+        float dash = (1.0 - smoothstep(0.17, 0.43, abs(fract(p.y * 320.0 + noise(wc) * 0.3 - t * 0.6) - 0.5)));
+        dash *= smoothstep(0.23, 0.67, hash21(wc + float(i))) * cluster;
+        col = mix(col, vec3(0.63, 0.56, 0.20) * (0.75 + 0.25 * hash21(wc)), dash * 0.88);
+        float d = box(q + vec2(0.0007 * sin(p.y * 2400.0 + t * 4.0), 0.0006 * sin(p.x * 1900.0 - t * 4.8)), vec2(0.0028, 0.0033));
+        col = ink(col, vec3(0.84, 0.73, 0.29) * (0.68 + lamp.y * 0.30) * pulse, d);
+        col = ink(col, vec3(0.95, 0.86, 0.50) * pulse, box(q - vec2(-0.0006, 0.0006), vec2(0.0008, 0.0014)));
+    }
+    return col;
+}
+
+vec3 ground(vec2 p) {
+    Brush b = brush(p, vec2(46.0, 136.0), -0.49);
+    vec2 c = b.center;
+    float sand = fbm(c * vec2(8.0, 13.0)) + 0.12 * exp(-pow((shore(c.x) - c.y) / 0.065, 2.0));
+    float ochre = smoothstep(0.45, 0.76, sand + (b.seed - 0.5) * 0.56);
+    vec3 col = mix(vec3(0.058, 0.125, 0.185), vec3(0.28, 0.29, 0.13), ochre);
+    col = mix(col, vec3(0.12, 0.20, 0.29), smoothstep(0.82, 0.96, b.seed) * 0.5);
+    return impasto(col, b, 1.05);
+}
+
+vec3 boat(vec3 col, vec2 p, vec2 origin, float scale, float angle, float mastOffset) {
+    vec2 q = rot(angle) * (p - origin) / scale;
+    q += 0.0010 * vec2(noise(q * 310.0), noise(q * 330.0 + 17.0));
+    vec3 black = vec3(0.018, 0.035, 0.035), rim = vec3(0.20, 0.23, 0.15);
+    vec2 mastBottom = vec2(mastOffset, 0.000), mastTop = vec2(mastOffset + 0.003, 0.169);
+    col = ink(col, black * 0.75, segment(q, mastBottom, mastTop) - 0.0017);
+    col = ink(col, rim * 0.63, segment(q, mastBottom + vec2(-0.0011, 0.0), mastTop + vec2(-0.0011, 0.0)) - 0.00040);
+    col = ink(col, black * 0.80, segment(q, vec2(-0.094, 0.0), mastTop - vec2(0.0, 0.008)) - 0.00065);
+    col = ink(col, black * 0.80, segment(q, vec2(0.094, 0.0), mastTop - vec2(0.0, 0.013)) - 0.00065);
+    float x = q.x / 0.106, shape = pow(max(0.0, 1.0 - x * x), 0.66);
+    float top = -0.012 * shape, bottom = -0.037 * shape;
+    float hull = max(abs(q.x) - 0.106, max(q.y - top, bottom - q.y));
+    col = ink(col, black * (0.85 + 0.22 * noise(q * 230.0)), hull);
+    float bound = coverage(abs(q.x) - 0.106);
+    float line = 1.0 - smoothstep(0.0005, 0.0017, abs(q.y - top));
+    col = mix(col, rim, line * bound * 0.85);
+    float plank = abs(q.y - mix(top, bottom, 0.61));
+    col = mix(col, rim * 0.55, (1.0 - smoothstep(0.0003, 0.0010, plank)) * bound * 0.8);
+    return col;
+}
+
+vec3 people(vec3 col, vec2 p) {
+    float t = iTime;
+    float sway = 0.0028 * sin(t * 0.9);
+    float bob = 0.0018 * sin(t * 1.8);
+    vec2 q = p - vec2(sway, bob);
+    q += 0.00075 * vec2(noise(p * 340.0), noise(p * 340.0 + 51.0));
+
+    vec3 dark = vec3(0.025, 0.043, 0.039), olive = vec3(0.17, 0.19, 0.085), light = vec3(0.37, 0.37, 0.17);
+    dark += vec3(0.017, 0.022, 0.014) * noise(q * 600.0);
+    olive *= 0.8 + 0.4 * noise(q * 480.0);
+
+    col = ink(col, dark, tapered(q, vec2(0.741, 0.103), vec2(0.733, 0.034), 0.008, 0.004));
+    col = ink(col, dark, tapered(q, vec2(0.750, 0.102), vec2(0.760, 0.032), 0.009, 0.004));
+    col = ink(col, dark * 0.8, segment(q, vec2(0.732, 0.032), vec2(0.724, 0.026)) - 0.004);
+    col = ink(col, dark * 0.8, segment(q, vec2(0.760, 0.031), vec2(0.770, 0.026)) - 0.003);
+    col = ink(col, dark, tapered(q, vec2(0.744, 0.148), vec2(0.745, 0.103), 0.021, 0.014));
+    col = ink(col, dark, tapered(q, vec2(0.728, 0.154), vec2(0.720, 0.108), 0.006, 0.004));
+    col = ink(col, olive, tapered(q, vec2(0.756, 0.153), vec2(0.768 + 0.010 * sin(t * 3.0), 0.128 + 0.004 * cos(t * 4.0)), 0.006, 0.004));
+    col = ink(col, olive, length((q - vec2(0.744, 0.180)) * vec2(1.0, 0.82)) - 0.010);
+    col = ink(col, dark, box(q - vec2(0.742, 0.191), vec2(0.010, 0.005)));
+    col = ink(col, light * 0.75, segment(q, vec2(0.729, 0.190), vec2(0.755, 0.189)) - 0.0018);
+    col = ink(col, light, segment(q, vec2(0.747, 0.185), vec2(0.750, 0.176)) - 0.0013);
+    col = ink(col, olive, segment(q, vec2(0.737, 0.159), vec2(0.742, 0.121)) - 0.0020);
+    col = ink(col, light * 0.65, segment(q, vec2(0.753, 0.154), vec2(0.749, 0.131)) - 0.0011);
+    col = ink(col, olive * 0.75, segment(q, vec2(0.727, 0.115), vec2(0.741, 0.107)) - 0.0018);
+
+    float dressWidth = mix(0.023, 0.012, sat((q.y - 0.046) / 0.094));
+    float dress = max(abs(q.x - 0.781 + (q.y - 0.09) * 0.07) - dressWidth, max(0.044 - q.y, q.y - 0.149));
+    col = ink(col, dark * 0.83, dress);
+    col = ink(col, olive, tapered(q, vec2(0.780, 0.154), vec2(0.779, 0.125), 0.013, 0.011));
+    col = ink(col, dark, segment(q, vec2(0.772, 0.044), vec2(0.770, 0.025)) - 0.004);
+    col = ink(col, dark, segment(q, vec2(0.789, 0.044), vec2(0.794, 0.026)) - 0.004);
+    col = ink(col, light * 0.8, length((q - vec2(0.780, 0.176)) * vec2(1.0, 0.85)) - 0.009);
+    col = ink(col, olive, segment(q, vec2(0.769, 0.186), vec2(0.791 + 0.012 * sin(t * 3.2 + 1.0), 0.181 + 0.004 * cos(t * 4.7))) - 0.0037);
+    col = ink(col, dark, segment(q, vec2(0.785, 0.178), vec2(0.782, 0.169)) - 0.0025);
+    col = ink(col, light, segment(q, vec2(0.776, 0.155), vec2(0.784, 0.134)) - 0.0019);
+    col = ink(col, olive * 0.8, tapered(q, vec2(0.790, 0.150), vec2(0.777, 0.115), 0.005, 0.003));
+    col = ink(col, light * 0.67, segment(q, vec2(0.774, 0.138), vec2(0.760, 0.124)) - 0.0020);
+    col = ink(col, olive * 0.6, segment(q, vec2(0.786, 0.111), vec2(0.797, 0.053)) - 0.0014);
+
+    return col;
+}
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+    vec2 p = (fragCoord - 0.5 * iResolution.xy) / iResolution.y;
+    p.x = p.x / 1.295 + 0.5;
+    p.y += 0.5;
+    p += 0.00045 * vec2(noise(p * 260.0), noise(p * 260.0 + 19.0));
+
+    float h = horizon(p.x);
+    float coast = shore(p.x) + 0.0018 * (noise(p * 510.0) - 0.5);
+    vec3 col;
+
+    if (p.y < coast - 0.001) {
+        col = ground(p);
+    } else {
+        col = p.y > h ? sky(p) : water(p);
+        if (p.y > 0.395 && p.y < 0.705) col = city(col, p);
+        if (p.y < coast + 0.001) col = mix(col, ground(p), coverage(p.y - coast));
+    }
+
+    if (p.x > 0.33 && p.x < 0.73 && p.y > 0.23 && p.y < 0.53) {
+        float t = iTime;
+        vec2 boatA = vec2(0.569, 0.326 + 0.004 * sin(t * 1.10 + 1.2));
+        vec2 boatB = vec2(0.473, 0.306 + 0.005 * sin(t * 1.25 + 2.4));
+        float angA = 0.018 + 0.045 * sin(t * 0.90 + 0.7);
+        float angB = -0.115 + 0.040 * sin(t * 1.05 + 2.0);
+        col = boat(col, p, boatA, 1.0, angA, 0.040);
+        col = boat(col, p, boatB, 1.03, angB, 0.023);
+    }
+
+    if (p.x > 0.70 && p.x < 0.82 && p.y < 0.215) col = people(col, p);
+
+    float grain = hash21(fragCoord + 0.17 + iTime * 0.03) - 0.5;
+    col += grain * 0.012;
+    col *= 1.0 - 0.13 * dot((p - 0.5) * vec2(1.0, 0.8), (p - 0.5) * vec2(1.0, 0.8));
+
+    fragColor = vec4(clamp(col * EXPOSURE, 0.0, 1.0), 1.0);
+}

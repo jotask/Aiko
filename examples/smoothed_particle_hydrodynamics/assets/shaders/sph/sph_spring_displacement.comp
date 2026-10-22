@@ -1,0 +1,108 @@
+#version 450
+
+#include "sph/sph_spring_common.glsl"
+
+layout(local_size_x = 64) in;
+
+layout(std430, binding = 0)
+readonly buffer Positions
+{
+    vec4 positions[];
+};
+
+layout(std430, binding = 1)
+readonly buffer Springs
+{
+    Spring springs[];
+};
+
+layout(std430, binding = 2)
+readonly buffer SpringAHeads
+{
+    uint springAHeads[];
+};
+
+layout(std430, binding = 3)
+readonly buffer SpringBHeads
+{
+    uint springBHeads[];
+};
+
+layout(std430, binding = 4)
+writeonly buffer PositionDeltas
+{
+    vec4 positionDeltas[];
+};
+
+layout(push_constant)
+uniform PushConstants
+{
+    float dt;
+    float smoothingRadius;
+    float springStiffness;
+    uint particleCount;
+} pc;
+
+void accumulateSpring(Spring spring, uint otherParticle, vec3 position, inout vec3 delta)
+{
+    vec3 otherPosition = positions[otherParticle].xyz;
+
+    vec3 direction = otherPosition - position;
+
+    float distance = length(direction);
+
+    if (distance <= 0.000001)
+    {
+        return;
+    }
+
+    vec3 normalizedDirection = direction / distance;
+
+    float displacementTerm = pc.dt * pc.dt * pc.springStiffness * (1.0 - spring.restLength / pc.smoothingRadius) * (spring.restLength - distance);
+
+    vec3 displacement = normalizedDirection * displacementTerm * 0.5;
+
+    delta -= displacement;
+}
+
+void main()
+{
+    uint i = gl_GlobalInvocationID.x;
+
+    if (i >= pc.particleCount)
+    {
+        return;
+    }
+
+    vec3 position = positions[i].xyz;
+
+    vec3 delta = vec3(0.0);
+
+    uint springIndex = springAHeads[i];
+
+    while (springIndex != INVALID_SPRING_INDEX)
+    {
+        Spring spring = springs[springIndex];
+
+        uint particleB = getParticleB(spring.pairKey);
+
+        springIndex = spring.nextA;
+
+        accumulateSpring(spring, particleB, position, delta);
+    }
+
+    springIndex = springBHeads[i];
+
+    while (springIndex != INVALID_SPRING_INDEX)
+    {
+        Spring spring = springs[springIndex];
+
+        uint particleA = getParticleA(spring.pairKey);
+
+        springIndex = spring.nextB;
+
+        accumulateSpring(spring, particleA, position, delta);
+    }
+
+    positionDeltas[i] = vec4(delta, 0.0);
+}
