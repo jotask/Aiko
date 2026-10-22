@@ -16,6 +16,7 @@
 #include "ui/ui_renderer.h"
 #include "ui/ui_draw_list.h"
 #include "post_process/post_process_pipeline.h"
+#include <assets/iasset_provider.h>
 
 #include <types/color.h>
 #include <types/render_types.h>
@@ -51,7 +52,7 @@ namespace aiko
     
     public:
 
-        AikoRenderer(IAssetProvider& assets);
+        AikoRenderer(IAssetProvider& assets, IAssetRegistry& registry);
         ~AikoRenderer();
 
         void init(const RendererConfig& config, const RenderSurfaceDesc& surface, const IResourceResolver& resolver);
@@ -85,8 +86,6 @@ namespace aiko
         void render(const Camera* camera);
 
         void setDebugTexture(const Texture* texture);
-        void setUiShader(AssetId shaderId);
-        void setBillboardShaders(const AssetId& opaque, const AssetId& transparent);
 
         void renderToTarget(const Camera& camera, RenderTarget& target);
         const RenderTarget& sceneRenderTarget() const { return m_sceneTarget; }
@@ -133,8 +132,11 @@ namespace aiko
     private:
 
         const IResourceResolver* m_resourceResolver = nullptr;
+        IAssetRegistry& m_assetRegistry;
 
         RenderQueue m_renderQueue;
+
+        void initializeBuiltinShaders();
 
         renderer::FrameData buildSceneFrameData(const Camera& camera, const ivec2& targetSize) const;
         void executeComputePasses(const mat4* mainView);

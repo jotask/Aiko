@@ -176,11 +176,6 @@ namespace aiko
         return m_renderer->imguiTextureId(texture, sampler);
     }
 
-    void RenderModule::setUiShader(AssetId shaderId)
-    {
-        m_renderer->setUiShader(shaderId);
-    }
-
     void RenderModule::drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius, float borderThickness, Color borderColor)
     {
         m_renderer->drawUiRect(position, size, color, cornerRadius, borderThickness, borderColor);
@@ -231,13 +226,9 @@ namespace aiko
             .height = static_cast<u32>(size.y),
         };
 
-        m_renderer = std::make_unique<AikoRenderer>(*assetManager);
+        m_renderer = std::make_unique<AikoRenderer>(*assetManager, *assetManager);
         m_renderer->init(getAiko()->getConfig().renderer, surface, m_assetManager->getResourceResolver());
 
-        const AssetId billboardOpaque = assetManager->registerShader("gpu_billboard_default.vs", "model.fs");
-        const AssetId billboardTransparent = assetManager->registerShader("gpu_billboard_default_sorted.vs", "model.fs");
-
-        m_renderer->setBillboardShaders(billboardOpaque, billboardTransparent);
     }
 
     void RenderModule::update()

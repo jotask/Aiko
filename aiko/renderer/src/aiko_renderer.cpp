@@ -26,9 +26,10 @@
 
 namespace aiko
 {
-    AikoRenderer::AikoRenderer(IAssetProvider& assets)
+    AikoRenderer::AikoRenderer(IAssetProvider& assets, IAssetRegistry& registry)
         : m_resources(assets)
         , m_renderer(renderer::RendererFactory::createRenderDevice(&m_resources))
+        , m_assetRegistry(registry)
     {
 
     }
@@ -64,6 +65,8 @@ namespace aiko
             AIKO_ASSERT(false, "Renderer not initialized");
             std::abort();
         }
+
+        initializeBuiltinShaders();
 
         // Create scene render target
         if (m_sceneTarget.isValid() == true)
@@ -390,20 +393,6 @@ namespace aiko
         m_debugTexture = texture;
     }
 
-    void AikoRenderer::setUiShader(AssetId shaderId)
-    {
-        m_uiRenderer.setShader(shaderId);
-    }
-
-    void AikoRenderer::setBillboardShaders(const AssetId& opaque, const AssetId& transparent)
-    {
-        AIKO_ASSERT(opaque != InvalidAssetId, "Invalid opaque billboard shader");
-        AIKO_ASSERT(transparent != InvalidAssetId, "Invalid transparent billboard shader");
-
-        m_billboardOpaqueShaderId = opaque;
-        m_billboardTransparentShaderId = transparent;
-    }
-
     void AikoRenderer::renderToTarget(const Camera& camera, RenderTarget& target)
     {
         AIKO_ASSERT(target.isValid(), "Cannot render to an invalid RenderTarget");
@@ -494,6 +483,20 @@ namespace aiko
             event.width,
             event.height
         };
+    }
+
+    void AikoRenderer::initializeBuiltinShaders()
+    {
+        const AssetId uiShader = m_assetRegistry.registerShader("engine://ui.vs","engine://ui.fs");
+        AIKO_ASSERT(uiShader != InvalidAssetId, "Failed to register built-in UI shader");
+
+        m_uiRenderer.setShader(uiShader);
+
+        m_billboardOpaqueShaderId = m_assetRegistry.registerShader("engine://gpu_billboard_default.vs", "engine://model.fs");
+        AIKO_ASSERT(m_billboardOpaqueShaderId != InvalidAssetId, "Failed to register opaque billboard shader");
+
+        m_billboardTransparentShaderId = m_assetRegistry.registerShader("engine://gpu_billboard_default_sorted.vs", "engine://model.fs");
+        AIKO_ASSERT(m_billboardTransparentShaderId != InvalidAssetId, "Failed to register transparent billboard shader");
     }
 
     renderer::FrameData AikoRenderer::buildSceneFrameData(const Camera& camera, const ivec2& targetSize) const
