@@ -214,13 +214,13 @@ namespace aiko
 
         mat4 perspective(float angle, float aspectRatio, float znear, float zfar)
         {
-            glm::mat4 projection = glm::perspective(radians(angle), aspectRatio, znear, zfar);
+            glm::mat4 projection = glm::perspectiveRH_NO(radians(angle), aspectRatio, znear, zfar);
             return toAiko(projection);
         }
 
         mat4 ortho(float left, float right, float bottom, float top, float znear, float zfar)
         {
-            glm::mat4 projection = glm::ortho(left, right, bottom ,top, zfar, znear);
+            glm::mat4 projection = glm::orthoRH_NO(left, right, bottom ,top, znear, zfar);
             return toAiko(projection);
         }
 

@@ -27,6 +27,14 @@ namespace aiko::renderer::vulkan
     namespace
     {
 
+        mat4 toVulkanProjection(const mat4& projection)
+        {
+            mat4 correction(1.0f);
+            correction(2, 2) = 0.5f;
+            correction(2, 3) = 0.5f;
+            return correction * projection;
+        }
+
         template<typename T>
         void writeUniformBytes(std::vector<uint8_t>& destination, const VulkanShaderUniformMember& member, const T& value)
         {
@@ -1091,7 +1099,7 @@ namespace aiko::renderer::vulkan
         VulkanFrameUbo ubo{};
 
         ubo.u_view = u.view;
-        ubo.u_projection = u.projection;
+        ubo.u_projection = toVulkanProjection(u.projection);
         ubo.u_viewProj = ubo.u_projection * ubo.u_view;
 
         m_sceneViewProj = ubo.u_viewProj;
@@ -1974,7 +1982,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(depthImpl->imageView() != VK_NULL_HANDLE, "Shadow depth image view is invalid");
 
         VulkanShadowUbo uniforms{};
-        uniforms.lightViewProjection = shadow.lightViewProjection;
+        uniforms.lightViewProjection = toVulkanProjection(shadow.lightViewProjection);
 
         // x = shadow map enabled
         uniforms.shadowParams.x = 1.0f;
