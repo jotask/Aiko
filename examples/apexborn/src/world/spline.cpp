@@ -23,13 +23,62 @@ namespace ab
         AIKO_ASSERT(m_controlPoints.size() >= 4, "Spline should contains at least four points");
         AIKO_ASSERT(subdivisions > 0, "We can't generate 0 subdivision");
 
+        constexpr uint temporalSamples = 100;
+
+        std::vector<aiko::vec3> denseSamples;
+        denseSamples.reserve(temporalSamples * m_controlPoints.size());
+
         for (size_t i = 0; i < m_controlPoints.size() ; ++i)
         {
-            for (size_t subsegment = 0 ; subsegment < subdivisions; ++subsegment)
+            for (size_t subsegment = 0 ; subsegment < temporalSamples; ++subsegment)
             {
-                const auto u = aiko::math::map(static_cast<float>(subsegment), static_cast<float>(0), static_cast<float>(subdivisions), 0.0f, 1.0f);
+                const auto u = aiko::math::map(static_cast<float>(subsegment), static_cast<float>(0), static_cast<float>(temporalSamples), 0.0f, 1.0f);
                 const auto point = evaluate(i, u);
+                denseSamples.push_back(point);
+            }
+        }
+
+        std::vector<float> cumulativeDistances;
+        cumulativeDistances.reserve(temporalSamples * m_controlPoints.size());
+
+        cumulativeDistances.push_back(0.0f);
+        float totalLength = 0;
+        for (size_t sample = 1 ; sample < denseSamples.size(); ++sample)
+        {
+            const float distance = aiko::math::length(denseSamples[sample - 0] - denseSamples[sample - 1]);
+            totalLength += distance;
+            cumulativeDistances.push_back(totalLength);
+        }
+        const float distance = aiko::math::length(denseSamples[denseSamples.size() - 1] - denseSamples[0]);
+        totalLength += distance;
+        denseSamples.push_back(denseSamples[0]);
+        cumulativeDistances.push_back(totalLength);
+
+        const size_t sampleCount = m_controlPoints.size() * subdivisions;
+        const float spacing = totalLength / sampleCount;
+
+        for (size_t sampleIdx = 0; sampleIdx < sampleCount ; ++sampleIdx)
+        {
+            const float targetDistance = sampleIdx * spacing;
+            for (size_t cumulativeIdx = 1; cumulativeIdx < cumulativeDistances.size() ; ++cumulativeIdx)
+            {
+                if (cumulativeDistances[cumulativeIdx] < targetDistance)
+                {
+                    continue;
+                }
+                const auto rightCumulative = cumulativeDistances[cumulativeIdx - 0];
+                const auto leftCumulative = cumulativeDistances[cumulativeIdx - 1];
+
+                const float interpolationFactor = (targetDistance - leftCumulative) / (rightCumulative - leftCumulative);
+
+                const auto rightSample = denseSamples[cumulativeIdx - 0];
+                const auto leftSample = denseSamples[cumulativeIdx - 1];
+
+                const auto point = aiko::math::lerp(leftSample, rightSample, interpolationFactor);
+
                 m_spline.push_back(point);
+
+                break;
             }
         }
     }
