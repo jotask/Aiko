@@ -3,7 +3,7 @@
 #include <aiko_includes.h>
 #include <layers/layer.h>
 
-#include "world/spline.h"
+#include "world/track.h"
 
 namespace ab
 {
@@ -19,7 +19,7 @@ namespace ab
         void renderImgui();
         void renderMenuBar();
 
-        Spline m_spline;
+        Track m_track;
 
     };
 

@@ -19,7 +19,7 @@ namespace ab
         aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Static, aiko::Camera::CameraType::Perspective);
         camera->getCamera().position = { 0.0f, 0.0f, 13.0f };
 
-        m_spline.generate();
+        m_track.generate();
 
     }
 
@@ -32,8 +32,7 @@ namespace ab
     {
         Layer::render();
         renderImgui();
-        m_spline.render(renderer());
-
+        m_track.render(renderer());
     }
 
     void ApexBorn::renderImgui()
