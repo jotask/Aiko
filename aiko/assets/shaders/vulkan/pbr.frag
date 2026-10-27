@@ -101,7 +101,7 @@ float spotAttenuation(vec3 L, vec3 direction, float innerCos, float outerCos)
     );
 }
 
-float projectedShadowVisibility(int lightIndex, vec3 worldPos)
+float projectedShadowVisibility(int lightIndex, vec3 worldPos, vec3 normal, vec3 lightDirection)
 {
     if (u_shadowParams[lightIndex].x < 0.5)
     {
@@ -126,11 +126,38 @@ float projectedShadowVisibility(int lightIndex, vec3 worldPos)
         return 1.0;
     }
 
-    float storedDepth = texture(u_shadowMaps[lightIndex], uv).r;
+    vec4 shadowSettings = u_shadowParams[lightIndex];
 
-    const float bias = 0.001;
+    float constantBias = shadowSettings.y;
+    float slopeBias = shadowSettings.z;
 
-    return projected.z - bias <= storedDepth ? 1.0 : 0.0;
+    float NdotL = max(dot(normalize(normal), normalize(lightDirection)), 0.0);
+
+    float bias = constantBias + slopeBias * (1.0 - NdotL);
+
+    vec2 texelSize = 1.0 / vec2(textureSize(u_shadowMaps[lightIndex], 0));
+
+    float visibility = 0.0;
+
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            vec2 sampleUv = uv + vec2(x, y) * texelSize * shadowSettings.w;
+
+            if (any(lessThan(sampleUv, vec2(0.0))) || any(greaterThan(sampleUv, vec2(1.0))))
+            {
+                visibility += 1.0;
+                continue;
+            }
+
+            float storedDepth = texture(u_shadowMaps[lightIndex], sampleUv).r;
+
+            visibility += projected.z - bias <= storedDepth ? 1.0 : 0.0;
+        }
+    }
+
+    return visibility / 9.0;
 }
 
 vec3 evaluatePBRLight(int index, vec3 P, vec3 N, vec3 V, vec3 albedo, float metallic, float roughness)
@@ -291,7 +318,18 @@ vec3 shadePBR(vec3 P, vec3 normal, vec3 albedo)
 
         if (u_shadowParams[i].x > 0.5)
         {
-            contribution *= projectedShadowVisibility(i, P);
+            vec3 shadowLightDirection;
+
+            if (int(u_lightType[i].x) == 0)
+            {
+                shadowLightDirection = -u_lightDir[i].xyz;
+            }
+            else
+            {
+                shadowLightDirection = u_lightPosRange[i].xyz - P;
+            }
+
+            contribution *= projectedShadowVisibility(i, P, N, shadowLightDirection);
         }
 
         result += contribution;

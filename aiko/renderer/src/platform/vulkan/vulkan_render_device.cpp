@@ -2015,7 +2015,12 @@ namespace aiko::renderer::vulkan
 
             uniforms.lightViewProjection[index] = toVulkanProjection(shadow.lightViewProjection);
 
-            uniforms.shadowParams[index].x = 1.0f;
+            uniforms.shadowParams[index] = vec4(
+                1.0f,   // Shadows enabled
+                0.001f, // Constant bias
+                0.002f, // Slope-dependent bias
+                1.0f    // PCF radius
+            );
 
             images[index] = {
                 .sampler = sampler,
