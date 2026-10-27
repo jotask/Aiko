@@ -515,6 +515,25 @@ namespace aiko::renderer::vulkan
         m_whiteTexture.setPixels({WHITE});
         AIKO_ASSERT(m_whiteTexture.isValid(), "Failed to upload the required Vulkan white texture");
 
+        m_shadowFallbackCubemap.create({
+            .type = TextureType::DepthStencil,
+            .format = TextureFormat::D32F,
+            .dimension = TextureDimension::Cube,
+            .width = 1,
+            .height = 1,
+            .mipmaps = 1,
+        });
+
+        AIKO_ASSERT(m_shadowFallbackCubemap.isValid(), "Failed to create shadow fallback cubemap");
+
+        for (u32 face = 0; face < 6; ++face)
+        {
+            m_shadowFallbackFaces[face].createWithAttachments(nullptr, &m_shadowFallbackCubemap, {.mipLevel = 0, .arrayLayer = face});
+            AIKO_ASSERT(m_shadowFallbackFaces[face].isValid(), "Failed to create fallback cubemap face");
+        }
+
+        m_shadowFallbackInitialized = false;
+
         return true;
     }
 
@@ -526,6 +545,13 @@ namespace aiko::renderer::vulkan
         m_cachedComputeDescriptorSet = VK_NULL_HANDLE;
         m_materialResources.destroy();
         m_whiteTexture.unload();
+        for (FrameBuffer& face : m_shadowFallbackFaces)
+        {
+            face.unload();
+        }
+
+        m_shadowFallbackCubemap.unload();
+        m_shadowFallbackInitialized = false;
         m_gpuPipelines.destroy();
         m_shadowResources.destroy();
         m_modelPipelines.destroy();
@@ -583,6 +609,25 @@ namespace aiko::renderer::vulkan
 
         m_shadowResources.resetFrame(frame);
 
+        if (!m_shadowFallbackInitialized)
+        {
+            const PassDescription pass{
+                .width = 1,
+                .height = 1,
+                .colorLoadOp = AttachmentLoadOp::DontCare,
+                .depthLoadOp = AttachmentLoadOp::Clear,
+            };
+
+            for (u32 face = 0; face < 6; ++face)
+            {
+                beginPass(SHADOW_VIEW, pass, &m_shadowFallbackFaces[face]);
+                endPass();
+            }
+
+            prepareTextureForSampling(m_shadowFallbackCubemap);
+            m_shadowFallbackInitialized = true;
+        }
+
         prepareTextureForSampling(m_whiteTexture);
 
         auto* fallbackImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(m_whiteTexture));
@@ -591,7 +636,11 @@ namespace aiko::renderer::vulkan
 
         const VkSampler fallbackSampler = m_samplerCache.getOrCreate(SamplerState{});
 
-        m_shadowResources.updateFallback(frame, fallbackImpl->imageView(), fallbackSampler);
+        auto* fallbackCubeImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(m_shadowFallbackCubemap));
+
+        AIKO_ASSERT(fallbackCubeImpl != nullptr && fallbackCubeImpl->isValid(), "Invalid shadow fallback cubemap");
+
+        m_shadowResources.updateFallback(frame, fallbackImpl->imageView(), fallbackSampler, fallbackCubeImpl->imageView(), fallbackSampler);
 
     }
 
@@ -2007,35 +2056,36 @@ namespace aiko::renderer::vulkan
         }
 
         AIKO_ASSERT(!m_renderPassActive, "Shadow resources must be prepared outside a render pass");
+
         AIKO_ASSERT(shadows.size() <= MaxFrameLights, "Too many shadow maps");
 
         VulkanShadowUbo uniforms{};
 
         const uint32_t frame = m_context.currentFrameIndex();
-
         const VkSampler sampler = m_samplerCache.getOrCreate(SamplerState{});
 
+        auto* fallback2D = static_cast<VulkanTextureImpl*>(getTextureBackend(m_whiteTexture));
+
+        auto* fallbackCube = static_cast<VulkanTextureImpl*>(getTextureBackend(m_shadowFallbackCubemap));
+
+        AIKO_ASSERT(fallback2D && fallback2D->isValid(), "Invalid 2D fallback texture");
+
+        AIKO_ASSERT(fallbackCube && fallbackCube->isValid(), "Invalid cube fallback texture");
+
         VulkanShadowResources::ShadowImages images{};
+        VulkanShadowResources::ShadowCubeImages cubeImages{};
 
-        // Initialize every slot to an existing valid depth image.
-        // Unused slots are never sampled because their enabled flag is zero.
-        const ShadowData& fallbackShadow = shadows.front();
-
-        AIKO_ASSERT(fallbackShadow.depthTexture != nullptr && fallbackShadow.depthTexture->isValid(), "Invalid fallback shadow depth texture");
-
-        prepareTextureForSampling(*fallbackShadow.depthTexture);
-
-        auto* fallbackImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(*fallbackShadow.depthTexture));
-
-        AIKO_ASSERT(fallbackImpl != nullptr && fallbackImpl->isValid(), "Invalid fallback shadow backend");
-
-        const VkDescriptorImageInfo fallbackImage{
+        images.fill({
             .sampler = sampler,
-            .imageView = fallbackImpl->imageView(),
-            .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
-        };
+            .imageView = fallback2D->imageView(),
+            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        });
 
-        images.fill(fallbackImage);
+        cubeImages.fill({
+            .sampler = sampler,
+            .imageView = fallbackCube->imageView(),
+            .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+        });
 
         for (const ShadowData& shadow : shadows)
         {
@@ -2046,27 +2096,58 @@ namespace aiko::renderer::vulkan
 
             auto* depthImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(*shadow.depthTexture));
 
-            AIKO_ASSERT(depthImpl != nullptr && depthImpl->isValid(), "Invalid Vulkan shadow depth texture");
+            AIKO_ASSERT(depthImpl != nullptr && depthImpl->isValid(), "Invalid Vulkan shadow texture");
 
             const u32 index = shadow.lightIndex;
 
-            uniforms.lightViewProjection[index] = toVulkanProjection(shadow.lightViewProjection);
+            if (shadow.type == ShadowMapType::Point)
+            {
+                AIKO_ASSERT(shadow.depthTexture->getInfo().dimension == TextureDimension::Cube, "Point shadows require a cubemap");
 
-            uniforms.shadowParams[index] = vec4(
-                1.0f,   // Shadows enabled
-                0.001f, // Constant bias
-                0.002f, // Slope-dependent bias
-                1.0f    // PCF radius
-            );
+                AIKO_ASSERT(shadow.nearPlane > 0.0f && shadow.farPlane > shadow.nearPlane, "Invalid point-shadow depth range");
 
-            images[index] = {
-                .sampler = sampler,
-                .imageView = depthImpl->imageView(),
-                .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
-            };
+                uniforms.shadowParams[index] = vec4(
+                    2.0f,    // Point-light shadow enabled
+                    0.001f,  // Constant depth bias
+                    0.002f,  // Slope-dependent depth bias
+                    1.0f
+                );
+
+                uniforms.pointShadowPlanes[index] = vec4(
+                    shadow.nearPlane,
+                    shadow.farPlane,
+                    0.0f,
+                    0.0f
+                );
+
+                cubeImages[index] = {
+                    .sampler = sampler,
+                    .imageView = depthImpl->imageView(),
+                    .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+                };
+            }
+            else
+            {
+                AIKO_ASSERT(shadow.depthTexture->getInfo().dimension == TextureDimension::Texture2D, "Projected shadows require a 2D texture");
+
+                uniforms.lightViewProjection[index] = toVulkanProjection(shadow.lightViewProjection);
+
+                uniforms.shadowParams[index] = vec4(
+                    1.0f,   // Projected shadow enabled
+                    0.001f,
+                    0.002f,
+                    1.0f
+                );
+
+                images[index] = {
+                    .sampler = sampler,
+                    .imageView = depthImpl->imageView(),
+                    .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+                };
+            }
         }
 
-        m_shadowResources.update(frame, uniforms, images);
+        m_shadowResources.update(frame, uniforms, images, cubeImages);
     }
 
     VulkanMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)

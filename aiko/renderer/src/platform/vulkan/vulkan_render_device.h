@@ -15,6 +15,7 @@
 #include "renderer/Irenderdevice.h"
 #include "vulkan_descriptor_abi.h"
 #include "impl/vulkan_computeshader_impl.h"
+#include "models/frame_buffer.h"
 
 #include "vulkan_upload_arena.h"
 #include "vulkan_pipeline_types.h"
@@ -124,6 +125,10 @@ namespace aiko::renderer::vulkan
         VkDescriptorSet m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
 
         Texture m_whiteTexture;
+
+        Texture m_shadowFallbackCubemap;
+        std::array<FrameBuffer, 6> m_shadowFallbackFaces;
+        bool m_shadowFallbackInitialized = false;
 
         RenderPassCompatibilityKey m_activeRenderPassCompatibility{};
         std::optional<ModelPipelineKey> m_cachedModelPipelineKey;

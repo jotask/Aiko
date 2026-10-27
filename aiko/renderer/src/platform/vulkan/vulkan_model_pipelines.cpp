@@ -548,7 +548,7 @@ namespace aiko::renderer::vulkan
     {
         AIKO_ASSERT(m_shadowLayout == VK_NULL_HANDLE, "Shadow descriptor layout already created");
 
-        const std::array<VkDescriptorSetLayoutBinding, 2> bindings{{
+        const std::array<VkDescriptorSetLayoutBinding, 3> bindings{{
             {
                 .binding = abi::ShadowUboBinding,
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -560,7 +560,13 @@ namespace aiko::renderer::vulkan
                 .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                 .descriptorCount = MaxFrameLights,
                 .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-            }
+            },
+            {
+                .binding = abi::ShadowCubeTextureBinding,
+                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .descriptorCount = MaxFrameLights,
+                .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+            },
         }};
 
         const VkDescriptorSetLayoutCreateInfo info{

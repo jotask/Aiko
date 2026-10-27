@@ -417,7 +417,9 @@ namespace aiko::renderer::vulkan
     {
         for (const VulkanShaderDescriptorBinding& descriptor : reflection.descriptorBindings)
         {
-            if (descriptor.set != abi::GraphicsShadowSet || descriptor.binding != abi::ShadowTextureBinding)
+            const bool isShadowTextureArray = descriptor.set == abi::GraphicsShadowSet && (descriptor.binding == abi::ShadowTextureBinding || descriptor.binding == abi::ShadowCubeTextureBinding);
+
+            if (!isShadowTextureArray)
             {
                 AIKO_ASSERT(descriptor.descriptorCount == 1, "Graphics descriptor arrays are not currently supported");
             }
@@ -459,13 +461,18 @@ namespace aiko::renderer::vulkan
 
             if (descriptor.set == abi::GraphicsShadowSet)
             {
-                AIKO_ASSERT(descriptor.binding == abi::ShadowUboBinding || descriptor.binding == abi::ShadowTextureBinding, "Unknown shadow descriptor binding");
-                const VkDescriptorType expectedType = descriptor.binding == abi::ShadowUboBinding ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                const bool isUbo = descriptor.binding == abi::ShadowUboBinding;
+
+                const bool isShadowArray = descriptor.binding == abi::ShadowTextureBinding || descriptor.binding == abi::ShadowCubeTextureBinding;
+
+                AIKO_ASSERT(isUbo || isShadowArray, "Unknown shadow descriptor binding");
+
+                const VkDescriptorType expectedType = isUbo ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+
                 AIKO_ASSERT(descriptor.descriptorType == expectedType, "Shadow descriptor type does not match Vulkan ABI");
-                if (descriptor.binding == abi::ShadowTextureBinding)
-                {
-                    AIKO_ASSERT(descriptor.descriptorCount == MaxFrameLights, "Shadow texture array size does not match MaxFrameLights");
-                }
+
+                AIKO_ASSERT(descriptor.descriptorCount == (isUbo ? 1u : MaxFrameLights), "Shadow descriptor count does not match Vulkan ABI");
+
                 continue;
             }
 

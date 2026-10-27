@@ -48,43 +48,57 @@ namespace aiko::renderer::vulkan
         frame.selectedSet = frame.fallback.descriptorSet;
     }
 
-    void VulkanShadowResources::updateFallback(uint32_t frameIndex, VkImageView imageView, VkSampler sampler)
+    void VulkanShadowResources::updateFallback(uint32_t frameIndex, VkImageView imageView, VkSampler sampler, VkImageView cubeImageView, VkSampler cubeSampler)
     {
         AIKO_ASSERT(frameIndex < m_frames.size(), "Invalid shadow frame index");
-        AIKO_ASSERT(imageView != VK_NULL_HANDLE, "Invalid fallback image view");
-        AIKO_ASSERT(sampler != VK_NULL_HANDLE, "Invalid fallback sampler");
+
+        AIKO_ASSERT(imageView != VK_NULL_HANDLE && sampler != VK_NULL_HANDLE, "Invalid 2D shadow fallback");
+
+        AIKO_ASSERT(cubeImageView != VK_NULL_HANDLE && cubeSampler != VK_NULL_HANDLE, "Invalid cubemap shadow fallback");
 
         Binding& binding = m_frames[frameIndex].fallback;
 
-        // Disable shadow comparison in PBR.
         const VulkanShadowUbo uniforms{};
-
         std::memcpy(binding.uniformMapped, &uniforms, sizeof(uniforms));
 
         ShadowImages images{};
+        ShadowCubeImages cubeImages{};
 
-        for (VkDescriptorImageInfo& image : images)
-        {
-            image = {
-                .sampler = sampler,
-                .imageView = imageView,
-                .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            };
-        }
+        images.fill({
+            .sampler = sampler,
+            .imageView = imageView,
+            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        });
 
-        const VkWriteDescriptorSet write{
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = binding.descriptorSet,
-            .dstBinding = abi::ShadowTextureBinding,
-            .descriptorCount = MaxFrameLights,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = images.data(),
-        };
+        cubeImages.fill({
+            .sampler = cubeSampler,
+            .imageView = cubeImageView,
+            .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+        });
 
-        vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
+        const std::array<VkWriteDescriptorSet, 2> writes{{
+            {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = binding.descriptorSet,
+                .dstBinding = abi::ShadowTextureBinding,
+                .descriptorCount = MaxFrameLights,
+                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .pImageInfo = images.data(),
+            },
+            {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = binding.descriptorSet,
+                .dstBinding = abi::ShadowCubeTextureBinding,
+                .descriptorCount = MaxFrameLights,
+                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .pImageInfo = cubeImages.data(),
+            },
+        }};
+
+        vkUpdateDescriptorSets(m_context.device(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
     }
 
-    void VulkanShadowResources::update(uint32_t frameIndex, const VulkanShadowUbo& uniforms, const ShadowImages& images)
+    void VulkanShadowResources::update(uint32_t frameIndex, const VulkanShadowUbo& uniforms, const ShadowImages& images, const ShadowCubeImages& cubeImages)
     {
         AIKO_ASSERT(frameIndex < m_frames.size(), "Invalid shadow frame index");
 
@@ -94,23 +108,38 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(binding.uniformMapped != nullptr, "Shadow uniform buffer is not mapped");
         AIKO_ASSERT(binding.descriptorSet != VK_NULL_HANDLE, "Shadow descriptor set is invalid");
 
-        std::memcpy(binding.uniformMapped, &uniforms, sizeof(VulkanShadowUbo));
+        std::memcpy(binding.uniformMapped, &uniforms, sizeof(uniforms));
 
         for (const VkDescriptorImageInfo& image : images)
         {
-            AIKO_ASSERT(image.imageView != VK_NULL_HANDLE && image.sampler != VK_NULL_HANDLE, "Invalid shadow image descriptor");
+            AIKO_ASSERT(image.imageView != VK_NULL_HANDLE && image.sampler != VK_NULL_HANDLE, "Invalid 2D shadow descriptor");
         }
 
-        const VkWriteDescriptorSet write{
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = binding.descriptorSet,
-            .dstBinding = abi::ShadowTextureBinding,
-            .descriptorCount = MaxFrameLights,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = images.data(),
-        };
+        for (const VkDescriptorImageInfo& image : cubeImages)
+        {
+            AIKO_ASSERT(image.imageView != VK_NULL_HANDLE && image.sampler != VK_NULL_HANDLE, "Invalid cube shadow descriptor");
+        }
 
-        vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
+        const std::array<VkWriteDescriptorSet, 2> writes{{
+            {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = binding.descriptorSet,
+                .dstBinding = abi::ShadowTextureBinding,
+                .descriptorCount = MaxFrameLights,
+                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .pImageInfo = images.data(),
+            },
+            {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = binding.descriptorSet,
+                .dstBinding = abi::ShadowCubeTextureBinding,
+                .descriptorCount = MaxFrameLights,
+                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .pImageInfo = cubeImages.data(),
+            },
+        }};
+
+        vkUpdateDescriptorSets(m_context.device(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 
         frame.selectedSet = binding.descriptorSet;
     }
@@ -137,7 +166,7 @@ namespace aiko::renderer::vulkan
             },
             {
                 .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .descriptorCount = MaxFrameLights,
+                .descriptorCount = MaxFrameLights * 2,
             },
         };
 

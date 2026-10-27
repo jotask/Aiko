@@ -10,11 +10,17 @@ layout(
 {
     mat4 u_lightViewProjection[MAX_LIGHTS];
     vec4 u_shadowParams[MAX_LIGHTS];
+    vec4 u_pointShadowPlanes[MAX_LIGHTS];
 };
 
 layout(
     set = AIKO_GRAPHICS_SHADOW_SET,
     binding = AIKO_SHADOW_TEXTURE_BINDING
 ) uniform sampler2D u_shadowMaps[MAX_LIGHTS];
+
+layout(
+    set = AIKO_GRAPHICS_SHADOW_SET,
+    binding = AIKO_SHADOW_CUBE_TEXTURE_BINDING
+) uniform samplerCube u_pointShadowMaps[MAX_LIGHTS];
 
 #endif

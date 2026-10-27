@@ -20,6 +20,7 @@ namespace aiko::renderer::vulkan::abi
 
     static constexpr uint32_t ShadowUboBinding = 0;
     static constexpr uint32_t ShadowTextureBinding = 1;
+    static constexpr uint32_t ShadowCubeTextureBinding = 2;
 
     static constexpr uint32_t ComputeSet = 0;
 

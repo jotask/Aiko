@@ -43,10 +43,24 @@ namespace aiko::renderer
     {
         m_depthMaterial = Material{};
         m_shadowData.clear();
+
         for (ShadowTarget& target : m_targets)
         {
             target.framebuffer.unload();
         }
+
+        for (PointShadowTarget& target : m_pointTargets)
+        {
+            // Framebuffers borrow the cubemap.
+            // They must be unloaded before their texture.
+            for (FrameBuffer& face : target.faces)
+            {
+                face.unload();
+            }
+
+            target.depthCubemap.unload();
+        }
+
         m_resolution = 0;
     }
 
@@ -73,6 +87,104 @@ namespace aiko::renderer
 
             if (light.intensity <= 0.0f || !light.castsShadows)
             {
+                continue;
+            }
+
+            if (light.type == LightType::Point)
+            {
+                constexpr float NearPlane = 0.1f;
+
+                AIKO_ASSERT(math::isfinite(light.position), "Point light position must be finite");
+
+                AIKO_ASSERT(light.range > NearPlane, "Point light range must exceed the shadow near plane");
+
+                PointShadowTarget& target = m_pointTargets[i];
+
+                // Create the cubemap and its six framebuffer views once.
+                if (!target.depthCubemap.isValid())
+                {
+                    target.depthCubemap.create({
+                        .type = TextureType::DepthStencil,
+                        .format = TextureFormat::D32F,
+                        .dimension = TextureDimension::Cube,
+                        .width = static_cast<int>(m_resolution),
+                        .height = static_cast<int>(m_resolution),
+                        .mipmaps = 1,
+                    });
+
+                    AIKO_ASSERT(target.depthCubemap.isValid(), "Failed to create point shadow cubemap");
+
+                    for (u32 face = 0; face < 6; ++face)
+                    {
+                        target.faces[face].createWithAttachments(
+                            nullptr,
+                            &target.depthCubemap,
+                            {
+                                .mipLevel = 0,
+                                .arrayLayer = face,
+                            }
+                        );
+
+                        AIKO_ASSERT(target.faces[face].isValid(), "Failed to create point shadow cubemap face");
+                    }
+                }
+
+                // Vulkan cubemap face order:
+                // +X, -X, +Y, -Y, +Z, -Z.
+                const std::array<vec3, 6> directions =
+                {
+                    vec3( 1.0f,  0.0f,  0.0f),
+                    vec3(-1.0f,  0.0f,  0.0f),
+                    vec3( 0.0f,  1.0f,  0.0f),
+                    vec3( 0.0f, -1.0f,  0.0f),
+                    vec3( 0.0f,  0.0f,  1.0f),
+                    vec3( 0.0f,  0.0f, -1.0f),
+                };
+
+                const std::array<vec3, 6> upVectors =
+                {
+                    vec3(0.0f, -1.0f,  0.0f),
+                    vec3(0.0f, -1.0f,  0.0f),
+                    vec3(0.0f,  0.0f,  1.0f),
+                    vec3(0.0f,  0.0f, -1.0f),
+                    vec3(0.0f, -1.0f,  0.0f),
+                    vec3(0.0f, -1.0f,  0.0f),
+                };
+
+                const mat4 projection = math::perspective(90.0f, 1.0f, NearPlane, light.range);
+
+                for (u32 face = 0; face < 6; ++face)
+                {
+                    FrameData lightFrame{};
+
+                    lightFrame.view = math::lookAt(light.position, light.position + directions[face], upVectors[face]);
+
+                    lightFrame.projection = projection;
+                    lightFrame.cameraPosition = light.position;
+
+                    device.beginPass(SHADOW_VIEW, shadowPass, &target.faces[face]);
+
+                    device.bindFrame(SHADOW_VIEW, lightFrame);
+
+                    for (const PreparedRenderPacket& packet : scene.opaque)
+                    {
+                        MeshDrawPacket shadowPacket = packet.draw;
+                        shadowPacket.material = &m_depthMaterial;
+
+                        device.submitMesh(SHADOW_VIEW, shadowPacket);
+                    }
+
+                    device.endPass();
+                }
+
+                m_shadowData.push_back({
+                    .depthTexture = &target.depthCubemap,
+                    .lightIndex = i,
+                    .type = ShadowMapType::Point,
+                    .nearPlane = NearPlane,
+                    .farPlane = light.range,
+                });
+
                 continue;
             }
 

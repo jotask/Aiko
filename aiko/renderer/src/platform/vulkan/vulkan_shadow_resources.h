@@ -18,6 +18,7 @@ namespace aiko::renderer::vulkan
     {
         std::array<mat4, MaxFrameLights> lightViewProjection{};
         std::array<vec4, MaxFrameLights> shadowParams{};
+        std::array<vec4, MaxFrameLights> pointShadowPlanes{};
     };
 
     class VulkanShadowResources final
@@ -25,6 +26,7 @@ namespace aiko::renderer::vulkan
     public:
 
         using ShadowImages = std::array<VkDescriptorImageInfo, MaxFrameLights>;
+        using ShadowCubeImages = std::array<VkDescriptorImageInfo, MaxFrameLights>;
 
         VulkanShadowResources(VulkanContext& context, uint32_t frameCount);
 
@@ -35,9 +37,9 @@ namespace aiko::renderer::vulkan
         void destroy();
 
         void resetFrame(uint32_t frameIndex);
-        void updateFallback(uint32_t frameIndex, VkImageView imageView, VkSampler sampler);
 
-        void update(uint32_t frameIndex, const VulkanShadowUbo& uniforms, const ShadowImages& images);
+        void updateFallback(uint32_t frameIndex, VkImageView imageView, VkSampler sampler, VkImageView cubeImageView, VkSampler cubeSampler);
+        void update(uint32_t frameIndex, const VulkanShadowUbo& uniforms, const ShadowImages& images, const ShadowCubeImages& cubeImages);
 
         VkDescriptorSet descriptorSet(uint32_t frameIndex) const;
 

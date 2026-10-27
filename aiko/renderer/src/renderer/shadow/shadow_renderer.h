@@ -2,6 +2,7 @@
 
 #include "models/frame_buffer.h"
 #include "models/material.h"
+#include "models/texture.h"
 
 #include "types/aiko_renderer_types.h"
 #include "renderer/frame_uniforms.h"
@@ -43,7 +44,18 @@ namespace aiko
                 FrameBuffer framebuffer;
             };
 
+            struct PointShadowTarget
+            {
+                Texture depthCubemap;
+                std::array<FrameBuffer, 6> faces;
+            };
+
+            // Existing directional and spotlight shadow targets.
             std::array<ShadowTarget, MaxFrameLights> m_targets;
+
+            // One cubemap per point-light slot, created on demand.
+            std::array<PointShadowTarget, MaxFrameLights> m_pointTargets;
+
             vector<ShadowData> m_shadowData;
 
             u32 m_resolution = 0;

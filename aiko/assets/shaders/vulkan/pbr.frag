@@ -160,6 +160,69 @@ float projectedShadowVisibility(int lightIndex, vec3 worldPos, vec3 normal, vec3
     return visibility / 9.0;
 }
 
+
+float pointShadowVisibility(int lightIndex, vec3 worldPos, vec3 normal, vec3 lightDirection)
+{
+    vec3 lightPosition = u_lightPosRange[lightIndex].xyz;
+    vec3 lightToFragment = worldPos - lightPosition;
+
+    float majorAxis = max(
+        max(abs(lightToFragment.x), abs(lightToFragment.y)),
+        abs(lightToFragment.z)
+    );
+
+    float nearPlane = u_pointShadowPlanes[lightIndex].x;
+    float farPlane = u_pointShadowPlanes[lightIndex].y;
+
+    if (majorAxis <= nearPlane || majorAxis >= farPlane)
+    {
+        return 1.0;
+    }
+
+    // Depth stored by the 90-degree perspective projection.
+    float referenceDepth = farPlane * (majorAxis - nearPlane) / (majorAxis * (farPlane - nearPlane));
+
+    vec4 settings = u_shadowParams[lightIndex];
+
+    float NdotL = max(dot(normalize(normal), normalize(lightDirection)), 0.0);
+
+    float bias = settings.y + settings.z * (1.0 - NdotL);
+
+    // Build a tangent basis around the cubemap lookup direction.
+    vec3 direction = normalize(lightToFragment);
+
+    vec3 referenceUp =
+        abs(direction.y) > 0.99
+            ? vec3(1.0, 0.0, 0.0)
+            : vec3(0.0, 1.0, 0.0);
+
+    vec3 tangent = normalize(cross(referenceUp, direction));
+    vec3 bitangent = cross(direction, tangent);
+
+    // A cubemap face covers 90 degrees, with coordinates spanning
+    // [-1, 1]. One texel is approximately 2 / resolution.
+    vec2 faceSize = vec2(textureSize(u_pointShadowMaps[lightIndex], 0));
+    float texelAngle = 2.0 / max(faceSize.x, 1.0);
+
+    float sampleRadius = texelAngle * settings.w;
+
+    float visibility = 0.0;
+
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            vec3 sampleDirection = normalize(direction + sampleRadius * ( float(x) * tangent + float(y) * bitangent ));
+
+            float storedDepth = texture(u_pointShadowMaps[lightIndex], sampleDirection).r;
+
+            visibility += referenceDepth - bias <= storedDepth ? 1.0 : 0.0;
+        }
+    }
+
+    return visibility / 9.0;
+}
+
 vec3 evaluatePBRLight(int index, vec3 P, vec3 N, vec3 V, vec3 albedo, float metallic, float roughness)
 {
     int type = int(u_lightType[index].x);
@@ -316,20 +379,26 @@ vec3 shadePBR(vec3 P, vec3 normal, vec3 albedo)
     {
         vec3 contribution = evaluatePBRLight(i, P, N, V, albedo, metallic, roughness);
 
-        if (u_shadowParams[i].x > 0.5)
+        int shadowMode = int(u_shadowParams[i].x + 0.5);
+
+        if (shadowMode != 0)
         {
-            vec3 shadowLightDirection;
+            int lightType = int(u_lightType[i].x);
 
-            if (int(u_lightType[i].x) == 0)
+            vec3 shadowLightDirection = lightType == 0     ? -u_lightDir[i].xyz     : u_lightPosRange[i].xyz - P;
+
+            float visibility = 1.0;
+
+            if (shadowMode == 2 && lightType == 1)
             {
-                shadowLightDirection = -u_lightDir[i].xyz;
+                visibility = pointShadowVisibility(i, P, N, shadowLightDirection);
             }
-            else
+            else if (shadowMode == 1)
             {
-                shadowLightDirection = u_lightPosRange[i].xyz - P;
+                visibility = projectedShadowVisibility(i, P, N, shadowLightDirection);
             }
 
-            contribution *= projectedShadowVisibility(i, P, N, shadowLightDirection);
+            contribution *= visibility;
         }
 
         result += contribution;
