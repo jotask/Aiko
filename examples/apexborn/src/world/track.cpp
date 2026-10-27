@@ -1,5 +1,9 @@
 #include "track.h"
 
+#include "core/transform.h"
+#include "layers/contexts/asset_context.h"
+#include "road_mesh_builder.h"
+
 namespace ab
 {
 
@@ -12,7 +16,7 @@ namespace ab
 
     Track::~Track() = default;
 
-    void Track::generate()
+    void Track::generate(aiko::AssetContext& assets)
     {
         m_centerLine.generate();
 
@@ -42,6 +46,18 @@ namespace ab
 
         }
 
+        const RoadMeshBuilder::RoadMeshBuilderDesc desc = {
+            .roadWidth = m_trackWidth,
+            .worldUp = WorldUp,
+        };
+        const auto asset = RoadMeshBuilder::build(m_centerLine, m_profile, desc);
+        m_roadMesh.upload(asset);
+
+        m_roadMaterial.m_shaderId = assets.loadShader("model");
+        m_roadMaterial.m_lit = false;
+        m_roadMaterial.m_useVertexColor = false;
+        m_roadMaterial.m_baseColor = aiko::LIGHTGRAY;
+
     }
 
     void Track::render(aiko::RenderContext& context)
@@ -69,6 +85,11 @@ namespace ab
         }
         context.drawLine(m_rightEdge.back(), m_rightEdge.front(), aiko::CYAN);
 
+        if (m_roadMesh.isValid())
+        {
+            aiko::Transform transform{};
+            context.drawMesh(transform, m_roadMesh, m_roadMaterial);
+        }
     }
 
 }

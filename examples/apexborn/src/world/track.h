@@ -1,6 +1,14 @@
 #pragma once
 
+#include "models/material.h"
+#include "models/mesh.h"
+#include "world/road_profile.h"
 #include "world/spline.h"
+
+namespace aiko
+{
+    class AssetContext;
+}
 
 namespace ab
 {
@@ -11,7 +19,7 @@ namespace ab
         Track();
         ~Track();
 
-        void generate();
+        void generate(aiko::AssetContext&);
 
         void render(aiko::RenderContext& context);
 
@@ -23,6 +31,11 @@ namespace ab
 
         Spline::Points m_leftEdge;
         Spline::Points m_rightEdge;
+
+        RoadProfile m_profile;
+
+        aiko::Mesh m_roadMesh;
+        aiko::Material m_roadMaterial;
 
     };
 

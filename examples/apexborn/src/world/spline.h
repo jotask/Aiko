@@ -20,12 +20,15 @@ namespace ab
 
         void generate(aiko::uint subdivisions = 7);
 
+        aiko::vec3 getSampleTangent(size_t splineIdx) const;
+
         void render(aiko::RenderContext& context);
+
+        const Points& getSamplePoints() const { return m_spline; }
 
     private:
 
         aiko::vec3 evaluate(size_t segmentIndex, float u) const;
-        aiko::vec3 getSampleTangent(size_t splineIdx) const;
 
         Points m_controlPoints;
         Points m_spline;

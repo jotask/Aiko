@@ -11,6 +11,10 @@
 namespace ab
 {
 
+    ApexBorn::ApexBorn() = default;
+
+    ApexBorn::~ApexBorn() = default;
+
     void ApexBorn::init()
     {
 
@@ -20,7 +24,7 @@ namespace ab
         camera->getCamera().position = { 0.0f, 8.0f, 10.0f };
         camera->getCamera().target = {0.0f, 0.0f, 0.0f};
 
-        m_track.generate();
+        m_track.generate(assets());
 
     }
 

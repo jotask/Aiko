@@ -10,7 +10,12 @@ namespace ab
 
     class ApexBorn : public aiko::Layer
     {
+    public:
+        ApexBorn();
+        ~ApexBorn();
+
     protected:
+
         virtual void init() override;
         virtual void update() override;
         virtual void render() override;
