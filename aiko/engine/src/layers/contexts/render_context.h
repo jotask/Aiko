@@ -27,7 +27,11 @@ namespace aiko
     class RenderContext
     {
     public:
+        void drawPoint(const vec3& pos, const Color& color);
+        void drawLine(const vec3& start, const vec3& end, const Color& color);
         void drawRectangle(const vec3& position, const vec3& size);
+        void drawCircle(const vec3& pos, const vec3& size, const uint segments, const Color& color);
+
         void drawMesh(const Transform& transform, const Mesh& mesh, const Material& material);
         void drawMeshInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);

@@ -15,9 +15,24 @@ namespace aiko
         AIKO_ASSERT(m_postProcessSystem != nullptr, "PostProcessSystem not found");
     }
 
+    void RenderContext::drawPoint(const vec3& pos, const Color& color)
+    {
+        m_renderSystem->renderPoint(pos, color);
+    }
+
+    void RenderContext::drawLine(const vec3& start, const vec3& end, const Color& color)
+    {
+        m_renderSystem->renderLine(start, end, color);
+    }
+
     void RenderContext::drawRectangle(const vec3& position, const vec3& size)
     {
         m_renderSystem->renderRectangle(position, size);
+    }
+
+    void RenderContext::drawCircle(const vec3& pos, const vec3& size, const uint segments, const Color& color)
+    {
+        m_renderSystem->renderCircle(pos, size, segments, color);
     }
 
     void RenderContext::drawMesh(const Transform& transform, const Mesh& mesh, const Material& material)
