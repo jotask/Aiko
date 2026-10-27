@@ -60,6 +60,11 @@ namespace aiko::renderer
         {
             const LightData& light = sceneFrame.lights[i];
 
+            if (light.intensity <= 0.0f)
+            {
+                continue;
+            }
+
             if (light.type == LightType::Directional || light.type == LightType::Spot)
             {
                 shadowLight = &light;

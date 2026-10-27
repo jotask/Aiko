@@ -3,6 +3,12 @@
 #include "aiko_includes.h"
 #include "layers/layer.h"
 
+namespace aiko
+{
+    class GameObject;
+    class LightComponent;
+}
+
 namespace aiko::lab
 {
     class VisualLab final : public Layer
@@ -23,6 +29,27 @@ namespace aiko::lab
         static constexpr int TextureTestCount = 9;
         static constexpr int FullPbrTestCount = 3;
 
+        struct ValidationLight
+        {
+            const char* name = "";
+            LightType type = LightType::Directional;
+
+            GameObject* object = nullptr;
+            LightComponent* component = nullptr;
+
+            bool enabled = false;
+
+            vec3 position = vec3(0.0f);
+            vec3 direction = vec3(0.0f, -1.0f, 0.0f);
+
+            Color color = WHITE;
+            float intensity = 1.0f;
+            float range = 10.0f;
+
+            float innerCos = 0.8f;
+            float outerCos = 0.6f;
+        };
+
         void initCamera();
         void initLighting();
         void initPbrMaterials();
@@ -31,6 +58,10 @@ namespace aiko::lab
         void initColorSpaceTest();
         void initMaterialColorTest();
         void initShadowValidation();
+        void initShadowValidationLights();
+
+        void syncVisualLabLighting();
+        void applyValidationLight(ValidationLight& light);
 
         void renderImgui();
         void renderPbrMatrix();
@@ -39,6 +70,7 @@ namespace aiko::lab
         void renderColorSpaceTest();
         void renderMaterialColorTest();
         void renderShadowValidation();
+        void renderValidationLightControls(ValidationLight& light);
 
         std::array<Material, MaterialCount> m_pbrMaterials;
         Mesh m_sphereMesh;
@@ -52,6 +84,13 @@ namespace aiko::lab
         Mesh m_colorSpaceQuad;
 
         Material m_materialColorMaterial;
+
+        LightComponent* m_referenceLight = nullptr;
+
+        ValidationLight m_shadowDirLight;
+        ValidationLight m_shadowSpotA;
+        ValidationLight m_shadowSpotB;
+        ValidationLight m_shadowPointA;
 
         Mesh m_shadowCubeMesh;
         Mesh m_shadowGroundMesh;

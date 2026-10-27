@@ -62,6 +62,7 @@ namespace aiko::lab
         initColorSpaceTest();
         initMaterialColorTest();
         initShadowValidation();
+        initShadowValidationLights();
 
         // Avoid Bloom masking small differences between materials.
         renderer().postProcessing().setEnabled("Bloom", false);
@@ -76,6 +77,8 @@ namespace aiko::lab
     void VisualLab::render()
     {
         renderImgui();
+        syncVisualLabLighting();
+
         switch (ActiveTest)
         {
             case VisualTest::MaterialMatrix:
@@ -119,22 +122,19 @@ namespace aiko::lab
         GameObject* lightObject = Instantiate("PBR Reference Light");
 
         LightComponent* light = lightObject->addComponent<LightComponent>();
+        m_referenceLight = light;
 
-        lightObject->transform().position = {0.0f, 8.0f, -12.0f};
+        light->setDirectional(WHITE, vec3{-0.5f, -0.7f, -1.0f}, 100.0f);
 
-        light->setSpot(WHITE, vec3{0.0f, -1.0f, 0.0f}, 0.95f, 0.65f);
+        light->intensity = 3.0f;
 
-        light->range = 25.0f;
-        light->intensity = 6.0f;
     }
 
     void VisualLab::initPbrMaterials()
     {
         const AssetId pbrShader = assets().loadShader("pbr");
 
-        // Upload one sphere mesh and reuse it for every material.
         m_sphereMesh.upload(mesh::factory::generateMeshSphere(48, 48));
-
         AIKO_ASSERT(m_sphereMesh.isValid(), "PBR reference mesh is invalid");
 
         for (int row = 0; row < GridSize; ++row)
@@ -373,6 +373,160 @@ namespace aiko::lab
         m_shadowGroundMaterial.setRoughness(0.9f);
     }
 
+    void VisualLab::initShadowValidationLights()
+    {
+        // Directional
+        {
+            GameObject* object = Instantiate("Shadow Validation Directional");
+            LightComponent* light = object->addComponent<LightComponent>();
+
+            m_shadowDirLight.name = "Directional";
+            m_shadowDirLight.type = LightType::Directional;
+            m_shadowDirLight.object = object;
+            m_shadowDirLight.component = light;
+            m_shadowDirLight.enabled = true;
+            m_shadowDirLight.direction = vec3{-0.5f, -0.7f, -1.0f};
+            m_shadowDirLight.color = WHITE;
+            m_shadowDirLight.intensity = 3.0f;
+            m_shadowDirLight.range = 100.0f;
+
+            light->intensity = 0.0f;
+        }
+
+        // Spot A
+        {
+            GameObject* object = Instantiate("Shadow Validation Spot A");
+            LightComponent* light = object->addComponent<LightComponent>();
+
+            m_shadowSpotA.name = "Spot A";
+            m_shadowSpotA.type = LightType::Spot;
+            m_shadowSpotA.object = object;
+            m_shadowSpotA.component = light;
+            m_shadowSpotA.enabled = false;
+            m_shadowSpotA.position = vec3{0.0f, 8.0f, -12.0f};
+            m_shadowSpotA.direction = vec3{0.0f, -1.0f, 0.0f};
+            m_shadowSpotA.color = WHITE;
+            m_shadowSpotA.intensity = 6.0f;
+            m_shadowSpotA.range = 25.0f;
+            m_shadowSpotA.innerCos = 0.95f;
+            m_shadowSpotA.outerCos = 0.65f;
+
+            object->transform().position = m_shadowSpotA.position;
+            light->intensity = 0.0f;
+        }
+
+        // Spot B
+        {
+            GameObject* object = Instantiate("Shadow Validation Spot B");
+            LightComponent* light = object->addComponent<LightComponent>();
+
+            m_shadowSpotB.name = "Spot B";
+            m_shadowSpotB.type = LightType::Spot;
+            m_shadowSpotB.object = object;
+            m_shadowSpotB.component = light;
+            m_shadowSpotB.enabled = false;
+            m_shadowSpotB.position = vec3{6.0f, 6.0f, -10.0f};
+            m_shadowSpotB.direction = vec3{-0.8f, -0.6f, -0.2f};
+            m_shadowSpotB.color = Color{0.6f, 0.8f, 1.0f, 1.0f};
+            m_shadowSpotB.intensity = 5.0f;
+            m_shadowSpotB.range = 20.0f;
+            m_shadowSpotB.innerCos = 0.92f;
+            m_shadowSpotB.outerCos = 0.70f;
+
+            object->transform().position = m_shadowSpotB.position;
+            light->intensity = 0.0f;
+        }
+
+        // Point A
+        {
+            GameObject* object = Instantiate("Shadow Validation Point A");
+            LightComponent* light = object->addComponent<LightComponent>();
+
+            m_shadowPointA.name = "Point A";
+            m_shadowPointA.type = LightType::Point;
+            m_shadowPointA.object = object;
+            m_shadowPointA.component = light;
+            m_shadowPointA.enabled = false;
+            m_shadowPointA.position = vec3{3.0f, 3.0f, -10.0f};
+            m_shadowPointA.color = Color{1.0f, 0.85f, 0.65f, 1.0f};
+            m_shadowPointA.intensity = 8.0f;
+            m_shadowPointA.range = 18.0f;
+
+            object->transform().position = m_shadowPointA.position;
+            light->intensity = 0.0f;
+        }
+    }
+
+    void VisualLab::syncVisualLabLighting()
+    {
+        const bool shadowMode = ActiveTest == VisualTest::ShadowValidation;
+
+        if (m_referenceLight != nullptr)
+        {
+            m_referenceLight->intensity = shadowMode ? 0.0f : 3.0f;
+        }
+
+        if (!shadowMode)
+        {
+            if (m_shadowDirLight.component != nullptr)  m_shadowDirLight.component->intensity = 0.0f;
+            if (m_shadowSpotA.component != nullptr)     m_shadowSpotA.component->intensity = 0.0f;
+            if (m_shadowSpotB.component != nullptr)     m_shadowSpotB.component->intensity = 0.0f;
+            if (m_shadowPointA.component != nullptr)    m_shadowPointA.component->intensity = 0.0f;
+            return;
+        }
+
+        // Keep spotlight cone values sane.
+        auto fixSpot = [](ValidationLight& light)
+        {
+            light.innerCos = std::clamp(light.innerCos, 0.01f, 0.999f);
+            light.outerCos = std::clamp(light.outerCos, 0.01f, 0.999f);
+
+            if (light.innerCos < light.outerCos)
+            {
+                std::swap(light.innerCos, light.outerCos);
+            }
+
+            if (math::length(light.direction) < 0.0001f)
+            {
+                light.direction = vec3(0.0f, -1.0f, 0.0f);
+            }
+        };
+
+        fixSpot(m_shadowSpotA);
+        fixSpot(m_shadowSpotB);
+
+        applyValidationLight(m_shadowDirLight);
+        applyValidationLight(m_shadowSpotA);
+        applyValidationLight(m_shadowSpotB);
+        applyValidationLight(m_shadowPointA);
+    }
+
+    void VisualLab::applyValidationLight(ValidationLight& light)
+    {
+        AIKO_ASSERT(light.object != nullptr, "Validation light object is null");
+        AIKO_ASSERT(light.component != nullptr, "Validation light component is null");
+
+        light.object->transform().position = light.position;
+
+        switch (light.type)
+        {
+            case LightType::Directional:
+                light.component->setDirectional(light.color, light.direction, light.range);
+                break;
+
+            case LightType::Spot:
+                light.component->setSpot(light.color, light.direction, light.innerCos, light.outerCos);
+                light.component->range = light.range;
+                break;
+
+            case LightType::Point:
+                light.component->setPointLight(light.color, light.range);
+                break;
+        }
+
+        light.component->intensity = light.enabled ? light.intensity : 0.0f;
+    }
+
     void VisualLab::renderImgui()
     {
         if (ImGui::BeginCombo("VisualMode##Test", magic_enum::enum_name(ActiveTest).data()))
@@ -412,7 +566,16 @@ namespace aiko::lab
 
             ImGui::Separator();
             ImGui::TextDisabled("Shadow depth generation active.");
-            ImGui::TextDisabled("Shadow reception visualization pending.");
+            ImGui::TextDisabled("Directional and spot shadows supported; one shadow map at a time.");
+
+            ImGui::SeparatorText("Validation Lights");
+            ImGui::TextDisabled("Current renderer limitation: only the first enabled directional/spot light produces a shadow map.");
+
+            renderValidationLightControls(m_shadowDirLight);
+            renderValidationLightControls(m_shadowSpotA);
+            renderValidationLightControls(m_shadowSpotB);
+            renderValidationLightControls(m_shadowPointA);
+
         }
 
     }
@@ -557,6 +720,37 @@ namespace aiko::lab
 
             renderer().drawMesh(sphere, m_sphereMesh, m_shadowCasterMaterial);
         }
+    }
+
+    void VisualLab::renderValidationLightControls(ValidationLight& light)
+    {
+        if (!ImGui::TreeNode(light.name))
+        {
+            return;
+        }
+
+        ImGui::Checkbox("Enabled", &light.enabled);
+        ImGui::ColorEdit3("Color", &light.color.r);
+        ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
+
+        if (light.type == LightType::Spot || light.type == LightType::Point)
+        {
+            ImGui::DragFloat3("Position", &light.position.x, 0.1f);
+            ImGui::SliderFloat("Range", &light.range, 0.5f, 100.0f);
+        }
+
+        if (light.type == LightType::Directional || light.type == LightType::Spot)
+        {
+            ImGui::DragFloat3("Direction", &light.direction.x, 0.01f);
+        }
+
+        if (light.type == LightType::Spot)
+        {
+            ImGui::SliderFloat("Inner Cos", &light.innerCos, 0.01f, 0.999f);
+            ImGui::SliderFloat("Outer Cos", &light.outerCos, 0.01f, 0.999f);
+        }
+
+        ImGui::TreePop();
     }
 
 }
