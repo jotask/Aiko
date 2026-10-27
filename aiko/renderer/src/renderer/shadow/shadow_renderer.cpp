@@ -6,6 +6,7 @@
 #include <math/math.h>
 
 #include <cmath>
+#include <algorithm>
 
 namespace aiko::renderer
 {
@@ -49,49 +50,65 @@ namespace aiko::renderer
 
         m_shadowData = {};
 
-        // First milestone: one directional light.
-        const LightData* directionalLight = nullptr;
+        const LightData* shadowLight = nullptr;
+        u32 shadowLightIndex = 0;
 
-        for (const LightData& light : sceneFrame.lights)
+        // Only lights uploaded to the GPU are eligible.
+        const u32 lightCount = static_cast<u32>(std::min<size_t>(sceneFrame.lights.size(), MaxFrameLights));
+
+        for (u32 i = 0; i < lightCount; ++i)
         {
-            if (light.type == LightType::Directional)
+            const LightData& light = sceneFrame.lights[i];
+
+            if (light.type == LightType::Directional || light.type == LightType::Spot)
             {
-                directionalLight = &light;
+                shadowLight = &light;
+                shadowLightIndex = i;
                 break;
             }
         }
 
-        if (directionalLight == nullptr)
+        if (shadowLight == nullptr)
         {
             return;
         }
 
-        AIKO_ASSERT(math::isfinite(directionalLight->direction) && math::length(directionalLight->direction) > 0.0001f, "Directional light direction must be finite and nonzero");
-        const vec3 direction = math::normalize(directionalLight->direction);
+        AIKO_ASSERT(math::isfinite(shadowLight->direction) && math::length(shadowLight->direction) > 0.0001f, "Shadow light direction must be finite and nonzero");
 
-        // Light camera follows the scene camera.
-        constexpr float shadowDistance = 40.0f;
-        constexpr float shadowExtent = 30.0f;
+        const vec3 direction = math::normalize(shadowLight->direction);
 
-        const vec3 center = sceneFrame.cameraPosition;
-        const vec3 eye = center - direction * shadowDistance;
-
-        // Avoid a degenerate lookAt basis for vertical lights.
         const vec3 up = std::abs(direction.y) > 0.99f
             ? vec3(0.0f, 0.0f, 1.0f)
             : vec3(0.0f, 1.0f, 0.0f);
 
         FrameData lightFrame{};
-        lightFrame.view = math::lookAt(eye, center, up);
 
-        lightFrame.projection = math::ortho(
-            -shadowExtent,
-             shadowExtent,
-            -shadowExtent,
-             shadowExtent,
-             0.1f,
-             shadowDistance * 2.0f
-        );
+        if (shadowLight->type == LightType::Directional)
+        {
+            constexpr float shadowDistance = 40.0f;
+            constexpr float shadowExtent = 30.0f;
+
+            const vec3 center = sceneFrame.cameraPosition;
+            const vec3 eye = center - direction * shadowDistance;
+
+            lightFrame.view = math::lookAt(eye, center, up);
+            lightFrame.projection = math::ortho(-shadowExtent, shadowExtent, -shadowExtent, shadowExtent, 0.1f, shadowDistance * 2.0f);
+        }
+        else
+        {
+            // Spotlight: a perspective camera positioned at the light.
+            AIKO_ASSERT(math::isfinite(shadowLight->position), "Spotlight position must be finite");
+            AIKO_ASSERT(shadowLight->range > 0.1f, "Spotlight range must exceed the shadow near plane");
+            AIKO_ASSERT(shadowLight->outerCos > 0.0f && shadowLight->outerCos < 1.0f, "Invalid spotlight outer cone");
+
+            const vec3 position = shadowLight->position;
+
+            lightFrame.view = math::lookAt(position, position + direction, up);
+
+            const float fov = 2.0f * math::degrees(std::acos(shadowLight->outerCos));
+
+            lightFrame.projection = math::perspective(fov, 1.0f, 0.1f, shadowLight->range);
+        }
 
         const PassDescription shadowPass{
             .width = m_resolution,
@@ -117,6 +134,7 @@ namespace aiko::renderer
 
         m_shadowData.lightViewProjection = lightFrame.projection * lightFrame.view;
         m_shadowData.depthTexture = &m_depthTarget.getDepthTexture();
+        m_shadowData.lightIndex = shadowLightIndex;
     }
 
     bool ShadowRenderer::isValid() const

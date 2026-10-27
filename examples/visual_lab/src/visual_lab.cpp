@@ -120,13 +120,12 @@ namespace aiko::lab
 
         LightComponent* light = lightObject->addComponent<LightComponent>();
 
-        light->setDirectional(
-            WHITE,
-            vec3{-0.5f, -0.7f, -1.0f},
-            100.0f
-        );
+        lightObject->transform().position = {0.0f, 8.0f, -12.0f};
 
-        light->intensity = 3.0f;
+        light->setSpot(WHITE, vec3{0.0f, -1.0f, 0.0f}, 0.95f, 0.65f);
+
+        light->range = 25.0f;
+        light->intensity = 6.0f;
     }
 
     void VisualLab::initPbrMaterials()

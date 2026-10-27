@@ -101,7 +101,7 @@ float spotAttenuation(vec3 L, vec3 direction, float innerCos, float outerCos)
     );
 }
 
-float directionalShadowVisibility(vec3 worldPos)
+float projectedShadowVisibility(vec3 worldPos)
 {
     if (u_shadowParams.x < 0.5)
     {
@@ -285,16 +285,16 @@ vec3 shadePBR(vec3 P, vec3 normal, vec3 albedo)
 
     int count = min(int(u_lightCount.x), MAX_LIGHTS);
 
-    bool directionalShadowApplied = false;
-
     for (int i = 0; i < count; ++i)
     {
-        vec3 contribution = evaluatePBRLight(i, P, N, V, albedo, metallic, roughness);
+        vec3 contribution = evaluatePBRLight(
+            i, P, N, V, albedo, metallic, roughness
+        );
 
-        if (!directionalShadowApplied && int(u_lightType[i].x) == 0)
+        if (u_shadowParams.x > 0.5 &&
+            i == int(u_shadowParams.y))
         {
-            contribution *= directionalShadowVisibility(P);
-            directionalShadowApplied = true;
+            contribution *= projectedShadowVisibility(P);
         }
 
         result += contribution;

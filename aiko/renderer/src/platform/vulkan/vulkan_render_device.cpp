@@ -1986,6 +1986,7 @@ namespace aiko::renderer::vulkan
 
         // x = shadow map enabled
         uniforms.shadowParams.x = 1.0f;
+        uniforms.shadowParams.y = static_cast<float>(shadow.lightIndex);
 
         const uint32_t frame = m_context.currentFrameIndex();
 
