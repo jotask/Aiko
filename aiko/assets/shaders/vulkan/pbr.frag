@@ -101,14 +101,14 @@ float spotAttenuation(vec3 L, vec3 direction, float innerCos, float outerCos)
     );
 }
 
-float projectedShadowVisibility(vec3 worldPos)
+float projectedShadowVisibility(int lightIndex, vec3 worldPos)
 {
-    if (u_shadowParams.x < 0.5)
+    if (u_shadowParams[lightIndex].x < 0.5)
     {
         return 1.0;
     }
 
-    vec4 lightClip = u_lightViewProjection * vec4(worldPos, 1.0);
+    vec4 lightClip = u_lightViewProjection[lightIndex] * vec4(worldPos, 1.0);
 
     if (lightClip.w <= 0.0)
     {
@@ -126,7 +126,7 @@ float projectedShadowVisibility(vec3 worldPos)
         return 1.0;
     }
 
-    float storedDepth = texture(u_shadowMap, uv).r;
+    float storedDepth = texture(u_shadowMaps[lightIndex], uv).r;
 
     const float bias = 0.001;
 
@@ -287,14 +287,11 @@ vec3 shadePBR(vec3 P, vec3 normal, vec3 albedo)
 
     for (int i = 0; i < count; ++i)
     {
-        vec3 contribution = evaluatePBRLight(
-            i, P, N, V, albedo, metallic, roughness
-        );
+        vec3 contribution = evaluatePBRLight(i, P, N, V, albedo, metallic, roughness);
 
-        if (u_shadowParams.x > 0.5 &&
-            i == int(u_shadowParams.y))
+        if (u_shadowParams[i].x > 0.5)
         {
-            contribution *= projectedShadowVisibility(P);
+            contribution *= projectedShadowVisibility(i, P);
         }
 
         result += contribution;

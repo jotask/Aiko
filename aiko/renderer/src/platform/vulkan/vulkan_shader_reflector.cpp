@@ -1,15 +1,15 @@
 #include "vulkan_shader_reflector.h"
 
-#include <utility>
-#include <algorithm>
-
-#include <spirv_reflect.h>
+#include "types/render_types.h"
+#include "vulkan_descriptor_abi.h"
+#include "vulkan_shader_reflection.h"
 
 #include <core/utils.h>
 #include <math/math.h>
 
-#include "vulkan_descriptor_abi.h"
-#include "vulkan_shader_reflection.h"
+#include <algorithm>
+#include <spirv_reflect.h>
+#include <utility>
 
 namespace aiko::renderer::vulkan
 {
@@ -417,7 +417,10 @@ namespace aiko::renderer::vulkan
     {
         for (const VulkanShaderDescriptorBinding& descriptor : reflection.descriptorBindings)
         {
-            AIKO_ASSERT(descriptor.descriptorCount == 1, "Graphics descriptor arrays are not currently supported");
+            if (descriptor.set != abi::GraphicsShadowSet || descriptor.binding != abi::ShadowTextureBinding)
+            {
+                AIKO_ASSERT(descriptor.descriptorCount == 1, "Graphics descriptor arrays are not currently supported");
+            }
 
             if (descriptor.set == abi::GraphicsFrameSet)
             {
@@ -459,6 +462,10 @@ namespace aiko::renderer::vulkan
                 AIKO_ASSERT(descriptor.binding == abi::ShadowUboBinding || descriptor.binding == abi::ShadowTextureBinding, "Unknown shadow descriptor binding");
                 const VkDescriptorType expectedType = descriptor.binding == abi::ShadowUboBinding ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
                 AIKO_ASSERT(descriptor.descriptorType == expectedType, "Shadow descriptor type does not match Vulkan ABI");
+                if (descriptor.binding == abi::ShadowTextureBinding)
+                {
+                    AIKO_ASSERT(descriptor.descriptorCount == MaxFrameLights, "Shadow texture array size does not match MaxFrameLights");
+                }
                 continue;
             }
 

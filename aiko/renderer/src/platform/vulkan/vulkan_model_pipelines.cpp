@@ -558,7 +558,7 @@ namespace aiko::renderer::vulkan
             {
                 .binding = abi::ShadowTextureBinding,
                 .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .descriptorCount = 1,
+                .descriptorCount = MaxFrameLights,
                 .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
             }
         }};

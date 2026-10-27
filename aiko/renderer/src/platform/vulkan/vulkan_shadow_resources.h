@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types/render_types.h"
+
 #include <cstdint>
 #include <vector>
 #include <array>
@@ -14,13 +16,16 @@ namespace aiko::renderer::vulkan
     // Matches the ShadowUbo declaration in aiko_shadow.glsl.
     struct VulkanShadowUbo
     {
-        mat4 lightViewProjection{1.0f};
-        vec4 shadowParams{0.0f};
+        std::array<mat4, MaxFrameLights> lightViewProjection{};
+        std::array<vec4, MaxFrameLights> shadowParams{};
     };
 
     class VulkanShadowResources final
     {
     public:
+
+        using ShadowImages = std::array<VkDescriptorImageInfo, MaxFrameLights>;
+
         VulkanShadowResources(VulkanContext& context, uint32_t frameCount);
 
         VulkanShadowResources(const VulkanShadowResources&) = delete;
@@ -32,7 +37,7 @@ namespace aiko::renderer::vulkan
         void resetFrame(uint32_t frameIndex);
         void updateFallback(uint32_t frameIndex, VkImageView imageView, VkSampler sampler);
 
-        void update(uint32_t frameIndex, const VulkanShadowUbo& uniforms, VkImageView depthView, VkSampler depthSampler);
+        void update(uint32_t frameIndex, const VulkanShadowUbo& uniforms, const ShadowImages& images);
 
         VkDescriptorSet descriptorSet(uint32_t frameIndex) const;
 

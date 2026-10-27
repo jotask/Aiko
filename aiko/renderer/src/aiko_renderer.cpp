@@ -377,12 +377,7 @@ namespace aiko
             const PreparedScenePass scenePass = m_renderQueue.buildScenePass(frameData.view);
             m_shadowRenderer.render(*m_renderer, frameData, scenePass);
 
-            const renderer::ShadowData& shadow = m_shadowRenderer.shadowData();
-
-            if (shadow.isValid())
-            {
-                m_renderer->prepareShadowResources(shadow);
-            }
+            m_renderer->prepareShadowResources(m_shadowRenderer.shadowData());
 
             submitScenePass(frameData, scenePass, m_sceneTarget);
         }

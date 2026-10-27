@@ -7,6 +7,8 @@
 #include "renderer/frame_uniforms.h"
 #include "renderer/shadow/shadow_data.h"
 
+#include <array>
+
 namespace aiko
 {
 
@@ -33,13 +35,18 @@ namespace aiko
 
             bool isValid() const;
 
-            const ShadowData& shadowData() const { return m_shadowData; }
+            const vector<ShadowData>& shadowData() const { return m_shadowData; }
 
         private:
-            FrameBuffer m_depthTarget;
-            u32 m_resolution = 0;
+            struct ShadowTarget
+            {
+                FrameBuffer framebuffer;
+            };
 
-            ShadowData m_shadowData;
+            std::array<ShadowTarget, MaxFrameLights> m_targets;
+            vector<ShadowData> m_shadowData;
+
+            u32 m_resolution = 0;
 
             Material m_depthMaterial;
         };

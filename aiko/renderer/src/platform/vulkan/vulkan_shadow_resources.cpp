@@ -61,29 +61,32 @@ namespace aiko::renderer::vulkan
 
         std::memcpy(binding.uniformMapped, &uniforms, sizeof(uniforms));
 
-        const VkDescriptorImageInfo imageInfo{
-            .sampler = sampler,
-            .imageView = imageView,
-            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        };
+        ShadowImages images{};
+
+        for (VkDescriptorImageInfo& image : images)
+        {
+            image = {
+                .sampler = sampler,
+                .imageView = imageView,
+                .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            };
+        }
 
         const VkWriteDescriptorSet write{
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstSet = binding.descriptorSet,
             .dstBinding = abi::ShadowTextureBinding,
-            .descriptorCount = 1,
+            .descriptorCount = MaxFrameLights,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = &imageInfo,
+            .pImageInfo = images.data(),
         };
 
         vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
     }
 
-    void VulkanShadowResources::update(uint32_t frameIndex, const VulkanShadowUbo& uniforms, VkImageView depthView, VkSampler depthSampler)
+    void VulkanShadowResources::update(uint32_t frameIndex, const VulkanShadowUbo& uniforms, const ShadowImages& images)
     {
         AIKO_ASSERT(frameIndex < m_frames.size(), "Invalid shadow frame index");
-        AIKO_ASSERT(depthView != VK_NULL_HANDLE, "Invalid shadow depth image view");
-        AIKO_ASSERT(depthSampler != VK_NULL_HANDLE, "Invalid shadow depth sampler");
 
         FrameResources& frame = m_frames[frameIndex];
         Binding& binding = frame.active;
@@ -93,19 +96,18 @@ namespace aiko::renderer::vulkan
 
         std::memcpy(binding.uniformMapped, &uniforms, sizeof(VulkanShadowUbo));
 
-        const VkDescriptorImageInfo imageInfo{
-            .sampler = depthSampler,
-            .imageView = depthView,
-            .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
-        };
+        for (const VkDescriptorImageInfo& image : images)
+        {
+            AIKO_ASSERT(image.imageView != VK_NULL_HANDLE && image.sampler != VK_NULL_HANDLE, "Invalid shadow image descriptor");
+        }
 
         const VkWriteDescriptorSet write{
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstSet = binding.descriptorSet,
             .dstBinding = abi::ShadowTextureBinding,
-            .descriptorCount = 1,
+            .descriptorCount = MaxFrameLights,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = &imageInfo,
+            .pImageInfo = images.data(),
         };
 
         vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
@@ -135,7 +137,7 @@ namespace aiko::renderer::vulkan
             },
             {
                 .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .descriptorCount = 1,
+                .descriptorCount = MaxFrameLights,
             },
         };
 

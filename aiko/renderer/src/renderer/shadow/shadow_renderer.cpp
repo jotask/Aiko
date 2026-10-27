@@ -16,13 +16,16 @@ namespace aiko::renderer
 
         dispose();
 
-        m_depthTarget.create({
-            .width = static_cast<int>(resolution),
-            .height = static_cast<int>(resolution),
-            .colorFormat = TextureFormat::None,
-        });
+        for (ShadowTarget& target : m_targets)
+        {
+            target.framebuffer.create({
+                .width = static_cast<int>(resolution),
+                .height = static_cast<int>(resolution),
+                .colorFormat = TextureFormat::None,
+            });
 
-        AIKO_ASSERT(m_depthTarget.isValid(), "Failed to initialize shadow depth target");
+            AIKO_ASSERT(target.framebuffer.isValid(), "Failed to initialize shadow depth target");
+        }
 
         m_resolution = resolution;
 
@@ -39,8 +42,11 @@ namespace aiko::renderer
     void ShadowRenderer::dispose()
     {
         m_depthMaterial = Material{};
-        m_shadowData = {};
-        m_depthTarget.unload();
+        m_shadowData.clear();
+        for (ShadowTarget& target : m_targets)
+        {
+            target.framebuffer.unload();
+        }
         m_resolution = 0;
     }
 
@@ -48,72 +54,9 @@ namespace aiko::renderer
     {
         AIKO_ASSERT(isValid(), "ShadowRenderer is not initialized");
 
-        m_shadowData = {};
+        m_shadowData.clear();
 
-        const LightData* shadowLight = nullptr;
-        u32 shadowLightIndex = 0;
-
-        // Only lights uploaded to the GPU are eligible.
         const u32 lightCount = static_cast<u32>(std::min<size_t>(sceneFrame.lights.size(), MaxFrameLights));
-
-        for (u32 i = 0; i < lightCount; ++i)
-        {
-            const LightData& light = sceneFrame.lights[i];
-
-            if (light.intensity <= 0.0f || !light.castsShadows)
-            {
-                continue;
-            }
-
-            if (light.type == LightType::Directional || light.type == LightType::Spot)
-            {
-                shadowLight = &light;
-                shadowLightIndex = i;
-                break;
-            }
-        }
-
-        if (shadowLight == nullptr)
-        {
-            return;
-        }
-
-        AIKO_ASSERT(math::isfinite(shadowLight->direction) && math::length(shadowLight->direction) > 0.0001f, "Shadow light direction must be finite and nonzero");
-
-        const vec3 direction = math::normalize(shadowLight->direction);
-
-        const vec3 up = std::abs(direction.y) > 0.99f
-            ? vec3(0.0f, 0.0f, 1.0f)
-            : vec3(0.0f, 1.0f, 0.0f);
-
-        FrameData lightFrame{};
-
-        if (shadowLight->type == LightType::Directional)
-        {
-            constexpr float shadowDistance = 40.0f;
-            constexpr float shadowExtent = 30.0f;
-
-            const vec3 center = sceneFrame.cameraPosition;
-            const vec3 eye = center - direction * shadowDistance;
-
-            lightFrame.view = math::lookAt(eye, center, up);
-            lightFrame.projection = math::ortho(-shadowExtent, shadowExtent, -shadowExtent, shadowExtent, 0.1f, shadowDistance * 2.0f);
-        }
-        else
-        {
-            // Spotlight: a perspective camera positioned at the light.
-            AIKO_ASSERT(math::isfinite(shadowLight->position), "Spotlight position must be finite");
-            AIKO_ASSERT(shadowLight->range > 0.1f, "Spotlight range must exceed the shadow near plane");
-            AIKO_ASSERT(shadowLight->outerCos > 0.0f && shadowLight->outerCos < 1.0f, "Invalid spotlight outer cone");
-
-            const vec3 position = shadowLight->position;
-
-            lightFrame.view = math::lookAt(position, position + direction, up);
-
-            const float fov = 2.0f * math::degrees(std::acos(shadowLight->outerCos));
-
-            lightFrame.projection = math::perspective(fov, 1.0f, 0.1f, shadowLight->range);
-        }
 
         const PassDescription shadowPass{
             .width = m_resolution,
@@ -124,26 +67,93 @@ namespace aiko::renderer
 
         device.prepareMaterial(m_depthMaterial);
 
-        device.beginPass(SHADOW_VIEW, shadowPass, &m_depthTarget);
-        device.bindFrame(SHADOW_VIEW, lightFrame);
-
-        for (const PreparedRenderPacket& packet : scene.opaque)
+        for (u32 i = 0; i < lightCount; ++i)
         {
-            MeshDrawPacket shadowPacket = packet.draw;
-            shadowPacket.material = &m_depthMaterial;
+            const LightData& light = sceneFrame.lights[i];
 
-            device.submitMesh(SHADOW_VIEW, shadowPacket);
+            if (light.intensity <= 0.0f || !light.castsShadows)
+            {
+                continue;
+            }
+
+            if (light.type != LightType::Directional && light.type != LightType::Spot)
+            {
+                continue;
+            }
+
+            AIKO_ASSERT(math::isfinite(light.direction) && math::length(light.direction) > 0.0001f, "Shadow light direction must be finite and nonzero");
+
+            const vec3 direction = math::normalize(light.direction);
+
+            const vec3 up = std::abs(direction.y) > 0.99f
+                ? vec3(0.0f, 0.0f, 1.0f)
+                : vec3(0.0f, 1.0f, 0.0f);
+
+            FrameData lightFrame{};
+
+            if (light.type == LightType::Directional)
+            {
+                constexpr float shadowDistance = 40.0f;
+                constexpr float shadowExtent = 30.0f;
+
+                const vec3 center = sceneFrame.cameraPosition;
+                const vec3 eye = center - direction * shadowDistance;
+
+                lightFrame.view = math::lookAt(eye, center, up);
+
+                lightFrame.projection = math::ortho(
+                    -shadowExtent,
+                     shadowExtent,
+                    -shadowExtent,
+                     shadowExtent,
+                     0.1f,
+                     shadowDistance * 2.0f
+                );
+            }
+            else
+            {
+                AIKO_ASSERT(math::isfinite(light.position), "Spotlight position must be finite");
+                AIKO_ASSERT(light.range > 0.1f, "Spotlight range must exceed the shadow near plane");
+                AIKO_ASSERT(light.outerCos > 0.0f && light.outerCos < 1.0f, "Invalid spotlight outer cone");
+
+                lightFrame.view = math::lookAt(light.position, light.position + direction, up);
+
+                const float fov = 2.0f * math::degrees(std::acos(light.outerCos));
+
+                lightFrame.projection = math::perspective(fov, 1.0f, 0.1f, light.range);
+            }
+
+            // One persistent depth target per eligible shadow light.
+            ShadowTarget& target = m_targets[m_shadowData.size()];
+
+            device.beginPass(SHADOW_VIEW, shadowPass, &target.framebuffer);
+            device.bindFrame(SHADOW_VIEW, lightFrame);
+
+            for (const PreparedRenderPacket& packet : scene.opaque)
+            {
+                MeshDrawPacket shadowPacket = packet.draw;
+                shadowPacket.material = &m_depthMaterial;
+
+                device.submitMesh(SHADOW_VIEW, shadowPacket);
+            }
+
+            device.endPass();
+
+            m_shadowData.push_back({
+                .lightViewProjection = lightFrame.projection * lightFrame.view,
+                .depthTexture = &target.framebuffer.getDepthTexture(),
+                .lightIndex = i,
+            });
         }
-
-        device.endPass();
-
-        m_shadowData.lightViewProjection = lightFrame.projection * lightFrame.view;
-        m_shadowData.depthTexture = &m_depthTarget.getDepthTexture();
-        m_shadowData.lightIndex = shadowLightIndex;
     }
 
     bool ShadowRenderer::isValid() const
     {
-        return m_resolution > 0 && m_depthTarget.isValid();
+        return m_resolution > 0 &&
+            std::all_of(
+                m_targets.begin(),
+                m_targets.end(),
+                [](const ShadowTarget& target) { return target.framebuffer.isValid(); }
+            );
     }
 }

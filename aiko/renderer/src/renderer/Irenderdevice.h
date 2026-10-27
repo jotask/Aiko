@@ -126,9 +126,9 @@ namespace aiko::renderer
             AIKO_UNUSED(material);
         }
 
-        virtual void prepareShadowResources(const ShadowData& shadow)
+        virtual void prepareShadowResources(const vector<ShadowData>& shadows)
         {
-            AIKO_UNUSED(shadow);
+            AIKO_UNUSED(shadows);
         }
 
         virtual void prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings)
