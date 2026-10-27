@@ -573,6 +573,18 @@ namespace aiko::renderer::vulkan
 
         m_gpuReadDescriptors.resetFrame(frame);
 
+        m_shadowResources.resetFrame(frame);
+
+        prepareTextureForSampling(m_whiteTexture);
+
+        auto* fallbackImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(m_whiteTexture));
+
+        AIKO_ASSERT(fallbackImpl != nullptr && fallbackImpl->isValid(), "Invalid shadow fallback texture");
+
+        const VkSampler fallbackSampler = m_samplerCache.getOrCreate(SamplerState{});
+
+        m_shadowResources.updateFallback(frame, fallbackImpl->imageView(), fallbackSampler);
+
     }
 
     void VulkanRenderDevice::endFrame()
@@ -1170,6 +1182,12 @@ namespace aiko::renderer::vulkan
         if (viewId == SCENE_VIEW || viewId == SHADOW_VIEW || viewId == POST_PROCESS_VIEW || viewId == UI_VIEW)
         {
             vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsFrameSet, 1, &binding.descriptorSet, 0, nullptr);
+        }
+
+        if (viewId == SCENE_VIEW)
+        {
+            const VkDescriptorSet shadowSet = m_shadowResources.descriptorSet(frame);
+            vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsShadowSet, 1, &shadowSet, 0, nullptr);
         }
 
     }
@@ -1932,6 +1950,42 @@ namespace aiko::renderer::vulkan
             .material = &material,
             .binding = &binding,
         });
+    }
+
+    void VulkanRenderDevice::prepareShadowResources(const ShadowData& shadow)
+    {
+        AIKO_FUNCTION_PROFILE
+
+       if (!m_frameActive || !shadow.isValid())
+       {
+           return;
+       }
+
+        AIKO_ASSERT(!m_renderPassActive, "Shadow resources must be prepared outside a render pass");
+        AIKO_ASSERT(shadow.depthTexture != nullptr && shadow.depthTexture->isValid(), "Invalid shadow depth texture");
+
+        // Existing Vulkan helper handles the image barrier
+        // and transition to depth read-only layout.
+        prepareTextureForSampling(*shadow.depthTexture);
+
+        auto* depthImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(*shadow.depthTexture));
+
+        AIKO_ASSERT(depthImpl != nullptr && depthImpl->isValid(), "Invalid Vulkan shadow texture backend");
+        AIKO_ASSERT(depthImpl->imageView() != VK_NULL_HANDLE, "Shadow depth image view is invalid");
+
+        VulkanShadowUbo uniforms{};
+        uniforms.lightViewProjection = shadow.lightViewProjection;
+
+        // x = shadow map enabled
+        uniforms.shadowParams.x = 1.0f;
+
+        const uint32_t frame = m_context.currentFrameIndex();
+
+        // Non-comparison sampler: initial shader uses manual
+        // depth comparison. PCF comes later.
+        const VkSampler sampler = m_samplerCache.getOrCreate(SamplerState{});
+
+        m_shadowResources.update(frame, uniforms, depthImpl->imageView(), sampler);
     }
 
     VulkanMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)

@@ -12,6 +12,7 @@
 #include "types/draw_types.h"
 #include "types/render_types.h"
 #include "types/transient_types.h"
+#include "renderer/shadow/shadow_data.h"
 
 #include <aiko_types.h>
 
@@ -123,6 +124,11 @@ namespace aiko::renderer
         virtual void prepareMaterial(const Material& material)
         {
             AIKO_UNUSED(material);
+        }
+
+        virtual void prepareShadowResources(const ShadowData& shadow)
+        {
+            AIKO_UNUSED(shadow);
         }
 
         virtual void prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings)

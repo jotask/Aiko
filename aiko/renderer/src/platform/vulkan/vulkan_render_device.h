@@ -88,6 +88,7 @@ namespace aiko::renderer::vulkan
 
         virtual void prepareTextureForSampling(const Texture& texture) override;
         virtual void prepareMaterial(const Material& material) override;
+        virtual void prepareShadowResources(const ShadowData& shadow) override;
 
         virtual void prepareGpuReadBuffers(const vector<GpuReadBufferBinding>& bindings) override;
 

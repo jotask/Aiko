@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <array>
 
 #include <volk.h>
 #include <math/math.h>
@@ -28,12 +29,15 @@ namespace aiko::renderer::vulkan
         void create(VkDescriptorSetLayout layout);
         void destroy();
 
+        void resetFrame(uint32_t frameIndex);
+        void updateFallback(uint32_t frameIndex, VkImageView imageView, VkSampler sampler);
+
         void update(uint32_t frameIndex, const VulkanShadowUbo& uniforms, VkImageView depthView, VkSampler depthSampler);
 
         VkDescriptorSet descriptorSet(uint32_t frameIndex) const;
 
     private:
-        struct FrameResources
+        struct Binding
         {
             VkDescriptorPool pool = VK_NULL_HANDLE;
             VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
@@ -42,6 +46,17 @@ namespace aiko::renderer::vulkan
             VkDeviceMemory uniformMemory = VK_NULL_HANDLE;
             void* uniformMapped = nullptr;
         };
+
+        struct FrameResources
+        {
+            Binding fallback;
+            Binding active;
+
+            VkDescriptorSet selectedSet = VK_NULL_HANDLE;
+        };
+
+        void createBinding(VkDescriptorSetLayout layout, Binding& binding);
+        void destroyBinding(Binding& binding);
 
         VulkanContext& m_context;
         VkDescriptorSetLayout m_layout = VK_NULL_HANDLE;
