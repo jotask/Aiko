@@ -25,6 +25,7 @@ namespace ab
     private:
 
         aiko::vec3 evaluate(size_t segmentIndex, float u) const;
+        aiko::vec3 getSampleTangent(size_t splineIdx) const;
 
         Points m_controlPoints;
         Points m_spline;

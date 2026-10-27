@@ -122,6 +122,21 @@ namespace ab
         return c3;
     }
 
+    aiko::vec3 Spline::getSampleTangent(size_t splineIdx) const
+    {
+        AIKO_ASSERT(m_spline.size() >= 3, "We need 3 points to calculate the tangent");
+        AIKO_ASSERT(splineIdx < m_spline.size(), "Spline index OOB for tangent");
+
+        const auto N = m_spline.size();
+
+        const auto previousSample = m_spline[(splineIdx+ N - 1) % N];
+        const auto nextSample = m_spline[(splineIdx + 1) % N];
+
+        const auto direction = nextSample - previousSample;
+        const auto normalizedDirection = aiko::math::normalize(direction);
+        return normalizedDirection;
+    }
+
     void Spline::render(aiko::RenderContext& context)
     {
         for (const auto& controlPoint : m_controlPoints)
@@ -139,6 +154,13 @@ namespace ab
             const auto& begin = m_spline[i-1];
             const auto& end = m_spline[i];
             context.drawLine(begin, end, aiko::RED);
+            const auto tangent = getSampleTangent(i);
+
+            constexpr float arrowLength = 0.5f;
+
+            const auto tangentStart = end;
+            const auto tangentEnd = tangentStart + tangent * arrowLength;
+            context.drawLine(tangentStart, tangentEnd, aiko::BLUE);
         }
 
         for (const auto& spline : m_spline)
