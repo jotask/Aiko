@@ -1,12 +1,13 @@
-
 #version 450
 #extension GL_GOOGLE_include_directive : require
 
 #define AIKO_MATERIAL_EXTRA_FIELDS \
     vec4 u_pbrParams; \
     vec4 u_emissiveParams;
+
 #include "aiko_graphics.glsl"
 #include "aiko_color.glsl"
+#include "aiko_shadow.glsl"
 
 // Packed metallic/roughness texture.
 // G = roughness, B = metallic.
@@ -98,6 +99,38 @@ float spotAttenuation(vec3 L, vec3 direction, float innerCos, float outerCos)
         0.0,
         1.0
     );
+}
+
+float directionalShadowVisibility(vec3 worldPos)
+{
+    if (u_shadowParams.x < 0.5)
+    {
+        return 1.0;
+    }
+
+    vec4 lightClip = u_lightViewProjection * vec4(worldPos, 1.0);
+
+    if (lightClip.w <= 0.0)
+    {
+        return 1.0;
+    }
+
+    vec3 projected = lightClip.xyz / lightClip.w;
+
+    // Vulkan NDC depth is [0, 1].
+    // X and Y are converted to texture coordinates.
+    vec2 uv = projected.xy * 0.5 + 0.5;
+
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || projected.z < 0.0 || projected.z > 1.0)
+    {
+        return 1.0;
+    }
+
+    float storedDepth = texture(u_shadowMap, uv).r;
+
+    const float bias = 0.001;
+
+    return projected.z - bias <= storedDepth ? 1.0 : 0.0;
 }
 
 vec3 evaluatePBRLight(int index, vec3 P, vec3 N, vec3 V, vec3 albedo, float metallic, float roughness)
@@ -252,9 +285,19 @@ vec3 shadePBR(vec3 P, vec3 normal, vec3 albedo)
 
     int count = min(int(u_lightCount.x), MAX_LIGHTS);
 
+    bool directionalShadowApplied = false;
+
     for (int i = 0; i < count; ++i)
     {
-        result += evaluatePBRLight(i, P, N, V, albedo, metallic, roughness);
+        vec3 contribution = evaluatePBRLight(i, P, N, V, albedo, metallic, roughness);
+
+        if (!directionalShadowApplied && int(u_lightType[i].x) == 0)
+        {
+            contribution *= directionalShadowVisibility(P);
+            directionalShadowApplied = true;
+        }
+
+        result += contribution;
     }
 
     return result;
