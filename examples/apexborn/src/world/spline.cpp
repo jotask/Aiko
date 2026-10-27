@@ -5,6 +5,11 @@
 namespace ab
 {
 
+    namespace
+    {
+        constexpr float epsilon = 1e-5f;
+    }
+
     Spline::Spline()
     {
         m_controlPoints.push_back({-2.0f, -2.0f, 0.0f});
@@ -17,16 +22,25 @@ namespace ab
 
     void Spline::generate(aiko::uint subdivisions)
     {
-        m_spline.clear();
-        m_spline.reserve(m_controlPoints.size() * subdivisions);
-
         AIKO_ASSERT(m_controlPoints.size() >= 4, "Spline should contains at least four points");
         AIKO_ASSERT(subdivisions > 0, "We can't generate 0 subdivision");
+
+        // Valiation
+        for (size_t i = 0; i < m_controlPoints.size(); ++i)
+        {
+            const auto current = m_controlPoints[i];
+            const auto neighbour = m_controlPoints[(i + 1) % m_controlPoints.size()];
+            const auto distance = aiko::math::length(neighbour - current);
+            AIKO_ASSERT(distance > epsilon, "Identical control points?");
+        }
+
+        m_spline.clear();
+        m_spline.reserve(m_controlPoints.size() * subdivisions);
 
         constexpr uint temporalSamples = 100;
 
         std::vector<aiko::vec3> denseSamples;
-        denseSamples.reserve(temporalSamples * m_controlPoints.size());
+        denseSamples.reserve(temporalSamples * m_controlPoints.size() + 1);
 
         for (size_t i = 0; i < m_controlPoints.size() ; ++i)
         {
@@ -39,7 +53,7 @@ namespace ab
         }
 
         std::vector<float> cumulativeDistances;
-        cumulativeDistances.reserve(temporalSamples * m_controlPoints.size());
+        cumulativeDistances.reserve(temporalSamples * m_controlPoints.size() + 1);
 
         cumulativeDistances.push_back(0.0f);
         float totalLength = 0;
@@ -55,6 +69,11 @@ namespace ab
         cumulativeDistances.push_back(totalLength);
 
         const size_t sampleCount = m_controlPoints.size() * subdivisions;
+
+        AIKO_ASSERT(sampleCount > 0, "We can't generate a road with no samples");
+        AIKO_ASSERT(aiko::math::isfinite(totalLength), "Total length is not finite");
+        AIKO_ASSERT(totalLength > epsilon, "Total length it's to small");
+
         const float spacing = totalLength / sampleCount;
 
         for (size_t sampleIdx = 0; sampleIdx < sampleCount ; ++sampleIdx)
@@ -69,6 +88,8 @@ namespace ab
                 const auto rightCumulative = cumulativeDistances[cumulativeIdx - 0];
                 const auto leftCumulative = cumulativeDistances[cumulativeIdx - 1];
 
+                AIKO_ASSERT(rightCumulative > leftCumulative, "Wrong interpolation denominator");
+
                 const float interpolationFactor = (targetDistance - leftCumulative) / (rightCumulative - leftCumulative);
 
                 const auto rightSample = denseSamples[cumulativeIdx - 0];
@@ -81,10 +102,14 @@ namespace ab
                 break;
             }
         }
+        AIKO_ASSERT(m_spline.size() == sampleCount, "Spline generated an unexpected number of samples");
     }
 
     aiko::vec3 Spline::evaluate(size_t i, float u) const
     {
+
+        AIKO_ASSERT(i < m_controlPoints.size(), "Invalid segment to evaluate");
+        AIKO_ASSERT(u >= 0.0f && u <= 1.0f, "U is nto between 0 and 1");
 
         const auto N = m_controlPoints.size();
 
@@ -133,6 +158,7 @@ namespace ab
         const auto nextSample = m_spline[(splineIdx + 1) % N];
 
         const auto direction = nextSample - previousSample;
+        AIKO_ASSERT(aiko::math::length(direction) > epsilon, "Cannot normalize a zero-length tangent");
         const auto normalizedDirection = aiko::math::normalize(direction);
         return normalizedDirection;
     }
@@ -154,11 +180,14 @@ namespace ab
             const auto& begin = m_spline[i-1];
             const auto& end = m_spline[i];
             context.drawLine(begin, end, aiko::RED);
-            const auto tangent = getSampleTangent(i);
+        }
 
+        for (size_t i = 0; i < m_spline.size() ; ++i)
+        {
             constexpr float arrowLength = 0.5f;
 
-            const auto tangentStart = end;
+            const auto tangent = getSampleTangent(i);
+            const auto tangentStart = m_spline[i];
             const auto tangentEnd = tangentStart + tangent * arrowLength;
             context.drawLine(tangentStart, tangentEnd, aiko::BLUE);
         }
