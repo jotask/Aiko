@@ -83,30 +83,6 @@ namespace ab
         }
     }
 
-    void Spline::render(aiko::RenderContext& context)
-    {
-        for (const auto& controlPoint : m_controlPoints)
-        {
-            context.drawCircle(controlPoint, {0.25f}, 16, aiko::MAGENTA);
-        }
-
-        if (m_spline.empty())
-        {
-            return;
-        }
-
-        for (size_t i = 1; i < m_spline.size() ; ++i)
-        {
-            const auto& begin = m_spline[i-1];
-            const auto& end = m_spline[i];
-            context.drawLine(begin, end, aiko::RED);
-        }
-
-        const auto& begin = m_spline[m_spline.size() - 1];
-        const auto& end = m_spline[0];
-        context.drawLine(begin, end, aiko::RED);
-    }
-
     aiko::vec3 Spline::evaluate(size_t i, float u) const
     {
 
@@ -145,4 +121,34 @@ namespace ab
 
         return c3;
     }
+
+    void Spline::render(aiko::RenderContext& context)
+    {
+        for (const auto& controlPoint : m_controlPoints)
+        {
+            context.drawCircle(controlPoint, {0.25f}, 16, aiko::MAGENTA);
+        }
+
+        if (m_spline.empty())
+        {
+            return;
+        }
+
+        for (size_t i = 1; i < m_spline.size() ; ++i)
+        {
+            const auto& begin = m_spline[i-1];
+            const auto& end = m_spline[i];
+            context.drawLine(begin, end, aiko::RED);
+        }
+
+        for (const auto& spline : m_spline)
+        {
+            context.drawPoint(spline, aiko::GREEN);
+        }
+
+        const auto& begin = m_spline[m_spline.size() - 1];
+        const auto& end = m_spline[0];
+        context.drawLine(begin, end, aiko::RED);
+    }
+
 }
