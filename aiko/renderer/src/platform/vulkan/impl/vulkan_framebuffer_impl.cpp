@@ -3,6 +3,7 @@
 #include "platform/vulkan/vulkan_context.h"
 
 #include <array>
+#include <vector>
 
 #include <core/file.h>
 
@@ -55,25 +56,40 @@ namespace aiko::renderer::vulkan
         return TextureFormat::D24S8;
     }
 
-    void VulkanFrameBufferImpl::create(interfaces::ITextureImpl& color, interfaces::ITextureImpl& depth)
+    void VulkanFrameBufferImpl::create(interfaces::ITextureImpl* color, interfaces::ITextureImpl* depth)
     {
         unload();
 
-        auto& colorImpl = static_cast<VulkanTextureImpl&>(color);
-        auto& depthImpl = static_cast<VulkanTextureImpl&>(depth);
+        AIKO_ASSERT(depth != nullptr, "Framebuffer requires a depth attachment");
+        AIKO_ASSERT(depth->isValid(), "Invalid Vulkan depth texture");
 
-        AIKO_ASSERT(colorImpl.isValid(), "Invalid Vulkan color texture");
-        AIKO_ASSERT(depthImpl.isValid(), "Invalid Vulkan depth texture");
+        const bool hasColor = color != nullptr;
+
+        if (hasColor)
+        {
+            AIKO_ASSERT(color->isValid(), "Invalid Vulkan color texture");
+        }
+
+        auto* colorImpl = hasColor ? static_cast<VulkanTextureImpl*>(color) : nullptr;
+
+        auto* depthImpl = static_cast<VulkanTextureImpl*>(depth);
 
         VulkanContext& ctx = VulkanContext::current();
 
-        const TextureInfo colorInfo = color.getInfo();
-        m_width = static_cast<u32>(colorInfo.width);
-        m_height = static_cast<u32>(colorInfo.height);
+        const TextureInfo depthInfo = depth->getInfo();
+
+        m_width = static_cast<u32>(depthInfo.width);
+        m_height = static_cast<u32>(depthInfo.height);
+
+        if (hasColor)
+        {
+            const TextureInfo colorInfo = color->getInfo();
+            AIKO_ASSERT(colorInfo.width == depthInfo.width && colorInfo.height == depthInfo.height, "Framebuffer attachments must have matching dimensions");
+        }
 
         const VkAttachmentDescription colorAttachment =
         {
-            .format = colorImpl.format(),
+            .format = hasColor ? colorImpl->format() : VK_FORMAT_UNDEFINED,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -85,7 +101,7 @@ namespace aiko::renderer::vulkan
 
         const VkAttachmentDescription depthAttachment =
         {
-            .format = depthImpl.format(),
+            .format = depthImpl->format(),
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -95,31 +111,43 @@ namespace aiko::renderer::vulkan
             .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
         };
 
-        const VkAttachmentReference colorRef =
-        {
+        const VkAttachmentReference colorRef{
             .attachment = 0,
             .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         };
 
-        const VkAttachmentReference depthRef =
-        {
-            .attachment = 1,
+        const VkAttachmentReference depthRef{
+            .attachment = hasColor ? 1u : 0u,
             .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         };
 
-        const VkSubpassDescription subpass =
-        {
+        const VkSubpassDescription subpass{
             .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-            .colorAttachmentCount = 1,
-            .pColorAttachments = &colorRef,
+            .colorAttachmentCount = hasColor ? 1u : 0u,
+            .pColorAttachments = hasColor ? &colorRef : nullptr,
             .pDepthStencilAttachment = &depthRef,
         };
 
-        const std::array<VkAttachmentDescription, 2> attachments =
+        std::vector<VkAttachmentDescription> attachments;
+        std::vector<VkImageView> imageViews;
+
+        if (hasColor)
         {
-            colorAttachment,
-            depthAttachment
-        };
+            attachments.push_back(colorAttachment);
+            imageViews.push_back(colorImpl->imageView());
+        }
+
+        attachments.push_back(depthAttachment);
+        imageViews.push_back(depthImpl->imageView());
+
+        const VkPipelineStageFlags attachmentStages =
+            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+            VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+            (hasColor ? VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT : 0);
+
+        const VkAccessFlags attachmentWrites =
+            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+            (hasColor ? VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT : 0);
 
         const std::array<VkSubpassDependency, 2> dependencies =
         {
@@ -127,29 +155,19 @@ namespace aiko::renderer::vulkan
             {
                 .srcSubpass = VK_SUBPASS_EXTERNAL,
                 .dstSubpass = 0,
-                .srcStageMask =
-                    VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
-                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
-                    VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-
-                .dstStageMask =
-                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                    VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-
-                .srcAccessMask =
-                    VK_ACCESS_SHADER_READ_BIT |
-                    VK_ACCESS_SHADER_WRITE_BIT |
-                    VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-                .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                .srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+                .dstStageMask = attachmentStages,
+                .srcAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                .dstAccessMask = attachmentWrites,
                 .dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT,
             },
             VkSubpassDependency
             {
                 .srcSubpass = 0,
                 .dstSubpass = VK_SUBPASS_EXTERNAL,
-                .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+                .srcStageMask = attachmentStages,
                 .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                .srcAccessMask = attachmentWrites,
                 .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
                 .dependencyFlags = 0,
             }
@@ -168,12 +186,6 @@ namespace aiko::renderer::vulkan
 
         VkResult result = vkCreateRenderPass(ctx.device(), &renderPassInfo, nullptr, &m_renderPass);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan framebuffer render pass");
-
-        const std::array<VkImageView, 2> imageViews =
-        {
-            colorImpl.imageView(),
-            depthImpl.imageView()
-        };
 
         const VkFramebufferCreateInfo framebufferInfo =
         {

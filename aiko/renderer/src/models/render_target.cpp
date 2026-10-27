@@ -1,5 +1,7 @@
 #include "render_target.h"
 
+#include <metadata/frame_buffer_meta.h>
+
 namespace aiko
 {
     bool RenderTarget::isValid() const
@@ -16,11 +18,14 @@ namespace aiko
     {
         AIKO_ASSERT( width > 0 && height > 0, "RenderTarget dimensions must be greater than zero");
 
-        m_frameBuffer.create(
-            static_cast<int>(width),
-            static_cast<int>(height),
-            colorFormat
-        );
+        const FrameBufferDesc frameBufferDesc =
+        {
+            .width = width,
+            .height = height,
+            .colorFormat = colorFormat
+        };
+
+        m_frameBuffer.create(frameBufferDesc);
 
         m_colorFormat = colorFormat;
 

@@ -6,6 +6,7 @@ namespace aiko
     enum class TextureFormat
     {
         INVALID,
+        None,
         BGRA8,
         RGBA8,
         D24S8,

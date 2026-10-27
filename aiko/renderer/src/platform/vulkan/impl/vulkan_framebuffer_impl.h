@@ -22,7 +22,7 @@ namespace aiko::renderer::vulkan
         virtual TextureFormat preferredDepthFormat() const override;
 
         // load
-        virtual void create(interfaces::ITextureImpl& color, interfaces::ITextureImpl& depth) override;
+        virtual void create(interfaces::ITextureImpl* color, interfaces::ITextureImpl* depth) override;
 
         virtual void unload() override;
 

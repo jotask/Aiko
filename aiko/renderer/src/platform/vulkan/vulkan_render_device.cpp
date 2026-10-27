@@ -625,50 +625,60 @@ namespace aiko::renderer::vulkan
             framebuffer = fb->framebuffer();
             extent = { fb->width(), fb->height() };
 
-            auto* colorImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(frameBuffer->getColorTexture()));
-            AIKO_ASSERT(colorImpl != nullptr, "Invalid Vulkan framebuffer color texture");
+            VulkanTextureImpl* colorImpl = nullptr;
+
+            if (frameBuffer->hasColorAttachment())
+            {
+                colorImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(frameBuffer->getColorTexture()));
+                AIKO_ASSERT(colorImpl != nullptr && colorImpl->isValid(), "Invalid Vulkan framebuffer color texture");
+            }
 
             auto* depthImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(frameBuffer->getDepthTexture()));
             AIKO_ASSERT(depthImpl != nullptr, "Invalid Vulkan framebuffer depth texture");
 
             m_activeRenderPassCompatibility =
             {
-                .colorFormat = colorImpl->format(),
+                .colorFormat = colorImpl != nullptr ? colorImpl->format() : VK_FORMAT_UNDEFINED,
                 .depthFormat = depthImpl->format(),
                 .samples = VK_SAMPLE_COUNT_1_BIT,
             };
 
-            const VulkanImageState colorState = colorImpl->state();
-
-            if (colorState.queueFamily == VK_QUEUE_FAMILY_IGNORED)
+            if (colorImpl != nullptr)
             {
-                colorImpl->setState(
+
+                const VulkanImageState colorState = colorImpl->state();
+
+                if (colorState.queueFamily == VK_QUEUE_FAMILY_IGNORED)
                 {
-                    .layout = colorState.layout,
-                    .stage = colorState.stage,
-                    .access = colorState.access,
-                    .queueFamily = m_context.graphicsQueueFamily(),
-                });
-            }
-            else if (colorState.queueFamily == m_context.computeQueueFamily() && m_context.hasDedicatedComputeQueue())
-            {
-                const VulkanImageState graphicsOwnershipState =
+                    colorImpl->setState(
+                    {
+                        .layout = colorState.layout,
+                        .stage = colorState.stage,
+                        .access = colorState.access,
+                        .queueFamily = m_context.graphicsQueueFamily(),
+                    });
+                }
+                else if (colorState.queueFamily == m_context.computeQueueFamily() && m_context.hasDedicatedComputeQueue())
                 {
-                    .layout = colorState.layout,
-                    .stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                    .access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                    .queueFamily = m_context.graphicsQueueFamily(),
-                };
+                    const VulkanImageState graphicsOwnershipState =
+                    {
+                        .layout = colorState.layout,
+                        .stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                        .access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                        .queueFamily = m_context.graphicsQueueFamily(),
+                    };
 
-                VkCommandBuffer computeCommandBuffer = m_context.computeCommandBuffer();
-                VkCommandBuffer graphicsCommandBuffer = m_context.activeCommandBuffer();
+                    VkCommandBuffer computeCommandBuffer = m_context.computeCommandBuffer();
+                    VkCommandBuffer graphicsCommandBuffer = m_context.activeCommandBuffer();
 
-                releaseTextureOwnership(computeCommandBuffer, *colorImpl, graphicsOwnershipState);
-                acquireTextureOwnership(graphicsCommandBuffer, *colorImpl, colorState, graphicsOwnershipState);
-            }
-            else
-            {
-                AIKO_ASSERT(colorState.queueFamily == m_context.graphicsQueueFamily(), "Framebuffer color texture has unexpected queue ownership");
+                    releaseTextureOwnership(computeCommandBuffer, *colorImpl, graphicsOwnershipState);
+                    acquireTextureOwnership(graphicsCommandBuffer, *colorImpl, colorState, graphicsOwnershipState);
+                }
+                else
+                {
+                    AIKO_ASSERT(colorState.queueFamily == m_context.graphicsQueueFamily(), "Framebuffer color texture has unexpected queue ownership");
+                }
+
             }
 
             m_activeColorAttachment = colorImpl;
@@ -708,8 +718,14 @@ namespace aiko::renderer::vulkan
         }
 
         std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = {{ pass.clear.r, pass.clear.g, pass.clear.b, pass.clear.a }};
-        clearValues[1].depthStencil = { 1.0f, 0 };
+
+        uint32_t clearValueCount = 0;
+        if (frameBuffer == nullptr || frameBuffer->hasColorAttachment())
+        {
+            clearValues[clearValueCount++].color = {{ pass.clear.r, pass.clear.g, pass.clear.b, pass.clear.a }};
+        }
+
+        clearValues[clearValueCount++].depthStencil = {1.0f, 0};
 
         m_activeRenderPass = renderPass;
         m_activeExtent = extent;
@@ -724,7 +740,7 @@ namespace aiko::renderer::vulkan
                 .offset = { 0, 0 },
                 .extent = extent,
             },
-            .clearValueCount = static_cast<uint32_t>(clearValues.size()),
+            .clearValueCount = clearValueCount,
             .pClearValues = clearValues.data(),
         };
 

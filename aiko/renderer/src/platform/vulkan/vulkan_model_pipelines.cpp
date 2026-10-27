@@ -254,12 +254,14 @@ namespace aiko::renderer::vulkan
                 VK_COLOR_COMPONENT_A_BIT,
         };
 
+        const bool hasColorAttachment = key.renderPass.colorFormat != VK_FORMAT_UNDEFINED;
+
         const VkPipelineColorBlendStateCreateInfo colorBlending =
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
             .logicOpEnable = VK_FALSE,
-            .attachmentCount = 1,
-            .pAttachments = &colorBlendAttachment,
+            .attachmentCount = hasColorAttachment ? 1u : 0u,
+            .pAttachments = hasColorAttachment ? &colorBlendAttachment : nullptr,
         };
 
         const std::array<VkDynamicState, 3> dynamicStates =
@@ -488,12 +490,14 @@ namespace aiko::renderer::vulkan
                 VK_COLOR_COMPONENT_A_BIT,
         };
 
+        const bool hasColorAttachment = key.renderPass.colorFormat != VK_FORMAT_UNDEFINED;
+
         const VkPipelineColorBlendStateCreateInfo colorBlending =
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
             .logicOpEnable = VK_FALSE,
-            .attachmentCount = 1,
-            .pAttachments = &colorBlendAttachment,
+            .attachmentCount = hasColorAttachment ? 1u : 0u,
+            .pAttachments = hasColorAttachment ? &colorBlendAttachment : nullptr,
         };
 
         const std::array<VkDynamicState, 3> dynamicStates =

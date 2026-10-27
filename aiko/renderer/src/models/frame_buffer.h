@@ -2,6 +2,7 @@
 
 #include <aiko_types.h>
 #include "types/render_types.h"
+#include <metadata/frame_buffer_meta.h>
 
 #include "texture.h"
 
@@ -38,9 +39,11 @@ namespace aiko::interfaces
         bool isValid() const;
         RenderResourceId id() const;
 
+        bool hasColorAttachment() const { return colorTexture.isValid(); }
+        bool hasDepthAttachment() const { return depthTexture.isValid(); }
+
         // load
-        void create(int width, int height);
-        void create(int width, int height, TextureFormat colorFormat);
+        void create(const FrameBufferDesc& desc);
         void unload();
 
         Texture& getColorTexture() { return colorTexture; }
