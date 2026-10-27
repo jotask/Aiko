@@ -28,6 +28,8 @@ namespace aiko::renderer::vulkan
         void create(VkDescriptorSetLayout layout);
         void destroy();
 
+        void update(uint32_t frameIndex, const VulkanShadowUbo& uniforms, VkImageView depthView, VkSampler depthSampler);
+
         VkDescriptorSet descriptorSet(uint32_t frameIndex) const;
 
     private:

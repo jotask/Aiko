@@ -3,6 +3,8 @@
 #include "vulkan_context.h"
 #include "vulkan_descriptor_abi.h"
 
+#include <cstring>
+
 namespace aiko::renderer::vulkan
 {
     VulkanShadowResources::VulkanShadowResources(VulkanContext& context, uint32_t frameCount)
@@ -109,6 +111,37 @@ namespace aiko::renderer::vulkan
         }
 
         m_layout = VK_NULL_HANDLE;
+    }
+
+    void VulkanShadowResources::update(uint32_t frameIndex, const VulkanShadowUbo& uniforms, VkImageView depthView, VkSampler depthSampler)
+    {
+        AIKO_ASSERT(frameIndex < m_frames.size(), "Invalid shadow frame index");
+        AIKO_ASSERT(depthView != VK_NULL_HANDLE, "Invalid shadow depth image view");
+        AIKO_ASSERT(depthSampler != VK_NULL_HANDLE, "Invalid shadow depth sampler");
+
+        FrameResources& frame = m_frames[frameIndex];
+
+        AIKO_ASSERT(frame.uniformMapped != nullptr, "Shadow uniform buffer is not mapped");
+        AIKO_ASSERT(frame.descriptorSet != VK_NULL_HANDLE, "Shadow descriptor set is invalid");
+
+        std::memcpy(frame.uniformMapped, &uniforms, sizeof(VulkanShadowUbo));
+
+        const VkDescriptorImageInfo imageInfo{
+            .sampler = depthSampler,
+            .imageView = depthView,
+            .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+        };
+
+        const VkWriteDescriptorSet write{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = frame.descriptorSet,
+            .dstBinding = abi::ShadowTextureBinding,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = &imageInfo,
+        };
+
+        vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
     }
 
     VkDescriptorSet VulkanShadowResources::descriptorSet(uint32_t frameIndex) const
