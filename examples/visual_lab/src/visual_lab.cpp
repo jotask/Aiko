@@ -566,11 +566,7 @@ namespace aiko::lab
             }
 
             ImGui::Separator();
-            ImGui::TextDisabled("Shadow depth generation active.");
-            ImGui::TextDisabled("Directional and spot shadows supported; one shadow map at a time.");
-
             ImGui::SeparatorText("Validation Lights");
-            ImGui::TextDisabled("Current renderer limitation: only the first enabled directional/spot light produces a shadow map.");
 
             renderValidationLightControls(m_shadowDirLight);
             renderValidationLightControls(m_shadowSpotA);
