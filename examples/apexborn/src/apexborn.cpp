@@ -16,8 +16,9 @@ namespace ab
 
         scene().clearColor() = aiko::BLACK;
 
-        aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Static, aiko::Camera::CameraType::Perspective);
-        camera->getCamera().position = { 0.0f, 0.0f, 13.0f };
+        aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Fly, aiko::Camera::CameraType::Perspective);
+        camera->getCamera().position = { 0.0f, 8.0f, 10.0f };
+        camera->getCamera().target = {0.0f, 0.0f, 0.0f};
 
         m_track.generate();
 

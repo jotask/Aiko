@@ -12,10 +12,10 @@ namespace ab
 
     Spline::Spline()
     {
-        m_controlPoints.push_back({-2.0f, -2.0f, 0.0f});
-        m_controlPoints.push_back({-2.0f,  2.0f, 0.0f});
-        m_controlPoints.push_back({ 2.0f,  2.0f, 0.0f});
-        m_controlPoints.push_back({ 2.0f, -2.0f, 0.0f});
+        m_controlPoints.push_back({-2.0f, 0.0f, -2.0f});
+        m_controlPoints.push_back({-2.0f, 0.0f,  2.0f});
+        m_controlPoints.push_back({ 2.0f, 0.0f,  2.0f});
+        m_controlPoints.push_back({ 2.0f, 0.0f, -2.0f});
     }
 
     Spline::~Spline() = default;

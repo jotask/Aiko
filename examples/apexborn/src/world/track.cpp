@@ -5,7 +5,7 @@ namespace ab
 
     namespace
     {
-        constexpr aiko::vec3 WorldUp = {0.0f, 0.0f, 1.0f}; // FIXME : Make up the Y axis
+        constexpr aiko::vec3 WorldUp = {0.0f, 1.0f, 0.0f };
     }
 
     Track::Track() = default;
