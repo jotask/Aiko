@@ -524,6 +524,7 @@ namespace aiko::lab
                 break;
         }
 
+        light.component->castsShadows = light.castsShadows;
         light.component->intensity = light.enabled ? light.intensity : 0.0f;
     }
 
@@ -732,6 +733,7 @@ namespace aiko::lab
         ImGui::Checkbox("Enabled", &light.enabled);
         ImGui::ColorEdit3("Color", &light.color.r);
         ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
+        ImGui::Checkbox("Cast Shadows", &light.castsShadows);
 
         if (light.type == LightType::Spot || light.type == LightType::Point)
         {

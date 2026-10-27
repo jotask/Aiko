@@ -31,6 +31,8 @@ namespace aiko
         float innerCos;
         float outerCos;
 
+        bool castsShadows = false;
+
     };
 
 }

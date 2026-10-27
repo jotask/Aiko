@@ -23,6 +23,8 @@ namespace aiko
         float innerCos = 0.8f;
         float outerCos = 0.6f;
 
+        bool castsShadows = false;
+
         void setDirectional(Color color, vec3 dir, float range);
         void setPointLight(Color color, float range);
         void setSpot(Color color, vec3 dir, float inned, float outer);

@@ -42,6 +42,7 @@ namespace aiko
                 .range = component->range,
                 .innerCos = component->innerCos,
                 .outerCos = component->outerCos,
+                .castsShadows = component->castsShadows,
             };
 
             out.lights.push_back(light);

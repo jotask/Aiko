@@ -48,6 +48,8 @@ namespace aiko::lab
 
             float innerCos = 0.8f;
             float outerCos = 0.6f;
+
+            bool castsShadows = true;
         };
 
         void initCamera();

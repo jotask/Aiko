@@ -60,7 +60,7 @@ namespace aiko::renderer
         {
             const LightData& light = sceneFrame.lights[i];
 
-            if (light.intensity <= 0.0f)
+            if (light.intensity <= 0.0f || !light.castsShadows)
             {
                 continue;
             }
