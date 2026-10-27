@@ -2,6 +2,7 @@
 
 #include "platform/vulkan/vulkan_context.h"
 
+#include <algorithm>
 #include <array>
 #include <vector>
 
@@ -19,7 +20,7 @@ namespace aiko::renderer::vulkan
 
     VulkanFrameBufferImpl::~VulkanFrameBufferImpl()
     {
-        AIKO_ASSERT(m_framebuffer == VK_NULL_HANDLE && m_renderPass == VK_NULL_HANDLE, "VulkanFrameBufferImpl destroyed without unload()" );
+        AIKO_ASSERT(m_framebuffer == VK_NULL_HANDLE && m_renderPass == VK_NULL_HANDLE && m_colorAttachmentView == VK_NULL_HANDLE && m_depthAttachmentView == VK_NULL_HANDLE, "VulkanFrameBufferImpl destroyed without unload()");
     }
 
     RenderResourceId VulkanFrameBufferImpl::id() const
@@ -56,7 +57,7 @@ namespace aiko::renderer::vulkan
         return TextureFormat::D24S8;
     }
 
-    void VulkanFrameBufferImpl::create(interfaces::ITextureImpl* color, interfaces::ITextureImpl* depth)
+    void VulkanFrameBufferImpl::create(interfaces::ITextureImpl* color, interfaces::ITextureImpl* depth, TextureSubresource subresource)
     {
         unload();
 
@@ -78,14 +79,62 @@ namespace aiko::renderer::vulkan
 
         const TextureInfo depthInfo = depth->getInfo();
 
-        m_width = static_cast<u32>(depthInfo.width);
-        m_height = static_cast<u32>(depthInfo.height);
+        const auto validateSubresource =[&](const TextureInfo& info)
+        {
+            AIKO_ASSERT(subresource.mipLevel < static_cast<u32>(info.mipmaps), "Framebuffer mip level is out of range");
+            const u32 layerCount = info.dimension == TextureDimension::Cube ? 6u : 1u;
+            AIKO_ASSERT(subresource.arrayLayer < layerCount, "Framebuffer array layer is out of range");
+        };
+
+        validateSubresource(depthInfo);
+
+        m_subresource = subresource;
+
+        m_width = std::max(1u, static_cast<u32>(depthInfo.width) >> subresource.mipLevel);
+        m_height = std::max(1u, static_cast<u32>(depthInfo.height) >> subresource.mipLevel);
 
         if (hasColor)
         {
             const TextureInfo colorInfo = color->getInfo();
             AIKO_ASSERT(colorInfo.width == depthInfo.width && colorInfo.height == depthInfo.height, "Framebuffer attachments must have matching dimensions");
+            validateSubresource(colorInfo);
         }
+
+        const auto createAttachmentView = [&](VulkanTextureImpl* texture, VkImageAspectFlags aspect) -> VkImageView
+        {
+            if (texture == nullptr)
+            {
+                return VK_NULL_HANDLE;
+            }
+
+            const VkImageViewCreateInfo viewInfo =
+            {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .image = texture->image(),
+                .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                .format = texture->format(),
+                .subresourceRange =
+                {
+                    .aspectMask = aspect,
+                    .baseMipLevel = subresource.mipLevel,
+                    .levelCount = 1,
+                    .baseArrayLayer = subresource.arrayLayer,
+                    .layerCount = 1,
+                },
+            };
+
+            VkImageView view = VK_NULL_HANDLE;
+
+            const VkResult result = vkCreateImageView(ctx.device(), &viewInfo, nullptr, &view);
+
+            AIKO_ASSERT(result == VK_SUCCESS, "Failed to create framebuffer attachment view");
+
+            return view;
+        };
+
+        m_colorAttachmentView = createAttachmentView(colorImpl, VK_IMAGE_ASPECT_COLOR_BIT);
+
+        m_depthAttachmentView = createAttachmentView(depthImpl, VK_IMAGE_ASPECT_DEPTH_BIT);
 
         const VkAttachmentDescription colorAttachment =
         {
@@ -134,11 +183,11 @@ namespace aiko::renderer::vulkan
         if (hasColor)
         {
             attachments.push_back(colorAttachment);
-            imageViews.push_back(colorImpl->imageView());
+            imageViews.push_back(m_colorAttachmentView);
         }
 
         attachments.push_back(depthAttachment);
-        imageViews.push_back(depthImpl->imageView());
+        imageViews.push_back(m_depthAttachmentView);
 
         const VkPipelineStageFlags attachmentStages =
             VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
@@ -204,21 +253,27 @@ namespace aiko::renderer::vulkan
 
     void VulkanFrameBufferImpl::unload()
     {
-        if (m_framebuffer == VK_NULL_HANDLE && m_renderPass == VK_NULL_HANDLE)
+        if (m_framebuffer == VK_NULL_HANDLE && m_renderPass == VK_NULL_HANDLE && m_colorAttachmentView == VK_NULL_HANDLE && m_depthAttachmentView == VK_NULL_HANDLE)
         {
             return;
         }
 
-        const VkFramebuffer framebuffer = m_framebuffer;
-        const VkRenderPass renderPass = m_renderPass;
+        VulkanContext& ctx = VulkanContext::current();
+
+        ctx.retireFrameBuffer(m_framebuffer, m_renderPass);
+
+        ctx.retireImage(VK_NULL_HANDLE, m_colorAttachmentView, VK_NULL_HANDLE, VK_NULL_HANDLE);
+        ctx.retireImage(VK_NULL_HANDLE, m_depthAttachmentView, VK_NULL_HANDLE, VK_NULL_HANDLE);
 
         m_framebuffer = VK_NULL_HANDLE;
         m_renderPass = VK_NULL_HANDLE;
+        m_colorAttachmentView = VK_NULL_HANDLE;
+        m_depthAttachmentView = VK_NULL_HANDLE;
+
         m_width = 0;
         m_height = 0;
 
-        VulkanContext::current().retireFrameBuffer(framebuffer, renderPass);
-
+        m_subresource = {};
     }
 
 }

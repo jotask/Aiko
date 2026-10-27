@@ -3,6 +3,11 @@
 #include "aiko_includes.h"
 #include "layers/layer.h"
 
+#include "models/frame_buffer.h"
+#include "models/texture.h"
+
+#include <array>
+
 namespace aiko
 {
     class GameObject;

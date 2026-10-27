@@ -8,10 +8,17 @@
 namespace aiko
 {
 
+    struct TextureSubresource
+    {
+        u32 mipLevel = 0;
+        u32 arrayLayer = 0;
+    };
+
     struct TextureDesc
     {
         TextureType type = TextureType::INVALID;
         TextureFormat format = TextureFormat::INVALID;
+        TextureDimension dimension = TextureDimension::Texture2D;
         int width = 0;
         int height = 0;
         int mipmaps = 1;
@@ -22,6 +29,7 @@ namespace aiko
     {
         TextureType type = TextureType::INVALID;
         TextureFormat format = TextureFormat::INVALID;
+        TextureDimension dimension = TextureDimension::Texture2D;
         int width = 0;
         int height = 0;
         int mipmaps = 1;

@@ -22,8 +22,7 @@ namespace aiko::renderer::vulkan
         virtual TextureFormat preferredDepthFormat() const override;
 
         // load
-        virtual void create(interfaces::ITextureImpl* color, interfaces::ITextureImpl* depth) override;
-
+        void create(interfaces::ITextureImpl* color, interfaces::ITextureImpl* depth, TextureSubresource subresource = {}) override;
         virtual void unload() override;
 
         VkFramebuffer framebuffer() const { return m_framebuffer; }
@@ -31,10 +30,18 @@ namespace aiko::renderer::vulkan
         u32 width() const { return m_width; }
         u32 height() const { return m_height; }
 
+        TextureSubresource subresource() const { return m_subresource; }
+
     private:
 
         VkFramebuffer m_framebuffer = VK_NULL_HANDLE;
         VkRenderPass m_renderPass = VK_NULL_HANDLE; // or get/cache from VulkanContext
+
+        VkImageView m_colorAttachmentView = VK_NULL_HANDLE;
+        VkImageView m_depthAttachmentView = VK_NULL_HANDLE;
+
+        TextureSubresource m_subresource{};
+
         u32 m_width = 0;
         u32 m_height = 0;
 

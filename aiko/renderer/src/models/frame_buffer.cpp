@@ -19,7 +19,7 @@ namespace aiko
 
     bool FrameBuffer::isValid() const
     {
-        return backend->isValid() && depthTexture.isValid();
+        return backend->isValid() && m_depthAttachment != nullptr && m_depthAttachment->isValid();
     }
 
     RenderResourceId FrameBuffer::id() const
@@ -27,6 +27,15 @@ namespace aiko
         return backend->id();
     }
 
+    bool FrameBuffer::hasColorAttachment() const
+    {
+        return m_colorAttachment != nullptr && m_colorAttachment->isValid();
+    }
+
+    bool FrameBuffer::hasDepthAttachment() const
+    {
+        return m_depthAttachment != nullptr && m_depthAttachment->isValid();
+    }
 
     void FrameBuffer::create(const FrameBufferDesc& desc)
     {
@@ -71,15 +80,71 @@ namespace aiko
             return;
         }
 
-        backend->create(colorTexture.isValid() ? colorTexture.backend.get() : nullptr, depthTexture.backend.get());
+        m_colorAttachment = colorTexture.isValid() ? &colorTexture : nullptr;
+        m_depthAttachment = &depthTexture;
+
+        backend->create(
+            m_colorAttachment ? m_colorAttachment->backend.get() : nullptr,
+            m_depthAttachment->backend.get(),
+            {}
+        );
     }
 
+    void FrameBuffer::createWithAttachments(Texture* color, Texture* depth, TextureSubresource subresource)
+    {
+        AIKO_ASSERT(depth != nullptr && depth->isValid(), "Framebuffer requires a valid depth attachment");
+        AIKO_ASSERT(color == nullptr || color->isValid(), "Invalid framebuffer color attachment");
+
+        const TextureInfo depthInfo = depth->getInfo();
+
+        AIKO_ASSERT(depthInfo.type == TextureType::DepthStencil, "Framebuffer depth attachment must be a depth texture");
+
+        if (color != nullptr)
+        {
+            const TextureInfo colorInfo = color->getInfo();
+            AIKO_ASSERT(colorInfo.type == TextureType::RenderTarget, "Framebuffer color attachment must be a render target");
+            AIKO_ASSERT(colorInfo.width == depthInfo.width && colorInfo.height == depthInfo.height, "Framebuffer attachments must have matching dimensions");
+        }
+
+        unload();
+
+        m_colorAttachment = color;
+        m_depthAttachment = depth;
+
+        backend->create(color ? color->backend.get() : nullptr, depth->backend.get(), subresource);
+    }
 
     void FrameBuffer::unload()
     {
         backend->unload();
+        m_colorAttachment = nullptr;
+        m_depthAttachment = nullptr;
         colorTexture.unload();
         depthTexture.unload();
+    }
+
+    Texture& FrameBuffer::getColorTexture()
+    {
+        AIKO_ASSERT(m_colorAttachment != nullptr, "Framebuffer has no color attachment");
+        return *m_colorAttachment;
+    }
+
+    Texture& FrameBuffer::getDepthTexture()
+    {
+        AIKO_ASSERT(m_depthAttachment != nullptr, "Framebuffer has no depth attachment");
+        return *m_depthAttachment;
+    }
+
+    const Texture& FrameBuffer::getColorTexture() const
+    {
+        AIKO_ASSERT(m_colorAttachment != nullptr, "Framebuffer has no color attachment");
+        return *m_colorAttachment;
+    }
+
+    const Texture& FrameBuffer::getDepthTexture() const
+    {
+        AIKO_ASSERT(m_depthAttachment != nullptr, "Framebuffer has no depth attachment");
+        return *m_depthAttachment;
     }
 
 }

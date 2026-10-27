@@ -3,6 +3,7 @@
 #include <aiko_types.h>
 
 #include "interfaces/itexture_impl.h"
+#include <metadata/texture_meta.h>
 
 namespace aiko
 {
@@ -18,7 +19,7 @@ namespace aiko
             virtual TextureFormat preferredDepthFormat() const = 0;
 
             // load
-            virtual void create(ITextureImpl* color, ITextureImpl* depth) = 0;
+            virtual void create(ITextureImpl* color, ITextureImpl* depth, TextureSubresource subresource = {}) = 0;
             virtual void unload() = 0;
 
         };

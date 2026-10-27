@@ -1294,13 +1294,21 @@ namespace aiko::renderer::vulkan
         return indices;
     }
 
-    VkResult VulkanContext::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
+    VkResult VulkanContext::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory, uint32_t arrayLayers, VkImageCreateFlags flags)
     {
         AIKO_ASSERT(image == VK_NULL_HANDLE && imageMemory == VK_NULL_HANDLE, "Vulkan image outputs must be empty");
+        AIKO_ASSERT(arrayLayers > 0, "Vulkan image must have at least one array layer");
+
+        if ((flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT) != 0)
+        {
+            AIKO_ASSERT(arrayLayers >= 6 && arrayLayers % 6 == 0, "Cube-compatible image requires a multiple of six layers");
+            AIKO_ASSERT(width == height, "Cube-compatible image faces must be square");
+        }
 
         const VkImageCreateInfo imageInfo =
         {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .flags = flags,
             .imageType = VK_IMAGE_TYPE_2D,
             .format = format,
             .extent = VkExtent3D
@@ -1310,7 +1318,7 @@ namespace aiko::renderer::vulkan
                 .depth = 1,
             },
             .mipLevels = mipLevels,
-            .arrayLayers = 1,
+            .arrayLayers = arrayLayers,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .tiling = tiling,
             .usage = usage,
@@ -1964,20 +1972,20 @@ namespace aiko::renderer::vulkan
         return actualExtent;
     }
 
-    VkImageView VulkanContext::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
+    VkImageView VulkanContext::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkImageViewType viewType, uint32_t arrayLayers)
     {
         const VkImageViewCreateInfo viewInfo =
         {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = image,
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .viewType = viewType,
             .format = format,
             .subresourceRange = {
                 .aspectMask = aspectFlags,
                 .baseMipLevel = 0,
                 .levelCount = mipLevels,
                 .baseArrayLayer = 0,
-                .layerCount = 1,
+                .layerCount = arrayLayers,
             },
         };
 

@@ -5,6 +5,7 @@
 #include "models/material.h"
 #include "models/mesh.h"
 #include "models/render_target.h"
+#include "models/frame_buffer.h"
 #include "renderer/render_queue.h"
 #include "renderer/scene_render_request.h"
 #include "renderer/screen_presenter.h"

@@ -3,6 +3,12 @@
 namespace aiko
 {
 
+    enum class TextureDimension
+    {
+        Texture2D,
+        Cube
+    };
+
     enum class TextureFormat
     {
         INVALID,

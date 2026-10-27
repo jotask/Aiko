@@ -44,6 +44,16 @@ namespace aiko::renderer::vulkan
 
         AIKO_ASSERT(desc.width > 0 && desc.height > 0, "Invalid texture size");
 
+        const bool isCube = desc.dimension == TextureDimension::Cube;
+
+        AIKO_ASSERT(!isCube || desc.width == desc.height, "Cubemap textures must have square faces");
+
+        const uint32_t arrayLayers = isCube ? 6u : 1u;
+
+        AIKO_ASSERT(!isCube || desc.mipmaps == 1, "Cubemap mipmaps are not supported by the current state tracker");
+
+        AIKO_ASSERT(!isCube || !desc.computeWrite, "Cubemap compute writes are not supported yet");
+
         if (desc.format == TextureFormat::RGBA8_SRGB)
         {
             AIKO_ASSERT(desc.type == TextureType::Sampled && !desc.computeWrite, "sRGB textures must be sampled non-storage textures");
@@ -145,7 +155,9 @@ namespace aiko::renderer::vulkan
             usage,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             m_image,
-            m_memory
+            m_memory,
+            arrayLayers,
+            isCube ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : VkImageCreateFlags{0}
         );
 
         if (result != VK_SUCCESS)
@@ -155,12 +167,13 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        m_view = ctx.createImageView(m_image, m_vkFormat, aspect, m_mipLevels);
+        m_view = ctx.createImageView(m_image, m_vkFormat, aspect, m_mipLevels, isCube ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D, arrayLayers);
 
         m_info =
         {
             .type = desc.type,
             .format = desc.format,
+            .dimension = desc.dimension,
             .width = desc.width,
             .height = desc.height,
             .mipmaps = desc.mipmaps,
@@ -174,6 +187,8 @@ namespace aiko::renderer::vulkan
             .stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
             .access = 0,
         };
+
+        m_faceStates.fill(VulkanImageState{});
 
         m_lifetime = std::make_shared<const u8>(0);
 
@@ -202,6 +217,7 @@ namespace aiko::renderer::vulkan
         m_memory = VK_NULL_HANDLE;
         m_vkFormat = VK_FORMAT_UNDEFINED;
         m_state = {};
+        m_faceStates.fill(VulkanImageState{});
         m_mipLevels = 1;
         m_info = {};
 
@@ -307,6 +323,7 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(ctx.hasDedicatedComputeQueue() && m_state.queueFamily == ctx.computeQueueFamily(), "Texture has unexpected queue ownership");
             ctx.waitIdle();
             m_state = {};
+            m_faceStates.fill(VulkanImageState{});
         }
 
         VkCommandBuffer commandBuffer = ctx.beginSingleTimeCommands();

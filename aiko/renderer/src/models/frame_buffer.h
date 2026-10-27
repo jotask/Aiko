@@ -39,17 +39,18 @@ namespace aiko::interfaces
         bool isValid() const;
         RenderResourceId id() const;
 
-        bool hasColorAttachment() const { return colorTexture.isValid(); }
-        bool hasDepthAttachment() const { return depthTexture.isValid(); }
+        bool hasColorAttachment() const;
+        bool hasDepthAttachment() const;
 
         // load
         void create(const FrameBufferDesc& desc);
+        void createWithAttachments(Texture* color, Texture* depth, TextureSubresource subresource = {});
         void unload();
 
-        Texture& getColorTexture() { return colorTexture; }
-        Texture& getDepthTexture() { return depthTexture; }
-        const Texture& getColorTexture() const { return colorTexture; }
-        const Texture& getDepthTexture() const { return depthTexture; }
+        Texture& getColorTexture();
+        Texture& getDepthTexture();
+        const Texture& getColorTexture() const;
+        const Texture& getDepthTexture() const;
 
     private:
 
@@ -57,6 +58,9 @@ namespace aiko::interfaces
 
         Texture colorTexture;
         Texture depthTexture;
+
+        Texture* m_colorAttachment = nullptr;
+        Texture* m_depthAttachment = nullptr;
 
     };
 

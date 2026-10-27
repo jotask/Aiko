@@ -156,10 +156,10 @@ namespace aiko::renderer::vulkan
         VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync);
         VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-        VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels = 1);
+        VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels = 1, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D, uint32_t arrayLayers = 1);
         bool isDeviceSuitable(VkPhysicalDevice device);
 
-        [[nodiscard]] VkResult createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+        [[nodiscard]] VkResult createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory, uint32_t arrayLayers = 1, VkImageCreateFlags flags = 0);
         void generateMipmaps(VkImage image, VkFormat format, uint32_t width, uint32_t height, uint32_t mipLevel);
         void generateMipmaps(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, uint32_t width, uint32_t height, uint32_t mipLevels);
 

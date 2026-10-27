@@ -647,6 +647,7 @@ namespace aiko::renderer::vulkan
             renderPass = fb->renderPass();
             framebuffer = fb->framebuffer();
             extent = { fb->width(), fb->height() };
+            m_activeAttachmentSubresource = fb->subresource();
 
             VulkanTextureImpl* colorImpl = nullptr;
 
@@ -712,6 +713,7 @@ namespace aiko::renderer::vulkan
         {
             m_activeColorAttachment = nullptr;
             m_activeDepthAttachment = nullptr;
+            m_activeAttachmentSubresource = {};
 
             switch (pass.colorLoadOp)
             {
@@ -816,31 +818,50 @@ namespace aiko::renderer::vulkan
 
         if (m_activeColorAttachment != nullptr)
         {
-            m_activeColorAttachment->setState(
+            const VulkanImageState state =
             {
                 .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                 .stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                 .access = VK_ACCESS_SHADER_READ_BIT,
                 .queueFamily = m_context.graphicsQueueFamily(),
-            });
+            };
+
+            if (m_activeColorAttachment->getInfo().dimension == TextureDimension::Cube)
+            {
+                m_activeColorAttachment->setFaceState(m_activeAttachmentSubresource.arrayLayer, state);
+            }
+            else
+            {
+                m_activeColorAttachment->setState(state);
+            }
 
             m_activeColorAttachment = nullptr;
         }
 
         if (m_activeDepthAttachment != nullptr)
         {
-            m_activeDepthAttachment->setState(
+            const VulkanImageState state =
             {
                 .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
                 .stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                 .access = VK_ACCESS_SHADER_READ_BIT,
                 .queueFamily = m_context.graphicsQueueFamily(),
-            });
+            };
+
+            if (m_activeDepthAttachment->getInfo().dimension == TextureDimension::Cube)
+            {
+                m_activeDepthAttachment->setFaceState(m_activeAttachmentSubresource.arrayLayer, state);
+            }
+            else
+            {
+                m_activeDepthAttachment->setState(state);
+            }
 
             m_activeDepthAttachment = nullptr;
         }
 
         m_renderPassActive = false;
+        m_activeAttachmentSubresource = {};
 
         m_activeRenderPass = VK_NULL_HANDLE;
         m_activeExtent = {};
@@ -1884,6 +1905,22 @@ namespace aiko::renderer::vulkan
         VkCommandBuffer graphicsCommandBuffer = m_context.activeCommandBuffer();
         AIKO_ASSERT(graphicsCommandBuffer != VK_NULL_HANDLE, "Texture sampling preparation requires an active graphics command buffer");
 
+        if (info.dimension == TextureDimension::Cube)
+        {
+            for (uint32_t face = 0; face < 6; ++face)
+            {
+                const VulkanImageState faceState = textureImpl->faceState(face);
+
+                AIKO_ASSERT(faceState.layout != VK_IMAGE_LAYOUT_UNDEFINED,"Cannot sample a cubemap before all six faces have been initialized");
+
+                AIKO_ASSERT(faceState.queueFamily == m_context.graphicsQueueFamily(), "Cubemap sampling currently requires graphics queue ownership");
+
+                transitionTexture(graphicsCommandBuffer, *textureImpl, sampledState, face);
+            }
+
+            return;
+        }
+
         if (source.queueFamily == VK_QUEUE_FAMILY_IGNORED)
         {
             transitionTexture(graphicsCommandBuffer, *textureImpl, sampledState);
@@ -2462,59 +2499,78 @@ namespace aiko::renderer::vulkan
         }
     }
 
-    void VulkanRenderDevice::transitionTexture(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination)
+    void VulkanRenderDevice::transitionTexture(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination, std::optional<uint32_t> face)
     {
-        const VulkanImageState source = texture.state();
+        const TextureInfo info = texture.getInfo();
+        const bool isCube = info.dimension == TextureDimension::Cube;
+
+        AIKO_ASSERT(isCube == face.has_value(), "Cubemap transitions require an explicit face; 2D transitions must not select one");
+
+        const VulkanImageState source = isCube ? texture.faceState(*face) : texture.state();
+
+        constexpr VkAccessFlags WriteAccess =
+            VK_ACCESS_SHADER_WRITE_BIT |
+            VK_ACCESS_TRANSFER_WRITE_BIT |
+            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
         const bool sameLayout = source.layout == destination.layout;
+        const bool noWriteHazard = (source.access & WriteAccess) == 0;
+        const bool destinationOnlyReads = (destination.access & WriteAccess) == 0;
+        const bool sameQueueFamily = source.queueFamily == destination.queueFamily;
 
-        const bool noWriteHazard = (source.access & (VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)) == 0;
-
-        const bool destinationOnlyReads = (destination.access & (VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)) == 0;
-
-        const bool sameQueueFamily =
-            source.queueFamily == destination.queueFamily;
+        const auto storeState = [&](const VulkanImageState& state)
+        {
+            if (isCube)
+            {
+                texture.setFaceState(*face, state);
+            }
+            else
+            {
+                texture.setState(state);
+            }
+        };
 
         if (sameLayout && noWriteHazard && destinationOnlyReads && sameQueueFamily)
         {
-            texture.setState(
-            {
+            storeState({
                 .layout = destination.layout,
                 .stage = source.stage | destination.stage,
                 .access = source.access | destination.access,
                 .queueFamily = destination.queueFamily,
             });
+
             return;
         }
+
+        const VkImageAspectFlags aspect =
+            info.type == TextureType::DepthStencil
+                ? VK_IMAGE_ASPECT_DEPTH_BIT
+                : VK_IMAGE_ASPECT_COLOR_BIT;
 
         const VkImageMemoryBarrier barrier =
         {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-
             .srcAccessMask = source.access,
             .dstAccessMask = destination.access,
-
             .oldLayout = source.layout,
             .newLayout = destination.layout,
-
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-
             .image = texture.image(),
-
             .subresourceRange =
             {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .aspectMask = aspect,
                 .baseMipLevel = 0,
                 .levelCount = VK_REMAINING_MIP_LEVELS,
-                .baseArrayLayer = 0,
+                .baseArrayLayer = isCube ? *face : 0u,
                 .layerCount = 1,
             },
         };
 
-        vkCmdPipelineBarrier( commandBuffer, source.stage, destination.stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+        vkCmdPipelineBarrier(commandBuffer, source.stage, destination.stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-        texture.setState(destination);
+        storeState(destination);
     }
 
     void VulkanRenderDevice::transitionBuffer(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination)

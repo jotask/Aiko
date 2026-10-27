@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <array>
 
 #include <aiko_types.h>
 
@@ -39,6 +40,20 @@ namespace aiko::renderer::vulkan
         void setState(const VulkanImageState& state) { m_state = state; }
         VkImageLayout layout() const { return m_state.layout; }
 
+        const VulkanImageState& faceState(uint32_t face) const
+        {
+            AIKO_ASSERT(m_info.dimension == TextureDimension::Cube, "Face state requires a cubemap");
+            AIKO_ASSERT(face < 6, "Invalid cubemap face");
+            return m_faceStates[face];
+        }
+
+        void setFaceState(uint32_t face, const VulkanImageState& state)
+        {
+            AIKO_ASSERT(m_info.dimension == TextureDimension::Cube, "Face state requires a cubemap");
+            AIKO_ASSERT(face < 6, "Invalid cubemap face");
+            m_faceStates[face] = state;
+        }
+
         std::weak_ptr<const u8> lifetime() const { return m_lifetime; }
 
     private:
@@ -51,6 +66,7 @@ namespace aiko::renderer::vulkan
         uint32_t m_mipLevels = 1;
 
         VulkanImageState m_state{};
+        std::array<VulkanImageState, 6> m_faceStates{};
 
         std::shared_ptr<const u8> m_lifetime;
 

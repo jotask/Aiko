@@ -109,6 +109,8 @@ namespace aiko::renderer::vulkan
         VulkanTextureImpl* m_activeColorAttachment = nullptr;
         VulkanTextureImpl* m_activeDepthAttachment = nullptr;
 
+        TextureSubresource m_activeAttachmentSubresource{};
+
         VulkanFrameResources m_frameResources;
         VulkanShadowResources m_shadowResources;
         VulkanModelPipelines m_modelPipelines;
@@ -149,7 +151,7 @@ namespace aiko::renderer::vulkan
         VkDescriptorSet resolveComputeDescriptors(const std::vector<ComputeBufferBinding>& bindings, const std::vector<ComputeImageBinding>& images);
         void transitionComputeImages(VkCommandBuffer commandBuffer, const vector<ComputeImageBinding>& bindings, bool useDedicatedCompute);
         VulkanImageState computeImageState(ComputeAccess access, uint32_t queueFamily) const;
-        void transitionTexture(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination);
+        void transitionTexture(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination, std::optional<uint32_t> face = std::nullopt);
         void transitionBuffer(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination);
         void releaseBufferOwnership(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination);
         void acquireBufferOwnership(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, const VulkanBufferState& source, const VulkanBufferState& destination);
