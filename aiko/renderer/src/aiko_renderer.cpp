@@ -75,8 +75,10 @@ namespace aiko
         }
 
         m_sceneTarget.create(surface.width, surface.height, TextureFormat::RGBA16F);
-
         AIKO_ASSERT(m_sceneTarget.isValid(), "Failed to create HDR scene target");
+
+        m_shadowRenderer.init(m_assetRegistry);
+        AIKO_ASSERT(m_shadowRenderer.isValid(), "Failed to create Shadow renderer");
 
         m_screenPresenter.init();
         AIKO_ASSERT(m_screenPresenter.isValid(), "Screen presenter invalid");
@@ -146,6 +148,7 @@ namespace aiko
         m_frameTransientGeometries.clear();
         m_screenPresenter.dispose();
         m_postProcessing.dispose();
+        m_shadowRenderer.dispose();
         m_sceneTarget.unload();
         m_resources.clear();
         m_renderer->shutdown();
@@ -372,6 +375,7 @@ namespace aiko
         if (camera != nullptr)
         {
             const PreparedScenePass scenePass = m_renderQueue.buildScenePass(frameData.view);
+            m_shadowRenderer.render(*m_renderer, frameData, scenePass);
             submitScenePass(frameData, scenePass, m_sceneTarget);
         }
         else

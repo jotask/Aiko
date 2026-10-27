@@ -20,8 +20,8 @@ namespace aiko
 
         const FrameBufferDesc frameBufferDesc =
         {
-            .width = width,
-            .height = height,
+            .width = static_cast<int>(width),
+            .height = static_cast<int>(height),
             .colorFormat = colorFormat
         };
 

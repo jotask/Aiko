@@ -8,6 +8,7 @@
 #include "renderer/render_queue.h"
 #include "renderer/scene_render_request.h"
 #include "renderer/screen_presenter.h"
+#include "renderer/shadow/shadow_renderer.h"
 #include "renderer/gpu_instance_sorter.h"
 #include "resources/render_resource_manager.h"
 #include "types/aiko_renderer_types.h"
@@ -121,6 +122,7 @@ namespace aiko
         ivec2 m_renderSurface;
 
         RenderTarget m_sceneTarget;
+        renderer::ShadowRenderer m_shadowRenderer;
         ScreenPresenter m_screenPresenter;
         PostProcessPipeline m_postProcessing;
 

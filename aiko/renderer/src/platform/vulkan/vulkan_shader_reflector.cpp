@@ -454,6 +454,14 @@ namespace aiko::renderer::vulkan
                 continue;
             }
 
+            if (descriptor.set == abi::GraphicsShadowSet)
+            {
+                AIKO_ASSERT(descriptor.binding == abi::ShadowUboBinding || descriptor.binding == abi::ShadowTextureBinding, "Unknown shadow descriptor binding");
+                const VkDescriptorType expectedType = descriptor.binding == abi::ShadowUboBinding ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                AIKO_ASSERT(descriptor.descriptorType == expectedType, "Shadow descriptor type does not match Vulkan ABI");
+                continue;
+            }
+
             AIKO_ASSERT(false, "Graphics shader uses descriptor set outside model ABI");
         }
 

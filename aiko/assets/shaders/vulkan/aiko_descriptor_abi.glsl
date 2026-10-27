@@ -5,6 +5,7 @@
 #define AIKO_GRAPHICS_FRAME_SET 0
 #define AIKO_GRAPHICS_MATERIAL_SET 1
 #define AIKO_GRAPHICS_GPU_READ_SET 2
+#define AIKO_GRAPHICS_SHADOW_SET 3
 
 // Graphics set 0
 #define AIKO_GRAPHICS_FRAME_BINDING 0
@@ -15,6 +16,10 @@
 
 // Graphics set 2
 #define AIKO_MAX_GPU_READ_BINDINGS 16
+
+// Graphics set 3
+#define AIKO_SHADOW_UBO_BINDING 0
+#define AIKO_SHADOW_TEXTURE_BINDING 1
 
 // Compute
 #define AIKO_COMPUTE_SET 0

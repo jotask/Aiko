@@ -30,6 +30,7 @@ namespace aiko::lab
         void initFullPbrTest();
         void initColorSpaceTest();
         void initMaterialColorTest();
+        void initShadowValidation();
 
         void renderImgui();
         void renderPbrMatrix();
@@ -37,6 +38,7 @@ namespace aiko::lab
         void renderFullPbrTest();
         void renderColorSpaceTest();
         void renderMaterialColorTest();
+        void renderShadowValidation();
 
         std::array<Material, MaterialCount> m_pbrMaterials;
         Mesh m_sphereMesh;
@@ -50,5 +52,18 @@ namespace aiko::lab
         Mesh m_colorSpaceQuad;
 
         Material m_materialColorMaterial;
+
+        Mesh m_shadowCubeMesh;
+        Mesh m_shadowGroundMesh;
+
+        Material m_shadowCasterMaterial;
+        Material m_shadowGroundMaterial;
+
+        bool m_shadowAnimate = true;
+        bool m_shadowShowGround = true;
+        bool m_shadowShowSphere = true;
+
+        float m_shadowRotation = 0.0f;
+        float m_shadowHeight = 1.5f;
     };
 }

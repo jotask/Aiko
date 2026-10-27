@@ -460,6 +460,7 @@ namespace aiko::renderer::vulkan
     VulkanRenderDevice::VulkanRenderDevice(RenderResourceManager* resources)
         : IRenderDevice(resources)
         , m_frameResources(m_context, FramesInFlight)
+        , m_shadowResources(m_context, FramesInFlight)
         , m_modelPipelines(m_context)
         , m_gpuPipelines(m_context)
         , m_screenResources(m_context, FramesInFlight)
@@ -498,6 +499,7 @@ namespace aiko::renderer::vulkan
         m_frameResources.create();
         m_gpuReadDescriptors.create();
         m_modelPipelines.create(m_frameResources.layout(), m_gpuReadDescriptors.layout());
+        m_shadowResources.create(m_modelPipelines.shadowLayout());
         m_gpuPipelines.create(m_modelPipelines.layout());
         m_materialResources.create(m_modelPipelines.materialLayout());
         m_whiteTexture.create();
@@ -517,6 +519,7 @@ namespace aiko::renderer::vulkan
         m_materialResources.destroy();
         m_whiteTexture.unload();
         m_gpuPipelines.destroy();
+        m_shadowResources.destroy();
         m_modelPipelines.destroy();
         m_frameResources.destroy();
         m_gpuReadDescriptors.destroy();
@@ -1065,7 +1068,7 @@ namespace aiko::renderer::vulkan
             return;
         }
 
-        if (viewId != SCENE_VIEW && viewId != POST_PROCESS_VIEW && viewId != UI_VIEW && viewId != COMPUTE_VIEW)
+        if (viewId != SCENE_VIEW && viewId != SHADOW_VIEW && viewId != POST_PROCESS_VIEW && viewId != UI_VIEW && viewId != COMPUTE_VIEW)
         {
             return;
         }
@@ -1164,7 +1167,7 @@ namespace aiko::renderer::vulkan
 
         const VulkanFrameBinding& binding = m_frameResources.allocate(frame, ubo);
 
-        if (viewId == SCENE_VIEW || viewId == POST_PROCESS_VIEW || viewId == UI_VIEW)
+        if (viewId == SCENE_VIEW || viewId == SHADOW_VIEW || viewId == POST_PROCESS_VIEW || viewId == UI_VIEW)
         {
             vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsFrameSet, 1, &binding.descriptorSet, 0, nullptr);
         }
@@ -2100,7 +2103,7 @@ namespace aiko::renderer::vulkan
     void VulkanRenderDevice::drawMeshWithPipeline(ViewId viewId, const mat4& world, const Mesh& mesh, VkPipeline pipeline)
     {
         AIKO_FUNCTION_PROFILE
-        if (viewId != SCENE_VIEW || m_renderPassActive == false)
+        if ((viewId != SCENE_VIEW && viewId != SHADOW_VIEW) || m_renderPassActive == false)
         {
             return;
         }
@@ -3171,7 +3174,8 @@ namespace aiko::renderer::vulkan
     {
         AIKO_FUNCTION_PROFILE
 
-        AIKO_ASSERT(m_activeRenderPassCompatibility.colorFormat != VK_FORMAT_UNDEFINED, "Graphics pipeline requires an active render-pass compatibility key");
+        AIKO_ASSERT(m_renderPassActive, "Graphics pipeline requires an active render pass");
+        AIKO_ASSERT(m_activeRenderPassCompatibility.depthFormat != VK_FORMAT_UNDEFINED, "Model pipeline requires a depth attachment");
 
         VulkanShaderImpl* shaderImpl = nullptr;
         RenderResourceId shaderResourceId = InvalidRenderResourceId;

@@ -32,6 +32,7 @@ namespace aiko::lab
             FullPBR,
             ColorSpace,
             MaterialColor,
+            ShadowValidation,
         };
 
         constexpr float SphereRadius = 0.8f;
@@ -60,6 +61,7 @@ namespace aiko::lab
         initFullPbrTest();
         initColorSpaceTest();
         initMaterialColorTest();
+        initShadowValidation();
 
         // Avoid Bloom masking small differences between materials.
         renderer().postProcessing().setEnabled("Bloom", false);
@@ -95,6 +97,11 @@ namespace aiko::lab
             case VisualTest::MaterialColor:
                 renderMaterialColorTest();
                 break;
+
+            case VisualTest::ShadowValidation:
+                renderShadowValidation();
+                break;
+
         }
     }
 
@@ -103,6 +110,8 @@ namespace aiko::lab
         m_sphereMesh.unload();
         m_fireHydrantMesh.unload();
         m_colorSpaceQuad.unload();
+        m_shadowCubeMesh.unload();
+        m_shadowGroundMesh.unload();
     }
 
     void VisualLab::initLighting()
@@ -343,6 +352,28 @@ namespace aiko::lab
         m_materialColorMaterial.setAlbedoMap(textureId);
     }
 
+    void VisualLab::initShadowValidation()
+    {
+        m_shadowCubeMesh.upload(mesh::factory::generateCube());
+        m_shadowGroundMesh.upload(mesh::factory::generateMeshPlane(1.0f, 1.0f, 2, 2));
+
+        AIKO_ASSERT(m_shadowCubeMesh.isValid(), "Shadow validation cube is invalid");
+        AIKO_ASSERT(m_shadowGroundMesh.isValid(), "Shadow validation ground is invalid");
+
+        const AssetId pbrShader = assets().loadShader("pbr");
+
+        m_shadowCasterMaterial.m_shaderId = pbrShader;
+        m_shadowCasterMaterial.m_lit = true;
+        m_shadowCasterMaterial.m_useVertexColor = false;
+        m_shadowCasterMaterial.m_baseColor = Color{0.9f, 0.4f, 0.15f, 1.0f};
+        m_shadowCasterMaterial.setMetallic(0.0f);
+        m_shadowCasterMaterial.setRoughness(0.6f);
+
+        m_shadowGroundMaterial = m_shadowCasterMaterial;
+        m_shadowGroundMaterial.m_baseColor = Color{0.65f, 0.7f, 0.75f, 1.0f};
+        m_shadowGroundMaterial.setRoughness(0.9f);
+    }
+
     void VisualLab::renderImgui()
     {
         if (ImGui::BeginCombo("VisualMode##Test", magic_enum::enum_name(ActiveTest).data()))
@@ -363,6 +394,28 @@ namespace aiko::lab
             }
             ImGui::EndCombo();
         }
+
+
+        if (ActiveTest == VisualTest::ShadowValidation)
+        {
+            ImGui::SeparatorText("Shadow Validation");
+
+            ImGui::Checkbox("Animate cube", &m_shadowAnimate);
+            ImGui::Checkbox("Show ground", &m_shadowShowGround);
+            ImGui::Checkbox("Show sphere", &m_shadowShowSphere);
+
+            ImGui::SliderFloat("Cube height", &m_shadowHeight, 0.5f, 5.0f);
+
+            if (!m_shadowAnimate)
+            {
+                ImGui::SliderFloat("Cube rotation", &m_shadowRotation, 0.0f, 360.0f);
+            }
+
+            ImGui::Separator();
+            ImGui::TextDisabled("Shadow depth generation active.");
+            ImGui::TextDisabled("Shadow reception visualization pending.");
+        }
+
     }
 
     void VisualLab::renderPbrMatrix()
@@ -462,6 +515,49 @@ namespace aiko::lab
         transform.scale = {10.0f, 5.0f, 1.0f};
 
         renderer().drawMesh(transform, m_colorSpaceQuad, m_materialColorMaterial);
+    }
+
+    void VisualLab::renderShadowValidation()
+    {
+        constexpr float SceneZ = -12.0f;
+
+        if (m_shadowAnimate)
+        {
+            m_shadowRotation += ImGui::GetIO().DeltaTime * 35.0f;
+
+            if (m_shadowRotation >= 360.0f)
+            {
+                m_shadowRotation -= 360.0f;
+            }
+        }
+
+        // Receiver: large horizontal ground.
+        if (m_shadowShowGround)
+        {
+            Transform ground{};
+            ground.position = {0.0f, -0.5f, SceneZ};
+            ground.scale = {14.0f, 1.0f, 14.0f};
+
+            renderer().drawMesh(ground, m_shadowGroundMesh, m_shadowGroundMaterial);
+        }
+
+        // Caster: elevated rotating cube.
+        Transform cube{};
+        cube.position = {-1.5f, m_shadowHeight, SceneZ};
+        cube.rotation = {0.0f, m_shadowRotation, 0.0f};
+        cube.scale = {1.5f, 1.5f, 1.5f};
+
+        renderer().drawMesh(cube, m_shadowCubeMesh, m_shadowCasterMaterial);
+
+        // Additional rounded caster for silhouette comparison.
+        if (m_shadowShowSphere)
+        {
+            Transform sphere{};
+            sphere.position = {2.0f, 1.0f, SceneZ};
+            sphere.scale = {1.0f, 1.0f, 1.0f};
+
+            renderer().drawMesh(sphere, m_sphereMesh, m_shadowCasterMaterial);
+        }
     }
 
 }

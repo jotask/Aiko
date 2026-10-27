@@ -8,6 +8,7 @@ namespace aiko::renderer::vulkan::abi
     static constexpr uint32_t GraphicsFrameSet = 0;
     static constexpr uint32_t GraphicsMaterialSet = 1;
     static constexpr uint32_t GraphicsGpuReadSet = 2;
+    static constexpr uint32_t GraphicsShadowSet = 3;
 
     static constexpr uint32_t GraphicsFrameBinding = 0;
 
@@ -16,6 +17,9 @@ namespace aiko::renderer::vulkan::abi
     static constexpr uint32_t MaxMaterialTextureBindings = 8;
 
     static constexpr uint32_t MaxGpuReadBindings = 16;
+
+    static constexpr uint32_t ShadowUboBinding = 0;
+    static constexpr uint32_t ShadowTextureBinding = 1;
 
     static constexpr uint32_t ComputeSet = 0;
 

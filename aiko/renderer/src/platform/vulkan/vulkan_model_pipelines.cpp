@@ -27,7 +27,7 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(m_materialLayout == VK_NULL_HANDLE, "Vulkan model material layout already created");
 
         createMaterialLayout();
-
+        createShadowLayout();
         createPipelineLayout(frameLayout, gpuReadLayout);
     }
 
@@ -78,12 +78,14 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(frameLayout != VK_NULL_HANDLE, "Frame descriptor layout is invalid");
         AIKO_ASSERT(m_materialLayout != VK_NULL_HANDLE, "Material descriptor layout is invalid");
         AIKO_ASSERT(gpuReadLayout != VK_NULL_HANDLE, "GPU-read descriptor layout is invalid");
+        AIKO_ASSERT(m_shadowLayout != VK_NULL_HANDLE, "Shadow descriptor layout is invalid");
 
-        std::array<VkDescriptorSetLayout, 3> setLayouts{};
+        std::array<VkDescriptorSetLayout, 4> setLayouts{};
 
         setLayouts[abi::GraphicsFrameSet] = frameLayout;
         setLayouts[abi::GraphicsMaterialSet] = m_materialLayout;
         setLayouts[abi::GraphicsGpuReadSet] = gpuReadLayout;
+        setLayouts[abi::GraphicsShadowSet] = m_shadowLayout;
 
         const VkPushConstantRange pushConstantRange =
         {
@@ -542,6 +544,35 @@ namespace aiko::renderer::vulkan
         return pipeline;
     }
 
+    void VulkanModelPipelines::createShadowLayout()
+    {
+        AIKO_ASSERT(m_shadowLayout == VK_NULL_HANDLE, "Shadow descriptor layout already created");
+
+        const std::array<VkDescriptorSetLayoutBinding, 2> bindings{{
+            {
+                .binding = abi::ShadowUboBinding,
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                .descriptorCount = 1,
+                .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+            },
+            {
+                .binding = abi::ShadowTextureBinding,
+                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .descriptorCount = 1,
+                .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+            }
+        }};
+
+        const VkDescriptorSetLayoutCreateInfo info{
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .bindingCount = static_cast<uint32_t>(bindings.size()),
+            .pBindings = bindings.data(),
+        };
+
+        const VkResult result = vkCreateDescriptorSetLayout(m_context.device(), &info, nullptr, &m_shadowLayout);
+        AIKO_ASSERT(result == VK_SUCCESS, "Failed to create shadow descriptor layout");
+    }
+
     void VulkanModelPipelines::destroy()
     {
         VkDevice device = m_context.device();
@@ -567,6 +598,12 @@ namespace aiko::renderer::vulkan
         {
             vkDestroyDescriptorSetLayout(device, m_materialLayout, nullptr);
             m_materialLayout = VK_NULL_HANDLE;
+        }
+
+        if (m_shadowLayout != VK_NULL_HANDLE)
+        {
+            vkDestroyDescriptorSetLayout(device, m_shadowLayout, nullptr);
+            m_shadowLayout = VK_NULL_HANDLE;
         }
     }
 }

@@ -32,6 +32,7 @@ namespace aiko::renderer::vulkan
 
         VkPipelineLayout layout() const { return m_layout; }
         VkDescriptorSetLayout materialLayout() const { return m_materialLayout; }
+        VkDescriptorSetLayout shadowLayout() const { return m_shadowLayout; }
 
     private:
         void createMaterialLayout();
@@ -42,9 +43,12 @@ namespace aiko::renderer::vulkan
 
         VkPipeline createInstancedPipeline(const ModelPipelineKey& key, VkRenderPass renderPass, const IResourceResolver& resources);
 
+        void createShadowLayout();
+
         VulkanContext& m_context;
 
         VkDescriptorSetLayout m_materialLayout = VK_NULL_HANDLE;
+        VkDescriptorSetLayout m_shadowLayout = VK_NULL_HANDLE;
 
         VkPipelineLayout m_layout = VK_NULL_HANDLE;
 

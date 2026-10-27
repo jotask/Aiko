@@ -30,6 +30,7 @@
 #include "vulkan_gpu_pipelines.h"
 #include "vulkan_readback_resources.h"
 #include "vulkan_material_resources.h"
+#include "vulkan_shadow_resources.h"
 
 namespace aiko::renderer::vulkan
 {
@@ -108,6 +109,7 @@ namespace aiko::renderer::vulkan
         VulkanTextureImpl* m_activeDepthAttachment = nullptr;
 
         VulkanFrameResources m_frameResources;
+        VulkanShadowResources m_shadowResources;
         VulkanModelPipelines m_modelPipelines;
         VulkanGpuPipelines m_gpuPipelines;
         VulkanScreenResources m_screenResources;
