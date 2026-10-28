@@ -1,14 +1,10 @@
 #include "spline.h"
 
+#include "constant_types.h"
 #include "core/utils.h"
 
 namespace ab
 {
-
-    namespace
-    {
-        constexpr float epsilon = 1e-5f;
-    }
 
     Spline::Spline()
     {
