@@ -6,6 +6,8 @@
 #include <components/camera_component.h>
 #include <components/mesh_component.h>
 
+#include "extensions/ImGuiRoadProfiler.h"
+
 #include <imgui.h>
 
 namespace ab
@@ -43,6 +45,10 @@ namespace ab
     void ApexBorn::renderImgui()
     {
         renderMenuBar();
+        if (m_openRoadProfilerEditor)
+        {
+            ImGuiRoadProfiler::Render(&m_openRoadProfilerEditor);
+        }
     }
 
     void ApexBorn::renderMenuBar()
@@ -63,6 +69,11 @@ namespace ab
                 {
 
                 }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Tools"))
+            {
+                ImGui::MenuItem("RoadProfilerEditor", nullptr, &m_openRoadProfilerEditor);
                 ImGui::EndMenu();
             }
             ImGui::EndMainMenuBar();

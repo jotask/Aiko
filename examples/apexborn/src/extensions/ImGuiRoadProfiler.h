@@ -14,7 +14,7 @@ namespace ab
     {
     public:
 
-        static void Render();
+        static void Render(bool* open);
 
         static const std::vector<aiko::vec2>& GetPoints();
         static bool IsClosed();

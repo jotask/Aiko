@@ -35,10 +35,10 @@ namespace ab
     std::optional<size_t> ImGuiRoadProfiler::contextPointIndex = std::nullopt;
     bool ImGuiRoadProfiler::isClosed = false;
 
-    void ImGuiRoadProfiler::Render()
+    void ImGuiRoadProfiler::Render(bool* open)
     {
 
-        if (!ImGui::Begin("Road Profile Editor"))
+        if (!ImGui::Begin("Road Profile Editor", open))
         {
             ImGui::End();
             return;

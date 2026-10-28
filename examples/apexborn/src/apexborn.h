@@ -26,6 +26,8 @@ namespace ab
 
         Track m_track;
 
+        bool m_openRoadProfilerEditor = false;
+
     };
 
 }
