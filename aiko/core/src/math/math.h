@@ -67,6 +67,26 @@ namespace aiko
             return sqrt(lengthSquared(v));
         }
 
+        inline float distanceSquared(const vec2& a, const vec2& b)
+        {
+            return lengthSquared(b - a);
+        }
+
+        inline float distance(const vec2& a, const vec2& b)
+        {
+            return length(b - a);
+        }
+
+        inline float distanceSquared(const vec3& a, const vec3& b)
+        {
+            return lengthSquared(b - a);
+        }
+
+        inline float distance(const vec3& a, const vec3& b)
+        {
+            return length(b - a);
+        }
+
         template<class T>
         T map(T x, T in_min, T in_max, T out_min, T out_max)
         {
