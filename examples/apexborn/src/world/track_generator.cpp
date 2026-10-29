@@ -17,14 +17,12 @@ namespace ab
         }
     }
 
-    std::optional<Spline::Points> TrackGenerator::generate(const TrackGeneratorSettings& settings, TrackGenerationDebug* debug)
+    std::optional<Spline::Points> TrackGenerator::generate(const TrackGeneratorSettings& settings, TrackGenerationDebug& debug)
     {
         constexpr uint32_t MaxGenerationAttempts = 64;
 
-        if (debug)
-        {
-            *debug = {};
-        }
+        debug = {};
+        debug.areaSize = settings.areaSize;
 
         AIKO_ASSERT(settings.controlPointCount >= 4, "At least four points required");
         AIKO_ASSERT(settings.areaSize.x > 0.0f, "Invalid generation area width");
@@ -80,12 +78,12 @@ namespace ab
                 continue;
             }
 
-            if (debug)
+            // Deb
             {
-                debug->randomPoints = points;
-                debug->convexHull = convexHull;
-                debug->displacedPoints = displacedPoints;
-                debug->correctedPoints = correctedPoints;
+                debug.randomPoints = points;
+                debug.convexHull = convexHull;
+                debug.displacedPoints = displacedPoints;
+                debug.correctedPoints = correctedPoints;
             }
 
             std::vector<aiko::vec3> result = {};

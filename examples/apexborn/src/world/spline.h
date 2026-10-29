@@ -18,7 +18,7 @@ namespace ab
         Spline();
         ~Spline();
 
-        void generate(aiko::uint subdivisions = 7);
+        void generate(const Points& controlPoints, aiko::uint subdivisions = 7);
 
         aiko::vec3 getSampleTangent(size_t splineIdx) const;
 

@@ -6,29 +6,24 @@
 namespace ab
 {
 
-    Spline::Spline()
-    {
-        m_controlPoints.push_back({-2.0f, 0.0f, -2.0f});
-        m_controlPoints.push_back({-2.0f, 0.0f,  2.0f});
-        m_controlPoints.push_back({ 2.0f, 0.0f,  2.0f});
-        m_controlPoints.push_back({ 2.0f, 0.0f, -2.0f});
-    }
-
+    Spline::Spline() = default;
     Spline::~Spline() = default;
 
-    void Spline::generate(aiko::uint subdivisions)
+    void Spline::generate(const Points& controlPoints, aiko::uint subdivisions)
     {
-        AIKO_ASSERT(m_controlPoints.size() >= 4, "Spline should contains at least four points");
+        AIKO_ASSERT(controlPoints.size() >= 4, "Spline should contains at least four points");
         AIKO_ASSERT(subdivisions > 0, "We can't generate 0 subdivision");
 
-        // Valiation
-        for (size_t i = 0; i < m_controlPoints.size(); ++i)
+        // Validation
+        for (size_t i = 0; i < controlPoints.size(); ++i)
         {
-            const auto current = m_controlPoints[i];
-            const auto neighbour = m_controlPoints[(i + 1) % m_controlPoints.size()];
-            const auto distance = aiko::math::distance(current, neighbour);
+            const auto current = controlPoints[i];
+            const auto next = controlPoints[(i + 1) % controlPoints.size()];
+            const auto distance = aiko::math::distance(current, next);
             AIKO_ASSERT(distance > epsilon, "Identical control points?");
         }
+
+        m_controlPoints = controlPoints;
 
         m_spline.clear();
         m_spline.reserve(m_controlPoints.size() * subdivisions);

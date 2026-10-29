@@ -2,6 +2,7 @@
 
 #include "models/material.h"
 #include "models/mesh.h"
+#include "track_generator.h"
 #include "world/road_profile.h"
 #include "world/spline.h"
 
@@ -19,23 +20,28 @@ namespace ab
         Track();
         ~Track();
 
-        void generate(aiko::AssetContext&);
+        void init(aiko::AssetContext&);
+
+        bool generate(const TrackGeneratorSettings& settings);
 
         void render(aiko::RenderContext& context);
 
+        bool& isDebugEnabled() { return m_debugEnabled; }
+
     private:
 
+        void renderDebug(aiko::RenderContext& context);
+
         Spline m_centerLine;
-
-        float m_trackWidth = 1.0f;
-
-        Spline::Points m_leftEdge;
-        Spline::Points m_rightEdge;
-
         RoadProfile m_profile;
 
         aiko::Mesh m_roadMesh;
         aiko::Material m_roadMaterial;
+
+        TrackGenerator::TrackGenerationDebug m_generationDebug;
+
+        bool m_debugEnabled = false;
+
 
     };
 

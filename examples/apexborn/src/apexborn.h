@@ -23,10 +23,17 @@ namespace ab
 
         void renderImgui();
         void renderMenuBar();
+        void renderTrackGenerationSettings();
 
+        struct TrackImguiSettings
+        {
+            bool isOpen = false;
+            bool isRoadProfilerEditor = false;
+        };
+
+        TrackGeneratorSettings m_trackSettings = {};
         Track m_track;
-
-        bool m_openRoadProfilerEditor = false;
+        TrackImguiSettings m_trackImgui;
 
     };
 

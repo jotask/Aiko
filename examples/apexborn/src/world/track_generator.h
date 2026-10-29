@@ -4,12 +4,16 @@
 
 #include <cstdint>
 #include <optional>
+#include <random>
 
 namespace ab
 {
 
     struct TrackGeneratorSettings
     {
+
+        float trackWidth = 1.0f;
+
         uint32_t seed = 42;
         uint32_t controlPointCount = 25;
 
@@ -28,13 +32,14 @@ namespace ab
 
         struct TrackGenerationDebug
         {
+            aiko::vec2 areaSize;
             std::vector<aiko::vec2> randomPoints;
             std::vector<aiko::vec2> convexHull;
             std::vector<aiko::vec2> displacedPoints;
             std::vector<aiko::vec2> correctedPoints;
         };
 
-        static std::optional<Spline::Points> generate(const TrackGeneratorSettings& settings, TrackGenerationDebug* debug = nullptr);
+        static std::optional<Spline::Points> generate(const TrackGeneratorSettings& settings, TrackGenerationDebug& debug);
     private:
 
         static std::vector<aiko::vec2> generateRandomPoints(const TrackGeneratorSettings& settings, std::mt19937& rng);

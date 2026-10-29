@@ -23,10 +23,15 @@ namespace ab
         scene().clearColor() = aiko::BLACK;
 
         aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Fly, aiko::Camera::CameraType::Perspective);
-        camera->getCamera().position = { 0.0f, 8.0f, 10.0f };
+        camera->getCamera().position = { 0.0f, 50.0f, 10.0f };
         camera->getCamera().target = {0.0f, 0.0f, 0.0f};
 
-        m_track.generate(assets());
+        m_track.init(assets());
+        const bool generated = m_track.generate(m_trackSettings);
+        if (generated == false)
+        {
+            aiko::logger::Log::error("Couldn't generate track with default settings");
+        }
 
     }
 
@@ -45,9 +50,13 @@ namespace ab
     void ApexBorn::renderImgui()
     {
         renderMenuBar();
-        if (m_openRoadProfilerEditor)
+        if (m_trackImgui.isOpen)
         {
-            ImGuiRoadProfiler::Render(&m_openRoadProfilerEditor);
+            renderTrackGenerationSettings();
+        }
+        if (m_trackImgui.isRoadProfilerEditor)
+        {
+            ImGuiRoadProfiler::Render(&m_trackImgui.isRoadProfilerEditor);
         }
     }
 
@@ -73,11 +82,48 @@ namespace ab
             }
             if (ImGui::BeginMenu("Tools"))
             {
-                ImGui::MenuItem("RoadProfilerEditor", nullptr, &m_openRoadProfilerEditor);
+                ImGui::MenuItem("RoadGenerationSettings", nullptr, &m_trackImgui.isOpen);
+                ImGui::MenuItem("RoadProfilerEditor", nullptr, &m_trackImgui.isRoadProfilerEditor);
                 ImGui::EndMenu();
             }
             ImGui::EndMainMenuBar();
         }
+    }
+
+    void ApexBorn::renderTrackGenerationSettings()
+    {
+        if (ImGui::Begin("Road Generation Settings", &m_trackImgui.isOpen) == false)
+        {
+            ImGui::End();
+            return;
+        }
+
+        const uint32_t minPoints = 4;
+        const uint32_t maxPoints = 100;
+
+        ImGui::DragFloat("Track Width", &m_trackSettings.trackWidth, 0.025f, 0.1f, 10.0f);
+
+        ImGui::InputScalar("Track Seed", ImGuiDataType_U32, &m_trackSettings.seed);
+        ImGui::DragScalar("Random Points", ImGuiDataType_U32, &m_trackSettings.controlPointCount, 1.0f, &minPoints, &maxPoints, "%u");
+
+        ImGui::DragFloat2("Area Size", &m_trackSettings.areaSize.x, 0.25f, 1.0f, 500.0f);
+        ImGui::DragFloat("Min Distance", &m_trackSettings.minDistance, 0.05f, 0.0f, 20.0f);
+        ImGui::DragFloat("Max Displacement", &m_trackSettings.maxDisplacement, 0.05f, 0.0f, 50.0f);
+        ImGui::DragFloat("Min Control Point Distance", &m_trackSettings.minControlPointDistance, 0.05f, 0.0f, 20.0f);
+        ImGui::SliderFloat("Max Turn Angle", &m_trackSettings.maxTurnAngle, 1.0f, 180.0f, "%.1f deg");
+
+        ImGui::Checkbox("Enable Debug Render", &m_track.isDebugEnabled());
+
+        if (ImGui::Button("Regenerate Track"))
+        {
+            const bool generated = m_track.generate(m_trackSettings);
+            if (generated == false)
+            {
+                aiko::logger::Log::error("Couldn't generate track with current settings");
+            }
+        }
+
+        ImGui::End();
     }
 
 }
