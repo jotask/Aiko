@@ -47,6 +47,16 @@ namespace aiko
             return std::pow(raise, power);
         }
 
+        inline float lengthSquared(const vec2& v)
+        {
+            return v.x * v.x + v.y * v.y;
+        }
+
+        inline float length(const vec2& v)
+        {
+            return sqrt(lengthSquared(v));
+        }
+
         inline float lengthSquared(const vec3& v)
         {
             return v.x * v.x + v.y * v.y + v.z * v.z;
