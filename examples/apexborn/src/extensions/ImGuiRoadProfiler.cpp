@@ -284,7 +284,7 @@ namespace ab
         {
             const float dx = points[i].x - mousePosInCanvas.x;
             const float dy = points[i].y - mousePosInCanvas.y;
-            const float distanceSquared = dx * dx + dy * dy;
+            const float distanceSquared = aiko::math::distanceSquared(points[i], mousePosInCanvas);
             if (distanceSquared < minDistanceSquare)
             {
                 minDistanceSquare = distanceSquared;
@@ -311,7 +311,7 @@ namespace ab
 
         const aiko::vec2 Q = aiko::vec2(pointA.x + AB.x * t, pointA.y + AB.y * t);
 
-        const auto distance = aiko::math::length(Q - mousePosition);
+        const auto distance = aiko::math::distance(Q, mousePosition);
 
         if (distance < result.distance)
         {

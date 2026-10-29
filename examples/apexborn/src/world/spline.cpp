@@ -26,7 +26,7 @@ namespace ab
         {
             const auto current = m_controlPoints[i];
             const auto neighbour = m_controlPoints[(i + 1) % m_controlPoints.size()];
-            const auto distance = aiko::math::length(neighbour - current);
+            const auto distance = aiko::math::distance(current, neighbour);
             AIKO_ASSERT(distance > epsilon, "Identical control points?");
         }
 
@@ -55,11 +55,11 @@ namespace ab
         float totalLength = 0;
         for (size_t sample = 1 ; sample < denseSamples.size(); ++sample)
         {
-            const float distance = aiko::math::length(denseSamples[sample - 0] - denseSamples[sample - 1]);
+            const float distance = aiko::math::distance(denseSamples[sample - 1], denseSamples[sample - 0]);
             totalLength += distance;
             cumulativeDistances.push_back(totalLength);
         }
-        const float distance = aiko::math::length(denseSamples[denseSamples.size() - 1] - denseSamples[0]);
+        const float distance = aiko::math::distance(denseSamples.back(), denseSamples.front());
         totalLength += distance;
         denseSamples.push_back(denseSamples[0]);
         cumulativeDistances.push_back(totalLength);
@@ -116,9 +116,9 @@ namespace ab
         const aiko::vec3& p3 = m_controlPoints[(i + 2) % N];
 
         const float t0 = 0.0f;
-        const float t1 = t0 + aiko::math::sqrt(aiko::math::length(p1 - p0));
-        const float t2 = t1 + aiko::math::sqrt(aiko::math::length(p2 - p1));
-        const float t3 = t2 + aiko::math::sqrt(aiko::math::length(p3 - p2));
+        const float t1 = t0 + aiko::math::sqrt(aiko::math::distance(p0, p1));
+        const float t2 = t1 + aiko::math::sqrt(aiko::math::distance(p1, p2));
+        const float t3 = t2 + aiko::math::sqrt(aiko::math::distance(p2, p3));
 
         // Interpolation
         const float t = t1 + u * ( t2 - t1);
@@ -154,7 +154,7 @@ namespace ab
         const auto nextSample = m_spline[(splineIdx + 1) % N];
 
         const auto direction = nextSample - previousSample;
-        AIKO_ASSERT(aiko::math::length(direction) > epsilon, "Cannot normalize a zero-length tangent");
+        AIKO_ASSERT(aiko::math::distanceSquared(previousSample, nextSample) > epsilon * epsilon, "Cannot normalize a zero-length tangent");
         const auto normalizedDirection = aiko::math::normalize(direction);
         return normalizedDirection;
     }

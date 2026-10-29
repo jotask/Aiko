@@ -40,7 +40,7 @@ namespace ab
             const auto& previous = centerLine[i - 1];
             const auto& current = centerLine[i % ringCount];
 
-            trackDistance[i] = trackDistance[i -1] + aiko::math::length(current - previous);
+            trackDistance[i] = trackDistance[i -1] + aiko::math::distance(previous, current);
         }
 
         const float trackLength = trackDistance.back();
@@ -51,7 +51,7 @@ namespace ab
         for(size_t i = 0 ; i < edgeCount; ++i)
         {
             const auto& p0 = profile.points[i];
-            const auto& p1 = profile.points[(i + 1) % edgeCount];
+            const auto& p1 = profile.points[(i + 1) % profileCount];
 
             const aiko::vec2 delta = {
                 (p1.x - p0.x) * desc.roadWidth,
