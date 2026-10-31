@@ -20,11 +20,15 @@ namespace ab
     void ApexBorn::init()
     {
 
-        scene().clearColor() = aiko::BLACK;
+        scene().clearColor() = {0.10f, 0.16f, 0.13f};
 
         aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Fly, aiko::Camera::CameraType::Perspective);
         camera->getCamera().position = { 0.0f, 50.0f, 10.0f };
         camera->getCamera().target = {0.0f, 0.0f, 0.0f};
+        camera->speed() *= 4.0f;
+
+        scene().ambientLight().color = aiko::WHITE;
+        scene().ambientLight().intensity = 0.3f;
 
         m_track.init(assets());
         const bool generated = m_track.generate(m_trackSettings);
@@ -44,6 +48,16 @@ namespace ab
     {
         Layer::render();
         renderImgui();
+
+        const aiko::LightData sun
+        {
+            .type = aiko::LightType::Directional,
+            .direction = {-0.5f, -1.0f, -0.3f},
+            .color = aiko::WHITE,
+            .intensity = 1.0f,
+        };
+        renderer().submitLight(sun);
+
         m_track.render(renderer());
     }
 

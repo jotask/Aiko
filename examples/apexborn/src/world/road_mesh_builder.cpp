@@ -118,10 +118,12 @@ namespace ab
                 constexpr aiko::Color Side     = {0.80f, 0.28f, 0.27f};
                 constexpr aiko::Color Bottom   = {0.12f, 0.13f, 0.15f};
 
+                const float upness = aiko::math::dot(normal, up);
+
                 const aiko::Color faceColor =
-                    j == 0 ? Asphalt :
-                    j == 2 ? Bottom :
-                             Side;
+                    upness > 0.5f ? Asphalt :
+                    upness < -0.5f ? Bottom :
+                                     Side;
 
                 asset.m_colors.push_back(faceColor);
                 asset.m_colors.push_back(faceColor);
