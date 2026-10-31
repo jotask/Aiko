@@ -2,6 +2,7 @@
 
 #include "extensions/ImGuiRoadProfiler.h"
 #include "world/track.h"
+#include "world/track_environment.h"
 
 #include <layers/layer.h>
 
@@ -23,6 +24,8 @@ namespace ab
         virtual void render() override;
     private:
 
+        bool regenerateWorld();
+
         void renderImgui();
         void renderMenuBar();
         void renderTrackGenerationSettings();
@@ -35,6 +38,7 @@ namespace ab
 
         TrackGeneratorSettings m_trackSettings = {};
         Track m_track;
+        TrackEnvironment m_environment;
         TrackImguiSettings m_trackImgui;
         ImGuiRoadProfiler m_profileEditor;
 

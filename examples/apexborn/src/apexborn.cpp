@@ -31,10 +31,11 @@ namespace ab
         scene().ambientLight().intensity = 0.3f;
 
         m_track.init(assets());
-        const bool generated = m_track.generate(m_trackSettings);
-        if (generated == false)
+        m_environment.init(assets());
+
+        if (regenerateWorld() == false)
         {
-            aiko::logger::Log::error("Couldn't generate track with default settings");
+            aiko::logger::Log::error("Couldn't generate ApexBorn world");
         }
 
     }
@@ -58,7 +59,31 @@ namespace ab
         };
         renderer().submitLight(sun);
 
+        m_environment.render(renderer());
         m_track.render(renderer());
+    }
+
+    bool ApexBorn::regenerateWorld()
+    {
+        if (!m_track.generate(m_trackSettings))
+        {
+            return false;
+        }
+
+        // Allow room beyond the procedural track generation area.
+        constexpr float GroundPadding = 12.0f;
+
+        const float margin =
+            GroundPadding +
+            m_trackSettings.maxDisplacement +
+            m_trackSettings.trackWidth;
+
+        const aiko::vec2 groundSize = {
+            m_trackSettings.areaSize.x + margin * 2.0f,
+            m_trackSettings.areaSize.y + margin * 2.0f
+        };
+
+        return m_environment.generate(groundSize);
     }
 
     void ApexBorn::renderImgui()
@@ -118,10 +143,9 @@ namespace ab
 
         if (ImGui::Button("Regenerate Track"))
         {
-            const bool generated = m_track.generate(m_trackSettings);
-            if (generated == false)
+            if (!regenerateWorld())
             {
-                aiko::logger::Log::error("Couldn't generate track with current settings");
+                aiko::logger::Log::error("Couldn't regenerate ApexBorn world");
             }
         }
 
