@@ -18,6 +18,10 @@ namespace ab
 
         static aiko::MeshAsset build(const Spline& spline, const RoadProfile& profile, const RoadMeshBuilderDesc& desc);
         static aiko::MeshAsset buildEdgeMarkings(const Spline& spline, const RoadProfile& profile, const RoadMeshBuilderDesc& descs);
+        static aiko::MeshAsset buildCurbs(const Spline& spline, const RoadProfile& profile, const RoadMeshBuilderDesc& desc);
+
+        private:
+        static float getProfileTopHeight(const RoadProfile& profile, float x);
     };
 
 }

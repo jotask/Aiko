@@ -42,6 +42,9 @@ namespace ab
         aiko::Mesh m_edgeMarkingsMesh;
         aiko::Material m_edgeMarkingsMaterial;
 
+        aiko::Mesh m_curbMesh;
+        aiko::Material m_curbMaterial;
+
         TrackGenerator::TrackGenerationDebug m_generationDebug;
 
         bool m_debugEnabled = false;

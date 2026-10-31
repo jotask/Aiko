@@ -30,6 +30,11 @@ namespace ab
         m_edgeMarkingsMaterial.m_lit = false;
         m_edgeMarkingsMaterial.m_useVertexColor = false;
         m_edgeMarkingsMaterial.m_baseColor = aiko::RAYWHITE;
+
+        m_curbMaterial.m_shaderId = assets.loadShader("model");
+        m_curbMaterial.m_lit = false;
+        m_curbMaterial.m_useVertexColor = true;
+        m_curbMaterial.m_baseColor = aiko::WHITE;
     }
 
     bool Track::generate(const TrackGeneratorSettings& settings)
@@ -60,6 +65,9 @@ namespace ab
         const auto markings = RoadMeshBuilder::buildEdgeMarkings(m_centerLine, m_profile, desc);
         m_edgeMarkingsMesh.upload(markings);
 
+        const auto curbs = RoadMeshBuilder::buildCurbs(m_centerLine, m_profile, desc);
+        m_curbMesh.upload(curbs);
+
         m_generationDebug = std::move(debug);
         return true;
 
@@ -76,6 +84,11 @@ namespace ab
         {
             context.drawMesh(transform, m_edgeMarkingsMesh, m_edgeMarkingsMaterial);
         }
+        if (m_curbMesh.isValid())
+        {
+            context.drawMesh(transform, m_curbMesh, m_curbMaterial);
+        }
+
         if (m_debugEnabled == true)
         {
             renderDebug(context);
