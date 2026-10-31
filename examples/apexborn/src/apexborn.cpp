@@ -54,36 +54,16 @@ namespace ab
         {
             renderTrackGenerationSettings();
         }
-        if (m_trackImgui.isRoadProfilerEditor)
-        {
-            ImGuiRoadProfiler::Render(&m_trackImgui.isRoadProfilerEditor);
-        }
+        m_profileEditor.render(m_track.roadProfile());
     }
 
     void ApexBorn::renderMenuBar()
     {
         if (ImGui::BeginMainMenuBar())
         {
-            if (ImGui::BeginMenu("File"))
-            {
-                if (ImGui::BeginMenu("Open"))
-                {
-                    ImGui::EndMenu();
-                }
-                if (ImGui::MenuItem("Close All Documents", NULL, false))
-                {
-
-                }
-                if (ImGui::MenuItem("Exit"))
-                {
-
-                }
-                ImGui::EndMenu();
-            }
             if (ImGui::BeginMenu("Tools"))
             {
                 ImGui::MenuItem("RoadGenerationSettings", nullptr, &m_trackImgui.isOpen);
-                ImGui::MenuItem("RoadProfilerEditor", nullptr, &m_trackImgui.isRoadProfilerEditor);
                 ImGui::EndMenu();
             }
             ImGui::EndMainMenuBar();
@@ -96,6 +76,14 @@ namespace ab
         {
             ImGui::End();
             return;
+        }
+
+        if (ImGui::Button("Open Profile Editor"))
+        {
+            if (!m_profileEditor.isOpen())
+            {
+                m_profileEditor.open(m_track.roadProfile());
+            }
         }
 
         const uint32_t minPoints = 4;

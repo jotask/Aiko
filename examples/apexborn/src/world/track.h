@@ -27,6 +27,7 @@ namespace ab
         void render(aiko::RenderContext& context);
 
         bool& isDebugEnabled() { return m_debugEnabled; }
+        RoadProfile& roadProfile() { return m_profile; }
 
     private:
 

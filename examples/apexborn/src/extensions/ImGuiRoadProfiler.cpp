@@ -1,6 +1,7 @@
 #include "ImGuiRoadProfiler.h"
 
 #include "constant_types.h"
+#include "world/road_profile.h"
 
 #include "aiko_types.h"
 #include "math/math.h"
@@ -16,6 +17,7 @@ namespace ab
         constexpr float ControlPointSize = 4.0f;
         constexpr float SnapDistance = 13.0f;
         constexpr float SelectedNodeRadius = 13.0f;
+        constexpr float PixelsPerUnit = 160.0f;
 
         constexpr ImU32 CanvasBackground = IM_COL32(30, 35, 45, 255);
         constexpr ImU32 CanvasBorder = IM_COL32(85, 100, 120, 255);
@@ -29,20 +31,31 @@ namespace ab
 
     }
 
-    std::vector<aiko::vec2> ImGuiRoadProfiler::points;
-    ImVec2 ImGuiRoadProfiler::scrolling(0.0f, 0.0f);
-    std::optional<size_t> ImGuiRoadProfiler::draggedControlPoint = std::nullopt;
-    std::optional<size_t> ImGuiRoadProfiler::contextPointIndex = std::nullopt;
-    bool ImGuiRoadProfiler::isClosed = false;
+    void ImGuiRoadProfiler::open(const RoadProfile& profile)
+    {
+        m_editProfile = profile;
+        m_draggedControlPoint.reset();
+        m_contextPointIndex.reset();
+        m_open = true;
+        m_saveFailed = false;
+    }
 
-    void ImGuiRoadProfiler::Render(bool* open)
+    void ImGuiRoadProfiler::render(RoadProfile& destination)
     {
 
-        if (!ImGui::Begin("Road Profile Editor", open))
+        if (!m_open)
+        {
+            return;
+        }
+
+        if (!ImGui::Begin("Road Profile Editor", &m_open))
         {
             ImGui::End();
             return;
         }
+
+        std::vector<aiko::vec2>& points = m_editProfile.points;
+        bool& isClosed = m_editProfile.closed;
 
         if (ImGui::BeginTable("RoadProfilerToolbar", 2, ImGuiTableFlags_SizingStretchSame))
         {
@@ -58,11 +71,33 @@ namespace ab
                 if (ImGui::Button("Clear All"))
                 {
                     points.clear();
-                    draggedControlPoint.reset();
-                    contextPointIndex.reset();
+                    m_draggedControlPoint.reset();
+                    m_contextPointIndex.reset();
                     isClosed = false;
                 }
                 ImGui::EndDisabled();
+
+                if (ImGui::Button("Save Profile"))
+                {
+                    RoadProfile normalized = m_editProfile;
+
+                    if (normalized.normalizeWidth())
+                    {
+                        destination = normalized;
+                        m_editProfile = std::move(normalized);
+                        m_saveFailed = false;
+                    }
+                    else
+                    {
+                        m_saveFailed = true;
+                    }
+                }
+
+                if (m_saveFailed)
+                {
+                    ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "Invalid road profile");
+                }
+
             }
             ImGui::EndChild();
 
@@ -77,8 +112,8 @@ namespace ab
                 ImGui::BulletText("Right Drag: Pan canvas");
             }
             ImGui::EndChild();
+            ImGui::EndTable();
         }
-        ImGui::EndTable();
 
         ImGui::Spacing();
 
@@ -104,11 +139,22 @@ namespace ab
         ImGui::InvisibleButton("canvas", canvasSZ, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
         const bool isHovered = ImGui::IsItemHovered(); // Hovered
         const bool isActive = ImGui::IsItemActive();   // Held
-        const ImVec2 origin(canvasP0.x + scrolling.x, canvasP0.y + scrolling.y); // Lock scrolled origin
-        const aiko::vec2 mousePosInCanvas(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+        const ImVec2 origin = { canvasP0.x + canvasSZ.x * 0.5f + m_scrolling.x, canvasP0.y + canvasSZ.y * 0.5f + m_scrolling.y};
 
-        const auto closest = GetClosestPointOnPolyline(mousePosInCanvas);
-        const auto hoveredControlPoint = isHovered ? FindClosestControlPoint(mousePosInCanvas) : std::nullopt;
+        const auto toScreen = [&](const aiko::vec2& point) -> ImVec2
+        {
+            return ImVec2{ origin.x + point.x * PixelsPerUnit, origin.y - point.y * PixelsPerUnit};
+        };
+
+        const auto toProfile = [&](const ImVec2& point) -> aiko::vec2
+        {
+            return aiko::vec2{(point.x - origin.x) / PixelsPerUnit, (origin.y - point.y) / PixelsPerUnit};
+        };
+
+        const aiko::vec2 mousePosInCanvas = toProfile(io.MousePos); // Mouse position in profiler canvas
+
+        const auto closest = GetClosestPointOnPolyline(m_editProfile, mousePosInCanvas);
+        const auto hoveredControlPoint = isHovered ? FindClosestControlPoint(m_editProfile, mousePosInCanvas) : std::nullopt;
 
         // Add a point or drag control
         if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
@@ -121,12 +167,12 @@ namespace ab
                 }
                 else
                 {
-                    draggedControlPoint = hoveredControlPoint;
+                    m_draggedControlPoint = hoveredControlPoint;
                 }
             }
             else if (!io.KeyCtrl)
             {
-                if (!hoveredControlPoint && closest.distance < SnapDistance)
+                if (!hoveredControlPoint && closest.distance < SnapDistance / PixelsPerUnit)
                 {
                     const size_t insertionIndex = closest.segmentIndex + 1;
                     points.insert(points.begin() + insertionIndex, closest.position);
@@ -138,13 +184,13 @@ namespace ab
             }
         }
 
-        if (draggedControlPoint && isActive && ImGui::IsMouseDown(ImGuiMouseButton_Left))
+        if (m_draggedControlPoint && isActive && ImGui::IsMouseDown(ImGuiMouseButton_Left))
         {
-            points[*draggedControlPoint] = mousePosInCanvas;
+            points[*m_draggedControlPoint] = mousePosInCanvas;
         }
         if (ImGui::IsMouseDown(ImGuiMouseButton_Left) == false)
         {
-            draggedControlPoint.reset();
+            m_draggedControlPoint.reset();
         }
 
         // Pan (we use a zero mouse threshold when there's no context menu)
@@ -152,30 +198,30 @@ namespace ab
         const float mouse_threshold_for_pan = -1.0f;
         if (isActive && ImGui::IsMouseDragging(ImGuiMouseButton_Right, mouse_threshold_for_pan))
         {
-            scrolling.x += io.MouseDelta.x;
-            scrolling.y += io.MouseDelta.y;
+            m_scrolling.x += io.MouseDelta.x;
+            m_scrolling.y += io.MouseDelta.y;
         }
 
         // Context menu (under default mouse threshold)
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && ImGui::IsMouseHoveringRect(canvasP0, canvasP1))
         {
-            contextPointIndex = FindClosestControlPoint(mousePosInCanvas);
+            m_contextPointIndex = FindClosestControlPoint(m_editProfile, mousePosInCanvas);
         }
         ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
 
         if (ImGui::BeginPopup("context"))
         {
-            if (contextPointIndex && *contextPointIndex < points.size())
+            if (m_contextPointIndex && *m_contextPointIndex < points.size())
             {
-                ImGui::Text("Point %zu", *contextPointIndex);
+                ImGui::Text("Point %zu", *m_contextPointIndex);
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Delete Point"))
                 {
-                    points.erase(points.begin() + *contextPointIndex);
+                    points.erase(points.begin() + *m_contextPointIndex);
 
-                    contextPointIndex.reset();
-                    draggedControlPoint.reset();
+                    m_contextPointIndex.reset();
+                    m_draggedControlPoint.reset();
 
                     if (points.size() < 3)
                     {
@@ -189,37 +235,37 @@ namespace ab
         // Draw grid + all lines in the canvas
         drawList->PushClipRect(canvasP0, canvasP1, true);
         constexpr float GridStep = 64.0f;
-        for (float x = std::fmodf(scrolling.x, GridStep); x < canvasSZ.x; x += GridStep)
+        for (float x = std::fmod(origin.x - canvasP0.x, GridStep); x < canvasSZ.x; x += GridStep)
         {
-            drawList->AddLine(ImVec2(canvasP0.x + x, canvasP0.y), ImVec2(canvasP0.x + x, canvasP1.y), GridColor);
+            drawList->AddLine({canvasP0.x + x, canvasP0.y}, {canvasP0.x + x, canvasP1.y}, GridColor);
         }
-        for (float y = std::fmodf(scrolling.y, GridStep); y < canvasSZ.y; y += GridStep)
+        for (float y = std::fmod(origin.y - canvasP0.y, GridStep); y < canvasSZ.y; y += GridStep)
         {
-            drawList->AddLine(ImVec2(canvasP0.x, canvasP0.y + y), ImVec2(canvasP1.x, canvasP0.y + y), GridColor);
+            drawList->AddLine({canvasP0.x, canvasP0.y + y}, {canvasP1.x, canvasP0.y + y}, GridColor);
         }
 
         if (isClosed && points.size() >= 3)
         {
-            const aiko::vec2& first = points.front();
-            const aiko::vec2& last = points.back();
-            drawList->AddLine(ImVec2(origin.x + last.x, origin.y + last.y), ImVec2(origin.x + first.x, origin.y + first.y), PolylineColor, PolylineSegmentThickness);
+            const ImVec2 first = toScreen(points.front());
+            const ImVec2 last = toScreen(points.back());
+            drawList->AddLine(first, last, PolylineColor, PolylineSegmentThickness);
         }
 
         if (points.size() >= 2)
         {
             for (size_t n = 1; n < points.size(); ++n)
             {
-                const ImVec2 start = ImVec2(origin.x + points[n - 1].x, origin.y + points[n - 1].y);
-                const ImVec2 end = ImVec2(origin.x + points[n - 0].x, origin.y + points[n - 0].y);
+                const ImVec2 start = toScreen(points[n - 1]);
+                const ImVec2 end = toScreen(points[n]);
                 drawList->AddLine(start, end, PolylineColor, PolylineSegmentThickness);
             }
         }
         for (size_t n = 0; n < points.size(); ++n)
         {
             const bool hovered = hoveredControlPoint && *hoveredControlPoint == n;
-            const bool dragged = draggedControlPoint && *draggedControlPoint == n;
+            const bool dragged = m_draggedControlPoint && *m_draggedControlPoint == n;
 
-            const ImVec2 position(origin.x + points[n].x, origin.y + points[n].y);
+            const ImVec2 position = toScreen(points[n]);
 
             ImU32 color = ControlPointColor;
             float radius = ControlPointSize;
@@ -240,9 +286,9 @@ namespace ab
             drawList->AddCircleFilled(position, radius, color);
         }
 
-        if (isHovered && !hoveredControlPoint && closest.distance < SnapDistance)
+        if (isHovered && !hoveredControlPoint && closest.distance < SnapDistance / PixelsPerUnit)
         {
-            const ImVec2 position(origin.x + closest.position.x, origin.y + closest.position.y);
+            const ImVec2 position = toScreen(closest.position);
             drawList->AddCircle(position, 6.0f, SnapPreviewColor, 16, 2.0f);
         }
 
@@ -252,39 +298,28 @@ namespace ab
 
     }
 
-    const std::vector<aiko::vec2>& ImGuiRoadProfiler::GetPoints()
-    {
-        return points;
-    }
-
-    bool ImGuiRoadProfiler::IsClosed()
-    {
-        return isClosed;
-    }
-
-    ImGuiRoadProfiler::PolylineProjection ImGuiRoadProfiler::GetClosestPointOnPolyline(const aiko::vec2& mousePosInCanvas)
+    ImGuiRoadProfiler::PolylineProjection ImGuiRoadProfiler::GetClosestPointOnPolyline(const RoadProfile& roadProfiler, const aiko::vec2& mousePosInCanvas)
     {
         ImGuiRoadProfiler::PolylineProjection result = {};
-        for (size_t i = 0; i + 1 < points.size(); ++i)
+        for (size_t i = 0; i + 1 < roadProfiler.points.size(); ++i)
         {
-            EvaluateSegmentProjection(mousePosInCanvas, points[i], points[i + 1], i, result);
+            EvaluateSegmentProjection(mousePosInCanvas, roadProfiler.points[i], roadProfiler.points[i + 1], i, result);
         }
-        if (isClosed && points.size() >= 3)
+        if (roadProfiler.closed && roadProfiler.points.size() >= 3)
         {
-            EvaluateSegmentProjection(mousePosInCanvas, points.back(), points.front(), points.size() - 1, result);
+            EvaluateSegmentProjection(mousePosInCanvas, roadProfiler.points.back(), roadProfiler.points.front(), roadProfiler.points.size() - 1, result);
         }
         return result;
     }
 
-    std::optional<size_t> ImGuiRoadProfiler::FindClosestControlPoint(const aiko::vec2& mousePosInCanvas)
+    std::optional<size_t> ImGuiRoadProfiler::FindClosestControlPoint(const RoadProfile& roadProfiler, const aiko::vec2& mousePosInCanvas)
     {
         std::optional<size_t> closestIndex = std::nullopt;
-        float minDistanceSquare = SelectedNodeRadius * SelectedNodeRadius;
-        for (size_t i = 0 ; i < points.size() ; ++i)
+        const float selectionRadius = SelectedNodeRadius / PixelsPerUnit;
+        float minDistanceSquare = selectionRadius * selectionRadius;
+        for (size_t i = 0 ; i < roadProfiler.points.size() ; ++i)
         {
-            const float dx = points[i].x - mousePosInCanvas.x;
-            const float dy = points[i].y - mousePosInCanvas.y;
-            const float distanceSquared = aiko::math::distanceSquared(points[i], mousePosInCanvas);
+            const float distanceSquared = aiko::math::distanceSquared(roadProfiler.points[i], mousePosInCanvas);
             if (distanceSquared < minDistanceSquare)
             {
                 minDistanceSquare = distanceSquared;

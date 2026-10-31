@@ -1,9 +1,11 @@
 #pragma once
 
-#include <aiko_includes.h>
+#include "extensions/ImGuiRoadProfiler.h"
+#include "world/track.h"
+
 #include <layers/layer.h>
 
-#include "world/track.h"
+#include <aiko_includes.h>
 
 namespace ab
 {
@@ -34,6 +36,7 @@ namespace ab
         TrackGeneratorSettings m_trackSettings = {};
         Track m_track;
         TrackImguiSettings m_trackImgui;
+        ImGuiRoadProfiler m_profileEditor;
 
     };
 

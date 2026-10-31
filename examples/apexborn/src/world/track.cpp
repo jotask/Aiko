@@ -23,8 +23,8 @@ namespace ab
     {
         m_roadMaterial.m_shaderId = assets.loadShader("model");
         m_roadMaterial.m_lit = false;
-        m_roadMaterial.m_useVertexColor = false;
-        m_roadMaterial.m_baseColor = aiko::LIGHTGRAY;
+        m_roadMaterial.m_useVertexColor = true;
+        m_roadMaterial.m_baseColor = aiko::WHITE;
     }
 
     bool Track::generate(const TrackGeneratorSettings& settings)

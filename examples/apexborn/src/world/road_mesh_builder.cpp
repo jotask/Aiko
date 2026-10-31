@@ -32,6 +32,7 @@ namespace ab
         asset.m_indices.reserve(ringCount * edgeCount * 6);
         asset.m_normals.reserve(vertexCount);
         asset.m_textCoord.reserve(vertexCount);
+        asset.m_colors.reserve(vertexCount);
 
         // Calculate cumulative distance
         std::vector<float> trackDistance(ringCount + 1, 0.0f);
@@ -112,6 +113,18 @@ namespace ab
                 const float vCoord1 = (profileDistance[j + 1] / profileLength) * profileRepeats;
                 asset.m_textCoord.push_back({u, vCoord0});
                 asset.m_textCoord.push_back({u, vCoord1});
+
+                constexpr aiko::Color Asphalt  = {0.19f, 0.20f, 0.23f};
+                constexpr aiko::Color Side     = {0.80f, 0.28f, 0.27f};
+                constexpr aiko::Color Bottom   = {0.12f, 0.13f, 0.15f};
+
+                const aiko::Color faceColor =
+                    j == 0 ? Asphalt :
+                    j == 2 ? Bottom :
+                             Side;
+
+                asset.m_colors.push_back(faceColor);
+                asset.m_colors.push_back(faceColor);
             }
         }
 
@@ -146,6 +159,7 @@ namespace ab
         AIKO_ASSERT(asset.m_normals.size() == vertexCount, "Incorrect road normal count");
         AIKO_ASSERT(asset.m_textCoord.size() == vertexCount, "Incorrect road UVs count");
         AIKO_ASSERT(asset.m_indices.size() == ringCount * edgeCount * 6, "Incorrect road index count");
+        AIKO_ASSERT(asset.m_colors.size() == vertexCount, "Incorrect road vertex color count");
 
         return asset;
     }
