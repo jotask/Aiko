@@ -39,6 +39,9 @@ namespace ab
         aiko::Mesh m_roadMesh;
         aiko::Material m_roadMaterial;
 
+        aiko::Mesh m_edgeMarkingsMesh;
+        aiko::Material m_edgeMarkingsMaterial;
+
         TrackGenerator::TrackGenerationDebug m_generationDebug;
 
         bool m_debugEnabled = false;

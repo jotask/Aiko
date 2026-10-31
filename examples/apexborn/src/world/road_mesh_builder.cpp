@@ -165,4 +165,124 @@ namespace ab
 
         return asset;
     }
+
+    aiko::MeshAsset RoadMeshBuilder::buildEdgeMarkings(const Spline& spline, const RoadProfile& profile, const RoadMeshBuilderDesc& desc)
+    {
+        const auto& centerLine = spline.getSamplePoints();
+
+        AIKO_ASSERT(centerLine.size() >= 3, "Invalid spline");
+        AIKO_ASSERT(desc.roadWidth > 0.0f, "Invalid road width");
+        AIKO_ASSERT(profile.points.size() >= (profile.closed ? 3u : 2u), "Invalid road profile");
+
+        constexpr float Inset = 0.035f;
+        constexpr float StripeWidth = 0.08f;
+        constexpr float SurfaceOffset = 0.01f;
+
+        // Profile X is normalized to [-0.5, +0.5].
+        const std::array<float, 4> x = {
+            -0.5f + Inset,
+            -0.5f + Inset + StripeWidth,
+             0.5f - Inset - StripeWidth,
+             0.5f - Inset
+        };
+
+        std::array<float, 4> y{};
+
+        for (size_t j = 0; j < x.size(); ++j)
+        {
+
+            float height = std::numeric_limits<float>::lowest();
+            bool found = false;
+
+            const size_t edgeCount = profile.closed
+                ? profile.points.size()
+                : profile.points.size() - 1;
+
+            for (size_t i = 0; i < edgeCount; ++i)
+            {
+                const auto& a = profile.points[i];
+                const auto& b = profile.points[(i + 1) % profile.points.size()];
+
+                if (x[j] < std::min(a.x, b.x) || x[j] > std::max(a.x, b.x))
+                {
+                    continue;
+                }
+
+                const float dx = b.x - a.x;
+
+                const float y = std::abs(dx) <= 1e-6f
+                    ? std::max(a.y, b.y)
+                    : a.y + (b.y - a.y) *
+                        std::clamp((x[j] - a.x) / dx, 0.0f, 1.0f);
+
+                height = std::max(height, y);
+                found = true;
+            }
+
+            AIKO_ASSERT(found, "No profile surface at marking position");
+
+            y[j] = height;
+        }
+
+        const size_t ringCount = centerLine.size();
+        constexpr size_t VerticesPerRing = 4;
+
+        AIKO_ASSERT((ringCount + 1) * VerticesPerRing <= std::numeric_limits<uint32_t>::max(), "Edge marking mesh exceeds index range");
+
+        aiko::MeshAsset asset;
+
+        const size_t vertexCount = (ringCount + 1) * VerticesPerRing;
+
+        asset.m_vertices.reserve(vertexCount);
+        asset.m_normals.reserve(vertexCount);
+        asset.m_textCoord.reserve(vertexCount);
+        asset.m_colors.reserve(vertexCount);
+        asset.m_indices.reserve(ringCount * 12);
+
+        for (size_t i = 0; i <= ringCount; ++i)
+        {
+            const size_t sampleIdx = i % ringCount;
+
+            const auto& position = centerLine[sampleIdx];
+            const auto tangent = spline.getSampleTangent(sampleIdx);
+
+            const auto right = aiko::math::normalize(aiko::math::cross(tangent, desc.worldUp));
+
+            const auto up = aiko::math::normalize(aiko::math::cross(right, tangent));
+
+            for (size_t j = 0; j < VerticesPerRing; ++j)
+            {
+                const auto vertex = position + right * (x[j] * desc.roadWidth) + up * (y[j] + SurfaceOffset);
+
+                asset.m_vertices.push_back(vertex);
+                asset.m_normals.push_back(up);
+                asset.m_colors.push_back(aiko::WHITE);
+
+                asset.m_textCoord.push_back({
+                    static_cast<float>(i) / ringCount,
+                    static_cast<float>(j % 2)
+                });
+            }
+        }
+
+        // Connect the four vertices of each ring into two strips.
+        for (size_t i = 0; i < ringCount; ++i)
+        {
+            for (size_t strip = 0; strip < 2; ++strip)
+            {
+                const uint32_t a = static_cast<uint32_t>(i * 4 + strip * 2);
+
+                const uint32_t b = a + 1;
+
+                const uint32_t c = static_cast<uint32_t>((i + 1) * 4 + strip * 2);
+
+                const uint32_t d = c + 1;
+
+                // Same winding convention as the road surface.
+                asset.m_indices.insert(asset.m_indices.end(), {a, c, b, b, c, d});
+            }
+        }
+
+        return asset;
+    }
 }

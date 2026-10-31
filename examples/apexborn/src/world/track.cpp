@@ -25,6 +25,11 @@ namespace ab
         m_roadMaterial.m_lit = true;
         m_roadMaterial.m_useVertexColor = true;
         m_roadMaterial.m_baseColor = aiko::WHITE;
+
+        m_edgeMarkingsMaterial.m_shaderId = assets.loadShader("model");
+        m_edgeMarkingsMaterial.m_lit = false;
+        m_edgeMarkingsMaterial.m_useVertexColor = false;
+        m_edgeMarkingsMaterial.m_baseColor = aiko::RAYWHITE;
     }
 
     bool Track::generate(const TrackGeneratorSettings& settings)
@@ -52,6 +57,9 @@ namespace ab
         const auto asset = RoadMeshBuilder::build(m_centerLine, m_profile, desc);
         m_roadMesh.upload(asset);
 
+        const auto markings = RoadMeshBuilder::buildEdgeMarkings(m_centerLine, m_profile, desc);
+        m_edgeMarkingsMesh.upload(markings);
+
         m_generationDebug = std::move(debug);
         return true;
 
@@ -59,10 +67,14 @@ namespace ab
 
     void Track::render(aiko::RenderContext& context)
     {
+        aiko::Transform transform{};
         if (m_roadMesh.isValid())
         {
-            aiko::Transform transform{};
             context.drawMesh(transform, m_roadMesh, m_roadMaterial);
+        }
+        if (m_edgeMarkingsMesh.isValid())
+        {
+            context.drawMesh(transform, m_edgeMarkingsMesh, m_edgeMarkingsMaterial);
         }
         if (m_debugEnabled == true)
         {

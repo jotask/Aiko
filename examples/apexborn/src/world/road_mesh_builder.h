@@ -17,6 +17,7 @@ namespace ab
         };
 
         static aiko::MeshAsset build(const Spline& spline, const RoadProfile& profile, const RoadMeshBuilderDesc& desc);
+        static aiko::MeshAsset buildEdgeMarkings(const Spline& spline, const RoadProfile& profile, const RoadMeshBuilderDesc& descs);
     };
 
 }
