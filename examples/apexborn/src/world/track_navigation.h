@@ -11,6 +11,7 @@ namespace ab
 
         struct TrackProjection
         {
+            aiko::vec3 forwardDirection;
             aiko::vec3 closestToCenterLine;
             size_t segmentIndex;
             float interpolation;

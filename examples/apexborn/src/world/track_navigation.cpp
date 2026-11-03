@@ -60,6 +60,7 @@ namespace ab
         const aiko::vec3 directionTowardsPoint = point - startPoint;
         const auto lengthSquared = aiko::math::dot(segmentDirection, segmentDirection);
         AIKO_ASSERT(lengthSquared > epsilon * epsilon, "Invalid navigation segment");
+        const aiko::vec3 normalizeDirection = aiko::math::normalize(segmentDirection);
         const float dot = aiko::math::dot(directionTowardsPoint, segmentDirection);
         const float t = aiko::math::clamp(dot / lengthSquared, 0.0f, 1.0f);
         const aiko::vec3 pointOnTrack = startPoint + t * segmentDirection;
@@ -71,6 +72,7 @@ namespace ab
         const auto signedLateralOffset = aiko::math::dot(v, right);
 
         return {
+            .forwardDirection = normalizeDirection,
             .closestToCenterLine = pointOnTrack,
             .segmentIndex = startIdx,
             .interpolation = t,
