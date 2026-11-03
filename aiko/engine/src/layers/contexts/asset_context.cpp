@@ -94,6 +94,19 @@ namespace aiko
         return AssetImporter::loadMesh(resolved.asset.physicalPath);
     }
 
+    AssetImportResult<ImportedModel> AssetContext::importModel(string_view source) const
+    {
+        const AssetResolveResult resolved = m_assetSystem->resolveAsset(source);
+
+        if (!resolved)
+        {
+            const AssetImportError error = resolved.error == AssetResolveError::NotFound ? AssetImportError::FileNotFound : AssetImportError::InvalidData;
+            return AssetImportResult<ImportedModel>::failure(error, "Failed to resolve model '" + std::string(source) + "': " + resolved.message);
+        }
+
+        return AssetImporter::loadModel(resolved.asset.physicalPath);
+    }
+
     Font AssetContext::loadFont(string_view source, float pixelSize)
     {
         AIKO_ASSERT(source.empty() == false, "Font source cannot be empty");

@@ -6,6 +6,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/config.h>
 
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
@@ -181,12 +182,15 @@ namespace aiko
 
         Assimp::Importer importer;
 
+        importer.SetPropertyBool(AI_CONFIG_PP_PTV_KEEP_HIERARCHY, true);
+
         const uint post =
             aiProcess_Triangulate |
             aiProcess_GenNormals |
             aiProcess_FlipUVs |
             aiProcess_JoinIdenticalVertices |
-            aiProcess_FlipWindingOrder;
+            aiProcess_FlipWindingOrder |
+            aiProcess_PreTransformVertices;
 
         const aiScene* scene = importer.ReadFile(finalFilePath, post);
 

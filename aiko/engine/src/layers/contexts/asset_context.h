@@ -21,6 +21,7 @@ namespace aiko
 
         AssetId createMesh(const MeshAsset& mesh);
         [[nodiscard]] AssetImportResult<MeshAsset> importMesh(string_view source) const;
+        [[nodiscard]] AssetImportResult<ImportedModel> importModel(string_view source) const;
 
         AssetId loadTexture(string_view source);
         AssetId createTexture(const TextureAsset& texture);
