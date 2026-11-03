@@ -25,6 +25,8 @@ namespace ab
 
         bool generate(const TrackGeneratorSettings& settings);
 
+        bool isOnRoad(const aiko::vec3& point) const;
+
         void render(aiko::RenderContext& context);
 
         bool& isDebugEnabled() { return m_debugEnabled; }
@@ -33,6 +35,8 @@ namespace ab
     private:
 
         void renderDebug(aiko::RenderContext& context);
+
+        float m_trackWidth = 0.0f;
 
         Spline m_centerLine;
         RoadProfile m_profile;

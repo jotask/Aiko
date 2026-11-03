@@ -6,6 +6,8 @@
 #include "road_mesh_builder.h"
 #include "track_generator.h"
 
+#include <cmath>
+
 namespace ab
 {
 
@@ -50,8 +52,10 @@ namespace ab
         m_centerLine.generate(*result);
         m_trackNavigation.recalculate(m_centerLine);
 
+        m_trackWidth = settings.trackWidth;
+
         const RoadMeshBuilder::RoadMeshBuilderDesc desc = {
-            .roadWidth = settings.trackWidth,
+            .roadWidth = m_trackWidth,
             .worldUp = WorldUp,
         };
         const auto asset = RoadMeshBuilder::build(m_centerLine, m_profile, desc);
@@ -66,6 +70,13 @@ namespace ab
         m_generationDebug = std::move(debug);
         return true;
 
+    }
+
+    bool Track::isOnRoad(const aiko::vec3& point) const
+    {
+        const auto halfWidth = m_trackWidth * 0.5f;
+        const auto projection = m_trackNavigation.getTrackProjectionFromPoint(point);
+        return std::abs(projection.signedLateralOffset) <= halfWidth;
     }
 
     void Track::render(aiko::RenderContext& context)
