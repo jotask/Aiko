@@ -1,6 +1,7 @@
 #pragma once
 
 #include "extensions/ImGuiRoadProfiler.h"
+#include "simulation/vehicle.h"
 #include "world/track.h"
 #include "world/track_environment.h"
 
@@ -41,6 +42,9 @@ namespace ab
         TrackEnvironment m_environment;
         TrackImguiSettings m_trackImgui;
         ImGuiRoadProfiler m_profileEditor;
+
+        static constexpr size_t N_Vehicles = 1;
+        std::vector<Vehicle> m_vehicles;
 
     };
 

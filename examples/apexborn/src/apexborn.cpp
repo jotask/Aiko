@@ -43,6 +43,11 @@ namespace ab
     void ApexBorn::update()
     {
         Layer::update();
+        const auto dt = getDeltaTime();
+        for (auto& vehicle : m_vehicles)
+        {
+            vehicle.update(dt);
+        }
     }
 
     void ApexBorn::render()
@@ -61,6 +66,15 @@ namespace ab
 
         m_environment.render(renderer());
         m_track.render(renderer());
+
+        for (const auto& vehicle : m_vehicles)
+        {
+            renderer().drawRectangle(vehicle.position(), {1.0f});
+            const aiko::vec3 forward = vehicle.forwardDirection();
+            const aiko::vec3 headingPos = vehicle.position() + forward * 1.0f;
+            renderer().drawLine(vehicle.position(), headingPos, aiko::RED);
+        }
+
     }
 
     bool ApexBorn::regenerateWorld()
@@ -73,17 +87,32 @@ namespace ab
         // Allow room beyond the procedural track generation area.
         constexpr float GroundPadding = 12.0f;
 
-        const float margin =
-            GroundPadding +
-            m_trackSettings.maxDisplacement +
-            m_trackSettings.trackWidth;
+        const float margin = GroundPadding + m_trackSettings.maxDisplacement + m_trackSettings.trackWidth;
 
         const aiko::vec2 groundSize = {
             m_trackSettings.areaSize.x + margin * 2.0f,
             m_trackSettings.areaSize.y + margin * 2.0f
         };
 
-        return m_environment.generate(groundSize);
+        bool result =  m_environment.generate(groundSize);
+
+        if (result == false)
+        {
+            return false;
+        }
+
+        constexpr float initialSpeed = 1.0f;
+        const  auto finishLine = m_track.getFinishLine();
+        m_vehicles.clear();
+        for (size_t i = 0 ; i < N_Vehicles; ++i)
+        {
+            m_vehicles.push_back({});
+            const auto heading = std::atan2(finishLine.forward.z, finishLine.forward.x);
+            m_vehicles.back().reset(finishLine.position, heading, initialSpeed);
+        }
+
+        return true;
+
     }
 
     void ApexBorn::renderImgui()

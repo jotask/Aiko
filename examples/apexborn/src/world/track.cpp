@@ -101,6 +101,16 @@ namespace ab
         }
     }
 
+    Track::FinishLine Track::getFinishLine() const
+    {
+        const auto& samples = m_centerLine.getSamplePoints();
+        AIKO_ASSERT(samples.size() >= 3, "Finish line requires at least three spline samples");
+        return {
+            .position = samples.front(),
+            .forward = m_centerLine.getSampleTangent(0),
+        };
+    }
+
     void Track::renderDebug(aiko::RenderContext& context)
     {
         m_centerLine.render(context);

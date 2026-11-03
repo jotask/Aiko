@@ -18,6 +18,13 @@ namespace ab
     class Track
     {
     public:
+
+        struct FinishLine
+        {
+            aiko::vec3 position;
+            aiko::vec3 forward;
+        };
+
         Track();
         ~Track();
 
@@ -28,6 +35,8 @@ namespace ab
         bool isOnRoad(const aiko::vec3& point) const;
 
         void render(aiko::RenderContext& context);
+
+        FinishLine getFinishLine() const;
 
         bool& isDebugEnabled() { return m_debugEnabled; }
         RoadProfile& roadProfile() { return m_profile; }
