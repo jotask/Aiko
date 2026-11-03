@@ -3,6 +3,7 @@
 #include "models/material.h"
 #include "models/mesh.h"
 #include "track_generator.h"
+#include "track_navigation.h"
 #include "world/road_profile.h"
 #include "world/spline.h"
 
@@ -35,6 +36,7 @@ namespace ab
 
         Spline m_centerLine;
         RoadProfile m_profile;
+        TrackNavigation m_trackNavigation;
 
         aiko::Mesh m_roadMesh;
         aiko::Material m_roadMaterial;

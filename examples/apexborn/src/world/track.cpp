@@ -54,6 +54,7 @@ namespace ab
         }
 
         m_centerLine.generate(*result);
+        m_trackNavigation.recalculate(m_centerLine);
 
         const RoadMeshBuilder::RoadMeshBuilderDesc desc = {
             .roadWidth = settings.trackWidth,
