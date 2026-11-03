@@ -25,6 +25,8 @@ namespace ab
         virtual void render() override;
     private:
 
+        void loadVehicleModel();
+
         bool regenerateWorld();
 
         void renderImgui();
@@ -42,6 +44,13 @@ namespace ab
         TrackEnvironment m_environment;
         TrackImguiSettings m_trackImgui;
         ImGuiRoadProfiler m_profileEditor;
+
+        struct VehicleVisualPart
+        {
+            std::unique_ptr<aiko::Mesh> mesh;
+            aiko::Material material;
+        };
+        std::vector<VehicleVisualPart> m_vehicleParts;
 
         static constexpr size_t N_Vehicles = 1;
         std::vector<Vehicle> m_vehicles;
