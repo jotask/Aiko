@@ -1,5 +1,6 @@
 #include "track.h"
 
+#include "constant_types.h"
 #include "core/transform.h"
 #include "layers/contexts/asset_context.h"
 #include "road_mesh_builder.h"
@@ -7,13 +8,6 @@
 
 namespace ab
 {
-
-    namespace
-    {
-
-        constexpr aiko::vec3 WorldUp = {0.0f, 1.0f, 0.0f };
-
-    }
 
     Track::Track() = default;
 

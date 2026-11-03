@@ -66,12 +66,17 @@ namespace ab
         const float distanceFromCentre = aiko::math::distance(point, pointOnTrack);
         const auto segmentLength = m_segmentCumulativeLength[startIdx + 1] - m_segmentCumulativeLength[startIdx];
         const float progressOnTrack = m_segmentCumulativeLength[startIdx] + t  * segmentLength;
+        const auto right = aiko::math::normalize(aiko::math::cross(segmentDirection, WorldUp));
+        const auto v = point - pointOnTrack;
+        const auto signedLateralOffset = aiko::math::dot(v, right);
+
         return {
             .closestToCenterLine = pointOnTrack,
             .segmentIndex = startIdx,
             .interpolation = t,
             .distanceFromCenter = distanceFromCentre,
             .progressOnTrack = progressOnTrack,
+            .signedLateralOffset = signedLateralOffset,
         };
     }
 

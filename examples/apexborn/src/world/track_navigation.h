@@ -16,6 +16,7 @@ namespace ab
             float interpolation;
             float distanceFromCenter;
             float progressOnTrack;
+            float signedLateralOffset;
         };
 
         void recalculate(const Spline& spline);
