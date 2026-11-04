@@ -8,6 +8,10 @@ namespace ab
     {
         Vehicle car;
         bool alive = true;
+
+        float previousProgress = 0.0f;
+        float totalProgress = 0.0f;
+
     };
 
 }

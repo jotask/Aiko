@@ -46,6 +46,7 @@ namespace ab
     {
         Layer::update();
         const auto dt = getDeltaTime();
+        const auto trackLength = m_track.getTrackLength();
         for (auto& agent : m_agents)
         {
             if (agent.alive == false)
@@ -58,7 +59,21 @@ namespace ab
             if (m_track.isOnRoad(projection) == false)
             {
                 agent.alive = false;
+                continue;
             }
+
+            float delta = projection.progressOnTrack - agent.previousProgress;
+
+            if (delta < -trackLength * 0.5f)
+            {
+                delta += trackLength;
+            }
+            else if (delta > trackLength  * 0.5f)
+            {
+                delta -= trackLength;
+            }
+            agent.totalProgress += delta;
+            agent.previousProgress = projection.progressOnTrack;
         }
     }
 
@@ -81,7 +96,7 @@ namespace ab
 
         // Render vehicles
         constexpr float VehicleYawOffset = -90.0f;
-        constexpr float VehicleScale = 0.0035f;
+        constexpr float VehicleScale = 0.0015f;
         for (const auto& agent : m_agents)
         {
             aiko::Transform transform;
@@ -155,7 +170,16 @@ namespace ab
         {
             m_agents.push_back({});
             const auto heading = std::atan2(finishLine.forward.z, finishLine.forward.x);
-            m_agents.back().car.reset(finishLine.position, heading, initialSpeed);
+
+            auto& agent = m_agents.back();
+            agent.car.reset(finishLine.position, heading, initialSpeed);
+
+            const auto projection = m_track.projectPoint(agent.car.position());
+
+            agent.previousProgress = projection.progressOnTrack;
+            agent.totalProgress = 0.0f;
+            agent.numberOfLaps = 0;
+
         }
 
         return true;
@@ -244,6 +268,7 @@ namespace ab
             const auto projection = m_track.projectPoint(car.position());
             ImGui::Text("Lateral Offset: %.2f", projection.signedLateralOffset);
             ImGui::Text("Track Progress: %.2f", projection.progressOnTrack);
+            ImGui::Text("Total Progress: %.2f", agent.totalProgress);
             const float alignment = aiko::math::dot(car.forwardDirection(), projection.forwardDirection);
             ImGui::Text("Heading Alignment: %.3f", alignment);
             ImGui::TextColored(agent.alive ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "%s", agent.alive ? "ACTIVE" : "FAILED");

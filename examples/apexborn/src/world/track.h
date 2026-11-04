@@ -39,6 +39,7 @@ namespace ab
         void render(aiko::RenderContext& context);
 
         FinishLine getFinishLine() const;
+        float getTrackLength() const { return m_trackNavigation.getTrackLength(); }
 
         bool& isDebugEnabled() { return m_debugEnabled; }
         RoadProfile& roadProfile() { return m_profile; }

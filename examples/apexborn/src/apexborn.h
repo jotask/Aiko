@@ -2,7 +2,7 @@
 
 #include "extensions/ImGuiRoadProfiler.h"
 #include "simulation/vehicle.h"
-#include "simulation/vehicles_types.h"
+#include "simulation/vehicle_agent.h"
 #include "world/track.h"
 #include "world/track_environment.h"
 

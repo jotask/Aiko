@@ -24,6 +24,8 @@ namespace ab
 
         TrackProjection getTrackProjectionFromPoint(const aiko::vec3& point) const;
 
+        float getTrackLength() const { return m_trackTotalLength; }
+
     private:
 
         TrackProjection calculateTrackProjection(const size_t startSegment, const size_t endSegment, const aiko::vec3& point) const;
