@@ -32,6 +32,7 @@ namespace ab
         void renderImgui();
         void renderMenuBar();
         void renderTrackGenerationSettings();
+        void renderVehicleDebug();
 
         struct TrackImguiSettings
         {

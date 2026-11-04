@@ -23,6 +23,7 @@ namespace ab
         const aiko::vec3& position() const { return m_position; }
         const float heading() const { return m_heading; }
         const float speed() const { return m_speed; }
+        float steering() const { return m_steering; }
 
     private:
         aiko::vec3 m_position = {};

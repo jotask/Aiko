@@ -159,6 +159,7 @@ namespace ab
             renderTrackGenerationSettings();
         }
         m_profileEditor.render(m_track.roadProfile());
+        renderVehicleDebug();
     }
 
     void ApexBorn::renderMenuBar()
@@ -212,6 +213,34 @@ namespace ab
             {
                 aiko::logger::Log::error("Couldn't regenerate ApexBorn world");
             }
+        }
+
+        ImGui::End();
+    }
+
+    void ApexBorn::renderVehicleDebug()
+    {
+        if (ImGui::Begin("Vehicle Debug") == false)
+        {
+            ImGui::End();
+            return;
+        }
+
+        for (auto& v : m_vehicles)
+        {
+            ImGui::PushID(&v);
+            const bool onRoad = m_track.isOnRoad(v.position());
+            ImGui::TextColored(onRoad ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "%s", onRoad ? "ON ROAD" : "OFF ROAD");
+            float currentSteering = v.steering();
+            if (ImGui::SliderFloat("Steering", &currentSteering, -1.0f, 1.0f))
+            {
+                v.setSteering(currentSteering);
+            }
+            if (ImGui::Button("Reset Steering"))
+            {
+                v.setSteering(0.0f);
+            }
+            ImGui::PopID();
         }
 
         ImGui::End();
