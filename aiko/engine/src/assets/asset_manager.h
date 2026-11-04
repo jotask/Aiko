@@ -16,6 +16,7 @@
 namespace aiko
 {
     class AssetSystem;
+    struct ImportedModel;
 
     class AssetManager : public IAssetProvider, public IAssetRegistry
     {
@@ -105,6 +106,8 @@ namespace aiko
         void installComputeShaderAsset(const AssetId& id, ComputeShaderAsset asset);
 
         AssetId registerFileAsset(AssetType type, std::string_view source, TextureColorSpace colorSpace = TextureColorSpace::Linear);
+
+        [[nodiscard]] std::optional<ModelAsset> buildModelAsset(const ImportedModel& imported, const ResolvedAsset& source);
 
     };
 

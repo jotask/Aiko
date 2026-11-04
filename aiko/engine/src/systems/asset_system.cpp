@@ -344,34 +344,15 @@ namespace aiko
 
                 AssetManager* manager = m_assetModule->getManager();
 
-                ModelAsset model{};
+                auto model = manager->buildModelAsset(imported, modelSource);
 
-                for (ImportedModelSubMesh& importedSubmesh : imported.submeshes)
+                if (!model)
                 {
-                    ModelAsset::SubMesh submesh{};
-                    submesh.meshId = manager->registerMesh(importedSubmesh.mesh);
-                    submesh.material.useVertexColor = importedSubmesh.useVertexColor;
-                    submesh.material.lit = importedSubmesh.lit;
-                    submesh.material.baseColor = importedSubmesh.baseColor;
-                    submesh.material.shaderId = manager->registerShader(importedSubmesh.shaderSource);
-
-                    submesh.material.diffuseTextureId = InvalidAssetId;
-                    if (!importedSubmesh.diffuseTextureSource.empty())
-                    {
-                        submesh.material.diffuseTextureId = manager->registerModelTexture(modelSource, importedSubmesh.diffuseTextureSource );
-
-                        if (submesh.material.diffuseTextureId == InvalidAssetId)
-                        {
-                            logger::Log::errorFmt("Failed to register texture '{}' for model '{}'", importedSubmesh.diffuseTextureSource, modelSource.identity);
-                            m_loadStates[id] = AssetLoadState::Failed;
-                            return;
-                        }
-                    }
-
-                    model.submeshes.push_back(std::move(submesh));
+                    m_loadStates[id] = AssetLoadState::Failed;
+                    return;
                 }
 
-                manager->installModelAsset(id, std::move(model));
+                manager->installModelAsset(id, std::move(*model));
 
                 const ModelAsset& installed = manager->getModelAsset(id);
 
@@ -379,6 +360,7 @@ namespace aiko
                 {
                     loadAsset<MeshAsset>(submesh.meshId);
                     loadAsset<ShaderAsset>(submesh.material.shaderId);
+
                     if (submesh.material.diffuseTextureId != InvalidAssetId)
                     {
                         loadAsset<TextureAsset>(submesh.material.diffuseTextureId);

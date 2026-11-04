@@ -236,7 +236,7 @@ namespace aiko
     {
         AIKO_ASSERT(id != InvalidAssetId, "Attempting to load model from invalid UUID");
 
-        if (m_modelAssets.find(id) != m_modelAssets.end())
+        if (m_modelAssets.contains(id))
         {
             return true;
         }
@@ -260,44 +260,19 @@ namespace aiko
             return false;
         }
 
-        ModelAsset asset{};
+        auto model = buildModelAsset(*imported, resolved.asset);
 
-        for (ImportedModelSubMesh& importedSubmesh : imported->submeshes)
+        if (!model)
         {
-            ModelAsset::SubMesh submesh{};
-
-            submesh.meshId = registerMesh(importedSubmesh.mesh);
-            submesh.material.useVertexColor = importedSubmesh.useVertexColor;
-            submesh.material.lit = importedSubmesh.lit;
-            submesh.material.baseColor = importedSubmesh.baseColor;
-            submesh.material.shaderId = registerShader(importedSubmesh.shaderSource);
-
-            submesh.material.diffuseTextureId = InvalidAssetId;
-
-            if (!importedSubmesh.diffuseTextureSource.empty())
-            {
-                submesh.material.diffuseTextureId = registerModelTexture(resolved.asset, importedSubmesh.diffuseTextureSource);
-
-                if (submesh.material.diffuseTextureId == InvalidAssetId)
-                {
-                    logger::Log::errorFmt("Failed to register texture '{}' for model '{}'", importedSubmesh.diffuseTextureSource, record->source);
-                    return false;
-                }
-            }
-
-            asset.submeshes.push_back(std::move(submesh));
+            return false;
         }
 
-        for (const ModelAsset::SubMesh& submesh : asset.submeshes)
+        for (const ModelAsset::SubMesh& submesh : model->submeshes)
         {
-            AIKO_ASSERT(submesh.meshId != InvalidAssetId, "Model submesh has invalid mesh asset id");
-
             if (!loadMeshAsset(submesh.meshId))
             {
                 return false;
             }
-
-            AIKO_ASSERT(submesh.material.shaderId != InvalidAssetId, "Model submesh has invalid shader asset id");
 
             loadShaderAsset(submesh.material.shaderId);
 
@@ -310,7 +285,7 @@ namespace aiko
             }
         }
 
-        m_modelAssets.emplace(id, std::move(asset));
+        m_modelAssets.emplace(id, std::move(*model));
         return true;
     }
 
@@ -678,6 +653,44 @@ namespace aiko
 
         return m_registry.registerAsset(type, result.asset.identity, colorSpace
         );
+    }
+
+    std::optional<ModelAsset> AssetManager::buildModelAsset(const ImportedModel& imported, const ResolvedAsset& source)
+    {
+        ModelAsset model{};
+        model.submeshes.reserve(imported.submeshes.size());
+
+        for (const ImportedModelSubMesh& importedSubmesh : imported.submeshes)
+        {
+            ModelAsset::SubMesh submesh{};
+
+            submesh.meshId = registerMesh(importedSubmesh.mesh);
+
+            submesh.material.useVertexColor = importedSubmesh.useVertexColor;
+            submesh.material.lit = importedSubmesh.lit;
+            submesh.material.baseColor = importedSubmesh.baseColor;
+
+            submesh.material.shaderId = registerShader(importedSubmesh.shaderSource);
+
+            if (submesh.meshId == InvalidAssetId || submesh.material.shaderId == InvalidAssetId)
+            {
+                return std::nullopt;
+            }
+
+            if (!importedSubmesh.diffuseTextureSource.empty())
+            {
+                submesh.material.diffuseTextureId = registerModelTexture(source, importedSubmesh.diffuseTextureSource);
+                if (submesh.material.diffuseTextureId == InvalidAssetId)
+                {
+                    logger::Log::errorFmt("Failed to register texture '{}' for model '{}'", importedSubmesh.diffuseTextureSource, source.identity);
+                    return std::nullopt;
+                }
+            }
+
+            model.submeshes.push_back(std::move(submesh));
+        }
+
+        return model;
     }
 
 }
