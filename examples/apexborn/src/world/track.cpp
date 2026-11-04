@@ -6,7 +6,10 @@
 #include "road_mesh_builder.h"
 #include "track_generator.h"
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
+#include <utility>
 
 namespace ab
 {
@@ -74,6 +77,8 @@ namespace ab
         m_leftBoundary = std::move(road.leftBoundary);
         m_rightBoundary = std::move(road.rightBoundary);
 
+        rebuildBoundaryGrid();
+
         const auto markings = RoadMeshBuilder::buildEdgeMarkings(m_centerLine, m_profile, desc);
         m_edgeMarkingsMesh.upload(markings);
 
@@ -136,7 +141,14 @@ namespace ab
 
     std::optional<Track::RoadRaycastHit> Track::raycastBoundary(const aiko::vec3& origin, const aiko::vec3& direction, float maxDistance) const
     {
-        if (!aiko::math::isfinite(maxDistance) || maxDistance <= 0.0f)
+        if (!std::isfinite(maxDistance) || maxDistance <= 0.0f)
+        {
+            return std::nullopt;
+        }
+
+        const auto& grid = m_boundaryGrid;
+
+        if (grid.cells.empty())
         {
             return std::nullopt;
         }
@@ -144,19 +156,123 @@ namespace ab
         const aiko::vec2 rayOrigin = {origin.x, origin.z};
         const aiko::vec2 horizontalDirection = { direction.x, direction.z };
 
-        const float directionLengthSquared = aiko::math::lengthSquared(horizontalDirection);
-
-        if (!std::isfinite(directionLengthSquared) || directionLengthSquared <= epsilon * epsilon)
+        if (!aiko::math::isfinite(rayOrigin.x) || !aiko::math::isfinite(rayOrigin.y))
         {
             return std::nullopt;
         }
 
-        const aiko::vec2 rayDirection = horizontalDirection / std::sqrt(directionLengthSquared);
+        const float lengthSquared = aiko::math::lengthSquared(horizontalDirection);
+
+        if (!std::isfinite(lengthSquared) || lengthSquared <= epsilon * epsilon)
+        {
+            return std::nullopt;
+        }
+
+        const aiko::vec2 rayDirection = horizontalDirection / std::sqrt(lengthSquared);
+
+        const aiko::vec2 rayEnd = rayOrigin + rayDirection * maxDistance;
+
+        if (!aiko::math::isfinite(rayEnd.x) || !aiko::math::isfinite(rayEnd.y))
+        {
+            return std::nullopt;
+        }
+
+        // AABB of the finite ray.
+        const float rayMinX = std::min(rayOrigin.x, rayEnd.x);
+        const float rayMaxX = std::max(rayOrigin.x, rayEnd.x);
+        const float rayMinZ = std::min(rayOrigin.y, rayEnd.y);
+        const float rayMaxZ = std::max(rayOrigin.y, rayEnd.y);
+
+        const float gridMaxX = grid.origin.x + grid.columns * grid.cellSize;
+
+        const float gridMaxZ = grid.origin.y + grid.rows * grid.cellSize;
+
+        // Ray is completely outside the indexed area.
+        if (rayMaxX < grid.origin.x || rayMinX > gridMaxX || rayMaxZ < grid.origin.y || rayMinZ > gridMaxZ)
+        {
+            return std::nullopt;
+        }
+
+        const auto toColumn = [&](float x)
+        {
+            return std::clamp(static_cast<int>(std::floor((x - grid.origin.x) / grid.cellSize)), 0, grid.columns - 1);
+        };
+
+        const auto toRow = [&](float z)
+        {
+            return std::clamp(static_cast<int>( std::floor((z - grid.origin.y) / grid.cellSize) ), 0, grid.rows - 1);
+        };
+
+        // Clamp the query to the grid before converting to cells.
+        const int minColumn = toColumn( std::max(rayMinX, grid.origin.x) );
+
+        const int maxColumn = toColumn( std::min(rayMaxX, gridMaxX) );
+
+        const int minRow = toRow( std::max(rayMinZ, grid.origin.y) );
+
+        const int maxRow = toRow( std::min(rayMaxZ, gridMaxZ) );
 
         std::optional<RoadRaycastHit> closestHit;
         float closestDistance = maxDistance;
 
-        const auto testBoundary = [&](const Spline::Points& points)
+        for (int row = minRow; row <= maxRow; ++row)
+        {
+            for (int column = minColumn; column <= maxColumn; ++column)
+            {
+                const size_t cellIndex = static_cast<size_t>(row) * grid.columns + column;
+
+                for (const size_t segmentIndex : grid.cells[cellIndex])
+                {
+                    const auto& segment = grid.segments[segmentIndex];
+
+                    const aiko::vec2 a = { segment.start.x, segment.start.z };
+
+                    const aiko::vec2 b = { segment.end.x, segment.end.z };
+
+                    const aiko::vec2 edge = b - a;
+                    const aiko::vec2 offset = a - rayOrigin;
+
+                    const float denominator = cross2D(rayDirection, edge);
+
+                    // Preserve the original intersection behavior.
+                    if (std::abs(denominator) <= 1e-6f)
+                    {
+                        continue;
+                    }
+
+                    const float t = cross2D(offset, edge) / denominator;
+                    const float u = cross2D(offset, rayDirection) / denominator;
+
+                    if (t < 0.0f || t > closestDistance)
+                    {
+                        continue;
+                    }
+
+                    if (u < 0.0f || u > 1.0f)
+                    {
+                        continue;
+                    }
+
+                    closestDistance = t;
+
+                    closestHit = RoadRaycastHit{
+                        .position = segment.start + (segment.end - segment.start) * u,
+                        .distance = t
+                    };
+                }
+            }
+        }
+
+        return closestHit;
+    }
+
+    void Track::rebuildBoundaryGrid()
+    {
+        BoundaryGrid grid;
+
+        grid.cellSize = std::max(2.0f, m_trackWidth);
+
+        const auto addBoundary = [&](const Spline::Points& points)
         {
             if (points.size() < 2)
             {
@@ -165,52 +281,85 @@ namespace ab
 
             for (size_t i = 0; i < points.size(); ++i)
             {
-                const auto& start = points[i];
-                const auto& end = points[(i + 1) % points.size()];
-
-                const aiko::vec2 a = {start.x, start.z};
-                const aiko::vec2 b = {end.x, end.z};
-
-                const aiko::vec2 segment = b - a;
-                const aiko::vec2 toSegment = a - rayOrigin;
-
-                const float denominator = cross2D(rayDirection, segment);
-
-                // Parallel or collinear.
-                if (std::abs(denominator) <= 1e-6f)
-                {
-                    continue;
-                }
-
-                const float t = cross2D(toSegment, segment) / denominator;
-                const float u = cross2D(toSegment, rayDirection) / denominator;
-
-                // Outside ray range.
-                if (t < 0.0f || t > closestDistance)
-                {
-                    continue;
-                }
-
-                // Outside the finite boundary segment.
-                if (u < 0.0f || u > 1.0f)
-                {
-                    continue;
-                }
-
-                closestDistance = t;
-
-                closestHit = RoadRaycastHit
-                {
-                    .position = start + (end - start) * u,
-                    .distance = t,
-                };
+                grid.segments.push_back({
+                    points[i],
+                    points[(i + 1) % points.size()]
+                });
             }
         };
 
-        testBoundary(m_leftBoundary);
-        testBoundary(m_rightBoundary);
+        addBoundary(m_leftBoundary);
+        addBoundary(m_rightBoundary);
 
-        return closestHit;
+        if (grid.segments.empty())
+        {
+            m_boundaryGrid = std::move(grid);
+            return;
+        }
+
+        // Find the bounds of all boundary segments.
+        float minX = std::numeric_limits<float>::max();
+        float minZ = std::numeric_limits<float>::max();
+        float maxX = std::numeric_limits<float>::lowest();
+        float maxZ = std::numeric_limits<float>::lowest();
+
+        const auto expandBounds = [&](const aiko::vec3& point)
+        {
+            minX = std::min(minX, point.x);
+            minZ = std::min(minZ, point.z);
+            maxX = std::max(maxX, point.x);
+            maxZ = std::max(maxZ, point.z);
+        };
+
+        for (const auto& segment : grid.segments)
+        {
+            expandBounds(segment.start);
+            expandBounds(segment.end);
+        }
+
+        // Add one cell of padding around the track.
+        grid.origin = { minX - grid.cellSize, minZ - grid.cellSize};
+
+        grid.columns = std::max(1, static_cast<int>(     std::ceil((maxX - minX) / grid.cellSize) ) + 2);
+
+        grid.rows = std::max(1, static_cast<int>(     std::ceil((maxZ - minZ) / grid.cellSize) ) + 2);
+
+        grid.cells.resize(static_cast<size_t>(grid.columns) * static_cast<size_t>(grid.rows));
+
+        const auto toColumn = [&](float x)
+        {
+            return std::clamp(static_cast<int>(std::floor((x - grid.origin.x) / grid.cellSize)), 0, grid.columns - 1);
+        };
+
+        const auto toRow = [&](float z)
+        {
+            return std::clamp(static_cast<int>(std::floor((z - grid.origin.y) / grid.cellSize)), 0, grid.rows - 1);
+        };
+
+        // Insert every segment into overlapping cells.
+        for (size_t i = 0; i < grid.segments.size(); ++i)
+        {
+            const auto& segment = grid.segments[i];
+
+            const int minColumn = toColumn(std::min(segment.start.x, segment.end.x));
+
+            const int maxColumn = toColumn(std::max(segment.start.x, segment.end.x));
+
+            const int minRow = toRow(std::min(segment.start.z, segment.end.z));
+
+            const int maxRow = toRow(std::max(segment.start.z, segment.end.z));
+
+            for (int row = minRow; row <= maxRow; ++row)
+            {
+                for (int column = minColumn; column <= maxColumn; ++column)
+                {
+                    const size_t index = static_cast<size_t>(row) * grid.columns + column;
+                    grid.cells[index].push_back(i);
+                }
+            }
+        }
+
+        m_boundaryGrid = std::move(grid);
     }
 
     void Track::renderDebug(aiko::RenderContext& context)

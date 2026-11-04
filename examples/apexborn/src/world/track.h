@@ -6,6 +6,9 @@
 #include "track_navigation.h"
 #include "world/road_profile.h"
 #include "world/spline.h"
+
+#include <vector>
+#include <cstddef>
 #include <optional>
 
 namespace aiko
@@ -57,9 +60,32 @@ namespace ab
 
     private:
 
+        struct BoundarySegment
+        {
+            aiko::vec3 start;
+            aiko::vec3 end;
+        };
+
+        struct BoundaryGrid
+        {
+            aiko::vec2 origin = {};
+
+            float cellSize = 2.0f;
+
+            int columns = 0;
+            int rows = 0;
+
+            std::vector<BoundarySegment> segments;
+            std::vector<std::vector<size_t>> cells;
+        };
+
+        void rebuildBoundaryGrid();
+
         void renderDebug(aiko::RenderContext& context);
 
         float m_trackWidth = 0.0f;
+
+        BoundaryGrid m_boundaryGrid;
 
         Spline m_centerLine;
         Spline::Points m_leftBoundary;
