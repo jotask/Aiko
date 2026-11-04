@@ -111,9 +111,10 @@ namespace ab
         // Debug: visualize road sensors for the selected vehicle.
         if (m_trackImgui.openVehicleEditor && m_selectedAgent >= 0 && static_cast<size_t>(m_selectedAgent) < m_agents.size())
         {
-            const auto& vehicle = m_agents[static_cast<size_t>(m_selectedAgent)].car;
+            const auto& agent = m_agents[static_cast<size_t>(m_selectedAgent)];
 
-            const auto readings = RoadSensors::sense(vehicle, m_track);
+            const auto& vehicle = agent.car;
+            const auto& readings = agent.sensors;
 
             constexpr aiko::vec3 DebugOffset = {0.0f, 0.12f, 0.0f};
 
@@ -191,6 +192,11 @@ namespace ab
             const auto projection = m_track.projectPoint(agent.car.position());
 
             agent.previousProgress = projection.progressOnTrack;
+
+            agent.sensors = RoadSensors::sense(agent.car, m_track);
+
+            agent.observation = DrivingObservation::calculate(agent.car, m_track, projection, agent.sensors);
+
             agent.totalProgress = 0.0f;
             agent.bestProgress = 0.0f;
 
@@ -247,6 +253,10 @@ namespace ab
                 agent.alive = false;
                 continue;
             }
+
+            agent.sensors = RoadSensors::sense(car, m_track);
+
+            agent.observation = DrivingObservation::calculate(car, m_track, projection, agent.sensors);
 
             float delta = projection.progressOnTrack - agent.previousProgress;
 
@@ -415,16 +425,37 @@ namespace ab
         ImGui::EndDisabled();
 
         // Driving observations
-        auto observation = DrivingObservation::calculate(car, m_track);
+        const auto& observation = agent.observation;
         ImGui::SeparatorText("Driving Observations");
-        ImGui::BeginDisabled();
-        ImGui::SliderFloat("Lateral Offset", &observation.lateralOffset, -1.0f, 1.0f);
-        ImGui::SliderFloat("Heading Error", &observation.headingError, -1.0f, 1.0f);
-        ImGui::SliderFloat("Near LookAhead", &observation.lookAheadError, -1.0f, 1.0f);
-        ImGui::SliderFloat("Far LookAhead", &observation.farLookAheadError, -1.0f, 1.0f);
-        ImGui::SliderFloat("Upcoming Curvature", &observation.upcomingCurvature, 0.0f, 1.0f);
-        ImGui::SliderFloat("Normalized Speed", &observation.normalizedSpeed, 0.0f, 1.0f);
-        ImGui::EndDisabled();
+
+        const auto showObservation = [](const char* label, float value, float min, float max)
+        {
+            const float normalized = aiko::math::clamp( (value - min) / (max - min), 0.0f, 1.0f);
+            ImGui::Text("%s: %.3f", label, value);
+            ImGui::ProgressBar(normalized, ImVec2(-FLT_MIN, 0.0f), "");
+        };
+
+        showObservation("Lateral Offset", observation.lateralOffset, -1.0f, 1.0f);
+        showObservation("Heading Error", observation.headingError, -1.0f, 1.0f);
+        showObservation("Near LookAhead", observation.lookAheadError, -1.0f, 1.0f);
+        showObservation("Far LookAhead", observation.farLookAheadError, -1.0f, 1.0f);
+        showObservation("Upcoming Curvature", observation.upcomingCurvature, 0.0f, 1.0f);
+        showObservation("Normalized Speed", observation.normalizedSpeed, 0.0f, 1.0f);
+
+        ImGui::SeparatorText("Road Sensors");
+
+        constexpr const char* SensorNames[] = {
+            "-90 degrees",
+            "-45 degrees",
+            "Forward",
+            "+45 degrees",
+            "+90 degrees"
+        };
+
+        for (size_t i = 0; i < RoadSensors::SensorCount; ++i)
+        {
+            ImGui::Text("%s: %.3f (%s)", SensorNames[i], observation.roadDistances[i], agent.sensors[i].hit ? "HIT" : "MISS");
+        }
 
         ImGui::End();
     }

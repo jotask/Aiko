@@ -1,5 +1,8 @@
 #pragma once
+
 #include "vehicle.h"
+#include "driving_observation.h"
+#include "road_sensors.h"
 
 namespace ab
 {
@@ -16,6 +19,9 @@ namespace ab
 
         float referenceSteeringBias = 0.0f;
         float referenceThrottleScale = 1.0f;
+
+        RoadSensors::Readings sensors{};
+        DrivingObservationData observation{};
 
     };
 

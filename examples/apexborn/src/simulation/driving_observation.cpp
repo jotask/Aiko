@@ -34,14 +34,12 @@ namespace ab
         };
     }
 
-    DrivingObservationData DrivingObservation::calculate(const Vehicle& vehicle, const Track& track)
+    DrivingObservationData DrivingObservation::calculate(const Vehicle& vehicle, const Track& track, const TrackNavigation::TrackProjection& projection, const RoadSensors::Readings& sensors)
     {
         constexpr float NearLookAheadDistance = 1.5f;
         constexpr float FarLookAheadDistance = 3.0f;
         constexpr float CurvatureSampleDistance = 1.5f;
         constexpr float CurvatureNormalizationAngle = aiko::PI / 6.0f;
-
-        const auto projection = track.projectPoint(vehicle.position());
 
         // 1. Lateral offset
         const float halfTrackWidth = track.getTrackWidth() * 0.5f;
@@ -88,7 +86,7 @@ namespace ab
         // 6. Normalized speed
         const float normalizedSpeed = aiko::math::clamp(vehicle.speed() / Vehicle::MaxSpeed, 0.0f, 1.0f);
 
-        const DrivingObservationData data
+        DrivingObservationData data
         {
             .lateralOffset = lateralOffset,
             .headingError = headingError,
@@ -97,6 +95,11 @@ namespace ab
             .upcomingCurvature = upcomingCurvature,
             .normalizedSpeed = normalizedSpeed,
         };
+
+        for (size_t i = 0; i < RoadSensors::SensorCount; ++i)
+        {
+            data.roadDistances[i] = sensors[i].normalizedDistance;
+        }
 
         return data;
     }
