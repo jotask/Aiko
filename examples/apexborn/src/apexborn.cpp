@@ -6,6 +6,7 @@
 #include "models/mesh_factory.h"
 #include "simulation/driving_observation.h"
 #include "simulation/reference_driver.h"
+#include "simulation/road_sensors.h"
 
 #include <components/camera_component.h>
 #include <components/mesh_component.h>
@@ -106,6 +107,31 @@ namespace ab
             renderer().drawModelInstanced(m_vehicleModel, instances.data(), static_cast<aiko::u32>(instances.size()));
 
         }
+
+        // Debug: visualize road sensors for the selected vehicle.
+        if (m_trackImgui.openVehicleEditor && m_selectedAgent >= 0 && static_cast<size_t>(m_selectedAgent) < m_agents.size())
+        {
+            const auto& vehicle = m_agents[static_cast<size_t>(m_selectedAgent)].car;
+
+            const auto readings = RoadSensors::sense(vehicle, m_track);
+
+            constexpr aiko::vec3 DebugOffset = {0.0f, 0.12f, 0.0f};
+
+            const auto origin = vehicle.position() + DebugOffset;
+
+            for (const auto& reading : readings)
+            {
+                const auto end = reading.endPoint + DebugOffset;
+
+                renderer().drawLine(origin, end, reading.hit ? aiko::GREEN : aiko::RED);
+
+                if (reading.hit)
+                {
+                    renderer().drawPoint(end, aiko::YELLOW);
+                }
+            }
+        }
+
 
     }
 

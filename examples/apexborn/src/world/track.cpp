@@ -308,23 +308,6 @@ namespace ab
             drawBoundary(m_rightBoundary, aiko::MAGENTA);
         }
 
-        // Debug test: raycast from the finish line toward the right road edge.
-        {
-            const auto finish = getFinishLine();
-            const auto direction = aiko::math::normalize(aiko::math::cross(finish.forward, WorldUp));
-            const float maxDistance = m_trackWidth * 2.0f;
-            const auto hit = raycastBoundary(finish.position, direction, maxDistance);
-            constexpr aiko::vec3 DebugOffset = {0.0f, 0.08f, 0.0f};
-            const auto origin = finish.position + DebugOffset;
-            const auto end = hit ? hit->position + DebugOffset : origin + direction * maxDistance;
-            context.drawLine(origin, end, aiko::YELLOW);
-            if (hit)
-            {
-                context.drawPoint(hit->position + DebugOffset, aiko::RED);
-            }
-        }
-
-
     }
 
 }
