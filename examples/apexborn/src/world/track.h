@@ -6,6 +6,7 @@
 #include "track_navigation.h"
 #include "world/road_profile.h"
 #include "world/spline.h"
+#include <optional>
 
 namespace aiko
 {
@@ -25,12 +26,20 @@ namespace ab
             aiko::vec3 forward;
         };
 
+        struct RoadRaycastHit
+        {
+            aiko::vec3 position;
+            float distance = 0.0f;
+        };
+
         Track();
         ~Track();
 
         void init(aiko::AssetContext&);
 
         bool generate(const TrackGeneratorSettings& settings);
+
+        std::optional<RoadRaycastHit> raycastBoundary(const aiko::vec3& origin, const aiko::vec3& direction, float maxDistance) const;
 
         bool isOnRoad(const TrackNavigation::TrackProjection& point) const;
         bool isOnRoad(const aiko::vec3& point) const;

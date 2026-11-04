@@ -11,6 +11,14 @@
 namespace ab
 {
 
+    namespace
+    {
+        float cross2D(const aiko::vec2& a, const aiko::vec2& b)
+        {
+            return a.x * b.y - a.y * b.x;
+        }
+    }
+
     Track::Track() = default;
 
     Track::~Track() = default;
@@ -126,6 +134,85 @@ namespace ab
         };
     }
 
+    std::optional<Track::RoadRaycastHit> Track::raycastBoundary(const aiko::vec3& origin, const aiko::vec3& direction, float maxDistance) const
+    {
+        if (!aiko::math::isfinite(maxDistance) || maxDistance <= 0.0f)
+        {
+            return std::nullopt;
+        }
+
+        const aiko::vec2 rayOrigin = {origin.x, origin.z};
+        const aiko::vec2 horizontalDirection = { direction.x, direction.z };
+
+        const float directionLengthSquared = aiko::math::lengthSquared(horizontalDirection);
+
+        if (!std::isfinite(directionLengthSquared) || directionLengthSquared <= epsilon * epsilon)
+        {
+            return std::nullopt;
+        }
+
+        const aiko::vec2 rayDirection = horizontalDirection / std::sqrt(directionLengthSquared);
+
+        std::optional<RoadRaycastHit> closestHit;
+        float closestDistance = maxDistance;
+
+        const auto testBoundary = [&](const Spline::Points& points)
+        {
+            if (points.size() < 2)
+            {
+                return;
+            }
+
+            for (size_t i = 0; i < points.size(); ++i)
+            {
+                const auto& start = points[i];
+                const auto& end = points[(i + 1) % points.size()];
+
+                const aiko::vec2 a = {start.x, start.z};
+                const aiko::vec2 b = {end.x, end.z};
+
+                const aiko::vec2 segment = b - a;
+                const aiko::vec2 toSegment = a - rayOrigin;
+
+                const float denominator = cross2D(rayDirection, segment);
+
+                // Parallel or collinear.
+                if (std::abs(denominator) <= 1e-6f)
+                {
+                    continue;
+                }
+
+                const float t = cross2D(toSegment, segment) / denominator;
+                const float u = cross2D(toSegment, rayDirection) / denominator;
+
+                // Outside ray range.
+                if (t < 0.0f || t > closestDistance)
+                {
+                    continue;
+                }
+
+                // Outside the finite boundary segment.
+                if (u < 0.0f || u > 1.0f)
+                {
+                    continue;
+                }
+
+                closestDistance = t;
+
+                closestHit = RoadRaycastHit
+                {
+                    .position = start + (end - start) * u,
+                    .distance = t,
+                };
+            }
+        };
+
+        testBoundary(m_leftBoundary);
+        testBoundary(m_rightBoundary);
+
+        return closestHit;
+    }
+
     void Track::renderDebug(aiko::RenderContext& context)
     {
         m_centerLine.render(context);
@@ -220,6 +307,23 @@ namespace ab
             drawBoundary(m_leftBoundary, aiko::CYAN);
             drawBoundary(m_rightBoundary, aiko::MAGENTA);
         }
+
+        // Debug test: raycast from the finish line toward the right road edge.
+        {
+            const auto finish = getFinishLine();
+            const auto direction = aiko::math::normalize(aiko::math::cross(finish.forward, WorldUp));
+            const float maxDistance = m_trackWidth * 2.0f;
+            const auto hit = raycastBoundary(finish.position, direction, maxDistance);
+            constexpr aiko::vec3 DebugOffset = {0.0f, 0.08f, 0.0f};
+            const auto origin = finish.position + DebugOffset;
+            const auto end = hit ? hit->position + DebugOffset : origin + direction * maxDistance;
+            context.drawLine(origin, end, aiko::YELLOW);
+            if (hit)
+            {
+                context.drawPoint(hit->position + DebugOffset, aiko::RED);
+            }
+        }
+
 
     }
 
