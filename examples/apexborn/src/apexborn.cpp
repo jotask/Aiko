@@ -229,7 +229,12 @@ namespace ab
         for (auto& v : m_vehicles)
         {
             ImGui::PushID(&v);
-            const bool onRoad = m_track.isOnRoad(v.position());
+            const auto projection = m_track.projectPoint(v.position());
+            ImGui::Text("Lateral Offset: %.2f", projection.signedLateralOffset);
+            ImGui::Text("Track Progress: %.2f", projection.progressOnTrack);
+            const float alignment = aiko::math::dot(v.forwardDirection(), projection.forwardDirection);
+            ImGui::Text("Heading Alignment: %.3f", alignment);
+            const bool onRoad = m_track.isOnRoad(projection);
             ImGui::TextColored(onRoad ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "%s", onRoad ? "ON ROAD" : "OFF ROAD");
             float currentSteering = v.steering();
             if (ImGui::SliderFloat("Steering", &currentSteering, -1.0f, 1.0f))

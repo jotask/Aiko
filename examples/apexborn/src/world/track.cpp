@@ -72,11 +72,21 @@ namespace ab
 
     }
 
+    bool Track::isOnRoad(const TrackNavigation::TrackProjection& projection) const
+    {
+        const float halfWidth = m_trackWidth * 0.5f;
+        return std::abs(projection.signedLateralOffset) <= halfWidth;
+    }
+
     bool Track::isOnRoad(const aiko::vec3& point) const
     {
-        const auto halfWidth = m_trackWidth * 0.5f;
         const auto projection = m_trackNavigation.getTrackProjectionFromPoint(point);
-        return std::abs(projection.signedLateralOffset) <= halfWidth;
+        return isOnRoad(projection);
+    }
+
+    TrackNavigation::TrackProjection Track::projectPoint(const aiko::vec3& point) const
+    {
+        return m_trackNavigation.getTrackProjectionFromPoint(point);
     }
 
     void Track::render(aiko::RenderContext& context)

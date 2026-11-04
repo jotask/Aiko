@@ -32,7 +32,9 @@ namespace ab
 
         bool generate(const TrackGeneratorSettings& settings);
 
+        bool isOnRoad(const TrackNavigation::TrackProjection& point) const;
         bool isOnRoad(const aiko::vec3& point) const;
+        TrackNavigation::TrackProjection projectPoint(const aiko::vec3& point) const;
 
         void render(aiko::RenderContext& context);
 
