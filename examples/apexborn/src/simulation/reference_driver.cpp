@@ -11,10 +11,9 @@
 
 namespace ab
 {
-    VehicleControl ReferenceDriver::compute(const Vehicle& vehicle, const Track& track)
+    VehicleControl ReferenceDriver::compute(const Vehicle& vehicle, const Track& track, float trackProgress)
     {
         AIKO_FUNCTION_PROFILE
-        const auto projection = track.projectPoint(vehicle.position());
 
         constexpr float LookAheadDistance = 1.5f;
         constexpr float SteeringGain = 1.5f;
@@ -27,14 +26,14 @@ namespace ab
         for (size_t i = 0 ; i <= NSteps; ++i)
         {
             const float offset = PlanningStep * i;
-            const auto futureDistance =  projection.progressOnTrack + offset;
+            const auto futureDistance =  trackProgress + offset;
             const auto cornerSpeed = calculateSpeedLimitAtDistance(track, futureDistance);
             const auto velocityAllowed = std::sqrt((cornerSpeed * cornerSpeed) + 2 * PlanningDeceleration * offset);
             targetSpeed = std::min(targetSpeed, velocityAllowed);
         }
 
         // Steering
-        const auto target = track.pointAtDistance(projection.progressOnTrack + LookAheadDistance);
+        const auto target = track.pointAtDistance(trackProgress + LookAheadDistance);
         const auto direction = target - vehicle.position();
         const float desiredHeading = std::atan2(direction.z, direction.x);
         const float headingDifference = desiredHeading - vehicle.heading();

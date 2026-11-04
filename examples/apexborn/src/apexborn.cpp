@@ -204,7 +204,7 @@ namespace ab
 
             if (m_autonomousDriving)
             {
-                const auto control = ReferenceDriver::compute(car, m_track);
+                const auto control = ReferenceDriver::compute(car, m_track, agent.previousProgress);
                 const float steeringBias = m_referenceDriverVariation ? agent.referenceSteeringBias : 0.0f;
                 const float throttleScale = m_referenceDriverVariation ? agent.referenceThrottleScale : 1.0f;
                 car.setSteering(control.steering + steeringBias);

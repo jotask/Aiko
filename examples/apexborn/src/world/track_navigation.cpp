@@ -37,24 +37,45 @@ namespace ab
         AIKO_ASSERT(m_trackTotalLength > epsilon, "Total track length too short?");
     }
 
+
     TrackNavigation::TrackProjection TrackNavigation::getTrackProjectionFromPoint(const aiko::vec3& point) const
     {
         AIKO_FUNCTION_PROFILE
+
         AIKO_ASSERT(m_centerLine.size() >= 3, "Track navigation has not been initialized");
-        TrackProjection bestProjection = {};
-        float bestDistance = std::numeric_limits<float>::max();
-        for (size_t i = 0; i < m_centerLine.size() ; ++i)
+
+        const size_t segmentCount = m_centerLine.size();
+
+        float bestDistanceSquared = std::numeric_limits<float>::max();
+        size_t bestSegmentIndex = 0;
+
+        for (size_t i = 0; i < segmentCount; ++i)
         {
-            const auto startIdx = i;
-            const auto endIdx = (i + 1) % m_centerLine.size();
-            const auto projection = calculateTrackProjection(startIdx, endIdx, point);
-            if (projection.distanceFromCenter < bestDistance)
+            const auto& start = m_centerLine[i];
+            const auto& end = m_centerLine[(i + 1) % segmentCount];
+
+            const auto direction = end - start;
+            const auto toPoint = point - start;
+
+            const float lengthSquared = aiko::math::dot(direction, direction);
+
+            AIKO_ASSERT(lengthSquared > epsilon * epsilon, "Invalid navigation segment");
+
+            const float t = aiko::math::clamp(aiko::math::dot(toPoint, direction) / lengthSquared, 0.0f, 1.0f);
+
+            const auto closestPoint = start + direction * t;
+            const auto difference = point - closestPoint;
+
+            const float distanceSquared = aiko::math::dot(difference, difference);
+
+            if (distanceSquared < bestDistanceSquared)
             {
-                bestDistance = projection.distanceFromCenter;
-                bestProjection = projection;
+                bestDistanceSquared = distanceSquared;
+                bestSegmentIndex = i;
             }
         }
-        return bestProjection;
+
+        return calculateTrackProjection(bestSegmentIndex, (bestSegmentIndex + 1) % segmentCount, point);
     }
 
     aiko::vec3 TrackNavigation::pointAtDistance(float distance) const

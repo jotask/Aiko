@@ -52,7 +52,7 @@ namespace ab
 
         aiko::Model m_vehicleModel;
 
-        int m_vehicleCount = 12;
+        int m_vehicleCount = 100;
         int m_selectedAgent = 0;
 
         std::vector<VehicleAgent> m_agents;

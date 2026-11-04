@@ -10,7 +10,7 @@ namespace ab
     class ReferenceDriver final
     {
     public:
-        static VehicleControl compute(const Vehicle& vehicle, const Track& track);
+        static VehicleControl compute(const Vehicle& vehicle, const Track& track, float trackProgress);
     private:
         static constexpr float MaxTargetSpeed = 2.5f;
         static constexpr float MinTargetSpeed = 0.8f;
