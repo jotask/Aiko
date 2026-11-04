@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <unordered_map>
 
 #include <aiko_types.h>
@@ -38,9 +39,9 @@ namespace aiko
         bool hasComputeShader(const AssetId& id) const;
 
         void updateTexture(const AssetId& id);
+        void updateMesh(const AssetId& id);
 
         void unloadTexture(const AssetId& id);
-        void unloadMesh(const AssetId& id);
         void unloadModel(const AssetId& id);
         void unloadShader(const AssetId& id);
         void unloadComputeShader(const AssetId& id);
@@ -51,10 +52,12 @@ namespace aiko
 
         IAssetProvider& m_assetProvider;
 
+        std::shared_ptr<Mesh> acquireMesh(const AssetId& id);
+
         std::unordered_map<AssetId, AikoUPtr<Texture>> m_textures;
         std::unordered_map<AssetId, AikoUPtr<Texture>> m_srgbTextures;
 
-        std::unordered_map<AssetId, AikoUPtr<Mesh>> m_meshes;
+        std::unordered_map<AssetId, std::shared_ptr<Mesh>> m_meshes;
         std::unordered_map<AssetId, AikoUPtr<Model>> m_models;
         std::unordered_map<AssetId, AikoUPtr<Shader>> m_shaders;
         std::unordered_map<AssetId, AikoUPtr<ComputeShader>> m_computeShaders;

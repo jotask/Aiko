@@ -69,6 +69,11 @@ namespace aiko
         m_renderer->submit(transform, mesh, material);
     }
 
+    void RenderModule::submit(const Transform& transform, const std::shared_ptr<Mesh>& mesh, const Material& material)
+    {
+        m_renderer->submit(transform, mesh, material);
+    }
+
     void RenderModule::submitInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount)
     {
         m_renderer->submit(mesh, material, instances, instanceCount, sizeof(InstanceData));
@@ -139,9 +144,9 @@ namespace aiko
         m_renderer->resources().updateTexture(id);
     }
 
-    void RenderModule::unloadMesh(const AssetId& id)
+    void RenderModule::updateMesh(const AssetId& id)
     {
-        m_renderer->resources().unloadMesh(id);
+        m_renderer->resources().updateMesh(id);
     }
 
     void RenderModule::unloadModel(const AssetId& id)

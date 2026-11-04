@@ -142,6 +142,8 @@ namespace aiko
     void AikoRenderer::dispose()
     {
         m_renderer->waitIdle();
+        m_sceneRenderRequests.clear();
+        m_renderQueue.clear();
         m_gpuInstanceSorter.dispose();
         m_billboardMesh.unload();
         m_imgui.dispose();
@@ -186,6 +188,18 @@ namespace aiko
         }
         m_frameMaterials.push_back(material);
         m_renderQueue.submit(mesh, m_frameMaterials.back(), transform.getWorldMatrix());
+    }
+
+    void AikoRenderer::submit(const Transform& transform, const std::shared_ptr<Mesh>& mesh, const Material& material)
+    {
+        AIKO_FUNCTION_PROFILE
+        AIKO_ASSERT(mesh != nullptr, "Cannot submit a null mesh");
+        if (!mesh->isValid())
+        {
+            return;
+        }
+        m_frameMaterials.push_back(material);
+        m_renderQueue.submit(mesh,m_frameMaterials.back(),transform.getWorldMatrix());
     }
 
     void AikoRenderer::submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride)

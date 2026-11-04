@@ -1,13 +1,14 @@
 #pragma once
 
-#include <assets/asset_id.h>
+#include <memory>
+#include <vector>
+
 #include "models/material.h"
 
 namespace aiko
 {
-
-    class RenderResourceManager;
-    struct ModelAsset;
+    class Mesh;
+    struct MeshAsset;
 
     class Model
     {
@@ -15,9 +16,12 @@ namespace aiko
 
         struct SubMesh
         {
-            AssetId meshId = InvalidAssetId;
+            std::shared_ptr<Mesh> mesh;
             Material material{};
         };
+
+        Model() = default;
+        ~Model() = default;
 
         // Copy
         Model(const Model&) = delete;
@@ -27,18 +31,22 @@ namespace aiko
         Model(Model&&) noexcept = default;
         Model& operator=(Model&&) noexcept = default;
 
-        Model() = default;
-        ~Model() = default;
+        void addSubMesh(std::shared_ptr<Mesh> mesh, Material material);
+        void addSubMesh(const MeshAsset& asset, Material material);
 
-        void upload(const ModelAsset& asset);
         void unload();
 
-        const vector<SubMesh>& getSubMeshes() const { return m_subMeshes; }
-        vector<SubMesh>& getSubMeshes() { return m_subMeshes; }
+        [[nodiscard]]
+        bool isValid() const;
+
+        [[nodiscard]]
+        const std::vector<SubMesh>& getSubMeshes() const
+        {
+            return m_subMeshes;
+        }
 
     private:
 
-        vector<SubMesh> m_subMeshes;
-
+        std::vector<SubMesh> m_subMeshes;
     };
 }

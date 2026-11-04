@@ -212,11 +212,14 @@ namespace aiko
     void RenderSystem::render(const Transform& trans, const Model& model)
     {
         AIKO_FUNCTION_PROFILE
-        for (const auto& submesh : model.getSubMeshes())
+        for (const Model::SubMesh& submesh : model.getSubMeshes())
         {
-            AIKO_ASSERT(submesh.meshId != InvalidAssetId, "Runtime model submesh has invalid mesh id");
-            Mesh& mesh = m_renderModule->getMesh(submesh.meshId);
-            m_renderModule->submit(trans, mesh, submesh.material);
+            AIKO_ASSERT(submesh.mesh != nullptr, "Runtime model contains a null mesh");
+            if (!submesh.mesh->isValid())
+            {
+                continue;
+            }
+            m_renderModule->submit(trans, submesh.mesh, submesh.material);
         }
     }
 

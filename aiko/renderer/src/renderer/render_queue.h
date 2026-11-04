@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <vector>
 
 #include "types/aiko_renderer_types.h"
@@ -24,6 +26,7 @@ namespace aiko
         void clear();
 
         void submit(const Mesh& mesh, const Material& material, const mat4& transform);
+        void submit(const std::shared_ptr<Mesh>& mesh, const Material& material, const mat4& transform);
         void submitInstanced(const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u16 stride);
         void submitTransient(TransientDrawDesc desc);
         void submitFullscreen(const Material& material);
@@ -38,6 +41,7 @@ namespace aiko
 
     private:
         std::vector<RenderItem> m_renderItems;
+        std::vector<std::shared_ptr<Mesh>> m_retainedMeshes;
 
         std::vector<InstanceItem> m_instancedItems;
         std::vector<u8> m_instanceData;

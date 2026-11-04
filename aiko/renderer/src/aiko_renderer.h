@@ -69,6 +69,7 @@ namespace aiko
         void submit(const AmbientLight& ambient, const vector<LightData>& data);
         void submit(const LightData& light);
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
+        void submit(const Transform& transform, const std::shared_ptr<Mesh>& mesh, const Material& material);
         void submit(const Mesh& mesh, const Material& material, const void* data, uint32_t instanceCount, uint16_t stride);
         void submit(const Transform& transform, const Mesh& mesh, const MaterialAsset& materialAsset, const MaterialInstance& materialInstance);
         void submitFullscreen(const Material& material);

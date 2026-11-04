@@ -21,6 +21,13 @@ namespace aiko
         });
     }
 
+    void RenderQueue::submit(const std::shared_ptr<Mesh>& mesh, const Material& material, const mat4& transform)
+    {
+        AIKO_ASSERT(mesh != nullptr, "Cannot submit a null mesh");
+        m_retainedMeshes.push_back(mesh);
+        submit(*mesh, material, transform);
+    }
+
     void RenderQueue::submitInstanced(const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u16 stride)
     {
         if (data == nullptr || instanceCount == 0 || stride == 0)
@@ -88,6 +95,7 @@ namespace aiko
     void RenderQueue::clear()
     {
         m_renderItems.clear();
+        m_retainedMeshes.clear();
         m_fullscreenDraws.clear();
 
         m_instancedItems.clear();

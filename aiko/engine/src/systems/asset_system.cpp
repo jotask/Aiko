@@ -514,7 +514,7 @@ namespace aiko
 
     void AssetSystem::invalidateMesh(const AssetId& id)
     {
-        m_renderModule->unloadMesh(id);
+        m_renderModule->updateMesh(id);
     }
 
     void AssetSystem::invalidateModel(const AssetId& id)

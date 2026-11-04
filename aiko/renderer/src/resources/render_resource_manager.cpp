@@ -115,18 +115,21 @@ namespace aiko
 
     Mesh& RenderResourceManager::getMesh(const AssetId& id)
     {
-        auto it = m_meshes.find(id);
+        return *acquireMesh(id);
+    }
+
+    std::shared_ptr<Mesh> RenderResourceManager::acquireMesh(const AssetId& id)
+    {
+        const auto it = m_meshes.find(id);
 
         if (it != m_meshes.end())
         {
-            Mesh& mesh = *it->second;
+            std::shared_ptr<Mesh> mesh = it->second;
 
-            if (!mesh.isValid())
+            if (!mesh->isValid())
             {
-                // The previous upload failed.
-                // Retry without replacing the cached Mesh object.
                 const MeshAsset& asset = m_assetProvider.getMeshAsset(id);
-                mesh.upload(asset);
+                mesh->upload(asset);
             }
 
             return mesh;
@@ -134,19 +137,18 @@ namespace aiko
 
         const MeshAsset& asset = m_assetProvider.getMeshAsset(id);
 
-        auto mesh = std::make_unique<Mesh>();
+        auto mesh = std::make_shared<Mesh>();
         mesh->upload(asset);
 
-        Mesh& ref = *mesh;
+        m_meshes.emplace(id, mesh);
 
-        m_meshes.emplace(id, std::move(mesh));
-
-        return ref;
+        return mesh;
     }
 
     Model& RenderResourceManager::getModel(const AssetId& id)
     {
-        auto it = m_models.find(id);
+        const auto it = m_models.find(id);
+
         if (it != m_models.end())
         {
             return *it->second;
@@ -155,11 +157,30 @@ namespace aiko
         const ModelAsset& asset = m_assetProvider.getModelAsset(id);
 
         auto model = std::make_unique<Model>();
-        model->upload(asset);
 
-        Model& ref = *model;
+        for (const ModelAsset::SubMesh& submesh : asset.submeshes)
+        {
+            Material material{};
+
+            material.m_shaderId = submesh.material.shaderId;
+
+            material.m_baseColor = submesh.material.baseColor;
+            material.m_useVertexColor = submesh.material.useVertexColor;
+            material.m_lit = submesh.material.lit;
+
+            if (submesh.material.diffuseTextureId != InvalidAssetId)
+            {
+                material.setTexture("u_texture", submesh.material.diffuseTextureId);
+            }
+
+            model->addSubMesh(acquireMesh(submesh.meshId), std::move(material));
+        }
+
+        Model& reference = *model;
+
         m_models.emplace(id, std::move(model));
-        return ref;
+
+        return reference;
     }
 
     Shader& RenderResourceManager::getShader(const AssetId& id)
@@ -266,24 +287,20 @@ namespace aiko
         }
     }
 
-    void RenderResourceManager::unloadMesh(const AssetId& id)
+    void RenderResourceManager::updateMesh(const AssetId& id)
     {
-        auto it = m_meshes.find(id);
-        if (it != m_meshes.end())
+        const auto it = m_meshes.find(id);
+        if (it == m_meshes.end())
         {
-            it->second->unload();
-            m_meshes.erase(it);
+            return;
         }
+        const MeshAsset& asset = m_assetProvider.getMeshAsset(id);
+        it->second->upload(asset);
     }
 
     void RenderResourceManager::unloadModel(const AssetId& id)
     {
-        auto it = m_models.find(id);
-        if (it != m_models.end())
-        {
-            it->second->unload();
-            m_models.erase(it);
-        }
+        m_models.erase(id);
     }
 
     void RenderResourceManager::unloadShader(const AssetId& id)
@@ -308,53 +325,45 @@ namespace aiko
 
     void RenderResourceManager::clear()
     {
-        for (auto& texture : m_textures)
+        m_models.clear();
+        m_meshes.clear();
+
+        for (auto& [id, texture] : m_textures)
         {
-            if (texture.second != nullptr)
+            if (texture != nullptr)
             {
-                texture.second->unload();
+                texture->unload();
             }
         }
-        for (auto& texture: m_srgbTextures)
+
+        for (auto& [id, texture] : m_srgbTextures)
         {
-            if (texture.second != nullptr)
+            if (texture != nullptr)
             {
-                texture.second->unload();
+                texture->unload();
             }
         }
-        for (auto& mesh : m_meshes)
+
+        for (auto& [id, shader] : m_shaders)
         {
-            if (mesh.second != nullptr)
+            if (shader != nullptr)
             {
-                mesh.second->unload();
+                shader->unload();
             }
         }
-        for (auto& model : m_models)
+
+        for (auto& [id, shader] : m_computeShaders)
         {
-            if (model.second != nullptr)
+            if (shader != nullptr)
             {
-                model.second->unload();
+                shader->unload();
             }
         }
-        for (auto& shader : m_shaders)
-        {
-            if (shader.second != nullptr)
-            {
-                shader.second->unload();
-            }
-        }
-        for (auto& compute : m_computeShaders)
-        {
-            if (compute.second != nullptr)
-            {
-                compute.second->unload();
-            }
-        }
+
         m_textures.clear();
         m_srgbTextures.clear();
-        m_meshes.clear();
-        m_models.clear();
         m_shaders.clear();
         m_computeShaders.clear();
     }
+
 }

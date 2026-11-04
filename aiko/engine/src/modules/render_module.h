@@ -7,6 +7,8 @@
 #include <optional>
 #include <models/light.h>
 
+#include <memory>
+
 namespace aiko
 {
 
@@ -40,6 +42,8 @@ namespace aiko
         ComputeShader& getComputeShader(const AssetId& id);
 
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
+        void submit(const Transform& transform, const std::shared_ptr<Mesh>& mesh, const Material& material);
+
         void submitInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
 
         void submitFullscreen(const Material& material);
@@ -61,7 +65,7 @@ namespace aiko
         const FrameBuffer& getTargetTexture() const;
 
         void updateTexture(const AssetId& id);
-        void unloadMesh(const AssetId& id);
+        void updateMesh(const AssetId& id);
         void unloadModel(const AssetId& id);
         void unloadShader(const AssetId& id);
 
