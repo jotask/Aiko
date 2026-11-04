@@ -149,9 +149,12 @@ namespace ab
 
             auto& car = agent.car;
 
-            if (m_autonomousSteering)
+            if (m_autonomousDriving)
             {
-                car.setSteering(ReferenceDriver::computeSteering(car, m_track));
+                const auto control = ReferenceDriver::compute(car, m_track);
+                car.setSteering(control.steering);
+                car.setThrottle(control.throttle);
+                car.setBrake(control.brake);
             }
 
             car.update(dt);
@@ -260,7 +263,7 @@ namespace ab
             return;
         }
 
-        ImGui::Checkbox("Autonomous Steering", &m_autonomousSteering);
+        ImGui::Checkbox("Autonomous Driving", &m_autonomousDriving);
 
         for (auto& agent : m_agents)
         {
@@ -274,33 +277,26 @@ namespace ab
             const size_t completedLaps = trackLength > 0.0f ? static_cast<size_t>(std::floor(agent.bestProgress / trackLength)) : 0;
             ImGui::Text("Best Progress: %.2f", agent.bestProgress);
             ImGui::Text("Completed Laps: %zu", completedLaps);
-
             ImGui::Text("Speed: %f m/s", car.speed());
-
-            float throttle = car.throttle();
-            if (ImGui::SliderFloat("Throttle", &throttle, 0.0f, 1.0f, "%.3f"))
-            {
-                car.setThrottle(throttle);
-            }
-
-            float brake = car.brake();
-            if (ImGui::SliderFloat("Brake", &brake, 0.0f, 1.0f, "%.3f"))
-            {
-                car.setBrake(brake);
-            }
-
             const float alignment = aiko::math::dot(car.forwardDirection(), projection.forwardDirection);
             ImGui::Text("Heading Alignment: %.3f", alignment);
             ImGui::TextColored(agent.alive ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "%s", agent.alive ? "ACTIVE" : "FAILED");
-            ImGui::BeginDisabled(!agent.alive || m_autonomousSteering);
+
+            ImGui::BeginDisabled(!agent.alive || m_autonomousDriving);
             float currentSteering = car.steering();
             if (ImGui::SliderFloat("Steering", &currentSteering, -1.0f, 1.0f))
             {
                 car.setSteering(currentSteering);
             }
-            if (ImGui::Button("Reset Steering"))
+            float throttle = car.throttle();
+            if (ImGui::SliderFloat("Throttle", &throttle, 0.0f, 1.0f, "%.3f"))
             {
-                car.setSteering(0.0f);
+                car.setThrottle(throttle);
+            }
+            float brake = car.brake();
+            if (ImGui::SliderFloat("Brake", &brake, 0.0f, 1.0f, "%.3f"))
+            {
+                car.setBrake(brake);
             }
             ImGui::EndDisabled();
 

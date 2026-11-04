@@ -57,7 +57,7 @@ namespace ab
         static constexpr float FixedTimeStep = 1.0f / 60.0f;
 
         float m_simulationAccumulator = 0.0f;
-        bool m_autonomousSteering = true;
+        bool m_autonomousDriving = true;
 
     };
 

@@ -1,4 +1,6 @@
 #pragma once
+#include "math/math.h"
+#include "vehicle_controls.h"
 
 namespace ab
 {
@@ -8,6 +10,10 @@ namespace ab
     class ReferenceDriver final
     {
     public:
-        static float computeSteering(const Vehicle& vehicle, const Track& track);
+        static VehicleControl compute(const Vehicle& vehicle, const Track& track);
+    private:
+        static constexpr float MaxTargetSpeed = 2.5f;
+        static constexpr float MinTargetSpeed = 0.8f;
+        static constexpr float MaxTurnAngle = aiko::PI / 6; // 30 degree
     };
 }
