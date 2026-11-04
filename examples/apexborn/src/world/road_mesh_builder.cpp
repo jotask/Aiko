@@ -6,7 +6,7 @@
 namespace ab
 {
 
-    aiko::MeshAsset RoadMeshBuilder::build(const Spline& spline, const RoadProfile& profile, const RoadMeshBuilderDesc& desc)
+    RoadMeshBuilder::RoadBuildResult RoadMeshBuilder::build(const Spline& spline, const RoadProfile& profile, const RoadMeshBuilderDesc& desc)
     {
 
         const auto& centerLine = spline.getSamplePoints();
@@ -21,12 +21,36 @@ namespace ab
         const size_t profileCount = profile.points.size();
         const size_t edgeCount = profile.closed ? profileCount : profileCount - 1;
 
+        size_t leftIndex = 0;
+        size_t rightIndex = 0;
+
+        for (size_t i = 1; i < profileCount; ++i)
+        {
+            const auto& point = profile.points[i];
+
+            const auto& left = profile.points[leftIndex];
+            if (point.x < left.x || (point.x == left.x && point.y > left.y))
+            {
+                leftIndex = i;
+            }
+
+            const auto& right = profile.points[rightIndex];
+            if (point.x > right.x || (point.x == right.x && point.y > right.y))
+            {
+                rightIndex = i;
+            }
+        }
+
         const size_t ringStride = edgeCount * 2;
         const size_t vertexCount = (ringCount  + 1) * ringStride;
 
         AIKO_ASSERT(vertexCount <= std::numeric_limits<uint32_t>::max(), "Road Mesh excedes uint32 index range");
 
-        aiko::MeshAsset asset;
+        RoadBuildResult result;
+        aiko::MeshAsset& asset = result.mesh;
+
+        result.leftBoundary.reserve(ringCount);
+        result.rightBoundary.reserve(ringCount);
 
         asset.m_vertices.reserve(vertexCount);
         asset.m_indices.reserve(ringCount * edgeCount * 6);
@@ -90,6 +114,18 @@ namespace ab
             const auto right = aiko::math::normalize(rightVector);
             const auto up = aiko::math::normalize(aiko::math::cross(right, tangent));
 
+            const auto toWorld = [&](const aiko::vec2& profilePoint)
+            {
+                return position + right * (profilePoint.x * desc.roadWidth) + up * profilePoint.y;
+            };
+
+            // Exclude the duplicated closing ring.
+            if (i < ringCount)
+            {
+                result.leftBoundary.push_back(toWorld(profile.points[leftIndex]));
+                result.rightBoundary.push_back(toWorld(profile.points[rightIndex]));
+            }
+
             const float u = (trackDistance[i] / trackLength) * trackRepeats;
 
             for (size_t j = 0 ; j < edgeCount; ++j)
@@ -97,8 +133,8 @@ namespace ab
                 const auto& p0 = profile.points[j];
                 const auto& p1 = profile.points[(j + 1) % profileCount];
 
-                const auto v0 = position + right * (p0.x * desc.roadWidth) + up * p0.y;
-                const auto v1 = position + right * (p1.x * desc.roadWidth) + up * p1.y;
+                const auto v0 = toWorld(p0);
+                const auto v1 = toWorld(p1);
 
                 const auto edgeDirection = v1 - v0;
                 const auto normal = aiko::math::normalize(aiko::math::cross(edgeDirection, tangent));
@@ -163,7 +199,7 @@ namespace ab
         AIKO_ASSERT(asset.m_indices.size() == ringCount * edgeCount * 6, "Incorrect road index count");
         AIKO_ASSERT(asset.m_colors.size() == vertexCount, "Incorrect road vertex color count");
 
-        return asset;
+        return result;
     }
 
     aiko::MeshAsset RoadMeshBuilder::buildEdgeMarkings(const Spline& spline, const RoadProfile& profile, const RoadMeshBuilderDesc& desc)

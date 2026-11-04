@@ -58,8 +58,13 @@ namespace ab
             .roadWidth = m_trackWidth,
             .worldUp = WorldUp,
         };
-        const auto asset = RoadMeshBuilder::build(m_centerLine, m_profile, desc);
-        m_roadMesh.upload(asset);
+
+        auto road = RoadMeshBuilder::build(m_centerLine, m_profile, desc);
+
+        m_roadMesh.upload(road.mesh);
+
+        m_leftBoundary = std::move(road.leftBoundary);
+        m_rightBoundary = std::move(road.rightBoundary);
 
         const auto markings = RoadMeshBuilder::buildEdgeMarkings(m_centerLine, m_profile, desc);
         m_edgeMarkingsMesh.upload(markings);
@@ -191,6 +196,29 @@ namespace ab
                     aiko::YELLOW
                 );
             }
+        }
+
+        // Render boundaries
+        {
+            auto drawBoundary = [&context](const Spline::Points& points, const aiko::Color& color)
+            {
+                if (points.size() < 2)
+                {
+                    return;
+                }
+
+                const aiko::vec3 offset = {0.0f, 0.04f, 0.0f};
+
+                for (size_t i = 0; i < points.size(); ++i)
+                {
+                    const auto& a = points[i];
+                    const auto& b = points[(i + 1) % points.size()];
+                    context.drawLine(a + offset, b + offset, color);
+                }
+            };
+
+            drawBoundary(m_leftBoundary, aiko::CYAN);
+            drawBoundary(m_rightBoundary, aiko::MAGENTA);
         }
 
     }

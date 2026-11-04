@@ -53,6 +53,9 @@ namespace ab
         float m_trackWidth = 0.0f;
 
         Spline m_centerLine;
+        Spline::Points m_leftBoundary;
+        Spline::Points m_rightBoundary;
+
         RoadProfile m_profile;
         TrackNavigation m_trackNavigation;
 
