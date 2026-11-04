@@ -9,37 +9,96 @@
 namespace ab
 {
 
+    namespace
+    {
+        float calculateLookAheadError (const Track& track, const Vehicle& vehicle, float progressOnTrack, float distance)
+        {
+            const auto target = track.pointAtDistance(progressOnTrack + distance);
+
+            const auto direction = target - vehicle.position();
+
+            const float horizontalLengthSquared = direction.x * direction.x + direction.z * direction.z;
+
+            if (horizontalLengthSquared <= epsilon * epsilon)
+            {
+                return 0.0f;
+            }
+
+            const float desiredHeading = std::atan2(direction.z, direction.x);
+
+            const float difference = desiredHeading - vehicle.heading();
+
+            const float angle = std::atan2(std::sin(difference), std::cos(difference));
+
+            return aiko::math::clamp(angle / static_cast<float>(aiko::PI), -1.0f, 1.0f);
+        };
+    }
+
     DrivingObservationData DrivingObservation::calculate(const Vehicle& vehicle, const Track& track)
     {
-
-        const auto trackWidth = track.getTrackWidth();
-        AIKO_ASSERT(trackWidth > epsilon, "Track to small?");
-        const auto halfTrackWidth = trackWidth * 0.5f;
-        AIKO_ASSERT(halfTrackWidth > epsilon, "Track to small?");
+        constexpr float NearLookAheadDistance = 1.5f;
+        constexpr float FarLookAheadDistance = 3.0f;
+        constexpr float CurvatureSampleDistance = 1.5f;
+        constexpr float CurvatureNormalizationAngle = aiko::PI / 6.0f;
 
         const auto projection = track.projectPoint(vehicle.position());
 
-        const auto lateralOffset = aiko::math::clamp(projection.signedLateralOffset / halfTrackWidth, -1.0f, 1.0f);
+        // 1. Lateral offset
+        const float halfTrackWidth = track.getTrackWidth() * 0.5f;
+        AIKO_ASSERT(halfTrackWidth > epsilon, "Invalid track width");
 
+        const float lateralOffset = aiko::math::clamp(projection.signedLateralOffset / halfTrackWidth, -1.0f, 1.0f);
+
+        // 2. Heading error
         const auto vehicleForward = vehicle.forwardDirection();
-        const auto cross = (vehicleForward.x * projection.forwardDirection.z) - (vehicleForward.z * projection.forwardDirection.x);
-        const auto dot   = (vehicleForward.x * projection.forwardDirection.x) + (vehicleForward.z * projection.forwardDirection.z);
-        const auto angle = atan2(cross, dot);
-        const auto headingError = angle / aiko::PI;
+        const auto trackForward = projection.forwardDirection;
+        const float cross = vehicleForward.x * trackForward.z - vehicleForward.z * trackForward.x;
+        const float dot = vehicleForward.x * trackForward.x + vehicleForward.z * trackForward.z;
+        const float headingError = std::atan2(cross, dot) / aiko::PI;
 
+        // 3 & 4. Near and far look-ahead errors
+        const float lookAheadError = calculateLookAheadError(track, vehicle, projection.progressOnTrack, NearLookAheadDistance);
+        const float farLookAheadError = calculateLookAheadError(track, vehicle, projection.progressOnTrack, FarLookAheadDistance);
 
-        constexpr float LookAheadDistance = 1.5f;
-        const auto target = track.pointAtDistance(projection.progressOnTrack + LookAheadDistance);
-        const auto direction = target - vehicle.position();
-        const float desiredHeading = std::atan2(direction.z, direction.x);
-        const float headingDifference = desiredHeading - vehicle.heading();
-        const float angleTowardsLookAhead = std::atan2(std::sin(headingDifference), std::cos(headingDifference));
-        const float lookAheadError = angleTowardsLookAhead / aiko::PI;
+        // 5. Upcoming curvature
+        const auto pointA = track.pointAtDistance(projection.progressOnTrack);
+        const auto pointB = track.pointAtDistance(projection.progressOnTrack + CurvatureSampleDistance);
+        const auto pointC = track.pointAtDistance(projection.progressOnTrack + CurvatureSampleDistance * 2.0f);
 
-        DrivingObservationData data;
-        data.lateralOffset = lateralOffset;
-        data.lookAheadError = lookAheadError;
-        data.headingError = headingError;
+        constexpr aiko::vec3 HorizontalMask = {1.0f, 0.0f, 1.0f};
+
+        auto segmentAB = (pointB - pointA) * HorizontalMask;
+        auto segmentBC = (pointC - pointB) * HorizontalMask;
+
+        const float squaredLengthAB = aiko::math::lengthSquared(segmentAB);
+        const float squaredLengthBC = aiko::math::lengthSquared(segmentBC);
+
+        float turnAngle = 0.0f;
+
+        if (squaredLengthAB > epsilon * epsilon && squaredLengthBC > epsilon * epsilon)
+        {
+            segmentAB = aiko::math::normalize(segmentAB);
+            segmentBC = aiko::math::normalize(segmentBC);
+            const float directionDot = aiko::math::clamp(aiko::math::dot(segmentAB, segmentBC), -1.0f, 1.0f);
+            turnAngle = std::acos(directionDot);
+        }
+
+        const float upcomingCurvature = aiko::math::clamp(turnAngle / CurvatureNormalizationAngle, 0.0f, 1.0f);
+
+        // 6. Normalized speed
+        const float normalizedSpeed = aiko::math::clamp(vehicle.speed() / Vehicle::MaxSpeed, 0.0f, 1.0f);
+
+        const DrivingObservationData data
+        {
+            .lateralOffset = lateralOffset,
+            .headingError = headingError,
+            .lookAheadError = lookAheadError,
+            .farLookAheadError = farLookAheadError,
+            .upcomingCurvature = upcomingCurvature,
+            .normalizedSpeed = normalizedSpeed,
+        };
+
         return data;
     }
+
 }

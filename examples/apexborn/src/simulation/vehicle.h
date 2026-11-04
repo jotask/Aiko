@@ -10,6 +10,12 @@ namespace ab
     class Vehicle
     {
     public:
+
+        static constexpr float MaxSpeed = 3.0f;
+        static constexpr float MaxAcceleration = 1.5f;
+        static constexpr float MaxBraking = 3.0f;
+        static constexpr float RollingResistance = 0.2f;
+
         Vehicle();
         ~Vehicle();
 
@@ -31,11 +37,6 @@ namespace ab
         float steering() const { return m_steering; }
 
     private:
-
-        static constexpr float MaxSpeed = 3.0f;
-        static constexpr float MaxAcceleration = 1.5f;
-        static constexpr float MaxBraking = 3.0f;
-        static constexpr float RollingResistance = 0.2f;
 
         aiko::vec3 m_position = {};
         float m_heading = 0.0f;

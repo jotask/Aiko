@@ -301,12 +301,19 @@ namespace ab
             ImGui::EndDisabled();
 
             //  Validation
-            auto validation = DrivingObservation::calculate(car, m_track);
+
+            // Driving observations
+            auto observation = DrivingObservation::calculate(car, m_track);
+            ImGui::SeparatorText("Driving Observations");
             ImGui::BeginDisabled();
-            ImGui::SliderFloat("LateralOffset",  &validation.lateralOffset, -1.0f, 1.0f);
-            ImGui::SliderFloat("headingError",   &validation.headingError, -1.0f, 1.0f);
-            ImGui::SliderFloat("lookAheadError", &validation.lookAheadError, -1.0f, 1.0f);
+            ImGui::SliderFloat("Lateral Offset", &observation.lateralOffset, -1.0f, 1.0f);
+            ImGui::SliderFloat("Heading Error", &observation.headingError, -1.0f, 1.0f);
+            ImGui::SliderFloat("Near LookAhead", &observation.lookAheadError, -1.0f, 1.0f);
+            ImGui::SliderFloat("Far LookAhead", &observation.farLookAheadError, -1.0f, 1.0f);
+            ImGui::SliderFloat("Upcoming Curvature", &observation.upcomingCurvature, 0.0f, 1.0f);
+            ImGui::SliderFloat("Normalized Speed", &observation.normalizedSpeed, 0.0f, 1.0f);
             ImGui::EndDisabled();
+
 
             ImGui::PopID();
         }
