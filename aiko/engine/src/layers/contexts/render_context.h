@@ -36,6 +36,7 @@ namespace aiko
         void drawMesh(const Transform& transform, const Mesh& mesh, const Material& material);
         void drawModel(const Transform& transform, const Model& model);
         void drawMeshInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
+        void drawModelInstanced(const Model& model, const InstanceData* instances, u32 instanceCount);
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
         void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
         void drawBillboards(const GpuBillboardDrawDesc& desc);

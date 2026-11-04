@@ -368,6 +368,23 @@ namespace aiko
         m_renderModule->submitInstanced(mesh, material, instances, instanceCount);
     }
 
+    void RenderSystem::renderInstanced(const Model& model, const InstanceData* instances, u32 instanceCount)
+    {
+        if (instances == nullptr || instanceCount == 0)
+        {
+            return;
+        }
+        for (const Model::SubMesh& submesh : model.getSubMeshes())
+        {
+            AIKO_ASSERT(submesh.mesh != nullptr, "Runtime model contains a null mesh");
+            if (!submesh.mesh || !submesh.mesh->isValid())
+            {
+                continue;
+            }
+            renderInstanced(*submesh.mesh, submesh.material, instances, instanceCount);
+        }
+    }
+
     void RenderSystem::dispatch(const ComputePass& pass, const AssetId& shaderId)
     {
         AIKO_FUNCTION_PROFILE
