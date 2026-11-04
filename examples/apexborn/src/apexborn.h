@@ -61,6 +61,7 @@ namespace ab
 
         float m_simulationAccumulator = 0.0f;
         bool m_autonomousDriving = true;
+        bool m_referenceDriverVariation = true;
 
     };
 

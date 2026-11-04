@@ -14,6 +14,9 @@ namespace ab
 
         float bestProgress = 0.0f;
 
+        float referenceSteeringBias = 0.0f;
+        float referenceThrottleScale = 1.0f;
+
     };
 
 }

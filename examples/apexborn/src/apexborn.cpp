@@ -12,6 +12,8 @@
 
 #include <imgui.h>
 
+#include <random>
+
 namespace ab
 {
 
@@ -127,8 +129,15 @@ namespace ab
         // Recreate the requested number of agents.
         m_agents.resize(static_cast<size_t>(m_vehicleCount));
 
-        for (auto& agent : m_agents)
+        std::mt19937 rng(m_trackSettings.seed);
+        std::uniform_real_distribution<float> steeringBiasDistribution(-0.06f, 0.06f);
+        std::uniform_real_distribution<float> throttleScaleDistribution(0.80f, 1.20f);
+
+        for (size_t i = 0; i < m_agents.size(); ++i)
         {
+
+            auto& agent = m_agents[i];
+
             // Every vehicle starts at the same position.
             agent.car.reset(finishLine.position, heading);
 
@@ -139,6 +148,19 @@ namespace ab
             agent.previousProgress = projection.progressOnTrack;
             agent.totalProgress = 0.0f;
             agent.bestProgress = 0.0f;
+
+            // Agent 0 remains the unmodified reference driver.
+            if (i == 0)
+            {
+                agent.referenceSteeringBias = 0.0f;
+                agent.referenceThrottleScale = 1.0f;
+            }
+            else
+            {
+                agent.referenceSteeringBias = steeringBiasDistribution(rng);
+                agent.referenceThrottleScale = throttleScaleDistribution(rng);
+            }
+
         }
 
         // Reset simulation timing and UI selection.
@@ -163,8 +185,10 @@ namespace ab
             if (m_autonomousDriving)
             {
                 const auto control = ReferenceDriver::compute(car, m_track);
-                car.setSteering(control.steering);
-                car.setThrottle(control.throttle);
+                const float steeringBias = m_referenceDriverVariation ? agent.referenceSteeringBias : 0.0f;
+                const float throttleScale = m_referenceDriverVariation ? agent.referenceThrottleScale : 1.0f;
+                car.setSteering(control.steering + steeringBias);
+                car.setThrottle(control.throttle * throttleScale);
                 car.setBrake(control.brake);
             }
 
@@ -286,6 +310,8 @@ namespace ab
                 }
             }
         }
+
+        ImGui::Checkbox("Reference Driver Variation", &m_referenceDriverVariation);
 
         // Vehicle count is applied on the next reset.
         ImGui::SliderInt("Vehicle Count (next reset)", &m_vehicleCount, 1, 100);
