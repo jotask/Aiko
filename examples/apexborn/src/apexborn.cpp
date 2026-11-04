@@ -74,6 +74,7 @@ namespace ab
             }
             agent.totalProgress += delta;
             agent.previousProgress = projection.progressOnTrack;
+            agent.bestProgress = std::max(agent.bestProgress, agent.totalProgress);
         }
     }
 
@@ -178,7 +179,7 @@ namespace ab
 
             agent.previousProgress = projection.progressOnTrack;
             agent.totalProgress = 0.0f;
-            agent.numberOfLaps = 0;
+            agent.bestProgress = 0.0f;
 
         }
 
@@ -269,6 +270,10 @@ namespace ab
             ImGui::Text("Lateral Offset: %.2f", projection.signedLateralOffset);
             ImGui::Text("Track Progress: %.2f", projection.progressOnTrack);
             ImGui::Text("Total Progress: %.2f", agent.totalProgress);
+            const float trackLength = m_track.getTrackLength();
+            const size_t completedLaps = trackLength > 0.0f ? static_cast<size_t>(std::floor(agent.bestProgress / trackLength)) : 0;
+            ImGui::Text("Best Progress: %.2f", agent.bestProgress);
+            ImGui::Text("Completed Laps: %zu", completedLaps);
             const float alignment = aiko::math::dot(car.forwardDirection(), projection.forwardDirection);
             ImGui::Text("Heading Alignment: %.3f", alignment);
             ImGui::TextColored(agent.alive ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "%s", agent.alive ? "ACTIVE" : "FAILED");
