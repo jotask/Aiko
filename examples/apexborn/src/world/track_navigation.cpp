@@ -2,6 +2,8 @@
 
 #include "constant_types.h"
 
+#include <algorithm>
+#include <cmath>
 #include <limits>
 
 namespace ab
@@ -50,6 +52,33 @@ namespace ab
             }
         }
         return bestProjection;
+    }
+
+    aiko::vec3 TrackNavigation::pointAtDistance(float distance) const
+    {
+        AIKO_ASSERT(m_centerLine.size() >= 3, "Track navigation is not initialized");
+        AIKO_ASSERT(std::isfinite(distance), "Invalid track distance");
+
+        float wrapped = std::fmod(distance, m_trackTotalLength);
+
+        if (wrapped < 0.0f)
+        {
+            wrapped += m_trackTotalLength;
+        }
+
+        const auto it = std::upper_bound( m_segmentCumulativeLength.begin(), m_segmentCumulativeLength.end(), wrapped);
+
+        const size_t index = static_cast<size_t>(std::distance(m_segmentCumulativeLength.begin(), it)) - 1;
+
+        const float start = m_segmentCumulativeLength[index];
+        const float end = m_segmentCumulativeLength[index + 1];
+
+        const float t = (wrapped - start) / (end - start);
+
+        const auto& p0 = m_centerLine[index];
+        const auto& p1 = m_centerLine[(index + 1) % m_centerLine.size()];
+
+        return p0 + (p1 - p0) * t;
     }
 
     TrackNavigation::TrackProjection TrackNavigation::calculateTrackProjection(const size_t startIdx, const size_t endIdx, const aiko::vec3& point) const

@@ -98,10 +98,9 @@ namespace ab
                 const float heading = std::atan2(finishLine.forward.z, finishLine.forward.x);
                 constexpr float BannerYawOffset = 90.0f;
                 transform.rotation = { 0.0f, -aiko::math::degrees(heading) + BannerYawOffset, 0.0f };
-                transform.scale= { 1.0f };
+                transform.scale= { 1.75f };
                 m_modelsInstances.emplace_back(m_bannerModelIdx, transform);
             }
-
 
             // Trees
             {

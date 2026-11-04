@@ -39,6 +39,7 @@ namespace ab
         void render(aiko::RenderContext& context);
 
         FinishLine getFinishLine() const;
+        aiko::vec3 pointAtDistance(float distance) const { return m_trackNavigation.pointAtDistance(distance); }
         float getTrackLength() const { return m_trackNavigation.getTrackLength(); }
         float getTrackWidth() const { return m_trackWidth; }
 

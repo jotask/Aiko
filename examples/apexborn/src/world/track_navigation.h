@@ -23,6 +23,7 @@ namespace ab
         void recalculate(const Spline& spline);
 
         TrackProjection getTrackProjectionFromPoint(const aiko::vec3& point) const;
+        aiko::vec3 pointAtDistance(float distance) const;
 
         float getTrackLength() const { return m_trackTotalLength; }
 

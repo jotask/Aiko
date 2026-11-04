@@ -3,6 +3,7 @@
 #include "extensions/ImGuiRoadProfiler.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/scene_context.h"
+#include "simulation/reference_driver.h"
 #include "models/mesh_factory.h"
 
 #include <components/camera_component.h>
@@ -45,36 +46,12 @@ namespace ab
     void ApexBorn::update()
     {
         Layer::update();
-        const auto dt = getDeltaTime();
-        const auto trackLength = m_track.getTrackLength();
-        for (auto& agent : m_agents)
+        const float frameDt = std::clamp(getDeltaTime(), 0.0f, 0.1f);
+        m_simulationAccumulator += frameDt;
+        while (m_simulationAccumulator >= FixedTimeStep)
         {
-            if (agent.alive == false)
-            {
-                continue;
-            }
-            auto& car = agent.car;
-            car.update(dt);
-            const auto projection = m_track.projectPoint(car.position());
-            if (m_track.isOnRoad(projection) == false)
-            {
-                agent.alive = false;
-                continue;
-            }
-
-            float delta = projection.progressOnTrack - agent.previousProgress;
-
-            if (delta < -trackLength * 0.5f)
-            {
-                delta += trackLength;
-            }
-            else if (delta > trackLength  * 0.5f)
-            {
-                delta -= trackLength;
-            }
-            agent.totalProgress += delta;
-            agent.previousProgress = projection.progressOnTrack;
-            agent.bestProgress = std::max(agent.bestProgress, agent.totalProgress);
+            simulateStep(FixedTimeStep);
+            m_simulationAccumulator -= FixedTimeStep;
         }
     }
 
@@ -153,8 +130,55 @@ namespace ab
 
         }
 
+        m_simulationAccumulator = 0.0f;
+
         return true;
 
+    }
+
+    void ApexBorn::simulateStep(float dt)
+    {
+        const float trackLength = m_track.getTrackLength();
+
+        for (auto& agent : m_agents)
+        {
+            if (!agent.alive)
+            {
+                continue;
+            }
+
+            auto& car = agent.car;
+
+            if (m_autonomousSteering)
+            {
+                car.setSteering(ReferenceDriver::computeSteering(car, m_track));
+            }
+
+            car.update(dt);
+
+            const auto projection = m_track.projectPoint(car.position());
+
+            if (!m_track.isOnRoad(projection))
+            {
+                agent.alive = false;
+                continue;
+            }
+
+            float delta = projection.progressOnTrack - agent.previousProgress;
+
+            if (delta < -trackLength * 0.5f)
+            {
+                delta += trackLength;
+            }
+            else if (delta > trackLength * 0.5f)
+            {
+                delta -= trackLength;
+            }
+
+            agent.totalProgress += delta;
+            agent.previousProgress = projection.progressOnTrack;
+            agent.bestProgress = std::max( agent.bestProgress, agent.totalProgress);
+        }
     }
 
     void ApexBorn::renderImgui()
@@ -164,8 +188,11 @@ namespace ab
         {
             renderTrackGenerationSettings();
         }
+        if (m_trackImgui.openVehicleEditor)
+        {
+            renderVehicleDebug();
+        }
         m_profileEditor.render(m_track.roadProfile());
-        renderVehicleDebug();
     }
 
     void ApexBorn::renderMenuBar()
@@ -175,6 +202,7 @@ namespace ab
             if (ImGui::BeginMenu("Tools"))
             {
                 ImGui::MenuItem("RoadGenerationSettings", nullptr, &m_trackImgui.isOpen);
+                ImGui::MenuItem("VehicleEditorSettings", nullptr, &m_trackImgui.openVehicleEditor);
                 ImGui::EndMenu();
             }
             ImGui::EndMainMenuBar();
@@ -232,6 +260,8 @@ namespace ab
             return;
         }
 
+        ImGui::Checkbox("Autonomous Steering", &m_autonomousSteering);
+
         for (auto& agent : m_agents)
         {
             ImGui::PushID(&agent);
@@ -247,7 +277,7 @@ namespace ab
             const float alignment = aiko::math::dot(car.forwardDirection(), projection.forwardDirection);
             ImGui::Text("Heading Alignment: %.3f", alignment);
             ImGui::TextColored(agent.alive ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "%s", agent.alive ? "ACTIVE" : "FAILED");
-            ImGui::BeginDisabled(!agent.alive);
+            ImGui::BeginDisabled(!agent.alive || m_autonomousSteering);
             float currentSteering = car.steering();
             if (ImGui::SliderFloat("Steering", &currentSteering, -1.0f, 1.0f))
             {

@@ -29,6 +29,8 @@ namespace ab
 
         bool regenerateWorld();
 
+        void simulateStep(float dt);
+
         void renderImgui();
         void renderMenuBar();
         void renderTrackGenerationSettings();
@@ -38,6 +40,7 @@ namespace ab
         {
             bool isOpen = false;
             bool isRoadProfilerEditor = false;
+            bool openVehicleEditor = false;
         };
 
         TrackGeneratorSettings m_trackSettings = {};
@@ -50,6 +53,11 @@ namespace ab
 
         static constexpr size_t N_Vehicles = 1;
         std::vector<VehicleAgent> m_agents;
+
+        static constexpr float FixedTimeStep = 1.0f / 60.0f;
+
+        float m_simulationAccumulator = 0.0f;
+        bool m_autonomousSteering = true;
 
     };
 
