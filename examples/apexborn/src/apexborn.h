@@ -4,6 +4,7 @@
 #include "simulation/vehicle.h"
 #include "simulation/vehicle_agent.h"
 #include "world/track.h"
+#include <models/model.h>
 #include "world/track_environment.h"
 
 #include <layers/layer.h>
@@ -26,8 +27,6 @@ namespace ab
         virtual void render() override;
     private:
 
-        void loadVehicleModel();
-
         bool regenerateWorld();
 
         void renderImgui();
@@ -47,12 +46,7 @@ namespace ab
         TrackImguiSettings m_trackImgui;
         ImGuiRoadProfiler m_profileEditor;
 
-        struct VehicleVisualPart
-        {
-            std::unique_ptr<aiko::Mesh> mesh;
-            aiko::Material material;
-        };
-        std::vector<VehicleVisualPart> m_vehicleParts;
+        aiko::Model m_vehicleModel;
 
         static constexpr size_t N_Vehicles = 1;
         std::vector<VehicleAgent> m_agents;

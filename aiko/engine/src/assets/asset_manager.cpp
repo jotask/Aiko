@@ -96,21 +96,46 @@ namespace aiko
 
     AssetId AssetManager::registerModelTexture(const ResolvedAsset& model, std::string_view textureSource)
     {
-        const std::filesystem::path texturePath(textureSource);
+        if (textureSource.empty())
+        {
+            return InvalidAssetId;
+        }
 
-        if (textureSource.empty() ||
-            texturePath.is_absolute() ||
+        std::string normalized(textureSource);
+
+        // FBX files may contain Windows-style relative paths.
+        std::replace(normalized.begin(), normalized.end(), '\\', '/');
+
+        const std::filesystem::path texturePath(normalized);
+
+        if (texturePath.is_absolute() ||
             texturePath.has_root_name() ||
             texturePath.has_root_directory() ||
-            textureSource.find("://") != std::string_view::npos ||
-            textureSource.front() == '*' ||
-            textureSource.find('\\') != std::string_view::npos)
+            normalized.find("://") != std::string::npos ||
+            normalized.front() == '*' ||
+            normalized.front() == '/')
         {
             logger::Log::errorFmt("Unsupported model texture reference '{}'", textureSource);
             return InvalidAssetId;
         }
 
         const std::filesystem::path relative = (std::filesystem::path(model.logicalPath).parent_path() / texturePath).lexically_normal();
+
+        // Reject references escaping the model's asset root.
+        if (relative.empty() || relative.is_absolute() || relative.has_root_path())
+        {
+            logger::Log::errorFmt("Invalid model texture path '{}'", textureSource);
+            return InvalidAssetId;
+        }
+
+        for (const auto& part : relative)
+        {
+            if (part == "..")
+            {
+                logger::Log::errorFmt("Model texture path escapes asset root: '{}'", textureSource);
+                return InvalidAssetId;
+            }
+        }
 
         const std::string prefix = model.owner == AssetOwner::Project ? "project://" : "engine://";
 

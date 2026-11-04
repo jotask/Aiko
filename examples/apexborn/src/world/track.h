@@ -40,6 +40,7 @@ namespace ab
 
         FinishLine getFinishLine() const;
         float getTrackLength() const { return m_trackNavigation.getTrackLength(); }
+        float getTrackWidth() const { return m_trackWidth; }
 
         bool& isDebugEnabled() { return m_debugEnabled; }
         RoadProfile& roadProfile() { return m_profile; }

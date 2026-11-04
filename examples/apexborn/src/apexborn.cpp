@@ -30,7 +30,7 @@ namespace ab
         scene().ambientLight().color = aiko::WHITE;
         scene().ambientLight().intensity = 0.3f;
 
-        loadVehicleModel();
+        m_vehicleModel = assets().loadModel("porsche.fbx");
 
         m_track.init(assets());
         m_environment.init(assets());
@@ -105,37 +105,7 @@ namespace ab
             transform.position = car.position();
             transform.rotation = { 0.0f, -aiko::math::degrees(car.heading()) + VehicleYawOffset, 0.0f};
             transform.scale = {VehicleScale};
-            for (const auto& part : m_vehicleParts)
-            {
-                renderer().drawMesh(transform, *part.mesh, part.material);
-            }
-        }
-
-    }
-
-    void ApexBorn::loadVehicleModel()
-    {
-        // Load vehicle model
-        const auto importedModel = assets().importModel("porsche.fbx");
-        AIKO_ASSERT(importedModel, "Failed to import Porsche model");
-        AIKO_ASSERT(!importedModel->submeshes.empty(), "Porsche model contains no meshes");
-
-        m_vehicleParts.clear();
-        m_vehicleParts.reserve(importedModel->submeshes.size());
-
-        for (const auto& importedPart : importedModel->submeshes)
-        {
-            auto& part = m_vehicleParts.emplace_back();
-
-            part.mesh = std::make_unique<aiko::Mesh>();
-            part.mesh->upload(importedPart.mesh);
-
-            AIKO_ASSERT(part.mesh->isValid(), "Failed to upload Porsche submesh");
-
-            part.material.m_shaderId = assets().loadShader(importedPart.shaderSource);
-            part.material.m_useVertexColor = importedPart.useVertexColor;
-            part.material.m_lit = importedPart.lit;
-            part.material.m_baseColor = importedPart.baseColor;
+            renderer().drawModel(transform, m_vehicleModel);
         }
 
     }
@@ -157,7 +127,7 @@ namespace ab
             m_trackSettings.areaSize.y + margin * 2.0f
         };
 
-        bool result =  m_environment.generate(groundSize);
+        bool result =  m_environment.generate(m_track, groundSize, m_trackSettings.seed);
 
         if (result == false)
         {
