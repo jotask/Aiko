@@ -40,6 +40,11 @@ namespace aiko
         m_renderSystem->render(transform, mesh, material);
     }
 
+    void RenderContext::drawModel(const Transform& transform, const Model& model)
+    {
+        m_renderSystem->render(transform, model);
+    }
+
     void RenderContext::drawMeshInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount)
     {
         m_renderSystem->renderInstanced(mesh, material, instances, instanceCount);

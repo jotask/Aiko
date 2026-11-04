@@ -11,6 +11,7 @@ namespace aiko
     class SystemConnector;
     class RenderSystem;
     class Mesh;
+    class Model;
     class Material;
     struct Transform;
     struct InstanceData;
@@ -33,6 +34,7 @@ namespace aiko
         void drawCircle(const vec3& pos, const vec3& size, const uint segments, const Color& color);
 
         void drawMesh(const Transform& transform, const Mesh& mesh, const Material& material);
+        void drawModel(const Transform& transform, const Model& model);
         void drawMeshInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);
         void drawVerticesGpu(const GpuVertexDrawDesc& desc);
         void drawMeshInstancedGpu(const GpuInstanceDrawDesc& desc);
