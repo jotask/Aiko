@@ -12,7 +12,9 @@
 #include <intrumentor/profiler.h>
 
 #include <imgui.h>
+#include <types/draw_types.h>
 
+#include <vector>
 #include <random>
 
 namespace ab
@@ -78,16 +80,31 @@ namespace ab
         m_track.render(renderer());
 
         // Render vehicles
+
+        // Render vehicles using CPU instancing
         constexpr float VehicleYawOffset = -90.0f;
         constexpr float VehicleScale = 0.0015f;
-        for (const auto& agent : m_agents)
+
+        if (m_vehicleModel.isValid() && !m_agents.empty())
         {
-            aiko::Transform transform;
-            const auto& car = agent.car;
-            transform.position = car.position();
-            transform.rotation = { 0.0f, -aiko::math::degrees(car.heading()) + VehicleYawOffset, 0.0f};
-            transform.scale = {VehicleScale};
-            renderer().drawModel(transform, m_vehicleModel);
+            std::vector<aiko::InstanceData> instances;
+            instances.reserve(m_agents.size());
+
+            for (const auto& agent : m_agents)
+            {
+                const auto& car = agent.car;
+
+                instances.push_back(aiko::InstanceData
+                {
+                    .position = car.position(),
+                    .rotation = { 0.0f, -aiko::math::degrees(car.heading()) + VehicleYawOffset, 0.0f },
+                    .scale = { VehicleScale },
+                    .color = aiko::WHITE,
+                });
+            }
+
+            renderer().drawModelInstanced(m_vehicleModel, instances.data(), static_cast<aiko::u32>(instances.size()));
+
         }
 
     }
