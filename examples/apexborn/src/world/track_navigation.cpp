@@ -2,6 +2,8 @@
 
 #include "constant_types.h"
 
+#include <intrumentor/profiler.h>
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -37,6 +39,7 @@ namespace ab
 
     TrackNavigation::TrackProjection TrackNavigation::getTrackProjectionFromPoint(const aiko::vec3& point) const
     {
+        AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(m_centerLine.size() >= 3, "Track navigation has not been initialized");
         TrackProjection bestProjection = {};
         float bestDistance = std::numeric_limits<float>::max();

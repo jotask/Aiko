@@ -4,6 +4,8 @@
 #include "vehicle.h"
 #include "world/track.h"
 
+#include <intrumentor/profiler.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -11,6 +13,7 @@ namespace ab
 {
     VehicleControl ReferenceDriver::compute(const Vehicle& vehicle, const Track& track)
     {
+        AIKO_FUNCTION_PROFILE
         const auto projection = track.projectPoint(vehicle.position());
 
         constexpr float LookAheadDistance = 1.5f;

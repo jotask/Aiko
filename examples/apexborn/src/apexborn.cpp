@@ -9,6 +9,7 @@
 
 #include <components/camera_component.h>
 #include <components/mesh_component.h>
+#include <intrumentor/profiler.h>
 
 #include <imgui.h>
 
@@ -48,7 +49,7 @@ namespace ab
 
     void ApexBorn::update()
     {
-        Layer::update();
+        AIKO_FUNCTION_PROFILE
         const float frameDt = std::clamp(getDeltaTime(), 0.0f, 0.1f);
         m_simulationAccumulator += frameDt;
         while (m_simulationAccumulator >= FixedTimeStep)
@@ -60,6 +61,7 @@ namespace ab
 
     void ApexBorn::render()
     {
+        AIKO_FUNCTION_PROFILE
         Layer::render();
         renderImgui();
 
@@ -171,6 +173,7 @@ namespace ab
 
     void ApexBorn::simulateStep(float dt)
     {
+        AIKO_FUNCTION_PROFILE
         const float trackLength = m_track.getTrackLength();
 
         for (auto& agent : m_agents)

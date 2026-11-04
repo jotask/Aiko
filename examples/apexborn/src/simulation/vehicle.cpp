@@ -2,6 +2,8 @@
 
 #include "math/math_transform.h"
 
+#include <intrumentor/profiler.h>
+
 namespace ab
 {
 
@@ -48,7 +50,7 @@ namespace ab
 
     void Vehicle::update(const float deltaTime)
     {
-
+        AIKO_FUNCTION_PROFILE
         const auto effectiveThrottle = m_brake > 0.0f ? 0.0f : m_throttle;
         const auto acceleration = (effectiveThrottle * MaxAcceleration) - (m_brake * MaxBraking) - RollingResistance;
         m_speed = aiko::math::clamp(m_speed + acceleration * deltaTime, 0.0f, MaxSpeed);
