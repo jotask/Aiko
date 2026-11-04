@@ -65,6 +65,34 @@ namespace aiko
 
     }
 
+    Model AssetSystem::loadModel(string_view source)
+    {
+        const AssetId id = registerAsset<ModelAsset>(source);
+        return loadModel(id);
+    }
+
+    Model AssetSystem::loadModel(const AssetId& id)
+    {
+        if (id == InvalidAssetId)
+        {
+            return Model{};
+        }
+
+        const AssetLoadState state = getLoadState<ModelAsset>(id);
+
+        if (state == AssetLoadState::Ready)
+        {
+            m_renderModule->getModel(id);
+            return m_renderModule->getModelValue(id);
+        }
+
+        Model model = m_renderModule->getModelValue(id);
+
+        loadAsset<ModelAsset>(id);
+
+        return model;
+    }
+
     AssetResolveResult AssetSystem::resolveAsset(std::string_view source) const
     {
         return m_assetModule->getResolver().resolve(source);
@@ -136,6 +164,7 @@ namespace aiko
 
             if (ready)
             {
+                m_renderModule->updateModel(id);
                 m_loadStates[id] = AssetLoadState::Ready;
                 it = m_finalizingModels.erase(it);
                 continue;
@@ -519,7 +548,11 @@ namespace aiko
 
     void AssetSystem::invalidateModel(const AssetId& id)
     {
-        m_renderModule->unloadModel(id);
+        if (!isLoaded<ModelAsset>(id))
+        {
+            return;
+        }
+        m_renderModule->updateModel(id);
     }
 
     void AssetSystem::invalidateShader(const AssetId& id)

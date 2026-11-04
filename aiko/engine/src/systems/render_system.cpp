@@ -247,13 +247,7 @@ namespace aiko
     void RenderSystem::render(const Transform& trans, const ModelComponent& modelComponent)
     {
         AIKO_FUNCTION_PROFILE
-        const AssetId& modelId = modelComponent.getModelId();
-        if (modelId == InvalidAssetId)
-        {
-            return;
-        }
-        Model& runtimeModel = m_renderModule->getModel(modelId);
-        render(trans, runtimeModel);
+        render(trans, modelComponent.getModel());
     }
 
     void RenderSystem::render(const Transform& trans, const SpriteComponent& spriteComponent)

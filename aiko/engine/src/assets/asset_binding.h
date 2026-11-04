@@ -5,6 +5,7 @@
 #include "assets/asset_id.h"
 #include "assets/asset_traits.h"
 #include "assets/asset_load_state.h"
+#include "models/model.h"
 
 namespace aiko
 {
@@ -47,6 +48,8 @@ namespace aiko
         AssetId create(const TextureAsset& asset);
         TextureAsset& getMutableTexture(const AssetId& id);
         void invalidateTexture(const AssetId& id);
+
+        [[nodiscard]] Model loadModel(const AssetId& id);
 
     private:
         explicit AssetBindingContext(AssetSystem& assetSystem);

@@ -38,7 +38,11 @@ namespace aiko
         void submitLight(const LightData& light);
 
         Mesh& getMesh(const AssetId& id);
+
+        Model& requestModel(const AssetId& id);
         Model& getModel(const AssetId& id);
+        [[nodiscard]] Model getModelValue(const AssetId& id);
+        void updateModel(const AssetId& id);
         ComputeShader& getComputeShader(const AssetId& id);
 
         void submit(const Transform& transform, const Mesh& mesh, const Material& material);
@@ -66,7 +70,6 @@ namespace aiko
 
         void updateTexture(const AssetId& id);
         void updateMesh(const AssetId& id);
-        void unloadModel(const AssetId& id);
         void unloadShader(const AssetId& id);
 
         ImguiTextureId getTargetTextureId() const;

@@ -1,61 +1,43 @@
 #include "model_component.h"
 
+#include <utility>
+
 namespace aiko
 {
-
     ModelComponent::ModelComponent()
         : Component("Model")
     {
-
     }
 
     void ModelComponent::load(string path)
     {
-        m_model.request(std::move(path));
-    }
+        m_source = std::move(path);
 
-    const AssetId& ModelComponent::getModelId() const
-    {
-        return m_model.isReady() ? m_model.id() : InvalidAssetId;
+        // Detach this component from its previous model.
+        // Do not unload shared resource state.
+        m_model = Model{};
+
+        m_modelId = InvalidAssetId;
+        m_loadRequested = !m_source.empty();
     }
 
     void ModelComponent::resolveAssetBinding(AssetBindingContext& context)
     {
-        if (m_model.isRequested())
+        if (!m_loadRequested)
         {
-            const AssetId id = context.load<ModelAsset>(m_model.source());
-
-            if (id == InvalidAssetId)
-            {
-                m_model.fail();
-                return;
-            }
-
-            m_model.markLoading(id);
-            context.loadAsset<ModelAsset>(id);
-
             return;
         }
 
-        if (m_model.isLoading())
+        const AssetId id = context.load<ModelAsset>(m_source);
+
+        m_loadRequested = false;
+
+        if (id == InvalidAssetId)
         {
-            const AssetId id = m_model.id();
-            const AssetLoadState state = context.getLoadState<ModelAsset>(id);
-
-            if (state == AssetLoadState::Failed)
-            {
-                m_model.fail();
-                return;
-            }
-
-            if (state != AssetLoadState::Ready)
-            {
-                return;
-            }
-
-            m_model.resolve(id);
+            return;
         }
 
+        m_model = context.loadModel(id);
+        m_modelId = id;
     }
-
 }

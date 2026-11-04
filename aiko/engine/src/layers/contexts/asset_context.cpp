@@ -81,6 +81,11 @@ namespace aiko
         return m_assetSystem->create(mesh);
     }
 
+    Model AssetContext::loadModel(string_view source)
+    {
+        return m_assetSystem->loadModel(source);
+    }
+
     AssetImportResult<MeshAsset> AssetContext::importMesh(string_view source) const
     {
         const AssetResolveResult resolved = m_assetSystem->resolveAsset(source);

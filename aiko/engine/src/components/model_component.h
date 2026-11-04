@@ -2,31 +2,44 @@
 
 #include "aiko_types.h"
 #include "models/component.h"
-#include "assets/asset_reference.h"
-#include "assets/types/mesh_asset.h"
+#include "models/model.h"
+#include "assets/asset_id.h"
 #include "assets/asset_binding.h"
 
 namespace aiko
 {
-
     class ModelComponent : public Component, public IAssetBinding
     {
     public:
-
         ModelComponent();
-        virtual ~ModelComponent() = default;
+        ~ModelComponent() override = default;
 
         void load(string path);
 
-        const AssetId& getModelId() const;
-        const string& getAssetSource() const { return m_model.source(); }
+        [[nodiscard]]
+        const Model& getModel() const
+        {
+            return m_model;
+        }
+
+        [[nodiscard]]
+        const AssetId& getModelId() const
+        {
+            return m_modelId;
+        }
+
+        [[nodiscard]]
+        const string& getAssetSource() const
+        {
+            return m_source;
+        }
 
     private:
-
         void resolveAssetBinding(AssetBindingContext& context) override;
 
-        AssetReference<ModelAsset> m_model;
-
+        string m_source;
+        Model m_model;
+        AssetId m_modelId = InvalidAssetId;
+        bool m_loadRequested = false;
     };
-
 }

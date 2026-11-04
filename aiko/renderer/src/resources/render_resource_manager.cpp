@@ -145,6 +145,26 @@ namespace aiko
         return mesh;
     }
 
+    Model& RenderResourceManager::requestModel(const AssetId& id)
+    {
+        AIKO_ASSERT(id != InvalidAssetId, "Cannot request an invalid model asset");
+
+        const auto it = m_models.find(id);
+
+        if (it != m_models.end())
+        {
+            return *it->second;
+        }
+
+        auto model = std::make_unique<Model>();
+
+        Model& reference = *model;
+
+        m_models.emplace(id, std::move(model));
+
+        return reference;
+    }
+
     Model& RenderResourceManager::getModel(const AssetId& id)
     {
         const auto it = m_models.find(id);
@@ -154,16 +174,31 @@ namespace aiko
             return *it->second;
         }
 
+        Model& model = requestModel(id);
+
+        updateModel(id);
+
+        return model;
+    }
+
+    void RenderResourceManager::updateModel(const AssetId& id)
+    {
+        const auto it = m_models.find(id);
+
+        if (it == m_models.end())
+        {
+            return;
+        }
+
         const ModelAsset& asset = m_assetProvider.getModelAsset(id);
 
-        auto model = std::make_unique<Model>();
+        Model replacement;
 
         for (const ModelAsset::SubMesh& submesh : asset.submeshes)
         {
             Material material{};
 
             material.m_shaderId = submesh.material.shaderId;
-
             material.m_baseColor = submesh.material.baseColor;
             material.m_useVertexColor = submesh.material.useVertexColor;
             material.m_lit = submesh.material.lit;
@@ -173,14 +208,15 @@ namespace aiko
                 material.setTexture("u_texture", submesh.material.diffuseTextureId);
             }
 
-            model->addSubMesh(acquireMesh(submesh.meshId), std::move(material));
+            replacement.addSubMesh(acquireMesh(submesh.meshId), std::move(material));
         }
 
-        Model& reference = *model;
+        it->second->replaceContents(std::move(replacement));
+    }
 
-        m_models.emplace(id, std::move(model));
-
-        return reference;
+    Model RenderResourceManager::getModelValue(const AssetId& id)
+    {
+        return requestModel(id).share();
     }
 
     Shader& RenderResourceManager::getShader(const AssetId& id)
@@ -298,11 +334,6 @@ namespace aiko
         it->second->upload(asset);
     }
 
-    void RenderResourceManager::unloadModel(const AssetId& id)
-    {
-        m_models.erase(id);
-    }
-
     void RenderResourceManager::unloadShader(const AssetId& id)
     {
         auto it = m_shaders.find(id);
@@ -325,6 +356,14 @@ namespace aiko
 
     void RenderResourceManager::clear()
     {
+        for (auto& [id, model] : m_models)
+        {
+            if (model)
+            {
+                model->clearContents();
+            }
+        }
+
         m_models.clear();
         m_meshes.clear();
 

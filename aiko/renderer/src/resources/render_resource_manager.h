@@ -28,7 +28,10 @@ namespace aiko
         Texture* tryGetTexture(const AssetId& id);
         Texture* tryGetTexture(const AssetId& id, TextureColorSpace colorSpace);
         Mesh& getMesh(const AssetId& id);
+        Model& requestModel(const AssetId& id);
         Model& getModel(const AssetId& id);
+        [[nodiscard]] Model getModelValue(const AssetId& id);
+        void updateModel(const AssetId& id);
         Shader& getShader(const AssetId& id);
         ComputeShader& getComputeShader(const AssetId& id);
 

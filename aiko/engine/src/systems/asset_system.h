@@ -8,6 +8,7 @@
 #include "assets/types/texture_asset.h"
 #include "assets/asset_load_state.h"
 #include "assets/asset_resolver.h"
+#include <models/model.h>
 
 #include <unordered_map>
 #include <type_traits>
@@ -27,6 +28,12 @@ namespace aiko
     public:
         AssetSystem();
         virtual ~AssetSystem() = default;
+
+        [[nodiscard]]
+        Model loadModel(string_view source);
+
+        [[nodiscard]]
+        Model loadModel(const AssetId& id);
 
         [[nodiscard]]
         AssetResolveResult resolveAsset(std::string_view source) const;

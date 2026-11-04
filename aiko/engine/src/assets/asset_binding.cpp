@@ -27,6 +27,11 @@ namespace aiko
         m_assetSystem->invalidateTexture(id);
     }
 
+    Model AssetBindingContext::loadModel(const AssetId& id)
+    {
+        return m_assetSystem->loadModel(id);
+    }
+
     AssetBindingContext::AssetBindingContext(AssetSystem& assetSystem)
         : m_assetSystem(&assetSystem)
     {

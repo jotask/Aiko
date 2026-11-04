@@ -9,11 +9,11 @@ namespace aiko
 {
     class Mesh;
     struct MeshAsset;
+    class RenderResourceManager;
 
     class Model
     {
     public:
-
         struct SubMesh
         {
             std::shared_ptr<Mesh> mesh;
@@ -23,11 +23,10 @@ namespace aiko
         Model() = default;
         ~Model() = default;
 
-        // Copy
+        // A Model has one public owner.
         Model(const Model&) = delete;
         Model& operator=(const Model&) = delete;
 
-        // Move
         Model(Model&&) noexcept = default;
         Model& operator=(Model&&) noexcept = default;
 
@@ -40,13 +39,24 @@ namespace aiko
         bool isValid() const;
 
         [[nodiscard]]
-        const std::vector<SubMesh>& getSubMeshes() const
-        {
-            return m_subMeshes;
-        }
+        const std::vector<SubMesh>& getSubMeshes() const;
 
     private:
+        friend class RenderResourceManager;
 
-        std::vector<SubMesh> m_subMeshes;
+        struct State
+        {
+            std::vector<SubMesh> subMeshes;
+        };
+
+        // Internal sharing for managed, asynchronously loaded models.
+        [[nodiscard]]
+        Model share() const;
+
+        // Refreshes data without replacing the existing state.
+        void replaceContents(Model&& replacement);
+        void clearContents();
+
+        std::shared_ptr<State> m_state = std::make_shared<State>();
     };
 }

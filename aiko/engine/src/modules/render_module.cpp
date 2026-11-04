@@ -2,8 +2,9 @@
 
 #include "aiko.h"
 #include "assets_manager_module.h"
-#include "modules/display_module.h"
 #include "models/camera.h"
+#include "models/model.h"
+#include "modules/display_module.h"
 #include "modules/module_connector.h"
 
 #include <aiko_renderer.h>
@@ -54,9 +55,24 @@ namespace aiko
         return m_renderer->resources().getMesh(id);
     }
 
+    Model& RenderModule::requestModel(const AssetId& id)
+    {
+        return m_renderer->resources().requestModel(id);
+    }
+
     Model& RenderModule::getModel(const AssetId& id)
     {
         return m_renderer->resources().getModel(id);
+    }
+
+    Model RenderModule::getModelValue(const AssetId& id)
+    {
+        return m_renderer->resources().getModelValue(id);
+    }
+
+    void RenderModule::updateModel(const AssetId& id)
+    {
+        m_renderer->resources().updateModel(id);
     }
 
     ComputeShader& RenderModule::getComputeShader(const AssetId& id)
@@ -147,11 +163,6 @@ namespace aiko
     void RenderModule::updateMesh(const AssetId& id)
     {
         m_renderer->resources().updateMesh(id);
-    }
-
-    void RenderModule::unloadModel(const AssetId& id)
-    {
-        m_renderer->resources().unloadModel(id);
     }
 
     void RenderModule::unloadShader(const AssetId& id)
