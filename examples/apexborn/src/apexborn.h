@@ -28,6 +28,7 @@ namespace ab
     private:
 
         bool regenerateWorld();
+        void resetAgents();
 
         void simulateStep(float dt);
 
@@ -51,7 +52,9 @@ namespace ab
 
         aiko::Model m_vehicleModel;
 
-        static constexpr size_t N_Vehicles = 1;
+        int m_vehicleCount = 12;
+        int m_selectedAgent = 0;
+
         std::vector<VehicleAgent> m_agents;
 
         static constexpr float FixedTimeStep = 1.0f / 60.0f;

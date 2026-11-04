@@ -112,29 +112,40 @@ namespace ab
             return false;
         }
 
-        const  auto finishLine = m_track.getFinishLine();
-        m_agents.clear();
-        for (size_t i = 0 ; i < N_Vehicles; ++i)
-        {
-            m_agents.push_back({});
-            const auto heading = std::atan2(finishLine.forward.z, finishLine.forward.x);
+        resetAgents();
 
-            auto& agent = m_agents.back();
+        return true;
+
+    }
+
+    void ApexBorn::resetAgents()
+    {
+        const auto finishLine = m_track.getFinishLine();
+
+        const float heading = std::atan2(finishLine.forward.z, finishLine.forward.x);
+
+        // Recreate the requested number of agents.
+        m_agents.resize(static_cast<size_t>(m_vehicleCount));
+
+        for (auto& agent : m_agents)
+        {
+            // Every vehicle starts at the same position.
             agent.car.reset(finishLine.position, heading);
+
+            agent.alive = true;
 
             const auto projection = m_track.projectPoint(agent.car.position());
 
             agent.previousProgress = projection.progressOnTrack;
             agent.totalProgress = 0.0f;
             agent.bestProgress = 0.0f;
-
         }
 
+        // Reset simulation timing and UI selection.
         m_simulationAccumulator = 0.0f;
-
-        return true;
-
+        m_selectedAgent = 0;
     }
+
 
     void ApexBorn::simulateStep(float dt)
     {
@@ -263,60 +274,85 @@ namespace ab
             return;
         }
 
-        ImGui::Checkbox("Autonomous Driving", &m_autonomousDriving);
-
-        for (auto& agent : m_agents)
+        if (ImGui::Checkbox("Autonomous Driving", &m_autonomousDriving))
         {
-            ImGui::PushID(&agent);
-            auto& car = agent.car;
-            const auto projection = m_track.projectPoint(car.position());
-            ImGui::Text("Lateral Offset: %.2f", projection.signedLateralOffset);
-            ImGui::Text("Track Progress: %.2f", projection.progressOnTrack);
-            ImGui::Text("Total Progress: %.2f", agent.totalProgress);
-            const float trackLength = m_track.getTrackLength();
-            const size_t completedLaps = trackLength > 0.0f ? static_cast<size_t>(std::floor(agent.bestProgress / trackLength)) : 0;
-            ImGui::Text("Best Progress: %.2f", agent.bestProgress);
-            ImGui::Text("Completed Laps: %zu", completedLaps);
-            ImGui::Text("Speed: %f m/s", car.speed());
-            const float alignment = aiko::math::dot(car.forwardDirection(), projection.forwardDirection);
-            ImGui::Text("Heading Alignment: %.3f", alignment);
-            ImGui::TextColored(agent.alive ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "%s", agent.alive ? "ACTIVE" : "FAILED");
-
-            ImGui::BeginDisabled(!agent.alive || m_autonomousDriving);
-            float currentSteering = car.steering();
-            if (ImGui::SliderFloat("Steering", &currentSteering, -1.0f, 1.0f))
+            if (!m_autonomousDriving)
             {
-                car.setSteering(currentSteering);
+                for (auto& agent : m_agents)
+                {
+                    agent.car.setSteering(0.0f);
+                    agent.car.setThrottle(0.0f);
+                    agent.car.setBrake(0.0f);
+                }
             }
-            float throttle = car.throttle();
-            if (ImGui::SliderFloat("Throttle", &throttle, 0.0f, 1.0f, "%.3f"))
-            {
-                car.setThrottle(throttle);
-            }
-            float brake = car.brake();
-            if (ImGui::SliderFloat("Brake", &brake, 0.0f, 1.0f, "%.3f"))
-            {
-                car.setBrake(brake);
-            }
-            ImGui::EndDisabled();
-
-            //  Validation
-
-            // Driving observations
-            auto observation = DrivingObservation::calculate(car, m_track);
-            ImGui::SeparatorText("Driving Observations");
-            ImGui::BeginDisabled();
-            ImGui::SliderFloat("Lateral Offset", &observation.lateralOffset, -1.0f, 1.0f);
-            ImGui::SliderFloat("Heading Error", &observation.headingError, -1.0f, 1.0f);
-            ImGui::SliderFloat("Near LookAhead", &observation.lookAheadError, -1.0f, 1.0f);
-            ImGui::SliderFloat("Far LookAhead", &observation.farLookAheadError, -1.0f, 1.0f);
-            ImGui::SliderFloat("Upcoming Curvature", &observation.upcomingCurvature, 0.0f, 1.0f);
-            ImGui::SliderFloat("Normalized Speed", &observation.normalizedSpeed, 0.0f, 1.0f);
-            ImGui::EndDisabled();
-
-
-            ImGui::PopID();
         }
+
+        // Vehicle count is applied on the next reset.
+        ImGui::SliderInt("Vehicle Count (next reset)", &m_vehicleCount, 1, 100);
+
+        if (ImGui::Button("Reset Episode"))
+        {
+            resetAgents();
+        }
+
+        ImGui::SeparatorText("Vehicle Selection");
+
+        ImGui::Text("Total Vehicles: %zu", m_agents.size());
+
+        if (m_agents.empty())
+        {
+            ImGui::TextDisabled("No vehicles available.");
+            ImGui::End();
+            return;
+        }
+
+        ImGui::SliderInt("Selected Vehicle", &m_selectedAgent, 0, static_cast<int>(m_agents.size()) - 1);
+
+        auto& agent = m_agents[static_cast<size_t>(m_selectedAgent)];
+        auto& car = agent.car;
+
+        const auto projection = m_track.projectPoint(car.position());
+        ImGui::Text("Lateral Offset: %.2f", projection.signedLateralOffset);
+        ImGui::Text("Track Progress: %.2f", projection.progressOnTrack);
+        ImGui::Text("Total Progress: %.2f", agent.totalProgress);
+        const float trackLength = m_track.getTrackLength();
+        const size_t completedLaps = trackLength > 0.0f ? static_cast<size_t>(std::floor(agent.bestProgress / trackLength)) : 0;
+        ImGui::Text("Best Progress: %.2f", agent.bestProgress);
+        ImGui::Text("Completed Laps: %zu", completedLaps);
+        ImGui::Text("Speed: %f m/s", car.speed());
+        const float alignment = aiko::math::dot(car.forwardDirection(), projection.forwardDirection);
+        ImGui::Text("Heading Alignment: %.3f", alignment);
+        ImGui::TextColored(agent.alive ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "%s", agent.alive ? "ACTIVE" : "FAILED");
+
+        ImGui::BeginDisabled(!agent.alive || m_autonomousDriving);
+        float currentSteering = car.steering();
+        if (ImGui::SliderFloat("Steering", &currentSteering, -1.0f, 1.0f))
+        {
+            car.setSteering(currentSteering);
+        }
+        float throttle = car.throttle();
+        if (ImGui::SliderFloat("Throttle", &throttle, 0.0f, 1.0f, "%.3f"))
+        {
+            car.setThrottle(throttle);
+        }
+        float brake = car.brake();
+        if (ImGui::SliderFloat("Brake", &brake, 0.0f, 1.0f, "%.3f"))
+        {
+            car.setBrake(brake);
+        }
+        ImGui::EndDisabled();
+
+        // Driving observations
+        auto observation = DrivingObservation::calculate(car, m_track);
+        ImGui::SeparatorText("Driving Observations");
+        ImGui::BeginDisabled();
+        ImGui::SliderFloat("Lateral Offset", &observation.lateralOffset, -1.0f, 1.0f);
+        ImGui::SliderFloat("Heading Error", &observation.headingError, -1.0f, 1.0f);
+        ImGui::SliderFloat("Near LookAhead", &observation.lookAheadError, -1.0f, 1.0f);
+        ImGui::SliderFloat("Far LookAhead", &observation.farLookAheadError, -1.0f, 1.0f);
+        ImGui::SliderFloat("Upcoming Curvature", &observation.upcomingCurvature, 0.0f, 1.0f);
+        ImGui::SliderFloat("Normalized Speed", &observation.normalizedSpeed, 0.0f, 1.0f);
+        ImGui::EndDisabled();
 
         ImGui::End();
     }
