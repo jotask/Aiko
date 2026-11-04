@@ -46,9 +46,19 @@ namespace ab
     {
         Layer::update();
         const auto dt = getDeltaTime();
-        for (auto& vehicle : m_vehicles)
+        for (auto& agent : m_agents)
         {
-            vehicle.update(dt);
+            if (agent.alive == false)
+            {
+                continue;
+            }
+            auto& car = agent.car;
+            car.update(dt);
+            const auto projection = m_track.projectPoint(car.position());
+            if (m_track.isOnRoad(projection) == false)
+            {
+                agent.alive = false;
+            }
         }
     }
 
@@ -72,11 +82,12 @@ namespace ab
         // Render vehicles
         constexpr float VehicleYawOffset = -90.0f;
         constexpr float VehicleScale = 0.0035f;
-        for (const auto& vehicle : m_vehicles)
+        for (const auto& agent : m_agents)
         {
             aiko::Transform transform;
-            transform.position = vehicle.position();
-            transform.rotation = { 0.0f, -aiko::math::degrees(vehicle.heading()) + VehicleYawOffset, 0.0f};
+            const auto& car = agent.car;
+            transform.position = car.position();
+            transform.rotation = { 0.0f, -aiko::math::degrees(car.heading()) + VehicleYawOffset, 0.0f};
             transform.scale = {VehicleScale};
             for (const auto& part : m_vehicleParts)
             {
@@ -139,12 +150,12 @@ namespace ab
 
         constexpr float initialSpeed = 1.0f;
         const  auto finishLine = m_track.getFinishLine();
-        m_vehicles.clear();
+        m_agents.clear();
         for (size_t i = 0 ; i < N_Vehicles; ++i)
         {
-            m_vehicles.push_back({});
+            m_agents.push_back({});
             const auto heading = std::atan2(finishLine.forward.z, finishLine.forward.x);
-            m_vehicles.back().reset(finishLine.position, heading, initialSpeed);
+            m_agents.back().car.reset(finishLine.position, heading, initialSpeed);
         }
 
         return true;
@@ -226,25 +237,27 @@ namespace ab
             return;
         }
 
-        for (auto& v : m_vehicles)
+        for (auto& agent : m_agents)
         {
-            ImGui::PushID(&v);
-            const auto projection = m_track.projectPoint(v.position());
+            ImGui::PushID(&agent);
+            auto& car = agent.car;
+            const auto projection = m_track.projectPoint(car.position());
             ImGui::Text("Lateral Offset: %.2f", projection.signedLateralOffset);
             ImGui::Text("Track Progress: %.2f", projection.progressOnTrack);
-            const float alignment = aiko::math::dot(v.forwardDirection(), projection.forwardDirection);
+            const float alignment = aiko::math::dot(car.forwardDirection(), projection.forwardDirection);
             ImGui::Text("Heading Alignment: %.3f", alignment);
-            const bool onRoad = m_track.isOnRoad(projection);
-            ImGui::TextColored(onRoad ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "%s", onRoad ? "ON ROAD" : "OFF ROAD");
-            float currentSteering = v.steering();
+            ImGui::TextColored(agent.alive ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "%s", agent.alive ? "ACTIVE" : "FAILED");
+            ImGui::BeginDisabled(!agent.alive);
+            float currentSteering = car.steering();
             if (ImGui::SliderFloat("Steering", &currentSteering, -1.0f, 1.0f))
             {
-                v.setSteering(currentSteering);
+                car.setSteering(currentSteering);
             }
             if (ImGui::Button("Reset Steering"))
             {
-                v.setSteering(0.0f);
+                car.setSteering(0.0f);
             }
+            ImGui::EndDisabled();
             ImGui::PopID();
         }
 

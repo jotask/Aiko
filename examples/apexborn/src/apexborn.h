@@ -2,6 +2,7 @@
 
 #include "extensions/ImGuiRoadProfiler.h"
 #include "simulation/vehicle.h"
+#include "simulation/vehicles_types.h"
 #include "world/track.h"
 #include "world/track_environment.h"
 
@@ -54,7 +55,7 @@ namespace ab
         std::vector<VehicleVisualPart> m_vehicleParts;
 
         static constexpr size_t N_Vehicles = 1;
-        std::vector<Vehicle> m_vehicles;
+        std::vector<VehicleAgent> m_agents;
 
     };
 
