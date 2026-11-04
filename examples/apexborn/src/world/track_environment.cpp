@@ -40,6 +40,7 @@ namespace ab
 
         m_environmentModels.clear();
         m_modelsInstances.clear();
+        m_treeInstancesByModel.clear();
         m_treeModelIndices.clear();
 
         for (const auto& definition : modelsToLoad)
@@ -88,6 +89,8 @@ namespace ab
 
         // Decoration
         m_modelsInstances.clear();
+        m_treeInstancesByModel.clear();
+        m_treeInstancesByModel.resize(m_environmentModels.size());
         {
 
             // Finish line
@@ -183,16 +186,19 @@ namespace ab
                     }
 
                     // Accept tree
-                    treePositions.push_back({ {x, z}, radius});
+                    treePositions.push_back({{x, z}, radius});
 
-                    auto& instance = m_modelsInstances.emplace_back();
+                    const size_t modelIdx = m_treeModelIndices[treeDistribution(rng)];
+                    const float treeScale = scaleVariation;
 
-                    instance.modelIdx = m_treeModelIndices[treeDistribution(rng)];
-                    instance.transform.position = point;
-                    instance.transform.rotation = { 0.0f, rotationDistribution(rng), 0.0f };
+                    m_treeInstancesByModel[modelIdx].push_back(aiko::InstanceData
+                    {
+                        .position = point,
+                        .rotation = {0.0f, rotationDistribution(rng), 0.0f},
+                        .scale = {treeScale, treeScale, treeScale},
+                        .color = aiko::WHITE,
+                    });
 
-                    const float treeScale = 1.0f * scaleVariation;
-                    instance.transform.scale = {treeScale};
                 }
             }
 
@@ -217,5 +223,27 @@ namespace ab
             const aiko::Model& model = m_environmentModels[instance.modelIdx];
             context.drawModel(instance.transform, model);
         }
+
+        // Render cached tree instances
+        for (size_t modelIdx = 0; modelIdx < m_treeInstancesByModel.size(); ++modelIdx)
+        {
+            const auto& instances = m_treeInstancesByModel[modelIdx];
+
+            if (instances.empty())
+            {
+                continue;
+            }
+
+            const auto& model = m_environmentModels[modelIdx];
+
+            if (!model.isValid())
+            {
+                continue;
+            }
+
+            context.drawModelInstanced(model, instances.data(), static_cast<aiko::u32>(instances.size()));
+        }
+
+
     }
 }

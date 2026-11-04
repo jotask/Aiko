@@ -6,7 +6,9 @@
 
 #include <math/math_vector.h>
 
-#include "models/model.h"
+#include <models/model.h>
+#include <types/draw_types.h>
+
 #include <vector>
 #include <cstdint>
 
@@ -50,6 +52,7 @@ namespace ab
 
         std::vector<aiko::Model> m_environmentModels;
         std::vector<EnvironmentInstance> m_modelsInstances;
+        std::vector<std::vector<aiko::InstanceData>> m_treeInstancesByModel;
 
         std::vector<size_t> m_treeModelIndices;
         size_t m_bannerModelIdx = 0;
