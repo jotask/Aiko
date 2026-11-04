@@ -63,7 +63,7 @@ void main()
         );
 
     v_texcoord0 = a_texcoord0;
-    v_color0 = instColor;
+    v_color0 = a_color0 * instColor;
     v_worldPos = worldPos;
     v_normal =
         normalize(
