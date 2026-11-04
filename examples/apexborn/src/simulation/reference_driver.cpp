@@ -13,36 +13,22 @@ namespace ab
     {
         const auto projection = track.projectPoint(vehicle.position());
 
-        constexpr float FutureVisionDistance = 1.5f;
-        const auto pointAtDistanceA = track.pointAtDistance(projection.progressOnTrack + (0 * FutureVisionDistance));
-        const auto pointAtDistanceB = track.pointAtDistance(projection.progressOnTrack + (1 * FutureVisionDistance));
-        const auto pointAtDistanceC = track.pointAtDistance(projection.progressOnTrack + (2 * FutureVisionDistance));
-
-        constexpr aiko::vec3 HorizontalMask = {1.0f, 0.0f, 1.0f};
-
-        auto segmentAB = (pointAtDistanceB - pointAtDistanceA) * HorizontalMask;
-        auto segmentBC = (pointAtDistanceC - pointAtDistanceB) * HorizontalMask;
-
-        const auto squaredLengthAB = aiko::math::lengthSquared(segmentAB);
-        const auto squaredLengthBC = aiko::math::lengthSquared(segmentBC);
-
-        constexpr float epsilon2 = epsilon * epsilon;
-
-        float turnAngle = 0.0f;
-        if (squaredLengthAB > epsilon2 && squaredLengthBC > epsilon2)
-        {
-            segmentAB = aiko::math::normalize(segmentAB);
-            segmentBC = aiko::math::normalize(segmentBC);
-
-            const auto dot = aiko::math::dot(segmentAB, segmentBC);
-            turnAngle = std::acos(aiko::math::clamp(dot, -1.0f, 1.0f));
-        }
-
-        const float normalizedAngle = aiko::math::clamp(turnAngle / MaxTurnAngle, 0.0f, 1.0f);
-        const float targetSpeed = MaxTargetSpeed + ( MinTargetSpeed - MaxTargetSpeed ) * normalizedAngle;
-
         constexpr float LookAheadDistance = 1.5f;
         constexpr float SteeringGain = 1.5f;
+        constexpr float PlanningDistance = 5.0f;
+        constexpr float PlanningStep = 0.5f;
+        constexpr float PlanningDeceleration = 1.0f;
+
+        float targetSpeed = MaxTargetSpeed;
+        constexpr size_t NSteps = PlanningDistance / PlanningStep;
+        for (size_t i = 0 ; i <= NSteps; ++i)
+        {
+            const float offset = PlanningStep * i;
+            const auto futureDistance =  projection.progressOnTrack + offset;
+            const auto cornerSpeed = calculateSpeedLimitAtDistance(track, futureDistance);
+            const auto velocityAllowed = std::sqrt((cornerSpeed * cornerSpeed) + 2 * PlanningDeceleration * offset);
+            targetSpeed = std::min(targetSpeed, velocityAllowed);
+        }
 
         // Steering
         const auto target = track.pointAtDistance(projection.progressOnTrack + LookAheadDistance);
@@ -72,5 +58,38 @@ namespace ab
 
         return control;
 
+    }
+
+    float ReferenceDriver::calculateSpeedLimitAtDistance(const Track& track, float distance)
+    {
+        constexpr float FutureVisionDistance = 1.5f;
+        const auto pointAtDistanceA = track.pointAtDistance(distance + (0 * FutureVisionDistance));
+        const auto pointAtDistanceB = track.pointAtDistance(distance + (1 * FutureVisionDistance));
+        const auto pointAtDistanceC = track.pointAtDistance(distance + (2 * FutureVisionDistance));
+
+        constexpr aiko::vec3 HorizontalMask = {1.0f, 0.0f, 1.0f};
+
+        auto segmentAB = (pointAtDistanceB - pointAtDistanceA) * HorizontalMask;
+        auto segmentBC = (pointAtDistanceC - pointAtDistanceB) * HorizontalMask;
+
+        const auto squaredLengthAB = aiko::math::lengthSquared(segmentAB);
+        const auto squaredLengthBC = aiko::math::lengthSquared(segmentBC);
+
+        constexpr float epsilon2 = epsilon * epsilon;
+
+        float turnAngle = 0.0f;
+        if (squaredLengthAB > epsilon2 && squaredLengthBC > epsilon2)
+        {
+            segmentAB = aiko::math::normalize(segmentAB);
+            segmentBC = aiko::math::normalize(segmentBC);
+
+            const auto dot = aiko::math::dot(segmentAB, segmentBC);
+            turnAngle = std::acos(aiko::math::clamp(dot, -1.0f, 1.0f));
+        }
+
+        const float normalizedAngle = aiko::math::clamp(turnAngle / MaxTurnAngle, 0.0f, 1.0f);
+        const float targetSpeed = MaxTargetSpeed + ( MinTargetSpeed - MaxTargetSpeed ) * normalizedAngle;
+
+        return targetSpeed;
     }
 }
