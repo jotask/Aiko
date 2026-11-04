@@ -3,8 +3,9 @@
 #include "extensions/ImGuiRoadProfiler.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/scene_context.h"
-#include "simulation/reference_driver.h"
 #include "models/mesh_factory.h"
+#include "simulation/driving_observation.h"
+#include "simulation/reference_driver.h"
 
 #include <components/camera_component.h>
 #include <components/mesh_component.h>
@@ -111,7 +112,6 @@ namespace ab
             return false;
         }
 
-        constexpr float initialSpeed = 1.0f;
         const  auto finishLine = m_track.getFinishLine();
         m_agents.clear();
         for (size_t i = 0 ; i < N_Vehicles; ++i)
@@ -120,7 +120,7 @@ namespace ab
             const auto heading = std::atan2(finishLine.forward.z, finishLine.forward.x);
 
             auto& agent = m_agents.back();
-            agent.car.reset(finishLine.position, heading, initialSpeed);
+            agent.car.reset(finishLine.position, heading);
 
             const auto projection = m_track.projectPoint(agent.car.position());
 
@@ -274,6 +274,21 @@ namespace ab
             const size_t completedLaps = trackLength > 0.0f ? static_cast<size_t>(std::floor(agent.bestProgress / trackLength)) : 0;
             ImGui::Text("Best Progress: %.2f", agent.bestProgress);
             ImGui::Text("Completed Laps: %zu", completedLaps);
+
+            ImGui::Text("Speed: %f m/s", car.speed());
+
+            float throttle = car.throttle();
+            if (ImGui::SliderFloat("Throttle", &throttle, 0.0f, 1.0f, "%.3f"))
+            {
+                car.setThrottle(throttle);
+            }
+
+            float brake = car.brake();
+            if (ImGui::SliderFloat("Brake", &brake, 0.0f, 1.0f, "%.3f"))
+            {
+                car.setBrake(brake);
+            }
+
             const float alignment = aiko::math::dot(car.forwardDirection(), projection.forwardDirection);
             ImGui::Text("Heading Alignment: %.3f", alignment);
             ImGui::TextColored(agent.alive ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "%s", agent.alive ? "ACTIVE" : "FAILED");
@@ -288,6 +303,15 @@ namespace ab
                 car.setSteering(0.0f);
             }
             ImGui::EndDisabled();
+
+            //  Validation
+            auto validation = DrivingObservation::calculate(car, m_track);
+            ImGui::BeginDisabled();
+            ImGui::SliderFloat("LateralOffset",  &validation.lateralOffset, -1.0f, 1.0f);
+            ImGui::SliderFloat("headingError",   &validation.headingError, -1.0f, 1.0f);
+            ImGui::SliderFloat("lookAheadError", &validation.lookAheadError, -1.0f, 1.0f);
+            ImGui::EndDisabled();
+
             ImGui::PopID();
         }
 

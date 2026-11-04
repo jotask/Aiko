@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math/math_vector.h>
+
 namespace ab
 {
 
