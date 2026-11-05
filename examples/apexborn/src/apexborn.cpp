@@ -15,6 +15,8 @@
 #include <imgui.h>
 #include <types/draw_types.h>
 
+#include <magic_enum/magic_enum.hpp>
+
 #include <vector>
 #include <random>
 
@@ -53,11 +55,24 @@ namespace ab
     void ApexBorn::update()
     {
         AIKO_FUNCTION_PROFILE
+
+        if (m_episodeFinished)
+        {
+            return;
+        }
+
         const float frameDt = std::clamp(getDeltaTime(), 0.0f, 0.1f);
+
         m_simulationAccumulator += frameDt;
+
         while (m_simulationAccumulator >= FixedTimeStep)
         {
             simulateStep(FixedTimeStep);
+            if (m_episodeFinished)
+            {
+                m_simulationAccumulator = 0.0f;
+                break;
+            }
             m_simulationAccumulator -= FixedTimeStep;
         }
     }
@@ -168,6 +183,10 @@ namespace ab
 
     void ApexBorn::resetAgents()
     {
+
+        m_episodeElapsedTime = 0.0f;
+        m_episodeFinished = false;
+
         const auto finishLine = m_track.getFinishLine();
 
         const float heading = std::atan2(finishLine.forward.z, finishLine.forward.x);
@@ -188,13 +207,15 @@ namespace ab
             agent.car.reset(finishLine.position, heading);
 
             agent.alive = true;
+            agent.outcome = AgentOutcome::Running;
+
+            agent.lastProgressCheckpoint = 0.0f;
+            agent.timeWithoutProgress = 0.0f;
+            agent.completionTime = 0.0f;
 
             const auto projection = m_track.projectPoint(agent.car.position());
-
             agent.previousProgress = projection.progressOnTrack;
-
             agent.sensors = RoadSensors::sense(agent.car, m_track);
-
             agent.observation = DrivingObservation::calculate(agent.car, m_track, projection, agent.sensors);
 
             agent.totalProgress = 0.0f;
@@ -219,10 +240,12 @@ namespace ab
         m_selectedAgent = 0;
     }
 
-
     void ApexBorn::simulateStep(float dt)
     {
         AIKO_FUNCTION_PROFILE
+
+        m_episodeElapsedTime += dt;
+
         const float trackLength = m_track.getTrackLength();
 
         for (auto& agent : m_agents)
@@ -251,6 +274,7 @@ namespace ab
             if (!m_track.isOnRoad(projection))
             {
                 agent.alive = false;
+                agent.outcome = AgentOutcome::OffRoad;
                 continue;
             }
 
@@ -272,7 +296,60 @@ namespace ab
             agent.totalProgress += delta;
             agent.previousProgress = projection.progressOnTrack;
             agent.bestProgress = std::max( agent.bestProgress, agent.totalProgress);
+
+
+            // Successfully completed one lap.
+            if (agent.bestProgress >= trackLength)
+            {
+                agent.alive = false;
+                agent.outcome = AgentOutcome::Completed;
+                agent.completionTime = m_episodeElapsedTime;
+                continue;
+            }
+
+            // Has the vehicle made meaningful new progress?
+            if (agent.bestProgress - agent.lastProgressCheckpoint >= MinimumProgress)
+            {
+                agent.lastProgressCheckpoint = agent.bestProgress;
+                agent.timeWithoutProgress = 0.0f;
+            }
+            else
+            {
+                agent.timeWithoutProgress += dt;
+            }
+
+            // Stop vehicles that are not progressing.
+            if (agent.timeWithoutProgress >= StagnationTimeout)
+            {
+                agent.alive = false;
+                agent.outcome = AgentOutcome::Stagnated;
+                continue;
+            }
         }
+
+        // Global episode timeout.
+        if (m_episodeElapsedTime >= MaxEpisodeDuration)
+        {
+            for (auto& agent : m_agents)
+            {
+                if (agent.alive)
+                {
+                    agent.alive = false;
+                    agent.outcome = AgentOutcome::TimedOut;
+                }
+            }
+        }
+
+        // Episode finishes when no active agents remain.
+        m_episodeFinished = std::all_of(
+            m_agents.begin(),
+            m_agents.end(),
+            [](const VehicleAgent& agent)
+            {
+                return !agent.alive;
+            }
+        );
+
     }
 
     void ApexBorn::renderImgui()
@@ -394,6 +471,8 @@ namespace ab
         auto& car = agent.car;
 
         const auto projection = m_track.projectPoint(car.position());
+
+        // Car
         ImGui::Text("Lateral Offset: %.2f", projection.signedLateralOffset);
         ImGui::Text("Track Progress: %.2f", projection.progressOnTrack);
         ImGui::Text("Total Progress: %.2f", agent.totalProgress);
@@ -404,7 +483,24 @@ namespace ab
         ImGui::Text("Speed: %f m/s", car.speed());
         const float alignment = aiko::math::dot(car.forwardDirection(), projection.forwardDirection);
         ImGui::Text("Heading Alignment: %.3f", alignment);
-        ImGui::TextColored(agent.alive ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "%s", agent.alive ? "ACTIVE" : "FAILED");
+
+        const auto currentState = magic_enum::enum_name(agent.outcome);
+        const bool success = agent.outcome == AgentOutcome::Completed;
+        const bool running = agent.outcome == AgentOutcome::Running;
+        const ImVec4 color = success || running ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f);
+        ImGui::TextColored(color, "Outcome: %s", currentState.data());
+        if (success)
+        {
+            ImGui::Text("Completion Time: %.2f s", agent.completionTime);
+        }
+
+        const float score = trackLength > 0.0f ? std::clamp(agent.bestProgress / trackLength, 0.0f, 1.0f) : 0.0f;
+        ImGui::SeparatorText("Episode Performance");
+        ImGui::Text("Episode Time: %.2f s", m_episodeElapsedTime);
+        ImGui::Text("Stagnation Time: %.2f s", agent.timeWithoutProgress);
+        ImGui::Text("Best Progress: %.2f m", agent.bestProgress);
+        ImGui::Text("Driving Score: %.3f", score);
+        ImGui::ProgressBar(score, ImVec2(-FLT_MIN, 0.0f));
 
         ImGui::BeginDisabled(!agent.alive || m_autonomousDriving);
         float currentSteering = car.steering();

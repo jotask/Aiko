@@ -21,11 +21,18 @@ namespace ab
         ~ApexBorn();
 
     protected:
-
         virtual void init() override;
         virtual void update() override;
         virtual void render() override;
+        
     private:
+
+        struct TrackImguiSettings
+        {
+            bool isOpen = false;
+            bool isRoadProfilerEditor = false;
+            bool openVehicleEditor = false;
+        };
 
         bool regenerateWorld();
         void resetAgents();
@@ -37,12 +44,9 @@ namespace ab
         void renderTrackGenerationSettings();
         void renderVehicleDebug();
 
-        struct TrackImguiSettings
-        {
-            bool isOpen = false;
-            bool isRoadProfilerEditor = false;
-            bool openVehicleEditor = false;
-        };
+        static constexpr float MaxEpisodeDuration = 120.0f;
+        static constexpr float StagnationTimeout = 8.0f;
+        static constexpr float MinimumProgress = 0.5f;
 
         TrackGeneratorSettings m_trackSettings = {};
         Track m_track;
@@ -62,6 +66,9 @@ namespace ab
         float m_simulationAccumulator = 0.0f;
         bool m_autonomousDriving = true;
         bool m_referenceDriverVariation = true;
+
+        float m_episodeElapsedTime = 0.0f;
+        bool m_episodeFinished = false;
 
     };
 

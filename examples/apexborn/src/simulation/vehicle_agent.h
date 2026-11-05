@@ -7,6 +7,15 @@
 namespace ab
 {
 
+    enum class AgentOutcome
+    {
+        Running,
+        Completed,
+        OffRoad,
+        Stagnated,
+        TimedOut
+    };
+
     struct VehicleAgent
     {
         Vehicle car;
@@ -22,6 +31,12 @@ namespace ab
 
         RoadSensors::Readings sensors{};
         DrivingObservationData observation{};
+
+        AgentOutcome outcome = AgentOutcome::Running;
+
+        float lastProgressCheckpoint = 0.0f;
+        float timeWithoutProgress = 0.0f;
+        float completionTime = 0.0f;
 
     };
 
