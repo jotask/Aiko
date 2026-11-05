@@ -133,9 +133,15 @@ namespace ab
     {
         const auto& samples = m_centerLine.getSamplePoints();
         AIKO_ASSERT(samples.size() >= 3, "Finish line requires at least three spline samples");
+
+        const auto forward = m_centerLine.getSampleTangent(0);
+        const auto right = aiko::math::normalize(aiko::math::cross(forward, WorldUp));
+        const auto up = aiko::math::normalize(aiko::math::cross(right, forward));
+
+        const float surfaceHeight = RoadMeshBuilder::getProfileTopHeight(m_profile, 0.0f);
         return {
-            .position = samples.front(),
-            .forward = m_centerLine.getSampleTangent(0),
+            .position = samples.front() + up * surfaceHeight,
+            .forward = forward
         };
     }
 
