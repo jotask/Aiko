@@ -1,5 +1,7 @@
 #include "genome.h"
 
+#include "math/math.h"
+
 #include <algorithm>
 #include <cmath>
 #include <stack>
@@ -52,7 +54,7 @@ namespace ab
         {
             return false;
         }
-        if (std::isfinite(connection.weight) == false)
+        if (aiko::math::isfinite(connection.weight) == false)
         {
             return false;
         }
@@ -124,6 +126,21 @@ namespace ab
             }
         }
         found->enabled = enabled;
+        return true;
+    }
+
+    bool Genome::setConnectionWeight(const InnovationId innovationId, double weight)
+    {
+        if (aiko::math::isfinite(weight) == false)
+        {
+            return false;
+        }
+        const auto found = std::find_if(m_connections.begin(), m_connections.end(), [&](const ConnectionGene& other){ return other.innovationId == innovationId; });
+        if (found == m_connections.end())
+        {
+            return false;
+        }
+        found->weight = weight;
         return true;
     }
 }

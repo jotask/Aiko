@@ -12,6 +12,7 @@ namespace ab
     public:
         static bool addConnection(Genome& genome, InnovationTracker& tracker, std::mt19937_64& rng);
         static bool addNode(Genome& genome, InnovationTracker& tracker, std::mt19937_64& rng);
+        static bool mutateWeights(Genome& genome, std::mt19937_64& rng, double mutationProbability, double replacementProbability, double perturbationSigma);
     };
 
 }

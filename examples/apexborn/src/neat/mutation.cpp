@@ -1,5 +1,7 @@
 #include "mutation.h"
 
+#include "math/math.h"
+
 #include <algorithm>
 #include <utility>
 
@@ -126,5 +128,57 @@ namespace ab
         }
         genome = std::move(candidateGenome);
         return true;
+    }
+
+    bool Mutation::mutateWeights(Genome& genome, std::mt19937_64& rng, double mutationProbability, double replacementProbability, double perturbationSigma)
+    {
+        if (aiko::math::isfinite(mutationProbability) == false || mutationProbability < 0.0 || mutationProbability > 1.0)
+        {
+            return false;
+        }
+        if (aiko::math::isfinite(replacementProbability) == false || replacementProbability < 0.0 || replacementProbability > 1.0)
+        {
+            return false;
+        }
+        if (aiko::math::isfinite(perturbationSigma) == false || perturbationSigma < 0.0f)
+        {
+            return false;
+        }
+
+        std::uniform_real_distribution<float> mutationProbabilityDistribution(0.0f, 1.0f);
+        std::uniform_real_distribution<float> replacementProbabilityDistribution(0.0f, 1.0f);
+        std::uniform_real_distribution<double> replacementWeightDistribution(-1.0, 1.0);
+        std::normal_distribution<double> perturbationWeightProbabilityDistribution(0.0f, perturbationSigma);
+
+        bool isAnyModified = false;
+        for (const ConnectionGene& connection : genome.getConnections())
+        {
+            if (mutationProbabilityDistribution(rng) >= mutationProbability)
+            {
+                continue;
+            }
+            if (replacementProbabilityDistribution(rng) < replacementProbability)
+            {
+                // Replace
+                const double newWeight = replacementWeightDistribution(rng);
+                if (newWeight != connection.weight)
+                {
+                    isAnyModified |= genome.setConnectionWeight(connection.innovationId, newWeight);
+                }
+            }
+            else
+            {
+                // Perturbate
+                if (perturbationSigma > 0.0f)
+                {
+                    const double newWeight = connection.weight + perturbationWeightProbabilityDistribution(rng);
+                    if (newWeight != connection.weight)
+                    {
+                        isAnyModified |= genome.setConnectionWeight(connection.innovationId, newWeight);
+                    }
+                }
+            }
+        }
+        return isAnyModified;
     }
 }

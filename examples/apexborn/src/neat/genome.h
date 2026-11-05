@@ -18,6 +18,7 @@ namespace ab
         bool wouldCreateCycle(const NodeId from, const NodeId to) const;
 
         bool setConnectionEnabled(const InnovationId innovationId, bool enabled);
+        bool setConnectionWeight(const InnovationId innovationId, double weight);
 
         const auto& getNodes() const { return m_nodes; }
         const auto& getConnections() const { return m_connections; }
