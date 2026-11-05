@@ -295,8 +295,7 @@ namespace ab
 
             agent.totalProgress += delta;
             agent.previousProgress = projection.progressOnTrack;
-            agent.bestProgress = std::max( agent.bestProgress, agent.totalProgress);
-
+            agent.bestProgress = std::max(agent.bestProgress, agent.totalProgress);
 
             // Successfully completed one lap.
             if (agent.bestProgress >= trackLength)
