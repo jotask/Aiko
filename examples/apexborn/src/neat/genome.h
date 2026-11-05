@@ -17,6 +17,8 @@ namespace ab
         bool hasConnection(const NodeId from, const NodeId to) const;
         bool wouldCreateCycle(const NodeId from, const NodeId to) const;
 
+        bool setConnectionEnabled(const InnovationId innovationId, bool enabled);
+
         const auto& getNodes() const { return m_nodes; }
         const auto& getConnections() const { return m_connections; }
 

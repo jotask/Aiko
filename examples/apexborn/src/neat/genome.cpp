@@ -108,4 +108,22 @@ namespace ab
         }
         return false;
     }
+
+    bool Genome::setConnectionEnabled(const InnovationId innovationId, bool enabled)
+    {
+        const auto found = std::find_if(m_connections.begin(), m_connections.end(), [&](const ConnectionGene& other){ return other.innovationId == innovationId; });
+        if (found == m_connections.end())
+        {
+            return false;
+        }
+        if (enabled == true && found->enabled == false)
+        {
+            if (wouldCreateCycle(found->fromNode, found->toNode) == true)
+            {
+                return false;
+            }
+        }
+        found->enabled = enabled;
+        return true;
+    }
 }
