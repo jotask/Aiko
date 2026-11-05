@@ -7,8 +7,9 @@
 namespace ab
 {
 
-    InnovationTracker::InnovationTracker(const NodeId firstAvailableNodeId)
+    InnovationTracker::InnovationTracker(const NodeId firstAvailableNodeId, InnovationId firstAvailableInnovationId)
         : m_nextAvailableNodeId(firstAvailableNodeId)
+        , m_nextAvailableInnovationId(firstAvailableInnovationId)
     {
         AIKO_ASSERT(m_nextAvailableNodeId != InvalidNodeId, "First Available NodeId can't be the invalid one");
     }

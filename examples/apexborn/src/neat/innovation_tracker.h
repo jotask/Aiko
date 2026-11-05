@@ -22,7 +22,7 @@ namespace ab
     {
     public:
 
-        InnovationTracker(const NodeId firstAvailableNodeId);
+        InnovationTracker(const NodeId firstAvailableNodeId, InnovationId firstAvailableInnovationId = InvalidInnovationId + 1);
 
         InnovationId generateId(const NodeId from, const NodeId to);
         std::optional<SplitInnovation> generateSplitInnovation(const InnovationId originalInnovationId, const NodeId from, const NodeId to);
@@ -36,8 +36,8 @@ namespace ab
         std::map<ConnectionKey, InnovationId> m_innovationIds;
         std::map<InnovationId, SplitInnovation> m_splitInnovations;
 
-        InnovationId m_nextAvailableInnovationId = InvalidInnovationId + 1;
         NodeId m_nextAvailableNodeId;
+        InnovationId m_nextAvailableInnovationId;
 
     };
 
