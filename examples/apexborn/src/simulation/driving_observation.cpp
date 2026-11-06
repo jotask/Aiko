@@ -104,4 +104,28 @@ namespace ab
         return data;
     }
 
+    std::array<double, DrivingObservationData::TotalMembers> DrivingObservation::generateInputs(const DrivingObservationData& data)
+    {
+        std::array<double, DrivingObservationData::TotalMembers> inputs = {};
+
+        size_t index = 0;
+
+        inputs[index++] = data.lateralOffset;
+        inputs[index++] = data.headingError;
+        inputs[index++] = data.lookAheadError;
+        inputs[index++] = data.farLookAheadError;
+        inputs[index++] = data.upcomingCurvature;
+        inputs[index++] = data.normalizedSpeed;
+
+        for (size_t i = 0; i < RoadSensors::SensorCount; ++i)
+        {
+            inputs[index++] = data.roadDistances[i];
+        }
+
+        AIKO_ASSERT(index == inputs.size(), "Inputs generated are not the same as expected");
+
+        return inputs;
+
+    }
+
 }

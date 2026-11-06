@@ -21,12 +21,16 @@ namespace ab
         float normalizedSpeed = 0.0f;
 
         std::array<float, RoadSensors::SensorCount> roadDistances{};
+
+        static constexpr size_t TotalMembers = 6 + RoadSensors::SensorCount;
+
     };
 
     class DrivingObservation final
     {
     public:
         static DrivingObservationData calculate(const Vehicle& vehicle, const Track& track, const TrackNavigation::TrackProjection& projection, const RoadSensors::Readings& sensors);
+        static std::array<double, DrivingObservationData::TotalMembers> generateInputs(const DrivingObservationData& data);
     };
 
 }
