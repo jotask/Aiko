@@ -46,6 +46,8 @@ namespace ab
             size_t regenerateTrackEveryNGenerations = 5;
             uint32_t nextTrackSeed = 0;
             bool renderBestGenome = true;
+            bool renderLiveNetwork = true;
+            bool followBestAlive = true;
         };
 
         enum class DrivingMode
@@ -89,6 +91,7 @@ namespace ab
 
         std::vector<VehicleAgent> m_agents;
         TrainingSession m_trainingSession;
+        std::vector<NodeActivation> m_liveActivations;
 
         static constexpr float FixedTimeStep = 1.0f / 60.0f;
 

@@ -23,7 +23,7 @@ namespace ab
         constexpr ImU32 SnapPreviewColor = IM_COL32(90, 230, 155, 255);
         constexpr ImU32 ControlPointOutline = IM_COL32(15, 20, 30, 255);
 
-        using NodePositions = std::unordered_map<uint32_t, ImVec2>;
+        using NodePositions = std::unordered_map<NodeId, ImVec2>;
         void layoutColumn(const std::vector<NodeGene>& nodes, size_t columnIndex, size_t columnCount, const ImVec2& origin, const ImVec2& canvasSize, NodePositions& positions)
         {
             constexpr float padding = 40.0f;
@@ -152,9 +152,34 @@ namespace ab
             }
         }
 
+        ImU32 getNodeColor(NodeType type, const double* activation)
+        {
+            if (activation != nullptr)
+            {
+                const float intensity = std::clamp(static_cast<float>(std::abs(*activation)), 0.0f, 1.0f);
+                const float base = 0.18f;
+                const float strength = base + intensity * 0.82f;
+
+                if (*activation >= 0.0)
+                {
+                    return IM_COL32(35, static_cast<int>(230.0f * strength), static_cast<int>(210.0f * strength), 255);
+                }
+                return IM_COL32(static_cast<int>(245.0f * strength), 40, 65, 255);
+            }
+
+            switch (type)
+            {
+                case NodeType::Input:   return IM_COL32(70, 150, 230, 255);
+                case NodeType::Bias:    return IM_COL32(230, 180, 70, 255);
+                case NodeType::Hidden:  return IM_COL32(170, 110, 220, 255);
+                case NodeType::Output:  return IM_COL32(70, 200, 140, 255);
+            }
+            return IM_COL32(130, 130, 130, 255);
+        }
+
     }
 
-    void NeuralNetworkVisualizer::render(bool& open, const Genome& genome)
+    void NeuralNetworkVisualizer::render(bool& open, const Genome& genome, std::span<const NodeActivation> activations, const char* modeLabel)
     {
 
         if (!ImGui::Begin("NeuralNetworkVisualizer", &open))
@@ -163,7 +188,17 @@ namespace ab
             return;
         }
 
+        ImGui::TextUnformatted(modeLabel);
+
         const std::vector<NodeGene> nodes = genome.getNodes();
+
+        std::unordered_map<NodeId, double> activationLookup;
+        activationLookup.reserve(activations.size());
+        for (const NodeActivation& activation : activations)
+        {
+            activationLookup[activation.id] = activation.value;
+        }
+
         auto inputGenomesView = nodes | std::ranges::views::filter([](const NodeGene& gene)-> bool { return gene.type == NodeType::Input || gene.type == NodeType::Bias; });
         auto hiddenGenomesView = nodes | std::ranges::views::filter([](const NodeGene& gene)-> bool { return gene.type == NodeType::Hidden; });
         auto outputGenomesView = nodes | std::ranges::views::filter([](const NodeGene& gene)-> bool { return gene.type == NodeType::Output; });
@@ -229,7 +264,41 @@ namespace ab
                 {
                     continue;
                 }
-                draw_list->AddCircleFilled(it->second, 6.0f, IM_COL32(70, 150, 230, 255));
+
+                const auto activationIt = activationLookup.find(node.id);
+
+                const double* activation = activationIt != activationLookup.end() ? &activationIt->second : nullptr;
+
+                const ImU32 color = getNodeColor(node.type, activation);
+
+                constexpr float NodeRadius = 8.0f;
+
+                draw_list->AddCircleFilled(it->second, NodeRadius, color);
+                draw_list->AddCircle(it->second, NodeRadius, IM_COL32(20, 25, 35, 255), 0, 1.5f);
+
+                const ImVec2 mouse = ImGui::GetIO().MousePos;
+
+                const float dx = mouse.x - it->second.x;
+                const float dy = mouse.y - it->second.y;
+
+                if (ImGui::IsItemHovered() && dx * dx + dy * dy <= NodeRadius * NodeRadius)
+                {
+                    ImGui::BeginTooltip();
+
+                    ImGui::Text("Node ID: %llu", static_cast<unsigned long long>(node.id));
+                    ImGui::Text("Type: %s", node.type == NodeType::Input ? "Input" : node.type == NodeType::Hidden ? "Hidden" : node.type == NodeType::Output ? "Output" : "Bias");
+
+                    if (activation != nullptr)
+                    {
+                        ImGui::Text("Activation: %.5f", *activation);
+                    }
+                    else
+                    {
+                        ImGui::TextDisabled("No live activation");
+                    }
+
+                    ImGui::EndTooltip();
+                }
             }
         }
 

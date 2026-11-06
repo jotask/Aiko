@@ -11,11 +11,17 @@ namespace ab
 {
     class Genome;
 
+    struct NodeActivation
+    {
+        NodeId id;
+        double value;
+    };
+
     class NeuralNetwork
     {
     public:
         bool build(const Genome& genome);
-        bool evaluate(std::span<const double> inputs, std::span<double> outputs) const;
+        bool evaluate(std::span<const double> inputs, std::span<double> outputs, std::vector<NodeActivation>* activations = nullptr) const;
         bool isValid() const { return m_valid; }
 
     private:
@@ -27,6 +33,7 @@ namespace ab
 
         struct RuntimeNode
         {
+            NodeId id;
             NodeType type;
             std::vector<RuntimeConnection> incomingConnections;
         };

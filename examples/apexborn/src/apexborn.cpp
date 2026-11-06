@@ -167,6 +167,17 @@ namespace ab
 
         }
 
+        // Draw marker for selected
+        if (m_drivingMode == DrivingMode::NEAT && m_selectedAgent >= 0 && static_cast<size_t>(m_selectedAgent) < m_agents.size())
+        {
+            const VehicleAgent& selected = m_agents[static_cast<size_t>(m_selectedAgent)];
+            const aiko::vec3 position = selected.car.position();
+            const aiko::vec3 markerStart = position + aiko::vec3{0.0f, 1.0f, 0.0f};
+            const aiko::vec3 markerEnd = position + aiko::vec3{0.0f, 2.0f, 0.0f};
+            renderer().drawLine(markerStart, markerEnd, aiko::YELLOW);
+            renderer().drawPoint(markerEnd, aiko::YELLOW);
+        }
+
         // Debug: visualize road sensors for the selected vehicle.
         if (m_vehicleImgui.renderSensors && m_selectedAgent >= 0 && static_cast<size_t>(m_selectedAgent) < m_agents.size())
         {
@@ -228,6 +239,7 @@ namespace ab
     void ApexBorn::resetAgents()
     {
 
+        m_liveActivations.clear();
         m_episodeElapsedTime = 0.0f;
         m_episodeFinished = false;
 
@@ -310,6 +322,34 @@ namespace ab
     {
         AIKO_FUNCTION_PROFILE
 
+        if (m_drivingMode == DrivingMode::NEAT && m_trainingImgui.followBestAlive)
+        {
+            int bestAgent = -1;
+            float bestProgress = -1.0f;
+
+            for (size_t i = 0; i < m_agents.size(); ++i)
+            {
+                const VehicleAgent& agent = m_agents[i];
+
+                if (!agent.alive)
+                {
+                    continue;
+                }
+
+                if (agent.bestProgress > bestProgress)
+                {
+                    bestProgress = agent.bestProgress;
+                    bestAgent = static_cast<int>(i);
+                }
+            }
+
+            if (bestAgent != m_selectedAgent)
+            {
+                m_selectedAgent = bestAgent;
+                m_liveActivations.clear();
+            }
+        }
+
         m_episodeElapsedTime += dt;
 
         const float trackLength = m_track.getTrackLength();
@@ -340,9 +380,14 @@ namespace ab
                 case DrivingMode::NEAT:
                 {
                     VehicleControl control;
-                    if (m_trainingSession.evaluate(i, agent.observation, control) == false)
+                    std::vector<NodeActivation>* capture = nullptr;
+                    if (m_trainingImgui.renderBestGenome && m_trainingImgui.renderLiveNetwork && m_selectedAgent >= 0 && i == static_cast<size_t>(m_selectedAgent))
                     {
-                        aiko::logger::Log::error("Skipping driver as couldn't evaluate training session");
+                        capture = &m_liveActivations;
+                    }
+                    if (m_trainingSession.evaluate(i, agent.observation, control, capture) == false)
+                    {
+                        aiko::logger::Log::error("Couldn't evaluate NEAT training session");
                         m_trainingFailed = true;
                         return;
                     }
@@ -456,9 +501,25 @@ namespace ab
         }
         if (m_trainingImgui.renderBestGenome)
         {
-            if (const auto best = m_trainingSession.getBestGenome())
+            if (m_trainingImgui.renderLiveNetwork)
             {
-                NeuralNetworkVisualizer::render(m_trainingImgui.renderBestGenome, *best);
+                if (m_drivingMode == DrivingMode::NEAT && m_selectedAgent >= 0)
+                {
+                    const size_t agentIdx = static_cast<size_t>(m_selectedAgent);
+                    const Genome* genome = m_trainingSession.getGenome(agentIdx);
+                    if (genome != nullptr)
+                    {
+                        NeuralNetworkVisualizer::render(m_trainingImgui.renderBestGenome, *genome, std::span<const NodeActivation>{m_liveActivations}, "Live Selected Vehicle");
+                    }
+                }
+            }
+            else
+            {
+                const Genome* champion = m_trainingSession.getBestGenome();
+                if (champion != nullptr)
+                {
+                    NeuralNetworkVisualizer::render(m_trainingImgui.renderBestGenome, *champion, {}, "Previous Generation Champion");
+                }
             }
         }
         m_profileEditor.render(m_track.roadProfile());
@@ -556,9 +617,24 @@ namespace ab
             return;
         }
 
-        ImGui::SliderInt("Selected Vehicle", &m_selectedAgent, 0, static_cast<int>(m_agents.size()) - 1);
+        ImGui::BeginDisabled(m_trainingImgui.followBestAlive);
+        if (ImGui::SliderInt("Selected Vehicle", &m_selectedAgent, 0, static_cast<int>(m_agents.size()) - 1))
+        {
+            m_liveActivations.clear();
+        }
+        ImGui::EndDisabled();
 
-        m_selectedAgent = std::clamp(m_selectedAgent, 0, static_cast<int>(m_agents.size()) - 1);
+        if (m_trainingImgui.followBestAlive == false)
+        {
+            m_selectedAgent = std::clamp(m_selectedAgent, 0, static_cast<int>(m_agents.size()) - 1);
+        }
+
+        if (m_selectedAgent < 0)
+        {
+            ImGui::TextDisabled("No surviving vehicle.");
+            ImGui::End();
+            return;
+        }
 
         const auto& agent = m_agents[static_cast<std::size_t>(m_selectedAgent)];
         const auto& car = agent.car;
@@ -712,6 +788,33 @@ namespace ab
         ImGui::Text("Generation: %llu", static_cast<unsigned long long>(m_trainingSession.generation()));
         ImGui::Text("Active Population: %zu", m_trainingSession.populationSize());
         ImGui::SliderInt("Population Size", &m_vehicleCount, 1, 150);
+
+        ImGui::SeparatorText("Neural Network Visualization");
+
+        ImGui::Checkbox("Show Neural Network", &m_trainingImgui.renderBestGenome);
+        if (ImGui::Checkbox("Live Selected Vehicle", &m_trainingImgui.renderLiveNetwork))
+        {
+            m_liveActivations.clear();
+        }
+        if (ImGui::Checkbox("Follow Best Surviving Vehicle", &m_trainingImgui.followBestAlive))
+        {
+            m_liveActivations.clear();
+            if (!m_trainingImgui.followBestAlive && m_selectedAgent < 0 && !m_agents.empty())
+            {
+                m_selectedAgent = 0;
+            }
+        }
+
+        if (m_selectedAgent >= 0 && static_cast<size_t>(m_selectedAgent) < m_agents.size())
+        {
+            const VehicleAgent& agent = m_agents[static_cast<size_t>(m_selectedAgent)];
+            ImGui::Text("Following Vehicle: #%d", m_selectedAgent);
+            ImGui::Text("Progress: %.2f m | %s", agent.bestProgress, agent.alive ? "Running" : "Finished");
+        }
+        else
+        {
+            ImGui::TextDisabled("No vehicle selected.");
+        }
 
         if (static_cast<std::size_t>(m_vehicleCount) != m_trainingSession.populationSize())
         {

@@ -47,7 +47,7 @@ namespace ab
         return true;
     }
 
-    bool TrainingSession::evaluate(size_t agentIdx, const DrivingObservationData& observations, VehicleControl& controls)
+    bool TrainingSession::evaluate(size_t agentIdx, const DrivingObservationData& observations, VehicleControl& controls, std::vector<NodeActivation>* activations)
     {
         if (agentIdx >= populationSize() || agentIdx >= m_networks.size())
         {
@@ -58,7 +58,7 @@ namespace ab
 
         std::array<double, 2> outputs;
 
-        bool success = m_networks[agentIdx].evaluate(inputs, outputs);
+        bool success = m_networks[agentIdx].evaluate(inputs, outputs, activations);
         if (success == false)
         {
             return false;
@@ -192,6 +192,16 @@ namespace ab
 
         return true;
 
+    }
+
+    const Genome* TrainingSession::getGenome(size_t agentIdx) const
+    {
+        const auto& genomes = m_population.genomes();
+        if (agentIdx >= genomes.size())
+        {
+            return nullptr;
+        }
+        return &genomes[agentIdx];
     }
 
 }

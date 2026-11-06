@@ -47,6 +47,7 @@ namespace ab
             }
 
             runtimeNodes.push_back(RuntimeNode{
+                .id = gene.id,
                 .type = gene.type,
                 .incomingConnections = {}
             });
@@ -177,7 +178,7 @@ namespace ab
         return true;
     }
 
-    bool NeuralNetwork::evaluate(std::span<const double> inputs, std::span<double> outputs) const
+    bool NeuralNetwork::evaluate(std::span<const double> inputs, std::span<double> outputs, std::vector<NodeActivation>* activations) const
     {
         if (m_valid == false)
         {
@@ -254,6 +255,20 @@ namespace ab
             const auto runtimeNodeIdx = m_outputIndices[i];
             const auto value = neuronValues[runtimeNodeIdx];
             outputs[i] = value;
+        }
+
+        if (activations != nullptr)
+        {
+            std::vector<NodeActivation> captured;
+            captured.reserve(m_nodes.size());
+            for (size_t i = 0; i < m_nodes.size(); ++i)
+            {
+                captured.push_back(NodeActivation{
+                    .id = m_nodes[i].id,
+                    .value = neuronValues[i]
+                });
+            }
+            *activations = std::move(captured);
         }
 
         return true;
