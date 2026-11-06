@@ -245,6 +245,6 @@ namespace ab
         m_fitness[genomeIndex] = fitness;
         m_fitnessEvaluated[genomeIndex] = true;
 
-        return false;
+        return true;
     }
 }
