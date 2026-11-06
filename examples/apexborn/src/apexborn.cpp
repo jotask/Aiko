@@ -98,10 +98,24 @@ namespace ab
 
         if ( m_drivingMode == DrivingMode::NEAT && m_episodeFinished == true)
         {
-            if (m_trainingSession.finishGeneration(m_agents) == false)
+            if (m_trainingSession.finishGeneration(m_agents, m_track.getTrackLength(), MaxEpisodeDuration) == false)
             {
                 m_trainingFailed = true;
                 return;
+            }
+            if (m_trainingImgui.regenerateTrackEveryNGenerations > 0)
+            {
+                const auto generation = m_trainingSession.generation();
+                if (generation % m_trainingImgui.regenerateTrackEveryNGenerations == 0)
+                {
+                    m_trainingImgui.nextTrackSeed++;
+                    m_trackSettings.seed = m_trainingImgui.nextTrackSeed;
+                    if (regenerateWorld() == false)
+                    {
+                        m_trainingFailed = true;
+                    }
+                    return;
+                }
             }
             resetAgents();
         }
@@ -287,6 +301,8 @@ namespace ab
         resetAgents();
 
         m_trainingFailed = false;
+
+        m_trainingImgui.nextTrackSeed = m_trackSettings.seed;
 
         return true;
     }
@@ -658,6 +674,13 @@ namespace ab
 
         ImGui::Spacing();
         ImGui::SeparatorText("Simulation");
+
+        int interval = static_cast<int>(m_trainingImgui.regenerateTrackEveryNGenerations);
+        if (ImGui::SliderInt("Regenerate Every N Generations", &interval, 0, 100))
+        {
+            m_trainingImgui.regenerateTrackEveryNGenerations = static_cast<std::size_t>(interval);
+        }
+        ImGui::TextDisabled("0 disables automatic track regeneration.");
 
         ImGui::Text("Active Vehicles: %zu", m_agents.size());
         ImGui::Text("Episode Time: %.2f / %.2f s", m_episodeElapsedTime, MaxEpisodeDuration);

@@ -76,8 +76,12 @@ namespace ab
 
     }
 
-    bool TrainingSession::finishGeneration(const std::vector<VehicleAgent>& agents)
+    bool TrainingSession::finishGeneration(const std::vector<VehicleAgent>& agents, const float trackLength, float maxEpisodeDuration)
     {
+        if (trackLength <= 0.0f || aiko::math::isfinite(trackLength) == false)
+        {
+            return false;
+        }
         if (populationSize() == 0)
         {
             return false;
@@ -106,7 +110,22 @@ namespace ab
         Population population = m_population;
         for (size_t i = 0 ; i < agents.size() ; ++i)
         {
-            if (population.setFitness(i, agents[i].bestProgress) == false)
+            const VehicleAgent& agent = agents[i];
+            const double normalizedProgress = aiko::math::clamp(static_cast<double>(agent.bestProgress) / trackLength, 0.0, 1.0);
+            double fitness = normalizedProgress;
+
+            if (agent.outcome == AgentOutcome::Completed)
+            {
+                if (aiko::math::isfinite(agent.completionTime) == false || agent.completionTime <= 0.0f || agent.completionTime > maxEpisodeDuration)
+                {
+                    return false;
+                }
+
+                const double normalizedTime = std::clamp(static_cast<double>(agent.completionTime) / maxEpisodeDuration, 0.0, 1.0);
+                fitness = 1.0 + (1.0 - normalizedTime);
+            }
+
+            if (population.setFitness(i, fitness) == false)
             {
                 return false;
             }
