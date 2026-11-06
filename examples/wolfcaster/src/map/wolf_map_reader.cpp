@@ -5,6 +5,7 @@
 #include "carmack_decoder.h"
 #include "core/file.h"
 #include "logger/logger.h"
+#include "rlew_decoder.h"
 
 namespace wc
 {
@@ -27,7 +28,9 @@ namespace wc
 
         AIKO_ASSERT(firstLevelHeaderInfo.planesOffset[0].first <= gameMapBytes.size() && firstLevelHeaderInfo.planesOffset[0].second <= gameMapBytes.size() - firstLevelHeaderInfo.planesOffset[0].first, "Plane data exceeds GAMEMAPS file boundaries");
         std::span<const uint8_t> plane0 = {gameMapBytes.begin() + firstLevelHeaderInfo.planesOffset[0].first, firstLevelHeaderInfo.planesOffset[0].second};
-        const std::vector<uint16_t> decodePlane0 = CarmackDecoder::decode(plane0);
+
+        const std::vector<uint16_t> decodedCarmackPlane0 = CarmackDecoder::decode(plane0);
+        const std::vector<uint16_t> decodedRlewPlane0 = RlewDecoder::decode(decodedCarmackPlane0, rlewTag);
 
         return true;
 

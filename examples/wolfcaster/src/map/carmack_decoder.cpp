@@ -89,7 +89,6 @@ namespace wc
 
         AIKO_ASSERT(decompressedWords.size() == expectedWordCount, "We have not decompressed expected Words");
 
-
         aiko::logger::Log::infoFmt("     Successfully Decoded -> Decompressed {} words : Input Offset {} : DecompressedWords {} (0x{:08X})", decompressedWords.size(), inputOffset, decompressedWords[0], decompressedWords[0]);
 
         return decompressedWords;
