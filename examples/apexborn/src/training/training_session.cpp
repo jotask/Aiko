@@ -40,6 +40,10 @@ namespace ab
         m_population = std::move(population);
         m_networks = std::move(networks);
 
+        m_bestGenome = std::nullopt;
+        m_bestFitness = std::numeric_limits<double>::lowest();
+        m_bestGeneration = 0;
+
         return true;
     }
 
@@ -112,6 +116,11 @@ namespace ab
         }
 
         Population population = m_population;
+
+        double bestFitness = std::numeric_limits<double>::lowest();
+        size_t bestGenomeIdx = 0;
+        bool foundChampion = false;
+
         for (size_t i = 0 ; i < agents.size() ; ++i)
         {
             const VehicleAgent& agent = agents[i];
@@ -129,11 +138,27 @@ namespace ab
                 fitness = 1.0 + (1.0 - normalizedTime);
             }
 
+            if (fitness > bestFitness)
+            {
+                bestFitness = fitness;
+                bestGenomeIdx = i;
+                foundChampion = true;
+            }
+
             if (population.setFitness(i, fitness) == false)
             {
                 return false;
             }
         }
+
+        std::optional<Genome> bestGenomeFound = std::nullopt;
+        const auto currentBestGeneration = generation();
+
+        if (foundChampion == true)
+        {
+            bestGenomeFound = m_population.genomes()[bestGenomeIdx];
+        }
+
         if (population.advanceGeneration() == false)
         {
             return false;
@@ -153,6 +178,13 @@ namespace ab
         if (networks.size() != population.genomes().size())
         {
             return false;
+        }
+
+        if (foundChampion == true)
+        {
+            m_bestGenome = bestGenomeFound;
+            m_bestFitness = bestFitness;
+            m_bestGeneration = currentBestGeneration;
         }
 
         m_population = std::move(population);

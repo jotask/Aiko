@@ -7,18 +7,17 @@
 #include "simulation/driving_observation.h"
 #include "simulation/reference_driver.h"
 #include "simulation/road_sensors.h"
+#include "training/neural_network_visualizer.h"
 
 #include <components/camera_component.h>
 #include <components/mesh_component.h>
 #include <intrumentor/profiler.h>
-
-#include <imgui.h>
+#include <magic_enum/magic_enum.hpp>
 #include <types/draw_types.h>
 
-#include <magic_enum/magic_enum.hpp>
-
-#include <vector>
+#include <imgui.h>
 #include <random>
+#include <vector>
 
 namespace ab
 {
@@ -289,7 +288,7 @@ namespace ab
     {
         const EvolutionConfig config =
         {
-            .populationSize = m_vehicleCount,
+            .populationSize = static_cast<size_t>(m_vehicleCount),
         };
         TrainingSession newSession;
         if (newSession.init(config, m_trackSettings.seed) == false)
@@ -454,6 +453,13 @@ namespace ab
         if (m_trainingImgui.isOpen)
         {
             renderTrainingSimulation();
+        }
+        if (m_trainingImgui.renderBestGenome)
+        {
+            if (const auto best = m_trainingSession.getBestGenome())
+            {
+                NeuralNetworkVisualizer::render(m_trainingImgui.renderBestGenome, *best);
+            }
         }
         m_profileEditor.render(m_track.roadProfile());
     }
