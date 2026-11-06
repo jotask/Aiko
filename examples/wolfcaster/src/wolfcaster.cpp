@@ -33,6 +33,12 @@ namespace wc
         scene().ambientLight().color = aiko::WHITE;
         scene().ambientLight().intensity = 0.3f;
 
+        const std::filesystem::path dataDir = WOLF3D_DATA_DIR;
+
+        const auto mapHeadPath = dataDir / "MAPHEAD.WL1";
+        const auto gameMapsPath = dataDir / "GAMEMAPS.WL1";
+        m_mapFileReader.load(mapHeadPath, gameMapsPath);
+
     }
 
     void WolfCaster::update()

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "map/wolf_map_reader.h"
+
 #include <layers/layer.h>
 
 #include <aiko_includes.h>
@@ -19,6 +21,8 @@ namespace wc
         virtual void render() override;
         
     private:
+
+        WolfMapReader m_mapFileReader;
 
     };
 
