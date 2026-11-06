@@ -45,9 +45,20 @@ namespace ab
         m_track.init(assets());
         m_environment.init(assets());
 
+
         if (regenerateWorld() == false)
         {
             aiko::logger::Log::error("Couldn't generate ApexBorn world");
+            m_trainingFailed = true;
+        }
+
+        if (m_trainingFailed == false)
+        {
+            if (resetTraining() == false)
+            {
+                aiko::logger::Log::error("Couldn't generate traingin session");
+                m_trainingFailed = true;
+            }
         }
 
     }
@@ -56,7 +67,12 @@ namespace ab
     {
         AIKO_FUNCTION_PROFILE
 
-        if (m_episodeFinished)
+        if (m_trainingFailed)
+        {
+            return;
+        }
+
+        if (m_drivingMode == DrivingMode::Reference && m_episodeFinished)
         {
             return;
         }
@@ -68,6 +84,10 @@ namespace ab
         while (m_simulationAccumulator >= FixedTimeStep)
         {
             simulateStep(FixedTimeStep);
+            if (m_trainingFailed == true)
+            {
+                return;
+            }
             if (m_episodeFinished)
             {
                 m_simulationAccumulator = 0.0f;
@@ -75,6 +95,17 @@ namespace ab
             }
             m_simulationAccumulator -= FixedTimeStep;
         }
+
+        if ( m_drivingMode == DrivingMode::NEAT && m_episodeFinished == true)
+        {
+            if (m_trainingSession.finishGeneration(m_agents) == false)
+            {
+                m_trainingFailed = true;
+                return;
+            }
+            resetAgents();
+        }
+
     }
 
     void ApexBorn::render()
@@ -192,7 +223,7 @@ namespace ab
         const float heading = std::atan2(finishLine.forward.z, finishLine.forward.x);
 
         // Recreate the requested number of agents.
-        m_agents.resize(static_cast<size_t>(m_vehicleCount));
+        m_agents.resize(static_cast<size_t>(m_trainingSession.populationSize()));
 
         std::mt19937 rng(m_trackSettings.seed);
         std::uniform_real_distribution<float> steeringBiasDistribution(-0.06f, 0.06f);
@@ -240,6 +271,26 @@ namespace ab
         m_selectedAgent = 0;
     }
 
+    bool ApexBorn::resetTraining()
+    {
+        const EvolutionConfig config =
+        {
+            .populationSize = m_vehicleCount,
+        };
+        TrainingSession newSession;
+        if (newSession.init(config, m_trackSettings.seed) == false)
+        {
+            aiko::logger::Log::error("Failed to regenerated new training session");
+            return false;
+        }
+        m_trainingSession = std::move(newSession);
+        resetAgents();
+
+        m_trainingFailed = false;
+
+        return true;
+    }
+
     void ApexBorn::simulateStep(float dt)
     {
         AIKO_FUNCTION_PROFILE
@@ -248,8 +299,9 @@ namespace ab
 
         const float trackLength = m_track.getTrackLength();
 
-        for (auto& agent : m_agents)
+        for (size_t i = 0 ; i < m_agents.size() ; ++i)
         {
+            VehicleAgent& agent = m_agents[i];
             if (!agent.alive)
             {
                 continue;
@@ -257,14 +309,35 @@ namespace ab
 
             auto& car = agent.car;
 
-            if (m_autonomousDriving)
+            switch (m_drivingMode)
             {
-                const auto control = ReferenceDriver::compute(car, m_track, agent.previousProgress);
-                const float steeringBias = m_referenceDriverVariation ? agent.referenceSteeringBias : 0.0f;
-                const float throttleScale = m_referenceDriverVariation ? agent.referenceThrottleScale : 1.0f;
-                car.setSteering(control.steering + steeringBias);
-                car.setThrottle(control.throttle * throttleScale);
-                car.setBrake(control.brake);
+                case DrivingMode::Reference:
+                {
+                    const auto control = ReferenceDriver::compute(car, m_track, agent.previousProgress);
+                    const float steeringBias = m_referenceDriverVariation ? agent.referenceSteeringBias : 0.0f;
+                    const float throttleScale = m_referenceDriverVariation ? agent.referenceThrottleScale : 1.0f;
+                    car.setSteering(control.steering + steeringBias);
+                    car.setThrottle(control.throttle * throttleScale);
+                    car.setBrake(control.brake);
+                }
+                break;
+
+                case DrivingMode::NEAT:
+                {
+                    VehicleControl control;
+                    if (m_trainingSession.evaluate(i, agent.observation, control) == false)
+                    {
+                        aiko::logger::Log::error("Skipping driver as couldn't evaluate training session");
+                        m_trainingFailed = true;
+                        return;
+                    }
+                    car.setSteering(control.steering);
+                    car.setThrottle(control.throttle);
+                    car.setBrake(control.brake);
+                }
+                break;
+                default:
+                    AIKO_ASSERT(false, "Unknown/NotSupported driving mode");
             }
 
             car.update(dt);
@@ -413,7 +486,7 @@ namespace ab
 
         if (ImGui::Button("Regenerate Track"))
         {
-            if (!regenerateWorld())
+            if (regenerateWorld() == false)
             {
                 aiko::logger::Log::error("Couldn't regenerate ApexBorn world");
             }

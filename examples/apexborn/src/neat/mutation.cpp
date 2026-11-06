@@ -148,7 +148,6 @@ namespace ab
         std::uniform_real_distribution<float> mutationProbabilityDistribution(0.0f, 1.0f);
         std::uniform_real_distribution<float> replacementProbabilityDistribution(0.0f, 1.0f);
         std::uniform_real_distribution<double> replacementWeightDistribution(-1.0, 1.0);
-        std::normal_distribution<double> perturbationWeightProbabilityDistribution(0.0f, perturbationSigma);
 
         bool isAnyModified = false;
         for (const ConnectionGene& connection : genome.getConnections())
@@ -171,6 +170,7 @@ namespace ab
                 // Perturbate
                 if (perturbationSigma > 0.0f)
                 {
+                    std::normal_distribution<double> perturbationWeightProbabilityDistribution(0.0f, perturbationSigma);
                     const double newWeight = connection.weight + perturbationWeightProbabilityDistribution(rng);
                     if (newWeight != connection.weight)
                     {
