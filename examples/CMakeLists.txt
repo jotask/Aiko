@@ -15,6 +15,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/planet_earth")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/life_particles")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/voxel_world")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/apexborn")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/wolfcaster")
 
 if(AIKO_RENDER STREQUAL "AIKO_NATIVE")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/shader_toy_opengl")
