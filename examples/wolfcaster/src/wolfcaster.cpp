@@ -1,7 +1,10 @@
 #include "wolfcaster.h"
 
 #include "core/file.h"
+#include "layers/contexts/asset_context.h"
 #include "layers/contexts/scene_context.h"
+#include "layers/contexts/ui_context.h"
+#include "rendering/wolf_map_texture.h"
 
 #include <components/camera_component.h>
 #include <components/mesh_component.h>
@@ -42,6 +45,9 @@ namespace wc
 
         m_wolfMap = std::move(wolfmap);
 
+        const aiko::TextureAsset asset = WolfMapTexture::build(m_wolfMap.value());
+        m_mapTextureId = assets().createTexture(asset);
+
     }
 
     void WolfCaster::update()
@@ -52,6 +58,20 @@ namespace wc
     void WolfCaster::render()
     {
         AIKO_FUNCTION_PROFILE
+        if (m_mapTextureId != aiko::InvalidAssetId)
+        {
+            aiko::SamplerState state = {
+                .minFilter = aiko::TextureFilter::Nearest,
+                .magFilter = aiko::TextureFilter::Nearest,
+                .mipFilter = aiko::TextureMipFilter::None,
+                .wrapU = aiko::TextureWrapMode::Clamp,
+                .wrapV = aiko::TextureWrapMode::Clamp,
+            };
+            const aiko::vec2 position = {0.0f, 0.0f};
+            const aiko::vec2 size = {512.0f, 512.0f};
+            const aiko::Color tint = aiko::WHITE;
+            ui().image(m_mapTextureId, position, size, tint, state);
+        }
     }
 
 }

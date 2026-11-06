@@ -26,6 +26,8 @@ namespace wc
         WolfMapReader m_mapFileReader;
         std::optional<WolfMap> m_wolfMap;
 
+        aiko::AssetId m_mapTextureId = aiko::InvalidAssetId;
+
     };
 
 }
