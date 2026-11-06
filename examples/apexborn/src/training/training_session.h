@@ -14,7 +14,7 @@ namespace ab
 
         bool init(const EvolutionConfig& config, std::uint64_t seed);
         bool evaluate(size_t agentIdx, const DrivingObservationData& observations, VehicleControl& controls);
-        bool finishGeneration(const std::vector<VehicleAgent>& agents);
+        bool finishGeneration(const std::vector<VehicleAgent>& agents, const float trackLength, float maxEpisodeDuration);
 
         size_t populationSize() const { return m_population.genomes().size(); }
         uint64_t generation() const { return m_population.generation(); }

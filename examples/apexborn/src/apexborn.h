@@ -43,6 +43,8 @@ namespace ab
         struct TrainingSessionInfo
         {
             bool isOpen = false;
+            size_t regenerateTrackEveryNGenerations = 0;
+            uint32_t nextTrackSeed = 0;
         };
 
         enum class DrivingMode
