@@ -17,14 +17,14 @@ namespace aiko
         m_renderSystem->drawUiRect(position, size, color);
     }
 
-    void UIContext::image(AssetId textureId, const vec2& position, const vec2& size, Color tint)
+    void UIContext::image(AssetId textureId, const vec2& position, const vec2& size, Color tint, const SamplerState& sampler)
     {
-        m_renderSystem->drawUiImage(textureId, position, size, tint);
+        m_renderSystem->drawUiImage(textureId, position, size, tint, 0.0f, 0.0f, WHITE, sampler);
     }
 
-    void UIContext::image(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint)
+    void UIContext::image(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, const SamplerState& sampler)
     {
-        m_renderSystem->drawUiImage(textureId, region, position, size, tint);
+        m_renderSystem->drawUiImage(textureId, region, position, size, tint, 0.0f, 0.0f, WHITE, sampler);
     }
 
     void UIContext::text(const Font& font, string_view text, const vec2& position, float fontSize, Color color)

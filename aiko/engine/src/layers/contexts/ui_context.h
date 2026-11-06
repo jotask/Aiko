@@ -16,8 +16,8 @@ namespace aiko
     public:
 
         void rect(const vec2& position, const vec2& size, Color color);
-        void image(AssetId textureId, const vec2& position, const vec2& size, Color tint = WHITE);
-        void image(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint = WHITE);
+        void image(AssetId textureId, const vec2& position, const vec2& size, Color tint = WHITE, const SamplerState& sampler = {});
+        void image(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint = WHITE, const SamplerState& sampler = {});
         void text(const Font& font, string_view text, const vec2& position, float fontSize, Color color = WHITE);
 
         void pushClipRect(const vec2& position, const vec2& size);

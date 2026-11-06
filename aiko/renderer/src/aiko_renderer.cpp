@@ -450,7 +450,7 @@ namespace aiko
             borderColor);
     }
 
-    void AikoRenderer::drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
+    void AikoRenderer::drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor, const SamplerState& sampler)
     {
         m_uiDrawList.addImage(
             {
@@ -461,10 +461,11 @@ namespace aiko
             tint,
             cornerRadius,
             borderThickness,
-            borderColor);
+            borderColor,
+            sampler);
     }
 
-    void AikoRenderer::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
+    void AikoRenderer::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor, const SamplerState& sampler)
     {
         m_uiDrawList.addImage(
             {
@@ -476,7 +477,8 @@ namespace aiko
             tint,
             cornerRadius,
             borderThickness,
-            borderColor);
+            borderColor,
+            sampler);
     }
 
     void AikoRenderer::pushUiClipRect(const vec2& position, const vec2& size)

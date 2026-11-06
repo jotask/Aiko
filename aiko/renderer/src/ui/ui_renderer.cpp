@@ -68,7 +68,7 @@ namespace aiko
 
             if (command.textureId != InvalidAssetId)
             {
-                material.setTexture("u_texture", command.textureId);
+                material.setTexture("u_texture", command.textureId, command.sampler);
             }
 
             material.setVec4("u_uiRect", command.rect.position.x, command.rect.position.y, command.rect.size.x, command.rect.size.y);

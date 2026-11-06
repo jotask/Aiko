@@ -197,14 +197,14 @@ namespace aiko
         m_renderer->drawUiRect(position, size, color, cornerRadius, borderThickness, borderColor);
     }
 
-    void RenderModule::drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
+    void RenderModule::drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor, const SamplerState& sampler)
     {
-        m_renderer->drawUiImage(textureId, position, size, tint, cornerRadius, borderThickness, borderColor);
+        m_renderer->drawUiImage(textureId, position, size, tint, cornerRadius, borderThickness, borderColor, sampler);
     }
 
-    void RenderModule::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
+    void RenderModule::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor, const SamplerState& sampler)
     {
-        m_renderer->drawUiImage(textureId, region, position, size, tint, cornerRadius, borderThickness, borderColor);
+        m_renderer->drawUiImage(textureId, region, position, size, tint, cornerRadius, borderThickness, borderColor, sampler);
     }
 
     void RenderModule::pushUiClipRect(const vec2& position, const vec2& size)

@@ -1,5 +1,7 @@
 #include "ui_draw_list.h"
 
+#include "metadata/texture_meta.h"
+
 #include <algorithm>
 #include <limits>
 
@@ -16,19 +18,19 @@ namespace aiko
 
     void UIDrawList::addRect(const UIRect& rect, Color color, float cornerRadius, float borderThickness, Color borderColor)
     {
-        addQuad(rect, color, InvalidAssetId, TextureRegion::full(), cornerRadius, borderThickness, borderColor);
+        addQuad(rect, color, InvalidAssetId, TextureRegion::full(), cornerRadius, borderThickness, borderColor, SamplerState{});
     }
 
-    void UIDrawList::addImage(const UIRect& rect, AssetId textureId, Color tint, float cornerRadius, float borderThickness, Color borderColor)
+    void UIDrawList::addImage(const UIRect& rect, AssetId textureId, Color tint, float cornerRadius, float borderThickness, Color borderColor, const SamplerState& sampler)
     {
         AIKO_ASSERT(textureId != InvalidAssetId, "UI image requires a valid texture asset");
-        addImage(rect, textureId, TextureRegion::full(), tint, cornerRadius, borderThickness, borderColor);
+        addImage(rect, textureId, TextureRegion::full(), tint, cornerRadius, borderThickness, borderColor, sampler);
     }
 
-    void UIDrawList::addImage(const UIRect& rect, AssetId textureId, const TextureRegion& region, Color tint, float cornerRadius, float borderThickness, Color borderColor)
+    void UIDrawList::addImage(const UIRect& rect, AssetId textureId, const TextureRegion& region, Color tint, float cornerRadius, float borderThickness, Color borderColor, const SamplerState& sampler)
     {
         AIKO_ASSERT(textureId != InvalidAssetId, "UI image requires a valid texture asset");
-        addQuad(rect, tint, textureId, region, cornerRadius, borderThickness, borderColor);
+        addQuad(rect, tint, textureId, region, cornerRadius, borderThickness, borderColor, sampler);
     }
 
     void UIDrawList::pushClipRect(const UIRect& rect)
@@ -69,7 +71,7 @@ namespace aiko
         m_clipStack.pop_back();
     }
 
-    void UIDrawList::addQuad(const UIRect& rect, Color color, AssetId textureId, const TextureRegion& region, float cornerRadius, float borderThickness, Color borderColor)
+    void UIDrawList::addQuad(const UIRect& rect, Color color, AssetId textureId, const TextureRegion& region, float cornerRadius, float borderThickness, Color borderColor, const SamplerState& sampler)
     {
         AIKO_ASSERT(m_vertices.size() <= std::numeric_limits<uint16_t>::max() - 4, "UIDrawList exceeded the 16-bit vertex limit");
 
@@ -135,6 +137,8 @@ namespace aiko
         {
             command.clipRect = m_clipStack.back();
         }
+
+        command.sampler = sampler;
 
         m_commands.push_back(command);
     }

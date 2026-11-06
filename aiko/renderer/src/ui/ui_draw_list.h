@@ -1,10 +1,12 @@
 #pragma once
 
-#include "ui_types.h"
+#include "metadata/texture_meta.h"
 #include "models/texture_region.h"
+#include "ui_types.h"
+
+#include <assets/asset_id.h>
 
 #include <aiko_types.h>
-#include <assets/asset_id.h>
 
 namespace aiko
 {
@@ -17,8 +19,8 @@ namespace aiko
 
         void addRect(const UIRect& rect, Color color, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
 
-        void addImage(const UIRect& rect, AssetId textureId, Color tint = WHITE, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
-        void addImage(const UIRect& rect, AssetId textureId, const TextureRegion& region, Color tint = WHITE, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
+        void addImage(const UIRect& rect, AssetId textureId, Color tint = WHITE, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE, const SamplerState& sampler = {});
+        void addImage(const UIRect& rect, AssetId textureId, const TextureRegion& region, Color tint = WHITE, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE, const SamplerState& sampler = {});
 
         void pushClipRect(const UIRect& rect);
         void popClipRect();
@@ -51,7 +53,7 @@ namespace aiko
 
         vector<UIRect> m_clipStack;
 
-        void addQuad(const UIRect& rect, Color color, AssetId textureId, const TextureRegion& region, float cornerRadius, float borderThickness, Color borderColor);
+        void addQuad(const UIRect& rect, Color color, AssetId textureId, const TextureRegion& region, float cornerRadius, float borderThickness, Color borderColor, const SamplerState& sampler);
 
     };
 

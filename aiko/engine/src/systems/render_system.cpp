@@ -91,14 +91,14 @@ namespace aiko
         m_renderModule->drawUiRect(position, size, color, cornerRadius, borderThickness, borderColor);
     }
 
-    void RenderSystem::drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
+    void RenderSystem::drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor, const SamplerState& sampler)
     {
-        m_renderModule->drawUiImage(textureId, position, size, tint, cornerRadius, borderThickness, borderColor);
+        m_renderModule->drawUiImage(textureId, position, size, tint, cornerRadius, borderThickness, borderColor, sampler);
     }
 
-    void RenderSystem::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor)
+    void RenderSystem::drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius, float borderThickness, Color borderColor, const SamplerState& sampler)
     {
-        m_renderModule->drawUiImage(textureId, region, position, size, tint, cornerRadius, borderThickness, borderColor);
+        m_renderModule->drawUiImage(textureId, region, position, size, tint, cornerRadius, borderThickness, borderColor, sampler);
     }
 
     void RenderSystem::drawUiText(const Font& font, string_view text, const vec2& position, float fontSize, Color color)

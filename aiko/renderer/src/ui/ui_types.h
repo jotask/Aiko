@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include <metadata/texture_meta.h>
 #include <math/math.h>
 #include <types/color.h>
 #include <assets/asset_id.h>
@@ -27,6 +28,8 @@ namespace aiko
         float cornerRadius = 0.0f;
         float borderThickness = 0.0f;
         Color borderColor = WHITE;
+
+        SamplerState sampler = {};
 
         std::optional<UIRect> clipRect;
     };
