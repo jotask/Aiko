@@ -16,7 +16,8 @@ namespace ab
         bool evaluate(size_t agentIdx, const DrivingObservationData& observations, VehicleControl& controls);
         bool finishGeneration(const std::vector<VehicleAgent>& agents);
 
-        const size_t populationSize() const { return m_population.genomes().size(); }
+        size_t populationSize() const { return m_population.genomes().size(); }
+        uint64_t generation() const { return m_population.generation(); }
 
     private:
         Population m_population;

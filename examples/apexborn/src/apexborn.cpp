@@ -155,7 +155,7 @@ namespace ab
         }
 
         // Debug: visualize road sensors for the selected vehicle.
-        if (m_trackImgui.openVehicleEditor && m_selectedAgent >= 0 && static_cast<size_t>(m_selectedAgent) < m_agents.size())
+        if (m_vehicleImgui.renderSensors && m_selectedAgent >= 0 && static_cast<size_t>(m_selectedAgent) < m_agents.size())
         {
             const auto& agent = m_agents[static_cast<size_t>(m_selectedAgent)];
 
@@ -431,9 +431,13 @@ namespace ab
         {
             renderTrackGenerationSettings();
         }
-        if (m_trackImgui.openVehicleEditor)
+        if (m_vehicleImgui.isOpen)
         {
             renderVehicleDebug();
+        }
+        if (m_trainingImgui.isOpen)
+        {
+            renderTrainingSimulation();
         }
         m_profileEditor.render(m_track.roadProfile());
     }
@@ -445,7 +449,8 @@ namespace ab
             if (ImGui::BeginMenu("Tools"))
             {
                 ImGui::MenuItem("RoadGenerationSettings", nullptr, &m_trackImgui.isOpen);
-                ImGui::MenuItem("VehicleEditorSettings", nullptr, &m_trackImgui.openVehicleEditor);
+                ImGui::MenuItem("VehicleEditorSettings", nullptr, &m_vehicleImgui.isOpen);
+                ImGui::MenuItem("TrainingSessionSettings", nullptr, &m_trainingImgui.isOpen);
                 ImGui::EndMenu();
             }
             ImGui::EndMainMenuBar();
@@ -460,29 +465,41 @@ namespace ab
             return;
         }
 
+        ImGui::SeparatorText("Road Profile");
+
         if (ImGui::Button("Open Profile Editor"))
         {
-            if (!m_profileEditor.isOpen())
+            if (m_profileEditor.isOpen() == false)
             {
                 m_profileEditor.open(m_track.roadProfile());
             }
         }
 
-        const uint32_t minPoints = 4;
-        const uint32_t maxPoints = 100;
+        ImGui::Spacing();
+        ImGui::SeparatorText("Track Geometry");
+
+        constexpr std::uint32_t MinPoints = 4;
+        constexpr std::uint32_t MaxPoints = 100;
 
         ImGui::DragFloat("Track Width", &m_trackSettings.trackWidth, 0.025f, 0.1f, 10.0f);
-
-        ImGui::InputScalar("Track Seed", ImGuiDataType_U32, &m_trackSettings.seed);
-        ImGui::DragScalar("Random Points", ImGuiDataType_U32, &m_trackSettings.controlPointCount, 1.0f, &minPoints, &maxPoints, "%u");
-
         ImGui::DragFloat2("Area Size", &m_trackSettings.areaSize.x, 0.25f, 1.0f, 500.0f);
         ImGui::DragFloat("Min Distance", &m_trackSettings.minDistance, 0.05f, 0.0f, 20.0f);
         ImGui::DragFloat("Max Displacement", &m_trackSettings.maxDisplacement, 0.05f, 0.0f, 50.0f);
         ImGui::DragFloat("Min Control Point Distance", &m_trackSettings.minControlPointDistance, 0.05f, 0.0f, 20.0f);
         ImGui::SliderFloat("Max Turn Angle", &m_trackSettings.maxTurnAngle, 1.0f, 180.0f, "%.1f deg");
 
+        ImGui::Spacing();
+        ImGui::SeparatorText("Procedural Generation");
+
+        ImGui::InputScalar("Track Seed", ImGuiDataType_U32, &m_trackSettings.seed);
+        ImGui::DragScalar("Random Points", ImGuiDataType_U32, &m_trackSettings.controlPointCount, 1.0f, &MinPoints, &MaxPoints, "%u");
+        ImGui::Spacing();
+        ImGui::SeparatorText("Debug");
+
         ImGui::Checkbox("Enable Debug Render", &m_track.isDebugEnabled());
+
+        ImGui::Spacing();
+        ImGui::Separator();
 
         if (ImGui::Button("Regenerate Track"))
         {
@@ -497,35 +514,15 @@ namespace ab
 
     void ApexBorn::renderVehicleDebug()
     {
-        if (ImGui::Begin("Vehicle Debug") == false)
+        if (ImGui::Begin("Vehicle Debug", &m_vehicleImgui.isOpen) == false)
         {
             ImGui::End();
             return;
         }
 
-        if (ImGui::Checkbox("Autonomous Driving", &m_autonomousDriving))
-        {
-            if (!m_autonomousDriving)
-            {
-                for (auto& agent : m_agents)
-                {
-                    agent.car.setSteering(0.0f);
-                    agent.car.setThrottle(0.0f);
-                    agent.car.setBrake(0.0f);
-                }
-            }
-        }
+        ImGui::SeparatorText("Visualization");
 
-        ImGui::Checkbox("Reference Driver Variation", &m_referenceDriverVariation);
-
-        // Vehicle count is applied on the next reset.
-        ImGui::SliderInt("Vehicle Count (next reset)", &m_vehicleCount, 1, 100);
-
-        if (ImGui::Button("Reset Episode"))
-        {
-            resetAgents();
-        }
-
+        ImGui::Checkbox("Render Road Sensors", &m_vehicleImgui.renderSensors);
         ImGui::SeparatorText("Vehicle Selection");
 
         ImGui::Text("Total Vehicles: %zu", m_agents.size());
@@ -539,66 +536,62 @@ namespace ab
 
         ImGui::SliderInt("Selected Vehicle", &m_selectedAgent, 0, static_cast<int>(m_agents.size()) - 1);
 
-        auto& agent = m_agents[static_cast<size_t>(m_selectedAgent)];
-        auto& car = agent.car;
+        m_selectedAgent = std::clamp(m_selectedAgent, 0, static_cast<int>(m_agents.size()) - 1);
+
+        const auto& agent = m_agents[static_cast<std::size_t>(m_selectedAgent)];
+        const auto& car = agent.car;
+        const auto& observation = agent.observation;
 
         const auto projection = m_track.projectPoint(car.position());
+        const float trackLength = m_track.getTrackLength();
 
-        // Car
+        ImGui::Spacing();
+        ImGui::SeparatorText("Vehicle State");
+
+        ImGui::Text("Speed: %.2f m/s", car.speed());
+        ImGui::Text("Steering: %.3f", car.steering());
+        ImGui::Text("Throttle: %.3f", car.throttle());
+        ImGui::Text("Brake: %.3f", car.brake());
+
         ImGui::Text("Lateral Offset: %.2f", projection.signedLateralOffset);
         ImGui::Text("Track Progress: %.2f", projection.progressOnTrack);
         ImGui::Text("Total Progress: %.2f", agent.totalProgress);
-        const float trackLength = m_track.getTrackLength();
-        const size_t completedLaps = trackLength > 0.0f ? static_cast<size_t>(std::floor(agent.bestProgress / trackLength)) : 0;
-        ImGui::Text("Best Progress: %.2f", agent.bestProgress);
-        ImGui::Text("Completed Laps: %zu", completedLaps);
-        ImGui::Text("Speed: %f m/s", car.speed());
+
         const float alignment = aiko::math::dot(car.forwardDirection(), projection.forwardDirection);
+
         ImGui::Text("Heading Alignment: %.3f", alignment);
 
-        const auto currentState = magic_enum::enum_name(agent.outcome);
+        ImGui::Spacing();
+        ImGui::SeparatorText("Episode Performance");
+
+        const float score = trackLength > 0.0f ? std::clamp(agent.bestProgress / trackLength, 0.0f, 1.0f) : 0.0f;
+        const std::size_t completedLaps = trackLength > 0.0f ? static_cast<std::size_t>(std::floor(agent.bestProgress / trackLength)) : 0;
+
+        ImGui::Text("Best Progress: %.2f m", agent.bestProgress);
+        ImGui::Text("Completed Laps: %zu", completedLaps);
+        ImGui::Text("Stagnation Time: %.2f s", agent.timeWithoutProgress);
+        ImGui::Text("Driving Score: %.3f", score);
+        ImGui::ProgressBar(score, ImVec2(-FLT_MIN, 0.0f));
+
+        const std::string_view outcome = magic_enum::enum_name(agent.outcome);
+
         const bool success = agent.outcome == AgentOutcome::Completed;
         const bool running = agent.outcome == AgentOutcome::Running;
-        const ImVec4 color = success || running ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f);
-        ImGui::TextColored(color, "Outcome: %s", currentState.data());
+        const ImVec4 outcomeColor = success || running ? ImVec4(0.2f, 0.9f, 0.3f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f);
+
+        ImGui::TextColored(outcomeColor, "Outcome: %s", outcome.data());
+
         if (success)
         {
             ImGui::Text("Completion Time: %.2f s", agent.completionTime);
         }
 
-        const float score = trackLength > 0.0f ? std::clamp(agent.bestProgress / trackLength, 0.0f, 1.0f) : 0.0f;
-        ImGui::SeparatorText("Episode Performance");
-        ImGui::Text("Episode Time: %.2f s", m_episodeElapsedTime);
-        ImGui::Text("Stagnation Time: %.2f s", agent.timeWithoutProgress);
-        ImGui::Text("Best Progress: %.2f m", agent.bestProgress);
-        ImGui::Text("Driving Score: %.3f", score);
-        ImGui::ProgressBar(score, ImVec2(-FLT_MIN, 0.0f));
-
-        ImGui::BeginDisabled(!agent.alive || m_autonomousDriving);
-        float currentSteering = car.steering();
-        if (ImGui::SliderFloat("Steering", &currentSteering, -1.0f, 1.0f))
-        {
-            car.setSteering(currentSteering);
-        }
-        float throttle = car.throttle();
-        if (ImGui::SliderFloat("Throttle", &throttle, 0.0f, 1.0f, "%.3f"))
-        {
-            car.setThrottle(throttle);
-        }
-        float brake = car.brake();
-        if (ImGui::SliderFloat("Brake", &brake, 0.0f, 1.0f, "%.3f"))
-        {
-            car.setBrake(brake);
-        }
-        ImGui::EndDisabled();
-
-        // Driving observations
-        const auto& observation = agent.observation;
+        ImGui::Spacing();
         ImGui::SeparatorText("Driving Observations");
 
         const auto showObservation = [](const char* label, float value, float min, float max)
         {
-            const float normalized = aiko::math::clamp( (value - min) / (max - min), 0.0f, 1.0f);
+            const float normalized = aiko::math::clamp((value - min) / (max - min), 0.0f, 1.0f);
             ImGui::Text("%s: %.3f", label, value);
             ImGui::ProgressBar(normalized, ImVec2(-FLT_MIN, 0.0f), "");
         };
@@ -610,6 +603,7 @@ namespace ab
         showObservation("Upcoming Curvature", observation.upcomingCurvature, 0.0f, 1.0f);
         showObservation("Normalized Speed", observation.normalizedSpeed, 0.0f, 1.0f);
 
+        ImGui::Spacing();
         ImGui::SeparatorText("Road Sensors");
 
         constexpr const char* SensorNames[] = {
@@ -620,9 +614,106 @@ namespace ab
             "+90 degrees"
         };
 
-        for (size_t i = 0; i < RoadSensors::SensorCount; ++i)
+        for (std::size_t i = 0; i < RoadSensors::SensorCount; ++i)
         {
             ImGui::Text("%s: %.3f (%s)", SensorNames[i], observation.roadDistances[i], agent.sensors[i].hit ? "HIT" : "MISS");
+        }
+
+        ImGui::End();
+    }
+
+    void ApexBorn::renderTrainingSimulation()
+    {
+        if (ImGui::Begin("Training Session", &m_trainingImgui.isOpen) == false)
+        {
+            ImGui::End();
+            return;
+        }
+
+        ImGui::SeparatorText("Driving Mode");
+
+        {
+            const std::string_view currentName = magic_enum::enum_name(m_drivingMode);
+            if (ImGui::BeginCombo("Controller", currentName.data()))
+            {
+                for (const DrivingMode mode : magic_enum::enum_values<DrivingMode>())
+                {
+                    const std::string_view name = magic_enum::enum_name(mode);
+                    const bool selected = mode == m_drivingMode;
+                    if (ImGui::Selectable(name.data(), selected) && !selected)
+                    {
+                        m_drivingMode = mode;
+                        resetAgents();
+                    }
+                    if (selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        }
+
+        ImGui::TextDisabled("%s", m_drivingMode == DrivingMode::NEAT ? "Vehicles controlled by evolved neural networks." : "Vehicles controlled by the reference driver.");
+
+        ImGui::Spacing();
+        ImGui::SeparatorText("Simulation");
+
+        ImGui::Text("Active Vehicles: %zu", m_agents.size());
+        ImGui::Text("Episode Time: %.2f / %.2f s", m_episodeElapsedTime, MaxEpisodeDuration);
+
+        if (ImGui::Button("Reset Episode"))
+        {
+            resetAgents();
+        }
+
+        if (m_drivingMode == DrivingMode::Reference)
+        {
+            ImGui::Spacing();
+            ImGui::SeparatorText("Reference Driver");
+            ImGui::Checkbox("Driver Variation", &m_referenceDriverVariation);
+            ImGui::TextDisabled("Reference mode does not evolve the NEAT population.");
+            ImGui::End();
+            return;
+        }
+
+        ImGui::Spacing();
+        ImGui::SeparatorText("NEAT Population");
+
+        ImGui::Text("Generation: %llu", static_cast<unsigned long long>(m_trainingSession.generation()));
+        ImGui::Text("Active Population: %zu", m_trainingSession.populationSize());
+        ImGui::SliderInt("Population Size", &m_vehicleCount, 1, 150);
+
+        if (static_cast<std::size_t>(m_vehicleCount) != m_trainingSession.populationSize())
+        {
+            ImGui::TextDisabled("Population size changes apply on the next training restart.");
+        }
+
+        ImGui::Spacing();
+
+        if (ImGui::Button("Restart Training"))
+        {
+            if (resetTraining() == false)
+            {
+                aiko::logger::Log::error("Failed to restart NEAT training");
+            }
+        }
+
+        ImGui::Spacing();
+        ImGui::SeparatorText("Training Status");
+
+        if (m_trainingFailed)
+        {
+            ImGui::TextColored(ImVec4(0.95f, 0.3f, 0.3f, 1.0f), "Failed");
+            ImGui::TextDisabled("Training has stopped. Restart training to try again.");
+        }
+        else if (m_episodeFinished)
+        {
+            ImGui::TextColored(ImVec4(0.95f, 0.75f, 0.25f, 1.0f), "Episode Complete");
+        }
+        else
+        {
+            ImGui::TextColored(ImVec4(0.3f, 0.85f, 0.4f, 1.0f), "Running");
         }
 
         ImGui::End();

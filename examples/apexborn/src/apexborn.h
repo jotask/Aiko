@@ -32,7 +32,17 @@ namespace ab
         {
             bool isOpen = false;
             bool isRoadProfilerEditor = false;
-            bool openVehicleEditor = false;
+        };
+
+        struct VehicleDebugInfo
+        {
+            bool isOpen = false;
+            bool renderSensors = false;
+        };
+
+        struct TrainingSessionInfo
+        {
+            bool isOpen = false;
         };
 
         enum class DrivingMode
@@ -51,6 +61,7 @@ namespace ab
         void renderMenuBar();
         void renderTrackGenerationSettings();
         void renderVehicleDebug();
+        void renderTrainingSimulation();
 
         static constexpr float MaxEpisodeDuration = 120.0f;
         static constexpr float StagnationTimeout = 8.0f;
@@ -59,8 +70,11 @@ namespace ab
         TrackGeneratorSettings m_trackSettings = {};
         Track m_track;
         TrackEnvironment m_environment;
+
         TrackImguiSettings m_trackImgui;
         ImGuiRoadProfiler m_profileEditor;
+        VehicleDebugInfo m_vehicleImgui;
+        TrainingSessionInfo m_trainingImgui;
 
         aiko::Model m_vehicleModel;
 
