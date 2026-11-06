@@ -188,32 +188,22 @@ namespace aiko::renderer::vulkan
 
         AIKO_PLOT("Vulkan Graphics GPU ms", m_lastGraphicsGpuMs);
 
-        static constexpr const char* GraphicsPassPlotNames[MaxGraphicsPasses] =
+        static const auto GraphicsPassPlotNames = []
         {
-            "Vulkan Graphics Pass 0 GPU ms",
-            "Vulkan Graphics Pass 1 GPU ms",
-            "Vulkan Graphics Pass 2 GPU ms",
-            "Vulkan Graphics Pass 3 GPU ms",
-            "Vulkan Graphics Pass 4 GPU ms",
-            "Vulkan Graphics Pass 5 GPU ms",
-            "Vulkan Graphics Pass 6 GPU ms",
-            "Vulkan Graphics Pass 7 GPU ms",
-            "Vulkan Graphics Pass 8 GPU ms",
-            "Vulkan Graphics Pass 9 GPU ms",
-            "Vulkan Graphics Pass 10 GPU ms",
-            "Vulkan Graphics Pass 11 GPU ms",
-            "Vulkan Graphics Pass 12 GPU ms",
-            "Vulkan Graphics Pass 13 GPU ms",
-            "Vulkan Graphics Pass 14 GPU ms",
-            "Vulkan Graphics Pass 15 GPU ms",
-        };
+            std::array<std::string, MaxGraphicsPasses> names;
+            for (uint32_t i = 0; i < MaxGraphicsPasses; ++i)
+            {
+                names[i] = "Vulkan Graphics Pass " + std::to_string(i) + " GPU ms";
+            }
+            return names;
+        }();
 
         for (uint32_t pass = 0; pass < passCount; ++pass)
         {
             const uint32_t startTimestamp = 2 + pass * 2;
             const uint32_t endTimestamp = startTimestamp + 1;
             const double passGpuMs = durationMs(timestamps[startTimestamp], timestamps[endTimestamp], m_graphicsTimestampValidBits);
-            AIKO_PLOT(GraphicsPassPlotNames[pass], passGpuMs);
+            AIKO_PLOT(GraphicsPassPlotNames[pass].c_str(), passGpuMs);
         }
     }
 
