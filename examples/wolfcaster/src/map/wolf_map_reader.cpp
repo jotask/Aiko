@@ -6,11 +6,12 @@
 #include "core/file.h"
 #include "logger/logger.h"
 #include "rlew_decoder.h"
+#include "wolf_map.h"
 
 namespace wc
 {
 
-    bool WolfMapReader::load(const std::filesystem::path& mapHead, const std::filesystem::path& gameMapPath)
+    std::optional<WolfMap> WolfMapReader::load(const std::filesystem::path& mapHead, const std::filesystem::path& gameMapPath)
     {
         AIKO_ASSERT(std::filesystem::exists(mapHead), "MAPHEAD don't exist");
         AIKO_ASSERT(std::filesystem::exists(gameMapPath), "GAMEMAP don't exist");
@@ -30,9 +31,9 @@ namespace wc
         std::span<const uint8_t> plane0 = {gameMapBytes.begin() + firstLevelHeaderInfo.planesOffset[0].first, firstLevelHeaderInfo.planesOffset[0].second};
 
         const std::vector<uint16_t> decodedCarmackPlane0 = CarmackDecoder::decode(plane0);
-        const std::vector<uint16_t> decodedRlewPlane0 = RlewDecoder::decode(decodedCarmackPlane0, rlewTag);
+        std::vector<uint16_t> decodedRlewPlane0 = RlewDecoder::decode(decodedCarmackPlane0, rlewTag);
 
-        return true;
+        return WolfMap(firstLevelHeaderInfo.width, firstLevelHeaderInfo.height, std::move(decodedRlewPlane0));
 
     }
 

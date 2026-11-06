@@ -1,5 +1,6 @@
 #pragma once
 
+#include "map/wolf_map.h"
 #include "map/wolf_map_reader.h"
 
 #include <layers/layer.h>
@@ -23,6 +24,7 @@ namespace wc
     private:
 
         WolfMapReader m_mapFileReader;
+        std::optional<WolfMap> m_wolfMap;
 
     };
 

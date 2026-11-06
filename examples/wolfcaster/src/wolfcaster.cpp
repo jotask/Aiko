@@ -37,7 +37,10 @@ namespace wc
 
         const auto mapHeadPath = dataDir / "MAPHEAD.WL1";
         const auto gameMapsPath = dataDir / "GAMEMAPS.WL1";
-        m_mapFileReader.load(mapHeadPath, gameMapsPath);
+        std::optional<WolfMap> wolfmap = m_mapFileReader.load(mapHeadPath, gameMapsPath);
+        AIKO_ASSERT(wolfmap != std::nullopt, "Failed to load file map data");
+
+        m_wolfMap = std::move(wolfmap);
 
     }
 

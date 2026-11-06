@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wolf_map.h"
+
 #include <filesystem>
 #include <optional>
 #include <span>
@@ -10,7 +12,7 @@ namespace wc
     {
     public:
 
-        bool load(const std::filesystem::path& mapHead, const std::filesystem::path& gameMapPath);
+        std::optional<WolfMap> load(const std::filesystem::path& mapHead, const std::filesystem::path& gameMapPath);
 
     private:
 
