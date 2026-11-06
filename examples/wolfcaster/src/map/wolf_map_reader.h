@@ -1,4 +1,5 @@
 #pragma once
+
 #include <filesystem>
 #include <optional>
 #include <span>
@@ -20,9 +21,6 @@ namespace wc
             uint16_t height;
             std::string name;
         };
-
-        uint16_t readU16LE(std::span<const uint8_t> data, size_t offset);
-        uint32_t readU32LE(std::span<const uint8_t> data, size_t offset);
 
         WolfLevelHeader readLevelHeader(std::span<const uint8_t> data, size_t offset);
 

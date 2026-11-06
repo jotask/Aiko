@@ -1,6 +1,8 @@
 #include "wolf_map_reader.h"
 
 #include "aiko_macros.h"
+#include "byte_utils.h"
+#include "carmack_decoder.h"
 #include "core/file.h"
 #include "logger/logger.h"
 
@@ -23,20 +25,12 @@ namespace wc
 
         const WolfLevelHeader firstLevelHeaderInfo = readLevelHeader(gameMapBytes, levelOneOffset);
 
+        AIKO_ASSERT(firstLevelHeaderInfo.planesOffset[0].first <= gameMapBytes.size() && firstLevelHeaderInfo.planesOffset[0].second <= gameMapBytes.size() - firstLevelHeaderInfo.planesOffset[0].first, "Plane data exceeds GAMEMAPS file boundaries");
+        std::span<const uint8_t> plane0 = {gameMapBytes.begin() + firstLevelHeaderInfo.planesOffset[0].first, firstLevelHeaderInfo.planesOffset[0].second};
+        const std::vector<uint16_t> decodePlane0 = CarmackDecoder::decode(plane0);
+
         return true;
 
-    }
-
-    uint16_t WolfMapReader::readU16LE(std::span<const uint8_t> data, size_t offset)
-    {
-        AIKO_ASSERT(offset <= data.size() && data.size() - offset >= 2, "Not enough bytes to read uint16_t");
-        return uint16_t(data[offset + 0]) | (uint16_t(data[offset + 1]) << 8);
-    }
-
-    uint32_t WolfMapReader::readU32LE(std::span<const uint8_t> data, size_t offset)
-    {
-        AIKO_ASSERT(offset <= data.size() && data.size() - offset >= 4, "Not enough bytes to read uint32_t");
-        return uint32_t(data[offset + 0]) | (uint32_t(data[offset + 1]) << 8) | (uint32_t(data[offset + 2]) << 16) | (uint32_t(data[offset + 3]) << 24);
     }
 
     WolfMapReader::WolfLevelHeader WolfMapReader::readLevelHeader(std::span<const uint8_t> data, size_t offset)
