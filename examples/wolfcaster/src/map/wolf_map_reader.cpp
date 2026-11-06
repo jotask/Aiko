@@ -25,15 +25,28 @@ namespace wc
 
         const std::vector<std::uint8_t> gameMapBytes = aiko::files::readFileBytes(gameMapPath);
 
-        const WolfLevelHeader firstLevelHeaderInfo = readLevelHeader(gameMapBytes, levelOneOffset);
+        const WolfLevelHeader levelInfo = readLevelHeader(gameMapBytes, levelOneOffset);
+        const size_t expectedTileCount = size_t(levelInfo.width) * size_t(levelInfo.height);
 
-        AIKO_ASSERT(firstLevelHeaderInfo.planesOffset[0].first <= gameMapBytes.size() && firstLevelHeaderInfo.planesOffset[0].second <= gameMapBytes.size() - firstLevelHeaderInfo.planesOffset[0].first, "Plane data exceeds GAMEMAPS file boundaries");
-        std::span<const uint8_t> plane0 = {gameMapBytes.begin() + firstLevelHeaderInfo.planesOffset[0].first, firstLevelHeaderInfo.planesOffset[0].second};
+        std::vector<uint16_t> plane0 = decodePlane(gameMapBytes, levelInfo.planesOffset[0].first, levelInfo.planesOffset[0].second, rlewTag, expectedTileCount);
+        std::vector<uint16_t> plane1 = decodePlane(gameMapBytes, levelInfo.planesOffset[1].first, levelInfo.planesOffset[1].second, rlewTag, expectedTileCount);
+        std::vector<uint16_t> plane2;
+        if (levelInfo.planesOffset[2].second > 0)
+        {
+            plane2 = decodePlane(gameMapBytes, levelInfo.planesOffset[2].first, levelInfo.planesOffset[2].second, rlewTag, expectedTileCount);
+        }
+        else
+        {
+            plane2.resize(expectedTileCount, 0);
+        }
 
-        const std::vector<uint16_t> decodedCarmackPlane0 = CarmackDecoder::decode(plane0);
-        std::vector<uint16_t> decodedRlewPlane0 = RlewDecoder::decode(decodedCarmackPlane0, rlewTag);
+        std::array<std::vector<uint16_t>, 3> planes = {
+            std::move(plane0),
+            std::move(plane1),
+            std::move(plane2),
+        };
 
-        return WolfMap(firstLevelHeaderInfo.width, firstLevelHeaderInfo.height, std::move(decodedRlewPlane0));
+        return WolfMap(levelInfo.width, levelInfo.height, std::move(planes));
 
     }
 
@@ -70,5 +83,15 @@ namespace wc
         }
 
         return info;
+    }
+
+    std::vector<uint16_t> WolfMapReader::decodePlane(std::span<const uint8_t> gameMapBytes, uint32_t offset, uint16_t compressedLength, uint16_t rlewTag, size_t expectedTileCount)
+    {
+        AIKO_ASSERT(offset <= gameMapBytes.size() && compressedLength <= gameMapBytes.size() - offset, "Plane data exceeds GAMEMAPS file boundaries");
+        std::span<const uint8_t> plane = {gameMapBytes.begin() + offset, compressedLength};
+        const std::vector<uint16_t> decodedCarmackPlane = CarmackDecoder::decode(plane);
+        std::vector<uint16_t> decodedRlewPlane = RlewDecoder::decode(decodedCarmackPlane, rlewTag);
+        AIKO_ASSERT(decodedRlewPlane.size() == expectedTileCount, "Decoded plane size does not match map dimensions");
+        return decodedRlewPlane;
     }
 }

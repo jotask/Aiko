@@ -26,5 +26,7 @@ namespace wc
 
         WolfLevelHeader readLevelHeader(std::span<const uint8_t> data, size_t offset);
 
+        static std::vector<uint16_t> decodePlane(std::span<const uint8_t> gameMapBytes, uint32_t offset, uint16_t compressedLength, uint16_t rlewTag, size_t expectedTileCount);
+
     };
 }
