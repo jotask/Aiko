@@ -110,12 +110,34 @@ namespace wc
     void WolfCaster::render()
     {
         AIKO_FUNCTION_PROFILE
+        renderBackground();
+        renderRaycaster();
+        renderMiniMap();
+    }
 
-        constexpr float MapScaler = 256.0f;
+    void WolfCaster::renderBackground()
+    {
+        constexpr aiko::Color ceilingColor = aiko::Color(89 / 255.0f, 107 / 255.0f, 121 / 255.0f);
+        constexpr aiko::Color floorColor = aiko::Color(80 / 255.0f, 74 / 255.0f, 69 / 255.0f);
 
-        // Geometry Plane Map
+        const auto renderSize = renderer().getRenderSize();
+
+        constexpr aiko::vec2 viewportPosition = {0, 0};
+        const aiko::vec2 viewportSize = {renderSize.x * 1.0f, renderSize.y * 1.0f};
+
+        ui().pushClipRect(viewportPosition, viewportSize);
+        ui().rect({0}, { viewportSize.x, viewportSize.y * 0.5f }, ceilingColor);
+        ui().rect({0, viewportSize.y * 0.5f}, viewportSize, floorColor);
+        ui().popClipRect();
+
+    }
+
+    void WolfCaster::renderMiniMap()
+    {
+        constexpr float MapScaler = 128.0f;
         if (m_mapTextureId != aiko::InvalidAssetId)
         {
+            // Minimap
             aiko::SamplerState state = {
                 .minFilter = aiko::TextureFilter::Nearest,
                 .magFilter = aiko::TextureFilter::Nearest,
@@ -127,10 +149,8 @@ namespace wc
             const aiko::vec2 size = { MapScaler };
             const aiko::Color tint = aiko::WHITE;
             ui().image(m_mapTextureId, position, size, tint, state);
-        }
 
-        // Player
-        {
+            // Player on minimap
             const aiko::vec2 tileSize = { MapScaler / m_wolfMap->getWidth(), MapScaler / m_wolfMap->getHeight() };
             const aiko::vec2 playerScreenPosition = m_player.position() * tileSize;
             const aiko::vec2 playerSize = tileSize / 2.0f;
@@ -140,52 +160,52 @@ namespace wc
             const aiko::vec2 forwardLength = tileSize * 3.0f;
             ui().line(playerScreenPosition, playerScreenPosition + ( m_player.forward() * forwardLength), 1.0f, aiko::MAGENTA);
 
-            const WolfRayHit hit = WolfRaycaster::castRay(m_wolfMap.value(), m_player.position(), m_player.forward());
+        }
+    }
+
+    void WolfCaster::renderRaycaster()
+    {
+        constexpr int32_t RayCount = 256;
+        constexpr float FOV = 66; // degrees
+
+        const aiko::ivec2 renderSize = renderer().getRenderSize();
+
+        const aiko::vec2 viewportSize = {renderSize.x * 1.0f, renderSize.y * 1.0f};
+        const aiko::vec2 viewportPosition = {0, 0};
+
+        const float columnWidth = viewportSize.x / RayCount;
+
+        const float planeLength = std::tan(aiko::math::radians(FOV) * 0.5f);
+        const aiko::vec2 cameraPlane = m_player.right() * planeLength;
+
+        ui().pushClipRect(viewportPosition, viewportSize);
+
+        for (int32_t rayIndex = 0 ; rayIndex < RayCount; ++rayIndex)
+        {
+            const float cameraX = 2 * ( (rayIndex + 0.5f) / RayCount ) - 1.0f;
+            const aiko::vec2 rayDirection = m_player.forward() + cameraPlane * cameraX;
+            const WolfRayHit hit = WolfRaycaster::castRay(m_wolfMap.value(), m_player.position(), rayDirection);
             if (hit.hit)
             {
-                ui().line(playerScreenPosition, hit.position * tileSize, 1.0f, aiko::CYAN);
-            }
 
-            // Camera
-            {
+                const auto normalizedRayDirection = aiko::math::normalize(rayDirection);
+                const float perpendicularDistance = hit.distance * aiko::math::dot(normalizedRayDirection, m_player.forward());
 
-                constexpr int32_t RayCount = 128;
+                const float wallHeight = viewportSize.x / ( 2.0f * planeLength * perpendicularDistance );
 
-                constexpr aiko::vec2 viewportSize = {512, 384};
-                constexpr aiko::vec2 viewportPosition = {0, 272};
-                const float columnWidth = viewportSize.x / RayCount;
+                const float columnX = viewportPosition.x + rayIndex * columnWidth;
+                const float columnY = viewportPosition.y + (viewportSize.y - wallHeight) / 2.0f;
 
-                constexpr float FOV = 66; // degrees
-                const float planeLength = std::tan(aiko::math::radians(FOV) * 0.5f);
-                const aiko::vec2 cameraPlane = m_player.right() * planeLength;
+                const aiko::vec2 columnPosition = {columnX, columnY};
+                const aiko::vec2 columnSize = {columnWidth, wallHeight};
+                const aiko::Color wallColor = hit.side == WolfRaySide::Vertical ? aiko::LIGHTGRAY : aiko::GRAY;
 
-                for (int32_t rayIndex = 0 ; rayIndex < RayCount; ++rayIndex)
-                {
-                    const float cameraX = 2 * ( (rayIndex + 0.5f) / RayCount ) - 1.0f;
-                    const aiko::vec2 rayDirection = m_player.forward() + cameraPlane * cameraX;
-                    const WolfRayHit hit = WolfRaycaster::castRay(m_wolfMap.value(), m_player.position(), rayDirection);
-                    if (hit.hit)
-                    {
-                        ui().line(playerScreenPosition, hit.position * tileSize, 1.0f, aiko::CYAN);
-
-                        const auto normalizedRayDirection = aiko::math::normalize(rayDirection);
-                        const float perpendicularDistance = hit.distance * aiko::math::dot(normalizedRayDirection, m_player.forward());
-
-                        const float wallHeight = viewportSize.x / ( 2.0f * planeLength * perpendicularDistance );
-
-                        const float columnX = viewportPosition.x + rayIndex * columnWidth;
-                        const float columnY = viewportPosition.y + (viewportSize.y - wallHeight) / 2.0f;
-
-                        const aiko::vec2 columnPosition = {columnX, columnY};
-                        const aiko::vec2 columnSize = {columnWidth, wallHeight};
-                        ui().rect(columnPosition, columnSize, aiko::LIGHTGRAY);
-
-                    }
-                }
+                ui().rect(columnPosition, columnSize, wallColor);
 
             }
         }
 
+        ui().popClipRect();
 
     }
 

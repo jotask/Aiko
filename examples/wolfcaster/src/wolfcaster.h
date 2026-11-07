@@ -24,6 +24,10 @@ namespace wc
         
     private:
 
+        void renderBackground();
+        void renderMiniMap();
+        void renderRaycaster();
+
         WolfMapReader m_mapFileReader;
         std::optional<WolfMap> m_wolfMap;
 
