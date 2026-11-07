@@ -6,6 +6,7 @@
 #include "layers/contexts/render_context.h"
 #include "layers/contexts/scene_context.h"
 #include "layers/contexts/ui_context.h"
+#include "raycasting/wolf_raycaster.h"
 #include "rendering/wolf_map_texture.h"
 
 #include <components/camera_component.h>
@@ -138,6 +139,12 @@ namespace wc
 
             const aiko::vec2 forwardLength = tileSize * 3.0f;
             ui().line(playerScreenPosition, playerScreenPosition + ( m_player.forward() * forwardLength), 1.0f, aiko::MAGENTA);
+
+            const WolfRayHit hit = WolfRaycaster::castRay(m_wolfMap.value(), m_player.position(), m_player.forward());
+            if (hit.hit)
+            {
+                ui().line(playerScreenPosition, hit.position * tileSize, 1.0f, aiko::CYAN);
+            }
 
         }
 
