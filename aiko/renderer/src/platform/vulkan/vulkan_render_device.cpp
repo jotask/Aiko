@@ -683,6 +683,7 @@ namespace aiko::renderer::vulkan
 
         m_boundGraphicsPipeline = VK_NULL_HANDLE;
         m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
+        m_boundMaterialDynamicOffset = 0;
 
         AIKO_ASSERT(m_computePassActive == false, "Graphics pass cannot begin while compute pass is active");
 
@@ -918,6 +919,7 @@ namespace aiko::renderer::vulkan
         m_activeRenderPassCompatibility = {};
         m_boundGraphicsPipeline = VK_NULL_HANDLE;
         m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
+        m_boundMaterialDynamicOffset = 0;
 
     }
 
@@ -969,14 +971,16 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(binding != nullptr, "Prepared material binding is null");
         AIKO_ASSERT(binding->descriptorSet != VK_NULL_HANDLE, "Prepared material descriptor set is null");
 
-        if (m_boundMaterialDescriptorSet == binding->descriptorSet)
+        if (m_boundMaterialDescriptorSet == binding->descriptorSet &&
+            m_boundMaterialDynamicOffset == binding->dynamicOffset)
         {
             return;
         }
 
-        vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsMaterialSet, 1, &binding->descriptorSet, 0, nullptr);
+        vkCmdBindDescriptorSets(m_context.activeCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsMaterialSet, 1, &binding->descriptorSet, 1, &binding->dynamicOffset);
 
         m_boundMaterialDescriptorSet = binding->descriptorSet;
+        m_boundMaterialDynamicOffset = binding->dynamicOffset;
     }
 
     void VulkanRenderDevice::drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material)
@@ -2170,30 +2174,24 @@ namespace aiko::renderer::vulkan
         m_shadowResources.update(frame, uniforms, images, cubeImages);
     }
 
-    VulkanMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
+        VulkanMaterialBinding& VulkanRenderDevice::resolveMaterialBinding(const Material& material)
     {
         AIKO_FUNCTION_PROFILE
         AIKO_ASSERT(material.m_shaderId != InvalidAssetId, "Material binding requires a shader");
 
         Shader& shader = getResources()->getShader(material.m_shaderId);
         AIKO_ASSERT(shader.isValid(), "Material shader is invalid");
-
         auto* shaderImpl = static_cast<VulkanShaderImpl*>(getShaderBackend(shader));
         AIKO_ASSERT(shaderImpl != nullptr, "Invalid Vulkan material shader");
-
         const VulkanShaderReflection& reflection = shaderImpl->reflection();
         AIKO_ASSERT(reflection.materialUniformBlock.has_value(), "Material shader has no reflected material UBO");
-
         const VulkanShaderUniformBlock& uniformBlock = *reflection.materialUniformBlock;
-
         const auto textureDescriptors = findMaterialTextureDescriptors(reflection);
-
-        std::vector<TextureBinding> textureBindings;
-        textureBindings.reserve(textureDescriptors.size());
 
         std::vector<MaterialTextureBindingKey> textureKeys;
         textureKeys.reserve(textureDescriptors.size());
-
+        std::vector<VulkanMaterialTextureState> resolvedTextures;
+        resolvedTextures.reserve(textureDescriptors.size());
         bool hasTexture = false;
         bool hasNormalMap = false;
 
@@ -2201,30 +2199,23 @@ namespace aiko::renderer::vulkan
         {
             AIKO_ASSERT(descriptor != nullptr, "Invalid material texture descriptor");
             AIKO_ASSERT(descriptor->name.empty() == false, "Material texture descriptor has no reflected name");
-
             TextureBinding textureBinding{};
-
             if (const TextureBinding* named = material.textureBinding(descriptor->name))
             {
                 textureBinding = *named;
             }
-
             const Texture* texture = resolveTextureBinding(textureBinding);
-
             AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
-
             if (descriptor->binding == abi::MaterialTextureBindingBase)
             {
                 hasTexture = texture != &m_whiteTexture;
             }
-
             if (descriptor->name == "u_normalTexture")
             {
                 hasNormalMap = texture != &m_whiteTexture;
             }
 
-            textureKeys.push_back(
-            {
+            textureKeys.push_back({
                 .binding = descriptor->binding,
                 .textureId = textureBinding.textureId,
                 .runtimeTexture = textureBinding.runtimeTexture,
@@ -2232,24 +2223,22 @@ namespace aiko::renderer::vulkan
                 .colorSpace = textureBinding.colorSpace,
             });
 
-            textureBindings.push_back(textureBinding);
+            auto* textureImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(*texture));
+            AIKO_ASSERT(textureImpl != nullptr && textureImpl->isValid(), "Invalid Vulkan material texture");
+            const bool isDepth = texture->getInfo().type == TextureType::DepthStencil;
+            resolvedTextures.push_back({
+                .binding = descriptor->binding,
+                .imageView = textureImpl->imageView(),
+                .sampler = m_samplerCache.getOrCreate(textureBinding.sampler),
+                .imageLayout = isDepth ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                .hasTexture = texture != &m_whiteTexture,
+            });
         }
 
         std::vector<uint8_t> uniformData = buildMaterialUniformData(uniformBlock, shader, material, hasTexture, hasNormalMap);
-
-        const MaterialBindingKey key = makeMaterialBindingKey(material, std::move(textureKeys), std::move(uniformData));
-
-        const u32 frame = m_context.currentFrameIndex();
-
-        VulkanMaterialBinding& binding = m_materialResources.getOrCreate(frame, key);
-
-        // This must run on both cache hits and misses.
-        // RenderTarget resize can recreate VkImageView while
-        // the public Texture wrapper remains stable.
-        refreshMaterialTextureBindings(binding, textureDescriptors, textureBindings);
-
-        return binding;
-
+        MaterialBindingKey key = makeMaterialBindingKey(material, std::move(textureKeys), std::move(uniformData));
+        key.resolvedTextures = std::move(resolvedTextures);
+        return m_materialResources.getOrCreate(m_context.currentFrameIndex(), key);
     }
 
     void VulkanRenderDevice::destroyTransientResources()
@@ -3273,72 +3262,7 @@ namespace aiko::renderer::vulkan
         };
     }
 
-    void VulkanRenderDevice::refreshMaterialTextureBindings(VulkanMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings)
-    {
-        AIKO_ASSERT(descriptors.size() == textureBindings.size(), "Material texture descriptor count mismatch");
-
-        binding.textures.resize(textureBindings.size());
-
-        for (size_t i = 0; i < textureBindings.size(); ++i)
-        {
-            const VulkanShaderDescriptorBinding& descriptor = *descriptors[i];
-
-            const TextureBinding& textureBinding = textureBindings[i];
-
-            const Texture* texture = resolveTextureBinding(textureBinding);
-            AIKO_ASSERT(texture != nullptr, "Failed to resolve material texture");
-
-            auto* textureImpl = static_cast<VulkanTextureImpl*>(getTextureBackend(*texture));
-            AIKO_ASSERT(textureImpl != nullptr && textureImpl->isValid(), "Invalid Vulkan material texture");
-
-            const VkImageView imageView = textureImpl->imageView();
-            const VkSampler sampler = m_samplerCache.getOrCreate(textureBinding.sampler);
-
-            const bool hasTexture = texture != &m_whiteTexture;
-
-            const bool isDepth = texture->getInfo().type == TextureType::DepthStencil;
-
-            const VkImageLayout imageLayout = isDepth ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-            VulkanMaterialTextureState& cached = binding.textures[i];
-
-            if (
-                cached.binding == descriptor.binding &&
-                cached.imageView == imageView &&
-                cached.sampler == sampler &&
-                cached.hasTexture == hasTexture
-            )
-            {
-                continue;
-            }
-
-            const VkDescriptorImageInfo imageInfo =
-            {
-                .sampler = sampler,
-                .imageView = imageView,
-                .imageLayout = imageLayout,
-            };
-
-            const VkWriteDescriptorSet write =
-            {
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = binding.descriptorSet,
-                .dstBinding = descriptor.binding,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType =
-                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .pImageInfo = &imageInfo,
-            };
-
-            vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
-
-            cached.binding = descriptor.binding;
-            cached.imageView = imageView;
-            cached.sampler = sampler;
-            cached.hasTexture = hasTexture;
-        }
-    }
+    
 
     void VulkanRenderDevice::prepareBufferForGraphics(VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination)
     {

@@ -123,6 +123,7 @@ namespace aiko::renderer::vulkan
         void bindGraphicsPipeline(VkPipeline pipeline);
 
         VkDescriptorSet m_boundMaterialDescriptorSet = VK_NULL_HANDLE;
+        uint32_t m_boundMaterialDynamicOffset = 0;
 
         Texture m_whiteTexture;
 
@@ -209,7 +210,6 @@ namespace aiko::renderer::vulkan
         VkDescriptorSet m_cachedComputeDescriptorSet = VK_NULL_HANDLE;
 
         const Texture* resolveTextureBinding(const TextureBinding& binding);
-        void refreshMaterialTextureBindings(VulkanMaterialBinding& binding, const std::vector<const VulkanShaderDescriptorBinding*>& descriptors, const std::vector<TextureBinding>& textureBindings);
 
 
     };

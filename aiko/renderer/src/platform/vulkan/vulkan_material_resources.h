@@ -30,7 +30,6 @@ namespace aiko::renderer::vulkan
 
     private:
 
-        void recycleBindings(uint32_t frame);
         void destroyBindings(uint32_t frame);
 
         static constexpr uint32_t MaxBindings = 1024;
@@ -38,6 +37,8 @@ namespace aiko::renderer::vulkan
         VulkanContext& m_context;
 
         VkDescriptorSetLayout m_materialLayout = VK_NULL_HANDLE;
+        VkDeviceSize m_uniformAlignment = 1;
+        VkDeviceSize m_maxUniformRange = 0;
 
         std::vector<VulkanMaterialFrameResources> m_frames;
     };

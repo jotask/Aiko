@@ -25,12 +25,16 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(materialLayout != VK_NULL_HANDLE, "Material descriptor layout is invalid");
 
         m_materialLayout = materialLayout;
+        VkPhysicalDeviceProperties properties{};
+        vkGetPhysicalDeviceProperties(m_context.physicalDevice(), &properties);
+        m_uniformAlignment = std::max<VkDeviceSize>(1, properties.limits.minUniformBufferOffsetAlignment);
+        m_maxUniformRange = properties.limits.maxUniformBufferRange;
 
         const std::array<VkDescriptorPoolSize, 2> poolSizes =
         {
             VkDescriptorPoolSize
             {
-                .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
                 .descriptorCount = MaxBindings,
             },
             VkDescriptorPoolSize
@@ -56,127 +60,172 @@ namespace aiko::renderer::vulkan
         }
     }
 
-    VulkanMaterialBinding& VulkanMaterialResources::getOrCreate(uint32_t frame, const MaterialBindingKey& key)
+        VulkanMaterialBinding& VulkanMaterialResources::getOrCreate(uint32_t frame, const MaterialBindingKey& key)
     {
         AIKO_ASSERT(frame < m_frames.size(), "Invalid material binding frame");
         AIKO_ASSERT(m_materialLayout != VK_NULL_HANDLE, "Material descriptor layout is invalid");
 
         VulkanMaterialFrameResources& resources = m_frames[frame];
-
-        auto& bindings = resources.bindings;
-
-        if (const auto it = bindings.find(key); it != bindings.end())
+        if (const auto it = resources.bindings.find(key); it != resources.bindings.end())
         {
             return it->second;
         }
 
-        const VkDeviceSize requiredUniformSize = static_cast<VkDeviceSize>(key.uniformData.size());
+        const VkDeviceSize uniformSize = static_cast<VkDeviceSize>(key.uniformData.size());
+        AIKO_ASSERT(uniformSize > 0, "Material uniform buffer has zero size");
 
-        AIKO_ASSERT(requiredUniformSize > 0, "Material uniform buffer has zero size");
+        const VkDeviceSize alignment = m_uniformAlignment;
+        AIKO_ASSERT((alignment & (alignment - 1)) == 0, "Material uniform alignment must be a power of two");
+        AIKO_ASSERT(uniformSize <= m_maxUniformRange, "Material UBO exceeds Vulkan maxUniformBufferRange");
 
-        VulkanMaterialBinding binding{};
-
-        auto reusable = std::find_if(
-            resources.recycledBindings.begin(),
-            resources.recycledBindings.end(),
-            [requiredUniformSize](const VulkanMaterialBinding& candidate)
-            {
-                return candidate.uniformSize >= requiredUniformSize;
-            }
-        );
-
-        if (reusable != resources.recycledBindings.end())
+        auto alignUp = [alignment](VkDeviceSize value)
         {
-            binding = std::move(*reusable);
-            if (reusable != resources.recycledBindings.end() - 1)
+            return (value + alignment - 1) & ~(alignment - 1);
+        };
+
+        VulkanMaterialUniformChunk* chunk = nullptr;
+        VkDeviceSize offset = 0;
+
+        for (VulkanMaterialUniformChunk& candidate : resources.uniformChunks)
+        {
+            const VkDeviceSize aligned = alignUp(candidate.used);
+            if (aligned <= candidate.capacity && uniformSize <= candidate.capacity - aligned &&
+                aligned <= UINT32_MAX && uniformSize <= static_cast<VkDeviceSize>(UINT32_MAX) - aligned)
             {
-                *reusable = std::move(resources.recycledBindings.back());
+                chunk = &candidate;
+                offset = aligned;
+                break;
             }
-            resources.recycledBindings.pop_back();
+        }
+
+        if (chunk == nullptr)
+        {
+            static constexpr VkDeviceSize DefaultMaterialChunkSize = 4ull * 1024ull * 1024ull;
+            const VkDeviceSize capacity = std::max(DefaultMaterialChunkSize, alignUp(uniformSize));
+            AIKO_ASSERT(capacity <= UINT32_MAX, "Material uniform chunk exceeds dynamic offset limit");
+
+            VulkanMaterialUniformChunk created{};
+            created.capacity = capacity;
+            m_context.createBufferOrAbort(
+                capacity,
+                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                created.buffer,
+                created.memory
+            );
+            const VkResult mapResult = vkMapMemory(m_context.device(), created.memory, 0, capacity, 0, &created.mapped);
+            AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map shared material uniform buffer");
+            resources.uniformChunks.push_back(created);
+            chunk = &resources.uniformChunks.back();
+            offset = 0;
+        }
+
+        std::memcpy(static_cast<uint8_t*>(chunk->mapped) + offset, key.uniformData.data(), key.uniformData.size());
+        chunk->used = offset + uniformSize;
+
+        MaterialDescriptorKey descriptorKey{};
+        descriptorKey.uniformBuffer = chunk->buffer;
+        descriptorKey.uniformRange = uniformSize;
+        descriptorKey.textures = key.resolvedTextures;
+
+        VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+        if (const auto it = resources.descriptors.find(descriptorKey); it != resources.descriptors.end())
+        {
+            descriptorSet = it->second;
         }
         else
         {
-            binding.uniformSize = requiredUniformSize;
-
-            m_context.createBufferOrAbort(binding.uniformSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, binding.uniformBuffer, binding.uniformMemory);
-
-            const VkResult mapResult = vkMapMemory(m_context.device(), binding.uniformMemory, 0, binding.uniformSize, 0, &binding.uniformMapped);
-
-            AIKO_ASSERT(mapResult == VK_SUCCESS, "Failed to map material uniform buffer");
-        }
-
-        std::memcpy(binding.uniformMapped, key.uniformData.data(), key.uniformData.size());
-
-        if (resources.nextDescriptorSet == resources.allocatedDescriptorSets.size())
-        {
-            static constexpr uint32_t DescriptorBatchSize = 64;
-            const uint32_t allocatedCount = static_cast<uint32_t>(resources.allocatedDescriptorSets.size());
-            AIKO_ASSERT(allocatedCount < MaxBindings, "Material descriptor pool exhausted");
-
-            const uint32_t count = std::min(DescriptorBatchSize, MaxBindings - allocatedCount);
-
-            std::array<VkDescriptorSetLayout, DescriptorBatchSize> layouts{};
-            layouts.fill(m_materialLayout);
-
-            std::array<VkDescriptorSet, DescriptorBatchSize> descriptorSets{};
-
-            const VkDescriptorSetAllocateInfo allocInfo =
+            // Keep the already committed 64-set descriptor batching allocator.
+            if (resources.nextDescriptorSet == resources.allocatedDescriptorSets.size())
             {
-                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-                .descriptorPool = resources.descriptorPool,
-                .descriptorSetCount = count,
-                .pSetLayouts = layouts.data(),
+                static constexpr uint32_t DescriptorBatchSize = 64;
+                const uint32_t allocatedCount = static_cast<uint32_t>(resources.allocatedDescriptorSets.size());
+                AIKO_ASSERT(allocatedCount < MaxBindings, "Material descriptor pool exhausted");
+                const uint32_t count = std::min(DescriptorBatchSize, MaxBindings - allocatedCount);
+
+                std::array<VkDescriptorSetLayout, DescriptorBatchSize> layouts{};
+                layouts.fill(m_materialLayout);
+                std::array<VkDescriptorSet, DescriptorBatchSize> sets{};
+                const VkDescriptorSetAllocateInfo allocInfo =
+                {
+                    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+                    .descriptorPool = resources.descriptorPool,
+                    .descriptorSetCount = count,
+                    .pSetLayouts = layouts.data(),
+                };
+                const VkResult result = vkAllocateDescriptorSets(m_context.device(), &allocInfo, sets.data());
+                AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate material descriptor batch");
+                resources.allocatedDescriptorSets.insert(
+                    resources.allocatedDescriptorSets.end(), sets.begin(), sets.begin() + count
+                );
+            }
+            descriptorSet = resources.allocatedDescriptorSets[resources.nextDescriptorSet++];
+
+            const VkDescriptorBufferInfo bufferInfo =
+            {
+                .buffer = chunk->buffer,
+                .offset = 0,
+                .range = uniformSize,
             };
+            std::vector<VkDescriptorImageInfo> imageInfos;
+            imageInfos.reserve(key.resolvedTextures.size());
+            std::vector<VkWriteDescriptorSet> writes;
+            writes.reserve(1 + key.resolvedTextures.size());
+            writes.push_back({
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = descriptorSet,
+                .dstBinding = abi::MaterialUboBinding,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+                .pBufferInfo = &bufferInfo,
+            });
 
-            const VkResult result = vkAllocateDescriptorSets(m_context.device(), &allocInfo, descriptorSets.data());
-            AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate material descriptor batch");
-
-            resources.allocatedDescriptorSets.insert(resources.allocatedDescriptorSets.end(), descriptorSets.begin(), descriptorSets.begin() + count);
+            for (const VulkanMaterialTextureState& texture : key.resolvedTextures)
+            {
+                imageInfos.push_back({
+                    .sampler = texture.sampler,
+                    .imageView = texture.imageView,
+                    .imageLayout = texture.imageLayout,
+                });
+                writes.push_back({
+                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    .dstSet = descriptorSet,
+                    .dstBinding = texture.binding,
+                    .descriptorCount = 1,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                    .pImageInfo = &imageInfos.back(),
+                });
+            }
+            vkUpdateDescriptorSets(m_context.device(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
+            resources.descriptors.emplace(std::move(descriptorKey), descriptorSet);
         }
 
-        binding.descriptorSet = resources.allocatedDescriptorSets[resources.nextDescriptorSet++];
-
-        const VkDescriptorBufferInfo bufferInfo =
-        {
-            .buffer = binding.uniformBuffer,
-            .offset = 0,
-            .range = requiredUniformSize,
-        };
-
-        const VkWriteDescriptorSet bufferWrite =
-        {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = binding.descriptorSet,
-            .dstBinding = abi::MaterialUboBinding,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pBufferInfo = &bufferInfo,
-        };
-
-        vkUpdateDescriptorSets(m_context.device(), 1, &bufferWrite, 0, nullptr);
-
-        auto [it, inserted] = bindings.emplace(key, std::move(binding));
-
+        VulkanMaterialBinding binding{};
+        binding.descriptorSet = descriptorSet;
+        binding.dynamicOffset = static_cast<uint32_t>(offset);
+        const auto [it, inserted] = resources.bindings.emplace(key, binding);
         AIKO_ASSERT(inserted, "Failed to cache Vulkan material binding");
-
         return it->second;
     }
 
-    void VulkanMaterialResources::resetFrame(uint32_t frame)
+        void VulkanMaterialResources::resetFrame(uint32_t frame)
     {
         AIKO_FUNCTION_PROFILE
 
         AIKO_ASSERT(frame < m_frames.size(), "Invalid material frame index");
-
         VulkanMaterialFrameResources& resources = m_frames[frame];
-
-        recycleBindings(frame);
-
         AIKO_ASSERT(resources.descriptorPool != VK_NULL_HANDLE, "Material descriptor pool is not initialized");
+
+        // The frame slot has completed on the GPU before this reset.
+        resources.bindings.clear();
+        resources.descriptors.clear();
+        for (VulkanMaterialUniformChunk& chunk : resources.uniformChunks)
+        {
+            chunk.used = 0;
+        }
 
         const VkResult result = vkResetDescriptorPool(m_context.device(), resources.descriptorPool, 0);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to reset material descriptor pool");
-
         resources.allocatedDescriptorSets.clear();
         resources.nextDescriptorSet = 0;
     }
@@ -198,75 +247,35 @@ namespace aiko::renderer::vulkan
         m_materialLayout = VK_NULL_HANDLE;
     }
 
-    void VulkanMaterialResources::recycleBindings(uint32_t frame)
+    
+
+        void VulkanMaterialResources::destroyBindings(uint32_t frame)
     {
         AIKO_FUNCTION_PROFILE
 
         AIKO_ASSERT(frame < m_frames.size(), "Invalid material frame index");
-
         VulkanMaterialFrameResources& resources = m_frames[frame];
-
-        for (auto& [key, binding] : resources.bindings)
-        {
-            AIKO_UNUSED(key);
-
-            // Descriptor sets become invalid after vkResetDescriptorPool().
-            binding.descriptorSet = VK_NULL_HANDLE;
-
-            // The next fresh descriptor set must receive texture writes even if
-            // image/sampler state happens to match the previous frame.
-            binding.textures.clear();
-
-            resources.recycledBindings.push_back(std::move(binding));
-        }
-
         resources.bindings.clear();
-    }
+        resources.descriptors.clear();
+        resources.allocatedDescriptorSets.clear();
+        resources.nextDescriptorSet = 0;
 
-    void VulkanMaterialResources::destroyBindings(uint32_t frame)
-    {
-        AIKO_FUNCTION_PROFILE
-
-        AIKO_ASSERT(frame < m_frames.size(), "Invalid material frame index");
-
-        VkDevice device = m_context.device();
-
-        VulkanMaterialFrameResources& resources = m_frames[frame];
-
-        const auto destroyBinding = [device](VulkanMaterialBinding& binding)
+        const VkDevice device = m_context.device();
+        for (VulkanMaterialUniformChunk& chunk : resources.uniformChunks)
+        {
+            if (chunk.mapped != nullptr)
             {
-                if (binding.uniformMapped != nullptr)
-                {
-                    vkUnmapMemory(device, binding.uniformMemory);
-                    binding.uniformMapped = nullptr;
-                }
-
-                if (binding.uniformBuffer != VK_NULL_HANDLE)
-                {
-                    vkDestroyBuffer(device, binding.uniformBuffer, nullptr);
-                    binding.uniformBuffer = VK_NULL_HANDLE;
-                }
-
-                if (binding.uniformMemory != VK_NULL_HANDLE)
-                {
-                    vkFreeMemory(device, binding.uniformMemory, nullptr);
-                    binding.uniformMemory = VK_NULL_HANDLE;
-                }
-            };
-
-        for (auto& [key, binding] : resources.bindings)
-        {
-            AIKO_UNUSED(key);
-            destroyBinding(binding);
+                vkUnmapMemory(device, chunk.memory);
+            }
+            if (chunk.buffer != VK_NULL_HANDLE)
+            {
+                vkDestroyBuffer(device, chunk.buffer, nullptr);
+            }
+            if (chunk.memory != VK_NULL_HANDLE)
+            {
+                vkFreeMemory(device, chunk.memory, nullptr);
+            }
         }
-
-        resources.bindings.clear();
-
-        for (VulkanMaterialBinding& binding : resources.recycledBindings)
-        {
-            destroyBinding(binding);
-        }
-
-        resources.recycledBindings.clear();
+        resources.uniformChunks.clear();
     }
 }
