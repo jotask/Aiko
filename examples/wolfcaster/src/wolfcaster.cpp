@@ -54,6 +54,8 @@ namespace wc
         aiko::logger::Log::infoFmt("     Tile: ({} , {})", playerSpawn.tileX, playerSpawn.tileY);
         aiko::logger::Log::infoFmt("     Direction: {}", magic_enum::enum_name(playerSpawn.direction));
 
+        m_player = WolfPlayer::fromSpawn(playerSpawn);
+
     }
 
     void WolfCaster::update()
@@ -85,12 +87,16 @@ namespace wc
 
         // Player
         {
-            const WolfPlayerSpawn playerSpawn = m_wolfMap->findPlayerSpawn();
             const aiko::vec2 tileSize = { MapScaler / m_wolfMap->getWidth(), MapScaler / m_wolfMap->getHeight()  };
-            const aiko::vec2 playerScreenPosition = { (playerSpawn.tileX + 0.5f) * tileSize.x, (playerSpawn.tileY + 0.5f) * tileSize.y };
+            const aiko::vec2 playerScreenPosition = m_player.position * tileSize;
             const aiko::vec2 playerSize = tileSize; // / 2.0f;
             const aiko::vec2 playerPositionOffset = playerScreenPosition - playerSize * 0.5f;
             ui().rect(playerPositionOffset, playerSize, aiko::RED);
+
+            const aiko::vec2 direction = aiko::vec2( aiko::math::cos(m_player.angleRadians), aiko::math::sin(m_player.angleRadians) );
+            const aiko::vec2 forwardLength = tileSize * 3.0f;
+            ui().line(playerScreenPosition, playerScreenPosition + ( direction * forwardLength), 1.0f, aiko::MAGENTA);
+
         }
 
     }

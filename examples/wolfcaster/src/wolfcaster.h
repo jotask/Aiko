@@ -2,6 +2,7 @@
 
 #include "map/wolf_map.h"
 #include "map/wolf_map_reader.h"
+#include "objects/wolf_player.h"
 
 #include <layers/layer.h>
 
@@ -27,6 +28,8 @@ namespace wc
         std::optional<WolfMap> m_wolfMap;
 
         aiko::AssetId m_mapTextureId = aiko::InvalidAssetId;
+
+        WolfPlayer m_player;
 
     };
 
