@@ -86,6 +86,11 @@ namespace aiko
         return m_renderModule->getTextureId(textureId, sampler);
     }
 
+    void RenderSystem::drawUiLine(const vec2& start, const vec2& end, float thickness, Color color)
+    {
+        m_renderModule->drawUiLine(start, end, thickness, color);
+    }
+
     void RenderSystem::drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius, float borderThickness, Color borderColor)
     {
         m_renderModule->drawUiRect(position, size, color, cornerRadius, borderThickness, borderColor);

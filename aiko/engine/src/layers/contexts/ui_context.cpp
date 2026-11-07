@@ -12,6 +12,11 @@ namespace aiko
         AIKO_ASSERT(m_renderSystem != nullptr, "Required system RenderSystem not found");
     }
 
+    void UIContext::line(const vec2& start, const vec2& end, float thickness, Color color)
+    {
+        m_renderSystem->drawUiLine(start, end, thickness, color);
+    }
+
     void UIContext::rect(const vec2& position, const vec2& size, Color color)
     {
         m_renderSystem->drawUiRect(position, size, color);

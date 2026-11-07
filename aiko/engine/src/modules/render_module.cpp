@@ -192,6 +192,11 @@ namespace aiko
         return m_renderer->imguiTextureId(texture, sampler);
     }
 
+    void RenderModule::drawUiLine(const vec2& start, const vec2& end, float thickness, Color color)
+    {
+        m_renderer->drawUiLine(start, end, thickness, color);
+    }
+
     void RenderModule::drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius, float borderThickness, Color borderColor)
     {
         m_renderer->drawUiRect(position, size, color, cornerRadius, borderThickness, borderColor);

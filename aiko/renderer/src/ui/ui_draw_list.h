@@ -17,6 +17,8 @@ namespace aiko
 
         void clear();
 
+        void addLine(const vec2& start, const vec2& end, float thickness = 1.0f, Color color = WHITE);
+
         void addRect(const UIRect& rect, Color color, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
 
         void addImage(const UIRect& rect, AssetId textureId, Color tint = WHITE, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE, const SamplerState& sampler = {});

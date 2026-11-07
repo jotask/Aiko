@@ -437,6 +437,11 @@ namespace aiko
         return m_imgui.textureId(texture, sampler);
     }
 
+    void AikoRenderer::drawUiLine(const vec2& start, const vec2& end, float thickness, Color color)
+    {
+        m_uiDrawList.addLine(start, end, thickness, color);
+    }
+
     void AikoRenderer::drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius, float borderThickness, Color borderColor)
     {
         m_uiDrawList.addRect(

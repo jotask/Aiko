@@ -15,7 +15,8 @@ namespace aiko
     {
     public:
 
-        void rect(const vec2& position, const vec2& size, Color color);
+        void line(const vec2& start, const vec2& end, float thickness = 1.0f, Color color = WHITE);
+        void rect(const vec2& position, const vec2& size, Color color = WHITE);
         void image(AssetId textureId, const vec2& position, const vec2& size, Color tint = WHITE, const SamplerState& sampler = {});
         void image(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint = WHITE, const SamplerState& sampler = {});
         void text(const Font& font, string_view text, const vec2& position, float fontSize, Color color = WHITE);

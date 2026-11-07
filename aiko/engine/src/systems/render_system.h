@@ -79,6 +79,7 @@ namespace aiko
         ImguiTextureId getTextureId(const AssetId& textureId) const;
         ImguiTextureId getTextureId(const AssetId& textureId, const SamplerState& sampler) const;
 
+        void drawUiLine(const vec2& start, const vec2& end, float thickness = 1.0f, Color color = WHITE);
         void drawUiRect(const vec2& position, const vec2& size, Color color, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE);
         void drawUiImage(AssetId textureId, const vec2& position, const vec2& size, Color tint, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE, const SamplerState& sampler = {});
         void drawUiImage(AssetId textureId, const TextureRegion& region, const vec2& position, const vec2& size, Color tint, float cornerRadius = 0.0f, float borderThickness = 0.0f, Color borderColor = WHITE, const SamplerState& sampler = {});
