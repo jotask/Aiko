@@ -243,6 +243,14 @@ namespace wc
         const float planeLength = std::tan(aiko::math::radians(FOV) * 0.5f);
         const aiko::vec2 cameraPlane = m_player.right() * planeLength;
 
+        constexpr aiko::SamplerState sampler = {
+            .minFilter = aiko::TextureFilter::Nearest,
+            .magFilter = aiko::TextureFilter::Nearest,
+            .mipFilter = aiko::TextureMipFilter::None,
+            .wrapU = aiko::TextureWrapMode::Clamp,
+            .wrapV = aiko::TextureWrapMode::Clamp,
+        };
+
         ui().pushClipRect(viewportPosition, viewportSize);
 
         for (int32_t rayIndex = 0 ; rayIndex < RayCount; ++rayIndex)
@@ -262,9 +270,54 @@ namespace wc
 
                 const aiko::vec2 columnPosition = {columnX, columnY};
                 const aiko::vec2 columnSize = {columnWidth, wallHeight};
-                const aiko::Color wallColor = hit.side == WolfRaySide::Vertical ? aiko::LIGHTGRAY : aiko::GRAY;
 
-                ui().rect(columnPosition, columnSize, wallColor);
+                if (hit.tileX < 0 || hit.tileX >= m_wolfMap->getWidth() || hit.tileY < 0 || hit.tileY >= m_wolfMap->getHeight())
+                {
+                    // nothing?
+                    continue;
+                }
+
+                const auto tileId = m_wolfMap->getTile(WolfMapPlane::Geometry, hit.tileX, hit.tileY);
+
+                uint16_t wallId = 0;
+
+                switch (hit.side)
+                {
+                    case WolfRaySide::Horizontal: wallId = ( tileId - 1 ) * 2;      break;
+                    case WolfRaySide::Vertical: wallId = ( tileId - 1 ) * 2 + 1;    break;
+                    default: AIKO_ASSERT(false, "Unknow Hit Site");
+                }
+
+                AIKO_ASSERT(wallId < m_wallsTexture.size(), "OOB for wall texture");
+                aiko::AssetId textureAssetId = m_wallsTexture[wallId];
+                AIKO_ASSERT(textureAssetId != aiko::InvalidAssetId, "Invalid Asset Id");
+
+                float wallU = 0;
+                switch (hit.side)
+                {
+                    case WolfRaySide::Horizontal: wallU = hit.position.x; break;
+                    case WolfRaySide::Vertical:   wallU = hit.position.y; break;
+                    default: AIKO_ASSERT(false, "Unknow Hit Site");
+                }
+
+                const float fractionalU = wallU - std::floor(wallU);
+                int textureX = aiko::math::clamp(static_cast<int>(fractionalU * 64.0f), 0, 63);
+
+                if ((hit.side == WolfRaySide::Vertical && rayDirection.x < 0) || ( hit.side == WolfRaySide::Horizontal && rayDirection.y > 0 ))
+                {
+                    textureX = 63 - textureX;
+                }
+
+                const float u = (static_cast<float>(textureX) + 0.5f) / 64.0f;
+                const aiko::TextureRegion region{
+                    .min = {u, 0.0f},
+                    .max = {u, 1.0f}
+                };
+
+                // const aiko::Color wallColor = hit.side == WolfRaySide::Vertical ? aiko::LIGHTGRAY : aiko::GRAY;
+                // ui().rect(columnPosition, columnSize, wallColor);
+
+                ui().image(textureAssetId, region, columnPosition, columnSize, aiko::WHITE, sampler);
 
             }
         }
