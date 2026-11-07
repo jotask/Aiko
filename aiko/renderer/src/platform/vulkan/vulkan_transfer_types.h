@@ -35,4 +35,11 @@ namespace aiko::renderer::vulkan
 
         void* mapped = nullptr;
     };
+
+    struct TransientUpload
+    {
+        UploadSlice vertex;
+        UploadSlice index;
+    };
+
 }

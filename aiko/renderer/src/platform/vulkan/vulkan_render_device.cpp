@@ -862,6 +862,7 @@ namespace aiko::renderer::vulkan
         }
 
         vkCmdEndRenderPass(m_context.activeCommandBuffer());
+        m_transientUploads.clear();
 
         m_context.endGraphicsGpuPass();
 
@@ -1795,33 +1796,52 @@ namespace aiko::renderer::vulkan
 
         const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, topology, desc.material->m_shaderId, desc.material->m_renderState, false);
 
-        const uint32_t frame = m_context.currentFrameIndex();
+        UploadSlice vertexSlice{};
+        UploadSlice indexSlice{};
 
-        const VkDeviceSize vertexBytes = sizeof(VulkanVertex) * desc.geometry->vertices.size();
+        const auto it = m_transientUploads.find(desc.geometry);
 
-        const VkDeviceSize indexBytes = sizeof(uint32_t) * desc.geometry->indices.size();
-
-        const UploadSlice vertexSlice = m_uploadArena.allocate(frame, vertexBytes, alignof(VulkanVertex));
-
-        const UploadSlice indexSlice = m_uploadArena.allocate(frame, indexBytes, alignof(uint32_t));
-
-        auto* vertices = static_cast<VulkanVertex*>(vertexSlice.mapped);
-
-        for (size_t i = 0; i < desc.geometry->vertices.size(); ++i)
+        if (it != m_transientUploads.end())
         {
-            const TransientVertex& source = desc.geometry->vertices[i];
-
-            vertices[i] =
-            {
-                .position = source.position,
-                .normal = source.normal,
-                .uv = source.uv,
-                .color = source.color,
-                .tangent = source.tangent,
-            };
+            vertexSlice = it->second.vertex;
+            indexSlice = it->second.index;
         }
+        else
+        {
+            const uint32_t frame = m_context.currentFrameIndex();
 
-        std::memcpy(indexSlice.mapped, desc.geometry->indices.data(), static_cast<size_t>(indexBytes));
+            const VkDeviceSize vertexBytes = sizeof(VulkanVertex) * desc.geometry->vertices.size();
+            const VkDeviceSize indexBytes = sizeof(uint32_t) * desc.geometry->indices.size();
+
+            vertexSlice = m_uploadArena.allocate(frame, vertexBytes, alignof(VulkanVertex));
+            indexSlice = m_uploadArena.allocate(frame, indexBytes, alignof(uint32_t));
+
+            auto* vertices = static_cast<VulkanVertex*>(vertexSlice.mapped);
+
+            for (size_t i = 0; i < desc.geometry->vertices.size(); ++i)
+            {
+                const TransientVertex& source = desc.geometry->vertices[i];
+
+                vertices[i] =
+                {
+                    .position = source.position,
+                    .normal = source.normal,
+                    .uv = source.uv,
+                    .color = source.color,
+                    .tangent = source.tangent,
+                };
+            }
+
+            std::memcpy(indexSlice.mapped, desc.geometry->indices.data(), static_cast<size_t>(indexBytes));
+
+            m_transientUploads.emplace(
+                desc.geometry,
+                TransientUpload{
+                    .vertex = vertexSlice,
+                    .index = indexSlice
+                }
+            );
+        }
 
         VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
 

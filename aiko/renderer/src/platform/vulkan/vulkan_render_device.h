@@ -168,6 +168,7 @@ namespace aiko::renderer::vulkan
         VulkanBufferState computeBufferState(ComputeAccess access, uint32_t queueFamily) const;
 
         VulkanUploadArena m_uploadArena;
+        std::unordered_map<const TransientGeometry*, TransientUpload> m_transientUploads;
 
         void flushComputeBufferUploads(VkCommandBuffer commandBuffer, VulkanComputeBufferImpl& buffer, uint32_t queueFamily);
 
