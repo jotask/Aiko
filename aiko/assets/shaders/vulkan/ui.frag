@@ -7,6 +7,7 @@
 
 layout(location = 0) in vec4 v_color0;
 layout(location = 1) in vec2 v_texcoord0;
+layout(location = 2) flat in int v_uiStyleIndex;
 
 layout(location = 0) out vec4 outColor;
 
@@ -36,23 +37,26 @@ void main()
             v_texcoord0);
     }
 
-    vec2 rectPosition =
-        u_uiRect.xy;
+    int styleIndex = clamp(v_uiStyleIndex, 0, 127);
 
-    vec2 rectSize =
-        u_uiRect.zw;
+    vec3 rectPosRadius = u_uiRectPosRadius[styleIndex];
+    vec3 rectSizeBorder = u_uiRectSizeBorder[styleIndex];
+
+    vec2 rectPosition = rectPosRadius.xy;
+
+    vec2 rectSize = rectSizeBorder.xy;
 
     vec2 halfSize =
         rectSize * 0.5;
 
     float radius =
         clamp(
-            u_uiStyle.x,
+            rectPosRadius.z,
             0.0,
             min(halfSize.x, halfSize.y));
 
     float borderThickness =
-        max(u_uiStyle.y, 0.0);
+        max(rectSizeBorder.z, 0.0);
 
     vec2 center =
         rectPosition + halfSize;
@@ -114,7 +118,7 @@ void main()
         color =
             mix(
                 color,
-                u_uiBorderColor,
+                vec4(u_uiBorderRgb[styleIndex], u_uiBorderAlpha[styleIndex]),
                 borderMask);
     }
 
