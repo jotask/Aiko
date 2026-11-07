@@ -107,16 +107,34 @@ namespace aiko::renderer::vulkan
 
         std::memcpy(binding.uniformMapped, key.uniformData.data(), key.uniformData.size());
 
-        const VkDescriptorSetAllocateInfo allocInfo =
+        if (resources.nextDescriptorSet == resources.allocatedDescriptorSets.size())
         {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .descriptorPool = resources.descriptorPool,
-            .descriptorSetCount = 1,
-            .pSetLayouts = &m_materialLayout,
-        };
+            static constexpr uint32_t DescriptorBatchSize = 64;
+            const uint32_t allocatedCount = static_cast<uint32_t>(resources.allocatedDescriptorSets.size());
+            AIKO_ASSERT(allocatedCount < MaxBindings, "Material descriptor pool exhausted");
 
-        const VkResult allocResult = vkAllocateDescriptorSets(m_context.device(), &allocInfo, &binding.descriptorSet);
-        AIKO_ASSERT(allocResult == VK_SUCCESS, "Failed to allocate material descriptor set");
+            const uint32_t count = std::min(DescriptorBatchSize, MaxBindings - allocatedCount);
+
+            std::array<VkDescriptorSetLayout, DescriptorBatchSize> layouts{};
+            layouts.fill(m_materialLayout);
+
+            std::array<VkDescriptorSet, DescriptorBatchSize> descriptorSets{};
+
+            const VkDescriptorSetAllocateInfo allocInfo =
+            {
+                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+                .descriptorPool = resources.descriptorPool,
+                .descriptorSetCount = count,
+                .pSetLayouts = layouts.data(),
+            };
+
+            const VkResult result = vkAllocateDescriptorSets(m_context.device(), &allocInfo, descriptorSets.data());
+            AIKO_ASSERT(result == VK_SUCCESS, "Failed to allocate material descriptor batch");
+
+            resources.allocatedDescriptorSets.insert(resources.allocatedDescriptorSets.end(), descriptorSets.begin(), descriptorSets.begin() + count);
+        }
+
+        binding.descriptorSet = resources.allocatedDescriptorSets[resources.nextDescriptorSet++];
 
         const VkDescriptorBufferInfo bufferInfo =
         {
@@ -158,6 +176,9 @@ namespace aiko::renderer::vulkan
 
         const VkResult result = vkResetDescriptorPool(m_context.device(), resources.descriptorPool, 0);
         AIKO_ASSERT(result == VK_SUCCESS, "Failed to reset material descriptor pool");
+
+        resources.allocatedDescriptorSets.clear();
+        resources.nextDescriptorSet = 0;
     }
 
     void VulkanMaterialResources::destroy()
