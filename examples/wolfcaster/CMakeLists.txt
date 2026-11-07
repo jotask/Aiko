@@ -1,7 +1,7 @@
 
 include(Dependencies.cmake)
 
-add_custom_target(WolfcasterData SOURCES "${WOLF3D_MAPHEAD}" "${WOLF3D_GAMEMAPS}")
+add_custom_target(WolfcasterData SOURCES ${WOLF3D_DATA_FILES})
 
 aiko_add_dependency(WolfcasterData)
 
@@ -13,7 +13,7 @@ add_executable(Wolfcaster ${EXAMPLE_WOLFCASTER_SRC})
 
 target_compile_definitions(Wolfcaster PRIVATE "WOLF3D_DATA_DIR=\"${WOLF3D_SHAREWARE_DATA_DIR}\"")
 
-target_link_libraries(Wolfcaster PRIVATE Aiko Aiko imgui magic_enum)
+target_link_libraries(Wolfcaster PRIVATE Aiko imgui magic_enum)
 
 target_include_directories(Wolfcaster PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
