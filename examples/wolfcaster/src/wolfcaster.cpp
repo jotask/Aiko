@@ -111,7 +111,7 @@ namespace wc
     {
         AIKO_FUNCTION_PROFILE
 
-        constexpr float MapScaler = 512.0f;
+        constexpr float MapScaler = 256.0f;
 
         // Geometry Plane Map
         if (m_mapTextureId != aiko::InvalidAssetId)
@@ -146,7 +146,46 @@ namespace wc
                 ui().line(playerScreenPosition, hit.position * tileSize, 1.0f, aiko::CYAN);
             }
 
+            // Camera
+            {
+
+                constexpr int32_t RayCount = 128;
+
+                constexpr aiko::vec2 viewportSize = {512, 384};
+                constexpr aiko::vec2 viewportPosition = {0, 272};
+                const float columnWidth = viewportSize.x / RayCount;
+
+                constexpr float FOV = 66; // degrees
+                const float planeLength = std::tan(aiko::math::radians(FOV) * 0.5f);
+                const aiko::vec2 cameraPlane = m_player.right() * planeLength;
+
+                for (int32_t rayIndex = 0 ; rayIndex < RayCount; ++rayIndex)
+                {
+                    const float cameraX = 2 * ( (rayIndex + 0.5f) / RayCount ) - 1.0f;
+                    const aiko::vec2 rayDirection = m_player.forward() + cameraPlane * cameraX;
+                    const WolfRayHit hit = WolfRaycaster::castRay(m_wolfMap.value(), m_player.position(), rayDirection);
+                    if (hit.hit)
+                    {
+                        ui().line(playerScreenPosition, hit.position * tileSize, 1.0f, aiko::CYAN);
+
+                        const auto normalizedRayDirection = aiko::math::normalize(rayDirection);
+                        const float perpendicularDistance = hit.distance * aiko::math::dot(normalizedRayDirection, m_player.forward());
+
+                        const float wallHeight = viewportSize.x / ( 2.0f * planeLength * perpendicularDistance );
+
+                        const float columnX = viewportPosition.x + rayIndex * columnWidth;
+                        const float columnY = viewportPosition.y + (viewportSize.y - wallHeight) / 2.0f;
+
+                        const aiko::vec2 columnPosition = {columnX, columnY};
+                        const aiko::vec2 columnSize = {columnWidth, wallHeight};
+                        ui().rect(columnPosition, columnSize, aiko::LIGHTGRAY);
+
+                    }
+                }
+
+            }
         }
+
 
     }
 

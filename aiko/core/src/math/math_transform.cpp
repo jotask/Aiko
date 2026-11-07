@@ -132,6 +132,10 @@ namespace aiko
             return toAiko(n);
         }
 
+        float dot(vec2 a, vec2 b)
+        {
+            return a.x * b.x + a.y * b.y;
+        }
 
         float dot(vec3 a, vec3 b)
         {

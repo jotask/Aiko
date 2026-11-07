@@ -33,6 +33,7 @@ namespace aiko
         vec2 normalize(vec2);
         vec3 normalize(vec3);
 
+        float dot(vec2, vec2);
         float dot(vec3, vec3);
 
         mat4 scale(mat4, vec3);
