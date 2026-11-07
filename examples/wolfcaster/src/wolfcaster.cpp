@@ -2,6 +2,7 @@
 
 #include "core/file.h"
 #include "layers/contexts/asset_context.h"
+#include "layers/contexts/render_context.h"
 #include "layers/contexts/scene_context.h"
 #include "layers/contexts/ui_context.h"
 #include "rendering/wolf_map_texture.h"
@@ -48,6 +49,11 @@ namespace wc
         const aiko::TextureAsset asset = WolfMapTexture::build(m_wolfMap.value());
         m_mapTextureId = assets().createTexture(asset);
 
+        const WolfPlayerSpawn playerSpawn = m_wolfMap->findPlayerSpawn();
+        aiko::logger::Log::infoFmt("WolfCaster Player Spawn");
+        aiko::logger::Log::infoFmt("     Tile: ({} , {})", playerSpawn.tileX, playerSpawn.tileY);
+        aiko::logger::Log::infoFmt("     Direction: {}", magic_enum::enum_name(playerSpawn.direction));
+
     }
 
     void WolfCaster::update()
@@ -58,6 +64,10 @@ namespace wc
     void WolfCaster::render()
     {
         AIKO_FUNCTION_PROFILE
+
+        constexpr float MapScaler = 512.0f;
+
+        // Geometry Plane Map
         if (m_mapTextureId != aiko::InvalidAssetId)
         {
             aiko::SamplerState state = {
@@ -68,10 +78,21 @@ namespace wc
                 .wrapV = aiko::TextureWrapMode::Clamp,
             };
             const aiko::vec2 position = {0.0f, 0.0f};
-            const aiko::vec2 size = {512.0f, 512.0f};
+            const aiko::vec2 size = { MapScaler };
             const aiko::Color tint = aiko::WHITE;
             ui().image(m_mapTextureId, position, size, tint, state);
         }
+
+        // Player
+        {
+            const WolfPlayerSpawn playerSpawn = m_wolfMap->findPlayerSpawn();
+            const aiko::vec2 tileSize = { MapScaler / m_wolfMap->getWidth(), MapScaler / m_wolfMap->getHeight()  };
+            const aiko::vec2 playerScreenPosition = { (playerSpawn.tileX + 0.5f) * tileSize.x, (playerSpawn.tileY + 0.5f) * tileSize.y };
+            const aiko::vec2 playerSize = tileSize; // / 2.0f;
+            const aiko::vec2 playerPositionOffset = playerScreenPosition - playerSize * 0.5f;
+            ui().rect(playerPositionOffset, playerSize, aiko::RED);
+        }
+
     }
 
 }

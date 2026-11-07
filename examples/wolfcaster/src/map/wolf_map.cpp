@@ -31,4 +31,24 @@ namespace wc
     {
         return getTile(WolfMapPlane::Geometry, x, y);
     }
+
+    WolfPlayerSpawn WolfMap::findPlayerSpawn() const
+    {
+        const auto& objectPlane = m_planes[size_t(WolfMapPlane::Objects)];
+        for (size_t i = 0 ; i < objectPlane.size(); ++i)
+        {
+            const auto tileID = objectPlane[i];
+            if (tileID >= 19 && tileID <= 22)
+            {
+                const WolfDirection direction = static_cast<WolfDirection>(tileID);
+                return WolfPlayerSpawn{
+                    .tileX = static_cast<uint16_t>(i % m_width),
+                    .tileY = static_cast<uint16_t>(i / m_width),
+                    .direction = direction,
+                };
+            }
+        }
+        AIKO_ASSERT(false, "No Player Spawn found!");
+        return {};
+    }
 }
