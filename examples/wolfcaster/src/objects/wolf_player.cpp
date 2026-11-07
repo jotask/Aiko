@@ -5,6 +5,17 @@
 namespace wc
 {
 
+    aiko::vec2 WolfPlayer::forward() const
+    {
+        return { aiko::math::cos(angleRadians), aiko::math::sin(angleRadians) };
+    }
+
+    aiko::vec2 WolfPlayer::right() const
+    {
+        const aiko::vec2 fwd = forward();
+        return { -fwd.y, fwd.x };
+    }
+
     WolfPlayer WolfPlayer::fromSpawn(const WolfPlayerSpawn& spawn)
     {
         float radians = 0.0f;

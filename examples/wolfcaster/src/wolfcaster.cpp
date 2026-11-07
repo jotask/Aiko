@@ -2,6 +2,7 @@
 
 #include "core/file.h"
 #include "layers/contexts/asset_context.h"
+#include "layers/contexts/input_context.h"
 #include "layers/contexts/render_context.h"
 #include "layers/contexts/scene_context.h"
 #include "layers/contexts/ui_context.h"
@@ -61,6 +62,43 @@ namespace wc
     void WolfCaster::update()
     {
         AIKO_FUNCTION_PROFILE
+
+        const float deltaTime = getDeltaTime();
+
+        constexpr float rotationSpeed = 2.5f;
+        constexpr float moveSpeed = 3.0f;
+
+        if (input().isKeyPressed(aiko::Key::KEY_A) == true)
+        {
+            m_player.angleRadians -= rotationSpeed * deltaTime;
+        }
+        if (input().isKeyPressed(aiko::Key::KEY_D) == true)
+        {
+            m_player.angleRadians += rotationSpeed * deltaTime;
+        }
+
+        if (input().isKeyPressed(aiko::Key::KEY_W) == true)
+        {
+            const auto displacement = m_player.forward() * moveSpeed * deltaTime;
+            m_player.position += displacement;
+        }
+        if (input().isKeyPressed(aiko::Key::KEY_S) == true)
+        {
+            const auto displacement = m_player.forward() * moveSpeed * deltaTime;
+            m_player.position -= displacement;
+        }
+
+        if (input().isKeyPressed(aiko::Key::KEY_Q) == true)
+        {
+            const aiko::vec2 right = m_player.right();
+            m_player.position -= right * moveSpeed * deltaTime;
+        }
+        if (input().isKeyPressed(aiko::Key::KEY_E) == true)
+        {
+            const aiko::vec2 right = m_player.right();
+            m_player.position += right * moveSpeed * deltaTime;
+        }
+
     }
 
     void WolfCaster::render()
