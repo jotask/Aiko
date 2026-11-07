@@ -10,6 +10,12 @@ namespace wc
         Horizontal,
     };
 
+    enum class WolfRayHitKind
+    {
+        Wall,
+        Door,
+    };
+
     struct WolfRayHit
     {
         bool hit = false;
@@ -18,5 +24,7 @@ namespace wc
         int32_t tileX = 0;
         int32_t tileY = 0;
         WolfRaySide side = WolfRaySide::Horizontal;
+        WolfRayHitKind kind = WolfRayHitKind::Wall;
+
     };
 }

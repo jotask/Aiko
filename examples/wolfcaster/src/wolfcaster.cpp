@@ -9,6 +9,7 @@
 #include "layers/contexts/render_context.h"
 #include "layers/contexts/scene_context.h"
 #include "layers/contexts/ui_context.h"
+#include "map/wolf_map_reader.h"
 #include "raycasting/wolf_raycaster.h"
 
 #include <components/camera_component.h>
@@ -17,10 +18,10 @@
 #include <magic_enum/magic_enum.hpp>
 #include <types/draw_types.h>
 
+#include <algorithm>
 #include <imgui.h>
 #include <random>
 #include <vector>
-#include <algorithm>
 
 namespace wc
 {
@@ -46,10 +47,13 @@ namespace wc
 
         const auto mapHeadPath = dataDir / "MAPHEAD.WL1";
         const auto gameMapsPath = dataDir / "GAMEMAPS.WL1";
-        std::optional<WolfMap> wolfMap = m_mapFileReader.load(mapHeadPath, gameMapsPath);
+
+        std::optional<WolfMap> wolfMap = WolfMapReader::load(mapHeadPath, gameMapsPath);
         AIKO_ASSERT(wolfMap != std::nullopt, "Failed to load file map data");
 
         m_wolfMap = std::move(wolfMap);
+
+        m_doorSystem.initialize(m_wolfMap.value());
 
         const WolfVSwapData assetData = WolfVSwapReader::load(dataDir / "VSWAP.WL1");
         for (const WolfWallTexture& wallTexture : assetData.walls)

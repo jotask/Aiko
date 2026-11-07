@@ -1,7 +1,7 @@
 #pragma once
 
 #include "map/wolf_map.h"
-#include "map/wolf_map_reader.h"
+#include "objects/wolf_door_system.h"
 #include "objects/wolf_player.h"
 #include "wolfcaster_types.h"
 
@@ -30,8 +30,8 @@ namespace wc
         void renderRaycaster();
         void renderAllWallTexture();
 
-        WolfMapReader m_mapFileReader;
         std::optional<WolfMap> m_wolfMap;
+        WolfDoorSystem m_doorSystem;
 
         aiko::AssetId m_mapTextureId = aiko::InvalidAssetId;
 
