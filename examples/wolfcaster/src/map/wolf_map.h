@@ -18,11 +18,14 @@ namespace wc
         uint16_t getWidth() const { return m_width; }
         uint16_t getHeight() const { return m_height; }
         uint16_t getTile(WolfMapPlane plane, uint16_t x, uint16_t y) const;
-        uint16_t getTile(uint16_t x, uint16_t y) const;
 
         WolfPlayerSpawn findPlayerSpawn() const;
 
+        bool isBlockingTile(int32_t x, int32_t y) const;
+
     private:
+
+        size_t getTileIndex(uint16_t x, uint16_t y) const;
 
         uint16_t m_width;
         uint16_t m_height;

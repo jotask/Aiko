@@ -30,6 +30,7 @@ namespace aiko
         int max(int, int);
 
         vec3 cross(vec3, vec3);
+        vec2 normalize(vec2);
         vec3 normalize(vec3);
 
         float dot(vec3, vec3);

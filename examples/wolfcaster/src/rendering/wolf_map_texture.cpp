@@ -23,7 +23,7 @@ namespace wc
         {
             for (size_t x = 0 ; x < map.getWidth(); ++x)
             {
-                const uint16_t tileMap = map.getTile(x, y);
+                const uint16_t tileMap = map.getTile(WolfMapPlane::Geometry, x, y);
                 const aiko::Color pixelColor = getTileColor(tileMap);
                 asset.pixels[y * size_t(map.getWidth()) + size_t(x)] = pixelColor;
             }

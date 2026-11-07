@@ -24,12 +24,7 @@ namespace wc
         AIKO_ASSERT(size_t(plane) < m_planes.size(), "Unknow plane requested.");
         AIKO_ASSERT( x < m_width, "Requesting TileMap outside our X plane");
         AIKO_ASSERT( y < m_height, "Requesting TileMap outside our Y plane");
-        return m_planes[size_t(plane)][y * size_t(m_width) + size_t(x)];
-    }
-
-    uint16_t WolfMap::getTile(uint16_t x, uint16_t y) const
-    {
-        return getTile(WolfMapPlane::Geometry, x, y);
+        return m_planes[size_t(plane)][getTileIndex(x, y)];
     }
 
     WolfPlayerSpawn WolfMap::findPlayerSpawn() const
@@ -50,5 +45,28 @@ namespace wc
         }
         AIKO_ASSERT(false, "No Player Spawn found!");
         return {};
+    }
+
+    bool WolfMap::isBlockingTile(int32_t x, int32_t y) const
+    {
+        if (x <  0 || x >= m_width || y < 0 ||  y >= m_height) // outside World?
+        {
+            return true;
+        }
+        const uint16_t tileId = getTile(WolfMapPlane::Geometry, x, y);
+        if (tileId >= 1 && tileId <= 63) // Wall
+        {
+            return true;
+        }
+        if (tileId >= 90 && tileId <= 101) // FIXME door are considered wall for now
+        {
+            return true;
+        }
+        return false;
+    }
+
+    size_t WolfMap::getTileIndex(uint16_t x, uint16_t y) const
+    {
+        return y * size_t(m_width) + size_t(x);
     }
 }

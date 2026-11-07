@@ -4,16 +4,32 @@
 
 namespace wc
 {
+    class WolfMap;
 
-    struct WolfPlayer
+    class WolfPlayer
     {
-        aiko::vec2 position = {0.0f};
-        float angleRadians = 0.0f;
+    public:
+
+        void move(const aiko::vec2 displacement, const WolfMap& map);
+        void rotate(float angle);
+
+        const aiko::vec2& position() const { return m_position; }
+        float angle() const { return m_angleRadians; }
 
         aiko::vec2 forward() const;
         aiko::vec2 right() const;
 
         static WolfPlayer fromSpawn(const WolfPlayerSpawn& spawn);
+
+    private:
+
+        static constexpr float m_radius = 0.2f;
+
+        bool collidesAt(const aiko::vec2& candidatePosition, const WolfMap& map) const;
+
+        aiko::vec2 m_position = {0.0f};
+        float m_angleRadians = 0.0f;
+
     };
 
 }

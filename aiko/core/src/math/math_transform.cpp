@@ -41,6 +41,16 @@ namespace aiko
             return result;
         };
 
+        static glm::vec2 toGlm(vec2 m)
+        {
+            return { m.x, m.y };
+        };
+
+        static vec2 toAiko(glm::vec2 m)
+        {
+            return { m.x, m.y };
+        };
+
         static glm::vec3 toGlm(vec3 m)
         {
             return { m.x, m.y, m.z };
@@ -93,6 +103,19 @@ namespace aiko
             glm::vec3 aa = toGlm(a);
             glm::vec3 bb = toGlm(b);
             glm::vec3 n = glm::cross(aa, bb);
+            return toAiko(n);
+        }
+
+        vec2 normalize(vec2 vec)
+        {
+            glm::vec2 v = toGlm(vec);
+            float lenSq = glm::dot(v, v);
+            if (lenSq < glm::epsilon<float>())
+            {
+                // Return the input vector if it's already a zero vector
+                return vec;
+            }
+            glm::vec2 n = glm::normalize(v);
             return toAiko(n);
         }
 

@@ -70,33 +70,38 @@ namespace wc
 
         if (input().isKeyPressed(aiko::Key::KEY_A) == true)
         {
-            m_player.angleRadians -= rotationSpeed * deltaTime;
+            m_player.rotate(-rotationSpeed * deltaTime);
         }
         if (input().isKeyPressed(aiko::Key::KEY_D) == true)
         {
-            m_player.angleRadians += rotationSpeed * deltaTime;
+            m_player.rotate(rotationSpeed * deltaTime);
         }
+
+        aiko::vec2 movementDirection = {0.0f};
 
         if (input().isKeyPressed(aiko::Key::KEY_W) == true)
         {
-            const auto displacement = m_player.forward() * moveSpeed * deltaTime;
-            m_player.position += displacement;
+            movementDirection += m_player.forward();
         }
         if (input().isKeyPressed(aiko::Key::KEY_S) == true)
         {
-            const auto displacement = m_player.forward() * moveSpeed * deltaTime;
-            m_player.position -= displacement;
+            movementDirection -= m_player.forward();
         }
 
         if (input().isKeyPressed(aiko::Key::KEY_Q) == true)
         {
-            const aiko::vec2 right = m_player.right();
-            m_player.position -= right * moveSpeed * deltaTime;
+            movementDirection -= m_player.right();
         }
         if (input().isKeyPressed(aiko::Key::KEY_E) == true)
         {
-            const aiko::vec2 right = m_player.right();
-            m_player.position += right * moveSpeed * deltaTime;
+            movementDirection += m_player.right();
+        }
+
+        if (movementDirection != 0)
+        {
+            const aiko::vec2 normalizedMove = aiko::math::normalize(movementDirection);
+            const aiko::vec2 displacement = normalizedMove * moveSpeed * deltaTime;
+            m_player.move(displacement, m_wolfMap.value());
         }
 
     }
@@ -125,15 +130,14 @@ namespace wc
 
         // Player
         {
-            const aiko::vec2 tileSize = { MapScaler / m_wolfMap->getWidth(), MapScaler / m_wolfMap->getHeight()  };
-            const aiko::vec2 playerScreenPosition = m_player.position * tileSize;
-            const aiko::vec2 playerSize = tileSize; // / 2.0f;
+            const aiko::vec2 tileSize = { MapScaler / m_wolfMap->getWidth(), MapScaler / m_wolfMap->getHeight() };
+            const aiko::vec2 playerScreenPosition = m_player.position() * tileSize;
+            const aiko::vec2 playerSize = tileSize / 2.0f;
             const aiko::vec2 playerPositionOffset = playerScreenPosition - playerSize * 0.5f;
             ui().rect(playerPositionOffset, playerSize, aiko::RED);
 
-            const aiko::vec2 direction = aiko::vec2( aiko::math::cos(m_player.angleRadians), aiko::math::sin(m_player.angleRadians) );
             const aiko::vec2 forwardLength = tileSize * 3.0f;
-            ui().line(playerScreenPosition, playerScreenPosition + ( direction * forwardLength), 1.0f, aiko::MAGENTA);
+            ui().line(playerScreenPosition, playerScreenPosition + ( m_player.forward() * forwardLength), 1.0f, aiko::MAGENTA);
 
         }
 
