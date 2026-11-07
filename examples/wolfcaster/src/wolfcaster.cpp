@@ -317,7 +317,15 @@ namespace wc
                 // const aiko::Color wallColor = hit.side == WolfRaySide::Vertical ? aiko::LIGHTGRAY : aiko::GRAY;
                 // ui().rect(columnPosition, columnSize, wallColor);
 
-                ui().image(textureAssetId, region, columnPosition, columnSize, aiko::WHITE, sampler);
+                aiko::Color tint = aiko::WHITE;
+                switch (hit.side)
+                {
+                    case WolfRaySide::Horizontal: tint = aiko::Color(0.75f, 0.75f, 0.75f, 1.0f); break;
+                    case WolfRaySide::Vertical:   tint = aiko::WHITE; break;
+                    default: AIKO_ASSERT(false, "Unknow Hit Site");
+                }
+
+                ui().image(textureAssetId, region, columnPosition, columnSize, tint, sampler);
 
             }
         }
