@@ -60,7 +60,7 @@ namespace wc
         }
         if (tileId >= 90 && tileId <= 101) // FIXME door are considered wall for now
         {
-            return true;
+            return false;
         }
         return false;
     }

@@ -3,6 +3,7 @@
 #include "map/wolf_map.h"
 #include "map/wolf_map_reader.h"
 #include "objects/wolf_player.h"
+#include "wolfcaster_types.h"
 
 #include <layers/layer.h>
 
@@ -27,13 +28,18 @@ namespace wc
         void renderBackground();
         void renderMiniMap();
         void renderRaycaster();
+        void renderAllWallTexture();
 
         WolfMapReader m_mapFileReader;
         std::optional<WolfMap> m_wolfMap;
 
         aiko::AssetId m_mapTextureId = aiko::InvalidAssetId;
 
+        std::vector<aiko::AssetId> m_wallsTexture;
+
         WolfPlayer m_player;
+
+        WolfCasterDebug m_debugImgui;
 
     };
 
