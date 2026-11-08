@@ -24,9 +24,14 @@ namespace wc
 
         WolfPlayerSpawn findPlayerSpawn() const;
 
+        bool canInteract(int32_t tileX, int32_t tileY) const;
+        bool interact(int32_t tileX, int32_t tileY);
+
         bool isBlockingTile(int32_t x, int32_t y) const;
 
         bool collidesAt(const aiko::vec2& position, float radius) const;
+
+        const WolfDoor* getDoor(int32_t tileX, int32_t tileY) const;
 
     private:
 

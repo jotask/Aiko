@@ -26,6 +26,11 @@
 namespace wc
 {
 
+    namespace
+    {
+        constexpr float MaxInteractionDistance = 1.5f;
+    }
+
     WolfCaster::WolfCaster() = default;
 
     WolfCaster::~WolfCaster() = default;
@@ -116,6 +121,18 @@ namespace wc
             const aiko::vec2 normalizedMove = aiko::math::normalize(movementDirection);
             const aiko::vec2 displacement = normalizedMove * moveSpeed * deltaTime;
             m_player.move(displacement, m_wolfMap.value());
+        }
+
+        if (input().isKeyJustPressed(aiko::Key::KEY_F))
+        {
+            const WolfRayHit hit = WolfRaycaster::castRay(m_wolfMap.value(), m_player.position(), m_player.forward(), WolfRaycastMode::Interaction);
+            if (hit.distance < MaxInteractionDistance)
+            {
+                if (hit.hit == true && m_wolfMap->canInteract(hit.tileX, hit.tileY))
+                {
+                    m_wolfMap->interact(hit.tileX, hit.tileY);
+                }
+            }
         }
 
         m_wolfMap->update(deltaTime);
@@ -324,7 +341,14 @@ namespace wc
                     default: AIKO_ASSERT(false, "Unknow Hit Site");
                 }
 
-                const float fractionalU = wallU - std::floor(wallU);
+                float fractionalU = wallU - std::floor(wallU);
+
+                if (hit.kind == WolfRayHitKind::Door)
+                {
+                    const WolfDoor* door = m_wolfMap->getDoor(hit.tileX, hit.tileY);
+                    fractionalU -= door->openProgress;
+                }
+
                 int textureX = aiko::math::clamp(static_cast<int>(fractionalU * 64.0f), 0, 63);
 
                 if ((hit.side == WolfRaySide::Vertical && rayDirection.x < 0) || ( hit.side == WolfRaySide::Horizontal && rayDirection.y > 0 ))

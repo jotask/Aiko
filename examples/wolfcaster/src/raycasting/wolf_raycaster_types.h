@@ -16,6 +16,12 @@ namespace wc
         Door,
     };
 
+    enum class WolfRaycastMode
+    {
+        Render,
+        Interaction,
+    };
+
     struct WolfRayHit
     {
         bool hit = false;

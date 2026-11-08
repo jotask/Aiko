@@ -56,6 +56,34 @@ namespace wc
         return {};
     }
 
+    bool WolfMap::canInteract(int32_t tileX, int32_t tileY) const
+    {
+        if (tileX <  0 || tileX >= m_width || tileY < 0 || tileY >= m_height) // outside World?
+        {
+            return false;
+        }
+        if (m_doorSystem.findDoorIndex(tileX, tileY) != std::nullopt)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    bool WolfMap::interact(int32_t tileX, int32_t tileY)
+    {
+        if (canInteract(tileX, tileY) == false)
+        {
+            return false;
+        }
+        const auto doorIndex = m_doorSystem.findDoorIndex(tileX, tileY);
+        if (doorIndex != std::nullopt)
+        {
+            m_doorSystem.toggleDoor(doorIndex.value());
+            return true;
+        }
+        return false;
+    }
+
     bool WolfMap::isBlockingTile(int32_t x, int32_t y) const
     {
         if (x <  0 || x >= m_width || y < 0 ||  y >= m_height) // outside World?
@@ -102,6 +130,17 @@ namespace wc
             }
         }
         return m_doorSystem.collidesAt(position, radius);
+    }
+
+    const WolfDoor* WolfMap::getDoor(int32_t tileX, int32_t tileY) const
+    {
+        const auto doorIdx = m_doorSystem.findDoorIndex(tileX, tileY);
+        if (doorIdx == std::nullopt)
+        {
+            return nullptr;
+        }
+        const WolfDoor& door = m_doorSystem.getDoor(*doorIdx);
+        return &door;
     }
 
     size_t WolfMap::getTileIndex(uint16_t x, uint16_t y) const

@@ -155,7 +155,7 @@ namespace wc
                 case WolfDoorOrientation::Horizontal:
                 {
                     closestPoint = {
-                        aiko::math::clamp(position.x, tileX, tileX + 1.0f ),
+                        aiko::math::clamp(position.x, tileX + door.openProgress, tileX + 1.0f ),
                         tileY + 0.5f,
                     };
                 }
@@ -164,7 +164,7 @@ namespace wc
                 {
                     closestPoint = {
                         tileX + 0.5f,
-                        aiko::math::clamp(position.y, tileY, tileY + 1.0f ),
+                        aiko::math::clamp(position.y, tileY + door.openProgress, tileY + 1.0f ),
                     };
                 }
                 break;
@@ -188,10 +188,12 @@ namespace wc
         if (door.state == WolfDoorState::Closed || door.state == WolfDoorState::Closing)
         {
             door.state = WolfDoorState::Opening;
+            aiko::logger::Log::info("Opening");
         }
         else  if (door.state == WolfDoorState::Open || door.state == WolfDoorState::Opening)
         {
             door.state = WolfDoorState::Closing;
+            aiko::logger::Log::info("Closing");
         }
     }
 
