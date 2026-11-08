@@ -8,6 +8,8 @@ namespace wc
     {
     public:
         static WolfRayHit castRay(const WolfMap& map, const aiko::vec2& origin, const aiko::vec2& direction);
+    private:
+        static WolfRayHit intersectDoor(const WolfMap& map, int32_t tileX, int32_t tileY, const aiko::vec2& rayOrigin, const aiko::vec2& rayDirection, float entryDistance, float exitDistance);
     };
 
 }

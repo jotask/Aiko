@@ -64,6 +64,12 @@ namespace wc
             calculateSideDistance(stepDir.y, map.y, origin.y, deltaDistance.y),
         };
 
+        const WolfRayHit doorHit = intersectDoor(wolfMap, map.x, map.y, origin, normalizedDirection, 0.0f, std::min(sideDistance.x, sideDistance.y));
+        if (doorHit.hit == true)
+        {
+            return doorHit;
+        }
+
         float hitDistance = 0.0f;
         WolfRaySide hitSide = WolfRaySide::Horizontal;
 
@@ -86,64 +92,19 @@ namespace wc
                 hitSide = WolfRaySide::Horizontal;
             }
 
-            aiko::vec2 hitPoint = {0.0f};
-            WolfRayHitKind hitKind = WolfRayHitKind::Wall;
-
             if(map.x <0 || map.x >= wolfMap.getWidth() || map.y < 0 || map.y >= wolfMap.getHeight())
             {
                 // out of the map
                 return {};
             };
 
-            const uint16_t tileId = wolfMap.getTile(WolfMapPlane::Geometry, map.x, map.y);
-            if (tileId >= 90 && tileId <= 101) // Door
+            const WolfRayHit doorHitDDA = intersectDoor(wolfMap, map.x, map.y, origin, normalizedDirection, hitDistance, std::min(sideDistance.x, sideDistance.y));
+            if (doorHitDDA.hit == true)
             {
-
-                const float entryDistance = hitDistance;
-                const float exitDistance = std::min(sideDistance.x, sideDistance.y);
-
-                hitKind = WolfRayHitKind::Door;
-
-                if (tileId % 2 == 0 )
-                {
-                    // Vertical Door
-                    if(normalizedDirection.x == 0.0f)
-                    {
-                        continue;
-                    }
-                    const float doorDistance = ( map.x + 0.5f - origin.x ) / normalizedDirection.x;
-                    if (aiko::math::isfinite(doorDistance) == false || doorDistance < entryDistance || doorDistance >= exitDistance)
-                    {
-                        continue;
-                    }
-                    hitDistance = doorDistance;
-                    hitPoint = origin + normalizedDirection * hitDistance;
-                    hitSide = WolfRaySide::Vertical;
-                }
-                else
-                {
-                    // Horizontal door
-                    if(normalizedDirection.y == 0.0f)
-                    {
-                        continue;
-                    }
-                    const float doorDistance = ( map.y + 0.5f - origin.y ) / normalizedDirection.y;
-                    if (aiko::math::isfinite(doorDistance) == false || doorDistance < entryDistance || doorDistance >= exitDistance)
-                    {
-                        continue;
-                    }
-                    hitDistance = doorDistance;
-                    hitPoint = origin + normalizedDirection * hitDistance;
-                    hitSide = WolfRaySide::Horizontal;
-                }
-
-            }
-            else
-            {
-                hitPoint = origin + normalizedDirection * hitDistance;
+                return doorHitDDA;
             }
 
-            if (hitKind == WolfRayHitKind::Wall && wolfMap.isBlockingTile(map.x, map.y) == false)
+            if (wolfMap.isBlockingTile(map.x, map.y) == false)
             {
                 continue;
             }
@@ -151,18 +112,69 @@ namespace wc
             const WolfRayHit hit
             {
                 .hit = true,
-                .position = hitPoint,
+                .position = origin + normalizedDirection * hitDistance,
                 .distance = hitDistance,
                 .tileX = map.x,
                 .tileY = map.y,
                 .side = hitSide,
-                .kind = hitKind,
+                .kind = WolfRayHitKind::Wall,
             };
             return hit;
 
         }
 
         return {};
+
+    }
+
+    WolfRayHit WolfRaycaster::intersectDoor(const WolfMap& map, int32_t tileX, int32_t tileY, const aiko::vec2& rayOrigin, const aiko::vec2& rayDirection, float entryDistance, float exitDistance)
+    {
+        AIKO_ASSERT(tileX >= 0 && tileX < map.getWidth() && tileY >= 0 && tileY < map.getHeight(), "Outside of map OOB");
+        const uint16_t tileId = map.getTile(WolfMapPlane::Geometry, tileX, tileY);
+        if (tileId < 90 || tileId > 101)
+        {
+            return {};
+        }
+
+        const WolfRaySide doorOrientation = (tileId % 2 == 0 ) ? WolfRaySide::Vertical : WolfRaySide::Horizontal;
+
+        float doorDistance = 0.0f;
+
+        switch (doorOrientation)
+        {
+            case WolfRaySide::Horizontal:
+                if (rayDirection.y == 0.0f)
+                {
+                    return{};
+                }
+                doorDistance = (tileY + 0.5f - rayOrigin.y) / rayDirection.y;
+                break;
+            case WolfRaySide::Vertical:
+                if (rayDirection.x == 0.0f)
+                {
+                    return{};
+                }
+                doorDistance = (tileX + 0.5f - rayOrigin.x) / rayDirection.x;
+                break;
+            default:
+                AIKO_ASSERT(false, "Unknown orientation");
+        }
+
+        if (aiko::math::isfinite(doorDistance) == false || doorDistance < entryDistance || doorDistance >= exitDistance)
+        {
+            return {};
+        }
+
+        const WolfRayHit hit = {
+            .hit = true,
+            .position = rayOrigin + rayDirection * doorDistance,
+            .distance = doorDistance,
+            .tileX = tileX,
+            .tileY = tileY,
+            .side = doorOrientation,
+            .kind = WolfRayHitKind::Door,
+        };
+        return hit;
 
     }
 }

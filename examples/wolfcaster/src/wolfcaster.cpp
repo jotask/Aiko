@@ -118,6 +118,8 @@ namespace wc
             m_player.move(displacement, m_wolfMap.value());
         }
 
+        m_wolfMap->update(deltaTime);
+
     }
 
     void WolfCaster::render()

@@ -23,6 +23,11 @@ namespace wc
 
     }
 
+    void WolfMap::update(float deltaTime)
+    {
+        m_doorSystem.update(deltaTime);
+    }
+
     uint16_t WolfMap::getTile(WolfMapPlane plane, uint16_t x, uint16_t y) const
     {
         AIKO_ASSERT(size_t(plane) < m_planes.size(), "Unknow plane requested.");
@@ -62,7 +67,7 @@ namespace wc
         {
             return true;
         }
-        if (tileId >= 90 && tileId <= 101) // FIXME door are considered wall for now
+        if (tileId >= 90 && tileId <= 101)
         {
             return false;
         }
