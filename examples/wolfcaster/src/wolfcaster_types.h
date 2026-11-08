@@ -7,6 +7,7 @@ namespace wc
     {
         bool renderMiniMap = false;
         bool renderWallTextures = false;
+        bool renderSpriteTextures = false;
     };
 
 }

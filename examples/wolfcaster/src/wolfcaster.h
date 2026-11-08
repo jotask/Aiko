@@ -27,13 +27,15 @@ namespace wc
         void renderBackground();
         void renderMiniMap();
         void renderRaycaster();
-        void renderAllWallTexture();
+        void renderAllWallTextures();
+        void renderAllSpriteTextures();
 
         std::optional<WolfMap> m_wolfMap;
 
         aiko::AssetId m_mapTextureId = aiko::InvalidAssetId;
 
         std::vector<aiko::AssetId> m_wallsTexture;
+        std::vector<aiko::AssetId> m_spriteTexture;
 
         WolfPlayer m_player;
 

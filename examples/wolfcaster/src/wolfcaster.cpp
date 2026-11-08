@@ -3,6 +3,7 @@
 #include "assets/wolf_map_texture.h"
 #include "assets/wolf_vswap_reader.h"
 #include "assets/wolf_wall_texture_decoder.h"
+#include "assets/wolf_sprite_decoder.h"
 #include "core/file.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/input_context.h"
@@ -64,6 +65,12 @@ namespace wc
             const aiko::TextureAsset asset = WolfWallTextureDecoder::decode(wallTexture);
             const aiko::AssetId assetId = assets().createTexture(asset);
             m_wallsTexture.push_back(assetId);
+        }
+        for (const WolfSprite& spriteTexture : assetData.sprites)
+        {
+            const aiko::TextureAsset asset = WolfSpriteDecoder::decode(spriteTexture);
+            const aiko::AssetId assetId = assets().createTexture(asset);
+            m_spriteTexture.push_back(assetId);
         }
 
         const aiko::TextureAsset asset = WolfMapTexture::build(m_wolfMap.value());
@@ -151,13 +158,15 @@ namespace wc
             {
                 ImGui::MenuItem("Render MiniMap", nullptr, &m_debugImgui.renderMiniMap);
                 ImGui::MenuItem("Render Wall Textures", nullptr, &m_debugImgui.renderWallTextures);
+                ImGui::MenuItem("Render Sprite Textures", nullptr, &m_debugImgui.renderSpriteTextures);
                 ImGui::EndMenu();
             }
             ImGui::EndMainMenuBar();
         }
 
         renderMiniMap();
-        renderAllWallTexture();
+        renderAllWallTextures();
+        renderAllSpriteTextures();
 
     }
 
@@ -382,7 +391,7 @@ namespace wc
 
     }
 
-    void WolfCaster::renderAllWallTexture()
+    void WolfCaster::renderAllWallTextures()
     {
         if (m_debugImgui.renderWallTextures == false)
         {
@@ -432,6 +441,59 @@ namespace wc
         }
 
         ImGui::End();
+    }
+
+    void WolfCaster::renderAllSpriteTextures()
+    {
+        if (m_debugImgui.renderSpriteTextures == false)
+        {
+            return;
+        }
+
+        if (ImGui::Begin("Sprite Textures", &m_debugImgui.renderSpriteTextures))
+        {
+            const aiko::SamplerState sampler = {
+                .minFilter = aiko::TextureFilter::Nearest,
+                .magFilter = aiko::TextureFilter::Nearest,
+                .mipFilter = aiko::TextureMipFilter::None,
+                .wrapU = aiko::TextureWrapMode::Clamp,
+                .wrapV = aiko::TextureWrapMode::Clamp,
+            };
+
+            constexpr float textureSize = 64.0f;
+
+            const float availableWidth = ImGui::GetContentRegionAvail().x;
+            const float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+            const int columns = std::max(1, static_cast<int>((availableWidth + spacing) / (textureSize + spacing)));
+
+            for (size_t i = 0; i < m_spriteTexture.size(); ++i)
+            {
+                const aiko::AssetId assetId = m_spriteTexture[i];
+
+                if (assetId == aiko::InvalidAssetId)
+                {
+                    continue;
+                }
+
+                const ImTextureID textureId = static_cast<ImTextureID>(renderer().getTextureId(assetId, sampler));
+
+                ImGui::BeginGroup();
+
+                ImGui::Text("Sprite %zu", i);
+                ImGui::Image(textureId, ImVec2(textureSize, textureSize));
+
+                ImGui::EndGroup();
+
+                if ((i + 1) % columns != 0 && i + 1 < m_spriteTexture.size())
+                {
+                    ImGui::SameLine();
+                }
+            }
+        }
+
+        ImGui::End();
+
     }
 
 }
