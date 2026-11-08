@@ -285,11 +285,31 @@ namespace wc
 
                 uint16_t wallId = 0;
 
-                switch (hit.side)
+                const bool vertical = hit.side == WolfRaySide::Vertical;
+
+                if (hit.kind == WolfRayHitKind::Door)
                 {
-                    case WolfRaySide::Horizontal: wallId = ( tileId - 1 ) * 2;      break;
-                    case WolfRaySide::Vertical: wallId = ( tileId - 1 ) * 2 + 1;    break;
-                    default: AIKO_ASSERT(false, "Unknow Hit Site");
+                    const size_t doorBase = m_wallsTexture.size() - 8;
+                    size_t doorOffset = 0;
+                    if (tileId >= 92 && tileId <= 99)
+                    {
+                        // Locked door
+                        doorOffset = 6;
+                    }
+                    else if (tileId >= 100 && tileId <= 101)
+                    {
+                        // Elevator door
+                        doorOffset = 4;
+                    }
+                    wallId = doorBase + doorOffset + ( vertical ? 1 : 0 );
+                }
+                else
+                {
+                    if (tileId < 1 || tileId > 63)
+                    {
+                        continue;
+                    }
+                    wallId = (static_cast<size_t>(tileId) - 1) * 2 + (vertical ? 1 : 0);
                 }
 
                 AIKO_ASSERT(wallId < m_wallsTexture.size(), "OOB for wall texture");
