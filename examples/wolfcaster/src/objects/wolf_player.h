@@ -25,8 +25,6 @@ namespace wc
 
         static constexpr float m_radius = 0.2f;
 
-        bool collidesAt(const aiko::vec2& candidatePosition, const WolfMap& map) const;
-
         aiko::vec2 m_position = {0.0f};
         float m_angleRadians = 0.0f;
 

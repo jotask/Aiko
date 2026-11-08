@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wolf_door_system.h"
 #include "wolf_map_types.h"
 
 #include <array>
@@ -23,6 +24,8 @@ namespace wc
 
         bool isBlockingTile(int32_t x, int32_t y) const;
 
+        bool collidesAt(const aiko::vec2& position, float radius) const;
+
     private:
 
         size_t getTileIndex(uint16_t x, uint16_t y) const;
@@ -30,6 +33,8 @@ namespace wc
         uint16_t m_width;
         uint16_t m_height;
         std::array<std::vector<uint16_t>, 3> m_planes;
+
+        WolfDoorSystem m_doorSystem;
 
     };
 

@@ -1,5 +1,7 @@
 #include "wolf_door_system.h"
 
+#include "wolf_map.h"
+
 namespace wc
 {
 
@@ -11,7 +13,7 @@ namespace wc
         {
             for (uint16_t x = 0 ; x < map.getWidth(); ++x)
             {
-                const uint16_t tileId = map.getTile( WolfMapPlane::Geometry, x, y);
+                const uint16_t tileId = map.getTile(WolfMapPlane::Geometry, x, y);
                 if (tileId < 90 || tileId > 101 )
                 {
                     continue;
@@ -98,6 +100,11 @@ namespace wc
     {
         AIKO_ASSERT(doorIndex < m_doors.size(), "Door index OOB");
         return m_doors[doorIndex];
+    }
+
+    bool WolfDoorSystem::collidesAt(const aiko::vec2& position, float radius) const
+    {
+        return false;
     }
 
 }

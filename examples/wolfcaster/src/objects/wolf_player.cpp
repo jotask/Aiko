@@ -20,13 +20,13 @@ namespace wc
     void WolfPlayer::move(const aiko::vec2 displacement, const WolfMap& map)
     {
         const aiko::vec2 candidatePositionX = m_position + aiko::vec2(displacement.x, 0);
-        if (collidesAt(candidatePositionX, map) == false)
+        if (map.collidesAt(candidatePositionX, m_radius) == false)
         {
             m_position.x = candidatePositionX.x;
         }
 
         const aiko::vec2 candidatePositionY = m_position + aiko::vec2(0, displacement.y);
-        if (collidesAt(candidatePositionY, map) == false)
+        if (map.collidesAt(candidatePositionY, m_radius) == false)
         {
             m_position.y = candidatePositionY.y;
         }
@@ -54,35 +54,4 @@ namespace wc
         return player;
     }
 
-    bool WolfPlayer::collidesAt(const aiko::vec2& position, const WolfMap& map) const
-    {
-
-        const int32_t minTileX = std::floor(position.x - m_radius);
-        const int32_t maxTileX = std::floor(position.x + m_radius);
-        const int32_t minTileY = std::floor(position.y - m_radius);
-        const int32_t maxTileY = std::floor(position.y + m_radius);
-
-        for (int32_t y = minTileY ; y <= maxTileY ; ++y)
-        {
-            for (int32_t x = minTileX ; x <= maxTileX ; ++x)
-            {
-                if (map.isBlockingTile(x, y) == false)
-                {
-                    continue;
-                }
-                const aiko::vec2 closestPoint =
-                {
-                    aiko::math::clamp(position.x, static_cast<float>(x), static_cast<float>(x + 1) ),
-                    aiko::math::clamp(position.y, static_cast<float>(y), static_cast<float>(y + 1) ),
-                };
-                const float distanceSquared = aiko::math::distanceSquared(position, closestPoint);
-                if (distanceSquared <  m_radius * m_radius)
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
-
-    }
 }

@@ -53,8 +53,6 @@ namespace wc
 
         m_wolfMap = std::move(wolfMap);
 
-        m_doorSystem.initialize(m_wolfMap.value());
-
         const WolfVSwapData assetData = WolfVSwapReader::load(dataDir / "VSWAP.WL1");
         for (const WolfWallTexture& wallTexture : assetData.walls)
         {
