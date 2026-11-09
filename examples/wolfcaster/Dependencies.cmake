@@ -81,3 +81,25 @@ wolf3d_verify_sha1("${WOLF3D_AUDIOHED}"  "732460795d77cab19c8018d879f5c27a3cbd5f
 wolf3d_verify_sha1("${WOLF3D_AUDIOT}"  "0254cc09b7a8ab0b884766b5dcd0e8555c424937")
 
 message(STATUS "Wolfenstein 3D v1.4 shareware data: ${WOLF3D_SHAREWARE_DATA_DIR}")
+
+#----------------------------------------------------------------------
+# MINIAUDIO - Lightweight audio playback
+
+set(MINIAUDIO_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(MINIAUDIO_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(MINIAUDIO_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(MINIAUDIO_NO_EXTRA_NODES ON CACHE BOOL "" FORCE)
+set(MINIAUDIO_NO_LIBVORBIS ON CACHE BOOL "" FORCE)
+set(MINIAUDIO_NO_LIBOPUS ON CACHE BOOL "" FORCE)
+set(MINIAUDIO_INSTALL OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+        miniaudio
+        GIT_REPOSITORY https://github.com/mackron/miniaudio.git
+        GIT_TAG        0.11.26
+        GIT_SHALLOW    TRUE
+)
+
+FetchContent_MakeAvailable(miniaudio)
+
+#----------------------------------------------------------------------

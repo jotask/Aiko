@@ -1,5 +1,6 @@
 #pragma once
 
+#include "audio/wolf_audio_player.h"
 #include "map/wolf_map.h"
 #include "objects/wolf_player.h"
 #include "wolfcaster_types.h"
@@ -29,6 +30,7 @@ namespace wc
         void renderRaycaster();
         void renderAllWallTextures();
         void renderAllSpriteTextures();
+        void renderAudioPlayer();
 
         std::optional<WolfMap> m_wolfMap;
 
@@ -38,6 +40,8 @@ namespace wc
         std::vector<aiko::AssetId> m_spriteTexture;
 
         WolfPlayer m_player;
+
+        WolfAudioPlayer m_soundPlayer;
 
         WolfCasterDebug m_debugImgui;
 

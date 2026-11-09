@@ -34,7 +34,10 @@ namespace wc
 
     WolfCaster::WolfCaster() = default;
 
-    WolfCaster::~WolfCaster() = default;
+    WolfCaster::~WolfCaster()
+    {
+        m_soundPlayer.shutdown();
+    }
 
     void WolfCaster::init()
     {
@@ -82,6 +85,8 @@ namespace wc
         aiko::logger::Log::infoFmt("     Direction: {}", magic_enum::enum_name(playerSpawn.direction));
 
         m_player = WolfPlayer::fromSpawn(playerSpawn);
+
+        m_soundPlayer.init(std::move(assetData.sounds));
 
     }
 
@@ -159,6 +164,7 @@ namespace wc
                 ImGui::MenuItem("Render MiniMap", nullptr, &m_debugImgui.renderMiniMap);
                 ImGui::MenuItem("Render Wall Textures", nullptr, &m_debugImgui.renderWallTextures);
                 ImGui::MenuItem("Render Sprite Textures", nullptr, &m_debugImgui.renderSpriteTextures);
+                ImGui::MenuItem("Render Sound Player", nullptr, &m_debugImgui.renderSoundPlayer);
                 ImGui::EndMenu();
             }
             ImGui::EndMainMenuBar();
@@ -167,6 +173,7 @@ namespace wc
         renderMiniMap();
         renderAllWallTextures();
         renderAllSpriteTextures();
+        renderAudioPlayer();
 
     }
 
@@ -494,6 +501,44 @@ namespace wc
 
         ImGui::End();
 
+    }
+
+    void WolfCaster::renderAudioPlayer()
+    {
+        if (m_debugImgui.renderSoundPlayer == false)
+        {
+            return;
+        }
+        if (ImGui::Begin("Sound Player", &m_debugImgui.renderSoundPlayer))
+        {
+            static size_t currentSoundIndex = 0;
+            const size_t soundCount = m_soundPlayer.getSoundsSize();
+
+            ImGui::Text("Sounds: %zu samples", m_soundPlayer.getSoundsSize());
+            ImGui::Text("Current selected audio: %zu", currentSoundIndex);
+
+            if (ImGui::Button("<"))
+            {
+                currentSoundIndex = (currentSoundIndex + soundCount - 1) % soundCount;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Play"))
+            {
+                m_soundPlayer.play(currentSoundIndex);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(">"))
+            {
+                currentSoundIndex = (currentSoundIndex + 1) % soundCount;
+            }
+
+            if (ImGui::Button("Stop"))
+            {
+                m_soundPlayer.stop();
+            }
+
+        }
+        ImGui::End();
     }
 
 }

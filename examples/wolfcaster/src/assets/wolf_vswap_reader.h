@@ -1,4 +1,5 @@
 #pragma once
+
 #include "wolf_vswap_types.h"
 
 #include <filesystem>
