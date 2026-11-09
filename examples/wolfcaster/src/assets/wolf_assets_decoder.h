@@ -5,9 +5,10 @@
 
 namespace wc
 {
-    class WolfSpriteDecoder
+    class WolfAssetsDecoder final
     {
     public:
+        static aiko::TextureAsset decode(const WolfWallTexture& wall);
         static aiko::TextureAsset decode(const WolfSprite& sprite);
     };
 }

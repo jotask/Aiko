@@ -2,8 +2,7 @@
 
 #include "assets/wolf_map_texture.h"
 #include "assets/wolf_vswap_reader.h"
-#include "assets/wolf_wall_texture_decoder.h"
-#include "assets/wolf_sprite_decoder.h"
+#include "assets/wolf_assets_decoder.h"
 #include "core/file.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/input_context.h"
@@ -65,13 +64,13 @@ namespace wc
         const WolfVSwapData assetData = WolfVSwapReader::load(dataDir / "VSWAP.WL1");
         for (const WolfWallTexture& wallTexture : assetData.walls)
         {
-            const aiko::TextureAsset asset = WolfWallTextureDecoder::decode(wallTexture);
+            const aiko::TextureAsset asset = WolfAssetsDecoder::decode(wallTexture);
             const aiko::AssetId assetId = assets().createTexture(asset);
             m_wallsTexture.push_back(assetId);
         }
         for (const WolfSprite& spriteTexture : assetData.sprites)
         {
-            const aiko::TextureAsset asset = WolfSpriteDecoder::decode(spriteTexture);
+            const aiko::TextureAsset asset = WolfAssetsDecoder::decode(spriteTexture);
             const aiko::AssetId assetId = assets().createTexture(asset);
             m_spriteTexture.push_back(assetId);
         }
