@@ -514,7 +514,7 @@ namespace wc
             static size_t currentSoundIndex = 0;
             const size_t soundCount = m_soundPlayer.getSoundsSize();
 
-            ImGui::Text("Sounds: %zu samples", m_soundPlayer.getSoundsSize());
+            ImGui::Text("Sounds: %zu", m_soundPlayer.getSoundsSize());
             ImGui::Text("Current selected audio: %zu", currentSoundIndex);
 
             if (ImGui::Button("<"))
