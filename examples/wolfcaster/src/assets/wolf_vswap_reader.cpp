@@ -8,7 +8,6 @@
 
 namespace wc
 {
-
     WolfVSwapData WolfVSwapReader::load(const std::filesystem::path& path)
     {
         AIKO_ASSERT(std::filesystem::exists(path), "File dont' exist");
@@ -41,8 +40,8 @@ namespace wc
             chunksLength.push_back(word);
         }
 
+        // Wall Textures
         const uint16_t endOfWallTexture = firstSpriteChunkIndex;
-
         std::vector<WolfWallTexture> walls;
         walls.resize(endOfWallTexture);
         for (size_t wallIndex = 0 ; wallIndex < endOfWallTexture; ++wallIndex)
@@ -71,6 +70,7 @@ namespace wc
 
         }
 
+        // Sprites
         std::vector<WolfSprite> sprites;
         sprites.resize(firstSoundChunkIndex - firstSpriteChunkIndex);
         const uint16_t endOfSprites = firstSoundChunkIndex;
@@ -141,9 +141,102 @@ namespace wc
             }
         }
 
+        // Sounds
+        std::vector<WolfDigitizedSound> sounds;
+        AIKO_ASSERT(firstSoundChunkIndex < totalChunkCount, "VSWAP sound information chunk is missing");
+        const size_t soundInfoChunkIndex = totalChunkCount - 1;
+        const uint32_t soundInfoOffset = chunksOffset[soundInfoChunkIndex];
+        const uint32_t soundInfoLength = chunksLength[soundInfoChunkIndex];
+        const uint32_t soundPageCount = soundInfoChunkIndex - firstSoundChunkIndex;
+        AIKO_ASSERT(soundInfoOffset <= data.size(), "Sound information offset out of bounds");
+        AIKO_ASSERT(soundInfoLength <= data.size() - soundInfoOffset, "Sound information exceeds file bounds");
+        AIKO_ASSERT(soundInfoLength >= 4, "Sound information chunk is too small");
+
+        const size_t soundCount = soundInfoLength / 4;
+        sounds.resize(soundCount);
+        for (size_t soundIndex  = 0 ; soundIndex < soundCount ; ++soundIndex)
+        {
+            const uint16_t startPage = readU16LE(data, soundInfoOffset + soundIndex * 4);
+            const uint16_t soundLengthLow = readU16LE(data, soundInfoOffset + soundIndex * 4 + 2);
+            if (startPage >= soundPageCount)
+            {
+                break;
+            }
+            if (soundIndex > 0 && startPage == 0)
+            {
+                break;
+            }
+            const size_t firstPageIndex = firstSoundChunkIndex + startPage;
+
+            size_t lastPageIndex = soundInfoChunkIndex;
+            if (soundIndex + 1 < soundCount)
+            {
+                const uint16_t nextStartPage = readU16LE(data, soundInfoOffset + (soundIndex + 1) * 4);
+                if (nextStartPage > startPage && nextStartPage < soundPageCount)
+                {
+                    lastPageIndex = firstSoundChunkIndex + nextStartPage;
+                }
+                else
+                {
+                    AIKO_ASSERT(nextStartPage == 0 || nextStartPage >= soundPageCount, "Invalid next sound starting page");
+                }
+            }
+            AIKO_ASSERT(lastPageIndex > firstPageIndex, "Invalid digitized sound page range");
+            AIKO_ASSERT(lastPageIndex <= soundInfoChunkIndex, "Digitized sound range exceeds sound data pages");
+
+            size_t totalPageBytes = 0;
+            for (size_t pageIndex = firstPageIndex; pageIndex < lastPageIndex; ++pageIndex)
+            {
+                totalPageBytes += chunksLength[pageIndex];
+            }
+            if (totalPageBytes == 0)
+            {
+                continue;
+            }
+
+            uint16_t highWord = getHighWord(totalPageBytes);
+            const uint16_t lowWord = getLowWord(totalPageBytes);
+            if (highWord > 0 && lowWord < soundLengthLow)
+            {
+                --highWord;
+            }
+            const size_t soundLength = combineWords(highWord, soundLengthLow);
+            AIKO_ASSERT(soundLength <= totalPageBytes, "Digitized sound length exceeds available page data");
+
+            std::vector<uint8_t> samples;
+            samples.reserve(soundLength);
+
+            for (size_t pageIndex = firstPageIndex; pageIndex < lastPageIndex; ++pageIndex)
+            {
+                const uint32_t pageOffset = chunksOffset[pageIndex];
+                const uint16_t pageLength = chunksLength[pageIndex];
+                AIKO_ASSERT(pageOffset <= data.size(), "Digitized sound page offset out of bounds");
+                AIKO_ASSERT(pageLength <= data.size() - pageOffset, "Digitized sound page exceeds file bounds");
+                const size_t remainBytes = soundLength - samples.size();
+                const size_t copyLength = std::min(size_t(pageLength), remainBytes);
+                for (size_t sample = 0; sample < copyLength; ++sample)
+                {
+                    samples.push_back(data[pageOffset + sample]);
+                }
+                if (samples.size() == soundLength)
+                {
+                    break;
+                }
+            }
+            AIKO_ASSERT(samples.size() == soundLength, "Digitized sound sample count mismatch");
+
+            WolfDigitizedSound sound = {
+                .samples = std::move(samples),
+                .sampleRate = 7042,
+            };
+            sounds[soundIndex] = std::move(sound);
+
+        }
+
         const WolfVSwapData result = {
             .walls = std::move(walls),
             .sprites = std::move(sprites),
+            .sounds = std::move(sounds),
         };
 
         return result;

@@ -30,6 +30,21 @@ namespace wc
         return input & 0xff;
     }
 
+    inline uint16_t getHighWord(size_t input)
+    {
+        return static_cast<uint16_t>((input >> 16) & 0xFFFF);
+    }
+
+    inline uint16_t getLowWord(size_t input)
+    {
+        return static_cast<uint16_t>(input & 0xFFFF);
+    }
+
+    inline size_t combineWords(uint16_t high, uint16_t low)
+    {
+        return (size_t(high) << 16) | low;
+    }
+
     inline uint16_t wordByte(uint8_t high, uint8_t low)
     {
         return (uint16_t(high) << 8) | low;
