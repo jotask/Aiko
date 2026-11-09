@@ -268,7 +268,9 @@ namespace wc
     void WolfCaster::renderRaycaster()
     {
         constexpr int32_t RayCount = 320;
-        constexpr float FOV = 66; // degrees
+
+        constexpr float ReferenceHorizontalFOV = 66.0f; // degrees
+        constexpr float ReferenceAspectRatio = 4.0f / 3.0f;
 
         const aiko::ivec2 renderSize = renderer().getRenderSize();
 
@@ -276,8 +278,10 @@ namespace wc
         const aiko::vec2 viewportPosition = {0, 0};
 
         const float columnWidth = viewportSize.x / RayCount;
-
-        const float planeLength = std::tan(aiko::math::radians(FOV) * 0.5f);
+        const float aspectRatio = viewportSize.x / viewportSize.y;
+        const float referencePlaneLength = std::tan(aiko::math::radians(ReferenceHorizontalFOV) * 0.5f);
+        const float planeLength = referencePlaneLength * (aspectRatio / ReferenceAspectRatio);
+        const float projectionDistance = viewportSize.x / (2.0f * planeLength);
         const aiko::vec2 cameraPlane = m_player.right() * planeLength;
 
         constexpr aiko::SamplerState sampler = {
@@ -300,7 +304,7 @@ namespace wc
                 const auto normalizedRayDirection = aiko::math::normalize(rayDirection);
                 const float perpendicularDistance = hit.distance * aiko::math::dot(normalizedRayDirection, m_player.forward());
 
-                const float wallHeight = viewportSize.x / ( 2.0f * planeLength * perpendicularDistance );
+                const float wallHeight = projectionDistance / perpendicularDistance;
 
                 const float columnX = viewportPosition.x + rayIndex * columnWidth;
                 const float columnY = viewportPosition.y + (viewportSize.y - wallHeight) / 2.0f;
