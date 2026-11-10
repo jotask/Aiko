@@ -18,12 +18,14 @@ namespace wc
         AIKO_ASSERT(m_data.info.size() == expectedTileCount, "Invalid info size");
 
         m_doorSystem.initialize(*this);
+        m_enemySystem.initialize(*this);
 
     }
 
     void WolfMap::update(float deltaTime)
     {
         m_doorSystem.update(deltaTime);
+        m_enemySystem.update(deltaTime);
     }
 
     TileId WolfMap::getGeometryTile(uint16_t x, uint16_t y) const

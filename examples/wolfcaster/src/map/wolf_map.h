@@ -1,12 +1,13 @@
 #pragma once
 
 #include "wolf_door_system.h"
+#include "wolf_enemy_system.h"
 #include "wolf_map_types.h"
 
 #include <array>
 #include <cstdint>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace wc
 {
@@ -28,6 +29,7 @@ namespace wc
 
         const WolfPlayerSpawn& getPlayerSpawn() const { return m_data.playerSpawn; }
         const std::vector<WolfEnemySpawn>& getEnemySpawns() const { return m_data.enemySpawns; }
+        const std::vector<WolfEnemy>& getEnemies() const { return m_enemySystem.getEnemies(); }
         const std::vector<WolfWorldObject>& getObjects() const { return m_data.objects; }
 
         bool canInteract(int32_t tileX, int32_t tileY) const;
@@ -44,6 +46,7 @@ namespace wc
 
         WolfMapData m_data;
         WolfDoorSystem m_doorSystem;
+        WolfEnemySystem m_enemySystem;
 
     };
 

@@ -78,12 +78,12 @@ namespace wc
         Special
     };
 
-    enum class WolfDifficulty
+    enum class WolfDifficulty : uint8_t
     {
-        Baby,
-        Easy,
-        Medium,
-        Hard,
+        Baby = 0,
+        Easy = 1,
+        Medium = 2,
+        Hard = 3,
     };
 
     struct WolfEnemySpawn

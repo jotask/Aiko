@@ -165,40 +165,39 @@ namespace wc
                 }
             }
 
-            renderSprites(map, player, spriteTextures, ui, viewportSize, projectionDistance, wallDepths, sampler);
+            const std::vector<ProjectedSprite> visiblesSprites = calculateVisibleSprites(map, player, spriteTextures, viewportSize, projectionDistance);
+            renderSprites(visiblesSprites, viewportSize, ui, wallDepths, spriteTextures, sampler);
 
             ui.popClipRect();
         }
 
     }
 
-    void WolfRaycastRenderer::renderSprites(const WolfMap& map, const WolfPlayer& player, const std::vector<aiko::AssetId>& spriteTextures, aiko::UIContext& ui, const aiko::vec2& viewportSize, float projectionDistance, const std::array<float, RayCount>& wallDepths, const aiko::SamplerState& sampler)
+    std::vector<WolfRaycastRenderer::ProjectedSprite> WolfRaycastRenderer::calculateVisibleSprites(const WolfMap& map, const WolfPlayer& player, const std::vector<aiko::AssetId>& spriteTextures, const aiko::vec2& viewportSize, float projectionDistance)
     {
-        const float columnWidth = viewportSize.x / RayCount;
 
         const aiko::vec2 forward = player.forward();
         const aiko::vec2 right = player.right();
 
         const auto& objects = map.getObjects();
+        const auto& enemies = map.getEnemies();
 
         std::vector<ProjectedSprite> visibleSprites;
-        visibleSprites.reserve(objects.size());
+        visibleSprites.reserve(objects.size() + enemies.size());
 
-        for (size_t i = 0; i < objects.size(); ++i)
+        const auto projectSprite = [&](const aiko::vec2& position, size_t spriteIndex )
         {
-            const WolfWorldObject& object = objects[i];
-
-            if (object.spriteIndex >= spriteTextures.size())
+            if (spriteIndex >= spriteTextures.size())
             {
-                continue;
+                return;
             }
 
-            const aiko::vec2 relative = object.position - player.position();
+            const aiko::vec2 relative = position - player.position();
             const float depth = aiko::math::dot(relative, forward);
 
             if (depth <= 0.05f)
             {
-                continue;
+                return;
             }
 
             const float lateral = aiko::math::dot(relative, right);
@@ -209,15 +208,26 @@ namespace wc
 
             if (rightEdge <= 0.0f || left >= viewportSize.x)
             {
-                continue;
+                return;
             }
 
             visibleSprites.push_back({
-                .objectIndex = i,
+                .spriteIndex = spriteIndex,
                 .depth = depth,
                 .centerX = centerX,
                 .size = size
             });
+        };
+
+        for (const WolfWorldObject& object : map.getObjects())
+        {
+            projectSprite(object.position, object.spriteIndex);
+        }
+
+        for (const WolfEnemy& enemy : map.getEnemies())
+        {
+            const size_t spriteIdx = resolveEnemySpriteIndex(enemy, player.position());
+            projectSprite(enemy.position(), spriteIdx);
         }
 
         // Transparent sprites must be rendered farthest first.
@@ -230,10 +240,18 @@ namespace wc
             }
         );
 
+        return visibleSprites;
+
+    }
+
+    void WolfRaycastRenderer::renderSprites(const std::vector<ProjectedSprite>& visibleSprites, const aiko::vec2& viewportSize, aiko::UIContext& ui, const std::array<float, RayCount>& wallDepths, const std::vector<aiko::AssetId>& spriteTextures, const aiko::SamplerState& sampler)
+    {
+
+        const float columnWidth = viewportSize.x / RayCount;
+
         for (const ProjectedSprite& sprite : visibleSprites)
         {
-            const WolfWorldObject& object = objects[sprite.objectIndex];
-            const aiko::AssetId textureId = spriteTextures[object.spriteIndex];
+            const aiko::AssetId textureId = spriteTextures[sprite.spriteIndex];
 
             if (textureId == aiko::InvalidAssetId)
             {
@@ -275,6 +293,31 @@ namespace wc
                 ui.image(textureId, region, {column * columnWidth, top}, {columnWidth, sprite.size}, aiko::WHITE, sampler);
             }
         }
+    }
+
+    size_t WolfRaycastRenderer::resolveEnemySpriteIndex(const WolfEnemy& enemy, const aiko::vec2& playerPosition)
+    {
+        switch (enemy.type())
+        {
+            case WolfEnemyType::Guard:              return (enemy.spawnMode() == WolfEnemySpawnMode::Standing) ? 50 : 58;
+            case WolfEnemyType::Dog:                return (enemy.spawnMode() == WolfEnemySpawnMode::Standing) ? 99 : 99;
+            case WolfEnemyType::SS:                 return (enemy.spawnMode() == WolfEnemySpawnMode::Standing) ? 138 : 146;
+            case WolfEnemyType::Mutant:             return (enemy.spawnMode() == WolfEnemySpawnMode::Standing) ? 187 : 195;
+            case WolfEnemyType::Officer:            return (enemy.spawnMode() == WolfEnemySpawnMode::Standing) ? 238 : 246;
+            case WolfEnemyType::FakeHitler:	        return 321;
+            case WolfEnemyType::MechaHitler:	    return 334;
+            case WolfEnemyType::GeneralFettgesicht:	return 396;
+            case WolfEnemyType::DrSchabbs:	        return 307;
+            case WolfEnemyType::GretelGrosse:	    return 385;
+            case WolfEnemyType::HansGrosse:	        return 296;
+            case WolfEnemyType::OttoGiftmacher:	    return 360;
+            case WolfEnemyType::Blinky:	            return 288;
+            case WolfEnemyType::Clyde:	            return 292;
+            case WolfEnemyType::Pinky:	            return 290;
+            case WolfEnemyType::Inky:	            return 294;
+        }
+        AIKO_ASSERT(false, "Unknow sprite for unknow enemy type");
+        return {};
     }
 
 }
