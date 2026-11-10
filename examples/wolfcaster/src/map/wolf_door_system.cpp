@@ -14,7 +14,7 @@ namespace wc
         {
             for (uint16_t x = 0 ; x < map.getWidth(); ++x)
             {
-                const uint16_t tileId = map.getTile(WolfMapPlane::Geometry, x, y);
+                const TileId tileId = map.getGeometryTile(x, y);
                 if (tileId < 90 || tileId > 101 )
                 {
                     continue;

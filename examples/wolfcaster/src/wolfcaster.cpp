@@ -77,9 +77,9 @@ namespace wc
         const aiko::TextureAsset asset = WolfMapTexture::build(m_wolfMap);
         m_mapTextureId = assets().createTexture(asset);
 
-        const WolfPlayerSpawn playerSpawn = m_wolfMap.findPlayerSpawn();
+        const WolfPlayerSpawn& playerSpawn = m_wolfMap.getPlayerSpawn();
         aiko::logger::Log::infoFmt("WolfCaster Player Spawn");
-        aiko::logger::Log::infoFmt("     Tile: ({} , {})", playerSpawn.tileX, playerSpawn.tileY);
+        aiko::logger::Log::infoFmt("     Tile: ({} , {})", playerSpawn.tile.x, playerSpawn.tile.y);
         aiko::logger::Log::infoFmt("     Direction: {}", magic_enum::enum_name(playerSpawn.direction));
 
         m_player = WolfPlayer::fromSpawn(playerSpawn);
@@ -187,11 +187,8 @@ namespace wc
 
     void WolfCaster::loadLevel(uint16_t levelIndex)
     {
-        WolfMap newMap = WolfMapLoader::loadLevel(WOLF3D_DATA_DIR, levelIndex);
-        WolfPlayer newPlayer = WolfPlayer::fromSpawn(newMap.findPlayerSpawn());
-
-        m_wolfMap = std::move(newMap);
-        m_player = std::move(newPlayer);
+        m_wolfMap = WolfMapLoader::loadLevel(WOLF3D_DATA_DIR, levelIndex);
+        m_player = WolfPlayer::fromSpawn(m_wolfMap.getPlayerSpawn());
 
         assets().getMutableTexture(m_mapTextureId) = WolfMapTexture::build(m_wolfMap);
         assets().invalidateTexture(m_mapTextureId);
@@ -199,74 +196,74 @@ namespace wc
     }
 
 
-void WolfCaster::renderLevelSelector()
-{
-    if (m_debugImgui.renderLevelSelector == false)
+    void WolfCaster::renderLevelSelector()
     {
-        return;
-    }
-
-    if (ImGui::Begin("Level Selector", &m_debugImgui.renderLevelSelector))
-    {
-        const uint16_t currentLevel = m_wolfMap.getLevelIndex();
-
-        ImGui::Text("Current Level: %u", unsigned(currentLevel + 1));
-        ImGui::Text("Name: %s", m_wolfMap.getName().c_str());
-        ImGui::Text("Levels Available: %zu", m_availableLevels.size());
-
-        ImGui::Separator();
-
-        ImGuiStorage* storage = ImGui::GetStateStorage();
-        const ImGuiID selectionId = ImGui::GetID("SelectedLevel");
-
-        const int selectedLevel = storage->GetInt(selectionId, currentLevel);
-
-        const std::string preview = std::format("Level {}", selectedLevel + 1);
-
-        if (ImGui::BeginCombo("Levels", preview.c_str()))
+        if (m_debugImgui.renderLevelSelector == false)
         {
-            for (const WolfLevelInfo& level : m_availableLevels)
+            return;
+        }
+
+        if (ImGui::Begin("Level Selector", &m_debugImgui.renderLevelSelector))
+        {
+            const uint16_t currentLevel = m_wolfMap.getLevelIndex();
+
+            ImGui::Text("Current Level: %u", unsigned(currentLevel + 1));
+            ImGui::Text("Name: %s", m_wolfMap.getName().c_str());
+            ImGui::Text("Levels Available: %zu", m_availableLevels.size());
+
+            ImGui::Separator();
+
+            ImGuiStorage* storage = ImGui::GetStateStorage();
+            const ImGuiID selectionId = ImGui::GetID("SelectedLevel");
+
+            const int selectedLevel = storage->GetInt(selectionId, currentLevel);
+
+            const std::string preview = std::format("Level {}", selectedLevel + 1);
+
+            if (ImGui::BeginCombo("Levels", preview.c_str()))
             {
-                const bool selected = selectedLevel == level.index;
-                const std::string label = std::format("{} - {} ({}x{})", level.index + 1, level.name, level.width, level.height);
-                if (ImGui::Selectable(label.c_str(), selected))
+                for (const WolfLevelInfo& level : m_availableLevels)
                 {
-                    storage->SetInt(selectionId, level.index);
+                    const bool selected = selectedLevel == level.index;
+                    const std::string label = std::format("{} - {} ({}x{})", level.index + 1, level.name, level.width, level.height);
+                    if (ImGui::Selectable(label.c_str(), selected))
+                    {
+                        storage->SetInt(selectionId, level.index);
+                    }
+
+                    if (selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
                 }
 
-                if (selected)
-                {
-                    ImGui::SetItemDefaultFocus();
-                }
+                ImGui::EndCombo();
             }
 
-            ImGui::EndCombo();
+            ImGui::BeginDisabled(m_availableLevels.empty());
+
+            if (ImGui::Button("Load Selected Level"))
+            {
+                m_requestedLevel = static_cast<uint16_t>(storage->GetInt(selectionId, currentLevel));
+            }
+
+            ImGui::EndDisabled();
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Restart Level"))
+            {
+                m_requestedLevel = currentLevel;
+            }
+
+            if (m_requestedLevel.has_value())
+            {
+                ImGui::TextDisabled("Level change queued");
+            }
         }
 
-        ImGui::BeginDisabled(m_availableLevels.empty());
-
-        if (ImGui::Button("Load Selected Level"))
-        {
-            m_requestedLevel = static_cast<uint16_t>(storage->GetInt(selectionId, currentLevel));
-        }
-
-        ImGui::EndDisabled();
-
-        ImGui::SameLine();
-
-        if (ImGui::Button("Restart Level"))
-        {
-            m_requestedLevel = currentLevel;
-        }
-
-        if (m_requestedLevel.has_value())
-        {
-            ImGui::TextDisabled("Level change queued");
-        }
+        ImGui::End();
     }
-
-    ImGui::End();
-}
 
 
     void WolfCaster::renderMiniMap()

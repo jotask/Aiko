@@ -130,7 +130,7 @@ namespace wc
     WolfRayHit WolfRaycaster::intersectDoor(const WolfMap& map, int32_t tileX, int32_t tileY, const aiko::vec2& rayOrigin, const aiko::vec2& rayDirection, float entryDistance, float exitDistance, WolfRaycastMode mode)
     {
         AIKO_ASSERT(tileX >= 0 && tileX < map.getWidth() && tileY >= 0 && tileY < map.getHeight(), "Outside of map OOB");
-        const uint16_t tileId = map.getTile(WolfMapPlane::Geometry, tileX, tileY);
+        const TileId tileId = map.getGeometryTile(tileX, tileY);
         if (tileId < 90 || tileId > 101)
         {
             return {};

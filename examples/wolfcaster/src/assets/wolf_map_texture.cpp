@@ -23,7 +23,7 @@ namespace wc
         {
             for (size_t x = 0 ; x < map.getWidth(); ++x)
             {
-                const uint16_t tileMap = map.getTile(WolfMapPlane::Geometry, x, y);
+                const TileId tileMap = map.getGeometryTile(x, y);
                 const aiko::Color pixelColor = getTileColor(tileMap);
                 asset.pixels[y * size_t(map.getWidth()) + size_t(x)] = pixelColor;
             }
@@ -33,7 +33,7 @@ namespace wc
 
     }
 
-    aiko::Color WolfMapTexture::getTileColor(uint16_t tileId)
+    aiko::Color WolfMapTexture::getTileColor(TileId tileId)
     {
         if (tileId >= 1 && tileId <= 63) // Wall
         {

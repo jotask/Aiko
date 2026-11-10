@@ -76,7 +76,7 @@ namespace wc
                         continue;
                     }
 
-                    const auto tileId = map.getTile(WolfMapPlane::Geometry, hit.tileX, hit.tileY);
+                    const TileId tileId = map.getGeometryTile(hit.tileX, hit.tileY);
 
                     uint16_t wallId = 0;
 

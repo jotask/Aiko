@@ -8,6 +8,9 @@
 #include "rlew_decoder.h"
 #include "wolf_map.h"
 
+#include <optional>
+#include <utility>
+
 namespace wc
 {
 
@@ -42,27 +45,78 @@ namespace wc
         AIKO_ASSERT(levelOffset <= gameMapBytes.size() && gameMapBytes.size() - levelOffset >= 38, "Invalid level header offset");
 
         const WolfLevelHeader levelInfo = readLevelHeader(gameMapBytes, levelOffset);
+        AIKO_ASSERT(levelInfo.width > 0 && levelInfo.height > 0, "Invalid level dimensions");
+
         const size_t expectedTileCount = size_t(levelInfo.width) * size_t(levelInfo.height);
 
-        std::vector<uint16_t> plane0 = decodePlane(gameMapBytes, levelInfo.planesOffset[0].first, levelInfo.planesOffset[0].second, rlewTag, expectedTileCount);
-        std::vector<uint16_t> plane1 = decodePlane(gameMapBytes, levelInfo.planesOffset[1].first, levelInfo.planesOffset[1].second, rlewTag, expectedTileCount);
-        std::vector<uint16_t> plane2;
+        std::vector<TileId> geometry = decodePlane(gameMapBytes, levelInfo.planesOffset[0].first, levelInfo.planesOffset[0].second, rlewTag, expectedTileCount);
+        std::vector<TileId> objectPlane = decodePlane(gameMapBytes, levelInfo.planesOffset[1].first, levelInfo.planesOffset[1].second, rlewTag, expectedTileCount);
+        std::vector<TileId> info;
         if (levelInfo.planesOffset[2].second > 0)
         {
-            plane2 = decodePlane(gameMapBytes, levelInfo.planesOffset[2].first, levelInfo.planesOffset[2].second, rlewTag, expectedTileCount);
+            info = decodePlane(gameMapBytes, levelInfo.planesOffset[2].first, levelInfo.planesOffset[2].second, rlewTag, expectedTileCount);
         }
         else
         {
-            plane2.resize(expectedTileCount, 0);
+            info.resize(expectedTileCount, 0);
         }
 
-        std::array<std::vector<uint16_t>, 3> planes = {
-            std::move(plane0),
-            std::move(plane1),
-            std::move(plane2),
+        // Player Spawn && Objects
+        std::optional<WolfPlayerSpawn> playerSpawn;
+        std::vector<WolfWorldObject> objects;
+        for (size_t i = 0 ; i < objectPlane.size(); ++i)
+        {
+            const TileId objectId = objectPlane[i];
+
+            const Tile tile = {
+                static_cast<uint16_t>(i % levelInfo.width),
+                static_cast<uint16_t>(i / levelInfo.width),
+            };
+
+            if (objectId >= 19 && objectId <= 22)
+            {
+                // Player Spawn
+                AIKO_ASSERT(!playerSpawn.has_value(), "Multiple player spawns found");
+                playerSpawn = WolfPlayerSpawn{
+                    .tile = tile,
+                    .direction = static_cast<WolfDirection>(objectId)
+                };
+                continue;
+            }
+
+            // Static object
+            if (objectId >= 23 && objectId <= 70)
+            {
+                objects.push_back({
+                    .position = {
+                        static_cast<float>(tile.x) + 0.5f,
+                        static_cast<float>(tile.y) + 0.5f
+                    },
+                    .mapObjectId = objectId,
+                    .spriteIndex = size_t(objectId - 23) + 2,
+                    .blocking = false
+                });
+                continue;
+            }
+
+        }
+
+        AIKO_ASSERT(playerSpawn.has_value(), "Player spawn not found");
+
+        WolfMapData data{
+            .level = {
+                .index = levelIndex,
+                .name = levelInfo.name,
+                .width = levelInfo.width,
+                .height = levelInfo.height
+            },
+            .geometry = std::move(geometry),
+            .info = std::move(info),
+            .playerSpawn = *playerSpawn,
+            .objects = std::move(objects)
         };
 
-        return WolfMap(levelIndex, levelInfo.name, levelInfo.width, levelInfo.height, std::move(planes));
+        return WolfMap(std::move(data));
 
     }
 

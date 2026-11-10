@@ -49,7 +49,7 @@ namespace wc
                 default: AIKO_ASSERT(false, "Not supported direction");
         }
         WolfPlayer player;
-        player.m_position = aiko::vec2( spawn.tileX + 0.5f, spawn.tileY + 0.5f );
+        player.m_position = aiko::vec2( spawn.tile.x + 0.5f, spawn.tile.y + 0.5f );
         player.m_angleRadians = radians;
         return player;
     }
