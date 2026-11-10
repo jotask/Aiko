@@ -6,6 +6,7 @@
 #include <array>
 #include <cstdint>
 #include <vector>
+#include <string>
 
 namespace wc
 {
@@ -14,7 +15,7 @@ namespace wc
     {
     public:
 
-        WolfMap(uint16_t width, uint16_t height, std::array<std::vector<uint16_t>, 3>);
+        WolfMap(uint16_t levelIdx, std::string name, uint16_t width, uint16_t height, std::array<std::vector<uint16_t>, 3>);
 
         void update(float deltaTime);
 
@@ -33,12 +34,19 @@ namespace wc
 
         const WolfDoor* getDoor(int32_t tileX, int32_t tileY) const;
 
+        uint16_t getLevelIndex() const { return m_levelIndex; }
+        const std::string& getName() const { return m_name; }
+
     private:
 
         size_t getTileIndex(uint16_t x, uint16_t y) const;
 
+        uint16_t m_levelIndex;
+        std::string m_name;
+
         uint16_t m_width;
         uint16_t m_height;
+
         std::array<std::vector<uint16_t>, 3> m_planes;
 
         WolfDoorSystem m_doorSystem;

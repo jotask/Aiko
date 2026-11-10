@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
+#include <array>
+#include <utility>
 
 namespace wc
 {
@@ -24,6 +27,14 @@ namespace wc
         uint16_t tileX;
         uint16_t tileY;
         WolfDirection direction;
+    };
+
+    struct WolfLevelInfo
+    {
+        uint16_t index = 0;
+        std::string name;
+        uint16_t width = 0;
+        uint16_t height = 0;
     };
 
 }

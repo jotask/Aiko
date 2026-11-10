@@ -25,19 +25,23 @@ namespace wc
         
     private:
 
-        void renderBackground();
+        void loadLevel(uint16_t levelIndex);
+
+        void renderLevelSelector();
         void renderMiniMap();
-        void renderRaycaster();
         void renderAllWallTextures();
         void renderAllSpriteTextures();
         void renderAudioPlayer();
 
-        std::optional<WolfMap> m_wolfMap;
+        std::vector<WolfLevelInfo> m_availableLevels;
+        std::optional<uint16_t> m_requestedLevel;
+
+        WolfMap m_wolfMap;
 
         aiko::AssetId m_mapTextureId = aiko::InvalidAssetId;
 
-        std::vector<aiko::AssetId> m_wallsTexture;
-        std::vector<aiko::AssetId> m_spriteTexture;
+        std::vector<aiko::AssetId> m_wallTextures;
+        std::vector<aiko::AssetId> m_spriteTextures;
 
         WolfPlayer m_player;
 

@@ -8,8 +8,10 @@
 namespace wc
 {
 
-    WolfMap::WolfMap(uint16_t width, uint16_t height, std::array<std::vector<uint16_t>, 3> planes)
-        : m_width(width)
+    WolfMap::WolfMap(uint16_t levelIndex, std::string name, uint16_t width, uint16_t height, std::array<std::vector<uint16_t>, 3> planes)
+        : m_levelIndex(levelIndex)
+        , m_name(std::move(name))
+        , m_width(width)
         , m_height(height)
         , m_planes(std::move(planes))
     {

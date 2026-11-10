@@ -8,20 +8,22 @@
 
 namespace wc
 {
-    class WolfMapReader
+    class WolfMapLoader
     {
     public:
 
-        static std::optional<WolfMap> load(const std::filesystem::path& mapHead, const std::filesystem::path& gameMapPath);
+        static WolfMap loadLevel(const std::filesystem::path& dataDirectory, uint16_t levelIndex);
+
+        static std::vector<WolfLevelInfo> getAvailableLevels(const std::filesystem::path& dataDirectory);
 
     private:
 
         struct WolfLevelHeader
         {
-            std::array<std::pair<uint32_t, uint16_t>, 3> planesOffset; // offset and length
             uint16_t width;
             uint16_t height;
             std::string name;
+            std::array<std::pair<uint32_t, uint16_t>, 3> planesOffset; // offset and length
         };
 
         static WolfLevelHeader readLevelHeader(std::span<const uint8_t> data, size_t offset);

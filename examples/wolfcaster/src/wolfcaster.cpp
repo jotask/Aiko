@@ -1,15 +1,16 @@
 #include "wolfcaster.h"
 
+#include "assets/wolf_assets_decoder.h"
 #include "assets/wolf_map_texture.h"
 #include "assets/wolf_vswap_reader.h"
-#include "assets/wolf_assets_decoder.h"
 #include "core/file.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/input_context.h"
 #include "layers/contexts/render_context.h"
 #include "layers/contexts/scene_context.h"
 #include "layers/contexts/ui_context.h"
-#include "map/wolf_map_reader.h"
+#include "map/wolf_map_loader.h"
+#include "raycasting/wolf_raycast_renderer.h"
 #include "raycasting/wolf_raycaster.h"
 
 #include <components/camera_component.h>
@@ -31,7 +32,11 @@ namespace wc
         constexpr float MaxInteractionDistance = 1.5f;
     }
 
-    WolfCaster::WolfCaster() = default;
+    WolfCaster::WolfCaster()
+        : m_wolfMap(WolfMapLoader::loadLevel(WOLF3D_DATA_DIR, 0))
+    {
+
+    }
 
     WolfCaster::~WolfCaster()
     {
@@ -53,32 +58,26 @@ namespace wc
 
         const std::filesystem::path dataDir = WOLF3D_DATA_DIR;
 
-        const auto mapHeadPath = dataDir / "MAPHEAD.WL1";
-        const auto gameMapsPath = dataDir / "GAMEMAPS.WL1";
-
-        std::optional<WolfMap> wolfMap = WolfMapReader::load(mapHeadPath, gameMapsPath);
-        AIKO_ASSERT(wolfMap != std::nullopt, "Failed to load file map data");
-
-        m_wolfMap = std::move(wolfMap);
+        m_availableLevels = WolfMapLoader::getAvailableLevels(dataDir);
 
         const WolfVSwapData assetData = WolfVSwapReader::load(dataDir / "VSWAP.WL1");
         for (const WolfWallTexture& wallTexture : assetData.walls)
         {
             const aiko::TextureAsset asset = WolfAssetsDecoder::decode(wallTexture);
             const aiko::AssetId assetId = assets().createTexture(asset);
-            m_wallsTexture.push_back(assetId);
+            m_wallTextures.push_back(assetId);
         }
         for (const WolfSprite& spriteTexture : assetData.sprites)
         {
             const aiko::TextureAsset asset = WolfAssetsDecoder::decode(spriteTexture);
             const aiko::AssetId assetId = assets().createTexture(asset);
-            m_spriteTexture.push_back(assetId);
+            m_spriteTextures.push_back(assetId);
         }
 
-        const aiko::TextureAsset asset = WolfMapTexture::build(m_wolfMap.value());
+        const aiko::TextureAsset asset = WolfMapTexture::build(m_wolfMap);
         m_mapTextureId = assets().createTexture(asset);
 
-        const WolfPlayerSpawn playerSpawn = m_wolfMap->findPlayerSpawn();
+        const WolfPlayerSpawn playerSpawn = m_wolfMap.findPlayerSpawn();
         aiko::logger::Log::infoFmt("WolfCaster Player Spawn");
         aiko::logger::Log::infoFmt("     Tile: ({} , {})", playerSpawn.tileX, playerSpawn.tileY);
         aiko::logger::Log::infoFmt("     Direction: {}", magic_enum::enum_name(playerSpawn.direction));
@@ -92,6 +91,14 @@ namespace wc
     void WolfCaster::update()
     {
         AIKO_FUNCTION_PROFILE
+
+        if (m_requestedLevel.has_value())
+        {
+            const uint16_t levelIndex = *m_requestedLevel;
+            m_requestedLevel.reset();
+            loadLevel(levelIndex);
+            return;
+        }
 
         const float deltaTime = getDeltaTime();
 
@@ -131,35 +138,36 @@ namespace wc
         {
             const aiko::vec2 normalizedMove = aiko::math::normalize(movementDirection);
             const aiko::vec2 displacement = normalizedMove * moveSpeed * deltaTime;
-            m_player.move(displacement, m_wolfMap.value());
+            m_player.move(displacement, m_wolfMap);
         }
 
         if (input().isKeyJustPressed(aiko::Key::KEY_F))
         {
-            const WolfRayHit hit = WolfRaycaster::castRay(m_wolfMap.value(), m_player.position(), m_player.forward(), WolfRaycastMode::Interaction);
+            const WolfRayHit hit = WolfRaycaster::castRay(m_wolfMap, m_player.position(), m_player.forward(), WolfRaycastMode::Interaction);
             if (hit.distance < MaxInteractionDistance)
             {
-                if (hit.hit == true && m_wolfMap->canInteract(hit.tileX, hit.tileY))
+                if (hit.hit == true && m_wolfMap.canInteract(hit.tileX, hit.tileY))
                 {
-                    m_wolfMap->interact(hit.tileX, hit.tileY);
+                    m_wolfMap.interact(hit.tileX, hit.tileY);
                 }
             }
         }
 
-        m_wolfMap->update(deltaTime);
+        m_wolfMap.update(deltaTime);
 
     }
 
     void WolfCaster::render()
     {
         AIKO_FUNCTION_PROFILE
-        renderBackground();
-        renderRaycaster();
+
+        WolfRaycastRenderer::render(m_wolfMap, m_player, m_wallTextures, m_spriteTextures, ui(), aiko::vec2(renderer().getRenderSize()));
 
         if (ImGui::BeginMainMenuBar())
         {
             if (ImGui::BeginMenu("Tools"))
             {
+                ImGui::MenuItem("Render Level Selector", nullptr, &m_debugImgui.renderLevelSelector);
                 ImGui::MenuItem("Render MiniMap", nullptr, &m_debugImgui.renderMiniMap);
                 ImGui::MenuItem("Render Wall Textures", nullptr, &m_debugImgui.renderWallTextures);
                 ImGui::MenuItem("Render Sprite Textures", nullptr, &m_debugImgui.renderSpriteTextures);
@@ -169,6 +177,7 @@ namespace wc
             ImGui::EndMainMenuBar();
         }
 
+        renderLevelSelector();
         renderMiniMap();
         renderAllWallTextures();
         renderAllSpriteTextures();
@@ -176,22 +185,89 @@ namespace wc
 
     }
 
-    void WolfCaster::renderBackground()
+    void WolfCaster::loadLevel(uint16_t levelIndex)
     {
-        constexpr aiko::Color ceilingColor = aiko::Color(89 / 255.0f, 107 / 255.0f, 121 / 255.0f);
-        constexpr aiko::Color floorColor = aiko::Color(80 / 255.0f, 74 / 255.0f, 69 / 255.0f);
+        WolfMap newMap = WolfMapLoader::loadLevel(WOLF3D_DATA_DIR, levelIndex);
+        WolfPlayer newPlayer = WolfPlayer::fromSpawn(newMap.findPlayerSpawn());
 
-        const auto renderSize = renderer().getRenderSize();
+        m_wolfMap = std::move(newMap);
+        m_player = std::move(newPlayer);
 
-        constexpr aiko::vec2 viewportPosition = {0, 0};
-        const aiko::vec2 viewportSize = {renderSize.x * 1.0f, renderSize.y * 1.0f};
-
-        ui().pushClipRect(viewportPosition, viewportSize);
-        ui().rect({0}, { viewportSize.x, viewportSize.y * 0.5f }, ceilingColor);
-        ui().rect({0, viewportSize.y * 0.5f}, viewportSize, floorColor);
-        ui().popClipRect();
+        assets().getMutableTexture(m_mapTextureId) = WolfMapTexture::build(m_wolfMap);
+        assets().invalidateTexture(m_mapTextureId);
 
     }
+
+
+void WolfCaster::renderLevelSelector()
+{
+    if (m_debugImgui.renderLevelSelector == false)
+    {
+        return;
+    }
+
+    if (ImGui::Begin("Level Selector", &m_debugImgui.renderLevelSelector))
+    {
+        const uint16_t currentLevel = m_wolfMap.getLevelIndex();
+
+        ImGui::Text("Current Level: %u", unsigned(currentLevel + 1));
+        ImGui::Text("Name: %s", m_wolfMap.getName().c_str());
+        ImGui::Text("Levels Available: %zu", m_availableLevels.size());
+
+        ImGui::Separator();
+
+        ImGuiStorage* storage = ImGui::GetStateStorage();
+        const ImGuiID selectionId = ImGui::GetID("SelectedLevel");
+
+        const int selectedLevel = storage->GetInt(selectionId, currentLevel);
+
+        const std::string preview = std::format("Level {}", selectedLevel + 1);
+
+        if (ImGui::BeginCombo("Levels", preview.c_str()))
+        {
+            for (const WolfLevelInfo& level : m_availableLevels)
+            {
+                const bool selected = selectedLevel == level.index;
+                const std::string label = std::format("{} - {} ({}x{})", level.index + 1, level.name, level.width, level.height);
+                if (ImGui::Selectable(label.c_str(), selected))
+                {
+                    storage->SetInt(selectionId, level.index);
+                }
+
+                if (selected)
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        ImGui::BeginDisabled(m_availableLevels.empty());
+
+        if (ImGui::Button("Load Selected Level"))
+        {
+            m_requestedLevel = static_cast<uint16_t>(storage->GetInt(selectionId, currentLevel));
+        }
+
+        ImGui::EndDisabled();
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Restart Level"))
+        {
+            m_requestedLevel = currentLevel;
+        }
+
+        if (m_requestedLevel.has_value())
+        {
+            ImGui::TextDisabled("Level change queued");
+        }
+    }
+
+    ImGui::End();
+}
+
 
     void WolfCaster::renderMiniMap()
     {
@@ -214,8 +290,8 @@ namespace wc
 
             if (available.x > 0.0f && available.y > 0.0f)
             {
-                const float mapWidth = static_cast<float>(m_wolfMap->getWidth());
-                const float mapHeight = static_cast<float>(m_wolfMap->getHeight());
+                const float mapWidth = static_cast<float>(m_wolfMap.getWidth());
+                const float mapHeight = static_cast<float>(m_wolfMap.getHeight());
 
                 const float scale = std::min( available.x / mapWidth, available.y / mapHeight);
                 const ImVec2 imageSize = { mapWidth * scale, mapHeight * scale };
@@ -228,8 +304,8 @@ namespace wc
                 // Get the actual position of the minimap image.
                 const ImVec2 imagePosition = ImGui::GetItemRectMin();
 
-                const float scaleX = imageSize.x / static_cast<float>(m_wolfMap->getWidth());
-                const float scaleY = imageSize.y / static_cast<float>(m_wolfMap->getHeight());
+                const float scaleX = imageSize.x / static_cast<float>(m_wolfMap.getWidth());
+                const float scaleY = imageSize.y / static_cast<float>(m_wolfMap.getHeight());
 
                 // Player position in minimap coordinates.
                 const aiko::vec2 playerPosition = m_player.position();
@@ -264,142 +340,6 @@ namespace wc
         ImGui::End();
     }
 
-    void WolfCaster::renderRaycaster()
-    {
-        constexpr int32_t RayCount = 320;
-
-        constexpr float ReferenceHorizontalFOV = 66.0f; // degrees
-        constexpr float ReferenceAspectRatio = 4.0f / 3.0f;
-
-        const aiko::ivec2 renderSize = renderer().getRenderSize();
-
-        const aiko::vec2 viewportSize = {renderSize.x * 1.0f, renderSize.y * 1.0f};
-        const aiko::vec2 viewportPosition = {0, 0};
-
-        const float columnWidth = viewportSize.x / RayCount;
-        const float aspectRatio = viewportSize.x / viewportSize.y;
-        const float referencePlaneLength = std::tan(aiko::math::radians(ReferenceHorizontalFOV) * 0.5f);
-        const float planeLength = referencePlaneLength * (aspectRatio / ReferenceAspectRatio);
-        const float projectionDistance = viewportSize.x / (2.0f * planeLength);
-        const aiko::vec2 cameraPlane = m_player.right() * planeLength;
-
-        constexpr aiko::SamplerState sampler = {
-            .minFilter = aiko::TextureFilter::Nearest,
-            .magFilter = aiko::TextureFilter::Nearest,
-            .mipFilter = aiko::TextureMipFilter::None,
-            .wrapU = aiko::TextureWrapMode::Clamp,
-            .wrapV = aiko::TextureWrapMode::Clamp,
-        };
-
-        ui().pushClipRect(viewportPosition, viewportSize);
-
-        for (int32_t rayIndex = 0 ; rayIndex < RayCount; ++rayIndex)
-        {
-            const float cameraX = 2 * ( (rayIndex + 0.5f) / RayCount ) - 1.0f;
-            const aiko::vec2 rayDirection = m_player.forward() + cameraPlane * cameraX;
-            const WolfRayHit hit = WolfRaycaster::castRay(m_wolfMap.value(), m_player.position(), rayDirection);
-            if (hit.hit)
-            {
-                const auto normalizedRayDirection = aiko::math::normalize(rayDirection);
-                const float perpendicularDistance = hit.distance * aiko::math::dot(normalizedRayDirection, m_player.forward());
-
-                const float wallHeight = projectionDistance / perpendicularDistance;
-
-                const float columnX = viewportPosition.x + rayIndex * columnWidth;
-                const float columnY = viewportPosition.y + (viewportSize.y - wallHeight) / 2.0f;
-
-                const aiko::vec2 columnPosition = {columnX, columnY};
-                const aiko::vec2 columnSize = {columnWidth, wallHeight};
-
-                if (hit.tileX < 0 || hit.tileX >= m_wolfMap->getWidth() || hit.tileY < 0 || hit.tileY >= m_wolfMap->getHeight())
-                {
-                    // nothing?
-                    continue;
-                }
-
-                const auto tileId = m_wolfMap->getTile(WolfMapPlane::Geometry, hit.tileX, hit.tileY);
-
-                uint16_t wallId = 0;
-
-                const bool vertical = hit.side == WolfRaySide::Vertical;
-
-                if (hit.kind == WolfRayHitKind::Door)
-                {
-                    const size_t doorBase = m_wallsTexture.size() - 8;
-                    size_t doorOffset = 0;
-                    if (tileId >= 92 && tileId <= 99)
-                    {
-                        // Locked door
-                        doorOffset = 6;
-                    }
-                    else if (tileId >= 100 && tileId <= 101)
-                    {
-                        // Elevator door
-                        doorOffset = 4;
-                    }
-                    wallId = doorBase + doorOffset + ( vertical ? 1 : 0 );
-                }
-                else
-                {
-                    if (tileId < 1 || tileId > 63)
-                    {
-                        continue;
-                    }
-                    wallId = (static_cast<size_t>(tileId) - 1) * 2 + (vertical ? 1 : 0);
-                }
-
-                AIKO_ASSERT(wallId < m_wallsTexture.size(), "OOB for wall texture");
-                aiko::AssetId textureAssetId = m_wallsTexture[wallId];
-                AIKO_ASSERT(textureAssetId != aiko::InvalidAssetId, "Invalid Asset Id");
-
-                float wallU = 0;
-                switch (hit.side)
-                {
-                    case WolfRaySide::Horizontal: wallU = hit.position.x; break;
-                    case WolfRaySide::Vertical:   wallU = hit.position.y; break;
-                    default: AIKO_ASSERT(false, "Unknow Hit Site");
-                }
-
-                float fractionalU = wallU - std::floor(wallU);
-
-                if (hit.kind == WolfRayHitKind::Door)
-                {
-                    const WolfDoor* door = m_wolfMap->getDoor(hit.tileX, hit.tileY);
-                    fractionalU -= door->openProgress;
-                }
-
-                int textureX = aiko::math::clamp(static_cast<int>(fractionalU * 64.0f), 0, 63);
-
-                if ((hit.side == WolfRaySide::Vertical && rayDirection.x < 0) || ( hit.side == WolfRaySide::Horizontal && rayDirection.y > 0 ))
-                {
-                    textureX = 63 - textureX;
-                }
-
-                const float u = (static_cast<float>(textureX) + 0.5f) / 64.0f;
-                const aiko::TextureRegion region{
-                    .min = {u, 0.0f},
-                    .max = {u, 1.0f}
-                };
-
-                // const aiko::Color wallColor = hit.side == WolfRaySide::Vertical ? aiko::LIGHTGRAY : aiko::GRAY;
-                // ui().rect(columnPosition, columnSize, wallColor);
-
-                aiko::Color tint = aiko::WHITE;
-                switch (hit.side)
-                {
-                    case WolfRaySide::Horizontal: tint = aiko::Color(0.75f, 0.75f, 0.75f, 1.0f); break;
-                    case WolfRaySide::Vertical:   tint = aiko::WHITE; break;
-                    default: AIKO_ASSERT(false, "Unknow Hit Site");
-                }
-
-                ui().image(textureAssetId, region, columnPosition, columnSize, tint, sampler);
-
-            }
-        }
-
-        ui().popClipRect();
-
-    }
 
     void WolfCaster::renderAllWallTextures()
     {
@@ -425,9 +365,9 @@ namespace wc
 
             const int columns = std::max(1, static_cast<int>((availableWidth + spacing) / (textureSize + spacing)));
 
-            for (size_t i = 0; i < m_wallsTexture.size(); ++i)
+            for (size_t i = 0; i < m_wallTextures.size(); ++i)
             {
-                const aiko::AssetId assetId = m_wallsTexture[i];
+                const aiko::AssetId assetId = m_wallTextures[i];
 
                 if (assetId == aiko::InvalidAssetId)
                 {
@@ -443,7 +383,7 @@ namespace wc
 
                 ImGui::EndGroup();
 
-                if ((i + 1) % columns != 0 && i + 1 < m_wallsTexture.size())
+                if ((i + 1) % columns != 0 && i + 1 < m_wallTextures.size())
                 {
                     ImGui::SameLine();
                 }
@@ -477,9 +417,9 @@ namespace wc
 
             const int columns = std::max(1, static_cast<int>((availableWidth + spacing) / (textureSize + spacing)));
 
-            for (size_t i = 0; i < m_spriteTexture.size(); ++i)
+            for (size_t i = 0; i < m_spriteTextures.size(); ++i)
             {
-                const aiko::AssetId assetId = m_spriteTexture[i];
+                const aiko::AssetId assetId = m_spriteTextures[i];
 
                 if (assetId == aiko::InvalidAssetId)
                 {
@@ -495,7 +435,7 @@ namespace wc
 
                 ImGui::EndGroup();
 
-                if ((i + 1) % columns != 0 && i + 1 < m_spriteTexture.size())
+                if ((i + 1) % columns != 0 && i + 1 < m_spriteTextures.size())
                 {
                     ImGui::SameLine();
                 }
