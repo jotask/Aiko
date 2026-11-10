@@ -50,6 +50,52 @@ namespace wc
         bool blocking = false;
     };
 
+
+    enum class WolfEnemyType
+    {
+        Guard,
+        Officer,
+        SS,
+        Dog,
+        Mutant,
+        FakeHitler,
+        MechaHitler,
+        GeneralFettgesicht,
+        DrSchabbs,
+        GretelGrosse,
+        HansGrosse,
+        OttoGiftmacher,
+        Blinky,
+        Clyde,
+        Pinky,
+        Inky,
+    };
+
+    enum class WolfEnemySpawnMode
+    {
+        Standing,
+        Patrolling,
+        Special
+    };
+
+    enum class WolfDifficulty
+    {
+        Baby,
+        Easy,
+        Medium,
+        Hard,
+    };
+
+    struct WolfEnemySpawn
+    {
+        Tile tile = {0};
+        WolfEnemyType type = WolfEnemyType::Guard;
+        WolfDirection direction = WolfDirection::North;
+        WolfEnemySpawnMode spawnMode = WolfEnemySpawnMode::Standing;
+        WolfDifficulty minDifficulty = WolfDifficulty::Baby;
+        TileId mapObjectId = {0};
+    };
+
     struct WolfMapData
     {
         WolfLevelInfo level;
@@ -59,6 +105,7 @@ namespace wc
 
         WolfPlayerSpawn playerSpawn;
         std::vector<WolfWorldObject> objects;
+        std::vector<WolfEnemySpawn> enemySpawns;
     };
 
 }

@@ -64,6 +64,7 @@ namespace wc
         // Player Spawn && Objects
         std::optional<WolfPlayerSpawn> playerSpawn;
         std::vector<WolfWorldObject> objects;
+        std::vector<WolfEnemySpawn> enemySpawns;
         for (size_t i = 0 ; i < objectPlane.size(); ++i)
         {
             const TileId objectId = objectPlane[i];
@@ -99,6 +100,17 @@ namespace wc
                 continue;
             }
 
+            // Enemy Spawn
+            if (objectId >= 108 && objectId <= 259)
+            {
+                std::optional<WolfEnemySpawn> enemySpawn = parseEnemySpawn(objectId, tile);
+                if (enemySpawn != std::nullopt)
+                {
+                    enemySpawns.push_back(*enemySpawn);
+                }
+                continue;
+            }
+
         }
 
         AIKO_ASSERT(playerSpawn.has_value(), "Player spawn not found");
@@ -113,7 +125,8 @@ namespace wc
             .geometry = std::move(geometry),
             .info = std::move(info),
             .playerSpawn = *playerSpawn,
-            .objects = std::move(objects)
+            .objects = std::move(objects),
+            .enemySpawns = std::move(enemySpawns),
         };
 
         return WolfMap(std::move(data));
@@ -237,6 +250,102 @@ namespace wc
         std::vector<uint16_t> decodedRlewPlane = RlewDecoder::decode(decodedCarmackPlane, rlewTag);
         AIKO_ASSERT(decodedRlewPlane.size() == expectedTileCount, "Decoded plane size does not match map dimensions");
         return decodedRlewPlane;
+    }
+
+    std::optional<WolfEnemySpawn> WolfMapLoader::parseEnemySpawn(TileId objectId, Tile tile)
+    {
+        auto parseEnemyDirection = [](TileId objectId, TileId groupStart) -> WolfDirection
+        {
+            if (objectId == groupStart + 0) return WolfDirection::East;
+            if (objectId == groupStart + 1) return WolfDirection::North;
+            if (objectId == groupStart + 2) return WolfDirection::West;
+            if (objectId == groupStart + 3) return WolfDirection::South;
+            AIKO_ASSERT(false, "Unknown direction");
+        };
+
+        WolfEnemySpawn spawn;
+        spawn.tile = tile;
+        spawn.mapObjectId = objectId;
+
+        const auto tryParseEnemy = [&](TileId firstId, WolfEnemyType enemyType, WolfEnemySpawnMode mode, WolfDifficulty difficulty) -> bool
+        {
+            if (objectId >= firstId && objectId <= firstId + 3)
+            {
+                spawn.type = enemyType;
+                spawn.spawnMode = mode;
+                spawn.minDifficulty = difficulty;
+                spawn.direction = parseEnemyDirection(objectId, firstId);
+                return true;
+            }
+            return false;
+        };
+
+        const auto tryParseSpecialEnemy = [&](TileId tileId, WolfEnemyType enemyType, WolfDirection direction) -> bool
+        {
+            if (objectId == tileId)
+            {
+                spawn.type = enemyType;
+                spawn.direction = direction;
+                spawn.spawnMode = WolfEnemySpawnMode::Special;
+                return true;
+            }
+            return false;
+        };
+
+        // Guards
+        if (tryParseEnemy(108, WolfEnemyType::Guard, WolfEnemySpawnMode::Standing, WolfDifficulty::Baby) == true) { return spawn; }
+        if (tryParseEnemy(144, WolfEnemyType::Guard, WolfEnemySpawnMode::Standing, WolfDifficulty::Medium) == true) { return spawn; }
+        if (tryParseEnemy(180, WolfEnemyType::Guard, WolfEnemySpawnMode::Standing, WolfDifficulty::Hard) == true) { return spawn; }
+        if (tryParseEnemy(112, WolfEnemyType::Guard, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Baby) == true) { return spawn; }
+        if (tryParseEnemy(148, WolfEnemyType::Guard, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Medium) == true) { return spawn; }
+        if (tryParseEnemy(184, WolfEnemyType::Guard, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Hard) == true) { return spawn; }
+
+        // Officer
+        if (tryParseEnemy(116, WolfEnemyType::Officer, WolfEnemySpawnMode::Standing, WolfDifficulty::Baby) == true) { return spawn; }
+        if (tryParseEnemy(152, WolfEnemyType::Officer, WolfEnemySpawnMode::Standing, WolfDifficulty::Medium) == true) { return spawn; }
+        if (tryParseEnemy(188, WolfEnemyType::Officer, WolfEnemySpawnMode::Standing, WolfDifficulty::Hard) == true) { return spawn; }
+        if (tryParseEnemy(120, WolfEnemyType::Officer, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Baby) == true) { return spawn; }
+        if (tryParseEnemy(156, WolfEnemyType::Officer, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Medium) == true) { return spawn; }
+        if (tryParseEnemy(192, WolfEnemyType::Officer, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Hard) == true) { return spawn; }
+
+        // SS
+        if (tryParseEnemy(126, WolfEnemyType::SS, WolfEnemySpawnMode::Standing, WolfDifficulty::Baby) == true) { return spawn; }
+        if (tryParseEnemy(162, WolfEnemyType::SS, WolfEnemySpawnMode::Standing, WolfDifficulty::Medium) == true) { return spawn; }
+        if (tryParseEnemy(198, WolfEnemyType::SS, WolfEnemySpawnMode::Standing, WolfDifficulty::Hard) == true) { return spawn; }
+        if (tryParseEnemy(130, WolfEnemyType::SS, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Baby) == true) { return spawn; }
+        if (tryParseEnemy(166, WolfEnemyType::SS, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Medium) == true) { return spawn; }
+        if (tryParseEnemy(202, WolfEnemyType::SS, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Hard) == true) { return spawn; }
+
+        // Dog
+        if (tryParseEnemy(134, WolfEnemyType::Dog, WolfEnemySpawnMode::Standing, WolfDifficulty::Baby) == true) { return spawn; }
+        if (tryParseEnemy(170, WolfEnemyType::Dog, WolfEnemySpawnMode::Standing, WolfDifficulty::Medium) == true) { return spawn; }
+        if (tryParseEnemy(206, WolfEnemyType::Dog, WolfEnemySpawnMode::Standing, WolfDifficulty::Hard) == true) { return spawn; }
+        if (tryParseEnemy(138, WolfEnemyType::Dog, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Baby) == true) { return spawn; }
+        if (tryParseEnemy(174, WolfEnemyType::Dog, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Medium) == true) { return spawn; }
+        if (tryParseEnemy(210, WolfEnemyType::Dog, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Hard) == true) { return spawn; }
+
+        // Mutant
+        if (tryParseEnemy(216, WolfEnemyType::Mutant, WolfEnemySpawnMode::Standing, WolfDifficulty::Baby) == true) { return spawn; }
+        if (tryParseEnemy(234, WolfEnemyType::Mutant, WolfEnemySpawnMode::Standing, WolfDifficulty::Medium) == true) { return spawn; }
+        if (tryParseEnemy(252, WolfEnemyType::Mutant, WolfEnemySpawnMode::Standing, WolfDifficulty::Hard) == true) { return spawn; }
+        if (tryParseEnemy(220, WolfEnemyType::Mutant, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Baby) == true) { return spawn; }
+        if (tryParseEnemy(238, WolfEnemyType::Mutant, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Medium) == true) { return spawn; }
+        if (tryParseEnemy(256, WolfEnemyType::Mutant, WolfEnemySpawnMode::Patrolling, WolfDifficulty::Hard) == true) { return spawn; }
+
+        // Bosses and Ghosts
+        if (tryParseSpecialEnemy(160, WolfEnemyType::FakeHitler, WolfDirection::North) == true) { return spawn; }
+        if (tryParseSpecialEnemy(178, WolfEnemyType::MechaHitler, WolfDirection::South) == true) { return spawn; }
+        if (tryParseSpecialEnemy(179, WolfEnemyType::GeneralFettgesicht, WolfDirection::South) == true) { return spawn; }
+        if (tryParseSpecialEnemy(196, WolfEnemyType::DrSchabbs, WolfDirection::South) == true) { return spawn; }
+        if (tryParseSpecialEnemy(197, WolfEnemyType::GretelGrosse, WolfDirection::North) == true) { return spawn; }
+        if (tryParseSpecialEnemy(214, WolfEnemyType::HansGrosse, WolfDirection::South) == true) { return spawn; }
+        if (tryParseSpecialEnemy(215, WolfEnemyType::OttoGiftmacher, WolfDirection::North) == true) { return spawn; }
+        if (tryParseSpecialEnemy(224, WolfEnemyType::Blinky, WolfDirection::East) == true) { return spawn; }
+        if (tryParseSpecialEnemy(225, WolfEnemyType::Clyde, WolfDirection::East) == true) { return spawn; }
+        if (tryParseSpecialEnemy(226, WolfEnemyType::Pinky, WolfDirection::East) == true) { return spawn; }
+        if (tryParseSpecialEnemy(227, WolfEnemyType::Inky, WolfDirection::East) == true) { return spawn; }
+
+        return std::nullopt;
     }
 
     bool WolfMapLoader::isBlockingStaticObject(TileId objectId)

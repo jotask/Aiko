@@ -27,6 +27,7 @@ namespace wc
         TileId getGeometryTile(uint16_t x, uint16_t y) const;
 
         const WolfPlayerSpawn& getPlayerSpawn() const { return m_data.playerSpawn; }
+        const std::vector<WolfEnemySpawn>& getEnemySpawns() const { return m_data.enemySpawns; }
         const std::vector<WolfWorldObject>& getObjects() const { return m_data.objects; }
 
         bool canInteract(int32_t tileX, int32_t tileY) const;
