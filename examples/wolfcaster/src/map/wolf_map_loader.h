@@ -30,5 +30,7 @@ namespace wc
 
         static std::vector<uint16_t> decodePlane(std::span<const uint8_t> gameMapBytes, uint32_t offset, uint16_t compressedLength, uint16_t rlewTag, size_t expectedTileCount);
 
+        static bool isBlockingStaticObject(TileId objectId);
+
     };
 }

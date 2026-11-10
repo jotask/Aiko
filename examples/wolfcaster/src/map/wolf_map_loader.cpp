@@ -94,7 +94,7 @@ namespace wc
                     },
                     .mapObjectId = objectId,
                     .spriteIndex = size_t(objectId - 23) + 2,
-                    .blocking = false
+                    .blocking = isBlockingStaticObject(objectId)
                 });
                 continue;
             }
@@ -237,5 +237,35 @@ namespace wc
         std::vector<uint16_t> decodedRlewPlane = RlewDecoder::decode(decodedCarmackPlane, rlewTag);
         AIKO_ASSERT(decodedRlewPlane.size() == expectedTileCount, "Decoded plane size does not match map dimensions");
         return decodedRlewPlane;
+    }
+
+    bool WolfMapLoader::isBlockingStaticObject(TileId objectId)
+    {
+        switch (objectId)
+        {
+            case 24: //	Green barrel
+            case 25: //	Table and chairs
+            case 26: //	Floor lamp
+            case 28: //	Hanged man
+            case 30: //	Red pillar
+            case 31: //	Tree
+            case 33: //	Sink
+            case 34: //	Potted plant
+            case 35: //	Urn
+            case 36: //	Bare table
+            case 39: //	Suit of armor
+            case 40: //	Hanging cage
+            case 41: //	Skeleton in cage
+            case 45: //	Decorative object (stuff)
+            case 58: //	Barrel
+            case 59: //	Well
+            case 60: //	Empty well
+            case 62: //	Flag
+            case 63: //	Call Apogee decoration
+            case 68: //	Stove
+            case 69: //	Spears
+                return true;
+        }
+        return false;
     }
 }

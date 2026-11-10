@@ -106,6 +106,20 @@ namespace wc
                 }
             }
         }
+        constexpr float StaticObjectCollisionRadius = 0.2f;
+        for (const WolfWorldObject& object : m_data.objects)
+        {
+            if (object.blocking == false)
+            {
+                continue;
+            }
+            const float combinedRadius = radius + StaticObjectCollisionRadius;
+            const float distanceSquared = aiko::math::distanceSquared(object.position, position);
+            if (distanceSquared < combinedRadius * combinedRadius)
+            {
+                return true;
+            }
+        }
         return m_doorSystem.collidesAt(position, radius);
     }
 
