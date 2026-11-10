@@ -22,7 +22,10 @@ namespace wc
 
     void WolfEnemySystem::update(float deltaTime)
     {
-        // TODO
+        for (WolfEnemy& enemy : m_enemies)
+        {
+            enemy.update(deltaTime);
+        }
     }
 
 }

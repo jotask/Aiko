@@ -78,6 +78,12 @@ namespace wc
         Special
     };
 
+    enum class WolfEnemyAnimation
+    {
+        Idle,
+        Walk,
+    };
+
     enum class WolfDifficulty : uint8_t
     {
         Baby = 0,

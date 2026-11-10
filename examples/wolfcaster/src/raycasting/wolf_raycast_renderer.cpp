@@ -301,13 +301,13 @@ namespace wc
         const auto calculateSprite = [&](const size_t standing, const size_t patrolling) -> size_t
         {
             const auto angleOffset = calculateEnemyRotation(enemy, playerPosition);
-            if (enemy.spawnMode() == WolfEnemySpawnMode::Standing)
+            if (enemy.animation() == WolfEnemyAnimation::Idle)
             {
                 return standing + angleOffset;
             }
             else
             {
-                return patrolling + angleOffset;
+                return patrolling + ( enemy.animationFrame() * 8 ) + angleOffset;
             }
         };
 
