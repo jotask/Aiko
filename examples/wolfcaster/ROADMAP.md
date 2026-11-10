@@ -1,99 +1,127 @@
 # WolfCaster Roadmap
 
 Updated: 2026-11-10  
-Source of truth: `jotask/Aiko`, branch `dev/trunk`  
-Scope: the original Wolfenstein 3D data currently loaded from `*.WL1` files.
+Repository: `jotask/Aiko` · branch `dev/trunk`  
+Current format: original Wolfenstein 3D `*.WL1` assets.
 
 ## Goal
 
-Turn the working Wolfenstein-style raycaster example into a small, coherent, playable level while keeping binary decoding, runtime map state, player/gameplay rules, raycasting, and UI rendering separated. Prefer complete milestones and tests over speculative refactors.
+Develop WolfCaster into a playable Wolfenstein-style game while keeping the original binary-format interpretation, runtime simulation, raycasting, rendering, and top-level orchestration separate. Implement and validate one vertical slice at a time.
 
-## Implemented (source inspected)
+## History and reprioritization
 
-- [x] MAPHEAD/GAMEMAPS level loading, Carmack decompression, RLEW decompression, and level metadata.
-- [x] VSWAP wall and sprite decoding; audio assets and manual sound playback.
-- [x] DDA wall raycasting, textured walls, directional shading, and widescreen-aware projection.
-- [x] Billboard sprites with depth sorting and wall-column occlusion.
-- [x] Player movement, independent-axis sliding, and wall collision.
-- [x] Doors: discovery, type/orientation metadata, open/close animation, ray rendering, and collision.
-- [x] Object-plane static object creation, per-ID blocking classification, and circular static-object collision.
-- [x] Debug minimap, level selection, load/restart, and texture/sound inspection UI.
+The roadmap agreed in the November 9 discussion was:
 
-The checklist above means present in source, not fully runtime-validated. In particular, door types are recognized but locked/elevator-specific gameplay rules are still missing.
+1. World sprites/objects.
+2. Interactions (pickups, keys, secret walls).
+3. Multiple levels.
+4. Enemies/AI.
+5. Weapons/combat.
+6. HUD/sound/music.
+7. Full Wolfenstein gameplay.
+8. Optional rendering experiments.
 
-## Immediate checkpoint — validate the newly completed world systems
+The original enemy implementation order was **object-plane enemy spawns → directional/animated sprites → perception/LOS → idle/patrol/alert/chase/attack/pain/death state machine → movement → combat/audio**.
 
-- [ ] Test blocking barrels/furniture against the player collider and sliding in both axes.
-- [ ] Verify non-blocking decoration remains passable.
-- [ ] Retest walls, partially opening/closing doors, and door passage near edges.
-- [ ] Retest sprite occlusion, screen edges, and wall proportions at multiple aspect ratios.
-- [ ] Retest level switching/restart with object state and map texture refreshed.
+**Decision (November 10): bring enemies forward.** Wall/sprite rendering, world navigation, and static-object collision now provide the foundations. Keys and level progression remain important but do not block the first enemy milestone. This changes *priority*, not the intended feature set.
 
-**Done when:** you can navigate multiple levels without passing through blocking scenery or introducing wall/door/rendering regressions.
+## Already implemented (inspected source; not a runtime test certification)
 
-## Milestone 1 — pickups and mutable world objects (NEXT)
+- [x] MAPHEAD/GAMEMAPS, Carmack/RLEW decoding, metadata, level selector/restart.
+- [x] VSWAP wall textures, sprite decode, and audio decoding/manual playback.
+- [x] DDA walls, textured rendering, widescreen projection, depth-buffered billboard rendering and sprite occlusion.
+- [x] Player movement, rotation, independent-axis sliding, and wall collision.
+- [x] Door recognition, orientation, partial opening/closing animation, raycasting and player collision.
+- [x] Object-plane static scenery (IDs 23–70), blocking classification and static-object circle collision.
+- [x] Debug minimap, level picker, texture viewers, and sound player.
 
-**Why:** all recognized static object IDs are currently added as world objects, rendered, and optionally marked as blocking. Pickups need to disappear and change gameplay state when collected.
+Important gaps: enemies are not parsed; player inventory, pickup state, locked-door authorization, exits/level progression, gameplay sound events, weapon/damage logic, and enemy AI are not implemented. Locked and elevator doors are *typed*, but the corresponding special gameplay rules are incomplete.
 
-- [ ] Classify relevant object IDs by gameplay role: decoration/blocker vs collectible (start with keys).
-- [ ] Keep immutable source identity (map ID/sprite mapping) separate from mutable runtime state (collected/active).
-- [ ] Introduce minimal player inventory for held keys, with a simple visual/debug readout.
-- [ ] Implement proximity-based pickup collection: recognize active collectible, update player state, deactivate it, and stop rendering it.
-- [ ] Keep collisions, rendering, and collection aligned with the same active state.
-- [ ] Validate that pickup state resets on level restart/load and cannot be collected twice.
+## Immediate quality checkpoint (before or alongside enemies)
 
-**Likely files:** `src/map/wolf_map_types.h`, `src/map/wolf_map_loader.cpp`, `src/map/wolf_map.h/.cpp`, `src/objects/wolf_player.h/.cpp`, `src/raycasting/wolf_raycast_renderer.cpp`, `src/wolfcaster.cpp`. Add a dedicated pickup/world-object system only if needed by growing behavior.
+- [ ] Validate the newly completed barrel/table/object collision against player movement; confirm non-blocking scenery remains passable.
+- [ ] Recheck wall/door collision and sliding, including doors mid-transition.
+- [ ] Check sprite occlusion and reloading multiple levels.
+- [ ] Add focused tests around map-ID classification and collision when practical.
 
-**Done when:** the player can collect a key, the key disappears, inventory updates once, and restart restores it.
+## Milestone 1 — enemy foundation (NEXT)
 
-## Milestone 2 — locked doors, feedback, and key usage
+**Objective:** spawn and display *one guard type* using map data; ensure it is represented as an enemy, not a static decoration.
 
-- [ ] Make `WolfDoor::requiredKeyIndex` an enforced requirement rather than metadata only.
-- [ ] Pass player key ownership to the interaction decision without coupling map decoding to the player.
-- [ ] Distinguish successful open/close from denied interaction; show a debug message or play a sound.
-- [ ] Verify that normal doors remain freely usable, locked doors require the correct key, and existing raycast/collision movement remains consistent.
-- [ ] Verify behavior while doors are already opening, closing, or open.
+- [ ] Inspect the original game actor object IDs, orientation/difficulty variants, and the sprite-frame layout in the exact `WL1` data; document the verified mapping. Do not guess enemy sprite indices from `objectId - 23`.
+- [ ] Parse enemy spawns from the *Objects* plane, separate from existing static objects and player spawns.
+- [ ] Represent immutable spawn/type/orientation separately from mutable enemy runtime state (position, facing, alive/active and animation state).
+- [ ] Render one stationary guard using the existing projected billboard pipeline and depth occlusion. Choose the correct view-dependent directional sprite.
+- [ ] Verify front/back/side views, positioning, sorting behind scenery, and level reload/reset.
 
-**Likely files:** `src/map/wolf_map.h/.cpp`, `src/map/wolf_door_system.h/.cpp`, `src/objects/wolf_player.h/.cpp`, `src/wolfcaster.cpp`.
+**Likely files:** `src/map/wolf_map_types.h`, `src/map/wolf_map_loader.h/.cpp`, `src/map/wolf_map.h/.cpp`, `src/objects/wolf_enemy.h` (new), `src/raycasting/wolf_raycast_renderer.h/.cpp`, and a small shared sprite-projection helper only if duplication warrants it.
 
-**Done when:** retrieving the right key allows passage through its corresponding locked door; other locked doors still deny access.
+**Done when:** a correctly oriented guard appears at a real map spawn, rotates visually with the player's viewing angle, is hidden by walls/doors, and resets on level reload. No AI or weapons required for this milestone.
 
-## Milestone 3 — level exits and progression
+## Milestone 2 — enemy perception and AI state machine
 
-- [ ] Define what constitutes an exit and which map data specifies it; keep this separate from ordinary door toggling.
-- [ ] Handle elevator/exit interactions and request level transitions through `WolfCaster`.
-- [ ] Define what persists (if anything) across levels versus restart.
-- [ ] Provide minimal completion feedback and prevent invalid level transitions.
-- [ ] Retest map/player/world-object resets when changing levels.
+- [ ] Introduce `WolfEnemySystem` (or equivalent focused owner) responsible for updating enemies, keeping simulation out of `WolfRaycastRenderer`.
+- [ ] Implement distance/FOV sensing and a world-aware LOS query respecting walls and *current* door openness. Note: today's interaction raycast is meant to hit doors even if visually open, so do not reuse its semantics blindly for AI sight.
+- [ ] Add explicit enemy states, beginning with `Idle`, `Alert`, and `Chase`. Extend to `Patrol`, `Attack`, `Pain`, and `Death` only as behavior needs them.
+- [ ] Add simple chasing/movement using world geometry/door collision checks (not raw free movement); prevent going through walls and closed doors.
+- [ ] Track enemy frame animations and facing independently from player-facing rendering.
+- [ ] Define enemy/player collision behavior and test stationary, moving, occluded, and reloaded enemies.
 
-**Done when:** one level can be played from spawn to its exit and advance to the next available level.
+**Likely files:** `src/objects/wolf_enemy.h` (possibly `.cpp`), `src/objects/wolf_enemy_system.h/.cpp` (new), `src/map/wolf_map.h/.cpp`, `src/raycasting/wolf_raycaster.h/.cpp`, `src/wolfcaster.cpp`.
 
-## Milestone 4 — remaining world interactions and polish
+**Done when:** a guard can detect a visible nearby player, enter an alerted state, chase without crossing solid geometry, and stop seeing through walls.
 
-- [ ] Add health/ammo/treasure/food pickups and associated player state, reusing the pickup path from Milestone 1.
-- [ ] Add secret/push-wall interactions only after validating the relevant original map semantics; ensure geometry, raycasting, collision, and minimap see the same changes.
-- [ ] Connect already decoded audio to door, pickup, and interaction events.
-- [ ] Improve minimal HUD and useful debug feedback; avoid building a full UI framework.
-- [ ] Profile if the per-column UI rendering or linear collision/object passes become bottlenecks.
+## Milestone 3 — first combat loop
 
-## Later — full gameplay, intentionally deferred
+- [ ] Add minimal player health, ammo, and a single pistol (knife optional later).
+- [ ] Implement player hitscan targeting against enemies, respecting closer blocking walls/doors, and apply damage.
+- [ ] Implement enemy pain/death states and visual frames; dead enemies no longer chase or block active actors.
+- [ ] Implement one enemy attack and player damage; gate attacks by range/LOS and cadence.
+- [ ] Show basic health/ammo/enemy debug state; connect existing sound assets to firing, pain, and death.
+- [ ] Only then extend to knife, machine gun, chaingun, ammo pickups, weapon switching, and richer animations.
 
-- [ ] Parse actor/enemy placements and directional actor sprites.
-- [ ] Enemy state machines, movement, perception, collision, and AI.
-- [ ] Player weapons, firing/hitscan, damage, ammo, death, and feedback.
-- [ ] Score/health HUD, level completion, and additional audio/game flow.
-- [ ] Automated tests for decoders, map IDs, collision edges, and state transitions.
+**Done when:** one guard can notice, pursue, attack, take pistol damage, and die in a repeatable gameplay loop.
+
+## Milestone 4 — world interactions and locked doors (deferred, not dropped)
+
+- [ ] Classify pickups (start with keys) separately from blocking scenery; store mutable active/collected state.
+- [ ] Collect on proximity, update player inventory, hide/deactivate collected sprites, and restore on restart.
+- [ ] Enforce `WolfDoor::requiredKeyIndex` when interacting with locked doors; leave ordinary door behavior unchanged.
+- [ ] Add health, ammo, food, treasure, and weapon pickups after the first key slice.
+- [ ] Add secrets/push-walls based on verified map semantics; keep collision, rendering, and raycasting synchronized.
+- [ ] Show minimal feedback for successful/denied interactions.
+
+## Milestone 5 — exits, multiple levels, and game flow
+
+- [ ] Implement elevator/exit activation and request a level transition through `WolfCaster`.
+- [ ] Specify what resets or persists on transitions (player state, collected objects, enemy states, doors).
+- [ ] Validate completing a level, moving to the next, dying/restarting, and no invalid transitions.
+- [ ] Add completion feedback and eventually scoring.
+
+## Milestone 6 — HUD, audio, and polish
+
+- [ ] Minimal gameplay HUD: health, ammo, keys, equipped weapon, score, and feedback.
+- [ ] Hook decoded audio into doors, footsteps/alert, pickups, combat, death, and transitions.
+- [ ] Add music if desired after basic sound integration is stable.
+- [ ] Measure performance before restructuring linear actor collision/LOS passes or per-column UI drawing.
+- [ ] Add tests for map decoders, actor-ID mapping, LOS and combat edge cases.
+
+## Optional longer-term scope
+
+- More enemy types, bosses, full animation repertoire, difficulty handling, full Wolfenstein maps/episodes, saves/menus.
+- GPU / rendering experiments in Aiko after gameplay is coherent.
 
 ## Architecture guardrails
 
-- `WolfMapLoader`: binary interpretation and initial world metadata. No runtime movement or gameplay decisions.
-- `WolfMap`: level data, mutable world-object state, door system, collision/world queries.
-- `WolfPlayer`: position, movement, and player-owned gameplay state such as keys.
-- `WolfRaycaster`: visibility and interaction raycasts, consistent with mutable geometry/doors.
-- `WolfRaycastRenderer`: presentation only; no collection or gameplay mutation.
-- `WolfCaster`: input, high-level interaction orchestration, level transitions, and UI integration.
-- Keep the initial implementation small. Avoid a full ECS/physics rewrite, spatial indexing, or premature abstractions.
+- `WolfMapLoader`: decode source data and recognize static vs actor spawn IDs; no gameplay updates.
+- `WolfMap`: world data, geometry/doors, collision and visibility queries; avoid stuffing all enemy behavior into it.
+- `WolfEnemy`: individual enemy data and state; `WolfEnemySystem`: AI/simulation ownership if needed.
+- `WolfPlayer`: player position/movement and later health/ammo/inventory.
+- `WolfRaycaster`: geometry/door ray queries with explicit visibility/interaction semantics.
+- `WolfRaycastRenderer`: sprites, walls, and visual presentation; do not mutate AI or pickup state.
+- `WolfCaster`: input, orchestration, actor updates, sound triggers, UI, and transitions.
+- Avoid premature ECS, physics-engine integration, spatial-indexing, or a broad refactor. Favor small validated slices.
 
 ## Next implementation handoff
 
-Start **Milestone 1** with one narrow vertical slice: **collect one key type, hide its sprite, and reflect its ownership in debug UI**. Once that works, expand other key IDs and implement locked-door authorization in Milestone 2.
+Begin **Milestone 1, Enemy Foundation**: identify the original guard spawn IDs and 8-direction sprite frames in the asset version, parse guard spawns into a separate structure, and render a *stationary guard* correctly from multiple player viewpoints. Do **not** implement chase or combat until this foundation works.
