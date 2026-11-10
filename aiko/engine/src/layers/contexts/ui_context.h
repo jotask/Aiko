@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math/math.h>
+#include <metadata/texture_meta.h>
 #include <models/texture_region.h>
 #include <types/color.h>
 
