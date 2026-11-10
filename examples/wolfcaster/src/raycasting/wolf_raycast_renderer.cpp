@@ -297,13 +297,27 @@ namespace wc
 
     size_t WolfRaycastRenderer::resolveEnemySpriteIndex(const WolfEnemy& enemy, const aiko::vec2& playerPosition)
     {
+
+        const auto calculateSprite = [&](const size_t standing, const size_t patrolling) -> size_t
+        {
+            const auto angleOffset = calculateEnemyRotation(enemy, playerPosition);
+            if (enemy.spawnMode() == WolfEnemySpawnMode::Standing)
+            {
+                return standing + angleOffset;
+            }
+            else
+            {
+                return patrolling + angleOffset;
+            }
+        };
+
         switch (enemy.type())
         {
-            case WolfEnemyType::Guard:              return (enemy.spawnMode() == WolfEnemySpawnMode::Standing) ? 50 : 58;
-            case WolfEnemyType::Dog:                return (enemy.spawnMode() == WolfEnemySpawnMode::Standing) ? 99 : 99;
-            case WolfEnemyType::SS:                 return (enemy.spawnMode() == WolfEnemySpawnMode::Standing) ? 138 : 146;
-            case WolfEnemyType::Mutant:             return (enemy.spawnMode() == WolfEnemySpawnMode::Standing) ? 187 : 195;
-            case WolfEnemyType::Officer:            return (enemy.spawnMode() == WolfEnemySpawnMode::Standing) ? 238 : 246;
+            case WolfEnemyType::Guard:              return calculateSprite(50, 58);
+            case WolfEnemyType::Dog:                return calculateSprite(99, 99);
+            case WolfEnemyType::SS:                 return calculateSprite(138, 146);
+            case WolfEnemyType::Mutant:             return calculateSprite(187, 195);
+            case WolfEnemyType::Officer:            return calculateSprite(238, 246);
             case WolfEnemyType::FakeHitler:	        return 321;
             case WolfEnemyType::MechaHitler:	    return 334;
             case WolfEnemyType::GeneralFettgesicht:	return 396;
@@ -318,6 +332,34 @@ namespace wc
         }
         AIKO_ASSERT(false, "Unknow sprite for unknow enemy type");
         return {};
+    }
+
+    uint8_t WolfRaycastRenderer::calculateEnemyRotation(const WolfEnemy& enemy, const aiko::vec2& playerPosition)
+    {
+        const auto convertDirectionToAngle = [](const WolfDirection dir) -> float
+        {
+            switch (dir)
+            {
+                case WolfDirection::East:   return static_cast<float>(0.0);
+                case WolfDirection::North:  return static_cast<float>(aiko::PI / 2.0);
+                case WolfDirection::West:   return static_cast<float>(aiko::PI);
+                case WolfDirection::South:  return static_cast<float>((3.0 * aiko::PI) / 2.0);
+            }
+            AIKO_ASSERT(false, "Unknown direction");
+            return 0;
+        };
+
+        const aiko::vec2 direction = playerPosition - enemy.position();
+        const float angleTowardsPlayer = std::atan2(-direction.y, direction.x);
+        const float enemyFacing = convertDirectionToAngle(enemy.direction());
+        float relative = std::fmod(angleTowardsPlayer - enemyFacing, 2 * aiko::PI);
+        if (relative < 0)
+        {
+            relative += 2 * aiko::PI;
+        }
+        const int sectorIndex = ( ( relative + ( aiko::PI / 8 )  ) / (aiko::PI / 4) );
+        return uint8_t(sectorIndex % 8);
+
     }
 
 }
