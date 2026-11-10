@@ -31,6 +31,5 @@ namespace wc
         int32_t tileY = 0;
         WolfRaySide side = WolfRaySide::Horizontal;
         WolfRayHitKind kind = WolfRayHitKind::Wall;
-
     };
 }

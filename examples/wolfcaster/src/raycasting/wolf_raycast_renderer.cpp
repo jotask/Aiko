@@ -6,6 +6,10 @@
 #include "objects/wolf_door.h"
 #include "wolf_raycaster.h"
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
 namespace wc
 {
 
@@ -28,7 +32,6 @@ namespace wc
 
         // World
         {
-            constexpr int32_t RayCount = 320;
 
             constexpr float ReferenceHorizontalFOV = 66.0f; // degrees
             constexpr float ReferenceAspectRatio = 4.0f / 3.0f;
@@ -52,6 +55,9 @@ namespace wc
 
             ui.pushClipRect(viewportPosition, viewportSize);
 
+            std::array<float, RayCount> wallDepths;
+            wallDepths.fill(std::numeric_limits<float>::infinity());
+
             for (int32_t rayIndex = 0 ; rayIndex < RayCount; ++rayIndex)
             {
                 const float cameraX = 2 * ( (rayIndex + 0.5f) / RayCount ) - 1.0f;
@@ -61,6 +67,10 @@ namespace wc
                 {
                     const auto normalizedRayDirection = aiko::math::normalize(rayDirection);
                     const float perpendicularDistance = hit.distance * aiko::math::dot(normalizedRayDirection, player.forward());
+                    if (std::isfinite(perpendicularDistance) == false || perpendicularDistance <= 0.0f)
+                    {
+                        continue;
+                    }
 
                     const float wallHeight = projectionDistance / perpendicularDistance;
 
@@ -148,14 +158,123 @@ namespace wc
                         default: AIKO_ASSERT(false, "Unknow Hit Site");
                     }
 
+                    wallDepths[rayIndex] = perpendicularDistance;
+
                     ui.image(textureAssetId, region, columnPosition, columnSize, tint, sampler);
 
                 }
             }
 
+            renderSprites(map, player, spriteTextures, ui, viewportSize, projectionDistance, wallDepths, sampler);
+
             ui.popClipRect();
         }
 
+    }
+
+    void WolfRaycastRenderer::renderSprites(const WolfMap& map, const WolfPlayer& player, const std::vector<aiko::AssetId>& spriteTextures, aiko::UIContext& ui, const aiko::vec2& viewportSize, float projectionDistance, const std::array<float, RayCount>& wallDepths, const aiko::SamplerState& sampler)
+    {
+        const float columnWidth = viewportSize.x / RayCount;
+
+        const aiko::vec2 forward = player.forward();
+        const aiko::vec2 right = player.right();
+
+        const auto& objects = map.getObjects();
+
+        std::vector<ProjectedSprite> visibleSprites;
+        visibleSprites.reserve(objects.size());
+
+        for (size_t i = 0; i < objects.size(); ++i)
+        {
+            const WolfWorldObject& object = objects[i];
+
+            if (object.spriteIndex >= spriteTextures.size())
+            {
+                continue;
+            }
+
+            const aiko::vec2 relative = object.position - player.position();
+            const float depth = aiko::math::dot(relative, forward);
+
+            if (depth <= 0.05f)
+            {
+                continue;
+            }
+
+            const float lateral = aiko::math::dot(relative, right);
+            const float centerX = viewportSize.x * 0.5f + lateral * projectionDistance / depth;
+            const float size = projectionDistance / depth;
+            const float left = centerX - size * 0.5f;
+            const float rightEdge = centerX + size * 0.5f;
+
+            if (rightEdge <= 0.0f || left >= viewportSize.x)
+            {
+                continue;
+            }
+
+            visibleSprites.push_back({
+                .objectIndex = i,
+                .depth = depth,
+                .centerX = centerX,
+                .size = size
+            });
+        }
+
+        // Transparent sprites must be rendered farthest first.
+        std::sort(
+            visibleSprites.begin(),
+            visibleSprites.end(),
+            [](const ProjectedSprite& a, const ProjectedSprite& b)
+            {
+                return a.depth > b.depth;
+            }
+        );
+
+        for (const ProjectedSprite& sprite : visibleSprites)
+        {
+            const WolfWorldObject& object = objects[sprite.objectIndex];
+            const aiko::AssetId textureId = spriteTextures[object.spriteIndex];
+
+            if (textureId == aiko::InvalidAssetId)
+            {
+                continue;
+            }
+
+            const float left = sprite.centerX - sprite.size * 0.5f;
+            const float rightEdge = sprite.centerX + sprite.size * 0.5f;
+            const float top = (viewportSize.y - sprite.size) * 0.5f;
+
+            const float clippedLeft = std::max(0.0f, left);
+            const float clippedRight = std::min(viewportSize.x, rightEdge);
+
+            const int firstColumn = static_cast<int>(std::floor(clippedLeft / columnWidth));
+            const int lastColumn = std::min(RayCount - 1, static_cast<int>(std::ceil(clippedRight / columnWidth)) - 1);
+
+            for (int column = firstColumn; column <= lastColumn; ++column)
+            {
+                if (sprite.depth >= wallDepths[column])
+                {
+                    continue;
+                }
+
+                const float screenX = (column + 0.5f) * columnWidth;
+                if (screenX < left || screenX >= rightEdge)
+                {
+                    continue;
+                }
+
+                const float normalizedU = (screenX - left) / sprite.size;
+                const int textureX = std::clamp(static_cast<int>(normalizedU * 64.0f), 0, 63);
+                const float u = (textureX + 0.5f) / 64.0f;
+
+                const aiko::TextureRegion region{
+                    .min = {u, 0.0f},
+                    .max = {u, 1.0f}
+                };
+
+                ui.image(textureId, region, {column * columnWidth, top}, {columnWidth, sprite.size}, aiko::WHITE, sampler);
+            }
+        }
     }
 
 }
