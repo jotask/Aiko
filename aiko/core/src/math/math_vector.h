@@ -17,10 +17,21 @@ namespace aiko
         constexpr vec2def() : vec2def(0) { };
         constexpr vec2def(const T xy) : vec2def(xy, xy) { };
         constexpr vec2def(const T x, const T y) : x(x), y(y) { };
-        int magnitude() const { return std::sqrt(x * x + y * y); };
-        int product() const { return x * y; };
+
+        template<typename U>
+        explicit constexpr vec2def(const vec2def<U>& other) : x(static_cast<T>(other.x)) , y(static_cast<T>(other.y)) { }
+
         T x;
         T y;
+
+        explicit operator T* () { return &x; }
+
+        constexpr T* data() { return &x; }
+        constexpr const T* data() const { return &x; }
+
+        float magnitude() const { return std::sqrt(x * x + y * y); };
+        T product() const { return x * y; };
+
         bool operator==(vec2def& other) const { return { x == other.x && y == other.y }; }
         bool operator==(const vec2def& other) const { return { x == other.x && y == other.y }; }
         bool operator!=(vec2def& other) const { return !(*this == other); }
@@ -77,68 +88,75 @@ namespace aiko
         constexpr vec3def(T xyz) : vec3def(xyz, xyz, xyz) { };
         constexpr vec3def(T x, T y, T z) : x(x), y(y), z(z) { };
 
+        template<typename U>
+        explicit constexpr vec3def(const vec3def<U>& other) : x(static_cast<T>(other.x)), y(static_cast<T>(other.y)), z(static_cast<T>(other.z)) { };
+
         T x;
         T y;
         T z;
 
-        operator T* () {
-            return &x;
-        }
+        explicit operator T* () { return &x; }
 
-        // Addition
-        vec3def operator+(const vec3def& other) const {
+        constexpr T* data() { return &x; }
+        constexpr const T* data() const { return &x; }
+
+        vec3def operator+(const vec3def& other) const
+        {
             return vec3def(x + other.x, y + other.y, z + other.z);
         }
 
-        // Subtraction
-        vec3def operator-(const vec3def& other) const {
+        vec3def operator-(const vec3def& other) const
+        {
             return vec3def(x - other.x, y - other.y, z - other.z);
         }
 
-        // Multiplication
-        vec3def operator*(float scalar) const {
+        vec3def operator*(float scalar) const
+        {
             return vec3def(x * scalar, y * scalar, z * scalar);
         }
 
-        vec3def operator*(const vec3def& other) const {
+        vec3def operator*(const vec3def& other) const
+        {
             return vec3def{ x * other.x, y * other.y, z * other.z };
         }
 
-        // Division
-        vec3def operator/(float scalar) const {
+        vec3def operator/(float scalar) const
+        {
             return vec3def(x / scalar, y / scalar, z / scalar);
         }
 
-        // Compound Addition
-        vec3def& operator+=(const vec3def& other) {
+        vec3def& operator+=(const vec3def& other)
+        {
             x += other.x;
             y += other.y;
             z += other.z;
             return *this;
         }
 
-        // Compound Subtraction
-        vec3def& operator-=(const vec3def& other) {
+        vec3def& operator-=(const vec3def& other)
+        {
             x -= other.x;
             y -= other.y;
             z -= other.z;
             return *this;
         }
 
-        // Compound Multiplication (for scalar multiplication)
-        vec3def& operator*=(float scalar) {
+        vec3def& operator*=(float scalar)
+        {
             x *= scalar;
             y *= scalar;
             z *= scalar;
             return *this;
         }
-        vec3def& operator*=(vec3def other) {
+
+        vec3def& operator*=(vec3def other)
+        {
             *this = *this * other;
             return *this;
         }
 
-        // Compound Division (for scalar division)
-        vec3def& operator/=(float scalar) {
+        vec3def& operator/=(float scalar)
+        {
             x /= scalar;
             y /= scalar;
             z /= scalar;
@@ -160,6 +178,15 @@ namespace aiko
         constexpr vec4def(T xyzw) : vec4def(xyzw, xyzw, xyzw, xyzw) { };
         constexpr vec4def(vec3def<T> v3) : vec4def(v3.x, v3.y, v3.z, 0.0f) { };
         constexpr vec4def(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) { };
+
+        template<typename U>
+        explicit constexpr vec4def(const vec4def<U>& other) : x(static_cast<T>(other.x)), y(static_cast<T>(other.y)), z(static_cast<T>(other.z)), w(static_cast<T>(other.w)) { }
+
+        explicit operator T* () { return &x; }
+
+        constexpr T* data() { return &x; }
+        constexpr const T* data() const { return &x; }
+
         T x;
         T y;
         T z;
