@@ -2,6 +2,7 @@
 
 #include "map/wolf_map.h"
 #include "math/math.h"
+#include "wolfcaster_types.h"
 
 #include <algorithm>
 
@@ -18,7 +19,6 @@ namespace wc
         const aiko::vec2 fwd = forward();
         return { -fwd.y, fwd.x };
     }
-
 
     void WolfPlayer::updateWeapon(float deltaTime, bool triggerPressed)
     {
@@ -71,14 +71,16 @@ namespace wc
         }
     }
 
-
     void WolfPlayer::takeDamage(int32_t damage)
     {
         if (isAlive() == false || damage <= 0)
         {
             return;
         }
-        m_health = std::max(0, m_health - damage);
+        if constexpr (GodMode == false)
+        {
+            m_health = std::max(0, m_health - damage);
+        }
     }
 
     void WolfPlayer::move(const aiko::vec2 displacement, const WolfMap& map)

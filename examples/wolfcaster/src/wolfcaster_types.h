@@ -3,6 +3,8 @@
 namespace wc
 {
 
+    static constexpr bool GodMode = true;
+
     struct WolfCasterDebug
     {
         bool renderLevelSelector = false;
