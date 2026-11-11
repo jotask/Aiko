@@ -11,7 +11,7 @@ namespace wc
     {
     public:
         void initialize(const WolfMap& map);
-        void update(float deltaTime, WolfMap& map);
+        void update(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition);
 
         const std::vector<WolfEnemy>& getEnemies() const { return m_enemies; }
 

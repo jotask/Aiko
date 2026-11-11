@@ -11,7 +11,7 @@ namespace wc
     {
     public:
 
-        void update(float deltaTime, WolfMap& map);
+        void update(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition);
 
         const aiko::vec2& position() const { return m_position; }
         const WolfEnemyType type() const { return m_type; }
@@ -26,11 +26,24 @@ namespace wc
         static WolfEnemy fromSpawn(const WolfEnemySpawn&);
 
     private:
+
+        static constexpr float EnemyRadius = 0.2f;
+        static constexpr float AttackRangeEnemy = 5.0f;
+        static constexpr float AttackRangeDog = 0.8f;
+
         WolfEnemy() = delete;
         explicit WolfEnemy(aiko::vec2 position, WolfEnemyType type, WolfDirection direction, WolfEnemySpawnMode mode);
 
         void transitionTo(WolfEnemyState state);
-        void updatePatrolling(float deltaTime, WolfMap& map);
+
+        void updateStanding(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition);
+        void updatePatrolling(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition);
+        void updateAttacking(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition);
+        void updateChasing(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition);
+
+        bool tryDetectPlayer(const WolfMap& map, const aiko::vec2& playerPosition);
+        bool canSeePlayer(const WolfMap& map, const aiko::vec2& playerPosition) const;
+        bool canAttackPlayer(const WolfMap& map, const aiko::vec2& playerPosition) const;
 
         aiko::vec2 m_position = {};
         WolfEnemyType m_type = WolfEnemyType::Guard;

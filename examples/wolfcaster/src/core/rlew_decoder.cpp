@@ -1,4 +1,4 @@
-#include "../map/rlew_decoder.h"
+#include "core/rlew_decoder.h"
 
 #include "byte_utils.h"
 #include "logger/logger.h"

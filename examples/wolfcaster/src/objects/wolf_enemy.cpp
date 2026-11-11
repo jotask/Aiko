@@ -1,9 +1,12 @@
 #include "wolf_enemy.h"
 
+#include "core/converters.h"
 #include "map/wolf_map.h"
+#include "math/math.h"
+#include "raycasting/wolf_raycaster.h"
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 
 namespace wc
 {
@@ -46,14 +49,14 @@ namespace wc
         }
     }
 
-    void WolfEnemy::update(float deltaTime, WolfMap& map)
+    void WolfEnemy::update(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition)
     {
         switch (m_state)
         {
-            case WolfEnemyState::Standing: break;
-            case WolfEnemyState::Patrolling: updatePatrolling(deltaTime, map); break;
-            case WolfEnemyState::Attacking: break;
-            case WolfEnemyState::Chasing: break;
+            case WolfEnemyState::Standing: updateStanding(deltaTime, map, playerPosition); break;
+            case WolfEnemyState::Patrolling: updatePatrolling(deltaTime, map, playerPosition); break;
+            case WolfEnemyState::Chasing: updateChasing(deltaTime, map, playerPosition); break;
+            case WolfEnemyState::Attacking: updateAttacking(deltaTime, map, playerPosition); break;
         }
 
         constexpr float AnimationTick = 0.15f;
@@ -71,10 +74,19 @@ namespace wc
         }
     }
 
-    void WolfEnemy::updatePatrolling(float deltaTime, WolfMap& map)
+    void WolfEnemy::updateStanding(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition)
+    {
+        tryDetectPlayer(map, playerPosition);
+    }
+
+    void WolfEnemy::updatePatrolling(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition)
     {
         constexpr float PatrolSpeed = 0.55f;
-        constexpr float EnemyRadius = 0.2f;
+
+        if (tryDetectPlayer(map, playerPosition))
+        {
+            return;
+        }
 
         float remainingMovement = PatrolSpeed * deltaTime;
 
@@ -156,9 +168,165 @@ namespace wc
         }
     }
 
+    void WolfEnemy::updateAttacking(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition)
+    {
+        constexpr float Epsilon = 0.001f;
+
+        if (canAttackPlayer(map, playerPosition) == false)
+        {
+            transitionTo(WolfEnemyState::Chasing);
+            return;
+        }
+
+        const aiko::vec2 playerDelta = playerPosition - m_position;
+        const float distanceToPlayer = aiko::math::length(playerDelta);
+
+        if (distanceToPlayer > Epsilon)
+        {
+            const aiko::vec2 directionToPlayer = aiko::math::normalize(playerDelta);
+            m_direction = convertVectorToDirection(directionToPlayer);
+        }
+
+        m_animation = WolfEnemyAnimation::Idle;
+    }
+
+    void WolfEnemy::updateChasing(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition)
+    {
+        constexpr float ChaseSpeed = 1.0f;
+        constexpr float Epsilon = 0.001f;
+
+        if (canAttackPlayer(map, playerPosition))
+        {
+            transitionTo(WolfEnemyState::Attacking);
+            return;
+        }
+
+        const aiko::vec2 playerDelta = playerPosition - m_position;
+        const float distanceToPlayer = aiko::math::length(playerDelta);
+
+        if (distanceToPlayer <= Epsilon)
+        {
+            m_animation = WolfEnemyAnimation::Idle;
+            return;
+        }
+
+        const aiko::vec2 directionToPlayer = aiko::math::normalize(playerDelta);
+        m_direction = convertVectorToDirection(directionToPlayer);
+
+        const WolfRayHit hit = WolfRaycaster::castRay(map, m_position, directionToPlayer, WolfRaycastMode::Render);
+
+        const bool hasLineOfSight = hit.hit == false || hit.distance >= distanceToPlayer - Epsilon;
+        const float attackRange = m_type == WolfEnemyType::Dog ? AttackRangeDog : AttackRangeEnemy;
+        const float maxMovement = hasLineOfSight ? std::max(0.0f, distanceToPlayer - attackRange) : distanceToPlayer;
+        const float movementDistance = std::min(ChaseSpeed * deltaTime, maxMovement);
+
+        if (movementDistance <= 0.0f)
+        {
+            m_animation = WolfEnemyAnimation::Idle;
+            return;
+        }
+
+        const aiko::vec2 previousPosition = m_position;
+        const aiko::vec2 displacement = directionToPlayer * movementDistance;
+
+        const aiko::vec2 candidatePositionX = m_position + aiko::vec2(displacement.x, 0.0f);
+        if (map.collidesAt(candidatePositionX, EnemyRadius) == false)
+        {
+            m_position.x = candidatePositionX.x;
+        }
+
+        const aiko::vec2 candidatePositionY = m_position + aiko::vec2(0.0f, displacement.y);
+        if (map.collidesAt(candidatePositionY, EnemyRadius) == false)
+        {
+            m_position.y = candidatePositionY.y;
+        }
+
+        const float movedDistanceSquared = aiko::math::distanceSquared(previousPosition, m_position);
+        m_animation = movedDistanceSquared > Epsilon * Epsilon ? WolfEnemyAnimation::Walk : WolfEnemyAnimation::Idle;
+    }
+
+    bool WolfEnemy::tryDetectPlayer(const WolfMap& map, const aiko::vec2& playerPosition)
+    {
+        if (canSeePlayer(map, playerPosition) == false)
+        {
+            return false;
+        }
+        transitionTo(WolfEnemyState::Chasing);
+        return true;
+    }
+
+    bool WolfEnemy::canSeePlayer(const WolfMap& map, const aiko::vec2& playerPosition) const
+    {
+        constexpr uint8_t MaxDetectionTiles = 8;
+        constexpr float ApproxToZero = 0.001f;
+        const float FieldOfView = aiko::math::radians(120.0f);
+
+        const aiko::vec2 playerDelta = playerPosition - m_position;
+        const float distanceToPlayer = aiko::math::length(playerDelta);
+
+        if (distanceToPlayer > MaxDetectionTiles)
+        {
+            return false;
+        }
+
+        if (distanceToPlayer <= ApproxToZero)
+        {
+            return true;
+        }
+
+        const aiko::vec2 directionToPlayer = aiko::math::normalize(playerDelta);
+
+        if (distanceToPlayer > 1.5f)
+        {
+            const aiko::vec2 directionVector = convertDirectionToVector(m_direction);
+            const aiko::vec2 facing = aiko::math::normalize(directionVector);
+            const auto facingDot = aiko::math::dot(facing, directionToPlayer);
+            if (facingDot < aiko::math::cos(FieldOfView / 2.0f))
+            {
+                return false;
+            }
+        }
+
+        const WolfRayHit hit = WolfRaycaster::castRay(map, m_position, directionToPlayer, WolfRaycastMode::Render);
+
+        if (hit.hit == false)
+        {
+            return true;
+        }
+        if(hit.distance >= distanceToPlayer)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool WolfEnemy::canAttackPlayer(const WolfMap& map, const aiko::vec2& playerPosition) const
+    {
+        constexpr float Epsilon = 0.001f;
+
+        const aiko::vec2 playerDelta = playerPosition - m_position;
+        const float distanceToPlayer = aiko::math::length(playerDelta);
+
+        const float attackRange = m_type == WolfEnemyType::Dog ? AttackRangeDog : AttackRangeEnemy;
+        if (distanceToPlayer > attackRange)
+        {
+            return false;
+        }
+
+        if (distanceToPlayer <= Epsilon)
+        {
+            return true;
+        }
+
+        const aiko::vec2 directionToPlayer = aiko::math::normalize(playerDelta);
+        const WolfRayHit hit = WolfRaycaster::castRay(map, m_position, directionToPlayer, WolfRaycastMode::Render);
+        return !hit.hit || hit.distance >= distanceToPlayer - Epsilon;
+    }
+
     WolfEnemy WolfEnemy::fromSpawn(const WolfEnemySpawn& spawn)
     {
-        aiko::vec2 position = aiko::vec2(spawn.tile.x + 0.5f, spawn.tile.y + 0.5f );
+        aiko::vec2 position = aiko::vec2(spawn.tile.x + 0.5f, spawn.tile.y + 0.5f);
         return WolfEnemy(position, spawn.type, spawn.direction, spawn.spawnMode);
     }
 }

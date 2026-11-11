@@ -25,7 +25,7 @@ namespace wc
 
     void WolfMap::update(float deltaTime, const aiko::vec2& playerPosition)
     {
-        m_enemySystem.update(deltaTime, *this);
+        m_enemySystem.update(deltaTime, *this, playerPosition);
         m_doorSystem.update(deltaTime, *this, playerPosition);
     }
 

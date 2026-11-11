@@ -40,4 +40,25 @@ namespace wc
         return {0};
     };
 
+    static WolfDirection convertVectorToDirection(const aiko::vec2& direction)
+    {
+        AIKO_ASSERT(direction.x != 0.0f || direction.y != 0.0f, "Invalid zero direction");
+        constexpr float DiagonalThreshold = 0.41421356237f; // tan(22.5 degrees)
+        const float absX = std::abs(direction.x);
+        const float absY = std::abs(direction.y);
+        if (absY <= absX * DiagonalThreshold)
+        {
+            return direction.x > 0.0f ? WolfDirection::East : WolfDirection::West;
+        }
+        if (absX <= absY * DiagonalThreshold)
+        {
+            return direction.y > 0.0f ? WolfDirection::South : WolfDirection::North;
+        }
+        if (direction.x > 0.0f)
+        {
+            return direction.y > 0.0f ? WolfDirection::SouthEast : WolfDirection::NorthEast;
+        }
+        return direction.y > 0.0f ? WolfDirection::SouthWest : WolfDirection::NorthWest;
+    };
+
 }

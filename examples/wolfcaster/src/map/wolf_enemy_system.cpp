@@ -20,11 +20,11 @@ namespace wc
         }
     }
 
-    void WolfEnemySystem::update(float deltaTime, WolfMap& map)
+    void WolfEnemySystem::update(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition)
     {
         for (WolfEnemy& enemy : m_enemies)
         {
-            enemy.update(deltaTime, map);
+            enemy.update(deltaTime, map, playerPosition);
         }
     }
 
