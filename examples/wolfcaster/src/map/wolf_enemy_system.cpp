@@ -28,4 +28,10 @@ namespace wc
         }
     }
 
+    WolfEnemy& WolfEnemySystem::getEnemy(size_t enemyId)
+    {
+        AIKO_ASSERT(enemyId < m_enemies.size(), "Invalid enemy index");
+        return m_enemies[enemyId];
+    }
+
 }

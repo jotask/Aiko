@@ -15,6 +15,8 @@ namespace wc
 
         const std::vector<WolfEnemy>& getEnemies() const { return m_enemies; }
 
+        WolfEnemy& getEnemy(size_t enemyId);
+
     private:
         std::vector<WolfEnemy> m_enemies;
     };

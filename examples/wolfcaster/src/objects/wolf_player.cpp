@@ -3,6 +3,8 @@
 #include "map/wolf_map.h"
 #include "math/math.h"
 
+#include <algorithm>
+
 namespace wc
 {
 
@@ -17,16 +19,44 @@ namespace wc
         return { -fwd.y, fwd.x };
     }
 
+    void WolfPlayer::updateWeapon(float deltaTime, bool triggerPressed)
+    {
+
+        constexpr float ShotCooldown = 0.4f;
+
+        m_shotThisFrame = false;
+
+        m_fireCooldownRemaining = std::max(0.0f, m_fireCooldownRemaining - deltaTime);
+
+        if (triggerPressed == true)
+        {
+            if (m_fireCooldownRemaining == 0.0f)
+            {
+                m_shotThisFrame = true;
+                m_fireCooldownRemaining = ShotCooldown;
+            }
+        }
+    }
+
+    void WolfPlayer::takeDamage(int32_t damage)
+    {
+        if (isAlive() == false || damage <= 0)
+        {
+            return;
+        }
+        m_health = std::max(0, m_health - damage);
+    }
+
     void WolfPlayer::move(const aiko::vec2 displacement, const WolfMap& map)
     {
         const aiko::vec2 candidatePositionX = m_position + aiko::vec2(displacement.x, 0);
-        if (map.collidesAt(candidatePositionX, m_radius) == false)
+        if (map.collidesAt(candidatePositionX, PlayerRadius) == false)
         {
             m_position.x = candidatePositionX.x;
         }
 
         const aiko::vec2 candidatePositionY = m_position + aiko::vec2(0, displacement.y);
-        if (map.collidesAt(candidatePositionY, m_radius) == false)
+        if (map.collidesAt(candidatePositionY, PlayerRadius) == false)
         {
             m_position.y = candidatePositionY.y;
         }

@@ -51,6 +51,9 @@ namespace wc
 
     void WolfEnemy::update(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition)
     {
+
+        m_shotPending = false;
+
         switch (m_state)
         {
             case WolfEnemyState::Standing: updateStanding(deltaTime, map, playerPosition); break;
@@ -95,6 +98,15 @@ namespace wc
                 }
             }
         }
+    }
+
+    void WolfEnemy::takeDamage(int32_t damage)
+    {
+        if (isAlive() == false || damage <= 0)
+        {
+            return;
+        }
+        m_health = std::max(0, m_health - damage);
     }
 
     void WolfEnemy::updateStanding(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition)

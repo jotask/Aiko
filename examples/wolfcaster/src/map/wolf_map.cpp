@@ -43,6 +43,11 @@ namespace wc
         return m_data.objectPlane[getTileIndex(x, y)];
     }
 
+    WolfEnemy& WolfMap::getEnemy(size_t enemyId)
+    {
+        return m_enemySystem.getEnemy(enemyId);
+    }
+
     bool WolfMap::canInteract(int32_t tileX, int32_t tileY) const
     {
         if (tileX <  0 || tileX >= getWidth() || tileY < 0 || tileY >= getHeight()) // outside World?

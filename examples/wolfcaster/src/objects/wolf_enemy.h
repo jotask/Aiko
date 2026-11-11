@@ -11,7 +11,13 @@ namespace wc
     {
     public:
 
+        static constexpr float EnemyRadius = 0.2f;
+        static constexpr float AttackRangeEnemy = 5.0f;
+        static constexpr float AttackRangeDog = 0.8f;
+
         void update(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition);
+
+        void takeDamage(int32_t damage);
 
         const aiko::vec2& position() const { return m_position; }
         const WolfEnemyType type() const { return m_type; }
@@ -23,13 +29,14 @@ namespace wc
 
         const WolfEnemyState state() const { return m_state; }
 
+        bool shotThisFrame() const { return m_shotPending; }
+
+        int32_t health() const { return m_health; }
+        bool isAlive() const { return health() > 0; }
+
         static WolfEnemy fromSpawn(const WolfEnemySpawn&);
 
     private:
-
-        static constexpr float EnemyRadius = 0.2f;
-        static constexpr float AttackRangeEnemy = 5.0f;
-        static constexpr float AttackRangeDog = 0.8f;
 
         WolfEnemy() = delete;
         explicit WolfEnemy(aiko::vec2 position, WolfEnemyType type, WolfDirection direction, WolfEnemySpawnMode mode);
@@ -64,6 +71,10 @@ namespace wc
         // Attacking
         float m_attackCooldownRemaining = 0.0f;
         bool m_shotPending = false;
+
+        // Health
+        static constexpr int32_t MaxHealth = 100;
+        int32_t m_health = MaxHealth;
 
     };
 }

@@ -12,6 +12,7 @@
 #include "map/wolf_map_loader.h"
 #include "raycasting/wolf_raycast_renderer.h"
 #include "raycasting/wolf_raycaster.h"
+#include "combat/wolf_combat_system.h"
 
 #include <components/camera_component.h>
 #include <components/mesh_component.h>
@@ -153,7 +154,11 @@ namespace wc
             }
         }
 
+        m_player.updateWeapon(deltaTime, input().isKeyPressed(aiko::Key::KEY_SPACE));
+
         m_wolfMap.update(deltaTime, m_player.position());
+
+        WolfCombatSystem::update(m_wolfMap, m_player);
 
     }
 
