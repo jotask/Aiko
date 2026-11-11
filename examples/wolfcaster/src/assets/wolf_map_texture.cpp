@@ -24,7 +24,7 @@ namespace wc
             for (size_t x = 0 ; x < map.getWidth(); ++x)
             {
                 const TileId tileMap = map.getGeometryTile(x, y);
-                const aiko::Color pixelColor = getTileColor(tileMap);
+                const aiko::Color pixelColor = map.isPushWall(x, y) ? aiko::Color(142 / 255.0f, 130 / 255.0f, 156 / 255.0f) : getTileColor(tileMap);
                 asset.pixels[y * size_t(map.getWidth()) + size_t(x)] = pixelColor;
             }
         }

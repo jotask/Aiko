@@ -47,6 +47,17 @@ namespace wc
         // Calculate delta distance
         const aiko::vec2 normalizedDirection = aiko::math::normalize(direction);
 
+        const WolfRayHit pushWallHit = intersectPushWall(wolfMap, origin, normalizedDirection);
+
+        const auto nearestHit = [&](const WolfRayHit& staticHit) -> WolfRayHit
+        {
+            if (pushWallHit.hit && (!staticHit.hit || pushWallHit.distance < staticHit.distance))
+            {
+                return pushWallHit;
+            }
+            return staticHit;
+        };
+
         aiko::vec2 deltaDistance = {
             (normalizedDirection.x != 0) ? std::abs(1 / normalizedDirection.x) : std::numeric_limits<float>::infinity(),
             (normalizedDirection.y != 0) ? std::abs(1 / normalizedDirection.y) : std::numeric_limits<float>::infinity(),
@@ -67,7 +78,7 @@ namespace wc
         const WolfRayHit doorHit = intersectDoor(wolfMap, map.x, map.y, origin, normalizedDirection, 0.0f, std::min(sideDistance.x, sideDistance.y), mode);
         if (doorHit.hit == true)
         {
-            return doorHit;
+            return nearestHit(doorHit);
         }
 
         float hitDistance = 0.0f;
@@ -95,13 +106,13 @@ namespace wc
             if(map.x <0 || map.x >= wolfMap.getWidth() || map.y < 0 || map.y >= wolfMap.getHeight())
             {
                 // out of the map
-                return {};
+                return nearestHit({});
             };
 
             const WolfRayHit doorHitDDA = intersectDoor(wolfMap, map.x, map.y, origin, normalizedDirection, hitDistance, std::min(sideDistance.x, sideDistance.y), mode);
             if (doorHitDDA.hit == true)
             {
-                return doorHitDDA;
+                return nearestHit(doorHitDDA);
             }
 
             if (wolfMap.isBlockingTile(map.x, map.y) == false)
@@ -119,11 +130,11 @@ namespace wc
                 .side = hitSide,
                 .kind = WolfRayHitKind::Wall,
             };
-            return hit;
+            return nearestHit(hit);
 
         }
 
-        return {};
+        return nearestHit({});
 
     }
 
@@ -202,5 +213,91 @@ namespace wc
         };
         return hit;
 
+    }
+
+    WolfRayHit WolfRaycaster::intersectPushWall(const WolfMap& map, const aiko::vec2& origin, const aiko::vec2& direction)
+    {
+        const WolfDoor* wall = map.getActivePushWall();
+
+        if (wall == nullptr)
+        {
+            return {};
+        }
+
+        const aiko::vec2 boxMin = {
+            float(wall->tileCoord.x) + wall->pushDirection.x * wall->openProgress,
+            float(wall->tileCoord.y) + wall->pushDirection.y * wall->openProgress
+        };
+
+        const aiko::vec2 boxMax = boxMin + aiko::vec2(1.0f);
+
+        float nearDistance = -std::numeric_limits<float>::infinity();
+        float farDistance = std::numeric_limits<float>::infinity();
+
+        WolfRaySide nearSide = WolfRaySide::Horizontal;
+        WolfRaySide farSide = WolfRaySide::Horizontal;
+
+        for (int axis = 0; axis < 2; ++axis)
+        {
+            const float rayOrigin = axis == 0 ? origin.x : origin.y;
+            const float rayDir = axis == 0 ? direction.x : direction.y;
+
+            const float minimum = axis == 0 ? boxMin.x : boxMin.y;
+            const float maximum = axis == 0 ? boxMax.x : boxMax.y;
+
+            if (std::abs(rayDir) < 0.000001f)
+            {
+                if (rayOrigin < minimum || rayOrigin > maximum)
+                {
+                    return {};
+                }
+
+                continue;
+            }
+
+            const float t1 = (minimum - rayOrigin) / rayDir;
+            const float t2 = (maximum - rayOrigin) / rayDir;
+
+            const float axisNear = std::min(t1, t2);
+            const float axisFar = std::max(t1, t2);
+
+            const WolfRaySide side = axis == 0 ? WolfRaySide::Vertical : WolfRaySide::Horizontal;
+
+            if (axisNear > nearDistance)
+            {
+                nearDistance = axisNear;
+                nearSide = side;
+            }
+
+            if (axisFar < farDistance)
+            {
+                farDistance = axisFar;
+                farSide = side;
+            }
+
+            if (nearDistance > farDistance)
+            {
+                return {};
+            }
+        }
+
+        if (farDistance < 0.0f)
+        {
+            return {};
+        }
+
+        const bool entering = nearDistance >= 0.0f;
+        const float hitDistance = entering ? nearDistance : farDistance;
+        const WolfRaySide hitSide = entering ? nearSide : farSide;
+
+        return WolfRayHit{
+            .hit = true,
+            .position = origin + direction * hitDistance,
+            .distance = hitDistance,
+            .tileX = int32_t(wall->tileCoord.x),
+            .tileY = int32_t(wall->tileCoord.y),
+            .side = hitSide,
+            .kind = WolfRayHitKind::PushWall
+        };
     }
 }

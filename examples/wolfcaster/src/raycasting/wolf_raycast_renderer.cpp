@@ -87,7 +87,10 @@ namespace wc
                         continue;
                     }
 
-                    const TileId tileId = map.getGeometryTile(hit.tileX, hit.tileY);
+                    const WolfDoor* pushWall = hit.kind == WolfRayHitKind::PushWall ? map.getActivePushWall() : nullptr;
+
+                    AIKO_ASSERT(hit.kind != WolfRayHitKind::PushWall || pushWall != nullptr, "Missing active push-wall");
+                    const TileId tileId = pushWall ? pushWall->wallTileId : map.getGeometryTile(hit.tileX, hit.tileY);
 
                     uint16_t wallId = 0;
 
@@ -122,12 +125,25 @@ namespace wc
                     aiko::AssetId textureAssetId = wallTextures[wallId];
                     AIKO_ASSERT(textureAssetId != aiko::InvalidAssetId, "Invalid Asset Id");
 
-                    float wallU = 0;
-                    switch (hit.side)
+                    float wallU = 0.0f;
+                    if (pushWall)
                     {
-                        case WolfRaySide::Horizontal: wallU = hit.position.x; break;
-                        case WolfRaySide::Vertical:   wallU = hit.position.y; break;
-                        default: AIKO_ASSERT(false, "Unknow Hit Site");
+                        const aiko::vec2 wallMin = {
+                            float(pushWall->tileCoord.x) + pushWall->pushDirection.x * pushWall->openProgress,
+                            float(pushWall->tileCoord.y) + pushWall->pushDirection.y * pushWall->openProgress
+                        };
+
+                        wallU = hit.side == WolfRaySide::Vertical ? hit.position.y - wallMin.y : hit.position.x - wallMin.x;
+                    }
+                    else
+                    {
+                        switch (hit.side)
+                        {
+                            case WolfRaySide::Horizontal: wallU = hit.position.x; break;
+                            case WolfRaySide::Vertical:   wallU = hit.position.y; break;
+                            default:
+                                AIKO_ASSERT(false, "Unknown wall side");
+                        }
                     }
 
                     float fractionalU = wallU - std::floor(wallU);

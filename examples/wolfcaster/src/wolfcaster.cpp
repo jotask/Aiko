@@ -147,9 +147,19 @@ namespace wc
             const WolfRayHit hit = WolfRaycaster::castRay(m_wolfMap, m_player.position(), m_player.forward(), WolfRaycastMode::Interaction);
             if (hit.distance < MaxInteractionDistance)
             {
-                if (hit.hit == true && m_wolfMap.canInteract(hit.tileX, hit.tileY))
+                if (hit.hit && m_wolfMap.canInteract(hit.tileX, hit.tileY))
                 {
-                    m_wolfMap.interact(hit.tileX, hit.tileY);
+                    const aiko::vec2 forward = m_player.forward();
+                    aiko::ivec2 pushDirection = {0};
+                    if (hit.side == WolfRaySide::Vertical)
+                    {
+                        pushDirection.x = forward.x >= 0.0f ? 1 : -1;
+                    }
+                    else
+                    {
+                        pushDirection.y = forward.y >= 0.0f ? 1 : -1;
+                    }
+                    m_wolfMap.interact(hit.tileX, hit.tileY, pushDirection, m_player.position());
                 }
             }
         }

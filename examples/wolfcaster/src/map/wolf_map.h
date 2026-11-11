@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <optional>
 
 namespace wc
 {
@@ -36,13 +37,19 @@ namespace wc
         WolfEnemy& getEnemy(size_t enemyId);
 
         bool canInteract(int32_t tileX, int32_t tileY) const;
-        bool interact(int32_t tileX, int32_t tileY);
+        bool interact(int32_t tileX, int32_t tileY, const aiko::ivec2& pushDirection, const aiko::vec2& playerPosition);
 
+        bool isPushWall(int32_t x, int32_t y) const;
         bool isBlockingTile(int32_t x, int32_t y) const;
         bool collidesAt(const aiko::vec2& position, float radius) const;
 
         const WolfDoor* getDoor(int32_t tileX, int32_t tileY) const;
         bool requestDoorOpen(int32_t tileX, int32_t tileY);
+
+        void setGeometryTile(uint16_t x, uint16_t y, TileId tileId);
+        void setObjectTile(uint16_t x, uint16_t y, TileId tileId);
+
+        const WolfDoor* getActivePushWall() const { return m_doorSystem.getActivePushWall(); }
 
     private:
 

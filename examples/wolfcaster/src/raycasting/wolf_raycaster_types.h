@@ -14,6 +14,7 @@ namespace wc
     {
         Wall,
         Door,
+        PushWall,
     };
 
     enum class WolfRaycastMode

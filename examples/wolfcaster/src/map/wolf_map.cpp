@@ -58,10 +58,14 @@ namespace wc
         {
             return true;
         }
+        if (isPushWall(tileX, tileY) == true)
+        {
+            return true;
+        }
         return false;
     }
 
-    bool WolfMap::interact(int32_t tileX, int32_t tileY)
+    bool WolfMap::interact(int32_t tileX, int32_t tileY, const aiko::ivec2& pushDirection, const aiko::vec2& playerPosition)
     {
         if (canInteract(tileX, tileY) == false)
         {
@@ -73,7 +77,22 @@ namespace wc
             m_doorSystem.toggleDoor(doorIndex.value());
             return true;
         }
+        if (isPushWall(tileX, tileY) == true)
+        {
+            return m_doorSystem.activatePushWall(tileX, tileY, pushDirection, *this, playerPosition);
+        }
         return false;
+    }
+
+    bool WolfMap::isPushWall(int32_t x, int32_t y) const
+    {
+        if (x < 0 || y < 0 || x >= getWidth() || y >= getHeight())
+        {
+            return false;
+        }
+        const TileId objectTile = getObjectTile(x, y);
+        const TileId geometryTile = getGeometryTile(x, y);
+        return objectTile == 98 && geometryTile >= 1 && geometryTile <= 63;
     }
 
     bool WolfMap::isBlockingTile(int32_t x, int32_t y) const
@@ -158,6 +177,18 @@ namespace wc
         }
         m_doorSystem.openDoor(*doorIndex);
         return true;
+    }
+
+    void WolfMap::setGeometryTile(uint16_t x, uint16_t y, TileId tileId)
+    {
+        AIKO_ASSERT(x < getWidth() && y < getHeight(), "Geometry tile out of bounds");
+        m_data.geometry[getTileIndex(x, y)] = tileId;
+    }
+
+    void WolfMap::setObjectTile(uint16_t x, uint16_t y, TileId tileId)
+    {
+        AIKO_ASSERT(x < getWidth() && y < getHeight(), "Object tile out of bounds");
+        m_data.objectPlane[getTileIndex(x, y)] = tileId;
     }
 
     size_t WolfMap::getTileIndex(uint16_t x, uint16_t y) const

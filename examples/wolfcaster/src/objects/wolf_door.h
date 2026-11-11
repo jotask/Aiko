@@ -1,5 +1,6 @@
 #pragma once
 
+#include "map/wolf_map_types.h"
 #include "math/math_vector.h"
 
 #include <cstdint>
@@ -18,6 +19,7 @@ namespace wc
         Normal,
         Locked,
         Elevator,
+        PushWall,
     };
 
     enum class WolfDoorState
@@ -39,6 +41,10 @@ namespace wc
 
         float openProgress = 0.0f;
         float timer = 0.f;
+
+        // Push-wall only
+        aiko::ivec2 pushDirection = {0};
+        TileId wallTileId = 0;
 
     };
 
