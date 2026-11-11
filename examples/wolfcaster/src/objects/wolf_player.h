@@ -30,6 +30,8 @@ namespace wc
 
         bool shotThisFrame() const { return m_shotThisFrame; }
 
+        uint8_t weaponAnimationFrame() const { return m_weaponAnimationFrame; }
+
         static WolfPlayer fromSpawn(const WolfPlayerSpawn& spawn);
 
     private:
@@ -44,6 +46,10 @@ namespace wc
         // Health
         static constexpr int32_t MaxHealth = 100;
         int32_t m_health = MaxHealth;
+
+        // Animation
+        uint8_t m_weaponAnimationFrame = 0;
+        float m_weaponAnimationTime = 0.0f;
 
     };
 

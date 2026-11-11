@@ -53,6 +53,7 @@ namespace wc
         bool canAttackPlayer(const WolfMap& map, const aiko::vec2& playerPosition) const;
 
         uint8_t getAttackFrameCount() const;
+        uint8_t getDeathFrameCount() const;
 
         aiko::vec2 m_position = {};
         WolfEnemyType m_type = WolfEnemyType::Guard;

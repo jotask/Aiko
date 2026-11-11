@@ -46,6 +46,10 @@ namespace wc
             case WolfEnemyState::Attacking:
                 m_animation = WolfEnemyAnimation::Idle;
                 break;
+            case WolfEnemyState::Dead:
+                m_animation = getDeathFrameCount() > 0 ? WolfEnemyAnimation::Death : WolfEnemyAnimation::Idle;
+                m_shotPending = false;
+                break;
         }
     }
 
@@ -60,6 +64,7 @@ namespace wc
             case WolfEnemyState::Patrolling: updatePatrolling(deltaTime, map, playerPosition); break;
             case WolfEnemyState::Chasing: updateChasing(deltaTime, map, playerPosition); break;
             case WolfEnemyState::Attacking: updateAttacking(deltaTime, map, playerPosition); break;
+            case WolfEnemyState::Dead: break;
         }
 
         constexpr float AnimationTick = 0.15f;
@@ -67,6 +72,12 @@ namespace wc
         if (m_animation == WolfEnemyAnimation::Idle)
         {
             m_animationFrame = 0;
+            m_animationTime = 0.0f;
+            return;
+        }
+
+        if (m_animation == WolfEnemyAnimation::Death && m_animationFrame + 1 >= getDeathFrameCount())
+        {
             m_animationTime = 0.0f;
             return;
         }
@@ -97,6 +108,18 @@ namespace wc
                     m_shotPending = true;
                 }
             }
+            else if (m_animation == WolfEnemyAnimation::Death)
+            {
+                if (m_animationFrame + 1 < getDeathFrameCount())
+                {
+                    ++m_animationFrame;
+                }
+                else
+                {
+                    m_animationTime = 0.0f;
+                    break;
+                }
+            }
         }
     }
 
@@ -107,6 +130,10 @@ namespace wc
             return;
         }
         m_health = std::max(0, m_health - damage);
+        if (m_health == 0)
+        {
+            transitionTo(WolfEnemyState::Dead);
+        }
     }
 
     void WolfEnemy::updateStanding(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition)
@@ -384,6 +411,22 @@ namespace wc
                 return 3;
             case WolfEnemyType::Mutant:
                 return 4;
+            default:
+                return 0;
+        }
+    }
+
+    uint8_t WolfEnemy::getDeathFrameCount() const
+    {
+        switch (m_type)
+        {
+            case WolfEnemyType::Guard:
+            case WolfEnemyType::Dog:
+            case WolfEnemyType::SS:
+                return 4;
+            case WolfEnemyType::Mutant:
+            case WolfEnemyType::Officer:
+                return 5;
             default:
                 return 0;
         }

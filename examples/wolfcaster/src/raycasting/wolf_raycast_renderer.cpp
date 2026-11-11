@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <initializer_list>
 
 namespace wc
 {
@@ -24,7 +25,6 @@ namespace wc
             constexpr aiko::Color ceilingColor = aiko::Color(89 / 255.0f, 107 / 255.0f, 121 / 255.0f);
             constexpr aiko::Color floorColor = aiko::Color(80 / 255.0f, 74 / 255.0f, 69 / 255.0f);
 
-
             ui.pushClipRect(viewportPosition, viewportSize);
             ui.rect({0}, { viewportSize.x, viewportSize.y * 0.5f }, ceilingColor);
             ui.rect({0, viewportSize.y * 0.5f}, viewportSize, floorColor);
@@ -37,7 +37,7 @@ namespace wc
             constexpr float ReferenceHorizontalFOV = 66.0f; // degrees
             constexpr float ReferenceAspectRatio = 4.0f / 3.0f;
 
-            const aiko::vec2 viewportPosition = {0, 0};
+            constexpr aiko::vec2 viewportPosition = {0, 0};
 
             const float columnWidth = viewportSize.x / RayCount;
             const float aspectRatio = viewportSize.x / viewportSize.y;
@@ -172,6 +172,8 @@ namespace wc
             ui.popClipRect();
         }
 
+        renderWeapon(player, spriteTextures, ui, viewportSize);
+
     }
 
     std::vector<WolfRaycastRenderer::ProjectedSprite> WolfRaycastRenderer::calculateVisibleSprites(const WolfMap& map, const WolfPlayer& player, const std::vector<aiko::AssetId>& spriteTextures, const aiko::vec2& viewportSize, float projectionDistance)
@@ -296,11 +298,44 @@ namespace wc
         }
     }
 
+    void WolfRaycastRenderer::renderWeapon(const WolfPlayer& player, const std::vector<aiko::AssetId>& spriteTextures, aiko::UIContext& ui, const aiko::vec2& viewportSize)
+    {
+        constexpr size_t WeaponBaseIndex = 421;
+
+        const size_t spriteIndex = WeaponBaseIndex + player.weaponAnimationFrame();
+        AIKO_ASSERT(spriteIndex < spriteTextures.size(), "Invalid weapon sprite index");
+
+        const float weaponSize = viewportSize.y * 1.0f;
+
+        const aiko::vec2 weaponPosition = {
+            (viewportSize.x - weaponSize) * 0.5f,
+            viewportSize.y - weaponSize
+        };
+
+        const aiko::vec2 weaponDimensions = { weaponSize, weaponSize};
+
+        constexpr aiko::SamplerState sampler = {
+            .minFilter = aiko::TextureFilter::Nearest,
+            .magFilter = aiko::TextureFilter::Nearest,
+            .mipFilter = aiko::TextureMipFilter::None,
+            .wrapU = aiko::TextureWrapMode::Clamp,
+            .wrapV = aiko::TextureWrapMode::Clamp,
+        };
+
+        ui.image(spriteTextures[spriteIndex], weaponPosition, weaponDimensions, aiko::WHITE, sampler);
+    }
+
     size_t WolfRaycastRenderer::resolveEnemySpriteIndex(const WolfEnemy& enemy, const aiko::vec2& playerPosition)
     {
 
-        const auto calculateSprite = [&](const size_t standing, const size_t walking, const size_t attacking) -> size_t
+        const auto calculateSprite = [&](const size_t standing, const size_t walking, const size_t attacking, std::initializer_list<size_t> deathSprites) -> size_t
         {
+            if (enemy.animation() == WolfEnemyAnimation::Death)
+            {
+                AIKO_ASSERT(enemy.animationFrame() < deathSprites.size(), "Invalid death animation frame");
+                return deathSprites.begin()[enemy.animationFrame()];
+            }
+
             if (enemy.animation() == WolfEnemyAnimation::Attack)
             {
                 return attacking + enemy.animationFrame();
@@ -318,11 +353,11 @@ namespace wc
 
         switch (enemy.type())
         {
-            case WolfEnemyType::Guard:              return calculateSprite(50, 58, 96);
-            case WolfEnemyType::Dog:                return calculateSprite(99, 99, 135);
-            case WolfEnemyType::SS:                 return calculateSprite(138, 146, 184);
-            case WolfEnemyType::Mutant:             return calculateSprite(187, 195, 234);
-            case WolfEnemyType::Officer:            return calculateSprite(238, 246, 285);
+            case WolfEnemyType::Guard:              return calculateSprite(50, 58, 96, {91, 92, 93, 95});
+            case WolfEnemyType::Dog:                return calculateSprite(99, 99, 135, {131, 132, 133, 134});
+            case WolfEnemyType::SS:                 return calculateSprite(138, 146, 184, {179, 180, 181, 183});
+            case WolfEnemyType::Mutant:             return calculateSprite(187, 195, 234, {228, 229, 230, 232, 233});
+            case WolfEnemyType::Officer:            return calculateSprite(238, 246, 285, {279, 280, 281, 283, 284});
             case WolfEnemyType::FakeHitler:	        return 321;
             case WolfEnemyType::MechaHitler:	    return 334;
             case WolfEnemyType::GeneralFettgesicht:	return 396;

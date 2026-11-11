@@ -87,6 +87,7 @@ namespace wc
         Idle,
         Walk,
         Attack,
+        Death,
     };
 
     enum class WolfEnemyState : uint8_t
@@ -95,6 +96,7 @@ namespace wc
         Patrolling,
         Chasing,
         Attacking,
+        Dead,
     };
 
     enum class WolfDifficulty : uint8_t

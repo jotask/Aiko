@@ -19,24 +19,58 @@ namespace wc
         return { -fwd.y, fwd.x };
     }
 
+
     void WolfPlayer::updateWeapon(float deltaTime, bool triggerPressed)
     {
-
         constexpr float ShotCooldown = 0.4f;
+        constexpr float WeaponAnimationTick = 0.10f;
+        constexpr uint8_t LastWeaponAnimationFrame = 4;
 
         m_shotThisFrame = false;
 
+        if (isAlive() == false)
+        {
+            m_weaponAnimationFrame = 0;
+            m_weaponAnimationTime = 0.0f;
+            return;
+        }
+
         m_fireCooldownRemaining = std::max(0.0f, m_fireCooldownRemaining - deltaTime);
 
-        if (triggerPressed == true)
+        if (triggerPressed && m_fireCooldownRemaining <= 0.0f && m_weaponAnimationFrame == 0)
         {
-            if (m_fireCooldownRemaining == 0.0f)
+            m_weaponAnimationFrame = 1;
+            m_weaponAnimationTime = 0.0f;
+            m_fireCooldownRemaining = ShotCooldown;
+        }
+
+        if (m_weaponAnimationFrame == 0)
+        {
+            return;
+        }
+
+        m_weaponAnimationTime += deltaTime;
+
+        while (m_weaponAnimationTime >= WeaponAnimationTick)
+        {
+            m_weaponAnimationTime -= WeaponAnimationTick;
+
+            if (m_weaponAnimationFrame >= LastWeaponAnimationFrame)
+            {
+                m_weaponAnimationFrame = 0;
+                m_weaponAnimationTime = 0.0f;
+                break;
+            }
+
+            ++m_weaponAnimationFrame;
+
+            if (m_weaponAnimationFrame == 2)
             {
                 m_shotThisFrame = true;
-                m_fireCooldownRemaining = ShotCooldown;
             }
         }
     }
+
 
     void WolfPlayer::takeDamage(int32_t damage)
     {
