@@ -20,12 +20,16 @@ namespace wc
         Info = 2,
     };
 
-    enum class WolfDirection : uint8_t
+    enum class WolfDirection
     {
-        North = 19,
-        East = 20,
-        South = 21,
-        West = 22,
+        North,
+        NorthEast,
+        East,
+        SouthEast,
+        South,
+        SouthWest,
+        West,
+        NorthWest,
     };
 
     struct WolfPlayerSpawn
@@ -84,6 +88,14 @@ namespace wc
         Walk,
     };
 
+    enum class WolfEnemyState : uint8_t
+    {
+        Standing,
+        Patrolling,
+        Chasing,
+        Attacking,
+    };
+
     enum class WolfDifficulty : uint8_t
     {
         Baby = 0,
@@ -108,6 +120,8 @@ namespace wc
 
         std::vector<TileId> geometry;
         std::vector<TileId> info;
+
+        std::vector<TileId> objectPlane;
 
         WolfPlayerSpawn playerSpawn;
         std::vector<WolfWorldObject> objects;

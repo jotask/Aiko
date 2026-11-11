@@ -20,11 +20,11 @@ namespace wc
         }
     }
 
-    void WolfEnemySystem::update(float deltaTime)
+    void WolfEnemySystem::update(float deltaTime, WolfMap& map)
     {
         for (WolfEnemy& enemy : m_enemies)
         {
-            enemy.update(deltaTime);
+            enemy.update(deltaTime, map);
         }
     }
 

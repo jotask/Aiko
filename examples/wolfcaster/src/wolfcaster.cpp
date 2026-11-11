@@ -153,7 +153,7 @@ namespace wc
             }
         }
 
-        m_wolfMap.update(deltaTime);
+        m_wolfMap.update(deltaTime, m_player.position());
 
     }
 

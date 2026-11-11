@@ -15,6 +15,7 @@ namespace wc
 
         const size_t expectedTileCount = size_t(getWidth()) * size_t(getHeight());
         AIKO_ASSERT(m_data.geometry.size() == expectedTileCount, "Invalid geometry size");
+        AIKO_ASSERT(m_data.objectPlane.size() == expectedTileCount, "Invalid object plane size");
         AIKO_ASSERT(m_data.info.size() == expectedTileCount, "Invalid info size");
 
         m_doorSystem.initialize(*this);
@@ -22,10 +23,10 @@ namespace wc
 
     }
 
-    void WolfMap::update(float deltaTime)
+    void WolfMap::update(float deltaTime, const aiko::vec2& playerPosition)
     {
-        m_doorSystem.update(deltaTime);
-        m_enemySystem.update(deltaTime);
+        m_enemySystem.update(deltaTime, *this);
+        m_doorSystem.update(deltaTime, *this, playerPosition);
     }
 
     TileId WolfMap::getGeometryTile(uint16_t x, uint16_t y) const
@@ -33,6 +34,13 @@ namespace wc
         AIKO_ASSERT(x < getWidth(), "Geometry tile X out of bounds");
         AIKO_ASSERT(y < getHeight(), "Geometry tile Y out of bounds");
         return m_data.geometry[getTileIndex(x, y)];
+    }
+
+    TileId WolfMap::getObjectTile(uint16_t x, uint16_t y) const
+    {
+        AIKO_ASSERT(x < getWidth(), "Object tile X out of bounds");
+        AIKO_ASSERT(y < getHeight(), "Object tile Y out of bounds");
+        return m_data.objectPlane[getTileIndex(x, y)];
     }
 
     bool WolfMap::canInteract(int32_t tileX, int32_t tileY) const
@@ -134,6 +142,17 @@ namespace wc
         }
         const WolfDoor& door = m_doorSystem.getDoor(*doorIdx);
         return &door;
+    }
+
+    bool WolfMap::requestDoorOpen(int32_t tileX, int32_t tileY)
+    {
+        const auto doorIndex = m_doorSystem.findDoorIndex(tileX, tileY);
+        if (doorIndex == std::nullopt)
+        {
+            return false;
+        }
+        m_doorSystem.openDoor(*doorIndex);
+        return true;
     }
 
     size_t WolfMap::getTileIndex(uint16_t x, uint16_t y) const

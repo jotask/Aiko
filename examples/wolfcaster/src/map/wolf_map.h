@@ -18,7 +18,7 @@ namespace wc
 
         explicit WolfMap(WolfMapData data);
 
-        void update(float deltaTime);
+        void update(float deltaTime, const aiko::vec2& playerPosition);
 
         uint16_t getWidth() const { return m_data.level.width; }
         uint16_t getHeight() const { return m_data.level.height; }
@@ -26,6 +26,7 @@ namespace wc
         const std::string& getName() const { return m_data.level.name; }
 
         TileId getGeometryTile(uint16_t x, uint16_t y) const;
+        TileId getObjectTile(uint16_t x, uint16_t y) const;
 
         const WolfPlayerSpawn& getPlayerSpawn() const { return m_data.playerSpawn; }
         const std::vector<WolfEnemySpawn>& getEnemySpawns() const { return m_data.enemySpawns; }
@@ -39,6 +40,7 @@ namespace wc
         bool collidesAt(const aiko::vec2& position, float radius) const;
 
         const WolfDoor* getDoor(int32_t tileX, int32_t tileY) const;
+        bool requestDoorOpen(int32_t tileX, int32_t tileY);
 
     private:
 

@@ -84,33 +84,86 @@ namespace wc
 
     }
 
-    void WolfDoorSystem::update(float deltaTime)
+    void WolfDoorSystem::update(float deltaTime, const WolfMap& map, const aiko::vec2& playerPosition)
     {
         constexpr float TimeToOpenCloseDoor = 2.5f;
-        for (WolfDoor& door : m_doors)
+        constexpr float TimeToAutoClose = 3.0f;
+        constexpr float ActorRadius = 0.2f;
+
+        const auto overlapsDoor = [&](const WolfDoor& door, const aiko::vec2& position) -> bool
         {
-            if (door.state == WolfDoorState::Opening)
+            const float x = static_cast<float>(door.tileCoord.x);
+            const float y = static_cast<float>(door.tileCoord.y);
+
+            const aiko::vec2 closestPoint = {
+                aiko::math::clamp(position.x, x, x + 1.0f),
+                aiko::math::clamp(position.y, y, y + 1.0f)
+            };
+
+            return aiko::math::distanceSquared(position, closestPoint) <= ActorRadius * ActorRadius;
+        };
+
+        const auto isDoorOccupied = [&](const WolfDoor& door) -> bool
+        {
+            if (overlapsDoor(door, playerPosition))
             {
-                door.timer += deltaTime;
-                door.timer = aiko::math::clamp(door.timer, 0.0f, TimeToOpenCloseDoor);
-                door.openProgress += deltaTime / TimeToOpenCloseDoor;
-                door.openProgress = aiko::math::clamp(door.openProgress, 0.0f, 1.0f);
-                if (door.openProgress >= 1.0f)
+                return true;
+            }
+
+            for (const WolfEnemy& enemy : map.getEnemies())
+            {
+                if (overlapsDoor(door, enemy.position()))
                 {
-                    door.state = WolfDoorState::Open;
-                    continue;
+                    return true;
                 }
             }
-            else if (door.state == WolfDoorState::Closing)
+
+            return false;
+        };
+
+        for (WolfDoor& door : m_doors)
+        {
+            switch (door.state)
             {
-                door.timer += deltaTime;
-                door.timer = aiko::math::clamp(door.timer, 0.0f, TimeToOpenCloseDoor);
-                door.openProgress -= deltaTime / TimeToOpenCloseDoor;
-                door.openProgress = aiko::math::clamp(door.openProgress, 0.0f, 1.0f);
-                if (door.openProgress <= 0.0f)
+                case WolfDoorState::Closed:
+                    break;
+                case WolfDoorState::Opening:
+                    {
+                        door.openProgress += deltaTime / TimeToOpenCloseDoor;
+                        door.openProgress = aiko::math::clamp(door.openProgress, 0.0f, 1.0f);
+                        if (door.openProgress >= 1.0f)
+                        {
+                            door.state = WolfDoorState::Open;
+                            door.timer = 0.0f;
+                        }
+                    }
+                    break;
+                case WolfDoorState::Open:
+                    {
+                        door.timer += deltaTime;
+                        if (door.timer >= TimeToAutoClose && !isDoorOccupied(door))
+                        {
+                            door.state = WolfDoorState::Closing;
+                            door.timer = 0.0f;
+                        }
+                    }
+                    break;
+                case WolfDoorState::Closing:
                 {
-                    door.state = WolfDoorState::Closed;
-                    continue;
+                    if (isDoorOccupied(door))
+                    {
+                        door.state = WolfDoorState::Opening;
+                        door.timer = 0.0f;
+                        break;
+                    }
+                    door.openProgress -= deltaTime / TimeToOpenCloseDoor;
+                    door.openProgress = aiko::math::clamp(door.openProgress, 0.0f, 1.0f);
+                    if (door.openProgress <= 0.0f)
+                    {
+                        door.state = WolfDoorState::Closed;
+                        door.timer = 0.0f;
+                    }
+                    break;
                 }
             }
         }
@@ -194,6 +247,21 @@ namespace wc
         {
             door.state = WolfDoorState::Closing;
             aiko::logger::Log::info("Closing");
+        }
+    }
+
+    void WolfDoorSystem::openDoor(size_t doorIndex)
+    {
+        AIKO_ASSERT(doorIndex < m_doors.size(), "Door OOB");
+        WolfDoor& door = m_doors[doorIndex];
+        if (door.state == WolfDoorState::Closed || door.state == WolfDoorState::Closing)
+        {
+            door.state = WolfDoorState::Opening;
+            door.timer = 0.0f;
+        }
+        else if (door.state == WolfDoorState::Open)
+        {
+            door.timer = 0.0f;
         }
     }
 

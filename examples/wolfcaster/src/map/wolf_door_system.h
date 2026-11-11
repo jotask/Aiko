@@ -15,7 +15,7 @@ namespace wc
 
         void initialize(const WolfMap& map);
 
-        void update(float deltaTime);
+        void update(float deltaTime, const WolfMap& map, const aiko::vec2& playerPosition);
 
         std::optional<size_t> findDoorIndex(int32_t tileX, int32_t tileY) const;
 
@@ -26,6 +26,8 @@ namespace wc
         bool collidesAt(const aiko::vec2& position, float radius) const;
 
         void toggleDoor(size_t doorIndex);
+
+        void openDoor(size_t doorIndex);
 
     private:
 

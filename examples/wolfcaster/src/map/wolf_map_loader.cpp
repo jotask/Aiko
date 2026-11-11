@@ -76,11 +76,21 @@ namespace wc
 
             if (objectId >= 19 && objectId <= 22)
             {
+                WolfDirection direction = WolfDirection::East;
+                switch (objectId)
+                {
+                    case 19: direction = WolfDirection::North; break;
+                    case 20: direction = WolfDirection::East; break;
+                    case 21: direction = WolfDirection::South; break;
+                    case 22: direction = WolfDirection::West; break;
+                    default:
+                        AIKO_ASSERT(false, "Not supported spawn direction");
+                }
                 // Player Spawn
                 AIKO_ASSERT(!playerSpawn.has_value(), "Multiple player spawns found");
                 playerSpawn = WolfPlayerSpawn{
                     .tile = tile,
-                    .direction = static_cast<WolfDirection>(objectId)
+                    .direction = direction,
                 };
                 continue;
             }
@@ -124,6 +134,7 @@ namespace wc
             },
             .geometry = std::move(geometry),
             .info = std::move(info),
+            .objectPlane = std::move(objectPlane),
             .playerSpawn = *playerSpawn,
             .objects = std::move(objects),
             .enemySpawns = std::move(enemySpawns),

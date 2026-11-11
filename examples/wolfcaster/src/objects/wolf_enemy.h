@@ -2,33 +2,50 @@
 
 #include "map/wolf_map_types.h"
 
+#include <optional>
+
 namespace wc
 {
+    class WolfMap;
     class WolfEnemy
     {
     public:
 
-        void update(float deltaTime);
+        void update(float deltaTime, WolfMap& map);
 
         const aiko::vec2& position() const { return m_position; }
         const WolfEnemyType type() const { return m_type; }
         const WolfDirection direction() const { return m_direction; }
         const WolfEnemySpawnMode spawnMode() const { return m_spawnMode; }
+
         const WolfEnemyAnimation animation() const { return m_animation; }
         const uint8_t animationFrame() const { return m_animationFrame; }
+
+        const WolfEnemyState state() const { return m_state; }
 
         static WolfEnemy fromSpawn(const WolfEnemySpawn&);
 
     private:
         WolfEnemy() = delete;
         explicit WolfEnemy(aiko::vec2 position, WolfEnemyType type, WolfDirection direction, WolfEnemySpawnMode mode);
+
+        void transitionTo(WolfEnemyState state);
+        void updatePatrolling(float deltaTime, WolfMap& map);
+
         aiko::vec2 m_position = {};
         WolfEnemyType m_type = WolfEnemyType::Guard;
         WolfDirection m_direction = WolfDirection::North;
         WolfEnemySpawnMode m_spawnMode = WolfEnemySpawnMode::Standing;
 
+        // Animation
         WolfEnemyAnimation m_animation = WolfEnemyAnimation::Idle;
         uint8_t m_animationFrame = 0;
         float m_animationTime = 0.0f;
+
+        // Machine state
+        WolfEnemyState m_state = WolfEnemyState::Standing;
+
+        std::optional<aiko::vec2> m_patrolTargetPosition;
+
     };
 }
