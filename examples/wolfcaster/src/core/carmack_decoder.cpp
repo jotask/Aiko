@@ -1,4 +1,4 @@
-#include "carmack_decoder.h"
+#include "../map/carmack_decoder.h"
 
 #include "byte_utils.h"
 #include "logger/logger.h"

@@ -1,11 +1,11 @@
 #include "wolf_map_loader.h"
 
+#include "../core/byte_utils.h"
+#include "../core/carmack_decoder.h"
+#include "../core/rlew_decoder.h"
 #include "aiko_macros.h"
-#include "byte_utils.h"
-#include "carmack_decoder.h"
 #include "core/file.h"
 #include "logger/logger.h"
-#include "rlew_decoder.h"
 #include "wolf_map.h"
 
 #include <optional>

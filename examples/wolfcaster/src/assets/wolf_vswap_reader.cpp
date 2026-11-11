@@ -1,10 +1,10 @@
 #include "wolf_vswap_reader.h"
 
+#include "../core/byte_utils.h"
 #include "core/file.h"
-#include "map/byte_utils.h"
 
-#include <vector>
 #include <utility>
+#include <vector>
 
 namespace wc
 {

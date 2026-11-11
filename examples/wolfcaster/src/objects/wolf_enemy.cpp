@@ -80,18 +80,7 @@ namespace wc
 
         while (remainingMovement > 0)
         {
-            aiko::vec2 moveDirection = {0};
-            switch (m_direction)
-            {
-                case WolfDirection::North:      moveDirection = {0, -1}; break;
-                case WolfDirection::NorthEast:  moveDirection = {1, -1}; break;
-                case WolfDirection::East:       moveDirection = {1, 0}; break;
-                case WolfDirection::SouthEast:  moveDirection = {1, 1}; break;
-                case WolfDirection::South:      moveDirection = {0, 1}; break;
-                case WolfDirection::SouthWest:  moveDirection = {-1, 1}; break;
-                case WolfDirection::West:       moveDirection = {-1, 0}; break;
-                case WolfDirection::NorthWest:  moveDirection = {-1, -1}; break;
-            }
+            const aiko::vec2 moveDirection = convertDirectionToVector(m_direction);
 
             if (m_patrolTargetPosition == std::nullopt)
             {

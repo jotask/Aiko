@@ -1,9 +1,10 @@
 #include "wolf_raycast_renderer.h"
 
-#include "objects/wolf_player.h"
-#include "map/wolf_map_types.h"
+#include "core/converters.h"
 #include "map/wolf_map.h"
+#include "map/wolf_map_types.h"
 #include "objects/wolf_door.h"
+#include "objects/wolf_player.h"
 #include "wolf_raycaster.h"
 
 #include <algorithm>
@@ -336,23 +337,6 @@ namespace wc
 
     uint8_t WolfRaycastRenderer::calculateEnemyRotation(const WolfEnemy& enemy, const aiko::vec2& playerPosition)
     {
-        const auto convertDirectionToAngle = [](const WolfDirection dir) -> float
-        {
-            switch (dir)
-            {
-                case WolfDirection::East:   return static_cast<float>(0.0);
-                case WolfDirection::NorthEast:  return static_cast<float>(aiko::PI / 4.0);
-                case WolfDirection::North:  return static_cast<float>(aiko::PI / 2.0);
-                case WolfDirection::NorthWest:  return static_cast<float>((3.0 * aiko::PI) / 4.0);
-                case WolfDirection::West:   return static_cast<float>(aiko::PI);
-                case WolfDirection::SouthWest:  return static_cast<float>((5.0 * aiko::PI) / 4.0);
-                case WolfDirection::South:  return static_cast<float>((3.0 * aiko::PI) / 2.0);
-                case WolfDirection::SouthEast:  return static_cast<float>((7.0 * aiko::PI) / 4.0);
-            }
-            AIKO_ASSERT(false, "Unknown direction");
-            return 0;
-        };
-
         const aiko::vec2 direction = playerPosition - enemy.position();
         const float angleTowardsPlayer = std::atan2(-direction.y, direction.x);
         const float enemyFacing = convertDirectionToAngle(enemy.direction());
