@@ -45,6 +45,8 @@ namespace wc
         bool canSeePlayer(const WolfMap& map, const aiko::vec2& playerPosition) const;
         bool canAttackPlayer(const WolfMap& map, const aiko::vec2& playerPosition) const;
 
+        uint8_t getAttackFrameCount() const;
+
         aiko::vec2 m_position = {};
         WolfEnemyType m_type = WolfEnemyType::Guard;
         WolfDirection m_direction = WolfDirection::North;
@@ -57,8 +59,11 @@ namespace wc
 
         // Machine state
         WolfEnemyState m_state = WolfEnemyState::Standing;
-
         std::optional<aiko::vec2> m_patrolTargetPosition;
+
+        // Attacking
+        float m_attackCooldownRemaining = 0.0f;
+        bool m_shotPending = false;
 
     };
 }

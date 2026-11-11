@@ -86,6 +86,7 @@ namespace wc
     {
         Idle,
         Walk,
+        Attack,
     };
 
     enum class WolfEnemyState : uint8_t

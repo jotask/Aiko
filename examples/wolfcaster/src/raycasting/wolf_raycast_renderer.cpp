@@ -299,26 +299,30 @@ namespace wc
     size_t WolfRaycastRenderer::resolveEnemySpriteIndex(const WolfEnemy& enemy, const aiko::vec2& playerPosition)
     {
 
-        const auto calculateSprite = [&](const size_t standing, const size_t patrolling) -> size_t
+        const auto calculateSprite = [&](const size_t standing, const size_t walking, const size_t attacking) -> size_t
         {
-            const auto angleOffset = calculateEnemyRotation(enemy, playerPosition);
+            if (enemy.animation() == WolfEnemyAnimation::Attack)
+            {
+                return attacking + enemy.animationFrame();
+            }
+
+            const uint8_t angleOffset = calculateEnemyRotation(enemy, playerPosition);
+
             if (enemy.animation() == WolfEnemyAnimation::Idle)
             {
                 return standing + angleOffset;
             }
-            else
-            {
-                return patrolling + ( enemy.animationFrame() * 8 ) + angleOffset;
-            }
+
+            return walking + enemy.animationFrame() * 8 + angleOffset;
         };
 
         switch (enemy.type())
         {
-            case WolfEnemyType::Guard:              return calculateSprite(50, 58);
-            case WolfEnemyType::Dog:                return calculateSprite(99, 99);
-            case WolfEnemyType::SS:                 return calculateSprite(138, 146);
-            case WolfEnemyType::Mutant:             return calculateSprite(187, 195);
-            case WolfEnemyType::Officer:            return calculateSprite(238, 246);
+            case WolfEnemyType::Guard:              return calculateSprite(50, 58, 96);
+            case WolfEnemyType::Dog:                return calculateSprite(99, 99, 135);
+            case WolfEnemyType::SS:                 return calculateSprite(138, 146, 184);
+            case WolfEnemyType::Mutant:             return calculateSprite(187, 195, 234);
+            case WolfEnemyType::Officer:            return calculateSprite(238, 246, 285);
             case WolfEnemyType::FakeHitler:	        return 321;
             case WolfEnemyType::MechaHitler:	    return 334;
             case WolfEnemyType::GeneralFettgesicht:	return 396;

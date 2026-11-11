@@ -60,17 +60,40 @@ namespace wc
         }
 
         constexpr float AnimationTick = 0.15f;
+
         if (m_animation == WolfEnemyAnimation::Idle)
         {
             m_animationFrame = 0;
+            m_animationTime = 0.0f;
             return;
         }
+
         m_animationTime += deltaTime;
+
         while (m_animationTime >= AnimationTick)
         {
-            ++m_animationFrame;
-            m_animationFrame %= 4;
             m_animationTime -= AnimationTick;
+
+            if (m_animation == WolfEnemyAnimation::Walk)
+            {
+                m_animationFrame = (m_animationFrame + 1) % 4;
+            }
+            else if (m_animation == WolfEnemyAnimation::Attack)
+            {
+                if (m_animationFrame + 1 >= getAttackFrameCount())
+                {
+                    m_animation = WolfEnemyAnimation::Idle;
+                    m_animationFrame = 0;
+                    m_animationTime = 0.0f;
+                    break;
+                }
+
+                ++m_animationFrame;
+                if (m_animationFrame == 1)
+                {
+                    m_shotPending = true;
+                }
+            }
         }
     }
 
@@ -178,6 +201,8 @@ namespace wc
             return;
         }
 
+        m_attackCooldownRemaining = std::max(0.0f, m_attackCooldownRemaining - deltaTime);
+
         const aiko::vec2 playerDelta = playerPosition - m_position;
         const float distanceToPlayer = aiko::math::length(playerDelta);
 
@@ -187,7 +212,19 @@ namespace wc
             m_direction = convertVectorToDirection(directionToPlayer);
         }
 
-        m_animation = WolfEnemyAnimation::Idle;
+        if (getAttackFrameCount() == 0)
+        {
+            m_animation = WolfEnemyAnimation::Idle;
+            return;
+        }
+
+        if (m_attackCooldownRemaining <= 0.0f && m_animation != WolfEnemyAnimation::Attack)
+        {
+            m_animation = WolfEnemyAnimation::Attack;
+            m_animationFrame = 0;
+            m_animationTime = 0.0f;
+            m_attackCooldownRemaining = 1.0f;
+        }
     }
 
     void WolfEnemy::updateChasing(float deltaTime, WolfMap& map, const aiko::vec2& playerPosition)
@@ -322,6 +359,22 @@ namespace wc
         const aiko::vec2 directionToPlayer = aiko::math::normalize(playerDelta);
         const WolfRayHit hit = WolfRaycaster::castRay(map, m_position, directionToPlayer, WolfRaycastMode::Render);
         return !hit.hit || hit.distance >= distanceToPlayer - Epsilon;
+    }
+
+    uint8_t WolfEnemy::getAttackFrameCount() const
+    {
+        switch (m_type)
+        {
+            case WolfEnemyType::Guard:
+            case WolfEnemyType::Dog:
+            case WolfEnemyType::SS:
+            case WolfEnemyType::Officer:
+                return 3;
+            case WolfEnemyType::Mutant:
+                return 4;
+            default:
+                return 0;
+        }
     }
 
     WolfEnemy WolfEnemy::fromSpawn(const WolfEnemySpawn& spawn)
