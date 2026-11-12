@@ -26,4 +26,11 @@ namespace wc
         uint16_t height;
     };
 
+    struct WolfVgaPicture
+    {
+        uint16_t width = 0;
+        uint16_t height = 0;
+        std::vector<uint8_t> paletteIndices;
+    };
+
 }

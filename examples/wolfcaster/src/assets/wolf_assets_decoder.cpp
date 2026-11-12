@@ -52,4 +52,27 @@ namespace wc
 
         return asset;
     }
+
+    aiko::TextureAsset WolfAssetsDecoder::decode(const WolfVgaPicture& picture)
+    {
+        aiko::TextureAsset asset;
+
+        asset.desc.type = aiko::TextureType::Sampled;
+        asset.desc.format = aiko::TextureFormat::RGBA8;
+        asset.desc.width = picture.width;
+        asset.desc.height = picture.height;
+        asset.desc.mipmaps = 1;
+        asset.desc.computeWrite = false;
+
+        asset.pixels.resize(picture.width * picture.height);
+
+        for (size_t i = 0 ; i < picture.paletteIndices.size(); ++i)
+        {
+            const uint8_t paletteIndex = picture.paletteIndices[i];
+            const aiko::Color color = WolfPalette::getColor(paletteIndex);
+            asset.pixels[i] = color;
+        }
+
+        return asset;
+    }
 }

@@ -90,6 +90,20 @@ namespace wc
         m_soundPlayer.init(std::move(assetData.sounds));
 
         const WolfVgaGraphicsData vgaData = WolfVgaGraphicsReader::load(WOLF3D_DATA_DIR);
+        const auto pictureDimensions = WolfVgaGraphicsReader::decodePictureDimensions(vgaData, 144);
+        AIKO_ASSERT(pictureDimensions.size() == 144, "Unexpected VGA picture count");
+
+        for (size_t i = 0 ; i < pictureDimensions.size(); ++i)
+        {
+            const WolfVgaPictureDimension& dimension = pictureDimensions[i];
+            WolfVgaPicture picture = WolfVgaGraphicsReader::decodePicture(vgaData, i + 3, dimension);
+            AIKO_ASSERT(picture.paletteIndices.size() == size_t(picture.width) * picture.height, "VGA picture palette index count mismatch");
+            const aiko::TextureAsset pictureAsset = WolfAssetsDecoder::decode(picture);
+            const aiko::AssetId assetId = assets().createTexture(pictureAsset);
+            m_hudTextures.push_back(assetId);
+        }
+
+        aiko::logger::Log::infoFmt("VGA picture dimensions decoded: {} pictures", pictureDimensions.size());
 
     }
 
@@ -190,6 +204,7 @@ namespace wc
                 ImGui::MenuItem("Render MiniMap", nullptr, &m_debugImgui.renderMiniMap);
                 ImGui::MenuItem("Render Wall Textures", nullptr, &m_debugImgui.renderWallTextures);
                 ImGui::MenuItem("Render Sprite Textures", nullptr, &m_debugImgui.renderSpriteTextures);
+                ImGui::MenuItem("Render HUD Textures", nullptr, &m_debugImgui.renderHudTextures);
                 ImGui::MenuItem("Render Sound Player", nullptr, &m_debugImgui.renderSoundPlayer);
                 ImGui::EndMenu();
             }
@@ -200,6 +215,7 @@ namespace wc
         renderMiniMap();
         renderAllWallTextures();
         renderAllSpriteTextures();
+        renderAllHudTexture();
         renderAudioPlayer();
 
     }
@@ -460,6 +476,55 @@ namespace wc
 
         ImGui::End();
 
+    }
+
+    void WolfCaster::renderAllHudTexture()
+    {
+        if (m_debugImgui.renderHudTextures == false)
+        {
+            return;
+        }
+
+        if (ImGui::Begin("HUD Textures", &m_debugImgui.renderHudTextures))
+        {
+            const aiko::SamplerState sampler = {
+                .minFilter = aiko::TextureFilter::Nearest,
+                .magFilter = aiko::TextureFilter::Nearest,
+                .mipFilter = aiko::TextureMipFilter::None,
+                .wrapU = aiko::TextureWrapMode::Clamp,
+                .wrapV = aiko::TextureWrapMode::Clamp,
+            };
+
+            constexpr float cellWidth = 340.0f;
+
+            const float availableWidth = ImGui::GetContentRegionAvail().x;
+            const int columnCount = std::max(1, static_cast<int>(availableWidth / cellWidth));
+
+            if (ImGui::BeginTable("HudTexturesTable", columnCount, ImGuiTableFlags_SizingStretchSame))
+            {
+                for (size_t i = 0; i < m_hudTextures.size(); ++i)
+                {
+                    const aiko::AssetId assetId = m_hudTextures[i];
+
+                    if (assetId == aiko::InvalidAssetId)
+                    {
+                        continue;
+                    }
+
+                    const aiko::TextureAsset& texture = assets().getMutableTexture(assetId);
+                    const ImTextureID textureId = static_cast<ImTextureID>(renderer().getTextureId(assetId, sampler));
+                    const ImVec2 imageSize = {static_cast<float>(texture.desc.width), static_cast<float>(texture.desc.height)};
+
+                    ImGui::TableNextColumn();
+                    ImGui::Text("Picture %zu (Chunk %zu) - %dx%d", i, i + 3, texture.desc.width, texture.desc.height);
+                    ImGui::Image(textureId, imageSize);
+                }
+
+                ImGui::EndTable();
+            }
+        }
+
+        ImGui::End();
     }
 
     void WolfCaster::renderAudioPlayer()

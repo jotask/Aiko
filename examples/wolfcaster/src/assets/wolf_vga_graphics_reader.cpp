@@ -118,31 +118,16 @@ namespace wc
         AIKO_ASSERT(pictureCount > 0 && pictureCount <= 4096, "Invalid VGA picture count");
         AIKO_ASSERT(graphics.chunkOffsets.size() >= 2, "Invalid VGA graphics chunk directory");
 
-        // The implementation should extract the compressed bytes for chunk 0, Huffman-decode them to pictureCount * 4 bytes, and read the width and height pairs with your existing readU16LE() helper.
-
-        const auto findChunkEnd = [&](size_t chunkIndex) -> uint32_t
-        {
-            size_t nextIndex = chunkIndex + 1;
-            while (true)
-            {
-                AIKO_ASSERT(nextIndex < graphics.chunkOffsets.size(), "Missing VGA picture dimension chunk end offset");
-                const auto data = graphics.chunkOffsets[nextIndex];
-                if (data == 0xFFFFFF)
-                {
-                    ++nextIndex;
-                    continue;
-                }
-                return data;
-            }
-        };
-
         const uint32_t chunkStart = graphics.chunkOffsets[0];
-        const uint32_t chunkEnd = findChunkEnd(0);
+        const uint32_t chunkEnd = findChunkEnd(graphics, 0);
 
         AIKO_ASSERT(chunkStart != 0xFFFFFF,"VGA picture dimension chunk is sparse");
         AIKO_ASSERT(chunkStart < chunkEnd && chunkEnd <= graphics.graphBytes.size(), "Invalid VGA picture dimension chunk boundaries");
 
-        std::span<const uint8_t> compressedData = { graphics.graphBytes.begin() + chunkStart, graphics.graphBytes.begin() + chunkEnd };
+        AIKO_ASSERT(chunkEnd - chunkStart > 4, "STRUCTPIC chunk is too small");
+        AIKO_ASSERT(readU32LE(graphics.graphBytes, chunkStart) == pictureCount * 4, "STRUCTPIC expanded size does not match picture count");
+
+        std::span<const uint8_t> compressedData = { graphics.graphBytes.begin() + chunkStart + 4, graphics.graphBytes.begin() + chunkEnd };
         const auto decodedBytes = HuffmanDecoder::decode(compressedData, graphics.huffmanNodes, pictureCount * 4);
         AIKO_ASSERT(decodedBytes.size() == pictureCount * 4, "Invalid VGA picture dimension table size");
 
@@ -158,5 +143,55 @@ namespace wc
         }
 
         return dimensions;
+    }
+
+    WolfVgaPicture WolfVgaGraphicsReader::decodePicture(const WolfVgaGraphicsData& graphics, size_t chunkIndex, WolfVgaPictureDimension dimension)
+    {
+
+        const size_t pixelCount = dimension.width * dimension.height;
+
+        AIKO_ASSERT(graphics.chunkOffsets.size() >= 2, "Invalid VGA graphics chunk directory");
+        AIKO_ASSERT(dimension.width % 4 == 0, "VGA picture width must be divisible by four");
+        AIKO_ASSERT(chunkIndex >= 3 && chunkIndex <= 146, "Invalid VGA picture chunk index");
+        AIKO_ASSERT(dimension.width > 0 && dimension.height > 0, "Invalid VGA picture dimensions");
+
+        const std::vector<uint8_t> decodedBytes = decodeChunk(graphics, chunkIndex);
+        AIKO_ASSERT(decodedBytes.size() == size_t(dimension.width) * dimension.height, "VGA picture pixel count mismatch");
+
+        WolfVgaPicture picture;
+        picture.width = dimension.width;
+        picture.height = dimension.height;
+        picture.paletteIndices.resize(pixelCount);
+        for (size_t y = 0 ; y < dimension.height ; ++y)
+        {
+            for (size_t x = 0 ; x < dimension.width ; ++x)
+            {
+                const size_t plane = x % 4;
+                const size_t column = x / 4;
+                const size_t planeSize = ( dimension.width / 4 ) * dimension.height;
+                const size_t sourceOffset = plane * planeSize + y * (dimension.width / 4) + column;
+                const size_t destinationOffset = y * dimension.width + x;
+                const uint8_t paletteIndex = decodedBytes[sourceOffset];
+                picture.paletteIndices[destinationOffset] = paletteIndex;
+            }
+        }
+
+        return picture;
+    }
+
+    uint32_t WolfVgaGraphicsReader::findChunkEnd(const WolfVgaGraphicsData& graphics, size_t chunkIndex)
+    {
+        size_t nextIndex = chunkIndex + 1;
+        while (true)
+        {
+            AIKO_ASSERT(nextIndex < graphics.chunkOffsets.size(), "Missing VGA picture dimension chunk end offset");
+            const auto data = graphics.chunkOffsets[nextIndex];
+            if (data == 0xFFFFFF)
+            {
+                ++nextIndex;
+                continue;
+            }
+            return data;
+        }
     }
 }

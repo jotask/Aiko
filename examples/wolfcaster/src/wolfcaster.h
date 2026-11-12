@@ -31,6 +31,7 @@ namespace wc
         void renderMiniMap();
         void renderAllWallTextures();
         void renderAllSpriteTextures();
+        void renderAllHudTexture();
         void renderAudioPlayer();
 
         std::vector<WolfLevelInfo> m_availableLevels;
@@ -42,6 +43,7 @@ namespace wc
 
         std::vector<aiko::AssetId> m_wallTextures;
         std::vector<aiko::AssetId> m_spriteTextures;
+        std::vector<aiko::AssetId> m_hudTextures;
 
         WolfPlayer m_player;
 

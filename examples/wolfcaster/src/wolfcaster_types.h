@@ -11,6 +11,7 @@ namespace wc
         bool renderMiniMap = false;
         bool renderWallTextures = false;
         bool renderSpriteTextures = false;
+        bool renderHudTextures = false;
         bool renderSoundPlayer = false;
     };
 
