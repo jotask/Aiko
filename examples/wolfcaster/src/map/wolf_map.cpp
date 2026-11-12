@@ -174,6 +174,16 @@ namespace wc
         return m_doorSystem.collidesAt(position, radius);
     }
 
+    bool WolfMap::isExitSwitch(int32_t tileX, int32_t tileY) const
+    {
+        if (tileX < 0 || tileX >= getWidth() || tileY < 0 || tileY >= getHeight())
+        {
+            return false;
+        }
+        const TileId geometry = getGeometryTile(tileX, tileY);
+        return geometry == 21;
+    }
+
     const WolfDoor* WolfMap::getDoor(int32_t tileX, int32_t tileY) const
     {
         const auto doorIdx = m_doorSystem.findDoorIndex(tileX, tileY);

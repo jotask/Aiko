@@ -161,12 +161,17 @@ namespace wc
             m_player.move(displacement, m_wolfMap);
         }
 
+
         if (input().isKeyJustPressed(aiko::Key::KEY_F))
         {
             const WolfRayHit hit = WolfRaycaster::castRay(m_wolfMap, m_player.position(), m_player.forward(), WolfRaycastMode::Interaction);
-            if (hit.distance < MaxInteractionDistance)
+            if (hit.hit && hit.distance < MaxInteractionDistance)
             {
-                if (hit.hit && m_wolfMap.canInteract(hit.tileX, hit.tileY))
+                if (m_wolfMap.isExitSwitch(hit.tileX, hit.tileY))
+                {
+                    completeLevel();
+                }
+                else if (m_wolfMap.canInteract(hit.tileX, hit.tileY))
                 {
                     const aiko::vec2 forward = m_player.forward();
                     aiko::ivec2 pushDirection = {0};
@@ -234,6 +239,64 @@ namespace wc
 
     }
 
+    void WolfCaster::completeLevel()
+    {
+        constexpr std::array<uint16_t, 6> ElevatorBackTo = {1, 1, 7, 3, 5, 3};
+        constexpr uint16_t LevelsPerEpisode = 10;
+        constexpr uint16_t FinalFloorIndex = 8;
+        constexpr uint16_t SecretFloorIndex = 9;
+        constexpr TileId SecretExitTile = 107;
+
+        const uint16_t currentLevel = m_wolfMap.getLevelIndex();
+        const uint16_t episodeIndex = currentLevel / LevelsPerEpisode;
+        const uint16_t episodeBase = episodeIndex * LevelsPerEpisode;
+        const uint16_t floorIndex = currentLevel % LevelsPerEpisode;
+
+        AIKO_ASSERT(episodeIndex < ElevatorBackTo.size(), "Invalid episode index");
+
+        if (floorIndex == FinalFloorIndex)
+        {
+            aiko::logger::Log::info("Episode completed");
+            return;
+        }
+
+        const aiko::ivec2 playerTile = {
+            static_cast<int32_t>(std::floor(m_player.position().x)),
+            static_cast<int32_t>(std::floor(m_player.position().y))
+        };
+        AIKO_ASSERT(playerTile.x >= 0 && playerTile.x < m_wolfMap.getWidth() && playerTile.y >= 0 && playerTile.y < m_wolfMap.getHeight(), "Player position outside map bounds");
+
+        const TileId playerTileId = m_wolfMap.getGeometryTile(playerTile.x, playerTile.y);
+        uint16_t nextLevel = currentLevel + 1;
+
+        if (floorIndex == SecretFloorIndex)
+        {
+            // Return from the secret level.
+            nextLevel = episodeBase + ElevatorBackTo[episodeIndex];
+        }
+        else if (playerTileId == SecretExitTile)
+        {
+            // Enter the episode's secret level.
+            nextLevel = episodeBase + SecretFloorIndex;
+        }
+
+        const auto found = std::find_if(
+            m_availableLevels.begin(),
+            m_availableLevels.end(),
+            [nextLevel](const WolfLevelInfo& level)
+            {
+                return level.index == nextLevel;
+            }
+        );
+
+        if (found == m_availableLevels.end())
+        {
+            aiko::logger::Log::infoFmt("Level {} is not available", nextLevel + 1);
+            return;
+        }
+        aiko::logger::Log::infoFmt("Level completed: {} -> {}", currentLevel + 1, nextLevel + 1);
+        m_requestedLevel = nextLevel;
+    }
 
     void WolfCaster::renderGameSettings()
     {
@@ -254,6 +317,11 @@ namespace wc
             ImGui::Text("Current Level: %u", unsigned(currentLevel + 1));
             ImGui::Text("Name: %s", m_wolfMap.getName().c_str());
             ImGui::Text("Levels Available: %zu", m_availableLevels.size());
+
+            if (ImGui::Button("Complete Level"))
+            {
+                completeLevel();
+            }
 
             ImGui::Separator();
 

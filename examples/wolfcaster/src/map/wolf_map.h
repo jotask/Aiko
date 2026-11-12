@@ -45,6 +45,8 @@ namespace wc
         bool isBlockingTile(int32_t x, int32_t y) const;
         bool collidesAt(const aiko::vec2& position, float radius) const;
 
+        bool isExitSwitch(int32_t tileX, int32_t tileY) const;
+
         const WolfDoor* getDoor(int32_t tileX, int32_t tileY) const;
         bool requestDoorOpen(int32_t tileX, int32_t tileY);
 
