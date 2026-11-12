@@ -32,6 +32,16 @@ namespace wc
         return { -fwd.y, fwd.x };
     }
 
+    bool WolfPlayer::heal(int32_t amount)
+    {
+        if (m_health == MaxHealth || isAlive() == false)
+        {
+            return false;
+        }
+        m_health = std::clamp(m_health + amount, 0, MaxHealth);
+        return true;
+    }
+
     void WolfPlayer::updateWeapon(float deltaTime, bool triggerHeld, bool triggerJustPressed)
     {
         constexpr uint8_t LastWeaponAnimationFrame = 4;
@@ -137,6 +147,16 @@ namespace wc
     void WolfPlayer::rotate(float angle)
     {
         m_angleRadians += angle;
+    }
+
+    bool WolfPlayer::addAmmo(int32_t amount)
+    {
+        if (m_ammo == MaxAmmo)
+        {
+            return false;
+        }
+        m_ammo = std::clamp(m_ammo + amount, 0, MaxAmmo);
+        return true;
     }
 
     void WolfPlayer::setAmmo(int32_t amount)

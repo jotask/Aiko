@@ -5,7 +5,6 @@
 #include "assets/wolf_vga_graphics_reader.h"
 #include "assets/wolf_vga_graphics_types.h"
 #include "assets/wolf_vswap_reader.h"
-#include "combat/wolf_combat_system.h"
 #include "core/file.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/input_context.h"
@@ -15,6 +14,8 @@
 #include "map/wolf_map_loader.h"
 #include "raycasting/wolf_raycast_renderer.h"
 #include "raycasting/wolf_raycaster.h"
+#include "systems/wolf_combat_system.h"
+#include "systems/wolf_pickup_system.h"
 
 #include <components/camera_component.h>
 #include <components/mesh_component.h>
@@ -185,6 +186,8 @@ namespace wc
         m_player.updateWeapon(deltaTime, input().isKeyPressed(aiko::Key::KEY_SPACE), input().isKeyJustPressed(aiko::Key::KEY_SPACE));
 
         m_wolfMap.update(deltaTime, m_player.position());
+
+        WolfPickupSystem::updateMapPickups(m_wolfMap, m_player);
 
         WolfCombatSystem::update(m_wolfMap, m_player);
 

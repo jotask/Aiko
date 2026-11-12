@@ -62,7 +62,6 @@ namespace wc
         bool blocking = false;
     };
 
-
     enum class WolfEnemyType
     {
         Guard,

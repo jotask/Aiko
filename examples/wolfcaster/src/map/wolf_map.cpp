@@ -43,6 +43,12 @@ namespace wc
         return m_data.objectPlane[getTileIndex(x, y)];
     }
 
+    void WolfMap::removeObject(size_t objectIndex)
+    {
+        AIKO_ASSERT(objectIndex < m_data.objects.size(), "Attempting to delete object dont' exist");
+        m_data.objects.erase(m_data.objects.begin() + objectIndex);
+    }
+
     WolfEnemy& WolfMap::getEnemy(size_t enemyId)
     {
         return m_enemySystem.getEnemy(enemyId);

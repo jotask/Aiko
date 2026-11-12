@@ -34,6 +34,8 @@ namespace wc
         const std::vector<WolfEnemy>& getEnemies() const { return m_enemySystem.getEnemies(); }
         const std::vector<WolfWorldObject>& getObjects() const { return m_data.objects; }
 
+        void removeObject(size_t objectIndex);
+
         WolfEnemy& getEnemy(size_t enemyId);
 
         bool canInteract(int32_t tileX, int32_t tileY) const;

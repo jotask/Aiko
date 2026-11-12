@@ -33,11 +33,16 @@ namespace wc
         aiko::vec2 right() const;
 
         int32_t health() const { return m_health; }
+        bool heal(int32_t amount);
         bool isAlive() const { return health() > 0; }
 
         int32_t ammo() const { return m_ammo; }
+        bool addAmmo(int32_t amount);
         void setAmmo(int32_t amount);
         bool consumeAmmo();
+
+        uint32_t score() const { return m_score; }
+        void addScore(uint32_t amount) { m_score += amount; }
 
         uint32_t shotsThisFrame() const { return m_shotsThisFrame; }
 
@@ -64,6 +69,9 @@ namespace wc
         // Weapon
         WolfWeapon m_currentWeapon = WolfWeapon::Pistol;
         int32_t m_ammo = StartingAmmo;
+
+        // Score
+        uint32_t m_score = 0;
 
     };
 

@@ -440,7 +440,7 @@ namespace wc
 
         // Player score
         {
-            const uint32_t scoreNumber = 0;
+            const uint32_t scoreNumber = player.score();
             renderHudNumber(scoreNumber, 6, {48.0f, 16.0f});
         }
 
