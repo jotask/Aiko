@@ -40,6 +40,12 @@ namespace wc
         GatlingGun,
     };
 
+    enum class WolfPlayerKey : uint8_t
+    {
+        Gold = 1,
+        Silver = 2,
+    };
+
     struct WolfPlayerSpawn
     {
         Tile tile = {0};

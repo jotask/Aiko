@@ -39,7 +39,7 @@ namespace wc
         WolfEnemy& getEnemy(size_t enemyId);
 
         bool canInteract(int32_t tileX, int32_t tileY) const;
-        bool interact(int32_t tileX, int32_t tileY, const aiko::ivec2& pushDirection, const aiko::vec2& playerPosition);
+        bool interact(int32_t tileX, int32_t tileY, const aiko::ivec2& pushDirection, const aiko::vec2& playerPosition, uint8_t ownedKeys);
 
         bool isPushWall(int32_t x, int32_t y) const;
         bool isBlockingTile(int32_t x, int32_t y) const;

@@ -178,6 +178,25 @@ namespace wc
         return true;
     }
 
+    void WolfPlayer::addKey(WolfPlayerKey key)
+    {
+        const uint8_t keyIndex = static_cast<uint8_t>(key);
+        AIKO_ASSERT(keyIndex >= 1 && keyIndex <= 4, "Invalid key index");
+        m_keys |= static_cast<uint8_t>(1u << (keyIndex - 1));
+    }
+
+    bool WolfPlayer::hasKey(WolfPlayerKey key) const
+    {
+        const uint8_t keyIndex = static_cast<uint8_t>(key);
+        AIKO_ASSERT(keyIndex >= 1 && keyIndex <= 4, "Invalid key index");
+        return (m_keys & (1u << (keyIndex - 1))) != 0;
+    }
+
+    uint8_t WolfPlayer::keys() const
+    {
+        return m_keys;
+    }
+
     WolfPlayer WolfPlayer::fromSpawn(const WolfPlayerSpawn& spawn)
     {
         float radians = 0.0f;

@@ -28,6 +28,8 @@ namespace wc
                     case 53: player.addScore(500); isObjectConsumed = true; break;// Chalice
                     case 54: player.addScore(1000); isObjectConsumed = true; break;// Treasure Chest
                     case 55: player.addScore(5000); isObjectConsumed = true; break;// Crown
+                    case 43: player.addKey(WolfPlayerKey::Gold); isObjectConsumed = true; break;// Gold key
+                    case 44: player.addKey(WolfPlayerKey::Silver); isObjectConsumed = true; break;// Silver key
                 }
                 if (isObjectConsumed == true)
                 {

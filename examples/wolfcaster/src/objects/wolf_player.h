@@ -41,6 +41,10 @@ namespace wc
         void setAmmo(int32_t amount);
         bool consumeAmmo();
 
+        void addKey(WolfPlayerKey key);
+        bool hasKey(WolfPlayerKey key) const;
+        uint8_t keys() const;
+
         uint32_t score() const { return m_score; }
         void addScore(uint32_t amount) { m_score += amount; }
 
@@ -72,6 +76,9 @@ namespace wc
 
         // Score
         uint32_t m_score = 0;
+
+        // Keys
+        uint8_t m_keys = 0;
 
     };
 

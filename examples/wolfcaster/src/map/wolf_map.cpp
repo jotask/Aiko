@@ -71,7 +71,7 @@ namespace wc
         return false;
     }
 
-    bool WolfMap::interact(int32_t tileX, int32_t tileY, const aiko::ivec2& pushDirection, const aiko::vec2& playerPosition)
+    bool WolfMap::interact(int32_t tileX, int32_t tileY, const aiko::ivec2& pushDirection, const aiko::vec2& playerPosition, uint8_t ownedKeys)
     {
         if (canInteract(tileX, tileY) == false)
         {
@@ -80,6 +80,17 @@ namespace wc
         const auto doorIndex = m_doorSystem.findDoorIndex(tileX, tileY);
         if (doorIndex != std::nullopt)
         {
+            const WolfDoor& door = m_doorSystem.getDoor(*doorIndex);
+            if (door.kind == WolfDoorKind::Locked)
+            {
+                const uint8_t keyRequired = door.requiredKeyIndex;
+                AIKO_ASSERT(keyRequired >= 1 && keyRequired <= 4, "Invalid key index");
+                const uint8_t keyMask = static_cast<uint8_t>(1u << (keyRequired - 1));
+                if ((ownedKeys & keyMask) == 0)
+                {
+                    return false;
+                }
+            }
             m_doorSystem.toggleDoor(doorIndex.value());
             return true;
         }
@@ -176,8 +187,13 @@ namespace wc
 
     bool WolfMap::requestDoorOpen(int32_t tileX, int32_t tileY)
     {
-        const auto doorIndex = m_doorSystem.findDoorIndex(tileX, tileY);
+        const std::optional<size_t> doorIndex = m_doorSystem.findDoorIndex(tileX, tileY);
         if (doorIndex == std::nullopt)
+        {
+            return false;
+        }
+        const WolfDoor& door = m_doorSystem.getDoor(*doorIndex);
+        if (door.kind == WolfDoorKind::Locked)
         {
             return false;
         }

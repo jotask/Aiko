@@ -482,8 +482,10 @@ namespace wc
             constexpr size_t GoldKeyIndex = 105;
             constexpr size_t SilverKeyIndex = 106;
 
-            renderHudPicture(NoKeyIndex, {240, 4}, {8, 16});
-            renderHudPicture(NoKeyIndex, {240, 20}, {8, 16});
+            const size_t goldKey = player.hasKey(WolfPlayerKey::Gold) ? GoldKeyIndex : NoKeyIndex;
+            const size_t silverKey = player.hasKey(WolfPlayerKey::Silver) ? SilverKeyIndex : NoKeyIndex;
+            renderHudPicture(goldKey, {240, 4}, {8, 16});
+            renderHudPicture(silverKey, {240, 20}, {8, 16});
         }
 
         // Player weapon

@@ -178,7 +178,7 @@ namespace wc
                     {
                         pushDirection.y = forward.y >= 0.0f ? 1 : -1;
                     }
-                    m_wolfMap.interact(hit.tileX, hit.tileY, pushDirection, m_player.position());
+                    m_wolfMap.interact(hit.tileX, hit.tileY, pushDirection, m_player.position(), m_player.keys());
                 }
             }
         }
