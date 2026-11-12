@@ -5,6 +5,7 @@ namespace wc
 
     inline bool GodMode = false;
     inline bool UnlimitedAmmo = false;
+    inline bool DisableKeys = false;
 
     struct WolfCasterDebug
     {

@@ -178,7 +178,8 @@ namespace wc
                     {
                         pushDirection.y = forward.y >= 0.0f ? 1 : -1;
                     }
-                    m_wolfMap.interact(hit.tileX, hit.tileY, pushDirection, m_player.position(), m_player.keys());
+                    const uint8_t ownedKeys = DisableKeys ? 0b00001111 : m_player.keys();
+                    m_wolfMap.interact(hit.tileX, hit.tileY, pushDirection, m_player.position(), ownedKeys);
                 }
             }
         }
@@ -246,6 +247,7 @@ namespace wc
 
             ImGui::Checkbox("God Mode", &GodMode);
             ImGui::Checkbox("Unlimited ammo", &UnlimitedAmmo);
+            ImGui::Checkbox("Ignore keys requirements", &DisableKeys);
 
             const uint16_t currentLevel = m_wolfMap.getLevelIndex();
 
