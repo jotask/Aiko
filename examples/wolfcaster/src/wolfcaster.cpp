@@ -2,7 +2,10 @@
 
 #include "assets/wolf_assets_decoder.h"
 #include "assets/wolf_map_texture.h"
+#include "assets/wolf_vga_graphics_reader.h"
+#include "assets/wolf_vga_graphics_types.h"
 #include "assets/wolf_vswap_reader.h"
+#include "combat/wolf_combat_system.h"
 #include "core/file.h"
 #include "layers/contexts/asset_context.h"
 #include "layers/contexts/input_context.h"
@@ -12,7 +15,6 @@
 #include "map/wolf_map_loader.h"
 #include "raycasting/wolf_raycast_renderer.h"
 #include "raycasting/wolf_raycaster.h"
-#include "combat/wolf_combat_system.h"
 
 #include <components/camera_component.h>
 #include <components/mesh_component.h>
@@ -86,6 +88,8 @@ namespace wc
         m_player = WolfPlayer::fromSpawn(playerSpawn);
 
         m_soundPlayer.init(std::move(assetData.sounds));
+
+        const WolfVgaGraphicsData vgaData = WolfVgaGraphicsReader::load(WOLF3D_DATA_DIR);
 
     }
 

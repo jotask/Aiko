@@ -189,6 +189,7 @@ namespace wc
         }
 
         renderWeapon(player, spriteTextures, ui, viewportSize);
+        renderHUD(player, spriteTextures, ui, viewportSize);
 
     }
 
@@ -339,6 +340,11 @@ namespace wc
         };
 
         ui.image(spriteTextures[spriteIndex], weaponPosition, weaponDimensions, aiko::WHITE, sampler);
+    }
+
+    void WolfRaycastRenderer::renderHUD(const WolfPlayer& player, const std::vector<aiko::AssetId>& spriteTextures, aiko::UIContext& ui, const aiko::vec2& viewportSize)
+    {
+        
     }
 
     size_t WolfRaycastRenderer::resolveEnemySpriteIndex(const WolfEnemy& enemy, const aiko::vec2& playerPosition)

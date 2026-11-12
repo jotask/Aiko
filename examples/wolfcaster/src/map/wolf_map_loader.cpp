@@ -1,8 +1,8 @@
 #include "wolf_map_loader.h"
 
-#include "../core/byte_utils.h"
-#include "../core/carmack_decoder.h"
-#include "../core/rlew_decoder.h"
+#include "core/byte_utils.h"
+#include "core/carmack_decoder.h"
+#include "core/rlew_decoder.h"
 #include "aiko_macros.h"
 #include "core/file.h"
 #include "logger/logger.h"

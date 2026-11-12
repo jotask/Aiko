@@ -8,10 +8,22 @@
 namespace wc
 {
 
+    inline uint8_t getBit(uint8_t byte, uint8_t bitIndex)
+    {
+        AIKO_ASSERT(bitIndex < 8, "Bit index must be between 0 and 7");
+        return (byte >> bitIndex) & 1;
+    }
+
     inline uint16_t readU16LE(std::span<const uint8_t> data, size_t offset)
     {
         AIKO_ASSERT(offset <= data.size() && data.size() - offset >= 2, "Not enough bytes to read uint16_t");
         return uint16_t(data[offset + 0]) | (uint16_t(data[offset + 1]) << 8);
+    }
+
+    inline uint32_t readU24LE(std::span<const uint8_t> data, size_t offset)
+    {
+        AIKO_ASSERT(offset <= data.size() && data.size() - offset >= 3, "Not enough bytes to read uint24_t");
+        return uint32_t(data[offset + 0]) | (uint32_t(data[offset + 1]) << 8) | (uint32_t(data[offset + 2]) << 16);
     }
 
     inline uint32_t readU32LE(std::span<const uint8_t> data, size_t offset)

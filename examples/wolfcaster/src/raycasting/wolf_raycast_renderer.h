@@ -37,6 +37,7 @@ namespace wc
         static void renderSprites(const std::vector<ProjectedSprite>& visibleSprites, const aiko::vec2& viewportSize, aiko::UIContext& ui, const std::array<float, RayCount>& wallDepths, const std::vector<aiko::AssetId>& spriteTextures, const aiko::SamplerState& sampler);
 
         static void renderWeapon(const WolfPlayer& player, const std::vector<aiko::AssetId>& spriteTextures, aiko::UIContext& ui, const aiko::vec2& viewportSize);
+        static void renderHUD(const WolfPlayer& player, const std::vector<aiko::AssetId>& spriteTextures, aiko::UIContext& ui, const aiko::vec2& viewportSize);
 
         static size_t resolveEnemySpriteIndex(const WolfEnemy& enemy, const aiko::vec2& playerPosition);
         static uint8_t calculateEnemyRotation(const WolfEnemy& enemy, const aiko::vec2& playerPosition);
