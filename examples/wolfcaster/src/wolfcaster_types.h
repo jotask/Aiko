@@ -3,7 +3,7 @@
 namespace wc
 {
 
-    static constexpr bool GodMode = true;
+    static constexpr bool GodMode = false;
 
     struct WolfCasterDebug
     {

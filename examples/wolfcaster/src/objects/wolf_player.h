@@ -11,6 +11,7 @@ namespace wc
     public:
 
         static constexpr float PlayerRadius = 0.2f;
+        static constexpr int32_t MaxHealth = 100;
 
         void updateWeapon(float deltaTime, bool triggerPressed);
 
@@ -44,7 +45,6 @@ namespace wc
         bool m_shotThisFrame = false;
 
         // Health
-        static constexpr int32_t MaxHealth = 100;
         int32_t m_health = MaxHealth;
 
         // Animation

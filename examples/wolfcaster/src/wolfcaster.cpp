@@ -194,7 +194,7 @@ namespace wc
     {
         AIKO_FUNCTION_PROFILE
 
-        WolfRaycastRenderer::render(m_wolfMap, m_player, m_wallTextures, m_spriteTextures, ui(), aiko::vec2(renderer().getRenderSize()));
+        WolfRaycastRenderer::render(m_wolfMap, m_player, m_wallTextures, m_spriteTextures, m_hudTextures, ui(), aiko::vec2(renderer().getRenderSize()));
 
         if (ImGui::BeginMainMenuBar())
         {

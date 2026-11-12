@@ -15,19 +15,23 @@
 namespace wc
 {
 
-    void WolfRaycastRenderer::render(const WolfMap& map, const WolfPlayer& player, const std::vector<aiko::AssetId>& wallTextures, const std::vector<aiko::AssetId>& spriteTextures, aiko::UIContext& ui, const aiko::vec2& viewportSize)
+    void WolfRaycastRenderer::render(const WolfMap& map, const WolfPlayer& player, const std::vector<aiko::AssetId>& wallTextures, const std::vector<aiko::AssetId>& spriteTextures, const std::vector<aiko::AssetId>& hudTextures, aiko::UIContext& ui, const aiko::vec2& viewportSize)
     {
 
         constexpr aiko::vec2 viewportPosition = {0, 0};
+
+        const float hudScale = viewportSize.x / float(OriginalScreenSize.x);
+        const float hudHeight = OriginalHudSize.y * hudScale;
+        const aiko::vec2 gameViewportSize = {viewportSize.x, viewportSize.y - hudHeight};
 
         // Background
         {
             constexpr aiko::Color ceilingColor = aiko::Color(89 / 255.0f, 107 / 255.0f, 121 / 255.0f);
             constexpr aiko::Color floorColor = aiko::Color(80 / 255.0f, 74 / 255.0f, 69 / 255.0f);
 
-            ui.pushClipRect(viewportPosition, viewportSize);
-            ui.rect({0}, { viewportSize.x, viewportSize.y * 0.5f }, ceilingColor);
-            ui.rect({0, viewportSize.y * 0.5f}, viewportSize, floorColor);
+            ui.pushClipRect(viewportPosition, gameViewportSize);
+            ui.rect({0}, { gameViewportSize.x, gameViewportSize.y * 0.5f }, ceilingColor);
+            ui.rect({0, gameViewportSize.y * 0.5f}, gameViewportSize, floorColor);
             ui.popClipRect();
         }
 
@@ -37,13 +41,11 @@ namespace wc
             constexpr float ReferenceHorizontalFOV = 66.0f; // degrees
             constexpr float ReferenceAspectRatio = 4.0f / 3.0f;
 
-            constexpr aiko::vec2 viewportPosition = {0, 0};
-
-            const float columnWidth = viewportSize.x / RayCount;
-            const float aspectRatio = viewportSize.x / viewportSize.y;
+            const float columnWidth = gameViewportSize.x / RayCount;
+            const float aspectRatio = gameViewportSize.x / gameViewportSize.y;
             const float referencePlaneLength = std::tan(aiko::math::radians(ReferenceHorizontalFOV) * 0.5f);
             const float planeLength = referencePlaneLength * (aspectRatio / ReferenceAspectRatio);
-            const float projectionDistance = viewportSize.x / (2.0f * planeLength);
+            const float projectionDistance = gameViewportSize.x / (2.0f * planeLength);
             const aiko::vec2 cameraPlane = player.right() * planeLength;
 
             constexpr aiko::SamplerState sampler = {
@@ -54,7 +56,7 @@ namespace wc
                 .wrapV = aiko::TextureWrapMode::Clamp,
             };
 
-            ui.pushClipRect(viewportPosition, viewportSize);
+            ui.pushClipRect(viewportPosition, gameViewportSize);
 
             std::array<float, RayCount> wallDepths;
             wallDepths.fill(std::numeric_limits<float>::infinity());
@@ -76,7 +78,7 @@ namespace wc
                     const float wallHeight = projectionDistance / perpendicularDistance;
 
                     const float columnX = viewportPosition.x + rayIndex * columnWidth;
-                    const float columnY = viewportPosition.y + (viewportSize.y - wallHeight) / 2.0f;
+                    const float columnY = viewportPosition.y + (gameViewportSize.y - wallHeight) / 2.0f;
 
                     const aiko::vec2 columnPosition = {columnX, columnY};
                     const aiko::vec2 columnSize = {columnWidth, wallHeight};
@@ -182,14 +184,15 @@ namespace wc
                 }
             }
 
-            const std::vector<ProjectedSprite> visiblesSprites = calculateVisibleSprites(map, player, spriteTextures, viewportSize, projectionDistance);
-            renderSprites(visiblesSprites, viewportSize, ui, wallDepths, spriteTextures, sampler);
+            const std::vector<ProjectedSprite> visiblesSprites = calculateVisibleSprites(map, player, spriteTextures, gameViewportSize, projectionDistance);
+            renderSprites(visiblesSprites, gameViewportSize, ui, wallDepths, spriteTextures, sampler);
 
             ui.popClipRect();
         }
 
-        renderWeapon(player, spriteTextures, ui, viewportSize);
-        renderHUD(player, spriteTextures, ui, viewportSize);
+        renderWeapon(player, spriteTextures, ui, gameViewportSize);
+
+        renderHUD(map, player, hudTextures, ui, viewportSize);
 
     }
 
@@ -342,9 +345,145 @@ namespace wc
         ui.image(spriteTextures[spriteIndex], weaponPosition, weaponDimensions, aiko::WHITE, sampler);
     }
 
-    void WolfRaycastRenderer::renderHUD(const WolfPlayer& player, const std::vector<aiko::AssetId>& spriteTextures, aiko::UIContext& ui, const aiko::vec2& viewportSize)
+    void WolfRaycastRenderer::renderHUD(const WolfMap& map, const WolfPlayer& player, const std::vector<aiko::AssetId>& hudTextures, aiko::UIContext& ui, const aiko::vec2& viewportSize)
     {
-        
+
+        const float hudScale = viewportSize.x / float(OriginalScreenSize.x);
+        const float hudHeight = OriginalHudSize.y * hudScale;
+
+        const aiko::vec2 position = aiko::vec2	{0.0f, viewportSize.y - hudHeight};
+        const aiko::vec2 size = aiko::vec2	{viewportSize.x, hudHeight};
+
+        constexpr aiko::SamplerState sampler = {
+            .minFilter = aiko::TextureFilter::Nearest,
+            .magFilter = aiko::TextureFilter::Nearest,
+            .mipFilter = aiko::TextureMipFilter::None,
+            .wrapU = aiko::TextureWrapMode::Clamp,
+            .wrapV = aiko::TextureWrapMode::Clamp,
+        };
+
+        // Player Status bar
+        {
+            constexpr size_t StatusBarPic = 95;
+            AIKO_ASSERT(StatusBarPic < hudTextures.size(), "Missing status bar texture");
+            AIKO_ASSERT(hudTextures[StatusBarPic] != aiko::InvalidAssetId, "Invalid status bar texture");
+            const aiko::AssetId textureId = hudTextures[StatusBarPic];
+            ui.image(textureId, position, size, aiko::WHITE, sampler);
+        }
+
+        constexpr size_t BlankIndex = 107;
+        const auto getDigitIndex = [](uint8_t digit) -> size_t
+        {
+            AIKO_ASSERT(digit <= 9, "Digit must be between 0 and 9");
+            return 108 + digit;
+        };
+
+        const auto renderHudNumber = [&](uint32_t value, uint8_t digitCount, const aiko::vec2& originalPosition)
+        {
+            AIKO_ASSERT(digitCount > 0 && digitCount <= 10, "Invalid HUD digit count");
+
+            constexpr float DigitWidth = 8.0f;
+            constexpr float DigitHeight = 16.0f;
+
+            uint32_t divisor = 1;
+            for (uint8_t i = 1; i < digitCount; ++i)
+            {
+                divisor *= 10;
+            }
+
+            for (uint8_t i = 0; i < digitCount; ++i)
+            {
+                const uint8_t digit = static_cast<uint8_t>((value / divisor) % 10);
+
+                const bool leadingBlank = divisor > 1 && value < divisor;
+                const size_t textureIndex = leadingBlank ? BlankIndex : getDigitIndex(digit);
+
+                AIKO_ASSERT(textureIndex < hudTextures.size(), "Invalid HUD digit texture index");
+
+                const aiko::AssetId textureId = hudTextures[textureIndex];
+                AIKO_ASSERT(textureId != aiko::InvalidAssetId, "Invalid HUD digit texture");
+
+                const aiko::vec2 digitPosition = {
+                    position.x + (originalPosition.x + i * DigitWidth) * hudScale,
+                    position.y + originalPosition.y * hudScale
+                };
+
+                const aiko::vec2 digitSize = { DigitWidth * hudScale, DigitHeight * hudScale};
+                ui.image(textureId, digitPosition, digitSize, aiko::WHITE, sampler);
+                divisor /= 10;
+            }
+        };
+
+        const auto renderHudPicture = [&](size_t textureIndex, const aiko::vec2& originalPosition, const aiko::vec2& originalSize)
+        {
+            const aiko::vec2 picturePosition = { position.x + originalPosition.x * hudScale, position.y + originalPosition.y * hudScale };
+            const aiko::vec2 pictureSize = {originalSize.x * hudScale, originalSize.y * hudScale};
+            ui.image(hudTextures[textureIndex], picturePosition, pictureSize, aiko::WHITE, sampler);
+        };
+
+        // Player current level
+        {
+            const uint32_t levelNumber = map.getLevelIndex() + 1;
+            renderHudNumber(levelNumber, 2, {16.0f, 16.0f});
+        }
+
+        // Player score
+        {
+            const uint32_t scoreNumber = 0;
+            renderHudNumber(scoreNumber, 6, {48.0f, 16.0f});
+        }
+
+        // Player lives
+        {
+            const uint32_t livesNumber = 8;
+            renderHudNumber(livesNumber, 1, {112.0f, 16.0f});
+        }
+
+        // Player health
+        {
+            const uint32_t healthNumber = std::floor((player.health() / static_cast<float>(WolfPlayer::MaxHealth)) * 100.0f);
+            renderHudNumber(healthNumber, 3, {168.0f, 16.0f});
+        }
+
+        // Player ammo
+        {
+            const uint32_t ammoNumber = 99;
+            renderHudNumber(ammoNumber, 2, {216.0f, 16.0f});
+        }
+
+        // Player Health Icon
+        {
+            const uint32_t healthNumber = std::floor((player.health() / static_cast<float>(WolfPlayer::MaxHealth)) * 100.0f);
+            size_t faceIndex = 118;
+            if (healthNumber == 0) { faceIndex = 139; }
+            else if (healthNumber <= 3) { faceIndex = 136; }
+            else if (healthNumber <= 19) { faceIndex = 133; }
+            else if (healthNumber <= 35) { faceIndex = 130; }
+            else if (healthNumber <= 51) { faceIndex = 127; }
+            else if (healthNumber <= 67) { faceIndex = 124; }
+            else if (healthNumber <= 83) { faceIndex = 121; }
+            renderHudPicture(faceIndex, {136, 4}, {24, 32});
+        }
+
+        // Player keys
+        {
+            constexpr size_t NoKeyIndex = 104;
+            constexpr size_t GoldKeyIndex = 105;
+            constexpr size_t SilverKeyIndex = 106;
+
+            renderHudPicture(NoKeyIndex, {240, 4}, {8, 16});
+            renderHudPicture(NoKeyIndex, {240, 20}, {8, 16});
+        }
+
+        // Player weapon
+        {
+            constexpr size_t KnifeIndex = 100; // Knife
+            constexpr size_t PistolIndex = 101; // Pistol
+            constexpr size_t MachineGunIndex = 102; // Knife
+            constexpr size_t GatlingIndex = 103; // Knife
+            renderHudPicture(PistolIndex, {256, 8}, {48, 24});
+        }
+
     }
 
     size_t WolfRaycastRenderer::resolveEnemySpriteIndex(const WolfEnemy& enemy, const aiko::vec2& playerPosition)
