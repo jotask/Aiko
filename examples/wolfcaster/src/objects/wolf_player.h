@@ -1,4 +1,5 @@
 #pragma once
+
 #include "map/wolf_map_types.h"
 #include "math/math_vector.h"
 
@@ -12,6 +13,9 @@ namespace wc
 
         static constexpr float PlayerRadius = 0.2f;
         static constexpr int32_t MaxHealth = 100;
+        static constexpr int32_t MaxAmmo = 99;
+        static constexpr int32_t StartingAmmo = 8;
+
 
         void updateWeapon(float deltaTime, bool triggerPressed);
 
@@ -23,11 +27,18 @@ namespace wc
         const aiko::vec2& position() const { return m_position; }
         float angle() const { return m_angleRadians; }
 
+        void setWeapon(WolfWeapon weapon);
+        WolfWeapon getWeapon() const { return m_currentWeapon; };
+
         aiko::vec2 forward() const;
         aiko::vec2 right() const;
 
         int32_t health() const { return m_health; }
         bool isAlive() const { return health() > 0; }
+
+        int32_t ammo() const { return m_ammo; }
+        void setAmmo(int32_t amount);
+        bool consumeAmmo();
 
         bool shotThisFrame() const { return m_shotThisFrame; }
 
@@ -50,6 +61,10 @@ namespace wc
         // Animation
         uint8_t m_weaponAnimationFrame = 0;
         float m_weaponAnimationTime = 0.0f;
+
+        // Weapon
+        WolfWeapon m_currentWeapon = WolfWeapon::Pistol;
+        int32_t m_ammo = StartingAmmo;
 
     };
 

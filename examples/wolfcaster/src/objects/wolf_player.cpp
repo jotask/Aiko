@@ -9,6 +9,17 @@
 namespace wc
 {
 
+    void WolfPlayer::setWeapon(WolfWeapon weapon)
+    {
+        if (weapon == m_currentWeapon)
+        {
+            return;
+        }
+        m_currentWeapon = weapon;
+        m_weaponAnimationFrame = 0;
+        m_weaponAnimationTime = 0.0f;
+    }
+
     aiko::vec2 WolfPlayer::forward() const
     {
         return { aiko::math::cos(m_angleRadians), aiko::math::sin(m_angleRadians) };
@@ -77,7 +88,7 @@ namespace wc
         {
             return;
         }
-        if constexpr (GodMode == false)
+        if (GodMode == false)
         {
             m_health = std::max(0, m_health - damage);
         }
@@ -101,6 +112,25 @@ namespace wc
     void WolfPlayer::rotate(float angle)
     {
         m_angleRadians += angle;
+    }
+
+    void WolfPlayer::setAmmo(int32_t amount)
+    {
+        m_ammo = std::clamp(amount, 0, MaxAmmo);
+    }
+
+    bool WolfPlayer::consumeAmmo()
+    {
+        if (UnlimitedAmmo == true)
+        {
+            return true;
+        }
+        if (m_ammo <= 0)
+        {
+            return false;
+        }
+        --m_ammo;
+        return true;
     }
 
     WolfPlayer WolfPlayer::fromSpawn(const WolfPlayerSpawn& spawn)

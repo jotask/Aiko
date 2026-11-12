@@ -320,9 +320,20 @@ namespace wc
 
     void WolfRaycastRenderer::renderWeapon(const WolfPlayer& player, const std::vector<aiko::AssetId>& spriteTextures, aiko::UIContext& ui, const aiko::vec2& viewportSize)
     {
-        constexpr size_t WeaponBaseIndex = 421;
 
-        const size_t spriteIndex = WeaponBaseIndex + player.weaponAnimationFrame();
+        size_t weaponBaseIndex = 0;
+
+        switch (player.getWeapon())
+        {
+            case WolfWeapon::Knife: weaponBaseIndex = 416; break;
+            case WolfWeapon::Pistol: weaponBaseIndex = 421; break;
+            case WolfWeapon::MachineGun: weaponBaseIndex = 426; break;
+            case WolfWeapon::GatlingGun: weaponBaseIndex = 431; break;
+            default:
+                AIKO_ASSERT(false, "Weapon not handled");
+        }
+
+        const size_t spriteIndex = weaponBaseIndex + player.weaponAnimationFrame();
         AIKO_ASSERT(spriteIndex < spriteTextures.size(), "Invalid weapon sprite index");
 
         const float weaponSize = viewportSize.y * 1.0f;
@@ -447,7 +458,7 @@ namespace wc
 
         // Player ammo
         {
-            const uint32_t ammoNumber = 99;
+            const uint32_t ammoNumber = player.ammo();
             renderHudNumber(ammoNumber, 2, {216.0f, 16.0f});
         }
 
@@ -477,11 +488,15 @@ namespace wc
 
         // Player weapon
         {
-            constexpr size_t KnifeIndex = 100; // Knife
-            constexpr size_t PistolIndex = 101; // Pistol
-            constexpr size_t MachineGunIndex = 102; // Knife
-            constexpr size_t GatlingIndex = 103; // Knife
-            renderHudPicture(PistolIndex, {256, 8}, {48, 24});
+            size_t weaponIndex = 0;
+            switch (player.getWeapon())
+            {
+                case WolfWeapon::Knife: weaponIndex = 100; break;
+                case WolfWeapon::Pistol: weaponIndex = 101; break;
+                case WolfWeapon::MachineGun: weaponIndex = 102; break;
+                case WolfWeapon::GatlingGun: weaponIndex = 103; break;
+            }
+            renderHudPicture(weaponIndex, {256, 8}, {48, 24});
         }
 
     }

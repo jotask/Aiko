@@ -27,7 +27,7 @@ namespace wc
 
         void loadLevel(uint16_t levelIndex);
 
-        void renderLevelSelector();
+        void renderGameSettings();
         void renderMiniMap();
         void renderAllWallTextures();
         void renderAllSpriteTextures();

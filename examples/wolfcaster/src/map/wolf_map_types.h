@@ -32,6 +32,14 @@ namespace wc
         NorthWest,
     };
 
+    enum class WolfWeapon
+    {
+        Knife,
+        Pistol,
+        MachineGun,
+        GatlingGun,
+    };
+
     struct WolfPlayerSpawn
     {
         Tile tile = {0};

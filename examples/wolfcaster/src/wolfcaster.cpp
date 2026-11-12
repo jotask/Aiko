@@ -200,7 +200,7 @@ namespace wc
         {
             if (ImGui::BeginMenu("Tools"))
             {
-                ImGui::MenuItem("Render Level Selector", nullptr, &m_debugImgui.renderLevelSelector);
+                ImGui::MenuItem("Render Game Settings", nullptr, &m_debugImgui.renderGameSettings);
                 ImGui::MenuItem("Render MiniMap", nullptr, &m_debugImgui.renderMiniMap);
                 ImGui::MenuItem("Render Wall Textures", nullptr, &m_debugImgui.renderWallTextures);
                 ImGui::MenuItem("Render Sprite Textures", nullptr, &m_debugImgui.renderSpriteTextures);
@@ -211,7 +211,7 @@ namespace wc
             ImGui::EndMainMenuBar();
         }
 
-        renderLevelSelector();
+        renderGameSettings();
         renderMiniMap();
         renderAllWallTextures();
         renderAllSpriteTextures();
@@ -231,20 +231,51 @@ namespace wc
     }
 
 
-    void WolfCaster::renderLevelSelector()
+    void WolfCaster::renderGameSettings()
     {
-        if (m_debugImgui.renderLevelSelector == false)
+        if (m_debugImgui.renderGameSettings == false)
         {
             return;
         }
 
-        if (ImGui::Begin("Level Selector", &m_debugImgui.renderLevelSelector))
+        if (ImGui::Begin("Game Settings", &m_debugImgui.renderGameSettings))
         {
+
+            ImGui::Checkbox("God Mode", &GodMode);
+            ImGui::Checkbox("Unlimited ammo", &UnlimitedAmmo);
+
             const uint16_t currentLevel = m_wolfMap.getLevelIndex();
 
             ImGui::Text("Current Level: %u", unsigned(currentLevel + 1));
             ImGui::Text("Name: %s", m_wolfMap.getName().c_str());
             ImGui::Text("Levels Available: %zu", m_availableLevels.size());
+
+            ImGui::Separator();
+
+            const std::string_view currentWeapon = magic_enum::enum_name(m_player.getWeapon());
+            ImGui::Text("Current Weapon selected: %s", currentWeapon.data());
+            if (ImGui::BeginCombo("Weapons", currentWeapon.data()))
+            {
+                for (const auto& [weapon, weaponName] : magic_enum::enum_entries<WolfWeapon>())
+                {
+                    const bool selected = weaponName == currentWeapon;
+                    if (ImGui::Selectable(weaponName.data(), selected))
+                    {
+                        m_player.setWeapon(weapon);
+                    }
+                    if (selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            int32_t ammo = m_player.ammo();
+            if (ImGui::SliderInt("Ammo", &ammo, 0, WolfPlayer::MaxAmmo))
+            {
+                m_player.setAmmo(ammo);
+            }
 
             ImGui::Separator();
 

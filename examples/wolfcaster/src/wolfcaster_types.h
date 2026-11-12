@@ -3,11 +3,12 @@
 namespace wc
 {
 
-    static constexpr bool GodMode = false;
+    inline bool GodMode = false;
+    inline bool UnlimitedAmmo = false;
 
     struct WolfCasterDebug
     {
-        bool renderLevelSelector = false;
+        bool renderGameSettings = false;
         bool renderMiniMap = false;
         bool renderWallTextures = false;
         bool renderSpriteTextures = false;
