@@ -20,4 +20,10 @@ namespace wc
         std::vector<uint8_t> graphBytes;
     };
 
+    struct WolfVgaPictureDimension
+    {
+        uint16_t width;
+        uint16_t height;
+    };
+
 }

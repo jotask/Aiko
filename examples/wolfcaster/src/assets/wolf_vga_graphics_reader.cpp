@@ -111,6 +111,52 @@ namespace wc
         AIKO_ASSERT(output.size() == expandedSize, "VGA graphics chunk decompression size mismatch");
         return output;
 
+    }
 
+    std::vector<WolfVgaPictureDimension> WolfVgaGraphicsReader::decodePictureDimensions(const WolfVgaGraphicsData& graphics, size_t pictureCount)
+    {
+        AIKO_ASSERT(pictureCount > 0 && pictureCount <= 4096, "Invalid VGA picture count");
+        AIKO_ASSERT(graphics.chunkOffsets.size() >= 2, "Invalid VGA graphics chunk directory");
+
+        // The implementation should extract the compressed bytes for chunk 0, Huffman-decode them to pictureCount * 4 bytes, and read the width and height pairs with your existing readU16LE() helper.
+
+        const auto findChunkEnd = [&](size_t chunkIndex) -> uint32_t
+        {
+            size_t nextIndex = chunkIndex + 1;
+            while (true)
+            {
+                AIKO_ASSERT(nextIndex < graphics.chunkOffsets.size(), "Missing VGA picture dimension chunk end offset");
+                const auto data = graphics.chunkOffsets[nextIndex];
+                if (data == 0xFFFFFF)
+                {
+                    ++nextIndex;
+                    continue;
+                }
+                return data;
+            }
+        };
+
+        const uint32_t chunkStart = graphics.chunkOffsets[0];
+        const uint32_t chunkEnd = findChunkEnd(0);
+
+        AIKO_ASSERT(chunkStart != 0xFFFFFF,"VGA picture dimension chunk is sparse");
+        AIKO_ASSERT(chunkStart < chunkEnd && chunkEnd <= graphics.graphBytes.size(), "Invalid VGA picture dimension chunk boundaries");
+
+        std::span<const uint8_t> compressedData = { graphics.graphBytes.begin() + chunkStart, graphics.graphBytes.begin() + chunkEnd };
+        const auto decodedBytes = HuffmanDecoder::decode(compressedData, graphics.huffmanNodes, pictureCount * 4);
+        AIKO_ASSERT(decodedBytes.size() == pictureCount * 4, "Invalid VGA picture dimension table size");
+
+        std::vector<WolfVgaPictureDimension> dimensions;
+        for (size_t i = 0 ; i < pictureCount; ++i)
+        {
+            uint16_t width = readU16LE(decodedBytes, i * 4);
+            uint16_t height = readU16LE(decodedBytes, i * 4 + 2);
+            dimensions.push_back(WolfVgaPictureDimension{
+                .width = width,
+                .height = height,
+            });
+        }
+
+        return dimensions;
     }
 }
