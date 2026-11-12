@@ -25,7 +25,13 @@ namespace wc
         
     private:
 
-        void loadLevel(uint16_t levelIndex);
+        struct WolfLevelRequest
+        {
+            uint16_t levelIndex = 0;
+            bool preservePlayerProgress = false;
+        };
+
+        void loadLevel(uint16_t levelIndex, bool preservePlayerProgress);
 
         void completeLevel();
 
@@ -37,7 +43,7 @@ namespace wc
         void renderAudioPlayer();
 
         std::vector<WolfLevelInfo> m_availableLevels;
-        std::optional<uint16_t> m_requestedLevel;
+        std::optional<WolfLevelRequest> m_requestedLevel;
 
         WolfMap m_wolfMap;
 

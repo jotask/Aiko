@@ -214,4 +214,14 @@ namespace wc
         return player;
     }
 
+    WolfPlayer WolfPlayer::fromSpawn(const WolfPlayerSpawn& spawn, const WolfPlayer& previousPlayer)
+    {
+        WolfPlayer player = fromSpawn(spawn);
+        player.m_health = previousPlayer.m_health;
+        player.m_ammo = previousPlayer.m_ammo;
+        player.m_score = previousPlayer.m_score;
+        player.m_currentWeapon = previousPlayer.m_currentWeapon;
+        return player;
+    }
+
 }

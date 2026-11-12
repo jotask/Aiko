@@ -114,9 +114,9 @@ namespace wc
 
         if (m_requestedLevel.has_value())
         {
-            const uint16_t levelIndex = *m_requestedLevel;
+            const WolfLevelRequest request = *m_requestedLevel;
             m_requestedLevel.reset();
-            loadLevel(levelIndex);
+            loadLevel(request.levelIndex, request.preservePlayerProgress);
             return;
         }
 
@@ -160,7 +160,6 @@ namespace wc
             const aiko::vec2 displacement = normalizedMove * moveSpeed * deltaTime;
             m_player.move(displacement, m_wolfMap);
         }
-
 
         if (input().isKeyJustPressed(aiko::Key::KEY_F))
         {
@@ -229,10 +228,18 @@ namespace wc
 
     }
 
-    void WolfCaster::loadLevel(uint16_t levelIndex)
+    void WolfCaster::loadLevel(uint16_t levelIndex, bool preservePlayerProgress)
     {
         m_wolfMap = WolfMapLoader::loadLevel(WOLF3D_DATA_DIR, levelIndex);
-        m_player = WolfPlayer::fromSpawn(m_wolfMap.getPlayerSpawn());
+
+        if (preservePlayerProgress == true)
+        {
+            m_player = WolfPlayer::fromSpawn(m_wolfMap.getPlayerSpawn(), m_player);
+        }
+        else
+        {
+            m_player = WolfPlayer::fromSpawn(m_wolfMap.getPlayerSpawn());
+        }
 
         assets().getMutableTexture(m_mapTextureId) = WolfMapTexture::build(m_wolfMap);
         assets().invalidateTexture(m_mapTextureId);
@@ -295,7 +302,10 @@ namespace wc
             return;
         }
         aiko::logger::Log::infoFmt("Level completed: {} -> {}", currentLevel + 1, nextLevel + 1);
-        m_requestedLevel = nextLevel;
+        m_requestedLevel = WolfLevelRequest{
+            .levelIndex = nextLevel,
+            .preservePlayerProgress = true,
+        };
     }
 
     void WolfCaster::renderGameSettings()
@@ -383,7 +393,10 @@ namespace wc
 
             if (ImGui::Button("Load Selected Level"))
             {
-                m_requestedLevel = static_cast<uint16_t>(storage->GetInt(selectionId, currentLevel));
+                m_requestedLevel = WolfLevelRequest{
+                    .levelIndex = static_cast<uint16_t>(storage->GetInt(selectionId, currentLevel)),
+                    .preservePlayerProgress = false,
+                };
             }
 
             ImGui::EndDisabled();
@@ -392,7 +405,10 @@ namespace wc
 
             if (ImGui::Button("Restart Level"))
             {
-                m_requestedLevel = currentLevel;
+                m_requestedLevel = WolfLevelRequest{
+                    .levelIndex = currentLevel,
+                    .preservePlayerProgress = false,
+                };
             }
 
             if (m_requestedLevel.has_value())

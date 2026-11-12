@@ -53,6 +53,7 @@ namespace wc
         uint8_t weaponAnimationFrame() const { return m_weaponAnimationFrame; }
 
         static WolfPlayer fromSpawn(const WolfPlayerSpawn& spawn);
+        static WolfPlayer fromSpawn(const WolfPlayerSpawn& spawn, const WolfPlayer& previousPlayer);
 
     private:
 
