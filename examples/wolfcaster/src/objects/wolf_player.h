@@ -16,8 +16,7 @@ namespace wc
         static constexpr int32_t MaxAmmo = 99;
         static constexpr int32_t StartingAmmo = 8;
 
-
-        void updateWeapon(float deltaTime, bool triggerPressed);
+        void updateWeapon(float deltaTime, bool triggerHeld, bool triggerJustPressed);
 
         void takeDamage(int32_t damage);
 
@@ -40,7 +39,7 @@ namespace wc
         void setAmmo(int32_t amount);
         bool consumeAmmo();
 
-        bool shotThisFrame() const { return m_shotThisFrame; }
+        uint32_t shotsThisFrame() const { return m_shotsThisFrame; }
 
         uint8_t weaponAnimationFrame() const { return m_weaponAnimationFrame; }
 
@@ -53,7 +52,7 @@ namespace wc
 
         // Shooting
         float m_fireCooldownRemaining = 0.0f;
-        bool m_shotThisFrame = false;
+        uint32_t m_shotsThisFrame = 0;
 
         // Health
         int32_t m_health = MaxHealth;

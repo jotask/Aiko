@@ -3,17 +3,18 @@
 #include "map/wolf_map.h"
 #include "objects/wolf_enemy.h"
 #include "objects/wolf_player.h"
+#include "objects/wolf_weapon_stats.h"
 #include "raycasting/wolf_hitscan.h"
 
 #include <array>
 #include <vector>
+#include <algorithm>
 
 namespace wc
 {
 
     namespace
     {
-        constexpr int32_t PlayerPistol = 20;
         constexpr int32_t EnemyFireArm = 10;
         constexpr int32_t DogBite = 15;
     }
@@ -26,7 +27,7 @@ namespace wc
 
     void WolfCombatSystem::resolvePlayerShot(WolfMap& map, WolfPlayer& player)
     {
-        if (player.shotThisFrame() == false)
+        if (player.shotsThisFrame() == 0)
         {
             return;
         }
@@ -46,12 +47,21 @@ namespace wc
                 });
         }
 
-        const WolfHitscanHit hit = WolfHitscan::trace(map, player.position(), player.forward(), MaxDistanceShoot, targets);
-        if (hit.kind == WolfHitscanHitKind::Actor)
+        const WolfWeaponStat& weaponStat = getWolfWeaponStats(player.getWeapon());
+
+        for (size_t shot = 0; shot < player.shotsThisFrame(); ++shot)
         {
-            aiko::logger::Log::infoFmt("Enemy {} hit by player", hit.targetId);
-            WolfEnemy& enemy = map.getEnemy(hit.targetId);
-            enemy.takeDamage(PlayerPistol);
+            const WolfHitscanHit hit = WolfHitscan::trace(map, player.position(), player.forward(), weaponStat.maxRange, targets);
+            if (hit.kind == WolfHitscanHitKind::Actor)
+            {
+                WolfEnemy& enemy = map.getEnemy(hit.targetId);
+                enemy.takeDamage(weaponStat.damage);
+                aiko::logger::Log::infoFmt("Enemy {} hit with {} damage by player", hit.targetId, weaponStat.damage);
+                if (enemy.isAlive() == false)
+                {
+                    std::erase_if(targets, [&](const WolfHitscanTarget& target){ return target.id == hit.targetId; });
+                }
+            }
         }
 
     }

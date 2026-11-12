@@ -2,6 +2,7 @@
 
 #include "map/wolf_map.h"
 #include "math/math.h"
+#include "wolf_weapon_stats.h"
 #include "wolfcaster_types.h"
 
 #include <algorithm>
@@ -31,13 +32,13 @@ namespace wc
         return { -fwd.y, fwd.x };
     }
 
-    void WolfPlayer::updateWeapon(float deltaTime, bool triggerPressed)
+    void WolfPlayer::updateWeapon(float deltaTime, bool triggerHeld, bool triggerJustPressed)
     {
-        constexpr float ShotCooldown = 0.4f;
-        constexpr float WeaponAnimationTick = 0.10f;
         constexpr uint8_t LastWeaponAnimationFrame = 4;
 
-        m_shotThisFrame = false;
+        const WolfWeaponStat& weaponStat = getWolfWeaponStats(m_currentWeapon);
+
+        m_shotsThisFrame = 0;
 
         if (isAlive() == false)
         {
@@ -46,13 +47,40 @@ namespace wc
             return;
         }
 
-        m_fireCooldownRemaining = std::max(0.0f, m_fireCooldownRemaining - deltaTime);
+        AIKO_ASSERT(weaponStat.fireIntervalSeconds > 0.0f, "Invalid weapon fire interval");
 
-        if (triggerPressed && m_fireCooldownRemaining <= 0.0f && m_weaponAnimationFrame == 0)
+        if (weaponStat.automatic == true && triggerHeld == true)
+        {
+            m_fireCooldownRemaining -= deltaTime;
+            while (m_fireCooldownRemaining <= 0.0f)
+            {
+                if (weaponStat.ammoCost > 0 && consumeAmmo() == false)
+                {
+                    m_fireCooldownRemaining = 0.0f;
+                    break;
+                }
+                ++m_shotsThisFrame;
+                m_fireCooldownRemaining += weaponStat.fireIntervalSeconds;
+            }
+        }
+        else
+        {
+            m_fireCooldownRemaining = std::max( 0.0f, m_fireCooldownRemaining - deltaTime);
+
+            if (weaponStat.automatic == false && triggerJustPressed && m_fireCooldownRemaining <= 0.0f)
+            {
+                if (weaponStat.ammoCost == 0 || consumeAmmo())
+                {
+                    ++m_shotsThisFrame;
+                    m_fireCooldownRemaining = weaponStat.fireIntervalSeconds;
+                }
+            }
+        }
+
+        if (m_shotsThisFrame > 0)
         {
             m_weaponAnimationFrame = 1;
             m_weaponAnimationTime = 0.0f;
-            m_fireCooldownRemaining = ShotCooldown;
         }
 
         if (m_weaponAnimationFrame == 0)
@@ -62,9 +90,11 @@ namespace wc
 
         m_weaponAnimationTime += deltaTime;
 
-        while (m_weaponAnimationTime >= WeaponAnimationTick)
+        const float weaponAnimationTick = weaponStat.fireIntervalSeconds / 4.0f;
+
+        while (m_weaponAnimationTime >= weaponAnimationTick)
         {
-            m_weaponAnimationTime -= WeaponAnimationTick;
+            m_weaponAnimationTime -= weaponAnimationTick;
 
             if (m_weaponAnimationFrame >= LastWeaponAnimationFrame)
             {
@@ -74,11 +104,6 @@ namespace wc
             }
 
             ++m_weaponAnimationFrame;
-
-            if (m_weaponAnimationFrame == 2)
-            {
-                m_shotThisFrame = true;
-            }
         }
     }
 

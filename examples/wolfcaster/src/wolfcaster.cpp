@@ -182,7 +182,7 @@ namespace wc
             }
         }
 
-        m_player.updateWeapon(deltaTime, input().isKeyPressed(aiko::Key::KEY_SPACE));
+        m_player.updateWeapon(deltaTime, input().isKeyPressed(aiko::Key::KEY_SPACE), input().isKeyJustPressed(aiko::Key::KEY_SPACE));
 
         m_wolfMap.update(deltaTime, m_player.position());
 
