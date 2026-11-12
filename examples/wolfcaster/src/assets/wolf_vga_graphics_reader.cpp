@@ -34,7 +34,7 @@ namespace wc
         AIKO_ASSERT(readU24LE(vgaHeadContent, vgaHeadContent.size() - 3) <= vgaGraphContent.size(), "VGAHEAD terminal offset exceeds VGAGRAPH size");
 
         std::vector<uint32_t> chunkOffsets;
-        for (size_t i = 0 ; i < (vgaHeadContent.size() / 3) - 1; ++i)
+        for (size_t i = 0 ; i < vgaHeadContent.size() / 3; ++i)
         {
             const uint32_t data = readU24LE(vgaHeadContent, i * 3);
             AIKO_ASSERT(data == 0xFFFFFF || data <= vgaGraphContent.size(), "VGA chunk offset exceeds VGAGRAPH bounds");
@@ -64,5 +64,53 @@ namespace wc
             .huffmanNodes = std::move(huffmanNodes),
             .graphBytes = std::move(graphBytes),
         };
+    }
+
+    std::vector<uint8_t> WolfVgaGraphicsReader::decodeChunk(const WolfVgaGraphicsData& graphics, size_t chunkIndex)
+    {
+        AIKO_ASSERT(graphics.chunkOffsets.size() >= 2, "Invalid VGA graphics chunk directory");
+        AIKO_ASSERT(chunkIndex < graphics.chunkOffsets.size() - 1, "VGA graphics chunk index out of bounds");
+
+        const uint32_t chunkStart = graphics.chunkOffsets[chunkIndex];
+        AIKO_ASSERT(chunkStart != 0xFFFFFF, "Cannot decode a sparse VGA graphics chunk");
+
+        size_t nextIndex = chunkIndex + 1;
+        uint32_t chunkEnd = 0;
+
+        while (true)
+        {
+            AIKO_ASSERT(nextIndex < graphics.chunkOffsets.size(), "Missing VGA graphics chunk end offset");
+            if (graphics.chunkOffsets[nextIndex] == 0xFFFFFF)
+            {
+                ++nextIndex;
+                continue;
+            }
+            chunkEnd = graphics.chunkOffsets[nextIndex];
+            AIKO_ASSERT(chunkStart < chunkEnd && chunkEnd <= graphics.graphBytes.size(), "Invalid VGA graphics chunk boundaries");
+            break;
+        }
+
+        const size_t chunkLength = chunkEnd - chunkStart;
+        AIKO_ASSERT(chunkLength > 4, "VGA graphics chunk has no compressed payload");
+
+        const uint32_t expandedSize = readU32LE(graphics.graphBytes, chunkStart);
+        AIKO_ASSERT(expandedSize > 0 && expandedSize <= 16 * 1024 * 1024, "Invalid VGA graphics expanded size");
+
+        const std::span<const uint8_t> compressedData = { graphics.graphBytes.begin() + chunkStart + 4, graphics.graphBytes.begin() +chunkEnd};
+
+        aiko::logger::Log::infoFmt(
+            "VGA chunk {}: start={}, end={}, compressed={} bytes, expanded={} bytes",
+            chunkIndex,
+            chunkStart,
+            chunkEnd,
+            compressedData.size(),
+            expandedSize
+        );
+
+        std::vector<uint8_t> output = HuffmanDecoder::decode(compressedData, graphics.huffmanNodes, expandedSize);
+        AIKO_ASSERT(output.size() == expandedSize, "VGA graphics chunk decompression size mismatch");
+        return output;
+
+
     }
 }

@@ -10,5 +10,6 @@ namespace wc
     {
     public:
         static WolfVgaGraphicsData load(const std::filesystem::path& path);
+        static std::vector<uint8_t> decodeChunk(const WolfVgaGraphicsData& graphics, size_t chunkIndex);
     };
 }
