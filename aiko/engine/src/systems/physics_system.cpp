@@ -376,7 +376,7 @@ namespace aiko
             return;
         }
 
-        MeshAsset meshAsset = makeMeshAssetFromPhysics(meshData);
+        MeshAsset meshAsset = makeMeshAssetFromBodyMesh(meshData);
         component->debug().mesh.upload(meshAsset);
         component->debug().built = true;
     }
