@@ -1,7 +1,8 @@
 #include "asset_importer.h"
 
-#include <filesystem>
-#include <memory>
+#include "assets/import/skinned_mesh_importer.h"
+#include "animation/skeleton_pose.h"
+#include "math/math_transform.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -11,6 +12,14 @@
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+#include <filesystem>
+#include <memory>
+#include <cmath>
+#include <limits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 
 namespace aiko
 {
@@ -149,6 +158,58 @@ namespace aiko
 
     }
 
+    static AssetImportResult<ImportedModel> importSceneMeshes(const aiScene& scene, ImportedModel result)
+    {
+        result.submeshes.reserve(scene.mNumMeshes);
+
+        for (unsigned int i = 0; i < scene.mNumMeshes; ++i)
+        {
+            const aiMesh* mesh = scene.mMeshes[i];
+
+            if (mesh == nullptr || mesh->mMaterialIndex >= scene.mNumMaterials || scene.mMaterials[mesh->mMaterialIndex] == nullptr)
+            {
+                return AssetImportResult<ImportedModel>::failure(AssetImportError::InvalidData, "Model contains an invalid mesh or material");
+            }
+
+            const aiMaterial* material = scene.mMaterials[mesh->mMaterialIndex];
+
+            ImportedModelSubMesh submesh{};
+
+            submesh.mesh = importAiMesh(mesh);
+            submesh.useVertexColor = mesh->HasVertexColors(0);
+            submesh.lit = true;
+            submesh.shaderSource = "model";
+
+            aiString texturePath;
+
+            if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS)
+            {
+                submesh.diffuseTextureSource = texturePath.C_Str();
+            }
+
+            aiColor3D diffuse(1.0f, 1.0f, 1.0f);
+
+            material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+
+            submesh.baseColor =
+            {
+                diffuse.r,
+                diffuse.g,
+                diffuse.b,
+                1.0f
+            };
+
+            if (submesh.useVertexColor && submesh.diffuseTextureSource.empty())
+            {
+                submesh.baseColor = WHITE;
+            }
+
+            result.submeshes.push_back(std::move(submesh));
+        }
+
+        return AssetImportResult<ImportedModel>::success(std::move(result));
+    }
+
     AssetImportResult<MeshAsset> AssetImporter::loadMesh(const std::filesystem::path& file_path)
     {
         const std::string final_file_path = file_path.string();
@@ -184,13 +245,12 @@ namespace aiko
 
         importer.SetPropertyBool(AI_CONFIG_PP_PTV_KEEP_HIERARCHY, true);
 
-        const uint post =
+        const unsigned int post =
             aiProcess_Triangulate |
             aiProcess_GenNormals |
             aiProcess_FlipUVs |
             aiProcess_JoinIdenticalVertices |
-            aiProcess_FlipWindingOrder |
-            aiProcess_PreTransformVertices;
+            aiProcess_FlipWindingOrder;
 
         const aiScene* scene = importer.ReadFile(finalFilePath, post);
 
@@ -199,58 +259,39 @@ namespace aiko
             return AssetImportResult<ImportedModel>::failure(AssetImportError::DecodeFailed, "Failed to load model '" + finalFilePath + "': " + importer.GetErrorString());
         }
 
-        ImportedModel result{};
-
-        for (uint i = 0; i < scene->mNumMeshes; ++i)
+        for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
         {
-            const aiMesh* aiMesh = scene->mMeshes[i];
-
-            if (aiMesh == nullptr || aiMesh->mMaterialIndex >= scene->mNumMaterials || scene->mMaterials[aiMesh->mMaterialIndex] == nullptr)
+            if (scene->mMeshes[i] == nullptr)
             {
-                return AssetImportResult<ImportedModel>::failure(AssetImportError::InvalidData, "Model contains an invalid mesh or material: " + finalFilePath);
+                return AssetImportResult<ImportedModel>::failure(AssetImportError::InvalidData, "Model contains a null mesh: " + finalFilePath);
             }
-
-            const aiMaterial* aiMaterial = scene->mMaterials[aiMesh->mMaterialIndex];
-
-            ImportedModelSubMesh submesh{};
-
-            submesh.mesh = importAiMesh(aiMesh);
-            submesh.useVertexColor = aiMesh->HasVertexColors(0);
-            submesh.lit = true;
-            submesh.shaderSource = "model";
-
-            aiString texturePath;
-
-            if (aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS)
-            {
-                submesh.diffuseTextureSource = texturePath.C_Str();
-            }
-
-            aiColor3D diffuse(1.0f, 1.0f, 1.0f);
-
-            if (AI_SUCCESS != aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse))
-            {
-                diffuse = aiColor3D(1.0f, 1.0f, 1.0f);
-            }
-
-            submesh.baseColor =
-            {
-                diffuse.r,
-                diffuse.g,
-                diffuse.b,
-                1.0f
-            };
-
-            if (submesh.useVertexColor && submesh.diffuseTextureSource.empty())
-            {
-                submesh.baseColor = WHITE;
-            }
-
-            result.submeshes.push_back(std::move(submesh));
         }
 
-        return AssetImportResult<ImportedModel>::success(std::move(result));
+        const bool skinned = SkinnedMeshImporter::hasSkinnedMeshes(*scene);
 
+        if (!skinned)
+        {
+            // Static models retain their existing import behavior.
+            scene = importer.ApplyPostProcessing(aiProcess_PreTransformVertices);
+            if (scene == nullptr)
+            {
+                return AssetImportResult<ImportedModel>::failure(AssetImportError::DecodeFailed, "Failed to preprocess static model: " + finalFilePath);
+            }
+        }
+
+        // Import common geometry and materials.
+        auto imported = importSceneMeshes(*scene, ImportedModel{});
+        if (!imported)
+        {
+            return imported;
+        }
+
+        if (skinned)
+        {
+            return SkinnedMeshImporter::importSkinnedModel(*scene, std::move(*imported));
+        }
+
+        return imported;
     }
 
     ShaderAsset AssetImporter::loadShader(const string& path)

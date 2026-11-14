@@ -23,5 +23,6 @@ namespace aiko
     struct ImportedModel
     {
         vector<ImportedModelSubMesh> submeshes;
+        std::optional<SkeletonAsset> skeleton;
     };
 }

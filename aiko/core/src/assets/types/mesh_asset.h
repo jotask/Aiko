@@ -1,9 +1,13 @@
 #pragma once
 
-#include <aiko_types.h>
+#include "material_asset.h"
+#include "skeleton_asset.h"
+
 #include <assets/asset_id.h>
 #include <math/math_vector.h>
-#include "material_asset.h"
+#include <aiko_types.h>
+
+#include <optional>
 
 namespace aiko
 {
@@ -15,6 +19,9 @@ namespace aiko
         vector<Color>       m_colors;
         vector<vec4>        m_tangents;
         vector<uint32_t>    m_indices;
+
+	    std::vector<uvec4>  m_jointIndices;
+	    std::vector<vec4>   m_jointWeights;
     };
 
     struct ModelAsset
@@ -25,6 +32,7 @@ namespace aiko
             MaterialAsset material;
         };
         vector<SubMesh> submeshes;
+        std::optional<SkeletonAsset> skeleton;
     };
 
 }

@@ -683,6 +683,7 @@ namespace aiko
     std::optional<ModelAsset> AssetManager::buildModelAsset(const ImportedModel& imported, const ResolvedAsset& source)
     {
         ModelAsset model{};
+        model.skeleton = imported.skeleton;
         model.submeshes.reserve(imported.submeshes.size());
 
         for (const ImportedModelSubMesh& importedSubmesh : imported.submeshes)
