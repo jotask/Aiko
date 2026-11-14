@@ -37,14 +37,19 @@ namespace aiko
         return m_physicsSystem->getPhysics().getRagdollPartBodyId(id, index);
     }
 
+    Transform PhysicsContext::getBodyTransform(physics::BodyId id) const
+    {
+        return m_physicsSystem->getPhysics().getTransform(id);
+    }
+
     physics::BodyMeshData PhysicsContext::getBodyMeshData(physics::BodyId id, bool worldSpace) const
     {
         return m_physicsSystem->getPhysics().getBodyMeshData(id, worldSpace);
     }
 
-    Transform PhysicsContext::getBodyTransform(physics::BodyId id) const
+    MeshAsset PhysicsContext::getBodyMeshAsset(physics::BodyId id, bool worldSpace) const
     {
-        return m_physicsSystem->getPhysics().getTransform(id);
+        return m_physicsSystem->getBodyMeshAsset(id, worldSpace);
     }
 
 }

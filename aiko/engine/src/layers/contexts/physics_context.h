@@ -10,6 +10,7 @@
 namespace aiko
 {
 
+    struct MeshAsset;
     class SystemConnector;
     class PhysicsSystem;
 
@@ -22,8 +23,9 @@ namespace aiko
         size_t getRagdollPartCount(physics::RagdollId id) const;
         physics::BodyId getRagdollPartBodyId(physics::RagdollId id, size_t index) const;
 
-        physics::BodyMeshData getBodyMeshData(physics::BodyId id, bool worldSpace = false) const;
         Transform getBodyTransform(physics::BodyId id) const;
+        physics::BodyMeshData getBodyMeshData(physics::BodyId id, bool worldSpace = false) const;
+        MeshAsset getBodyMeshAsset(physics::BodyId id, bool worldSpace = false) const;
 
     private:
         friend class LayerContext;

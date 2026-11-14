@@ -18,6 +18,12 @@ namespace aiko
 {
     PhysicsSystem::PhysicsSystem() = default;
 
+    MeshAsset PhysicsSystem::getBodyMeshAsset(physics::BodyId id, bool worldSpace) const
+    {
+        const physics::BodyMeshData meshData = m_physics.getBodyMeshData(id, worldSpace);
+        return makeMeshAssetFromBodyMesh(meshData);
+    }
+
     void PhysicsSystem::connect(ModuleConnector*, SystemConnector* systemConnector)
     {
         BIND_SYSTEM_REQUIRED(RenderSystem, systemConnector, m_renderSystem);
@@ -299,21 +305,16 @@ namespace aiko
         BaseSystem::dispose();
     }
 
-    MeshAsset PhysicsSystem::makeMeshAssetFromPhysics(const physics::BodyMeshData& data)
+    MeshAsset PhysicsSystem::makeMeshAssetFromBodyMesh(const physics::BodyMeshData& data) const
     {
         MeshAsset asset{};
 
-        AIKO_ASSERT(data.vertices.size() <= std::numeric_limits<uint16_t>::max(), "Physics mesh is too large for MeshAsset uint16_t indices");
+        AIKO_ASSERT(data.vertices.size() <= std::numeric_limits<uint32_t>::max(), "Physics mesh is too large for MeshAsset uint32_t indices");
 
         asset.m_vertices = data.vertices;
+        asset.m_indices = data.indices;
         asset.m_textCoord.assign(data.vertices.size(), vec2(0.0f, 0.0f));
         asset.m_colors.assign(data.vertices.size(), MAGENTA);
-
-        asset.m_indices.reserve(data.indices.size());
-        for (u32 index : data.indices)
-        {
-            asset.m_indices.push_back(static_cast<uint16_t>(index));
-        }
 
         mesh::factory::recalculateNormals(asset);
         return asset;
@@ -345,7 +346,7 @@ namespace aiko
             return;
         }
 
-        MeshAsset meshAsset = makeMeshAssetFromPhysics(meshData);
+        MeshAsset meshAsset = makeMeshAssetFromBodyMesh(meshData);
         component->debug().mesh.upload(meshAsset);
         component->debug().built = true;
     }
