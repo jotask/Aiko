@@ -20,6 +20,11 @@ void main()
         base *= texture(u_texture, v_texcoord0);
     }
 
+    if (base.a < 0.5)
+    {
+        discard;
+    }
+
     if (u_flags.y > 0.5)
     {
         base *= v_color0;
