@@ -28,6 +28,7 @@ namespace aiko
     class RenderContext
     {
     public:
+        void drawGrid(vec3 pos, vec3 size, ivec2 resolution, Color color);
         void drawPoint(const vec3& pos, const Color& color);
         void drawLine(const vec3& start, const vec3& end, const Color& color);
         void drawRectangle(const vec3& position, const vec3& size);

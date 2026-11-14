@@ -15,6 +15,11 @@ namespace aiko
         AIKO_ASSERT(m_postProcessSystem != nullptr, "PostProcessSystem not found");
     }
 
+    void RenderContext::drawGrid(vec3 pos, vec3 size, ivec2 resolution, Color color)
+    {
+        m_renderSystem->renderGrid(pos, size, resolution, color);
+    }
+
     void RenderContext::drawPoint(const vec3& pos, const Color& color)
     {
         m_renderSystem->renderPoint(pos, color);
