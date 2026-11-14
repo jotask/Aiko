@@ -234,6 +234,26 @@ namespace aiko
             return elements[col * 4 + row];
         }
 
+        mat4 operator+(const mat4& rhs) const
+        {
+            mat4 result;
+            for (int i = 0; i < 16; ++i)
+            {
+                result.elements[i] = elements[i] + rhs.elements[i];
+            }
+            return result;
+        }
+
+        mat4 operator-(const mat4& rhs) const
+        {
+            mat4 result;
+            for (int i = 0; i < 16; ++i)
+            {
+                result.elements[i] = elements[i] - rhs.elements[i];
+            }
+            return result;
+        }
+
         mat4 operator*(const mat4& other) const
         {
             mat4 result;
@@ -251,6 +271,101 @@ namespace aiko
             return result;
         }
 
+        vec4 operator*(const vec4& rhs) const
+        {
+            return
+            {
+                (*this)(0, 0) * rhs.x +
+                (*this)(0, 1) * rhs.y +
+                (*this)(0, 2) * rhs.z +
+                (*this)(0, 3) * rhs.w,
+
+                (*this)(1, 0) * rhs.x +
+                (*this)(1, 1) * rhs.y +
+                (*this)(1, 2) * rhs.z +
+                (*this)(1, 3) * rhs.w,
+
+                (*this)(2, 0) * rhs.x +
+                (*this)(2, 1) * rhs.y +
+                (*this)(2, 2) * rhs.z +
+                (*this)(2, 3) * rhs.w,
+
+                (*this)(3, 0) * rhs.x +
+                (*this)(3, 1) * rhs.y +
+                (*this)(3, 2) * rhs.z +
+                (*this)(3, 3) * rhs.w
+            };
+        }
+
+        mat4 operator*(float scalar) const
+        {
+            mat4 result;
+            for (int i = 0; i < 16; ++i)
+            {
+                result.elements[i] = elements[i] * scalar;
+            }
+            return result;
+        }
+
+        mat4 operator/(float scalar) const
+        {
+            mat4 result = *this;
+            result /= scalar;
+            return result;
+        }
+
+        mat4& operator+=(const mat4& rhs)
+        {
+            for (int i = 0; i < 16; ++i)
+            {
+                elements[i] += rhs.elements[i];
+            }
+            return *this;
+        }
+
+        mat4& operator-=(const mat4& rhs)
+        {
+            for (int i = 0; i < 16; ++i)
+            {
+                elements[i] -= rhs.elements[i];
+            }
+            return *this;
+        }
+
+        mat4& operator*=(const mat4& rhs)
+        {
+            *this = *this * rhs;
+            return *this;
+        }
+
+        mat4& operator*=(float scalar)
+        {
+            for (float& element : elements)
+            {
+                element *= scalar;
+            }
+            return *this;
+        }
+
+        mat4& operator/=(float scalar)
+        {
+            AIKO_ASSERT(scalar != 0.0f, "Cannot divide matrix by zero");
+            for (float& element : elements)
+            {
+                element /= scalar;
+            }
+            return *this;
+        }
+
+        mat4& operator=(const mat4& other)
+        {
+            if (this != &other)
+            {
+                std::memcpy(elements, other.elements, sizeof(elements));
+            }
+            return *this;
+        }
+
         // Print matrix
         void print() const
         {
@@ -264,16 +379,6 @@ namespace aiko
                 buffer << std::endl;
             }
             logger::Log::info(buffer.str());
-        }
-
-        // Copy assignment operator
-        mat4& operator=(const mat4& other)
-        {
-            if (this != &other)
-                {
-                std::memcpy(elements, other.elements, sizeof(elements));
-            }
-            return *this;
         }
 
         float* data() { return elements; }

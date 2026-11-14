@@ -184,6 +184,19 @@ namespace aiko
             return toAiko(glm::inverse(toGlm(matrix)));
         }
 
+        mat4 transpose(const mat4& matrix)
+        {
+            mat4 result;
+            for (int row = 0; row < 4; ++row)
+            {
+                for (int col = 0; col < 4; ++col)
+                {
+                    result(row, col) = matrix(col, row);
+                }
+            }
+            return result;
+        }
+
         vec4 transform(const mat4& matrix, const vec4& vector)
         {
             return
