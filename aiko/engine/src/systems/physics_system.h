@@ -23,6 +23,8 @@ namespace aiko
         PhysicsSystem();
         ~PhysicsSystem() override = default;
 
+        MeshAsset getBodyMeshAsset(physics::BodyId id, bool worldSpace = false) const;
+
         physics::AikoPhysics& getPhysics() { return m_physics; }
 
     protected:
@@ -34,7 +36,7 @@ namespace aiko
         void dispose() override;
 
     private:
-        MeshAsset makeMeshAssetFromPhysics(const physics::BodyMeshData& data);
+        MeshAsset makeMeshAssetFromBodyMesh(const physics::BodyMeshData& data) const;
 
         void ensureDebugMesh(RigidBodyComponent* component);
         void ensureDebugMesh(PlayerControllerComponent* component);
