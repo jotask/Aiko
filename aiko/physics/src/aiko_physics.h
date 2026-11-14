@@ -3,13 +3,15 @@
 #include "aiko_physics_types.h"
 #include "aiko_body_desc.h"
 #include "aiko_query_types.h"
+#include "aiko_ragdoll_types.h"
+#include "player_controller_types.h"
 
 #include <aiko_types.h>
 #include <core/transform.h>
 
 #include <optional>
+#include <span>
 
-#include "player_controller_types.h"
 namespace aiko::physics
 {
 
@@ -65,6 +67,13 @@ namespace aiko::physics
         bool castRay(const RayCastDesc& desc, RayCastHit& outHit) const;
         vector<BodyId> overlapSphere(const SphereOverlapDesc& desc) const;
         vector<BodyId> overlapBox(const BoxOverlapDesc& desc) const;
+
+        // Ragdolls
+        RagdollId createRagdoll(const RagdollDesc& desc);
+        void destroyRagdoll(RagdollId id);
+        bool setRagdollPose(RagdollId id, std::span<const Transform> worldTransforms);
+        size_t getRagdollPartCount(RagdollId id) const;
+        BodyId getRagdollPartBodyId(RagdollId id, std::size_t index) const;
 
         vector<PhysicsEvent> drainEvents();
 

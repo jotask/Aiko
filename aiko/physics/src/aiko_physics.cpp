@@ -2,25 +2,27 @@
 
 #include "internal/physics_impl.h"
 #include "internal/jolt_bootstrap.h"
+#include "internal/jolt_ragdoll_factory.h"
 #include "internal/jolt_shape_factory.h"
 #include "internal/job_aiko_converters.h"
+
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyInterface.h>
+#include <Jolt/Physics/Body/BodyLock.h>
+#include <Jolt/Physics/Body/MotionType.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/CollideShape.h>
+#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
+#include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/Shape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Ragdoll/Ragdoll.h>
 
 #include <algorithm>
 #include <array>
 #include <thread>
-
-#include <Jolt/Physics/Body/BodyCreationSettings.h>
-#include <Jolt/Physics/Body/BodyInterface.h>
-#include <Jolt/Physics/Body/MotionType.h>
-#include <Jolt/Physics/Collision/Shape/SphereShape.h>
-#include <Jolt/Physics/Collision/Shape/Shape.h>
-#include <Jolt/Physics/Collision/RayCast.h>
-#include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
-#include <Jolt/Physics/Collision/CastResult.h>
-#include <Jolt/Physics/Collision/Shape/BoxShape.h>
-#include <Jolt/Physics/Collision/CollideShape.h>
-#include <Jolt/Physics/Body/BodyLock.h>
-#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 
 namespace aiko::physics
 {
@@ -80,6 +82,12 @@ namespace aiko::physics
 
         m_impl->physicsSystem->SetBodyActivationListener(nullptr);
         m_impl->physicsSystem->SetContactListener(nullptr);
+
+        for (auto& [id, ragdoll] : m_impl->ragdolls)
+        {
+            ragdoll->RemoveFromPhysicsSystem();
+        }
+        m_impl->ragdolls.clear();
 
         m_impl.reset();
         releaseJolt();
@@ -713,6 +721,128 @@ namespace aiko::physics
         result.erase(std::unique(result.begin(), result.end()), result.end());
 
         return result;
+    }
+
+    RagdollId AikoPhysics::createRagdoll(const RagdollDesc& desc)
+    {
+        if (m_impl == nullptr || m_impl->physicsSystem == nullptr)
+        {
+            return InvalidRagdollId;
+        }
+
+        if (m_impl->nextRagdollId == InvalidRagdollId)
+        {
+            return InvalidRagdollId;
+        }
+
+        JPH::Ref<JPH::RagdollSettings> settings = JoltRagdollFactory::createSettings(desc);
+        if (settings == nullptr)
+        {
+            return InvalidRagdollId;
+        }
+
+        const RagdollId id = m_impl->nextRagdollId++;
+        JPH::Ref<JPH::Ragdoll> ragdoll = settings->CreateRagdoll(id, 0, m_impl->physicsSystem.get());
+
+        if (ragdoll == nullptr)
+        {
+            return InvalidRagdollId;
+        }
+
+        ragdoll->AddToPhysicsSystem(JPH::EActivation::DontActivate);
+        m_impl->ragdolls.emplace(id, std::move(ragdoll));
+
+        return id;
+    }
+
+    void AikoPhysics::destroyRagdoll(RagdollId id)
+    {
+        if (m_impl == nullptr || m_impl->physicsSystem == nullptr)
+        {
+            return;
+        }
+
+        const auto it = m_impl->ragdolls.find(id);
+        if (it == m_impl->ragdolls.end())
+        {
+            return;
+        }
+        it->second->RemoveFromPhysicsSystem();
+        m_impl->ragdolls.erase(it);
+    }
+
+    bool AikoPhysics::setRagdollPose(RagdollId id, std::span<const Transform> worldTransforms)
+    {
+        if (m_impl == nullptr || m_impl->physicsSystem == nullptr)
+        {
+            return false;
+        }
+
+        const auto it = m_impl->ragdolls.find(id);
+        if (it == m_impl->ragdolls.end())
+        {
+            return false;
+        }
+
+        JPH::Ragdoll& ragdoll = *it->second;
+        if (worldTransforms.size() != ragdoll.GetBodyCount())
+        {
+            return false;
+        }
+
+        JPH::Array<JPH::Mat44> matrices;
+        matrices.reserve(worldTransforms.size());
+
+        for (const Transform& transform : worldTransforms)
+        {
+            if (!math::isfinite(transform.position) || !math::isfinite(transform.rotation))
+            {
+                return false;
+            }
+            const JPH::Vec3 position = convert::toJoltVec3(transform.position);
+            const JPH::Quat rotation = convert::toJoltRotation(transform.rotation);
+            matrices.emplace_back(JPH::Mat44::sRotationTranslation(rotation, position));
+        }
+
+        ragdoll.SetPose(JPH::RVec3::sZero(), matrices.data());
+
+        return true;
+    }
+
+    size_t AikoPhysics::getRagdollPartCount(RagdollId id) const
+    {
+        if (m_impl == nullptr)
+        {
+            return 0;
+        }
+        const auto it = m_impl->ragdolls.find(id);
+        if (it == m_impl->ragdolls.end())
+        {
+            return 0;
+        }
+        return it->second->GetBodyCount();
+    }
+
+    BodyId AikoPhysics::getRagdollPartBodyId(RagdollId id, std::size_t index) const
+    {
+        if (m_impl == nullptr)
+        {
+            return InvalidBodyId;
+        }
+
+        const auto it = m_impl->ragdolls.find(id);
+        if (it == m_impl->ragdolls.end())
+        {
+            return InvalidBodyId;
+        }
+
+        const JPH::Ragdoll& ragdoll = *it->second;
+        if (index >= ragdoll.GetBodyCount())
+        {
+            return InvalidBodyId;
+        }
+
+        return convert::toAikoBodyId(ragdoll.GetBodyID(static_cast<int>(index)));
     }
 
     vector<PhysicsEvent> AikoPhysics::drainEvents()
