@@ -97,6 +97,17 @@ namespace aiko
         AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
         return m_context->jobs();
     }
+    PhysicsContext& Layer::physics()
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->physics();
+    }
+
+    const PhysicsContext& Layer::physics() const
+    {
+        AIKO_ASSERT(m_context != nullptr, "Layer context not connected");
+        return m_context->physics();
+    }
 
     UIContext& Layer::ui()
     {

@@ -10,6 +10,7 @@ namespace aiko
         , m_scene(connector)
         , m_assets(connector)
         , m_jobs(connector)
+        , m_physics(connector)
         , m_ui(connector)
         , m_runtime(runtime)
     {

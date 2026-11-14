@@ -16,6 +16,7 @@ namespace aiko
     class SceneContext;
     class AssetContext;
     class JobContext;
+    class PhysicsContext;
     class UIContext;
     class RuntimeContext;
 
@@ -62,6 +63,9 @@ namespace aiko
 
         JobContext& jobs();
         const JobContext& jobs() const;
+
+        PhysicsContext& physics();
+        const PhysicsContext& physics() const;
 
         UIContext& ui();
         const UIContext& ui() const;

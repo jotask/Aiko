@@ -1,12 +1,13 @@
 #pragma once
 
-#include "layers/contexts/render_context.h"
-#include "layers/contexts/input_context.h"
-#include "layers/contexts/scene_context.h"
+#include "contexts/physics_context.h"
 #include "layers/contexts/asset_context.h"
+#include "layers/contexts/input_context.h"
 #include "layers/contexts/job_context.h"
-#include "layers/contexts/ui_context.h"
+#include "layers/contexts/render_context.h"
 #include "layers/contexts/runtime_context.h"
+#include "layers/contexts/scene_context.h"
+#include "layers/contexts/ui_context.h"
 
 namespace aiko
 {
@@ -35,6 +36,9 @@ namespace aiko
         JobContext& jobs() { return m_jobs; }
         const JobContext& jobs() const { return m_jobs; }
 
+        PhysicsContext& physics() { return m_physics; }
+        const PhysicsContext& physics() const { return m_physics; }
+
         UIContext& ui() { return m_ui; }
         const UIContext& ui() const { return m_ui; }
 
@@ -52,6 +56,7 @@ namespace aiko
         SceneContext m_scene;
         AssetContext m_assets;
         JobContext m_jobs;
+        PhysicsContext m_physics;
         UIContext m_ui;
         RuntimeContext m_runtime;
 
