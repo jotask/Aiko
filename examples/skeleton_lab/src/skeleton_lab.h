@@ -16,7 +16,10 @@ namespace lab
     private:
 
         aiko::Model m_model;
+        aiko::Model m_modelB;
         float m_animationTime = 0.0f;
+
+        aiko::GameObject* m_lightObject = nullptr;
 
     };
 

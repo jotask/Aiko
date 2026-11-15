@@ -61,6 +61,7 @@ namespace aiko
             u32 m_resolution = 0;
 
             Material m_depthMaterial;
+            Material m_skinnedDepthMaterial;
         };
     }
 }

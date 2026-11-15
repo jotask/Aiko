@@ -32,16 +32,23 @@ namespace aiko::renderer
         const AssetId depthShaderId = registry.registerShader("renderer://shadow_depth.vs", "renderer://shadow_depth.fs");
         AIKO_ASSERT(depthShaderId != InvalidAssetId, "Failed to register shadow depth shader");
 
+        const AssetId skinnedDepthShaderId = registry.registerShader("renderer://shadow_depth_skinned.vs", "renderer://shadow_depth.fs");
+        AIKO_ASSERT(skinnedDepthShaderId != InvalidAssetId, "Failed to register skinned shadow shader");
+
         m_depthMaterial = Material{};
         m_depthMaterial.m_shaderId = depthShaderId;
         m_depthMaterial.m_renderState.depthTest = true;
         m_depthMaterial.m_renderState.depthWrite = true;
         m_depthMaterial.m_renderState.blend = false;
+
+        m_skinnedDepthMaterial = m_depthMaterial;
+        m_skinnedDepthMaterial.m_shaderId = skinnedDepthShaderId;
     }
 
     void ShadowRenderer::dispose()
     {
         m_depthMaterial = Material{};
+        m_skinnedDepthMaterial = Material{};
         m_shadowData.clear();
 
         for (ShadowTarget& target : m_targets)
@@ -80,6 +87,7 @@ namespace aiko::renderer
         };
 
         device.prepareMaterial(m_depthMaterial);
+        device.prepareMaterial(m_skinnedDepthMaterial);
 
         for (u32 i = 0; i < lightCount; ++i)
         {
@@ -169,7 +177,7 @@ namespace aiko::renderer
                     for (const PreparedRenderPacket& packet : scene.opaque)
                     {
                         MeshDrawPacket shadowPacket = packet.draw;
-                        shadowPacket.material = &m_depthMaterial;
+                        shadowPacket.material = shadowPacket.skinMatrices.empty() ? &m_depthMaterial : &m_skinnedDepthMaterial;
 
                         device.submitMesh(SHADOW_VIEW, shadowPacket);
                     }
@@ -244,7 +252,7 @@ namespace aiko::renderer
             for (const PreparedRenderPacket& packet : scene.opaque)
             {
                 MeshDrawPacket shadowPacket = packet.draw;
-                shadowPacket.material = &m_depthMaterial;
+                shadowPacket.material = shadowPacket.skinMatrices.empty() ? &m_depthMaterial : &m_skinnedDepthMaterial;
 
                 device.submitMesh(SHADOW_VIEW, shadowPacket);
             }
