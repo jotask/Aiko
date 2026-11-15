@@ -2,8 +2,11 @@
 
 #include <memory>
 #include <vector>
+#include <optional>
+#include <span>
 
 #include "models/material.h"
+#include <assets/types/skeleton_asset.h>
 
 namespace aiko
 {
@@ -18,6 +21,7 @@ namespace aiko
         {
             std::shared_ptr<Mesh> mesh;
             Material material{};
+            bool skinned = false;
         };
 
         Model() = default;
@@ -30,7 +34,7 @@ namespace aiko
         Model(Model&&) noexcept = default;
         Model& operator=(Model&&) noexcept = default;
 
-        void addSubMesh(std::shared_ptr<Mesh> mesh, Material material);
+        void addSubMesh(std::shared_ptr<Mesh> mesh, Material material, bool skinned = false);
         void addSubMesh(const MeshAsset& asset, Material material);
 
         void unload();
@@ -43,11 +47,17 @@ namespace aiko
 
     private:
         friend class RenderResourceManager;
+        friend class RenderSystem;
 
         struct State
         {
             std::vector<SubMesh> subMeshes;
+            std::optional<SkeletonAsset> skeleton;
+            std::vector<mat4> bindSkinMatrices;
         };
+
+        void setSkeleton(const SkeletonAsset& skeleton);
+        std::span<const mat4> bindSkinMatrices() const;
 
         // Internal sharing for managed, asynchronously loaded models.
         [[nodiscard]]

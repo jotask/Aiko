@@ -224,7 +224,16 @@ namespace aiko
             {
                 continue;
             }
-            m_renderModule->submit(trans, submesh.mesh, submesh.material);
+            if (submesh.skinned)
+            {
+                const auto skinMatrices = model.bindSkinMatrices();
+                AIKO_ASSERT(!skinMatrices.empty(), "Skinned model has no bone palette");
+                m_renderModule->submit(trans, *submesh.mesh, submesh.material, skinMatrices);
+            }
+            else
+            {
+                m_renderModule->submit(trans, submesh.mesh, submesh.material);
+            }
         }
     }
 

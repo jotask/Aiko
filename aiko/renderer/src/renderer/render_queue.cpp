@@ -11,13 +11,14 @@
 
 namespace aiko
 {
-    void RenderQueue::submit(const Mesh& mesh, const Material& material, const mat4& transform)
+    void RenderQueue::submit(const Mesh& mesh, const Material& material, const mat4& transform, std::span<const mat4> skinMatrices)
     {
         m_renderItems.push_back(RenderItem
         {
             .mesh = &mesh,
             .material = &material,
-            .transform = transform
+            .transform = transform,
+            .skinMatrices = std::vector<mat4>(skinMatrices.begin(), skinMatrices.end()),
         });
     }
 
@@ -209,7 +210,8 @@ namespace aiko
                     {
                         .mesh = item.mesh,
                         .material = item.material,
-                        .world = item.transform
+                        .world = item.transform,
+                        .skinMatrices = item.skinMatrices
                     },
                     .transient = nullptr,
                     .depth = depthOf(item.transform)
@@ -224,7 +226,8 @@ namespace aiko
                 {
                     .mesh = item.mesh,
                     .material = item.material,
-                    .world = item.transform
+                    .world = item.transform,
+                    .skinMatrices = item.skinMatrices
                 },
                 .materialId = item.material->id()
             });

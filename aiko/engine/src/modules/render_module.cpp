@@ -80,9 +80,9 @@ namespace aiko
         return m_renderer->resources().getComputeShader(id);
     }
 
-    void RenderModule::submit(const Transform& transform, const Mesh& mesh, const Material& material)
+    void RenderModule::submit(const Transform& transform, const Mesh& mesh, const Material& material, std::span<const mat4> skinMatrices)
     {
-        m_renderer->submit(transform, mesh, material);
+        m_renderer->submit(transform, mesh, material, skinMatrices);
     }
 
     void RenderModule::submit(const Transform& transform, const std::shared_ptr<Mesh>& mesh, const Material& material)

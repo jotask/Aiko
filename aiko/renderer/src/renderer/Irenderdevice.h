@@ -49,6 +49,7 @@ namespace aiko::renderer
     protected:
         virtual void bindMaterial(const Material& material) = 0;
         virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) = 0;
+        virtual void drawSkinnedMesh(ViewId, const MeshDrawPacket&) = 0;
         virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) = 0;
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) = 0;
         virtual void drawFullscreen(ViewId viewId, const Material& material) = 0;
@@ -80,7 +81,14 @@ namespace aiko::renderer
             AIKO_ASSERT(packet.material != nullptr, "MeshDrawPacket has null material");
 
             bindMaterial(*packet.material);
-            drawMesh(viewId, packet.world, *packet.mesh, *packet.material);
+            if (packet.skinMatrices.empty())
+            {
+                drawMesh(viewId, packet.world, *packet.mesh, *packet.material);
+            }
+            else
+            {
+                drawSkinnedMesh(viewId, packet);
+            }
         }
 
         void submitInstanced(ViewId viewId, const InstancedDrawPacket& packet)

@@ -27,15 +27,22 @@ namespace aiko::renderer::vulkan
         VkBuffer indexBuffer() const { return m_indexBuffer; }
         u32 indexCount() const { return m_indexCount; }
 
+        VkBuffer skinBuffer() const { return m_skinBuffer; }
+        bool hasSkinning() const { return m_hasSkinning; }
+
     private:
 
         VkBuffer m_vertexBuffer = VK_NULL_HANDLE;
         VkDeviceMemory m_vertexMemory = VK_NULL_HANDLE;
         VkBuffer m_indexBuffer = VK_NULL_HANDLE;
         VkDeviceMemory m_indexMemory = VK_NULL_HANDLE;
+        VkBuffer m_skinBuffer = VK_NULL_HANDLE;
+        VkDeviceMemory m_skinMemory = VK_NULL_HANDLE;
         u32 m_indexCount = 0;
 
         Texture m_texture;
+
+        bool m_hasSkinning = false;
 
     };
 }

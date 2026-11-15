@@ -49,6 +49,34 @@ namespace aiko
 
     };
 
+    struct VulkanSkinVertex
+    {
+	    uvec4 jointIndices;
+	    vec4 jointWeights;
+
+        static VkVertexInputBindingDescription bindingDescription()
+        {
+            return {
+                .binding = 1,
+                .stride = sizeof(VulkanSkinVertex),
+                .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+            };
+        }
+
+        static std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions()
+        {
+            static_assert(sizeof(VulkanSkinVertex) == 32);
+
+            std::array<VkVertexInputAttributeDescription, 2> attributes{};
+
+            attributes[0] = { 9, 1, VK_FORMAT_R32G32B32A32_UINT, offsetof(VulkanSkinVertex, jointIndices) };
+            attributes[1] = { 10, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VulkanSkinVertex, jointWeights) };
+
+            return attributes;
+        }
+
+    };
+
     struct VulkanInstanceData
     {
         vec4 position;

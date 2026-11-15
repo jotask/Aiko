@@ -65,6 +65,7 @@ namespace aiko::renderer::vulkan
 
         virtual void bindMaterial(const Material& material) override;
         virtual void drawMesh(ViewId viewId, const mat4& world, const Mesh& mesh, const Material& material) override;
+        virtual void drawSkinnedMesh(ViewId viewId, const MeshDrawPacket& packet) override;
         virtual void drawMeshInstanced(ViewId viewId, const Mesh& mesh, const Material& material, const void* data, u32 instanceCount, u32 instanceStrideBytes) override;
         virtual void drawTransient(ViewId viewId, const TransientDrawDesc& desc) override;
         virtual void drawFullscreen(ViewId viewId, const Material& material) override;
@@ -164,6 +165,8 @@ namespace aiko::renderer::vulkan
         void prepareBufferForGraphics(VulkanComputeBufferImpl& buffer, const VulkanBufferState& destination);
         void releaseTextureOwnership(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination);
         void acquireTextureOwnership(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& source, const VulkanImageState& destination);
+
+        VkDescriptorSet uploadSkinPalette(std::span<const mat4> skinMatrices);
 
         void transitionComputeBuffers(VkCommandBuffer commandBuffer, const vector<ComputeBufferBinding>& bindings, bool useDedicatedCompute);
         VulkanBufferState computeBufferState(ComputeAccess access, uint32_t queueFamily) const;

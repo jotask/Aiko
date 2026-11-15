@@ -7,6 +7,7 @@
 #include "models/compute_shader.h"
 #include <assets/iasset_provider.h>
 #include <assets/types/texture_asset.h>
+#include <assets/types/mesh_asset.h>
 
 namespace aiko
 {
@@ -194,6 +195,11 @@ namespace aiko
 
         Model replacement;
 
+        if (asset.skeleton && !asset.skeleton->joints.empty())
+        {
+            replacement.setSkeleton(*asset.skeleton);
+        }
+
         for (const ModelAsset::SubMesh& submesh : asset.submeshes)
         {
             Material material{};
@@ -208,7 +214,9 @@ namespace aiko
                 material.setTexture("u_texture", submesh.material.diffuseTextureId);
             }
 
-            replacement.addSubMesh(acquireMesh(submesh.meshId), std::move(material));
+            const MeshAsset& meshAsset = m_assetProvider.getMeshAsset(submesh.meshId);
+
+            replacement.addSubMesh(acquireMesh(submesh.meshId), std::move(material), !meshAsset.m_jointIndices.empty());
         }
 
         it->second->replaceContents(std::move(replacement));

@@ -42,6 +42,21 @@ namespace aiko::renderer::vulkan
 
             return vertices;
         }
+
+        vector<VulkanSkinVertex> buildSkinVertices(const MeshAsset& asset)
+        {
+            vector<VulkanSkinVertex> vertices;
+            vertices.reserve(asset.m_vertices.size());
+            for (size_t i = 0; i < asset.m_vertices.size(); ++i)
+            {
+                VulkanSkinVertex v{};
+                v.jointIndices = asset.m_jointIndices[i];
+                v.jointWeights = asset.m_jointWeights[i];
+                vertices.push_back(v);
+            }
+
+            return vertices;
+        }
     }
 
 
@@ -53,23 +68,38 @@ namespace aiko::renderer::vulkan
 
     VulkanMeshImpl::~VulkanMeshImpl()
     {
-        AIKO_ASSERT(m_vertexBuffer == VK_NULL_HANDLE && m_vertexMemory == VK_NULL_HANDLE && m_indexBuffer == VK_NULL_HANDLE && m_indexMemory == VK_NULL_HANDLE, "VulkanMeshImpl destroyed without unload()");
+        AIKO_ASSERT(m_vertexBuffer == VK_NULL_HANDLE && m_vertexMemory == VK_NULL_HANDLE && m_indexBuffer == VK_NULL_HANDLE && m_indexMemory == VK_NULL_HANDLE && m_skinBuffer == VK_NULL_HANDLE && m_skinMemory == VK_NULL_HANDLE, "VulkanMeshImpl destroyed without unload()");
     }
 
     bool VulkanMeshImpl::isValid() const
     {
-        return m_vertexBuffer != VK_NULL_HANDLE &&
-           m_vertexMemory != VK_NULL_HANDLE &&
-           m_indexBuffer != VK_NULL_HANDLE &&
-           m_indexMemory != VK_NULL_HANDLE &&
-           m_indexCount > 0;
+        const bool geometryValid =
+            m_vertexBuffer != VK_NULL_HANDLE &&
+            m_vertexMemory != VK_NULL_HANDLE &&
+            m_indexBuffer != VK_NULL_HANDLE &&
+            m_indexMemory != VK_NULL_HANDLE &&
+            m_indexCount > 0;
+
+        const bool skinValid = m_hasSkinning
+            ? m_skinBuffer != VK_NULL_HANDLE &&
+              m_skinMemory != VK_NULL_HANDLE
+            : m_skinBuffer == VK_NULL_HANDLE &&
+              m_skinMemory == VK_NULL_HANDLE;
+
+        return geometryValid && skinValid;
     }
 
     void VulkanMeshImpl::unload()
     {
-        if (m_vertexBuffer == VK_NULL_HANDLE && m_vertexMemory == VK_NULL_HANDLE && m_indexBuffer == VK_NULL_HANDLE && m_indexMemory == VK_NULL_HANDLE)
+        if (m_vertexBuffer == VK_NULL_HANDLE &&
+            m_vertexMemory == VK_NULL_HANDLE &&
+            m_indexBuffer == VK_NULL_HANDLE &&
+            m_indexMemory == VK_NULL_HANDLE &&
+            m_skinBuffer == VK_NULL_HANDLE &&
+            m_skinMemory == VK_NULL_HANDLE)
         {
             m_indexCount = 0;
+            m_hasSkinning = false;
             return;
         }
 
@@ -77,17 +107,26 @@ namespace aiko::renderer::vulkan
         const VkDeviceMemory vertexMemory = m_vertexMemory;
         const VkBuffer indexBuffer = m_indexBuffer;
         const VkDeviceMemory indexMemory = m_indexMemory;
+        const VkBuffer skinBuffer = m_skinBuffer;
+        const VkDeviceMemory skinMemory = m_skinMemory;
 
         m_vertexBuffer = VK_NULL_HANDLE;
         m_vertexMemory = VK_NULL_HANDLE;
         m_indexBuffer = VK_NULL_HANDLE;
         m_indexMemory = VK_NULL_HANDLE;
+        m_skinBuffer = VK_NULL_HANDLE;
+        m_skinMemory = VK_NULL_HANDLE;
         m_indexCount = 0;
+        m_hasSkinning = false;
 
         VulkanContext& ctx = VulkanContext::current();
 
         ctx.retireBuffer(vertexBuffer, vertexMemory);
         ctx.retireBuffer(indexBuffer, indexMemory);
+        if (skinBuffer != VK_NULL_HANDLE)
+        {
+            ctx.retireBuffer(skinBuffer, skinMemory);
+        }
     }
 
     void VulkanMeshImpl::refresh(const MeshAsset& asset)
@@ -95,6 +134,15 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(!asset.m_vertices.empty(), "Mesh has no vertices");
         AIKO_ASSERT(!asset.m_indices.empty(), "Mesh has no indices");
         AIKO_ASSERT(asset.m_tangents.empty() || asset.m_tangents.size() == asset.m_vertices.size(), "Mesh tangent count must match vertex count");
+
+        bool hasSkinning = asset.m_jointIndices.empty() == false;
+
+        AIKO_ASSERT(asset.m_jointIndices.empty() == asset.m_jointWeights.empty(), "Skinning indices and weights must both be present or absent");
+        if (hasSkinning == true)
+        {
+            AIKO_ASSERT(asset.m_jointIndices.size() == asset.m_vertices.size(), "Skinning joint count must match vertex count");
+            AIKO_ASSERT(asset.m_jointWeights.size() == asset.m_vertices.size(), "Skinning weight count must match vertex count");
+        }
 
         for (const uint32_t index : asset.m_indices)
         {
@@ -105,9 +153,11 @@ namespace aiko::renderer::vulkan
         const VkDevice device = ctx.device();
 
         const vector<VulkanVertex> vertices = buildVertices(asset);
+        const std::vector<VulkanSkinVertex> skinnedVertices = hasSkinning ? buildSkinVertices(asset) : std::vector<VulkanSkinVertex>{};
 
         const VkDeviceSize vertexSize = sizeof(VulkanVertex) * vertices.size();
         const VkDeviceSize indexSize = sizeof(uint32_t) * asset.m_indices.size();
+        const VkDeviceSize skinSize = sizeof(VulkanSkinVertex) * skinnedVertices.size();
 
         struct BufferAllocation
         {
@@ -119,6 +169,8 @@ namespace aiko::renderer::vulkan
         BufferAllocation indexStaging;
         BufferAllocation newVertex;
         BufferAllocation newIndex;
+        BufferAllocation skinStaging;
+        BufferAllocation newSkin;
 
         const auto destroy = [device](BufferAllocation& allocation)
         {
@@ -139,8 +191,10 @@ namespace aiko::renderer::vulkan
         {
             destroy(vertexStaging);
             destroy(indexStaging);
+            destroy(skinStaging);
             destroy(newVertex);
             destroy(newIndex);
+            destroy(newSkin);
         };
 
         const auto allocate = [&](BufferAllocation& allocation, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, const char* label) -> bool
@@ -168,6 +222,17 @@ namespace aiko::renderer::vulkan
         {
             cleanup();
             return;
+        }
+
+        if (hasSkinning == true)
+        {
+
+            if (!allocate(skinStaging, skinSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, stagingProperties, "skin staging") ||
+                !allocate(newSkin, skinSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, deviceProperties, "new skin"))
+            {
+                cleanup();
+                return;
+            }
         }
 
         // Upload vertex data into staging memory.
@@ -202,17 +267,40 @@ namespace aiko::renderer::vulkan
 
         vkUnmapMemory(device, indexStaging.memory);
 
+        if (hasSkinning)
+        {
+            mapped = nullptr;
+            mapResult = vkMapMemory(device, skinStaging.memory, 0, skinSize, 0, &mapped);
+
+            if (mapResult != VK_SUCCESS)
+            {
+                logger::Log::error("Failed to map Vulkan skin staging memory (VkResult %d)", static_cast<int>(mapResult));
+                cleanup();
+                return;
+            }
+
+            std::memcpy(mapped, skinnedVertices.data(), static_cast<size_t>(skinSize));
+
+            vkUnmapMemory(device, skinStaging.memory);
+        }
+
         // Submit both copies and wait for completion.
         VkCommandBuffer commandBuffer = ctx.beginSingleTimeCommands();
 
         ctx.copyBuffer(commandBuffer, vertexStaging.buffer, newVertex.buffer, vertexSize);
         ctx.copyBuffer(commandBuffer, indexStaging.buffer, newIndex.buffer, indexSize);
 
+        if (hasSkinning)
+        {
+            ctx.copyBuffer(commandBuffer, skinStaging.buffer, newSkin.buffer, skinSize);
+        }
+
         ctx.endSingleTimeCommands(commandBuffer);
 
         // The GPU copies have completed.
         destroy(vertexStaging);
         destroy(indexStaging);
+        destroy(skinStaging);
 
         // Commit the replacement only after successful upload.
         // Existing buffers are retired through Aiko's frame lifecycle.
@@ -223,10 +311,14 @@ namespace aiko::renderer::vulkan
         m_indexBuffer = newIndex.buffer;
         m_indexMemory = newIndex.memory;
         m_indexCount = static_cast<u32>(asset.m_indices.size());
+        m_skinBuffer = newSkin.buffer;
+        m_skinMemory = newSkin.memory;
+        m_hasSkinning = hasSkinning;
 
         // Ownership now belongs to this VulkanMeshImpl.
         newVertex = {};
         newIndex = {};
+        newSkin = {};
     }
 
     RenderResourceId VulkanMeshImpl::id()

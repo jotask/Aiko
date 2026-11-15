@@ -696,7 +696,10 @@ namespace aiko
             submesh.material.lit = importedSubmesh.lit;
             submesh.material.baseColor = importedSubmesh.baseColor;
 
-            submesh.material.shaderId = registerShader(importedSubmesh.shaderSource);
+            const bool skinned = !importedSubmesh.mesh.m_jointIndices.empty();
+            AIKO_ASSERT(!skinned || (model.skeleton && !model.skeleton->joints.empty()), "Skinned mesh requires a skeleton");
+
+            submesh.material.shaderId = skinned ? registerShader("renderer://model_skinned", "renderer://model") : registerShader(importedSubmesh.shaderSource);
 
             if (submesh.meshId == InvalidAssetId || submesh.material.shaderId == InvalidAssetId)
             {

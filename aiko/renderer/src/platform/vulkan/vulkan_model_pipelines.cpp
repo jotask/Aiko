@@ -165,25 +165,47 @@ namespace aiko::renderer::vulkan
             fragShaderStageInfo
         };
 
-        const VkVertexInputBindingDescription bindingDescription = VulkanVertex::bindingDescription();
+        const auto& locations = shader.reflection().vertexInputLocations;
 
-        const auto vertexAttributes = VulkanVertex::attributeDescriptions();
+        const auto usesLocation = [&locations](uint32_t location)
+        {
+            return std::find(locations.begin(), locations.end(), location) != locations.end();
+        };
+
+        const bool skinned = usesLocation(9);
+
+        AIKO_ASSERT(skinned == usesLocation(10), "Skinned shader must declare both joint indices and weights");
+
+        const std::array<VkVertexInputBindingDescription, 2> bindings =
+        {
+            VulkanVertex::bindingDescription(),
+            VulkanSkinVertex::bindingDescription()
+        };
+
+        const auto meshAttributes = VulkanVertex::attributeDescriptions();
+        const auto skinAttributes = VulkanSkinVertex::attributeDescriptions();
+
+        std::vector<VkVertexInputAttributeDescription> supportedAttributes(meshAttributes.begin(), meshAttributes.end());
+
+        if (skinned)
+        {
+            supportedAttributes.insert(supportedAttributes.end(), skinAttributes.begin(), skinAttributes.end());
+        }
 
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-        attributeDescriptions.reserve(vertexAttributes.size());
+        attributeDescriptions.reserve(locations.size());
 
-        for (const uint32_t location : shader.reflection().vertexInputLocations)
+        for (const uint32_t location : locations)
         {
-            const auto it =
-                std::find_if(
-                    vertexAttributes.begin(),
-                    vertexAttributes.end(),
-                    [location](const VkVertexInputAttributeDescription& attribute)
-                    {
-                        return attribute.location == location;
-                    });
+            const auto it = std::find_if(
+                supportedAttributes.begin(),
+                supportedAttributes.end(),
+                [location](const VkVertexInputAttributeDescription& attribute)
+                {
+                    return attribute.location == location;
+                });
 
-            AIKO_ASSERT(it != vertexAttributes.end(), "Model vertex shader uses unsupported vertex input location");
+            AIKO_ASSERT(it != supportedAttributes.end(), "Model shader uses unsupported vertex input location");
 
             attributeDescriptions.push_back(*it);
         }
@@ -191,8 +213,8 @@ namespace aiko::renderer::vulkan
         const VkPipelineVertexInputStateCreateInfo vertexInputInfo =
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .vertexBindingDescriptionCount = 1,
-            .pVertexBindingDescriptions = &bindingDescription,
+            .vertexBindingDescriptionCount = skinned ? 2u : 1u,
+            .pVertexBindingDescriptions = bindings.data(),
             .vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size()),
             .pVertexAttributeDescriptions = attributeDescriptions.data(),
         };

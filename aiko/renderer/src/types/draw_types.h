@@ -74,6 +74,7 @@ namespace aiko
         const Mesh* mesh = nullptr;
         const Material* material = nullptr;
         mat4 transform = mat4(1.0f);
+        std::vector<mat4> skinMatrices;
     };
 
     struct MeshDrawPacket
@@ -81,6 +82,7 @@ namespace aiko
         const Mesh* mesh = nullptr;
         const Material* material = nullptr;
         mat4 world = mat4(1.0f);
+        std::span<const mat4> skinMatrices;
     };
 
     struct InstancedDrawPacket

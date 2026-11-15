@@ -994,6 +994,41 @@ namespace aiko::renderer::vulkan
         drawMeshWithPipeline(viewId, world, mesh, pipeline);
     }
 
+    void VulkanRenderDevice::drawSkinnedMesh(ViewId viewId, const MeshDrawPacket& packet)
+    {
+        AIKO_FUNCTION_PROFILE
+
+        if (!m_frameActive || !m_renderPassActive)
+        {
+            return;
+        }
+
+        AIKO_ASSERT(packet.mesh != nullptr, "Skinned draw has no mesh");
+        AIKO_ASSERT(packet.material != nullptr, "Skinned draw has no material");
+        AIKO_ASSERT(!packet.skinMatrices.empty(), "Skinned draw has no bone palette");
+
+        auto* meshImpl = static_cast<VulkanMeshImpl*>(getMeshBackend(*packet.mesh));
+
+        AIKO_ASSERT(meshImpl != nullptr, "Skinned mesh has no Vulkan implementation");
+        AIKO_ASSERT(meshImpl->isValid(), "Invalid skinned mesh");
+        AIKO_ASSERT(meshImpl->hasSkinning(), "Mesh has no skinning vertex data");
+
+        const VkDescriptorSet skinSet = uploadSkinPalette(packet.skinMatrices);
+
+        const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, packet.material->m_shaderId, packet.material->m_renderState, false);
+
+        VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
+
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsGpuReadSet, 1, &skinSet, 0, nullptr);
+
+        const VkBuffer skinBuffer = meshImpl->skinBuffer();
+        const VkDeviceSize skinOffset = 0;
+
+        vkCmdBindVertexBuffers(commandBuffer, 1, 1, &skinBuffer, &skinOffset);
+
+        drawMeshWithPipeline(viewId, packet.world, *packet.mesh, pipeline);
+    }
+
     void VulkanRenderDevice::presentTextureToScreen(ViewId viewId, const Mesh& screenMesh, const Texture& texture)
     {
         AIKO_FUNCTION_PROFILE
@@ -2823,6 +2858,46 @@ namespace aiko::renderer::vulkan
         vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, destination.stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
         texture.setState(destination);
+    }
+
+    VkDescriptorSet VulkanRenderDevice::uploadSkinPalette(std::span<const mat4> skinMatrices)
+    {
+        AIKO_ASSERT(!skinMatrices.empty(), "Skin palette is empty");
+        static_assert(sizeof(mat4) == sizeof(float) * 16);
+
+        const VkDeviceSize paletteSize = static_cast<VkDeviceSize>(skinMatrices.size_bytes());
+
+        VkPhysicalDeviceProperties properties{};
+        vkGetPhysicalDeviceProperties(m_context.physicalDevice(), &properties);
+
+        AIKO_ASSERT(paletteSize <= properties.limits.maxStorageBufferRange, "Skin palette exceeds maximum storage buffer range");
+
+        const VkDeviceSize alignment = std::max<VkDeviceSize>(1, properties.limits.minStorageBufferOffsetAlignment);
+
+        const UploadSlice slice = m_uploadArena.allocate(m_context.currentFrameIndex(), paletteSize, alignment);
+
+        std::memcpy(slice.mapped, skinMatrices.data(), static_cast<size_t>(paletteSize));
+
+        const VkDescriptorSet descriptorSet = m_gpuReadDescriptors.allocate(m_context.currentFrameIndex());
+
+        const VkDescriptorBufferInfo bufferInfo{
+            .buffer = slice.buffer,
+            .offset = slice.offset,
+            .range = paletteSize,
+        };
+
+        const VkWriteDescriptorSet write{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSet,
+            .dstBinding = abi::GraphicsSkinPaletteBinding,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .pBufferInfo = &bufferInfo,
+        };
+
+        vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
+
+        return descriptorSet;
     }
 
     void VulkanRenderDevice::transitionComputeBuffers(VkCommandBuffer commandBuffer, const vector<ComputeBufferBinding>& bindings, bool useDedicatedCompute)
