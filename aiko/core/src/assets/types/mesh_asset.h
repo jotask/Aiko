@@ -1,12 +1,13 @@
 #pragma once
 
+#include "animation_clip_asset.h"
 #include "material_asset.h"
 #include "skeleton_asset.h"
 
 #include <assets/asset_id.h>
 #include <math/math_vector.h>
-#include <aiko_types.h>
 
+#include <aiko_types.h>
 #include <optional>
 
 namespace aiko
@@ -33,6 +34,7 @@ namespace aiko
         };
         vector<SubMesh> submeshes;
         std::optional<SkeletonAsset> skeleton;
+        std::vector<AnimationClipAsset> animations;
     };
 
 }

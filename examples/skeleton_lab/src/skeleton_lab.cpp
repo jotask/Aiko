@@ -65,12 +65,22 @@ namespace lab
             return;
         }
 
-        m_animationTime += getDeltaTime();
-        const float angle = std::sin(m_animationTime * 2.0f) * 0.6f;
+        if (!m_playbackStarted)
+        {
+            AIKO_ASSERT(m_model.animationCount() > 0, "FBX contains no skeletal animation clips");
+            AIKO_ASSERT(m_model.playAnimation(0), "Failed to play first character animation");
+            AIKO_ASSERT(m_modelB.playAnimation(0), "Failed to play second character animation");
 
-        AIKO_ASSERT(m_model.setJointRotation("RightArm", angle, {1.0f, 1.0f, 1.0f}), "First model: RightArm not found");
-        AIKO_ASSERT(m_modelB.setJointRotation("LeftArm", -angle, {1.0f, 1.0f, 1.0f}), "Second model: LeftArm not found");
+            // Start the second character at a different time.
+            m_modelB.updateAnimation(0.5f);
 
+            m_playbackStarted = true;
+        }
+
+        const float dt = getDeltaTime();
+
+        m_model.updateAnimation(dt);
+        m_modelB.updateAnimation(dt);
     }
 
     void SkeletonLab::render()

@@ -37,5 +37,6 @@ namespace aiko
         static bool matricesNearlyEqual(const mat4& a, const mat4& b);
         static std::string importVertexWeights(const aiMesh& source, const std::unordered_map<std::string, uint32_t>& jointLookup, MeshAsset& destination);
         static std::string collectMeshBindTransforms(const aiScene& scene, std::vector<mat4>& transforms);
+        static AssetImportResult<std::vector<AnimationClipAsset>> importAnimations(const aiScene& scene, const SkeletonAsset& skeleton);
     };
 }

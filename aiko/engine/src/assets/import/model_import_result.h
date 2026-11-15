@@ -24,5 +24,6 @@ namespace aiko
     {
         vector<ImportedModelSubMesh> submeshes;
         std::optional<SkeletonAsset> skeleton;
+        std::vector<AnimationClipAsset> animations;
     };
 }

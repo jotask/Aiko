@@ -1,14 +1,16 @@
 #pragma once
 
+#include "assets/types/animation_clip_asset.h"
+
+#include <animation/skeleton_pose.h>
+#include <assets/types/skeleton_asset.h>
+#include <models/material.h>
+
 #include <memory>
-#include <vector>
 #include <optional>
 #include <span>
 #include <string_view>
-
-#include <animation/skeleton_pose.h>
-#include <models/material.h>
-#include <assets/types/skeleton_asset.h>
+#include <vector>
 
 namespace aiko
 {
@@ -41,6 +43,12 @@ namespace aiko
 
         bool setJointRotation(std::string_view jointName, float angleRadians, const vec3& axis);
 
+        size_t animationCount() const;
+
+        bool playAnimation(size_t index = 0, bool loop = true);
+        void updateAnimation(float deltaTime);
+        void stopAnimation();
+
         void unload();
 
         [[nodiscard]]
@@ -58,10 +66,13 @@ namespace aiko
             std::vector<SubMesh> subMeshes;
             std::optional<SkeletonAsset> skeleton;
             std::vector<mat4> bindSkinMatrices;
+            std::vector<AnimationClipAsset> animations;
         };
 
         void setSkeleton(const SkeletonAsset& skeleton);
         std::span<const mat4> bindSkinMatrices() const;
+
+        void setAnimations(std::vector<AnimationClipAsset> animations);
 
         // Internal sharing for managed, asynchronously loaded models.
         [[nodiscard]]
@@ -75,5 +86,11 @@ namespace aiko
 
         SkeletonPose m_pose;
         std::vector<mat4> m_instanceSkinMatrices;
+
+        std::optional<size_t> m_activeAnimationIndex;
+
+        double m_animationTime = 0.0;
+        bool m_animationPlaying = false;
+        bool m_animationLoop = true;
     };
 }

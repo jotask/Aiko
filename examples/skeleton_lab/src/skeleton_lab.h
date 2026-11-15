@@ -17,7 +17,7 @@ namespace lab
 
         aiko::Model m_model;
         aiko::Model m_modelB;
-        float m_animationTime = 0.0f;
+        bool m_playbackStarted = false;
 
         aiko::GameObject* m_lightObject = nullptr;
 

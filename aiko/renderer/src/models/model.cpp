@@ -4,8 +4,10 @@
 #include "assets/types/mesh_asset.h"
 
 #include <animation/skeleton_pose.h>
+#include <animation/animation_pose.h>
 #include <math/math_transform.h>
 
+#include <cmath>
 #include <algorithm>
 #include <utility>
 
@@ -42,6 +44,8 @@ namespace aiko
         {
             return false;
         }
+
+        m_animationPlaying = false;
 
         const SkeletonAsset& skeleton = *m_state->skeleton;
 
@@ -89,11 +93,96 @@ namespace aiko
         return true;
     }
 
+    size_t Model::animationCount() const
+    {
+        return m_state ? m_state->animations.size() : 0;
+    }
+
+    bool Model::playAnimation(size_t index, bool loop)
+    {
+        if (!m_state || !m_state->skeleton || index >= m_state->animations.size())
+        {
+            return false;
+        }
+
+        m_activeAnimationIndex = index;
+        m_animationTime = 0.0;
+        m_animationLoop = loop;
+        m_animationPlaying = true;
+
+        SkeletonPoseUtils::resetToBindPose(*m_state->skeleton, m_pose);
+
+        updateAnimation(0.0f);
+
+        return true;
+    }
+
+    void Model::updateAnimation(float deltaTime)
+    {
+        if (!m_animationPlaying ||
+            !m_activeAnimationIndex ||
+            !m_state ||
+            !m_state->skeleton)
+        {
+            return;
+        }
+
+        AIKO_ASSERT(std::isfinite(deltaTime) && deltaTime >= 0.0f, "Invalid animation delta time");
+
+        if (*m_activeAnimationIndex >= m_state->animations.size())
+        {
+            stopAnimation();
+            return;
+        }
+
+        const AnimationClipAsset& clip = m_state->animations[*m_activeAnimationIndex];
+
+        const SkeletonAsset& skeleton = *m_state->skeleton;
+
+        m_animationTime += static_cast<double>(deltaTime);
+
+        bool finished = false;
+
+        if (clip.durationSeconds > 0.0)
+        {
+            if (m_animationLoop)
+            {
+                m_animationTime = std::fmod(m_animationTime, clip.durationSeconds);
+            }
+            else if (m_animationTime >= clip.durationSeconds)
+            {
+                m_animationTime = clip.durationSeconds;
+                finished = true;
+            }
+        }
+
+        AnimationPoseUtils::sample(clip, skeleton, m_animationTime, m_pose);
+
+        std::vector<mat4> globalTransforms(skeleton.joints.size());
+        SkeletonPoseUtils::calculateGlobalTransforms(skeleton, m_pose, globalTransforms);
+        m_instanceSkinMatrices.resize(skeleton.joints.size());
+        SkeletonPoseUtils::calculateSkinningMatrices(skeleton, globalTransforms, m_instanceSkinMatrices);
+
+        if (finished)
+        {
+            // Preserve the final pose.
+            m_animationPlaying = false;
+        }
+    }
+
+    void Model::stopAnimation()
+    {
+        m_animationPlaying = false;
+        m_activeAnimationIndex.reset();
+        m_animationTime = 0.0;
+
+        m_pose.localTransforms.clear();
+        m_instanceSkinMatrices.clear();
+    }
 
     void Model::unload()
     {
-        m_pose.localTransforms.clear();
-        m_instanceSkinMatrices.clear();
+        stopAnimation();
         m_state.reset();
     }
 
@@ -128,6 +217,8 @@ namespace aiko
     {
         AIKO_ASSERT(m_state != nullptr, "Model has no state");
 
+        stopAnimation();
+
         m_state->skeleton = skeleton;
 
         const size_t jointCount = skeleton.joints.size();
@@ -160,6 +251,12 @@ namespace aiko
         return m_state ? std::span<const mat4>(m_state->bindSkinMatrices) : std::span<const mat4>{};
     }
 
+    void Model::setAnimations(std::vector<AnimationClipAsset> animations)
+    {
+        AIKO_ASSERT(m_state != nullptr, "Model has no state");
+        m_state->animations = std::move(animations);
+    }
+
     Model Model::share() const
     {
         Model model;
@@ -180,6 +277,7 @@ namespace aiko
 
         m_state->skeleton.swap(replacement.m_state->skeleton);
         m_state->bindSkinMatrices.swap(replacement.m_state->bindSkinMatrices);
+        m_state->animations.swap(replacement.m_state->animations);
     }
 
     void Model::clearContents()
@@ -189,6 +287,7 @@ namespace aiko
             m_state->subMeshes.clear();
             m_state->skeleton.reset();
             m_state->bindSkinMatrices.clear();
+            m_state->animations.clear();
         }
     }
 }

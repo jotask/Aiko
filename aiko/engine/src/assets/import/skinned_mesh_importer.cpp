@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <unordered_map>
 #include <limits>
 #include <utility>
 
@@ -136,6 +137,16 @@ namespace aiko
             }
         }
 
+        auto animations = importAnimations(scene, skeleton);
+
+        if (!animations)
+        {
+            return AssetImportResult<ImportedModel>::failure(animations.error(), std::string(animations.message()));
+        }
+
+        imported.animations = std::move(*animations);
+
+        logger::Log::infoFmt("Imported {} skeletal animation clips", imported.animations.size());
         logger::Log::infoFmt("Skinned model imported: {} joints, {} submeshes", skeleton.joints.size(), imported.submeshes.size());
 
         return AssetImportResult<ImportedModel>::success(std::move(imported));
@@ -623,9 +634,7 @@ namespace aiko
         std::vector<bool> visited(scene.mNumMeshes, false);
         std::string error;
 
-        auto visit = [&](auto&& self,
-                         const aiNode* node,
-                         const mat4& parentGlobal) -> bool
+        auto visit = [&](auto&& self, const aiNode* node, const mat4& parentGlobal) -> bool
         {
             if (node == nullptr)
             {
@@ -694,5 +703,183 @@ namespace aiko
         return {};
     }
 
+    AssetImportResult<std::vector<AnimationClipAsset>> SkinnedMeshImporter::importAnimations(const aiScene& scene, const SkeletonAsset& skeleton)
+    {
+        std::vector<AnimationClipAsset> result;
+
+        if (scene.mNumAnimations == 0)
+        {
+            return AssetImportResult<std::vector<AnimationClipAsset>>::success({});
+        }
+
+        if (!scene.mAnimations || !scene.mRootNode)
+        {
+            return AssetImportResult<std::vector<AnimationClipAsset>>::failure(AssetImportError::InvalidData, "Invalid animation scene");
+        }
+
+        std::unordered_map<std::string, uint32_t> jointLookup;
+
+        for (uint32_t i = 0; i < skeleton.joints.size(); ++i)
+        {
+            jointLookup.emplace(skeleton.joints[i].name, i);
+        }
+
+        for (unsigned int i = 0; i < scene.mNumAnimations; ++i)
+        {
+            const aiAnimation* source = scene.mAnimations[i];
+
+            if (!source || (source->mNumChannels > 0 && !source->mChannels))
+            {
+                return AssetImportResult<std::vector<AnimationClipAsset>>::failure(AssetImportError::InvalidData, "Invalid FBX animation");
+            }
+
+            const double ticksPerSecond = source->mTicksPerSecond > 0.0 ? source->mTicksPerSecond : 25.0;
+
+            if (!std::isfinite(ticksPerSecond) || !std::isfinite(source->mDuration) || source->mDuration < 0.0)
+            {
+                return AssetImportResult<std::vector<AnimationClipAsset>>::failure(AssetImportError::InvalidData, "Invalid animation timing");
+            }
+
+            AnimationClipAsset clip{};
+
+            clip.name = source->mName.length > 0 ? source->mName.C_Str() : "Animation_" + std::to_string(i);
+
+            clip.durationSeconds = source->mDuration / ticksPerSecond;
+
+            std::unordered_set<uint32_t> usedJoints;
+
+            for (unsigned int j = 0; j < source->mNumChannels; ++j)
+            {
+                const aiNodeAnim* sourceChannel = source->mChannels[j];
+
+                if (!sourceChannel)
+                {
+                    return AssetImportResult<std::vector<AnimationClipAsset>>::failure(AssetImportError::InvalidData, "Null animation channel");
+                }
+
+                const auto joint = jointLookup.find( sourceChannel->mNodeName.C_Str());
+
+                if (joint == jointLookup.end())
+                {
+                    // Ignore channels outside the imported skeleton.
+                    continue;
+                }
+
+                if (!usedJoints.insert(joint->second).second)
+                {
+                    return AssetImportResult<std::vector<AnimationClipAsset>>::failure(AssetImportError::InvalidData, "Duplicate joint animation channel");
+                }
+
+                const aiNode* node = scene.mRootNode->FindNode(sourceChannel->mNodeName);
+
+                if (!node ||
+                    (sourceChannel->mNumPositionKeys &&
+                     !sourceChannel->mPositionKeys) ||
+                    (sourceChannel->mNumRotationKeys &&
+                     !sourceChannel->mRotationKeys) ||
+                    (sourceChannel->mNumScalingKeys &&
+                     !sourceChannel->mScalingKeys))
+                {
+                    return AssetImportResult<std::vector<AnimationClipAsset>>::failure(AssetImportError::InvalidData, "Invalid animation node or keyframes");
+                }
+
+                aiVector3D defaultScale;
+                aiVector3D defaultPosition;
+                aiQuaternion defaultRotation;
+
+                node->mTransformation.Decompose(defaultScale, defaultRotation, defaultPosition);
+
+                AnimationChannel channel{};
+                channel.jointIndex = joint->second;
+
+                channel.defaultTranslation = {
+                    defaultPosition.x,
+                    defaultPosition.y,
+                    defaultPosition.z
+                };
+
+                channel.defaultRotation = {
+                    defaultRotation.x,
+                    defaultRotation.y,
+                    defaultRotation.z,
+                    defaultRotation.w
+                };
+
+                channel.defaultScale = {
+                    defaultScale.x,
+                    defaultScale.y,
+                    defaultScale.z
+                };
+
+                const mat4 sourceBind = toAikoMatrix(node->mTransformation);
+
+                channel.bindCorrection = skeleton.joints[channel.jointIndex].localBindTransform * math::inverse(sourceBind);
+
+                for (unsigned int k = 0; k < sourceChannel->mNumPositionKeys; ++k)
+                {
+                    const aiVectorKey& key = sourceChannel->mPositionKeys[k];
+
+                    channel.positionKeys.push_back({
+                        key.mTime / ticksPerSecond,
+                        {key.mValue.x, key.mValue.y, key.mValue.z}
+                    });
+                }
+
+                for (unsigned int k = 0; k < sourceChannel->mNumRotationKeys; ++k)
+                {
+                    const aiQuatKey& key = sourceChannel->mRotationKeys[k];
+
+                    channel.rotationKeys.push_back({
+                        key.mTime / ticksPerSecond,
+                        {
+                            key.mValue.x,
+                            key.mValue.y,
+                            key.mValue.z,
+                            key.mValue.w
+                        }
+                    });
+                }
+
+                for (unsigned int k = 0; k < sourceChannel->mNumScalingKeys; ++k)
+                {
+                    const aiVectorKey& key = sourceChannel->mScalingKeys[k];
+                    channel.scalingKeys.push_back({
+                        key.mTime / ticksPerSecond,
+                        {key.mValue.x, key.mValue.y, key.mValue.z}
+                    });
+                }
+
+                const auto byTime = [](const auto& a, const auto& b)
+                {
+                    return a.timeSeconds < b.timeSeconds;
+                };
+
+                std::sort(channel.positionKeys.begin(), channel.positionKeys.end(), byTime);
+                std::sort(channel.rotationKeys.begin(), channel.rotationKeys.end(), byTime);
+                std::sort(channel.scalingKeys.begin(), channel.scalingKeys.end(), byTime);
+
+                const auto extendDuration = [&](const auto& keys)
+                {
+                    if (!keys.empty())
+                    {
+                        clip.durationSeconds = std::max(clip.durationSeconds, keys.back().timeSeconds);
+                    }
+                };
+
+                extendDuration(channel.positionKeys);
+                extendDuration(channel.rotationKeys);
+                extendDuration(channel.scalingKeys);
+
+                clip.channels.push_back(std::move(channel));
+            }
+
+            if (!clip.channels.empty())
+            {
+                result.push_back(std::move(clip));
+            }
+        }
+
+        return AssetImportResult<std::vector<AnimationClipAsset>>::success(std::move(result));
+    }
 
 }

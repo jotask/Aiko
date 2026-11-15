@@ -684,6 +684,7 @@ namespace aiko
     {
         ModelAsset model{};
         model.skeleton = imported.skeleton;
+        model.animations = imported.animations;
         model.submeshes.reserve(imported.submeshes.size());
 
         for (const ImportedModelSubMesh& importedSubmesh : imported.submeshes)

@@ -198,6 +198,7 @@ namespace aiko
         if (asset.skeleton && !asset.skeleton->joints.empty())
         {
             replacement.setSkeleton(*asset.skeleton);
+            replacement.setAnimations(asset.animations);
         }
 
         for (const ModelAsset::SubMesh& submesh : asset.submeshes)
