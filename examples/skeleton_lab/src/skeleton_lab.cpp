@@ -19,7 +19,7 @@ namespace lab
 
         scene().clearColor() = aiko::BLACK;
 
-        scene().ambientLight().intensity = 0.0f;
+        scene().ambientLight().intensity = 0.15f;
 
         aiko::CameraComponent* camera = scene().createCamera(aiko::camera::CameraController::Fly, aiko::Camera::CameraType::Perspective);
         camera->getCamera().position = {0.0f, 1.5f, 3.5f};
@@ -49,7 +49,7 @@ namespace lab
         aiko::Material& material = groundMesh->getMaterial();
 
         material.m_shaderId = assets().loadShader("model");
-        material.m_baseColor = aiko::WHITE;
+        material.m_baseColor = aiko::GRAY;
         material.m_useVertexColor = false;
         material.m_lit = true;
 

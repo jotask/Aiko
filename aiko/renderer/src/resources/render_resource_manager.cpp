@@ -211,7 +211,7 @@ namespace aiko
 
             if (submesh.material.diffuseTextureId != InvalidAssetId)
             {
-                material.setTexture("u_texture", submesh.material.diffuseTextureId);
+                material.setAlbedoMap(submesh.material.diffuseTextureId);
             }
 
             const MeshAsset& meshAsset = m_assetProvider.getMeshAsset(submesh.meshId);
