@@ -3,6 +3,9 @@
 #include <aiko_includes.h>
 #include <models/model.h>
 #include <layers/layer.h>
+#include <math/math_transform.h>
+
+#include <cmath>
 
 namespace lab
 {
@@ -20,6 +23,9 @@ namespace lab
         bool m_playbackStarted = false;
 
         aiko::GameObject* m_lightObject = nullptr;
+
+        float m_externalPoseTime = 0.0f;
+        aiko::SkeletonPose m_externalPose;
 
     };
 

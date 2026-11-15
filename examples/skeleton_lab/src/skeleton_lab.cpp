@@ -67,21 +67,36 @@ namespace lab
 
         if (!m_playbackStarted)
         {
-            AIKO_ASSERT(m_model.animationCount() > 0, "FBX contains no skeletal animation clips");
-            AIKO_ASSERT(m_model.playAnimation(0), "Failed to play first character animation");
-            AIKO_ASSERT(m_modelB.playAnimation(0), "Failed to play second character animation");
+            AIKO_ASSERT(m_model.animationCount() > 0, "FBX has no animation clips");
 
-            // Start the second character at a different time.
-            m_modelB.updateAnimation(0.5f);
+            const std::string_view clipName = m_model.animationName(0);
+
+            AIKO_ASSERT(m_model.playAnimation(clipName), "Failed to select animation by name");
+
+            m_externalPose = m_modelB.createBindPose();
 
             m_playbackStarted = true;
         }
 
         const float dt = getDeltaTime();
 
+        // Character A: imported FBX animation.
         m_model.updateAnimation(dt);
-        m_modelB.updateAnimation(dt);
+
+        // Character B: external pose input simulation.
+        m_externalPoseTime += dt;
+
+        const auto arm = m_modelB.findJointIndex("LeftArm");
+
+        AIKO_ASSERT(arm.has_value(), "LeftArm not found");
+
+        const float angle = std::sin(m_externalPoseTime * 2.0f) * 0.7f;
+
+        m_externalPose.localTransforms[*arm] = aiko::math::rotate(m_modelB.joints()[*arm].localBindTransform, angle, {0.0f, 0.0f, 1.0f});
+
+        AIKO_ASSERT(m_modelB.setPose(m_externalPose), "Failed to apply external skeleton pose");
     }
+
 
     void SkeletonLab::render()
     {

@@ -40,62 +40,192 @@ namespace aiko
 
     bool Model::setJointRotation(std::string_view jointName, float angleRadians, const vec3& axis)
     {
+        const auto index = findJointIndex(jointName);
+
+        if (!index)
+        {
+            return false;
+        }
+
+        SkeletonPose pose = m_pose.localTransforms.size() == joints().size() ? m_pose : createBindPose();
+
+        pose.localTransforms[*index] = math::rotate(joints()[*index].localBindTransform, angleRadians, axis);
+
+        return setPose(pose);
+    }
+
+    std::span<const SkeletonJoint> Model::joints() const
+    {
+        if (!m_state || !m_state->skeleton)
+        {
+            return {};
+        }
+
+        return std::span<const SkeletonJoint>(m_state->skeleton->joints);
+    }
+
+    std::optional<size_t> Model::findJointIndex(std::string_view jointName) const
+    {
+        if (jointName.empty())
+        {
+            return std::nullopt;
+        }
+
+        const auto skeletonJoints = joints();
+
+        // Exact names take priority.
+        for (size_t i = 0; i < skeletonJoints.size(); ++i)
+        {
+            if (skeletonJoints[i].name == jointName)
+            {
+                return i;
+            }
+        }
+
+        // Also accept Mixamo-style names without namespace.
+        std::optional<size_t> result;
+
+        for (size_t i = 0; i < skeletonJoints.size(); ++i)
+        {
+            const std::string_view name = skeletonJoints[i].name;
+
+            if (name.size() <= jointName.size())
+            {
+                continue;
+            }
+
+            const size_t start = name.size() - jointName.size();
+
+            if (name[start - 1] != ':' || name.substr(start) != jointName)
+            {
+                continue;
+            }
+
+            // Reject ambiguous short names.
+            if (result)
+            {
+                return std::nullopt;
+            }
+
+            result = i;
+        }
+
+        return result;
+    }
+
+    SkeletonPose Model::createBindPose() const
+    {
+        SkeletonPose pose{};
+
+        if (m_state && m_state->skeleton)
+        {
+            SkeletonPoseUtils::resetToBindPose(*m_state->skeleton, pose);
+        }
+
+        return pose;
+    }
+
+    bool Model::setPose(const SkeletonPose& pose)
+    {
         if (!m_state || !m_state->skeleton)
         {
             return false;
         }
 
-        m_animationPlaying = false;
-
         const SkeletonAsset& skeleton = *m_state->skeleton;
 
-        const auto it = std::find_if(
-            skeleton.joints.begin(),
-            skeleton.joints.end(),
-            [jointName](const SkeletonJoint& joint)
-            {
-                if (joint.name == jointName)
-                {
-                    return true;
-                }
-
-                const size_t prefixSize =
-                    joint.name.size() > jointName.size()
-                        ? joint.name.size() - jointName.size()
-                        : 0;
-
-                return prefixSize > 0 &&
-                       joint.name[prefixSize - 1] == ':' &&
-                       joint.name.compare(prefixSize, jointName.size(), jointName) == 0;
-            });
-
-        if (it == skeleton.joints.end())
+        if (pose.localTransforms.size() != skeleton.joints.size())
         {
             return false;
         }
 
-        if (m_pose.localTransforms.size() != skeleton.joints.size())
+        // Tracking data can contain invalid measurements.
+        for (const mat4& local : pose.localTransforms)
         {
-            SkeletonPoseUtils::resetToBindPose(skeleton, m_pose);
+            for (int i = 0; i < 16; ++i)
+            {
+                if (!std::isfinite(local.data()[i]))
+                {
+                    return false;
+                }
+            }
         }
 
-        const size_t jointIndex = static_cast<size_t>(it - skeleton.joints.begin());
+        // External poses take control over clip playback.
+        m_animationPlaying = false;
+        m_activeAnimationIndex.reset();
+        m_animationTime = 0.0;
 
-        m_pose.localTransforms[jointIndex] = math::rotate(skeleton.joints[jointIndex].localBindTransform, angleRadians, axis);
+        // Also supports setPose(m_pose).
+        if (&pose != &m_pose)
+        {
+            m_pose = pose;
+        }
 
-        std::vector<mat4> globals(skeleton.joints.size());
+        std::vector<mat4> globalTransforms(skeleton.joints.size());
 
-        SkeletonPoseUtils::calculateGlobalTransforms(skeleton, m_pose, globals);
+        SkeletonPoseUtils::calculateGlobalTransforms(skeleton, m_pose, globalTransforms);
+
         m_instanceSkinMatrices.resize(skeleton.joints.size());
 
-        SkeletonPoseUtils::calculateSkinningMatrices(skeleton, globals, m_instanceSkinMatrices);
+        SkeletonPoseUtils::calculateSkinningMatrices(skeleton, globalTransforms, m_instanceSkinMatrices);
 
         return true;
+    }
+
+    bool Model::setJointLocalTransform(size_t jointIndex, const mat4& localTransform)
+    {
+        const auto skeletonJoints = joints();
+
+        if (jointIndex >= skeletonJoints.size())
+        {
+            return false;
+        }
+
+        SkeletonPose nextPose = m_pose.localTransforms.size() == skeletonJoints.size() ? m_pose : createBindPose();
+
+        nextPose.localTransforms[jointIndex] = localTransform;
+
+        return setPose(nextPose);
+    }
+
+    bool Model::setJointLocalTransform(std::string_view jointName, const mat4& localTransform)
+    {
+        const auto index = findJointIndex(jointName);
+        return index && setJointLocalTransform(*index, localTransform);
     }
 
     size_t Model::animationCount() const
     {
         return m_state ? m_state->animations.size() : 0;
+    }
+
+    std::string_view Model::animationName(size_t index) const
+    {
+        if (!m_state || index >= m_state->animations.size())
+        {
+            return {};
+        }
+
+        return m_state->animations[index].name;
+    }
+
+    bool Model::playAnimation(std::string_view clipName, bool loop)
+    {
+        if (!m_state || clipName.empty())
+        {
+            return false;
+        }
+
+        for (size_t i = 0; i < m_state->animations.size(); ++i)
+        {
+            if (m_state->animations[i].name == clipName)
+            {
+                return playAnimation(i, loop);
+            }
+        }
+
+        return false;
     }
 
     bool Model::playAnimation(size_t index, bool loop)
