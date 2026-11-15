@@ -11,10 +11,12 @@ namespace lab
     {
     protected:
         virtual void init() override;
+        virtual void update() override;
         virtual void render() override;
     private:
 
         aiko::Model m_model;
+        float m_animationTime = 0.0f;
 
     };
 

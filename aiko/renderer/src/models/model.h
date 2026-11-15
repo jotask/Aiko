@@ -4,8 +4,10 @@
 #include <vector>
 #include <optional>
 #include <span>
+#include <string_view>
 
-#include "models/material.h"
+#include <animation/skeleton_pose.h>
+#include <models/material.h>
 #include <assets/types/skeleton_asset.h>
 
 namespace aiko
@@ -36,6 +38,8 @@ namespace aiko
 
         void addSubMesh(std::shared_ptr<Mesh> mesh, Material material, bool skinned = false);
         void addSubMesh(const MeshAsset& asset, Material material);
+
+        bool setJointRotation(std::string_view jointName, float angleRadians, const vec3& axis);
 
         void unload();
 
@@ -68,5 +72,8 @@ namespace aiko
         void clearContents();
 
         std::shared_ptr<State> m_state = std::make_shared<State>();
+
+        SkeletonPose m_pose;
+        std::vector<mat4> m_instanceSkinMatrices;
     };
 }

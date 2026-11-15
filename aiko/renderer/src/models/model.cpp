@@ -4,7 +4,9 @@
 #include "assets/types/mesh_asset.h"
 
 #include <animation/skeleton_pose.h>
+#include <math/math_transform.h>
 
+#include <algorithm>
 #include <utility>
 
 namespace aiko
@@ -34,8 +36,64 @@ namespace aiko
         addSubMesh(std::move(mesh), std::move(material), !asset.m_jointIndices.empty());
     }
 
+    bool Model::setJointRotation(std::string_view jointName, float angleRadians, const vec3& axis)
+    {
+        if (!m_state || !m_state->skeleton)
+        {
+            return false;
+        }
+
+        const SkeletonAsset& skeleton = *m_state->skeleton;
+
+        const auto it = std::find_if(
+            skeleton.joints.begin(),
+            skeleton.joints.end(),
+            [jointName](const SkeletonJoint& joint)
+            {
+                if (joint.name == jointName)
+                {
+                    return true;
+                }
+
+                const size_t prefixSize =
+                    joint.name.size() > jointName.size()
+                        ? joint.name.size() - jointName.size()
+                        : 0;
+
+                return prefixSize > 0 &&
+                       joint.name[prefixSize - 1] == ':' &&
+                       joint.name.compare(prefixSize, jointName.size(), jointName) == 0;
+            });
+
+        if (it == skeleton.joints.end())
+        {
+            return false;
+        }
+
+        if (m_pose.localTransforms.size() != skeleton.joints.size())
+        {
+            SkeletonPoseUtils::resetToBindPose(skeleton, m_pose);
+        }
+
+        const size_t jointIndex = static_cast<size_t>(it - skeleton.joints.begin());
+
+        m_pose.localTransforms[jointIndex] = math::rotate(skeleton.joints[jointIndex].localBindTransform, angleRadians, axis);
+
+        std::vector<mat4> globals(skeleton.joints.size());
+
+        SkeletonPoseUtils::calculateGlobalTransforms(skeleton, m_pose, globals);
+        m_instanceSkinMatrices.resize(skeleton.joints.size());
+
+        SkeletonPoseUtils::calculateSkinningMatrices(skeleton, globals, m_instanceSkinMatrices);
+
+        return true;
+    }
+
+
     void Model::unload()
     {
+        m_pose.localTransforms.clear();
+        m_instanceSkinMatrices.clear();
         m_state.reset();
     }
 
@@ -81,6 +139,9 @@ namespace aiko
             return;
         }
 
+        m_pose.localTransforms.clear();
+        m_instanceSkinMatrices.clear();
+
         SkeletonPose pose{};
         SkeletonPoseUtils::resetToBindPose(skeleton, pose);
 
@@ -92,6 +153,10 @@ namespace aiko
 
     std::span<const mat4> Model::bindSkinMatrices() const
     {
+        if (!m_instanceSkinMatrices.empty())
+        {
+            return m_instanceSkinMatrices;
+        }
         return m_state ? std::span<const mat4>(m_state->bindSkinMatrices) : std::span<const mat4>{};
     }
 
