@@ -77,6 +77,18 @@ namespace aiko
 
     };
 
+    // target-major: [targetIndex * vertexCount + vertexIndex].
+    // vec4 fields provide a stable std430 layout for the morph shader.
+    struct alignas(16) VulkanMorphDelta
+    {
+        vec4 position;
+        vec4 normal;
+    };
+
+    static_assert(sizeof(VulkanMorphDelta) == 32);
+    static_assert(offsetof(VulkanMorphDelta, position) == 0);
+    static_assert(offsetof(VulkanMorphDelta, normal) == 16);
+
     struct VulkanInstanceData
     {
         vec4 position;

@@ -158,6 +158,95 @@ namespace aiko
 
     }
 
+    static std::string importAiMorphTargets(const aiMesh& source, MeshAsset& destination)
+    {
+        if (source.mNumAnimMeshes == 0)
+        {
+            return {};
+        }
+
+        if (source.mAnimMeshes == nullptr || source.mVertices == nullptr || destination.m_vertices.size() != source.mNumVertices)
+        {
+            return "Invalid morph target source geometry";
+        }
+
+        std::unordered_set<std::string> names;
+        destination.m_morphTargets.reserve(source.mNumAnimMeshes);
+
+        for (unsigned int i = 0; i < source.mNumAnimMeshes; ++i)
+        {
+            const aiAnimMesh* anim = source.mAnimMeshes[i];
+
+            if (anim == nullptr || anim->mNumVertices != source.mNumVertices)
+            {
+                return "Invalid morph target at index " + std::to_string(i);
+            }
+
+            MorphTargetAsset target{};
+            target.name = anim->mName.C_Str();
+
+            if (target.name.empty())
+            {
+                target.name = "target_" + std::to_string(i);
+            }
+
+            if (!names.insert(target.name).second)
+            {
+                return "Duplicate morph target '" + target.name + "'";
+            }
+
+            // Every target has one position delta per base vertex.
+            // Missing position overrides mean zero displacement.
+            target.positionDeltas.resize(source.mNumVertices);
+
+            if (anim->HasPositions())
+            {
+                for (unsigned int v = 0; v < source.mNumVertices; ++v)
+                {
+                    const aiVector3D delta = anim->mVertices[v] - source.mVertices[v];
+
+                    const vec3 positionDelta = { delta.x, delta.y, delta.z };
+
+                    if (aiko::math::isfinite(positionDelta) == false)
+                    {
+                        return "Non-finite position delta in '" + target.name + "'";
+                    }
+
+                    target.positionDeltas[v] = positionDelta;
+                }
+            }
+
+            // Morph normals are optional.
+            if (anim->HasNormals())
+            {
+                if (!source.HasNormals())
+                {
+                    return "Morph target has normals but base mesh does not";
+                }
+
+                target.normalDeltas.resize(source.mNumVertices);
+
+                for (unsigned int v = 0; v < source.mNumVertices; ++v)
+                {
+                    const aiVector3D delta = anim->mNormals[v] - source.mNormals[v];
+
+                    const vec3 normalDelta = { delta.x, delta.y, delta.z };
+
+                    if (aiko::math::isfinite(normalDelta) == false)
+                    {
+                        return "Non-finite normal delta in '" + target.name + "'";
+                    }
+
+                    target.normalDeltas[v] = normalDelta;
+                }
+            }
+
+            destination.m_morphTargets.push_back(std::move(target));
+        }
+
+        return {};
+    }
+
     static AssetImportResult<ImportedModel> importSceneMeshes(const aiScene& scene, ImportedModel result)
     {
         result.submeshes.reserve(scene.mNumMeshes);
@@ -176,7 +265,16 @@ namespace aiko
             ImportedModelSubMesh submesh{};
 
             submesh.mesh = importAiMesh(mesh);
+
+            const std::string morphError = importAiMorphTargets(*mesh, submesh.mesh);
+
+            if (!morphError.empty())
+            {
+                return AssetImportResult<ImportedModel>::failure(AssetImportError::InvalidData, "Mesh " + std::to_string(i) + ": " + morphError);
+            }
+
             submesh.useVertexColor = mesh->HasVertexColors(0);
+
             submesh.lit = true;
             submesh.shaderSource = "model";
 
@@ -232,7 +330,16 @@ namespace aiko
 
         const aiMesh* paiMesh = scene->mMeshes[0];
 
-        return AssetImportResult<MeshAsset>::success(importAiMesh(paiMesh));
+        MeshAsset mesh = importAiMesh(paiMesh);
+
+        const std::string morphError = importAiMorphTargets(*paiMesh, mesh);
+
+        if (!morphError.empty())
+        {
+            return AssetImportResult<MeshAsset>::failure(AssetImportError::InvalidData, morphError);
+        }
+
+        return AssetImportResult<MeshAsset>::success(std::move(mesh));
 
     }
 

@@ -217,8 +217,11 @@ namespace aiko
     void RenderSystem::render(const Transform& trans, const Model& model)
     {
         AIKO_FUNCTION_PROFILE
-        for (const Model::SubMesh& submesh : model.getSubMeshes())
+        const auto& subMeshes = model.getSubMeshes();
+
+        for (size_t subMeshIndex = 0; subMeshIndex < subMeshes.size(); ++subMeshIndex)
         {
+            const Model::SubMesh& submesh = subMeshes[subMeshIndex];
             AIKO_ASSERT(submesh.mesh != nullptr, "Runtime model contains a null mesh");
             if (!submesh.mesh->isValid())
             {
@@ -228,7 +231,12 @@ namespace aiko
             {
                 const auto skinMatrices = model.bindSkinMatrices();
                 AIKO_ASSERT(!skinMatrices.empty(), "Skinned model has no bone palette");
-                m_renderModule->submit(trans, *submesh.mesh, submesh.material, skinMatrices);
+
+                // Weight order follows this submesh's imported morph target order.
+                // The render queue takes an owned copy before this temporary dies.
+                const std::vector<float> morphWeights = model.morphWeightsForSubMesh(subMeshIndex);
+                AIKO_ASSERT(morphWeights.size() == submesh.morphTargetNames.size(), "Morph weight count does not match target names");
+                m_renderModule->submit(trans, *submesh.mesh, submesh.material, skinMatrices, morphWeights);
             }
             else
             {

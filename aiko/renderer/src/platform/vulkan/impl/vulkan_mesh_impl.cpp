@@ -5,9 +5,11 @@
 #include "platform/vulkan/vulkan_types.h"
 
 #include <assets/mesh_tangents.h>
+#include <assets/types/mesh_asset.h>
 #include <logger/logger.h>
 
 #include <cstring>
+#include <limits>
 
 namespace aiko::renderer::vulkan
 {
@@ -57,6 +59,36 @@ namespace aiko::renderer::vulkan
 
             return vertices;
         }
+
+        // Dense, target-major storage. Sparse/active-target optimization can
+        // happen later without changing the imported MorphTargetAsset format.
+        std::vector<VulkanMorphDelta> buildMorphDeltas(const MeshAsset& asset)
+        {
+            const size_t vertexCount = asset.m_vertices.size();
+            std::vector<VulkanMorphDelta> deltas;
+            deltas.reserve(vertexCount * asset.m_morphTargets.size());
+
+            for (const MorphTargetAsset& target : asset.m_morphTargets)
+            {
+                AIKO_ASSERT(target.positionDeltas.size() == vertexCount, "Morph position count must match mesh vertex count");
+                AIKO_ASSERT(target.normalDeltas.empty() || target.normalDeltas.size() == vertexCount, "Morph normal count must match mesh vertex count");
+
+                for (size_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
+                {
+                    const vec3& position = target.positionDeltas[vertexIndex];
+                    const vec3 normal = target.normalDeltas.empty()
+                        ? vec3{0.0f, 0.0f, 0.0f}
+                        : target.normalDeltas[vertexIndex];
+
+                    deltas.push_back(VulkanMorphDelta{
+                        .position = vec4{position.x, position.y, position.z, 0.0f},
+                        .normal = vec4{normal.x, normal.y, normal.z, 0.0f},
+                    });
+                }
+            }
+
+            return deltas;
+        }
     }
 
 
@@ -68,7 +100,7 @@ namespace aiko::renderer::vulkan
 
     VulkanMeshImpl::~VulkanMeshImpl()
     {
-        AIKO_ASSERT(m_vertexBuffer == VK_NULL_HANDLE && m_vertexMemory == VK_NULL_HANDLE && m_indexBuffer == VK_NULL_HANDLE && m_indexMemory == VK_NULL_HANDLE && m_skinBuffer == VK_NULL_HANDLE && m_skinMemory == VK_NULL_HANDLE, "VulkanMeshImpl destroyed without unload()");
+        AIKO_ASSERT(m_vertexBuffer == VK_NULL_HANDLE && m_vertexMemory == VK_NULL_HANDLE && m_indexBuffer == VK_NULL_HANDLE && m_indexMemory == VK_NULL_HANDLE && m_skinBuffer == VK_NULL_HANDLE && m_skinMemory == VK_NULL_HANDLE && m_morphBuffer == VK_NULL_HANDLE && m_morphMemory == VK_NULL_HANDLE, "VulkanMeshImpl destroyed without unload()");
     }
 
     bool VulkanMeshImpl::isValid() const
@@ -86,7 +118,15 @@ namespace aiko::renderer::vulkan
             : m_skinBuffer == VK_NULL_HANDLE &&
               m_skinMemory == VK_NULL_HANDLE;
 
-        return geometryValid && skinValid;
+        const bool morphValid = m_morphTargetCount > 0
+            ? m_morphBuffer != VK_NULL_HANDLE &&
+              m_morphMemory != VK_NULL_HANDLE &&
+              m_morphVertexCount > 0
+            : m_morphBuffer == VK_NULL_HANDLE &&
+              m_morphMemory == VK_NULL_HANDLE &&
+              m_morphVertexCount == 0;
+
+        return geometryValid && skinValid && morphValid;
     }
 
     void VulkanMeshImpl::unload()
@@ -96,10 +136,14 @@ namespace aiko::renderer::vulkan
             m_indexBuffer == VK_NULL_HANDLE &&
             m_indexMemory == VK_NULL_HANDLE &&
             m_skinBuffer == VK_NULL_HANDLE &&
-            m_skinMemory == VK_NULL_HANDLE)
+            m_skinMemory == VK_NULL_HANDLE &&
+            m_morphBuffer == VK_NULL_HANDLE &&
+            m_morphMemory == VK_NULL_HANDLE)
         {
             m_indexCount = 0;
             m_hasSkinning = false;
+            m_morphTargetCount = 0;
+            m_morphVertexCount = 0;
             return;
         }
 
@@ -109,6 +153,8 @@ namespace aiko::renderer::vulkan
         const VkDeviceMemory indexMemory = m_indexMemory;
         const VkBuffer skinBuffer = m_skinBuffer;
         const VkDeviceMemory skinMemory = m_skinMemory;
+        const VkBuffer morphBuffer = m_morphBuffer;
+        const VkDeviceMemory morphMemory = m_morphMemory;
 
         m_vertexBuffer = VK_NULL_HANDLE;
         m_vertexMemory = VK_NULL_HANDLE;
@@ -116,6 +162,10 @@ namespace aiko::renderer::vulkan
         m_indexMemory = VK_NULL_HANDLE;
         m_skinBuffer = VK_NULL_HANDLE;
         m_skinMemory = VK_NULL_HANDLE;
+        m_morphBuffer = VK_NULL_HANDLE;
+        m_morphMemory = VK_NULL_HANDLE;
+        m_morphTargetCount = 0;
+        m_morphVertexCount = 0;
         m_indexCount = 0;
         m_hasSkinning = false;
 
@@ -126,6 +176,10 @@ namespace aiko::renderer::vulkan
         if (skinBuffer != VK_NULL_HANDLE)
         {
             ctx.retireBuffer(skinBuffer, skinMemory);
+        }
+        if (morphBuffer != VK_NULL_HANDLE)
+        {
+            ctx.retireBuffer(morphBuffer, morphMemory);
         }
     }
 
@@ -149,15 +203,38 @@ namespace aiko::renderer::vulkan
             AIKO_ASSERT(index < asset.m_vertices.size(), "Mesh index out of vertex range");
         }
 
+        const bool hasMorphTargets = !asset.m_morphTargets.empty();
+        if (hasMorphTargets)
+        {
+            AIKO_ASSERT(asset.m_vertices.size() <= std::numeric_limits<uint32_t>::max(), "Morph mesh has too many vertices");
+            AIKO_ASSERT(asset.m_morphTargets.size() <= std::numeric_limits<uint32_t>::max(), "Morph mesh has too many targets");
+            AIKO_ASSERT(asset.m_morphTargets.size() <= std::numeric_limits<size_t>::max() / asset.m_vertices.size(), "Morph entry count overflow");
+
+            for (const MorphTargetAsset& target : asset.m_morphTargets)
+            {
+                AIKO_ASSERT(target.positionDeltas.size() == asset.m_vertices.size(), "Invalid morph position count");
+                AIKO_ASSERT(target.normalDeltas.empty() || target.normalDeltas.size() == asset.m_vertices.size(), "Invalid morph normal count");
+            }
+        }
+
         VulkanContext& ctx = VulkanContext::current();
         const VkDevice device = ctx.device();
 
         const vector<VulkanVertex> vertices = buildVertices(asset);
         const std::vector<VulkanSkinVertex> skinnedVertices = hasSkinning ? buildSkinVertices(asset) : std::vector<VulkanSkinVertex>{};
+        const std::vector<VulkanMorphDelta> morphDeltas = hasMorphTargets ? buildMorphDeltas(asset) : std::vector<VulkanMorphDelta>{};
 
         const VkDeviceSize vertexSize = sizeof(VulkanVertex) * vertices.size();
         const VkDeviceSize indexSize = sizeof(uint32_t) * asset.m_indices.size();
         const VkDeviceSize skinSize = sizeof(VulkanSkinVertex) * skinnedVertices.size();
+        const VkDeviceSize morphSize = sizeof(VulkanMorphDelta) * morphDeltas.size();
+
+        if (hasMorphTargets)
+        {
+            VkPhysicalDeviceProperties properties{};
+            vkGetPhysicalDeviceProperties(ctx.physicalDevice(), &properties);
+            AIKO_ASSERT(morphSize <= properties.limits.maxStorageBufferRange, "Morph buffer exceeds Vulkan maxStorageBufferRange");
+        }
 
         struct BufferAllocation
         {
@@ -171,6 +248,8 @@ namespace aiko::renderer::vulkan
         BufferAllocation newIndex;
         BufferAllocation skinStaging;
         BufferAllocation newSkin;
+        BufferAllocation morphStaging;
+        BufferAllocation newMorph;
 
         const auto destroy = [device](BufferAllocation& allocation)
         {
@@ -192,9 +271,11 @@ namespace aiko::renderer::vulkan
             destroy(vertexStaging);
             destroy(indexStaging);
             destroy(skinStaging);
+            destroy(morphStaging);
             destroy(newVertex);
             destroy(newIndex);
             destroy(newSkin);
+            destroy(newMorph);
         };
 
         const auto allocate = [&](BufferAllocation& allocation, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, const char* label) -> bool
@@ -229,6 +310,16 @@ namespace aiko::renderer::vulkan
 
             if (!allocate(skinStaging, skinSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, stagingProperties, "skin staging") ||
                 !allocate(newSkin, skinSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, deviceProperties, "new skin"))
+            {
+                cleanup();
+                return;
+            }
+        }
+
+        if (hasMorphTargets)
+        {
+            if (!allocate(morphStaging, morphSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, stagingProperties, "morph staging") ||
+                !allocate(newMorph, morphSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, deviceProperties, "morph"))
             {
                 cleanup();
                 return;
@@ -284,7 +375,23 @@ namespace aiko::renderer::vulkan
             vkUnmapMemory(device, skinStaging.memory);
         }
 
-        // Submit both copies and wait for completion.
+        if (hasMorphTargets)
+        {
+            mapped = nullptr;
+            mapResult = vkMapMemory(device, morphStaging.memory, 0, morphSize, 0, &mapped);
+
+            if (mapResult != VK_SUCCESS)
+            {
+                logger::Log::error("Failed to map Vulkan morph staging memory (VkResult %d)", static_cast<int>(mapResult));
+                cleanup();
+                return;
+            }
+
+            std::memcpy(mapped, morphDeltas.data(), static_cast<size_t>(morphSize));
+            vkUnmapMemory(device, morphStaging.memory);
+        }
+
+        // Submit all copies and wait for completion.
         VkCommandBuffer commandBuffer = ctx.beginSingleTimeCommands();
 
         ctx.copyBuffer(commandBuffer, vertexStaging.buffer, newVertex.buffer, vertexSize);
@@ -294,6 +401,10 @@ namespace aiko::renderer::vulkan
         {
             ctx.copyBuffer(commandBuffer, skinStaging.buffer, newSkin.buffer, skinSize);
         }
+        if (hasMorphTargets)
+        {
+            ctx.copyBuffer(commandBuffer, morphStaging.buffer, newMorph.buffer, morphSize);
+        }
 
         ctx.endSingleTimeCommands(commandBuffer);
 
@@ -301,6 +412,7 @@ namespace aiko::renderer::vulkan
         destroy(vertexStaging);
         destroy(indexStaging);
         destroy(skinStaging);
+        destroy(morphStaging);
 
         // Commit the replacement only after successful upload.
         // Existing buffers are retired through Aiko's frame lifecycle.
@@ -314,11 +426,22 @@ namespace aiko::renderer::vulkan
         m_skinBuffer = newSkin.buffer;
         m_skinMemory = newSkin.memory;
         m_hasSkinning = hasSkinning;
+        m_morphBuffer = newMorph.buffer;
+        m_morphMemory = newMorph.memory;
+        m_morphTargetCount = static_cast<uint32_t>(asset.m_morphTargets.size());
+        m_morphVertexCount = hasMorphTargets ? static_cast<uint32_t>(asset.m_vertices.size()) : 0;
+
+        if (hasMorphTargets)
+        {
+            logger::Log::infoFmt("Uploaded {} morph targets to GPU ({} vertices each, {} bytes)",
+                m_morphTargetCount, m_morphVertexCount, static_cast<size_t>(morphSize));
+        }
 
         // Ownership now belongs to this VulkanMeshImpl.
         newVertex = {};
         newIndex = {};
         newSkin = {};
+        newMorph = {};
     }
 
     RenderResourceId VulkanMeshImpl::id()

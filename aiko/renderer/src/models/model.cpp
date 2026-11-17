@@ -13,7 +13,7 @@
 
 namespace aiko
 {
-    void Model::addSubMesh(std::shared_ptr<Mesh> mesh, Material material, bool skinned)
+    void Model::addSubMesh(std::shared_ptr<Mesh> mesh, Material material, bool skinned, std::vector<std::string> morphTargetNames)
     {
         AIKO_ASSERT(mesh != nullptr, "Model submesh requires a valid Mesh");
 
@@ -26,16 +26,96 @@ namespace aiko
             .mesh = std::move(mesh),
             .material = std::move(material),
             .skinned = skinned,
+            .morphTargetNames = std::move(morphTargetNames),
         });
     }
 
     void Model::addSubMesh(const MeshAsset& asset, Material material)
     {
         auto mesh = std::make_shared<Mesh>();
-
         mesh->upload(asset);
 
-        addSubMesh(std::move(mesh), std::move(material), !asset.m_jointIndices.empty());
+        std::vector<std::string> names;
+        names.reserve(asset.m_morphTargets.size());
+
+        for (const MorphTargetAsset& target : asset.m_morphTargets)
+        {
+            names.push_back(target.name);
+        }
+
+        addSubMesh(std::move(mesh), std::move(material), !asset.m_jointIndices.empty(), std::move(names));
+    }
+
+    bool Model::setMorphWeight(std::string_view name, float weight)
+    {
+        if (name.empty() || !std::isfinite(weight))
+        {
+            return false;
+        }
+
+        bool found = false;
+
+        for (const SubMesh& submesh : getSubMeshes())
+        {
+            const auto it = std::find_if(
+                submesh.morphTargetNames.begin(),
+                submesh.morphTargetNames.end(),
+                [name](const std::string& targetName)
+                {
+                    return targetName == name;
+                });
+
+            if (it != submesh.morphTargetNames.end())
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            return false;
+        }
+
+        if (weight == 0.0f)
+        {
+            m_morphWeights.erase(std::string(name));
+        }
+        else
+        {
+            m_morphWeights.insert_or_assign(std::string(name), weight);
+        }
+
+        return true;
+    }
+
+    float Model::morphWeight(std::string_view name) const
+    {
+        const auto it = m_morphWeights.find(std::string(name));
+
+        return it != m_morphWeights.end() ? it->second : 0.0f;
+    }
+
+    std::vector<float> Model::morphWeightsForSubMesh(size_t subMeshIndex) const
+    {
+        const auto submeshes = getSubMeshes();
+
+        if (subMeshIndex >= submeshes.size())
+        {
+            return {};
+        }
+
+        const SubMesh& submesh = submeshes[subMeshIndex];
+
+        std::vector<float> weights;
+        weights.reserve(submesh.morphTargetNames.size());
+
+        for (const std::string& name : submesh.morphTargetNames)
+        {
+            weights.push_back(morphWeight(name));
+        }
+
+        return weights;
     }
 
     bool Model::setJointRotation(std::string_view jointName, float angleRadians, const vec3& axis)
@@ -313,6 +393,7 @@ namespace aiko
     void Model::unload()
     {
         stopAnimation();
+        m_morphWeights.clear();
         m_state.reset();
     }
 

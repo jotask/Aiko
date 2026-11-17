@@ -30,6 +30,11 @@ namespace aiko::renderer::vulkan
         VkBuffer skinBuffer() const { return m_skinBuffer; }
         bool hasSkinning() const { return m_hasSkinning; }
 
+        VkBuffer morphBuffer() const { return m_morphBuffer; }
+        bool hasMorphTargets() const { return m_morphTargetCount > 0; }
+        uint32_t morphTargetCount() const { return m_morphTargetCount; }
+        uint32_t morphVertexCount() const { return m_morphVertexCount; }
+
     private:
 
         VkBuffer m_vertexBuffer = VK_NULL_HANDLE;
@@ -38,6 +43,10 @@ namespace aiko::renderer::vulkan
         VkDeviceMemory m_indexMemory = VK_NULL_HANDLE;
         VkBuffer m_skinBuffer = VK_NULL_HANDLE;
         VkDeviceMemory m_skinMemory = VK_NULL_HANDLE;
+        VkBuffer m_morphBuffer = VK_NULL_HANDLE;
+        VkDeviceMemory m_morphMemory = VK_NULL_HANDLE;
+        uint32_t m_morphTargetCount = 0;
+        uint32_t m_morphVertexCount = 0;
         u32 m_indexCount = 0;
 
         Texture m_texture;

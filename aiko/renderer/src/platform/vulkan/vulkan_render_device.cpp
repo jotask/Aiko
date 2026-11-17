@@ -1013,13 +1013,15 @@ namespace aiko::renderer::vulkan
         AIKO_ASSERT(meshImpl->isValid(), "Invalid skinned mesh");
         AIKO_ASSERT(meshImpl->hasSkinning(), "Mesh has no skinning vertex data");
 
-        const VkDescriptorSet skinSet = uploadSkinPalette(packet.skinMatrices);
+        AIKO_ASSERT(packet.morphWeights.size() == meshImpl->morphTargetCount(), "Draw morph weight count does not match mesh targets");
+
+        const VkDescriptorSet deformationSet = uploadDeformationData(packet.skinMatrices, meshImpl->morphBuffer(), meshImpl->morphTargetCount(), meshImpl->morphVertexCount(), packet.morphWeights);
 
         const VkPipeline pipeline = getOrCreateModelPipeline(m_activeRenderPass, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, packet.material->m_shaderId, packet.material->m_renderState, false);
 
         VkCommandBuffer commandBuffer = m_context.activeCommandBuffer();
 
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsGpuReadSet, 1, &skinSet, 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_modelPipelines.layout(), abi::GraphicsGpuReadSet, 1, &deformationSet, 0, nullptr);
 
         const VkBuffer skinBuffer = meshImpl->skinBuffer();
         const VkDeviceSize skinOffset = 0;
@@ -2860,7 +2862,7 @@ namespace aiko::renderer::vulkan
         texture.setState(destination);
     }
 
-    VkDescriptorSet VulkanRenderDevice::uploadSkinPalette(std::span<const mat4> skinMatrices)
+    VkDescriptorSet VulkanRenderDevice::uploadDeformationData(std::span<const mat4> skinMatrices, VkBuffer morphBuffer, uint32_t morphTargetCount, uint32_t morphVertexCount, std::span<const float> morphWeights)
     {
         AIKO_ASSERT(!skinMatrices.empty(), "Skin palette is empty");
         static_assert(sizeof(mat4) == sizeof(float) * 16);
@@ -2870,33 +2872,88 @@ namespace aiko::renderer::vulkan
         VkPhysicalDeviceProperties properties{};
         vkGetPhysicalDeviceProperties(m_context.physicalDevice(), &properties);
 
-        AIKO_ASSERT(paletteSize <= properties.limits.maxStorageBufferRange, "Skin palette exceeds maximum storage buffer range");
+        AIKO_ASSERT(paletteSize <= properties.limits.maxStorageBufferRange, "Skin palette exceeds Vulkan storage buffer range");
+
+        const bool hasMorphs = morphTargetCount > 0;
+        AIKO_ASSERT(morphWeights.size() == morphTargetCount, "Morph weights do not match target count");
+        AIKO_ASSERT(hasMorphs || morphBuffer == VK_NULL_HANDLE, "Non-morph mesh has morph buffer");
+        AIKO_ASSERT(hasMorphs || morphVertexCount == 0, "Non-morph mesh has morph vertices");
+        AIKO_ASSERT(!hasMorphs || morphBuffer != VK_NULL_HANDLE, "Morph mesh has no GPU buffer");
+        AIKO_ASSERT(!hasMorphs || morphVertexCount > 0, "Morph mesh has zero vertices");
 
         const VkDeviceSize alignment = std::max<VkDeviceSize>(1, properties.limits.minStorageBufferOffsetAlignment);
 
-        const UploadSlice slice = m_uploadArena.allocate(m_context.currentFrameIndex(), paletteSize, alignment);
-
-        std::memcpy(slice.mapped, skinMatrices.data(), static_cast<size_t>(paletteSize));
+        const UploadSlice paletteSlice = m_uploadArena.allocate(m_context.currentFrameIndex(), paletteSize, alignment);
+        std::memcpy(paletteSlice.mapped, skinMatrices.data(), static_cast<size_t>(paletteSize));
 
         const VkDescriptorSet descriptorSet = m_gpuReadDescriptors.allocate(m_context.currentFrameIndex());
 
-        const VkDescriptorBufferInfo bufferInfo{
-            .buffer = slice.buffer,
-            .offset = slice.offset,
+        const VkDescriptorBufferInfo paletteInfo{
+            .buffer = paletteSlice.buffer,
+            .offset = paletteSlice.offset,
             .range = paletteSize,
         };
 
-        const VkWriteDescriptorSet write{
+        std::array<VkDescriptorBufferInfo, 3> bufferInfos{};
+        bufferInfos[0] = paletteInfo;
+
+        std::array<VkWriteDescriptorSet, 3> writes{};
+        writes[0] = VkWriteDescriptorSet{
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstSet = descriptorSet,
             .dstBinding = abi::GraphicsSkinPaletteBinding,
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .pBufferInfo = &bufferInfo,
+            .pBufferInfo = &bufferInfos[0],
         };
 
-        vkUpdateDescriptorSets(m_context.device(), 1, &write, 0, nullptr);
+        uint32_t writeCount = 1;
 
+        if (hasMorphs)
+        {
+            const VkDeviceSize morphSize =
+                static_cast<VkDeviceSize>(morphTargetCount) *
+                static_cast<VkDeviceSize>(morphVertexCount) * sizeof(VulkanMorphDelta);
+
+            const VkDeviceSize weightsSize = static_cast<VkDeviceSize>(morphWeights.size_bytes());
+
+            AIKO_ASSERT(morphSize <= properties.limits.maxStorageBufferRange, "Morph deltas exceed Vulkan storage buffer range");
+            AIKO_ASSERT(weightsSize <= properties.limits.maxStorageBufferRange, "Morph weights exceed Vulkan storage buffer range");
+
+            const UploadSlice weightsSlice = m_uploadArena.allocate(m_context.currentFrameIndex(), weightsSize, alignment);
+            std::memcpy(weightsSlice.mapped, morphWeights.data(), static_cast<size_t>(weightsSize));
+
+            bufferInfos[1] = VkDescriptorBufferInfo{
+                .buffer = morphBuffer,
+                .offset = 0,
+                .range = morphSize,
+            };
+            bufferInfos[2] = VkDescriptorBufferInfo{
+                .buffer = weightsSlice.buffer,
+                .offset = weightsSlice.offset,
+                .range = weightsSize,
+            };
+
+            writes[1] = VkWriteDescriptorSet{
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = descriptorSet,
+                .dstBinding = abi::GraphicsMorphDeltasBinding,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .pBufferInfo = &bufferInfos[1],
+            };
+            writes[2] = VkWriteDescriptorSet{
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = descriptorSet,
+                .dstBinding = abi::GraphicsMorphWeightsBinding,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .pBufferInfo = &bufferInfos[2],
+            };
+            writeCount = 3;
+        }
+
+        vkUpdateDescriptorSets(m_context.device(), writeCount, writes.data(), 0, nullptr);
         return descriptorSet;
     }
 

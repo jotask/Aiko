@@ -217,7 +217,16 @@ namespace aiko
 
             const MeshAsset& meshAsset = m_assetProvider.getMeshAsset(submesh.meshId);
 
-            replacement.addSubMesh(acquireMesh(submesh.meshId), std::move(material), !meshAsset.m_jointIndices.empty());
+            std::vector<std::string> morphNames;
+            morphNames.reserve(meshAsset.m_morphTargets.size());
+
+            for (const MorphTargetAsset& target : meshAsset.m_morphTargets)
+            {
+                morphNames.push_back(target.name);
+            }
+
+            replacement.addSubMesh(acquireMesh(submesh.meshId), std::move(material), !meshAsset.m_jointIndices.empty(), std::move(morphNames));
+
         }
 
         it->second->replaceContents(std::move(replacement));

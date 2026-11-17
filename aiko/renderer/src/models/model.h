@@ -11,6 +11,8 @@
 #include <span>
 #include <string_view>
 #include <vector>
+#include <string>
+#include <unordered_map>
 
 namespace aiko
 {
@@ -26,6 +28,7 @@ namespace aiko
             std::shared_ptr<Mesh> mesh;
             Material material{};
             bool skinned = false;
+            std::vector<std::string> morphTargetNames;
         };
 
         Model() = default;
@@ -38,18 +41,17 @@ namespace aiko
         Model(Model&&) noexcept = default;
         Model& operator=(Model&&) noexcept = default;
 
-        void addSubMesh(std::shared_ptr<Mesh> mesh, Material material, bool skinned = false);
+        void addSubMesh(std::shared_ptr<Mesh> mesh, Material material, bool skinned = false, std::vector<std::string> morphTargetNames = {});
         void addSubMesh(const MeshAsset& asset, Material material);
+
+        bool setMorphWeight(std::string_view name, float weight);
+        float morphWeight(std::string_view name) const;
+        std::vector<float> morphWeightsForSubMesh(size_t subMeshIndex) const;
 
         bool setJointRotation(std::string_view jointName, float angleRadians, const vec3& axis);
 
-        [[nodiscard]]
         std::span<const SkeletonJoint> joints() const;
-
-        [[nodiscard]]
         std::optional<size_t> findJointIndex(std::string_view jointName) const;
-
-        [[nodiscard]]
         SkeletonPose createBindPose() const;
 
         bool setPose(const SkeletonPose& pose);
@@ -57,8 +59,6 @@ namespace aiko
         bool setJointLocalTransform(std::string_view jointName, const mat4& localTransform);
 
         size_t animationCount() const;
-
-        [[nodiscard]]
         std::string_view animationName(size_t index) const;
 
         bool playAnimation(std::string_view clipName, bool loop = true);
@@ -68,10 +68,8 @@ namespace aiko
 
         void unload();
 
-        [[nodiscard]]
         bool isValid() const;
 
-        [[nodiscard]]
         const std::vector<SubMesh>& getSubMeshes() const;
 
     private:
@@ -109,5 +107,7 @@ namespace aiko
         double m_animationTime = 0.0;
         bool m_animationPlaying = false;
         bool m_animationLoop = true;
+
+        std::unordered_map<std::string, float> m_morphWeights;
     };
 }

@@ -700,7 +700,17 @@ namespace aiko
             const bool skinned = !importedSubmesh.mesh.m_jointIndices.empty();
             AIKO_ASSERT(!skinned || (model.skeleton && !model.skeleton->joints.empty()), "Skinned mesh requires a skeleton");
 
-            submesh.material.shaderId = skinned ? registerShader("renderer://model_skinned", "renderer://model") : registerShader(importedSubmesh.shaderSource);
+            if (skinned)
+            {
+                const bool morphable = !importedSubmesh.mesh.m_morphTargets.empty();
+                submesh.material.shaderId = morphable
+                    ? registerShader("renderer://model_skinned_morph", "renderer://model")
+                    : registerShader("renderer://model_skinned", "renderer://model");
+            }
+            else
+            {
+                submesh.material.shaderId = registerShader(importedSubmesh.shaderSource);
+            }
 
             if (submesh.meshId == InvalidAssetId || submesh.material.shaderId == InvalidAssetId)
             {

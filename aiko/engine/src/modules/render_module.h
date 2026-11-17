@@ -45,7 +45,7 @@ namespace aiko
         void updateModel(const AssetId& id);
         ComputeShader& getComputeShader(const AssetId& id);
 
-        void submit(const Transform& transform, const Mesh& mesh, const Material& material, std::span<const mat4> skinMatrices = {});
+        void submit(const Transform& transform, const Mesh& mesh, const Material& material, std::span<const mat4> skinMatrices = {}, std::span<const float> morphWeights = {});
         void submit(const Transform& transform, const std::shared_ptr<Mesh>& mesh, const Material& material);
 
         void submitInstanced(const Mesh& mesh, const Material& material, const InstanceData* instances, u32 instanceCount);

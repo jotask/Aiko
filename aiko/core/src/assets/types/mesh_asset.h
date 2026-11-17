@@ -9,9 +9,19 @@
 
 #include <aiko_types.h>
 #include <optional>
+#include <string>
+#include <vector>
 
 namespace aiko
 {
+
+    struct MorphTargetAsset
+    {
+        std::string name;
+        std::vector<vec3> positionDeltas;
+        std::vector<vec3> normalDeltas;
+    };
+
     struct MeshAsset
     {
         vector<vec3>        m_vertices;
@@ -23,6 +33,8 @@ namespace aiko
 
 	    std::vector<uvec4>  m_jointIndices;
 	    std::vector<vec4>   m_jointWeights;
+
+        std::vector<MorphTargetAsset> m_morphTargets;
     };
 
     struct ModelAsset

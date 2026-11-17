@@ -166,7 +166,7 @@ namespace aiko::renderer::vulkan
         void releaseTextureOwnership(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& destination);
         void acquireTextureOwnership(VkCommandBuffer commandBuffer, VulkanTextureImpl& texture, const VulkanImageState& source, const VulkanImageState& destination);
 
-        VkDescriptorSet uploadSkinPalette(std::span<const mat4> skinMatrices);
+        VkDescriptorSet uploadDeformationData(std::span<const mat4> skinMatrices, VkBuffer morphBuffer, uint32_t morphTargetCount, uint32_t morphVertexCount, std::span<const float> morphWeights);
 
         void transitionComputeBuffers(VkCommandBuffer commandBuffer, const vector<ComputeBufferBinding>& bindings, bool useDedicatedCompute);
         VulkanBufferState computeBufferState(ComputeAccess access, uint32_t queueFamily) const;

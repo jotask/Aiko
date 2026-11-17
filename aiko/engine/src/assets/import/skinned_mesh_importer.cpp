@@ -135,6 +135,70 @@ namespace aiko
                     transformed.z
                 });
             }
+
+            // Transform morph targets into the same space as the base mesh.
+            for (MorphTargetAsset& morph : destination.m_morphTargets)
+            {
+                if (morph.positionDeltas.size() != destination.m_vertices.size())
+                {
+                    return AssetImportResult<ImportedModel>::failure(AssetImportError::InvalidData, "Invalid morph position count: " + morph.name);
+                }
+
+                // Positions are displacement vectors, so w = 0.
+                // Translation must never affect a morph delta.
+                for (vec3& delta : morph.positionDeltas)
+                {
+                    const vec4 transformed = meshBind * vec4{ delta.x, delta.y, delta.z, 0.0f };
+                    delta = {
+                        transformed.x,
+                        transformed.y,
+                        transformed.z
+                    };
+
+                    if (!math::isfinite(delta))
+                    {
+                        return AssetImportResult<ImportedModel>::failure( AssetImportError::InvalidData, "Invalid transformed morph position: " + morph.name);
+                    }
+                }
+
+                if (morph.normalDeltas.empty())
+                {
+                    continue;
+                }
+
+                if (source.mNormals == nullptr || morph.normalDeltas.size() != destination.m_normals.size())
+                {
+                    return AssetImportResult<ImportedModel>::failure(AssetImportError::InvalidData, "Invalid morph normal count: " + morph.name);
+                }
+
+                for (size_t v = 0; v < morph.normalDeltas.size(); ++v)
+                {
+                    const aiVector3D& original = source.mNormals[v];
+
+                    const vec3 originalNormal = { original.x, original.y, original.z };
+
+                    // Reconstruct the target normal before changing spaces.
+                    const vec3 targetNormal = originalNormal + morph.normalDeltas[v];
+
+                    const vec4 transformed = normalMatrix * vec4{ targetNormal.x, targetNormal.y, targetNormal.z, 0.0f };
+
+                    const vec3 transformedNormal = { transformed.x, transformed.y, transformed.z};
+
+                    if (!math::isfinite(transformedNormal) || math::length(transformedNormal) <= 1e-6f)
+                    {
+                        return AssetImportResult<ImportedModel>::failure(AssetImportError::InvalidData, "Invalid transformed morph normal: " + morph.name);
+                    }
+
+                    // Base normals have already been normalized above.
+                    // Store the difference between normalized target and base.
+                    morph.normalDeltas[v] = math::normalize(transformedNormal) - destination.m_normals[v];
+
+                    if (!math::isfinite(morph.normalDeltas[v]))
+                    {
+                        return AssetImportResult<ImportedModel>::failure(AssetImportError::InvalidData, "Non-finite morph normal delta: " + morph.name);
+                    }
+                }
+            }
         }
 
         auto animations = importAnimations(scene, skeleton);
@@ -148,6 +212,32 @@ namespace aiko
 
         logger::Log::infoFmt("Imported {} skeletal animation clips", imported.animations.size());
         logger::Log::infoFmt("Skinned model imported: {} joints, {} submeshes", skeleton.joints.size(), imported.submeshes.size());
+
+        size_t totalMorphTargets = 0;
+
+        for (size_t meshIndex = 0; meshIndex < imported.submeshes.size(); ++meshIndex)
+        {
+            const auto& targets = imported.submeshes[meshIndex].mesh.m_morphTargets;
+
+            if (targets.empty())
+            {
+                continue;
+            }
+
+            totalMorphTargets += targets.size();
+
+            logger::Log::infoFmt("Morph mesh [{}] '{}': {} targets", meshIndex, scene.mMeshes[meshIndex]->mName.C_Str(), targets.size());
+
+            for (const MorphTargetAsset& morph : targets)
+            {
+                if (morph.name == "jawOpen" || morph.name == "eyeBlinkLeft")
+                {
+                    logger::Log::infoFmt("  Found '{}' ({} position deltas)", morph.name, morph.positionDeltas.size());
+                }
+            }
+        }
+
+        logger::Log::infoFmt("Imported {} morph target entries", totalMorphTargets);
 
         return AssetImportResult<ImportedModel>::success(std::move(imported));
     }

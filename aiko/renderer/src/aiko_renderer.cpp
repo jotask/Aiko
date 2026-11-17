@@ -179,7 +179,7 @@ namespace aiko
         m_lights.push_back(light);
     }
 
-    void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const Material& material, std::span<const mat4> skinMatrices)
+    void AikoRenderer::submit(const Transform& transform, const Mesh& mesh, const Material& material, std::span<const mat4> skinMatrices, std::span<const float> morphWeights)
     {
         AIKO_FUNCTION_PROFILE
         if (!mesh.isValid())
@@ -187,7 +187,7 @@ namespace aiko
             return;
         }
         m_frameMaterials.push_back(material);
-        m_renderQueue.submit(mesh, m_frameMaterials.back(), transform.getWorldMatrix(), skinMatrices);
+        m_renderQueue.submit(mesh, m_frameMaterials.back(), transform.getWorldMatrix(), skinMatrices, morphWeights);
     }
 
     void AikoRenderer::submit(const Transform& transform, const std::shared_ptr<Mesh>& mesh, const Material& material)
